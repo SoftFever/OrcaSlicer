@@ -4444,24 +4444,42 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
     };
 
+    auto draw_dash_line = [&](ImDrawList* draw_list, int dash_length = 5, int gap_length = 3) {
+        ImVec2 p1 = ImGui::GetCursorScreenPos();
+        ImVec2 p2 = ImVec2(p1.x + ImGui::GetContentRegionAvail().x, p1.y);
+        for (float i = p1.x; i < p2.x; i += (dash_length + gap_length)) {
+            draw_list->AddLine(ImVec2(i, p1.y), ImVec2(i + dash_length, p1.y), IM_COL32(206, 206, 206, 255));
+        }
+    };
+
     ////BBS Color Arrangement Recommendation
 
     auto config            = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
     auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
-    auto filament_map_mode = config.filament_map_mode.value;
-    auto is_auto = filament_map_mode < FilamentMapMode::fmmManual;
-    bool has_tips           = true;
-    if (is_auto) {
-        float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight;
-        int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count;
-        if (!(saved_flush_weight > EPSILON || saved_filament_changed_time > 0)) has_tips = false;
-    }
+
+    float delta_weight_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight;
+    float delta_weight_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_best.filament_flush_weight;
+    int   delta_change_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count;
+    int   delta_change_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.filament_change_count;
+
+    bool less_to_single_ext = delta_weight_to_single_ext > EPSILON || delta_change_to_single_ext > 0;
+    bool more_to_best = delta_weight_to_best > EPSILON || delta_change_to_best > 0;
+
     // BBS AMS containers
     float line_height          = ImGui::GetFrameHeight();
     int   AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
     float three_words_width    = imgui.calc_text_size("ABC"sv).x;
     float ams_item_height = std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.6f + line_height) + line_height * 2;
-    float AMS_container_height = ams_item_height + line_height * (has_tips ? 7 : 5);
+
+    int tips_count = 8;
+    if (more_to_best)
+        tips_count = 8;
+    else if (less_to_single_ext)
+        tips_count = 6;
+    else
+        tips_count = 5;
+
+    float AMS_container_height = ams_item_height + line_height * tips_count + line_height / 2;
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
@@ -4475,15 +4493,18 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
 
         ImGui::Dummy({window_padding, window_padding});
         ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(.8f, .8f, .8f, 1.0f));
-        if (is_auto)
-            imgui.title(_u8L("Filament Grouping Recommendation"));
-        else
-            imgui.title(_u8L("Filament Grouping"));
+        imgui.bold_text(_u8L("Filament Grouping"));
+        ImGui::SameLine();
+        std::string tip_str = _u8L("Why this grouping");
+        ImGui::SetCursorPosX(ImGui::GetWindowContentRegionWidth() - window_padding - ImGui::CalcTextSize(tip_str.c_str()).x);
+        link_filament_group_wiki(tip_str);
+        ImGui::Separator();
         ImGui::PopStyleColor();
         ImGui::Dummy({window_padding, window_padding});
 
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.1f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
+
         ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
         ImVec2      cursor_pos            = ImGui::GetCursorScreenPos();
         child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
@@ -4516,6 +4537,15 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar(1);
+
+        ImGui::Dummy({window_padding, window_padding});
+        imgui.text_wrapped(from_u8(_u8L("Please place filaments on the printer based on grouping result.")), ImGui::GetContentRegionAvail().x);
+        ImGui::Dummy({window_padding, window_padding});
+
+        {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            draw_dash_line(draw_list);
+        }
         ImGui::Dummy({window_padding, window_padding});
 
         bool is_optimal_group = true;
@@ -4528,35 +4558,19 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             }
             return static_cast<int>(num);
         };
-        if (filament_map_mode == fmmAutoForFlush) {
-            float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_best.filament_flush_weight;
-            int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.filament_change_count;
-            if (saved_flush_weight > EPSILON || saved_filament_changed_time > 0) {
-                imgui.text(_u8L("Current grouping of slice result is optimal."));
-                imgui.text_wrapped(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-nozzle printer.")) % number_format(saved_flush_weight) % saved_filament_changed_time).str()), parent_width);
-            }
-        } else if (filament_map_mode != fmmAutoForFlush) {
-            float more_cost = stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_best.filament_flush_weight;
-            int   more_time = stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.filament_change_count;
 
-            if (more_cost > EPSILON || more_time > 0) {
-                is_optimal_group = false;
-                ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
-                ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
-                imgui.text(_u8L("Current grouping of slice result is not optimal."));
-                imgui.text_wrapped(from_u8((boost::format(_u8L("Cost %1%g filament and %2% changes more than optimal grouping.")) % number_format(more_cost) % more_time).str()), parent_width);
-                ImGui::PopStyleColor(1);
-            } else {
-                float saved_flush_weight = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_best.filament_flush_weight;
-                int   saved_filament_changed_time = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.filament_change_count;
-                if (saved_flush_weight > EPSILON || saved_filament_changed_time > 0) {
-                    imgui.text(_u8L("Current grouping of slice result is optimal."));
-                    imgui.text_wrapped(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-nozzle printer.")) % number_format(saved_flush_weight) % saved_filament_changed_time).str()), parent_width);
-                }
-            }
+        if (more_to_best) {
+            is_optimal_group = false;
+            ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
+            imgui.text(_u8L("Tips:"));
+            imgui.text(_u8L("Current grouping of slice result is not optimal."));
+            imgui.text_wrapped(from_u8((boost::format(_u8L("Cost %1%g filament and %2% changes more than optimal grouping.")) % number_format(delta_weight_to_best) % delta_change_to_best).str()), parent_width);
+            ImGui::PopStyleColor(1);
         }
-
-        imgui.text_wrapped(from_u8(_u8L("Please place the filaments on the printer as recommended.")), parent_width);
+        else if (less_to_single_ext) {
+            imgui.text_wrapped(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-nozzle printer.")) % number_format(delta_weight_to_single_ext) % delta_change_to_single_ext).str()), parent_width);
+        }
 
         ImGui::Dummy({window_padding, window_padding});
         if (!is_optimal_group) {
@@ -4566,7 +4580,6 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImGui::SameLine();
         }
         link_text(_u8L("Regroup filament"));
-
         ImGui::EndChild();
     }
     ImGui::PopStyleColor(2);
