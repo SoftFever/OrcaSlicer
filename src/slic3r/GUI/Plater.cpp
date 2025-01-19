@@ -2686,6 +2686,7 @@ struct Plater::priv
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
     void on_action_send_to_printer(bool isall = false);
+    void on_action_send_bamcu_conect(SimpleEvent&);
     void on_action_send_to_multi_machine(SimpleEvent&);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
 private:
@@ -3116,6 +3117,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, &priv::on_action_export_to_sdcard_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, &priv::on_action_send_to_multi_machine, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_BAMBU_CONNECT, &priv::on_action_send_bamcu_conect, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
@@ -3248,14 +3250,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         wxGetApp().mainframe->Raise();
         this->q->load_files(input_files);
     });
-    
+
     this->q->Bind(EVT_START_DOWNLOAD_OTHER_INSTANCE, [](StartDownloadOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received url from other instance event.";
         wxGetApp().mainframe->Raise();
         for (size_t i = 0; i < evt.data.size(); ++i) {
             wxGetApp().start_download(evt.data[i]);
         }
-       
+
     });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) {
         bring_instance_forward();
@@ -3425,7 +3427,7 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
 
 void Plater::priv::select_next_view_3D()
 {
-    
+
     if (current_panel == view3D)
         wxGetApp().mainframe->select_tab(size_t(MainFrame::tpPreview));
     else if (current_panel == preview)
@@ -3624,7 +3626,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     int current_width, current_depth, current_height;
 
     if (input_files.empty()) { return std::vector<size_t>(); }
-    
+
     // SoftFever: ugly fix so we can exist pa calib mode
     background_process.fff_print()->calib_mode() = CalibMode::Calib_None;
 
@@ -3823,7 +3825,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //         // Is there any modifier or advanced config data?
                     //         for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
                     //     }
-                    // } 
+                    // }
                     else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
                             wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
@@ -3855,7 +3857,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 show_info(q, text, _L("Newer 3mf version"));
                             }
                         }
-                    } 
+                    }
                     else if (!load_config) {
                         // reset config except color
                         for (ModelObject *model_object : model.objects) {
@@ -4118,14 +4120,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 std::vector<Preset *> project_presets;
                 bool                  is_xxx;
                 Semver                file_version;
-                
+
                 //ObjImportColorFn obj_color_fun=nullptr;
                 auto obj_color_fun = [this, &path](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids,
                                                    unsigned char &first_extruder_id) {
                     if (!boost::iends_with(path.string(), ".obj")) { return; }
                     const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
                     ObjColorDialog                 color_dlg(nullptr, input_colors, is_single_color, extruder_colours, filament_ids, first_extruder_id);
-                    if (color_dlg.ShowModal() != wxID_OK) { 
+                    if (color_dlg.ShowModal() != wxID_OK) {
                         filament_ids.clear();
                     }
                 };
@@ -7187,6 +7189,38 @@ void Plater::priv::on_action_send_to_multi_machine(SimpleEvent&)
     m_send_multi_dlg->ShowModal();
 }
 
+
+void Plater::priv::on_action_send_bamcu_conect(SimpleEvent&)
+{
+    auto gcodeResult = q->send_gcode(partplate_list.get_curr_plate_index(), [this](int export_stage, int current, int total, bool &cancel) {});
+
+    if (gcodeResult != 0) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":send_gcode failed\n";
+        return;
+    }
+
+    PrintPrepareData data;
+    q->get_print_job_data(&data);
+
+    if (data._3mf_path.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":3mf path is empty\n";
+        return;
+    }
+
+    wxString filename = q->get_export_gcode_filename("", true, partplate_list.get_curr_plate_index() == PLATE_ALL_IDX ? true : false);
+    wxString filepath = wxString::FromUTF8(data._3mf_path.string());
+    filepath.Replace("\\", "/");
+    std::string filePath = "?version=v1.0.0&path=" + filepath.ToStdString() + "&name=" + filename.utf8_string();
+    wxString    url      = "bambu-connect://import-file?path=" + Http::url_encode(filePath);
+    if (!wxLaunchDefaultBrowser(url)) {
+        GUI::MessageDialog msgdialog(nullptr, _L("Failed to start Bambu Farm Manager Client."), "", wxAPPLY | wxOK);
+        msgdialog.ShowModal();
+    }
+
+    return;
+}
+
+
 void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
 {
     if (q != nullptr) {
@@ -7547,7 +7581,7 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                     const GLVolume* gl_volume = selection.get_first_volume();
                     const ModelVolume *model_volume = get_model_volume(*gl_volume, selection.get_model()->objects);
                     menu = (model_volume != nullptr && model_volume->is_text()) ? menus.text_part_menu() :
-                           (model_volume != nullptr && model_volume->is_svg()) ? menus.svg_part_menu() : 
+                           (model_volume != nullptr && model_volume->is_svg()) ? menus.svg_part_menu() :
                         menus.part_menu();
                 } else
                     menu = menus.multi_selection_menu();
@@ -7760,8 +7794,8 @@ void Plater::priv::update_title_dirty_status()
     wxGetApp().mainframe->topbar()->SetTitle(title);
 #else
     wxGetApp().mainframe->SetTitle(title);
-    wxGetApp().mainframe->update_title_colour_after_set_title();    
-#endif    
+    wxGetApp().mainframe->update_title_colour_after_set_title();
+#endif
 }
 
 void Plater::priv::set_project_filename(const wxString& filename)
@@ -9449,8 +9483,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     print_config.set_key_value( "internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
     print_config.set_key_value( "top_surface_acceleration", new ConfigOptionFloat(accel));
     print_config.set_key_value( "travel_acceleration", new ConfigOptionFloat(accel));
-    
-    
+
+
     //Orca: find jerk value to use in the test
     if(print_config.option<ConfigOptionFloat>("default_jerk")->value > 0){ // we have set a jerk value
         auto jerk = print_config.option<ConfigOptionFloat>("outer_wall_jerk")->value; // get outer wall jerk
@@ -9458,7 +9492,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
             jerk = print_config.option<ConfigOptionFloat>("inner_wall_jerk")->value;
         if (jerk == 0) // if inner wall jerk is not defined, get the default jerk
             jerk = print_config.option<ConfigOptionFloat>("default_jerk")->value;
-        
+
         //Orca: Set jerk values. Again first layer jerk should not matter as it is reset to the travel jerk before the
         // first PA pattern is printed.
         print_config.set_key_value( "default_jerk", new ConfigOptionFloat(jerk));
@@ -9468,7 +9502,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         print_config.set_key_value( "infill_jerk", new ConfigOptionFloat(jerk));
         print_config.set_key_value( "travel_jerk", new ConfigOptionFloat(jerk));
     }
-    
+
     for (const auto& opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
@@ -9673,7 +9707,7 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
     // only enlarge
     if (xyScale > 1.2) {
         for (auto _obj : objects)
-            _obj->scale(xyScale, xyScale, zscale); 
+            _obj->scale(xyScale, xyScale, zscale);
     }
     else {
         for (auto _obj : objects)
@@ -9801,7 +9835,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Temp_Tower)
         return;
-    
+
     add_model(false, Slic3r::resources_dir() + "/calib/temperature_tower/temperature_tower.stl");
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto start_temp = lround(params.start);
@@ -9829,7 +9863,7 @@ void Plater::calib_temp(const Calib_Params& params) {
             cut_horizontal(0, 0, new_height, ModelObjectCutAttribute::KeepLower);
         }
     }
-    
+
     // cut bottom
     obj_bb = model().objects[0]->bounding_box_exact();
     block_count = lround((350 - params.start) / 5);
@@ -9839,7 +9873,7 @@ void Plater::calib_temp(const Calib_Params& params) {
             cut_horizontal(0, 0, new_height, ModelObjectCutAttribute::KeepUpper);
         }
     }
-    
+
     p->background_process.fff_print()->set_calib_params(params);
 }
 
@@ -9877,7 +9911,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
 
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{0.0});
-    
+
     obj_cfg.set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     obj_cfg.set_key_value("wall_loops", new ConfigOptionInt(1));
     obj_cfg.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
@@ -11598,7 +11632,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
     csgmesh.reserve(2 * mo.volumes.size());
     bool has_splitable_volume = csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
         csg::mpartsPositive | csg::mpartsNegative);
-        
+
     std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
         "Only positive parts will be kept. You may fix the meshes and try again.");
     if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
@@ -11921,7 +11955,7 @@ std::string create_unique_3mf_filepath(const std::string &file, const SvgFiles s
                 is_unique = false;
                 break;
             }
-        } 
+        }
     } while (!is_unique);
     return path_in_3mf;
 }
@@ -11974,7 +12008,7 @@ void publish(Model &model, SaveStrategy strategy) {
                                 "If you hit 'NO', all SVGs in the project will not be editable any more."),
                              _L("Private protection"), wxYES_NO | wxICON_QUESTION);
         if (dialog.ShowModal() == wxID_NO){
-            for (ModelObject *object : model.objects) 
+            for (ModelObject *object : model.objects)
                 for (ModelVolume *volume : object->volumes)
                     if (volume->emboss_shape.has_value())
                         volume->emboss_shape.reset();
@@ -11993,7 +12027,7 @@ void publish(Model &model, SaveStrategy strategy) {
             // check whether original filename is already in:
             filename = get_file_name(svgfile->path);
         }
-        svgfile->path_in_3mf = create_unique_3mf_filepath(filename, svgfiles);        
+        svgfile->path_in_3mf = create_unique_3mf_filepath(filename, svgfiles);
     }
 }
 }
@@ -12297,7 +12331,7 @@ void Plater::reslice()
     // and notify user that he should leave it first.
     if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
         return;
-    
+
     // Stop the running (and queued) UI jobs and only proceed if they actually
     // get stopped.
     unsigned timeout_ms = 10000;
@@ -13290,7 +13324,7 @@ void Plater::changed_object(ModelObject &object){
 
     // update print
     p->schedule_background_process();
-        
+
     // Check outside bed
     get_current_canvas3D()->requires_check_outside_state();
 }

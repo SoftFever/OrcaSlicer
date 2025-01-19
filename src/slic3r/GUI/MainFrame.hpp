@@ -239,7 +239,8 @@ public:
         eSendToPrinterAll    = 6,
         eUploadGcode         = 7,
         eExportAllSlicedFile = 8,
-        ePrintMultiMachine   = 9
+        ePrintMultiMachine   = 9,
+        eSendBambuConnect    = 10
     };
 
     void update_layout();
@@ -382,7 +383,7 @@ public:
     wxWindow*             m_plater_page{ nullptr };
     PrintHostQueueDialog* m_printhost_queue_dlg;
 
-    
+
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
     // Button* m_publish_btn{ nullptr };
