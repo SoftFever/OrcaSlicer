@@ -532,7 +532,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_txt_mapping_sugs->SetMinSize(wxSize(FromDIP(580), -1));
     m_txt_mapping_sugs->SetMaxSize(wxSize(FromDIP(580), -1));
     m_txt_mapping_sugs->SetBackgroundColour(*wxWHITE);
-    m_txt_mapping_sugs->SetLabel(_L("Your filament grouping method is not optimal."));
+    m_txt_mapping_sugs->SetLabel(_L("Your filament grouping method in the sliced file is not optimal."));
     //m_mapping_sugs_sizer->Add(m_img_mapping_sugs, 0, wxALIGN_CENTER, 0);
     m_mapping_sugs_sizer->Add(m_txt_mapping_sugs, 0, wxALIGN_CENTER, 0);
 
@@ -3042,57 +3042,41 @@ void SelectMachineDialog::update_filament_change_count()
 
     m_change_filament_times_sizer->Show(false);
     m_txt_change_filament_times->Show(false);
+    m_mapping_sugs_sizer->Show(false);
+    m_link_edit_nozzle->Show(false);
 
-    part_plate->get_print(&print, &gcode_result, NULL);
-    if (gcode_result && gcode_result->filament_change_count_map.size() > 0 && m_ams_mapping_result.size() > 0) {
+    //part_plate->get_print(&print, &gcode_result, NULL);
+    //if (gcode_result && gcode_result->filament_change_count_map.size() > 0 && m_ams_mapping_result.size() > 0) {
 
-        std::vector<int> filament_ids;
-        for (auto mr : m_ams_mapping_result) {
-            if (mr.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || mr.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-                filament_ids.push_back(mr.id);
-            }
+    //    if (m_ams_mapping_result.size() == filament_ids.size()) {
+    //        return;
+    //    }
+    //}
+
+    std::vector<int> filament_ids;
+    for (auto mr : m_ams_mapping_result) {
+        if (mr.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || mr.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+            filament_ids.push_back(mr.id);
         }
+    }
 
-        if (m_ams_mapping_result.size() == filament_ids.size()) {
-            return;
-        }
+    /*check nozzle & filament is it the best*/
+    auto stats = m_plater->get_partplate_list().get_current_fff_print().statistics_by_extruder();
+    auto best  = stats.stats_by_multi_extruder_best;
+    auto curr  = stats.stats_by_multi_extruder_curr;
 
-        int hand_changes_count = 0;
-        auto saving_weight = 0;
+    int hand_changes_count = curr.filament_change_count - best.filament_change_count;
+    int saving_weight      = curr.filament_flush_weight - best.filament_flush_weight;
 
-        for (auto fi : filament_ids) {
-            for (auto counts : gcode_result->filament_change_count_map) {
-                if (counts.first.first == fi || counts.first.second == fi) { hand_changes_count += counts.second; }
-            }
-        }
+    if (obj->m_extder_data.total_extder_count > 1) { m_link_edit_nozzle->Show(true); }
 
-        /*check nozzle & filament is it the best*/
-        if (obj->m_extder_data.total_extder_count > 1) {
-            auto stats = m_plater->get_partplate_list().get_current_fff_print().statistics_by_extruder();
-            auto best  = stats.stats_by_multi_extruder_best;
-            auto curr  = stats.stats_by_multi_extruder_curr;
-
-            if (curr.filament_flush_weight > best.filament_flush_weight) {
-                m_link_edit_nozzle->Show(true);
-                m_mapping_sugs_sizer->Show(true);
-                saving_weight = curr.filament_flush_weight - best.filament_flush_weight;
-            }
-        }
-
-        if (hand_changes_count > 0 || saving_weight > 0) {
-            m_change_filament_times_sizer->Show(true);
-            m_txt_change_filament_times->Show(true);
-
-            /*if (obj->m_extder_data.total_extder_count > 1) {
-                m_txt_change_filament_times->SetLabel(wxString::Format(_L("It is not recommended to use AMS and external filaments simultaneously on the same nozzle. Otherwise, you will need to manually change filaments %d times for this print."), hand_changes_count));
-            } else {
-                m_txt_change_filament_times->SetLabel(wxString::Format(_L("It is not recommended to use AMS and external filaments simultaneously. Otherwise, you will need to manually change filaments %d times for this print."), hand_changes_count));
-            }*/
-
-            m_txt_change_filament_times->SetLabel(wxString::Format(_L("Cost %dg filament and %d changes more than optimal grouping."), saving_weight, hand_changes_count));
-            m_txt_change_filament_times->Wrap(FromDIP(580));
-            m_txt_change_filament_times->Layout();
-        }
+    if ( filament_ids.size () == 0 && (hand_changes_count > 0 || saving_weight > 0) ) {
+        m_mapping_sugs_sizer->Show(true);
+        m_change_filament_times_sizer->Show(true);
+        m_txt_change_filament_times->Show(true);
+        m_txt_change_filament_times->SetLabel(wxString::Format(_L("Cost %dg filament and %d changes more than optimal grouping."), saving_weight, hand_changes_count));
+        m_txt_change_filament_times->Wrap(FromDIP(580));
+        m_txt_change_filament_times->Layout();
     }
 
     Layout();
