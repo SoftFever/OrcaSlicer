@@ -1270,15 +1270,6 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     if (m_ams_model == EXT_AMS){
         dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius - 1);
-        if (!m_disable_mode) {
-            // edit icon
-            if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE){
-                if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL)
-                    dc.DrawBitmap(temp_bitmap_third.bmp(), (size.x - temp_bitmap_third.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_third.GetBmpSize().y));
-                if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND)
-                    dc.DrawBitmap(temp_bitmap_brand.bmp(), (size.x - temp_bitmap_brand.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_brand.GetBmpSize().y));
-            }
-        }
         if (alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent_def.bmp(), FromDIP(2), FromDIP(2));
         }
@@ -1287,6 +1278,16 @@ void AMSLib::render_generic_lib(wxDC &dc)
                 transparent_changed = false;
             }
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(2), FromDIP(2));
+        }
+
+        if (!m_disable_mode) {
+            // edit icon
+            if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
+                if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL)
+                    dc.DrawBitmap(temp_bitmap_third.bmp(), (size.x - temp_bitmap_third.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_third.GetBmpSize().y));
+                if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND)
+                    dc.DrawBitmap(temp_bitmap_brand.bmp(), (size.x - temp_bitmap_brand.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_brand.GetBmpSize().y));
+            }
         }
 
         dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
