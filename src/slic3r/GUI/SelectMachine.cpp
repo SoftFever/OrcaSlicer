@@ -928,6 +928,10 @@ void SelectMachineDialog::check_fcous_state(wxWindow* window)
 
 void SelectMachineDialog::popup_filament_backup()
 {
+    if (m_print_status == PrintStatusUnsupportedPrinter) {
+        return;
+    }
+
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
     if (dev->get_selected_machine()/* && dev->get_selected_machine()->filam_bak.size() > 0*/) {
