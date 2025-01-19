@@ -9,6 +9,7 @@
 
 #include "SelectMachine.hpp"
 #include "DeviceManager.hpp"
+#include "BaseTransparentDPIFrame.hpp"
 class Button;
 class CheckBox;
 class Label;
@@ -355,55 +356,33 @@ private:
     MapModeEnum m_map_mode{MapModeEnum::ColorMap};
 };
 
-class SyncNozzleAndAmsDialog : public Slic3r::GUI::DPIFrame
+class SyncNozzleAndAmsDialog : public Slic3r::GUI::BaseTransparentDPIFrame
 {
 public:
     struct InputInfo
     {
         wxPoint dialog_pos{wxPoint(400, 200)};
-        bool    only_external_material = false;
     };
-    struct ResultInfo
-    {};
-    SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &input_info);
+    SyncNozzleAndAmsDialog(InputInfo &input_info);
     ~SyncNozzleAndAmsDialog() override;
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-    void deal_ok();
-    void deal_cancel();
-    void on_hide();
-    //bool Show(bool show) override;
+    void deal_ok() override;
+    void deal_cancel() override;
 private:
     InputInfo& m_input_info;
-    ResultInfo m_result_info;
-
-    wxBoxSizer *m_sizer_main{nullptr};
-    Button *m_button_ok     = nullptr;
-    Button *m_button_cancel = nullptr;
 };
 
-class FinishSyncAmsDialog : public Slic3r::GUI::DPIFrame
+class FinishSyncAmsDialog : public Slic3r::GUI::BaseTransparentDPIFrame
 {
 public:
     struct InputInfo
     {
         wxPoint dialog_pos{wxPoint(400, 200)};
     };
-    struct ResultInfo
-    {};
-    FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info);
+    FinishSyncAmsDialog(InputInfo &input_info);
     ~FinishSyncAmsDialog() override;
-    void on_dpi_changed(const wxRect &suggested_rect) override;
     void deal_ok();
-    void deal_cancel();
-    void on_hide();
-    // bool Show(bool show) override;
 private:
     InputInfo& m_input_info;
-    ResultInfo m_result_info;
-
-    wxBoxSizer *m_sizer_main{nullptr};
-    Button *    m_button_ok     = nullptr;
-    Button *    m_button_cancel = nullptr;
 };
 }}     // namespace Slic3r::GUI
 #endif  // _STEP_MESH_DIALOG_H_

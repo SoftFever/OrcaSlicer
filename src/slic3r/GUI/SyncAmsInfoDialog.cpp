@@ -4361,94 +4361,22 @@ std::string SyncAmsInfoDialog::get_print_status_info(PrintDialogStatus status)
     return "unknown";
 }
 
-SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &input_info)
-    : DPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
+SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(InputInfo &input_info)
+    : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
+                              300,
+                              input_info.dialog_pos,
+                              90,
+                              _L("Successfully synchronized nozzle and AMS number information."),
+                              _L("Continue to sync filaments"),
+                              _CTX(L_CONTEXT("Cancel", "Sync_Nozzle_AMS"), "Sync_Nozzle_AMS"),
+                              DisappearanceMode::TimedDisappearance)
     , m_input_info(input_info)
 {
-    //SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
-    SetTransparent(220);
-    SetBackgroundColour(wxColour(23, 25, 22, 128));
-    auto win_width = 300;
-    SetMinSize(wxSize(FromDIP(win_width), -1));
-    SetMaxSize(wxSize(FromDIP(win_width), -1));
-    SetPosition(m_input_info.dialog_pos);
-
-    m_sizer_main              = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-    text_sizer->AddSpacer(FromDIP(20));
-    auto image_sizer= new wxBoxSizer(wxVERTICAL);
-    auto        imgsize       = FromDIP(25);
-    auto completedimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("completed", this, 25), wxDefaultPosition, wxSize(imgsize, imgsize), 0);
-    image_sizer->Add(completedimg, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(0));
-    image_sizer->AddStretchSpacer();
-    text_sizer->Add(image_sizer);
-    text_sizer->AddSpacer(FromDIP(5));
-    auto finish_text = new Label(this, _L("Successfully synchronized nozzle and AMS number information."), LB_AUTO_WRAP);
-    finish_text->SetMinSize(wxSize(FromDIP(win_width - 64), -1));
-    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 64), -1));
-    finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
-    text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
-    text_sizer->AddSpacer(FromDIP(20));
-    m_sizer_main->Add(text_sizer, FromDIP(0), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(15));
-
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
-    bSizer_button->SetMinSize(wxSize(FromDIP(100), -1));
-    /* m_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
-     bSizer_button->Add(m_checkbox, 0, wxALIGN_LEFT);*/
-    bSizer_button->AddStretchSpacer(1);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Pressed), std::pair<wxColour, int>(wxColour(43, 45, 42), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Normal));
-    m_button_ok = new Button(this,  _L("Continue to sync filaments"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderWidth(0);
-    m_button_ok->SetTextColor(wxColour(0xFEFEFE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(60), FromDIP(30)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(90), FromDIP(30)));
-    m_button_ok->SetCornerRadius(FromDIP(6));
-    bSizer_button->Add(m_button_ok, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
-
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        deal_ok();
-    });
-
-
-    m_button_cancel = new Button(this, _CTX(L_CONTEXT("Cancel", "Sync_Nozzle_AMS"), "Sync_Nozzle_AMS"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(93, 93, 91));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetTextColor(wxColour(0xFEFEFE));
-    m_button_cancel->SetSize(wxSize(FromDIP(65), FromDIP(30)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(65), FromDIP(30)));
-    m_button_cancel->SetCornerRadius(FromDIP(6));
-    bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
-
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        deal_cancel();
-        });
-
-    m_sizer_main->Add(bSizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
-
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) { this->on_hide(); });
-    SetSizer(m_sizer_main);
-    Layout();
-    Fit();
 }
 
 SyncNozzleAndAmsDialog::~SyncNozzleAndAmsDialog() {}
 
-void SyncNozzleAndAmsDialog::on_dpi_changed(const wxRect &suggested_rect)
-{
-    m_button_ok->Rescale();
-    m_button_cancel->Rescale();
-}
 void SyncNozzleAndAmsDialog::deal_ok() {
-    //SyncAmsInfoDialog::SyncInfo temp_info;
-    //temp_info.connected_printer = true;
-    //SyncAmsInfoDialog sync_dlg(this, temp_info);
-    //auto dlg_res = wxGetApp().plater()->sidebar().pop_sync_ams_info_dialog(sync_dlg);
     on_hide();
     wxGetApp().plater()->sidebar().sync_ams_list(true);
 }
@@ -4457,98 +4385,22 @@ void SyncNozzleAndAmsDialog::deal_cancel() {
     on_hide();
 }
 
-void SyncNozzleAndAmsDialog::on_hide()
-{
-    this->Hide();
-    if (wxGetApp().mainframe != nullptr) {
-        wxGetApp().mainframe->Show();
-        wxGetApp().mainframe->Raise();
-    }
-}
-
-FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info)
-    : DPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
+FinishSyncAmsDialog::FinishSyncAmsDialog(InputInfo &input_info)
+    : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
+                              300,
+                              input_info.dialog_pos,
+                              68,
+                              _L("Successfully synchronized color and type of filament from printer."),
+                              _CTX(L_CONTEXT("OK", "FinishSyncAms"), "FinishSyncAms"),
+                              "",
+                              DisappearanceMode::TimedDisappearance)
     , m_input_info(input_info)
 {
-    // SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
-    SetTransparent(220);
-    SetBackgroundColour(wxColour(23, 25, 22, 128));
-    auto win_width = 300;
-    SetMinSize(wxSize(FromDIP(win_width), -1));
-    SetMaxSize(wxSize(FromDIP(win_width), -1));
-    SetPosition(m_input_info.dialog_pos);
-
-    m_sizer_main           = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-    text_sizer->AddSpacer(FromDIP(20));
-    auto image_sizer  = new wxBoxSizer(wxVERTICAL);
-    auto imgsize      = FromDIP(25);
-    auto completedimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("completed", this, 25), wxDefaultPosition, wxSize(imgsize, imgsize), 0);
-    image_sizer->Add(completedimg, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(0));
-    image_sizer->AddStretchSpacer();
-    text_sizer->Add(image_sizer);
-    text_sizer->AddSpacer(FromDIP(5));
-    auto finish_text = new Label(this, _L("Successfully synchronized color and type of filament from printer."), LB_AUTO_WRAP);
-    finish_text->SetMinSize(wxSize(FromDIP(win_width - 64), -1));
-    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 64), -1));
-    finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
-    text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
-    text_sizer->AddSpacer(FromDIP(20));
-    m_sizer_main->Add(text_sizer, FromDIP(0), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(15));
-
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
-    bSizer_button->SetMinSize(wxSize(FromDIP(100), -1));
-    /* m_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
-     bSizer_button->Add(m_checkbox, 0, wxALIGN_LEFT);*/
-    bSizer_button->AddStretchSpacer(1);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    m_button_ok = new Button(this, _CTX(L_CONTEXT("OK", "FinishSyncAms"), "FinishSyncAms"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderWidth(0);
-    m_button_ok->SetTextColor(wxColour(0xFEFEFE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(68), FromDIP(30)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(68), FromDIP(30)));
-    m_button_ok->SetCornerRadius(FromDIP(6));
-    bSizer_button->Add(m_button_ok, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
-
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        deal_ok();
-    });
-
-    //m_button_cancel = new Button(this, _CTX(L_CONTEXT("Cancel", "Sync_Nozzle_AMS"), "Sync_Nozzle_AMS"));
-    //m_button_cancel->SetBackgroundColor(btn_bg_white);
-    //m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    //m_button_cancel->SetFont(Label::Body_12);
-    //m_button_cancel->SetSize(wxSize(FromDIP(65), FromDIP(30)));
-    //m_button_cancel->SetMinSize(wxSize(FromDIP(65), FromDIP(30)));
-    //m_button_cancel->SetCornerRadius(FromDIP(6));
-
-    //m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
-    //bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
-    m_sizer_main->Add(bSizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
-
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) { this->on_hide(); });
-    SetSizer(m_sizer_main);
-    Layout();
-    Fit();
+    m_button_cancel->Hide();
 }
+
 FinishSyncAmsDialog::~FinishSyncAmsDialog() {}
-void FinishSyncAmsDialog::on_dpi_changed(const wxRect &suggested_rect)
-{
-    m_button_ok->Rescale();
-}
+
 void FinishSyncAmsDialog::deal_ok() { on_hide(); }
-void FinishSyncAmsDialog::deal_cancel() {}
-void FinishSyncAmsDialog::on_hide()
-{
-    this->Hide();
-    if (wxGetApp().mainframe != nullptr) {
-        wxGetApp().mainframe->Show();
-        wxGetApp().mainframe->Raise();
-    }
-}
+
 }} // namespace Slic3r
