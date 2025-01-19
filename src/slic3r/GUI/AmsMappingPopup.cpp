@@ -258,35 +258,46 @@ void MaterialItem::doRender(wxDC& dc)
         }
     }
     else {
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.SetBrush(wxBrush(wxColour(acolor)));
-        dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y);
+        if (m_match) {
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.SetBrush(wxBrush(wxColour(acolor)));
+            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y);
+        }
     }
 
 
     ////border
-#if __APPLE__
-    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+//#if __APPLE__
+//    if (m_match) {
+//        dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+//    } else {
+//        dc.SetPen(wxPen(wxColour(234, 31, 48), 2));
+//    }
+//    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+//    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
+//
+//    if (m_selected) {
+//        dc.SetPen(AMS_CONTROL_BRAND_COLOUR); // ORCA Highlight color for selected AMS in send job dialog
+//        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+//        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
+//    }
+//#else
+
+    if (m_match) {
+        dc.SetPen(wxPen(wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
+    } else {
+        dc.SetPen(wxPen(wxColour(234, 31, 48), FromDIP(1)));
+    }
+
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), MATERIAL_ITEM_SIZE.x - FromDIP(0), MATERIAL_ITEM_SIZE.y - FromDIP(0), 5);
 
     if (m_selected) {
-        dc.SetPen(AMS_CONTROL_BRAND_COLOUR); // ORCA Highlight color for selected AMS in send job dialog
+        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
     }
-#else
-
-    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
-
-    if (m_selected) {
-        dc.SetPen(AMS_CONTROL_BRAND_COLOUR); // ORCA Highlight color for selected AMS in send job dialog
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
-    }
-#endif
+//#endif
     if (m_text_pos_y > 0 && m_match) {
         // arrow (remove arrow)
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
@@ -299,11 +310,11 @@ void MaterialItem::doRender(wxDC& dc)
     auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2);
     auto wheel_top = ((float)GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 0.4;
 
-    dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
-
     if (!m_match) {
         wheel_left += m_ams_wheel_mitem.GetBmpSize().x;
-        dc.DrawBitmap(m_ams_not_match.bmp(), wheel_left + FromDIP(5), wheel_top);
+        dc.DrawBitmap(m_ams_not_match.bmp(), (size.x - m_ams_not_match.GetBmpWidth()) / 2, wheel_top);
+    } else {
+        dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
     }
 }
 
