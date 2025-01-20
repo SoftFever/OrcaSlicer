@@ -71,12 +71,8 @@ private:
     void handle_refresh_plater_config(const nlohmann::json& params);
 
     void OnActionCallReceived(wxWebViewEvent& event);
-    nlohmann::json GetPresetsJson(Preset::Type type);
     nlohmann::json GetAllPresetJson();
-    nlohmann::json GetPlaterConfigJson();
-    nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
 
-    void ApplyConfig(const nlohmann::json& item);
     void UpdatePresetTabs();
     void AdvertiseSupportedAction();
 
