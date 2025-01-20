@@ -7,7 +7,7 @@ namespace Slic3r { namespace GUI {
 struct CustomData
 {
     int filament_id;
-    unsigned char r, g, b;
+    unsigned char r, g, b, a;
 };
 
 
@@ -43,7 +43,7 @@ public:
         set_custom_data_color(color);
     }
 
-    wxColour GetColor() const { return wxColor(m_data.r, m_data.g, m_data.b); }
+    wxColour GetColor() const { return wxColor(m_data.r, m_data.g, m_data.b, m_data.a); }
     void     SetColor(const wxColour &color) { set_custom_data_color(color); }
 
     int      GetFilament() const { return m_data.filament_id; }
@@ -57,6 +57,7 @@ public:
         m_data.r           = color.Red();
         m_data.g           = color.Green();
         m_data.b           = color.Blue();
+        m_data.a           = color.Alpha();
     }
 
     virtual size_t GetDataSize() const override { return sizeof(m_data); }
@@ -101,7 +102,11 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     wxPaintDC dc(this);
     wxSize   size  = GetSize();
     std::string replace_color = m_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-    wxBitmap bmp = ScalableBitmap(this, "filament_green", 40, false, false, false, { replace_color }).bmp();
+    std::string svg_name = "filament_green";
+    if (replace_color == "#FFFFFF00") {
+        svg_name = "filament_transparent";
+    }
+    wxBitmap bmp = ScalableBitmap(this, svg_name, 40, false, false, false, { replace_color }).bmp();
     dc.DrawBitmap(bmp, wxPoint(0,0));
     wxString label = wxString::Format(wxT("%d"), m_filament_id);
     dc.SetTextForeground(m_color.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);  // set text color
