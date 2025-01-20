@@ -1974,6 +1974,7 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     if (group_index > 0)
     {
         label_txt->SetLabel(_L("When the current material runs out, the printer would use identical filament to continue printing."));
+        label_txt->Wrap(FromDIP(380));
         identical_filament->Show();
     }
     else
