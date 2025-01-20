@@ -505,8 +505,8 @@ void MaterialSyncItem::doRender(wxDC &dc)
     //not draw m_ams_not_match
 }
 
-AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
-    : PopupWindow(parent, wxBORDER_NONE)
+AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
+    PopupWindow(parent, wxBORDER_NONE), m_use_in_sync_dialog(use_in_sync_dialog)
  {
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
@@ -571,19 +571,17 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      m_right_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
 
-     auto left_tips = new Label(m_left_marea_panel);
-     left_tips->SetForegroundColour(0x262E30);
-     left_tips->SetBackgroundColour(*wxWHITE);
-     left_tips->SetFont(::Label::Body_13);
-     left_tips->SetLabel(_L("Select filament that installed to the left nozzle"));
+     m_single_tip_text = _L("Please select from the following filaments");
+     m_left_tip_text = _L("Select filament that installed to the left nozzle");
+     m_right_tip_text = _L("Select filament that installed to the right nozzle");
 
-     auto right_tips = new Label(m_right_marea_panel);
-     right_tips->SetForegroundColour(0x262E30);
-     right_tips->SetBackgroundColour(*wxWHITE);
-     right_tips->SetFont(::Label::Body_13);
-     right_tips->SetLabel(_L("Select filament that installed to the right nozzle"));
+     m_left_tips = new Label(m_left_marea_panel);
+     m_left_tips->SetForegroundColour(0x262E30);
+     m_left_tips->SetBackgroundColour(*wxWHITE);
+     m_left_tips->SetFont(::Label::Body_13);
+     m_left_tips->SetLabel(m_left_tip_text);
 
-     m_sizer_ams_left->Add(left_tips, 0, wxEXPAND|wxBOTTOM, FromDIP(8));
+     m_sizer_ams_left->Add(m_left_tips, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
      m_left_split_ams_sizer = create_split_sizer(m_left_marea_panel, _L("Left AMS"));
      m_sizer_ams_left->Add(m_left_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -591,7 +589,12 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent)
      //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
-     m_sizer_ams_right->Add(right_tips, 0, wxEXPAND|wxBOTTOM, FromDIP(8));
+     m_right_tips = new Label(m_right_marea_panel);
+     m_right_tips->SetForegroundColour(0x262E30);
+     m_right_tips->SetBackgroundColour(*wxWHITE);
+     m_right_tips->SetFont(::Label::Body_13);
+     m_right_tips->SetLabel(m_right_tip_text);
+     m_sizer_ams_right->Add(m_right_tips, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
      m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
      m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -769,6 +772,7 @@ void AmsMapingPopup::update(MachineObject* obj)
         //m_left_marea_panel->Show();
         m_right_marea_panel->Show();
         set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
+        m_right_tips->SetLabel(m_single_tip_text);
         m_right_extra_slot->Show();
     }
     else if (nozzle_nums > 1) {
@@ -776,16 +780,26 @@ void AmsMapingPopup::update(MachineObject* obj)
         m_right_marea_panel->Hide();
         m_left_extra_slot->Hide();
         m_right_extra_slot->Hide();
+        m_left_tips->SetLabel(m_left_tip_text);
+        m_right_tips->SetLabel(m_right_tip_text);
         if (m_show_type == ShowType::LEFT)
         {
             m_left_marea_panel->Show();
             m_left_extra_slot->Show();
+            if (m_use_in_sync_dialog) {
+                m_left_tips->SetLabel(m_single_tip_text);
+                m_right_tips->SetLabel("");
+            }
         }
         else if (m_show_type == ShowType::RIGHT)
         {
             m_right_marea_panel->Show();
             set_sizer_title(m_right_split_ams_sizer, _L("Right AMS"));
             m_right_extra_slot->Show();
+            if (m_use_in_sync_dialog) {
+                m_right_tips->SetLabel(m_single_tip_text);
+                m_left_tips->SetLabel("");
+            }
         }
         else if (m_show_type == ShowType::LEFT_AND_RIGHT)
         {
@@ -795,6 +809,10 @@ void AmsMapingPopup::update(MachineObject* obj)
             m_left_extra_slot->Show();
             m_right_marea_panel->Show();
             set_sizer_title(m_right_split_ams_sizer, _L("Right AMS"));
+            if (m_use_in_sync_dialog) {
+                m_left_tips->SetLabel(m_left_tip_text);
+                m_right_tips->SetLabel("");
+            }
             m_right_extra_slot->Show();
         }
     }

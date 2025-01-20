@@ -163,8 +163,10 @@ public:
 
 class AmsMapingPopup : public PopupWindow
 {
+    bool m_use_in_sync_dialog = false;
+
 public:
-    AmsMapingPopup(wxWindow *parent);
+    AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false);
     ~AmsMapingPopup() {};
 
     wxWindow* send_win{ nullptr };
@@ -195,7 +197,11 @@ public:
     wxPanel*     m_right_marea_panel;
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
-
+    Label *      m_left_tips{nullptr};
+    Label *      m_right_tips{nullptr};
+    wxString     m_single_tip_text;
+    wxString     m_left_tip_text;
+    wxString     m_right_tip_text;
     wxBoxSizer* m_sizer_split_ams_left;
     wxBoxSizer* m_sizer_split_ams_right;
 

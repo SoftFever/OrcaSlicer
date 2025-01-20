@@ -104,9 +104,11 @@ bool SyncAmsInfoDialog::Show(bool show)
     }
     if (!m_input_info.connected_printer) {
         m_button_cancel->Hide();
+        m_two_thumbnail_panel->Hide();
         m_confirm_title->Show();
         m_confirm_title->SetLabel(_L("Printer not connected. Please connect or choose a printer on the Device page and try again."));
     } else if (dirty_filament) {
+        m_two_thumbnail_panel->Hide();
          m_confirm_title->Show();
          m_confirm_title->SetLabel(_L("Synchronizing AMS filaments will discard your modified but unsaved filament presets.\nAre you sure you want to continue?"));
     } else if (!m_check_dirty_fialment) {
@@ -119,8 +121,6 @@ bool SyncAmsInfoDialog::Show(bool show)
         }
         m_confirm_title->SetLabel(m_undone_str);
     }
-
-
     Layout();
     Fit();
     CenterOnParent();
@@ -430,9 +430,7 @@ void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
 {
     //show_sizer(m_plate_combox_sizer, flag);
     m_filament_panel->Show(flag);  // empty_project
-
-    m_attention_text->Show(flag);
-    m_tip_text->Show(flag);
+    show_ams_controls(flag);
     show_advanced_settings(flag);
     m_confirm_title->Show(flag);
     m_are_you_sure_title->Show(flag);
@@ -636,7 +634,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Synchronize AMS Filament Information"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_input_info(info)
     , m_export_3mf_cancel(false)
-    , m_mapping_popup(AmsMapingPopup(this))
+    , m_mapping_popup(AmsMapingPopup(this,true))
     , m_mapping_tip_popup(AmsMapingTipPopup(this))
     , m_mapping_tutorial_popup(AmsTutorialPopup(this))
 {
@@ -4143,6 +4141,7 @@ void SyncAmsInfoDialog::show_ams_controls(bool flag)
 {
     m_filament_panel->Show(flag);
     m_attention_text->Show(flag);
+    m_tip_text->Show(flag);
 }
 
 void SyncAmsInfoDialog::update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color)
