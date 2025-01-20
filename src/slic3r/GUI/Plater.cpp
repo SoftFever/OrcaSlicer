@@ -2679,10 +2679,17 @@ void Sidebar::update_sync_status(const MachineObject *obj)
     p->update_sync_status(obj);
 }
 
-void Sidebar::get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
+int Sidebar::get_sidebar_pos_right_x()
+{
+    return this->GetScreenPosition().x + this->GetSize().x;
+}
+
+void Sidebar::get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size)
+{
     size =btn_sync->GetSize();
     pt = btn_sync->GetScreenPosition();
 }
+
 void Sidebar::get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
     size = ams_btn->GetSize();
     pt   = ams_btn->GetScreenPosition();
@@ -2736,13 +2743,8 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     wxGetApp().plater()->update_all_plate_thumbnails(true);//preview thumbnail for sync_dlg
     SyncAmsInfoDialog::SyncInfo temp_info;
-    temp_info.use_dialog_pos = true;
+    temp_info.use_dialog_pos = false;
     temp_info.cancel_text_to_later = is_from_big_sync_btn;
-    wxPoint small_btn_pt;
-    wxSize  small_btn_size;
-    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
-    auto cur_dialog_pos         = small_btn_pt + wxPoint(small_btn_size.x * 3.6 + 5, 0);
-    temp_info.dialog_pos        = cur_dialog_pos;
     temp_info.connected_printer = true;
     SyncAmsInfoDialog           sync_dlg(this, temp_info);
     int dlg_res{(int) wxID_CANCEL};
@@ -2892,8 +2894,14 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     Layout();
 
+    wxPoint small_btn_pt;
+    wxSize  small_btn_size;
+    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
+
     FinishSyncAmsDialog::InputInfo temp_fsa_info;
-    temp_fsa_info.dialog_pos = cur_dialog_pos;
+    auto same_dialog_pos_x = get_sidebar_pos_right_x() + FromDIP(5);
+    temp_fsa_info.dialog_pos.x = same_dialog_pos_x;
+    temp_fsa_info.dialog_pos.y = small_btn_pt.y;
     if (m_fna_dialog) {
        m_fna_dialog.reset();
     }
@@ -3006,11 +3014,8 @@ void Sidebar::deal_btn_sync() {
         wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
         temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 5), FromDIP(big_btn_size.y / 10.f));
 
-        wxPoint small_btn_pt;
-        wxSize  small_btn_size;
-        get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
-        auto cur_dialog_pos       = small_btn_pt + wxPoint(small_btn_size.x * 3.6 + 5, 0);
-        temp_na_info.dialog_pos.x = cur_dialog_pos.x;
+        int same_dialog_pos_x = get_sidebar_pos_right_x()+ FromDIP(5);
+        temp_na_info.dialog_pos.x = same_dialog_pos_x;
         temp_na_info.dialog_pos.y += FromDIP(2);
         temp_na_info.only_external_material = only_external_material;
         if (m_sna_dialog) {

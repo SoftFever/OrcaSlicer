@@ -4377,8 +4377,9 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
     image_sizer->AddStretchSpacer();
     text_sizer->Add(image_sizer);
     text_sizer->AddSpacer(FromDIP(5));
-    auto finish_text = new wxStaticText(this, wxID_ANY, _L("Successfully synchronized nozzle and AMS number information."));
-    finish_text->Wrap(win_width - 40);
+    auto finish_text = new Label(this, _L("Successfully synchronized nozzle and AMS number information."), LB_AUTO_WRAP);
+    finish_text->SetMinSize(wxSize(FromDIP(win_width - 40), -1));
+    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 40), -1));
     finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
     text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
     text_sizer->AddSpacer(FromDIP(20));
@@ -4481,8 +4482,9 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     image_sizer->AddStretchSpacer();
     text_sizer->Add(image_sizer);
     text_sizer->AddSpacer(FromDIP(5));
-    auto finish_text = new wxStaticText(this, wxID_ANY, _L("Successfully synchronized color and type of filament from printer."));
-    finish_text->Wrap(win_width - 40);
+    auto finish_text = new Label(this, _L("Successfully synchronized color and type of filament from printer."), LB_AUTO_WRAP);
+    finish_text->SetMinSize(wxSize(FromDIP(win_width - 40), -1));
+    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 40), -1));
     finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
     text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
     text_sizer->AddSpacer(FromDIP(20));
