@@ -2448,10 +2448,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("enable_prime_tower", "multimaterial_settings_prime_tower");
         optgroup->append_single_option_line("prime_tower_outer_first", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_skip_points", "parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_rib_wall", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_width", "multimaterial_settings_prime_tower#width");
         optgroup->append_single_option_line("prime_volume", "multimaterial_settings_prime_tower");
         optgroup->append_single_option_line("prime_tower_brim_width", "multimaterial_settings_prime_tower#brim-width");
+        optgroup->append_single_option_line("prime_tower_rib_wall", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_extra_rib_length","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_fillet_wall","parameter/prime-tower");

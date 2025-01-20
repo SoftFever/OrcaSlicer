@@ -6064,7 +6064,7 @@ void PrintConfigDef::init_fff_params()
     def->label   = L("rib wall");
     def->tooltip = L("The wall of prime tower will add four ribs");
     def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("prime_tower_fillet_wall", coBool);
     def->label   = L("fillet wall");
