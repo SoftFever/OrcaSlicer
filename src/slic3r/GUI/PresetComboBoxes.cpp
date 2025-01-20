@@ -194,7 +194,7 @@ void PresetComboBox::update_selection()
      */
     //validate_selection();
     if (m_last_selected == INT_MAX)
-        m_last_selected == 1;
+        m_last_selected = 1;
 
     SetSelection(m_last_selected);
 #ifdef __WXMSW__

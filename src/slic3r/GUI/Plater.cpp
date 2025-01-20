@@ -387,6 +387,8 @@ struct ExtruderGroup : StaticGroup
         btn_up->msw_rescale();
         btn_down->msw_rescale();
         combo_flow->Rescale();
+        for (int i = 0; i < 4; ++i)
+            ams[i]->msw_rescale();
     }
 };
 
@@ -1702,7 +1704,7 @@ Sidebar::Sidebar(Plater *parent)
             }
         }));
 
-    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
+    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
     bSizer39->Hide(p->m_flushing_volume_btn);
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
@@ -2161,6 +2163,14 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         bool is_dual_extruder = nozzle_diameter->size() == 2;
         p->layout_printer(isBBL, is_dual_extruder);
+        if (is_dual_extruder) {
+            AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
+            AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 48));
+        } else {
+            AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 32));
+        }
 
         if (GUI::wxGetApp().plater())
             GUI::wxGetApp().plater()->update_machine_sync_status();
@@ -2229,6 +2239,7 @@ void Sidebar::msw_rescale()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
+    p->btn_edit_printer->msw_rescale();
     p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
     bool isDual = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
     p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 48));
