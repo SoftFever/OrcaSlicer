@@ -11,6 +11,7 @@
     "internal_solid_infill_speed": "250",
     "outer_wall_speed": "200",
     "prime_tower_width": "60",
+	"prime_tower_brim_width": "-1",
     "sparse_infill_speed": "350",
     "travel_speed": "1000",
     "compatible_printers": [

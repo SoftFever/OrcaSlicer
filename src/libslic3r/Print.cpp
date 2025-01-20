@@ -2801,18 +2801,17 @@ bool Print::has_wipe_tower() const
 const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
 {
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
-    if (!is_step_done(psWipeTower) && filaments_cnt != 0) {
+    double max_height = 0;
+    for (size_t obj_idx = 0; obj_idx < m_objects.size(); obj_idx++) {
+        double object_z = (double) m_objects[obj_idx]->size().z();
+        max_height      = std::max(unscale_(object_z), max_height);
+    }
+    if (max_height < EPSILON) return m_wipe_tower_data;
+
+    if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
         if (m_config.prime_tower_rib_wall.value) {
             double layer_height = 0.08f; // hard code layer height
             double wipe_volume  = m_config.prime_volume;
-            double max_height   = 0;
-            for (size_t obj_idx = 0; obj_idx < m_objects.size(); obj_idx++) {
-                double object_z = (double) m_objects[obj_idx]->size().z();
-                max_height      = std::max(unscale_(object_z), max_height);
-            }
-            if (max_height < EPSILON)
-                return m_wipe_tower_data;
-
             layer_height = m_objects.front()->config().layer_height.value;
             int    filament_depth_count = m_config.nozzle_diameter.values.size() == 2 ? filaments_cnt : filaments_cnt - 1;
             if (filaments_cnt == 1 && enable_timelapse_print())
@@ -2852,7 +2851,7 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
         const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
         }
     }
-
+    if (m_config.prime_tower_brim_width < 0 ) const_cast<Print *>(this)->m_wipe_tower_data.brim_width = WipeTower::get_auto_brim_by_height(max_height);
     return m_wipe_tower_data;
 }
 

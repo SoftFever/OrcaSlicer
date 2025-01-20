@@ -26,6 +26,7 @@ public:
 	// WipeTower height to minimum depth map
 	static const std::map<float, float> min_depth_per_height;
     static float get_limit_depth_by_height(float max_height);
+    static float get_auto_brim_by_height(float max_height);
 
     struct Extrusion
     {

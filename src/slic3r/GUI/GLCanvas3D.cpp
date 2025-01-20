@@ -5313,10 +5313,12 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
             float wt_brim_width = preset.config.opt_float("prime_tower_brim_width");
 
             const BoundingBoxf3& bb = vol->bounding_box();
+            if (wt_brim_width < 0) wt_brim_width = WipeTower::get_auto_brim_by_height((float)bb.max.z());
             wti.m_bb = BoundingBoxf{to_2d(bb.min), to_2d(bb.max)};
             wti.m_bb.offset(wt_brim_width);
 
             float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
+            if (brim_width < 0) brim_width = WipeTower::get_auto_brim_by_height((float) bb.max.z());
             wti.m_bb.offset((brim_width));
 
             // BBS: the wipe tower pos might be outside bed

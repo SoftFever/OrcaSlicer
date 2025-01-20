@@ -15,7 +15,6 @@
 namespace Slic3r
 {
 static const double wipe_tower_wall_infill_overlap = 0.0;
-static const double wipe_tower_wall_infill_overlap_new = -0.2;
 static constexpr double WIPE_TOWER_RESOLUTION = 0.0375;
 #define SCALED_WIPE_TOWER_RESOLUTION (WIPE_TOWER_RESOLUTION / SCALING_FACTOR)
 inline float align_round(float value, float base)
@@ -1275,7 +1274,7 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
 
 // BBS
 const std::map<float, float> WipeTower::min_depth_per_height = {
-    {10.f, 10.f}, {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
+    {0.f,0.f}, {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
 };
 
 float WipeTower::get_limit_depth_by_height(float max_height)
@@ -1312,6 +1311,11 @@ float WipeTower::get_limit_depth_by_height(float max_height)
         }
     }
     return min_wipe_tower_depth;
+}
+
+float WipeTower::get_auto_brim_by_height(float max_height) {
+    if (max_height < 100) return max_height/100.f * 8.f;
+    return 8.f;
 }
 
 WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float prime_volume, size_t initial_tool, const float wipe_tower_height) :
@@ -1471,7 +1475,8 @@ Vec2f WipeTower::get_next_pos(const WipeTower::box_coordinates &cleaning_box, fl
 
     Vec2f res;
     int   index = m_cur_layer_id % 4;
-    Vec2f offset = m_use_gap_wall ? Vec2f(5 * m_perimeter_width, 0) : Vec2f{0, 0};
+    //Vec2f offset = m_use_gap_wall ? Vec2f(5 * m_perimeter_width, 0) : Vec2f{0, 0};
+    Vec2f offset = Vec2f{0, 0};
     switch (index % 4) {
     case 0:
         res = offset +cleaning_box.ld + pos_offset;
@@ -2700,6 +2705,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     }
 
     float nozzle_change_speed = 60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow;
+    //float       nozzle_change_speed = is_first_layer() ? std::min(m_first_layer_speed * 60.f, 4800.f) : 4800.f;
     if (is_tpu_filament(m_current_tool)) {
         nozzle_change_speed *= 0.25;
     }
@@ -3195,23 +3201,23 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         float ironing_length = 3.;
         if (i == 0 && m_use_gap_wall) { // BBS: add ironing after extruding start
             if (m_left_to_right) {
-                float dx = xr + wipe_tower_wall_infill_overlap_new * m_perimeter_width - writer.pos().x();
+                float dx = xr + wipe_tower_wall_infill_overlap * m_perimeter_width - writer.pos().x();
                 if (abs(dx) < ironing_length) ironing_length = abs(dx);
                 writer.extrude(writer.x() + ironing_length, writer.y(), wipe_speed);
                 writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 600.);
                 writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 240.);
                 writer.retract(-retract_length, retract_speed);
-                writer.extrude(xr + wipe_tower_wall_infill_overlap_new * m_perimeter_width, writer.y(), wipe_speed);
+                writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
             } else {
-                float dx = xl - wipe_tower_wall_infill_overlap_new * m_perimeter_width - writer.pos().x();
+                float dx = xl - wipe_tower_wall_infill_overlap * m_perimeter_width - writer.pos().x();
                 if (abs(dx) < ironing_length) ironing_length = abs(dx);
                 writer.extrude(writer.x() - ironing_length, writer.y(), wipe_speed);
                 writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 600.);
                 writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 240.);
                 writer.retract(-retract_length, retract_speed);
-                writer.extrude(xl - wipe_tower_wall_infill_overlap_new * m_perimeter_width, writer.y(), wipe_speed);
+                writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
             }
         } else {
             if (m_left_to_right)
@@ -3433,6 +3439,7 @@ void WipeTower::generate_wipe_tower_blocks()
 
 void WipeTower::plan_tower_new()
 {
+    if (m_wipe_tower_brim_width < 0) m_wipe_tower_brim_width = get_auto_brim_by_height(m_wipe_tower_height);
     if (m_use_rib_wall) {
         // recalculate wipe_tower_with and layer's depth
         generate_wipe_tower_blocks();
