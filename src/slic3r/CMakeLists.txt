@@ -567,6 +567,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/JusPrin/JusPrinLoginDialog.hpp
     GUI/JusPrin/JusPrinChatPanel.cpp
     GUI/JusPrin/JusPrinChatPanel.hpp
+    GUI/JusPrin/JusPrinConfigUtils.cpp
+    GUI/JusPrin/JusPrinConfigUtils.hpp
 )
 
 if (WIN32)

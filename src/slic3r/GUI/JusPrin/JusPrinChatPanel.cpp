@@ -3,6 +3,7 @@
 #include "libslic3r/Config.hpp"
 #include "slic3r/GUI/Jobs/OrientJob.hpp"
 #include "libslic3r/Orient.hpp"
+#include "JusPrinConfigUtils.hpp"
 
 #include <iostream>
 #include <wx/sizer.h>
@@ -13,36 +14,6 @@
 
 namespace Slic3r { namespace GUI {
 
-
-nlohmann::json PresetsToJson(const std::vector<std::pair<const Preset*, bool>>& presets)
-{
-    nlohmann::json j_array = nlohmann::json::array();
-    for (const auto& [preset, is_selected] : presets) {
-        nlohmann::json j;
-        j["name"] = preset->name;
-        j["is_default"] = preset->is_default;
-        j["is_selected"] = is_selected;
-        j["config"] = preset->config.to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
-        j_array.push_back(j);
-    }
-    return j_array;
-}
-
-nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items) {
-    nlohmann::json j;
-    j["overhang"] = cost_items.overhang;
-    j["bottom"] = cost_items.bottom;
-    j["bottom_hull"] = cost_items.bottom_hull;
-    j["contour"] = cost_items.contour;
-    j["area_laf"] = cost_items.area_laf;
-    j["area_projected"] = cost_items.area_projected;
-    j["volume"] = cost_items.volume;
-    j["area_total"] = cost_items.area_total;
-    j["radius"] = cost_items.radius;
-    j["height_to_bottom_hull_ratio"] = cost_items.height_to_bottom_hull_ratio;
-    j["unprintability"] = cost_items.unprintability;
-    return j;
-}
 
 JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -207,8 +178,8 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
 }
 
 void JusPrinChatPanel::handle_discard_current_changes(const nlohmann::json& params) {
-    DiscardCurrentPresetChanges();
-    UpdatePresetTabs();
+    JusPrinConfigUtils::DiscardCurrentPresetChanges();
+    JusPrinConfigUtils::UpdatePresetTabs();
 }
 
 void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
@@ -228,10 +199,10 @@ void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
     }
 
     for (const auto& item : param_item) {
-        ApplyConfig(item);
+        JusPrinConfigUtils::ApplyConfig(item);
     }
 
-    UpdatePresetTabs();
+    JusPrinConfigUtils::UpdatePresetTabs();
 }
 
 void JusPrinChatPanel::UpdatePresetTabs() {
@@ -242,32 +213,6 @@ void JusPrinChatPanel::UpdatePresetTabs() {
             tab->reload_config();
             tab->update();
             tab->update_dirty();
-        }
-    }
-}
-
-void JusPrinChatPanel::ApplyConfig(const nlohmann::json& item) {
-    std::string  type = item.value("type", "");
-    Preset::Type preset_type;
-    if (type == "print") {
-        preset_type = Preset::Type::TYPE_PRINT;
-    } else if (type == "filament") {
-        preset_type = Preset::Type::TYPE_FILAMENT;
-    } else {
-        BOOST_LOG_TRIVIAL(error) << "handle_apply_config: invalid type parameter";
-        return;
-    }
-
-    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
-    if (tab != nullptr) {
-        try {
-            DynamicPrintConfig* config = tab->get_config();
-            if (!config) return;
-
-            ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::Enable);
-            config->set_deserialize(item.value("key", ""), item["value"], context);
-        } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "handle_apply_config: error applying config " << e.what();
         }
     }
 }
@@ -344,25 +289,13 @@ void JusPrinChatPanel::CallEmbeddedChatMethod(const wxString& method, const wxSt
     RunScriptInBrowser(strJS);
 }
 
-nlohmann::json JusPrinChatPanel::GetAllPresetJson() {
-    nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
-    nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
-    nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
-
-    return {
-        {"printerPresets", printerPresetsJson},
-        {"filamentPresets", filamentPresetsJson},
-        {"printProcessPresets", printPresetsJson}
-    };
-}
-
 void JusPrinChatPanel::RefreshPresets() {
     nlohmann::json allPresetsJson = GetAllPresetJson();
     UpdateEmbeddedChatState("presets", allPresetsJson.dump());
 }
 
 void JusPrinChatPanel::RefreshPlaterConfig() {
-    nlohmann::json platerJson = GetPlaterConfigJson();
+    nlohmann::json platerJson = JusPrinConfigUtils::GetPlaterConfigJson();
     UpdateEmbeddedChatState("platerConfig", platerJson.dump());
 }
 
@@ -376,34 +309,8 @@ void JusPrinChatPanel::RefreshPlaterStatus() {
     UpdateEmbeddedChatState("platerStatus", j.dump());
 }
 
-
-nlohmann::json JusPrinChatPanel::GetPresetsJson(Preset::Type type) {
-    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(type);
-    if (!tab) {
-        return nlohmann::json::array();
-    }
-
-    TabPresetComboBox* combo = tab->get_combo_box();
-    std::vector<std::pair<const Preset*, bool>> presets;
-
-    // It doesn't seem that PresetComboBox keeps a list of available presets. So we will have to go by the combo box text then look up the preset
-    for (unsigned int i = 0; i < combo->GetCount(); i++) {
-        std::string preset_name = combo->GetString(i).ToUTF8().data();
-
-        if (preset_name.substr(0, 5) == "-----") continue;   // Skip separator
-
-        // Orca Slicer adds "* " to the preset name to indicate that it has been modified. But the underlying preset name is without the "* " prefix
-        if (preset_name.substr(0, 2) == "* ") {
-            preset_name = preset_name.substr(2);
-        }
-
-        const Preset* preset = tab->m_presets->find_preset(preset_name, false);
-        if (preset) {
-            presets.push_back({preset, combo->GetSelection() == i});
-        }
-    }
-
-    return PresetsToJson(presets);
+nlohmann::json JusPrinChatPanel::GetAllPresetJson() {
+    return JusPrinConfigUtils::GetAllPresetJson();
 }
 
 void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
@@ -412,51 +319,6 @@ void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
     j["data"] = nlohmann::json::object();
     j["data"]["status"] = canceled ? "canceled" : "completed";
     CallEmbeddedChatMethod("eventReceived", j.dump());
-}
-
-nlohmann::json JusPrinChatPanel::GetModelObjectFeaturesJson(const ModelObject* obj) {
-    if (!obj || obj->instances.size() != 1) {
-        BOOST_LOG_TRIVIAL(error) << "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
-        return nlohmann::json::object();
-    }
-
-    Slic3r::orientation::OrientMesh om = Slic3r::GUI::OrientJob::get_orient_mesh(obj->instances[0]);
-    Slic3r::orientation::OrientParams params;
-    params.min_volume = false;
-
-    Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, {}, {});
-    Slic3r::orientation::CostItems features = orienter.get_features(om.orientation.cast<float>(), true);
-    return CostItemsToJson(features);
-}
-
-nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
-{
-    nlohmann::json j = nlohmann::json::object();
-    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
-
-    j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
-
-    j["modelObjects"] = nlohmann::json::array();
-
-    for (const ModelObject* object :  plater->model().objects) {
-        auto object_grid_config = &(object->config);
-
-        nlohmann::json obj;
-        obj["id"] = std::to_string(object->id().id);
-        obj["name"] = object->name;
-        obj["features"] = GetModelObjectFeaturesJson(object);
-
-        int extruder_id = -1;  // Default extruder ID
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            extruder_id = *extruder_id_ptr;
-        }
-        obj["extruderId"] = extruder_id;
-
-        j["modelObjects"].push_back(obj);
-    }
-
-    return j;
 }
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
@@ -526,13 +388,7 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
 }
 
 void JusPrinChatPanel::DiscardCurrentPresetChanges() {
-    PresetBundle* bundle = wxGetApp().preset_bundle;
-    if (!bundle) {
-        return;
-    }
-    bundle->printers.discard_current_changes();
-    bundle->filaments.discard_current_changes();
-    bundle->prints.discard_current_changes();
+    JusPrinConfigUtils::DiscardCurrentPresetChanges();
 }
 
 }} // namespace Slic3r::GUI
