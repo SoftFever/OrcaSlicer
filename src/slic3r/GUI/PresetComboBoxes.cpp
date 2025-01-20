@@ -469,8 +469,9 @@ int PresetComboBox::selected_connected_printer() const
     return -1;
 }
 
-void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
+bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 {
+    bool selected_in_ams      = false;
     bool is_bbl_vendor_preset = m_preset_bundle->is_bbl_vendor();
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
         bool dual_extruder = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
@@ -513,12 +514,26 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             auto color = tray.opt_string("filament_colour", 0u);
             auto name = tray.opt_string("tray_name", 0u);
             wxBitmap bmp(*get_extruder_color_icon(color, name, icon_width, 16));
-            int item_id = Append(get_preset_name(*iter), bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
+            auto text = get_preset_name(*iter);
+            int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
             SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+            if (text == selected) {
+                DynamicPrintConfig *cfg    = &wxGetApp().preset_bundle->project_config;
+                if (cfg) {
+                    auto colors = static_cast<ConfigOptionStrings *>(cfg->option("filament_colour")->clone());
+                    if (m_filament_idx < colors->values.size()) {
+                        auto cur_color = colors->values[m_filament_idx];
+                        if (color == cur_color) {
+                            selected_in_ams = true;
+                        }
+                    }
+                }
+            }
             //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();
     }
+    return selected_in_ams;
 }
 
 int PresetComboBox::selected_ams_filament() const
@@ -903,6 +918,13 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
     evt.Skip();
 }
 
+void PlaterPresetComboBox::update_badge_according_flag() {
+    auto selection   = GetSelection();
+    auto select_flag = GetFlag(selection);
+    auto ok          = select_flag == (int) PresetComboBox::FilamentAMSType::FROM_AMS;
+    ShowBadge(ok);
+}
+
 bool PlaterPresetComboBox::switch_to_tab()
 {
     Tab* tab = wxGetApp().get_tab(m_type);
@@ -1186,38 +1208,32 @@ void PlaterPresetComboBox::update()
     }
     //if (m_type == Preset::TYPE_PRINTER)
     //    add_connected_printers("", true);
-
+    bool selected_in_ams = false;
     if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor()) {
         set_replace_text("Bambu", "BambuStudioBlack");
-        add_ams_filaments(into_u8(selected_user_preset), true);
+        selected_in_ams = add_ams_filaments(into_u8(selected_user_preset), true);
     }
 
+    auto add_presets = [this, &preset_descriptions, &selected_in_ams]
+            (std::vector<PresetItemInfo> const &presets, wxString const &selected, std::string const &group) {
+        if (!presets.empty()) {
+            set_label_marker(Append(separator(group), wxNullBitmap));
+            for (auto it = presets.begin(); it != presets.end(); ++it) {
+                SetItemTooltip(Append(it->name, *it->bitmap), preset_descriptions[it->name]);
+                bool is_selected = it->name == selected;
+                validate_selection(is_selected);
+                if (is_selected && selected_in_ams) {
+                    SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+                }
+            }
+        }
+    };
+
     //BBS: add project embedded preset logic
-    if (!project_embedded_presets.empty())
-    {
-        set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
-        for (auto it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
-            SetItemTooltip(Append(it->name, *it->bitmap), preset_descriptions[it->name]);
-            validate_selection(it->name == selected_user_preset);
-        }
-    }
-    if (!nonsys_presets.empty())
-    {
-        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
-        for (auto it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            SetItemTooltip(Append(it->name, *it->bitmap), preset_descriptions[it->name]);
-            validate_selection(it->name == selected_user_preset);
-        }
-    }
-    //BBS: move system to the end
-    if (!system_presets.empty())
-    {
-        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
-        for (auto it = system_presets.begin(); it != system_presets.end(); ++it) {
-            SetItemTooltip(Append(it->name, *it->bitmap), preset_descriptions[it->name]);
-            validate_selection(it->name == selected_system_preset);
-        }
-    }
+    add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"));
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"));
+    // BBS: move system to the end
+    add_presets(system_presets, selected_system_preset, L("System presets"));
 
     //BBS: remove unused pysical printer logic
     /*if (m_type == Preset::TYPE_PRINTER)
@@ -1258,6 +1274,9 @@ void PlaterPresetComboBox::update()
     }
 
     update_selection();
+    if (m_type == Preset::TYPE_FILAMENT) {
+        update_badge_according_flag();
+    }
     Thaw();
 
     if (!tooltip.IsEmpty()) {

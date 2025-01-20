@@ -4006,13 +4006,20 @@ void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
         while (iter != m_materialList.end()) {
             int       id                      = iter->first;
             Material *item                    = iter->second;
-            auto      m                       = item->item;
-            m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
-            if (item->id < m_cur_colors_in_thumbnail.size()) {
-                m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
-            } else { // exist empty or unrecognized type ams in machine
-                m_cur_colors_in_thumbnail.resize(item->id + 1);
-                m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+            if (item) {
+                auto m = item->item;
+                if (m) {
+                    m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
+                    if (item->id < m_cur_colors_in_thumbnail.size()) {
+                        m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+                    } else { // exist empty or unrecognized type ams in machine
+                        m_cur_colors_in_thumbnail.resize(item->id + 1);
+                        m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+                    }
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error) << "check error:SyncAmsInfoDialog::clone_thumbnail_data:item is nullptr";
             }
             iter++;
         }
