@@ -192,10 +192,10 @@ void SyncAmsInfoDialog::update_select_layout(MachineObject *obj)
         } else {
             m_checkbox_list["flow_cali"]->setValue("on");
         }
-
-        update_timelapse_enable_status();
-        update_flow_cali_check(obj);
     }
+
+    update_timelapse_enable_status();
+    update_flow_cali_check(obj);
 
     if (config && config->get("print", "timelapse") == "0") {
         m_checkbox_list["timelapse"]->setValue("off");
@@ -2289,9 +2289,9 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
         PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
         for (auto warning : plate->get_slice_result()->warnings) {
             if (warning.msg == NOT_GENERATE_TIMELAPSE) {
-                if (warning.error_code == "1001C001") {
+                if (warning.error_code == "10014001") {
                     msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
-                } else if (warning.error_code == "1001C002") {
+                } else if (warning.error_code == "10014002") {
                     msg_text = _L("Timelapse is not supported because Print sequence is set to \"By object\".");
                 }
             }
