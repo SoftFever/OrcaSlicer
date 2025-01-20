@@ -1,11 +1,411 @@
 {
     "result": 0,
-    "t": 1736930690,
+    "t": 1737102428,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "nl": [
+                {
+                    "ecode": "1800C06A",
+                    "intro": "AMS-HT A leest RFID. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1805C06A",
+                    "intro": "AMS-HT F leest RFID. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1807C06C",
+                    "intro": "AMS-HT H is in Feed Assist Mode. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1800C06C",
+                    "intro": "AMS-HT A is in Feed Assist Mode. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1807C06B",
+                    "intro": "AMS-HT H is filament aan het verwisselen. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "10014002",
+                    "intro": "Timelapse wordt niet ondersteund omdat de printvolgorde is ingesteld op \"Per object\"."
+                },
+                {
+                    "ecode": "10018003",
+                    "intro": "Het inschakelen van traditionele timelapse kan leiden tot defecten. Zet het aan indien nodig?"
+                },
+                {
+                    "ecode": "1800C06D",
+                    "intro": "AMS-HT A helpt bij het invoegen van filament. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1803C06A",
+                    "intro": "AMS-HT D leest RFID. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1803C06C",
+                    "intro": "AMS-HT D is in Feed Assist Mode. Droger kan niet gestart worden. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1805C06C",
+                    "intro": "AMS-HT F is in Feed Assist Mode. Kan drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1803C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT D. Ga naar Assistant voor meer details."
+                },
+                {
+                    "ecode": "1802C06A",
+                    "intro": "AMS-HT C leest RFID. Kan drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1805C06E",
+                    "intro": "AMS-HT F motor voert zelftest uit. Kan drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1806C06C",
+                    "intro": "AMS-HT G is in Feed Assist Mode. Kan drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1806C06D",
+                    "intro": "AMS-HT G helpt bij het invoegen van filament. Kan drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1800C06E",
+                    "intro": "AMS-HT A motor voert zelftest uit. Kan drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "10018004",
+                    "intro": "Wiper Tower is niet ingeschakeld en de tijdsvertragingmodus is ingesteld op Smooth in deze printopdracht. Dit kan oppervlakte-defecten veroorzaken. Wilt u doorgaan?"
+                },
+                {
+                    "ecode": "1805C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT F. Ga naar Assistant voor meer details."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Kalibratie van de toolheadcamera is mislukt. Zorg ervoor dat de Laser Homing Area Marker of de Heated Calibration Marker schoon en onbeschadigd zijn, en voer dan het kalibratieproces opnieuw uit."
+                },
+                {
+                    "ecode": "1807C06D",
+                    "intro": "AMS-HT H helpt bij het invoegen van filament. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1802C06C",
+                    "intro": "AMS-HT C is in Voedingsassistentiemodus. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1807C06A",
+                    "intro": "AMS-HT H leest RFID. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1801C06A",
+                    "intro": "AMS-HT B leest RFID. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1807C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT H. Ga naar Assistent voor meer details."
+                },
+                {
+                    "ecode": "1803C06E",
+                    "intro": "AMS-HT D-motor voert zelftest uit. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1801C06D",
+                    "intro": "AMS-HT B helpt bij het invoegen van filament. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1805C06B",
+                    "intro": "AMS-HT F is filament aan het veranderen. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1802C06D",
+                    "intro": "AMS-HT C helpt bij het invoegen van filament. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1802C06E",
+                    "intro": "AMS-HT C-motor voert zelftest uit. Kan drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1804C06C",
+                    "intro": "AMS-HT E is in Voedselondersteuningsmodus. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1804C06A",
+                    "intro": "AMS-HT E leest RFID. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1806C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT G. Ga naar de Assistent voor meer details."
+                },
+                {
+                    "ecode": "1804C06D",
+                    "intro": "AMS-HT E helpt bij het invoegen van filament. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1806C06B",
+                    "intro": "AMS-HT G verandert filament. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1800C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT A. Ga naar de Assistent voor meer details."
+                },
+                {
+                    "ecode": "1802C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT C. Ga naar de Assistent voor meer details."
+                },
+                {
+                    "ecode": "1801C06C",
+                    "intro": "AMS-HT B is in Voedselondersteuningsmodus. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1807C06E",
+                    "intro": "AMS-HT H motor voert zelftest uit. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1000C003",
+                    "intro": "Het inschakelen van Timelapse in traditionele modus kan defecten veroorzaken; activeer deze functie indien nodig."
+                },
+                {
+                    "ecode": "1804C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT E. Ga naar Assistent voor meer details."
+                },
+                {
+                    "ecode": "1801C06E",
+                    "intro": "AMS-HT B motor voert zelftest uit. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1805C06D",
+                    "intro": "AMS-HT F helpt bij het invoeren van filament. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1803C06D",
+                    "intro": "AMS-HT D helpt bij het invoeren van filament. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1801C06B",
+                    "intro": "AMS-HT B is filament aan het wisselen. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1806C06E",
+                    "intro": "AMS-HT G motor voert zelftest uit. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1801C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT B. Ga naar Assistent voor meer details."
+                },
+                {
+                    "ecode": "1804C06E",
+                    "intro": "AMS-HT E motor voert zelftest uit. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1803C06B",
+                    "intro": "AMS-HT D is filament aan het wisselen. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1804C06B",
+                    "intro": "AMS-HT E is filament aan het wisselen. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "1806C06A",
+                    "intro": "AMS-HT G leest RFID. Drogen kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1802C06B",
+                    "intro": "AMS-HT C is filament aan het vervangen. Drogen kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "1800C06B",
+                    "intro": "AMS-HT A is filament aan het vervangen. Drogen kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "10014001",
+                    "intro": "Timelapse wordt niet ondersteund omdat de Spiral Vase-modus is ingeschakeld in de snijdinstellingen."
+                },
+                {
+                    "ecode": "0500806E",
+                    "intro": "Vreemde objecten gedetecteerd op het verwarmingselement; controleer en maak het verwarmingselement schoon."
+                },
+                {
+                    "ecode": "05004004",
+                    "intro": "Apparaat is bezig en kan geen nieuwe taak starten. Wacht alstublieft tot de huidige taak is voltooid voordat u een nieuwe taak verstuurt."
+                },
+                {
+                    "ecode": "0C004025",
+                    "intro": "De Birdseye-camera is vies. Gelieve deze schoon te maken en het proces opnieuw te starten."
+                },
+                {
+                    "ecode": "05008061",
+                    "intro": "Geen printplaat gedetecteerd. Zorg ervoor dat deze correct is geplaatst."
+                },
+                {
+                    "ecode": "0300804A",
+                    "intro": "Noodstopknop verkeerd geïnstalleerd. Herinstalleer deze alstublieft volgens de Wiki voordat u verdergaat."
+                },
+                {
+                    "ecode": "05008079",
+                    "intro": "Volg alstublieft de instructies om het Laser Test Materiaal (350g karton) te plaatsen."
+                },
+                {
+                    "ecode": "0701C06C",
+                    "intro": "AMS B is in Voedingshulpmodus. Kan het drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0701C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS B. Ga naar de Assistent voor meer details."
+                },
+                {
+                    "ecode": "0700C06E",
+                    "intro": "AMS A motor voert zelftest uit. Kan drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0703C06C",
+                    "intro": "AMS D is in Voedingshulpmodus. Kan het drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0703C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS D. Ga naar Assistent voor meer details."
+                },
+                {
+                    "ecode": "05008081",
+                    "intro": "AI heeft gedetecteerd dat de linker en rechter hotend niet zijn geïnstalleerd."
+                },
+                {
+                    "ecode": "0701C06B",
+                    "intro": "AMS B is filament aan het wisselen. Kan het drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0700C06C",
+                    "intro": "AMS A is in Feed Assist Mode. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0702C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS C. Ga naar Assistant voor meer details."
+                },
+                {
+                    "ecode": "0703C06B",
+                    "intro": "AMS D is filament aan het wisselen. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "05008053",
+                    "intro": "De linker en rechter nozzle komen niet overeen met het snijbestand. Start de print na het hersnijden, of ga door met printen na het vervangen van de juiste nozzle. Voorzichtig: de hotend temperatuur is hoog."
+                },
+                {
+                    "ecode": "03004020",
+                    "intro": "De detectie van de nozzle is mislukt. De nozzle is mogelijk niet op de extruder gemonteerd of de sensor is beschadigd. Controleer de Assistant voor details."
+                },
+                {
+                    "ecode": "0C004024",
+                    "intro": "De Birdseye Camera is scheef geïnstalleerd. Raadpleeg de a si z voor herinstallatie."
+                },
+                {
+                    "ecode": "05FE8053",
+                    "intro": "De linker nozzle komt niet overeen met het snijbestand. Start de print opnieuw na het opnieuw snijden, of ga door met printen na het vervangen van de juiste nozzle. Voorzichtig: de temperatuur van de hotend is hoog."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "De lasermodule is geïnstalleerd, maar het snijplatform wordt gedetecteerd. Plaats het bijpassende laserplatform en start vervolgens de diktemeting opnieuw in de software voordat je de taak start."
+                },
+                {
+                    "ecode": "03008054",
+                    "intro": "Plaats het papier dat nodig is voor Print Then Cut."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Taak gepauzeerd omdat de zijkant Laser Safety Windows open is."
+                },
+                {
+                    "ecode": "0703C06D",
+                    "intro": "AMS D helpt bij het invoeren van filament. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "0701C06D",
+                    "intro": "AMS B helpt bij het invoeren van filament. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "0702C06A",
+                    "intro": "AMS C leest RFID. Kan het drogen niet starten. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "05FE8081",
+                    "intro": "AI heeft gedetecteerd dat de linker hotend niet is geïnstalleerd."
+                },
+                {
+                    "ecode": "0702C06E",
+                    "intro": "AMS C motor voert een zelftest uit. Niet mogelijk om te drogen. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0702C06C",
+                    "intro": "AMS C is in Feed Assist Mode. Niet mogelijk om te drogen. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0702C06B",
+                    "intro": "AMS C is filament aan het wisselen. Niet mogelijk om te drogen. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0700C06D",
+                    "intro": "AMS A helpt bij het invoegen van filament. Niet mogelijk om te drogen. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0701C06A",
+                    "intro": "AMS B leest RFID. Niet mogelijk om te drogen. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "05FE8080",
+                    "intro": "AI ontdekte dat de linker hotend niet is geïnstalleerd"
+                },
+                {
+                    "ecode": "0702C06D",
+                    "intro": "AMS C helpt bij het invoegen van filament. Kan het drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "05008082",
+                    "intro": "Verwijder de beschermfolie op de Opaque Glossy Acryl voordat je gaat verwerken."
+                },
+                {
+                    "ecode": "05FF8081",
+                    "intro": "AI ontdekte dat de rechter hotend niet is geïnstalleerd."
+                },
+                {
+                    "ecode": "05FF8080",
+                    "intro": "AI ontdekte dat de rechter hotend niet is geïnstalleerd."
+                },
+                {
+                    "ecode": "05008080",
+                    "intro": "AI ontdekte dat de linker en rechter hotend niet zijn geïnstalleerd."
+                },
+                {
+                    "ecode": "0703C06A",
+                    "intro": "AMS D leest RFID. Kan het drogen niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0700C06B",
+                    "intro": "AMS A is filament aan het wisselen. Droogproces kan niet starten. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "05008060",
+                    "intro": "De huidige module op de toolhead voldoet niet aan de vereisten. Vervang de module volgens de instructies op het scherm."
+                },
+                {
+                    "ecode": "05FF8053",
+                    "intro": "De rechter nozzle komt niet overeen met het slicing-bestand. Start de print opnieuw na het herslicen, of ga verder met printen na het vervangen van de juiste nozzle. Voorzichtig: de hotend temperatuur is hoog."
+                },
+                {
+                    "ecode": "0700C069",
+                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS A. Ga naar Assistent voor meer details."
+                },
+                {
+                    "ecode": "0701C06E",
+                    "intro": "AMS B motor is een self-test aan het uitvoeren. Droogproces kan niet worden gestart. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0700C06A",
+                    "intro": "AMS A is RFID aan het lezen. Droogproces kan niet worden gestart. Probeer het later opnieuw."
+                },
+                {
+                    "ecode": "0703C06E",
+                    "intro": "AMS D motor voert een zelftest uit. Kan niet starten met drogen. Probeer het later opnieuw."
+                },
                 {
                     "ecode": "05008055",
                     "intro": "Lasermodule is geïnstalleerd, maar snijplatform wordt niet gedetecteerd. Plaats het laserplatform en voer de laserafstemming uit."
@@ -17,10 +417,6 @@
                 {
                     "ecode": "05008066",
                     "intro": "Snijmodule is geïnstalleerd, maar het laserplatform wordt gedetecteerd. Plaats het snijplatform (snijbeschermingsbasis + LightGrip snijmat)."
-                },
-                {
-                    "ecode": "05004065",
-                    "intro": "Lasermodule is geïnstalleerd, maar snijplatform wordt gedetecteerd. Plaats het bijpassende laserplatform, start vervolgens de diktemeting in de software opnieuw voordat je de taak start."
                 },
                 {
                     "ecode": "0500807D",
@@ -45,10 +441,6 @@
                 {
                     "ecode": "05004076",
                     "intro": "Plaats het laserplatform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn, en herstart vervolgens de diktemeting in de software voordat je de taak start."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Kalibratie van de camera in de toolhead is mislukt. Zorg ervoor dat de marker in het laser-hominggebied schoon en onbeschadigd is, en voer vervolgens het calibratieproces opnieuw uit."
                 },
                 {
                     "ecode": "05008064",
@@ -627,10 +1019,6 @@
                     "intro": "Blade Z-as home-functie mislukt."
                 },
                 {
-                    "ecode": "0300804B",
-                    "intro": "Taak gepauseerd omdat het zijraam open is."
-                },
-                {
                     "ecode": "0500807E",
                     "intro": "Plaats een StrongGrip snijmat op de snijbeschermingsbasis."
                 },
@@ -679,254 +1067,6 @@
                     "intro": "De rechter hotend kan niet worden geïdentificeerd, mogelijk door de beschadigde nozzle marker. Stel het hotendtype handmatig in."
                 },
                 {
-                    "ecode": "1882406E",
-                    "intro": "AMS-HT C motor voert zelftest uit. Kan niet starten met drogen. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1887406A",
-                    "intro": "AMS-HT H leest RFID. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1887406D",
-                    "intro": "AMS-HT H helpt bij het invoegen van filament. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1882406A",
-                    "intro": "AMS-HT C leest RFID. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1886406B",
-                    "intro": "AMS-HT G is filament aan het vervangen. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1881406E",
-                    "intro": "AMS-HT B motor voert zelftest uit. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1881406C",
-                    "intro": "AMS-HT B is in Voedingsassistentiemodus. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1883406D",
-                    "intro": "AMS-HT D helpt bij het invoegen van filament. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1885406D",
-                    "intro": "AMS-HT F helpt bij het invoegen van filament. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1883406C",
-                    "intro": "AMS-HT D is in Voedingsassistentiemodus. Droogproces kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0702406E",
-                    "intro": "AMS C motor voert zelftest uit. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1884406E",
-                    "intro": "AMS-HT E motor voert zelftest uit. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1885406C",
-                    "intro": "AMS-HT F is in Feed Assist Mode. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1880406A",
-                    "intro": "AMS-HT A leest RFID. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0702406D",
-                    "intro": "AMS C helpt bij het invoegen van filament. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0700406D",
-                    "intro": "AMS A helpt bij het invoegen van filament. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1882406B",
-                    "intro": "AMS-HT C is filament aan het wisselen. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1880406C",
-                    "intro": "AMS-HT A is in Feed Assist Mode. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0702406B",
-                    "intro": "AMS C is filament aan het wisselen. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1887406E",
-                    "intro": "AMS-HT H motor voert zelftest uit. Starten met drogen niet mogelijk. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1880406B",
-                    "intro": "AMS-HT A verandert filament. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1884406A",
-                    "intro": "AMS-HT E leest RFID. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0701406B",
-                    "intro": "AMS B verandert filament. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1885406E",
-                    "intro": "AMS-HT F motor voert zelftest uit. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1884406D",
-                    "intro": "AMS-HT E helpt bij het invoegen van filament. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "05008079",
-                    "intro": "Volg de instructies om het Laser Testmateriaal (350g karton) te plaatsen."
-                },
-                {
-                    "ecode": "1884406C",
-                    "intro": "AMS-HT E is in de Voerassistentiemodus. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1883406A",
-                    "intro": "AMS-HT D leest RFID. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0703406A",
-                    "intro": "AMS D leest RFID. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1883406E",
-                    "intro": "AMS-HT D motor voert zelftest uit. Kan drogen niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0703406C",
-                    "intro": "AMS D is in Voedsel Assistentie Mode. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0700406E",
-                    "intro": "AMS A motor voert zelftest uit. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1880406E",
-                    "intro": "AMS-HT A motor voert zelftest uit. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1887406C",
-                    "intro": "AMS-HT H is in Voedsel Assistentie Mode. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1886406C",
-                    "intro": "AMS-HT G is in Voedsel Assistentie Mode. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0701406A",
-                    "intro": "AMS B leest RFID. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0703406B",
-                    "intro": "AMS D is filament aan het veranderen. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0702406C",
-                    "intro": "AMS C is in Voedsel Assistentie Mode. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1881406D",
-                    "intro": "AMS-HT B helpt bij het invoegen van filament. Droogprocess niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1885406B",
-                    "intro": "AMS-HT F verandert filament. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1886406E",
-                    "intro": "AMS-HT G motor voert zelftest uit. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0700406B",
-                    "intro": "AMS A verandert filament. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0701406D",
-                    "intro": "AMS B helpt bij het invoeren van filament. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0701406C",
-                    "intro": "AMS B is in Feed Assist Mode. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1886406D",
-                    "intro": "AMS-HT G helpt bij het invoeren van filament. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0700406A",
-                    "intro": "AMS A leest RFID. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0702406A",
-                    "intro": "AMS C leest RFID. Droger kan niet starten. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "03008054",
-                    "intro": "Plaats het papier dat nodig is voor het print- dan wel snijproces."
-                },
-                {
-                    "ecode": "1883406B",
-                    "intro": "AMS-HT D is filament aan het wijzigen. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0703406D",
-                    "intro": "AMS D helpt bij het invoeren van filament. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1885406A",
-                    "intro": "AMS-HT F leest RFID. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1886406A",
-                    "intro": "AMS-HT G leest RFID. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1887406B",
-                    "intro": "AMS-HT H is filament aan het wijzigen. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1884406B",
-                    "intro": "AMS-HT E is filament aan het wijzigen. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0701406E",
-                    "intro": "AMS B motor is een zelftest aan het uitvoeren. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1881406B",
-                    "intro": "AMS-HT B is filament aan het wijzigen. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1882406D",
-                    "intro": "AMS-HT C helpt bij het invoeren van filament. Kan het drogen niet starten. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "1882406C",
-                    "intro": "AMS-HT C is in Voedingshulpmodus. Droogproces kan niet gestart worden. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1881406A",
-                    "intro": "AMS-HT B leest RFID. Droogproces kan niet gestart worden. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0700406C",
-                    "intro": "AMS A is in Voedingshulpmodus. Droogproces kan niet gestart worden. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "0703406E",
-                    "intro": "AMS D motor voert zelftest uit. Droogproces kan niet gestart worden. Probeer het later opnieuw."
-                },
-                {
-                    "ecode": "1880406D",
-                    "intro": "AMS-HT A helpt bij het invoegen van filament. Droogproces kan niet gestart worden. Probeer het later opnieuw."
-                },
-                {
                     "ecode": "03008064",
                     "intro": "De kamertemperatuur is te hoog. Gelieve de bovenklep en de frontdeur te openen om af te koelen. (Detectie van open deur voor deze printtaak wordt ingesteld op \"Melding\" niveau)"
                 },
@@ -961,10 +1101,6 @@
                 {
                     "ecode": "0C008040",
                     "intro": "AI heeft een probleem met air-printing gedetecteerd. Controleer de status van de hotend-extrusie. Raadpleeg de assistent voor oplossingen."
-                },
-                {
-                    "ecode": "0300804A",
-                    "intro": "Noodstopknop verkeerd geïnstalleerd. Installeer deze opnieuw volgens de instructies voordat u verdergaat."
                 },
                 {
                     "ecode": "03008051",
@@ -1483,58 +1619,6 @@
                     "intro": "AMS A wordt gedroogd. Stop alstublieft het droogproces voordat u materiaal laadt/ontlaadt."
                 },
                 {
-                    "ecode": "07004069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS A. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "18834069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT D. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "18804069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT A. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "07014069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS B. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "18844069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT E. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "18824069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT C. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "18814069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT B. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "18864069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT G. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "07034069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS D. Ga voor meer details naar Assistant."
-                },
-                {
-                    "ecode": "18874069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT H. Ga naar Assistant voor meer details."
-                },
-                {
-                    "ecode": "07024069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS C. Ga naar Assistant voor meer details."
-                },
-                {
-                    "ecode": "18854069",
-                    "intro": "Er is een fout opgetreden tijdens het drogen van AMS-HT F. Ga naar Assistant voor meer details."
-                },
-                {
-                    "ecode": "1001C001",
-                    "intro": "Timelapse wordt niet ondersteund omdat Spiral vaasmodus is ingeschakeld in de slicer instellingen."
-                },
-                {
                     "ecode": "07FEC003",
                     "intro": "Trek de filament uit de spoelhouder van de linker extruder. Als dit bericht aanhoudt, controleer dan of er filament is afgebroken in de extruder of PTFE-buis. (Sluit een PTFE-buis aan als je een AMS gaat gebruiken)"
                 },
@@ -1543,20 +1627,12 @@
                     "intro": "Trek de filament uit de spoelhouder van de linker extruder. Als dit bericht aanhoudt, controleer dan of er filament is afgebroken in de extruder of PTFE-buis. (Sluit een PTFE-buis aan als je een AMS gaat gebruiken)"
                 },
                 {
-                    "ecode": "05008053",
-                    "intro": "Er is een inconsistentie tussen de linker- en rechternozzle gedetecteerd tijdens het printen. Start de print opnieuw nadat u opnieuw heeft gesliced of ga door met printen nadat u de juiste nozzle heeft vervangen. Let op: de hotend-temperatuur is hoog."
-                },
-                {
                     "ecode": "0500405D",
                     "intro": "Foutieve serienummer van de laser module: kalibratie of project uitvoeren niet mogelijk."
                 },
                 {
                     "ecode": "0500805E",
                     "intro": "Fout in Serienummer Snijmodule: niet in staat om te kalibreren of project te maken."
-                },
-                {
-                    "ecode": "05008060",
-                    "intro": "De huidige module voldoet niet aan de productie-eisen. Vervang de module zoals aangegeven op het scherm."
                 },
                 {
                     "ecode": "03004067",
@@ -1579,24 +1655,8 @@
                     "intro": "Trek het filament uit de spoelhouder van de rechterextruder. Als dit bericht aanhoudt, controleer dan of er filament is gebroken in de extruder of de PTFE-buis. (Sluit een PTFE-buis aan als u een AMS gaat gebruiken.)"
                 },
                 {
-                    "ecode": "0C004025",
-                    "intro": "De birdseye-camera is vies; maak deze schoon en start het proces opnieuw."
-                },
-                {
-                    "ecode": "05008061",
-                    "intro": "Geen printplaat gedetecteerd; zorg ervoor dat deze correct geplaatst is."
-                },
-                {
                     "ecode": "0500402F",
                     "intro": "De sector data van de USB-flashdrive is beschadigd; formatteer deze alstublieft. Als deze nog steeds niet herkend wordt, vervang dan de USB-flashdrive."
-                },
-                {
-                    "ecode": "05FE8053",
-                    "intro": "Er is een discrepantie in de linker mondstuk gedetecteerd tijdens het printen. Start de print opnieuw na opnieuw te hebben gesliced, of ga verder met printen na het vervangen van het juiste mondstuk. Let op: de temperatuur van de hotend is hoog."
-                },
-                {
-                    "ecode": "05FF8053",
-                    "intro": "Er is een discrepantie in de rechter mondstuk gedetecteerd tijdens het printen. Start de print opnieuw na opnieuw te hebben gesliced, of ga verder met printen na het vervangen van het juiste mondstuk. Let op: de temperatuur van de hotend is hoog."
                 },
                 {
                     "ecode": "05024002",
@@ -1609,10 +1669,6 @@
                 {
                     "ecode": "05024003",
                     "intro": "De printer is momenteel aan het printen en de functie voor verbetering van de bewegingsnauwkeurigheid kan niet worden in- of uitgeschakeld."
-                },
-                {
-                    "ecode": "0500806E",
-                    "intro": "Vreemde objecten gedetecteerd op het heatbed; controleer en maak het heatbed alstublieft schoon."
                 },
                 {
                     "ecode": "05024005",
@@ -1839,10 +1895,6 @@
                     "intro": "Het koelproces na het drogen is mislukt in AMS B."
                 },
                 {
-                    "ecode": "03004020",
-                    "intro": "De detectie van de mondstuk aanwezigheid is mislukt. Het mondstuk kan niet gemonteerd zijn op de extruder of de sensor kan beschadigd zijn."
-                },
-                {
                     "ecode": "0C00403D",
                     "intro": "De encoderplaat van de visie is niet gedetecteerd. Bevestig dat deze correct is gepositioneerd op het warme bed."
                 },
@@ -1869,10 +1921,6 @@
                 {
                     "ecode": "0500402E",
                     "intro": "Het systeem ondersteunt het bestandssysteem van de huidige USB-flashdrive niet. Vervang of formatteer de USB-flashdrive naar het FAT32-formaat."
-                },
-                {
-                    "ecode": "0C004024",
-                    "intro": "De vogelperspectiefcamera is verschoven geïnstalleerd. Raadpleeg de handleiding om deze opnieuw te installeren."
                 },
                 {
                     "ecode": "07FFC009",
@@ -2013,14 +2061,6 @@
                 {
                     "ecode": "1000C002",
                     "intro": "Het printen van CF-materiaal met roestvrij staal kan schade aan de spuitmond veroorzaken."
-                },
-                {
-                    "ecode": "1000C003",
-                    "intro": "Het inschakelen van de traditionele timelapse kan tot defecten leiden. Schakel deze indien nodig in?"
-                },
-                {
-                    "ecode": "1001C002",
-                    "intro": "Timelapse wordt niet ondersteund omdat de printvolgorde is ingesteld op \"Per object\"."
                 },
                 {
                     "ecode": "07038005",
@@ -2173,10 +2213,6 @@
                 {
                     "ecode": "05004003",
                     "intro": "Afdrukken gestopt omdat de printer het bestand niet kon verwerken. Stuur alstublieft uw afdrukopdracht opnieuw."
-                },
-                {
-                    "ecode": "05004004",
-                    "intro": "De printer kan geen nieuwe afdrukopdrachten ontvangen tijdens het printen. Stuur het opnieuw nadat de huidige afdrukopdracht is voltooid."
                 },
                 {
                     "ecode": "05004005",
@@ -2400,6 +2436,382 @@
             "ver": 202502042359,
             "nl": [
                 {
+                    "ecode": "07FF800000020002",
+                    "intro": "De positie van de linker hotend is abnormaal tijdens het printen. Controleer of de flow blocker het geprinte model krast."
+                },
+                {
+                    "ecode": "18FF800000020002",
+                    "intro": "De positie van de linker hotend is abnormaal tijdens het printen. Controleer of de flow blocker het geprinte model krast."
+                },
+                {
+                    "ecode": "0703210000020007",
+                    "intro": "AMS D Slot 2 uitlaat Hall-sensor is losgekoppeld. De connector kan slecht contact hebben."
+                },
+                {
+                    "ecode": "1800200000020007",
+                    "intro": "AMS-HT A Slot 1 uitlaat Hall-sensor is losgekoppeld. De connector kan slecht contact hebben."
+                },
+                {
+                    "ecode": "0C00010000010018",
+                    "intro": "BirdsEye-camera is niet gecertificeerd en camera-gerelateerde functies zijn ongeldig."
+                },
+                {
+                    "ecode": "050001000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701210000020007",
+                    "intro": "AMS B Slot 2 uitlaat Hall-sensor is losgekoppeld. De connector kan slecht contact hebben."
+                },
+                {
+                    "ecode": "0703200000020007",
+                    "intro": "AMS D Slot 1 uitgaande Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0702200000020007",
+                    "intro": "AMS C Slot 1 uitlaat Hall-sensor is losgekoppeld. De connector kan slecht contact hebben."
+                },
+                {
+                    "ecode": "0701200000020007",
+                    "intro": "AMS B Slot 1 uitlaat Hall-sensor is losgekoppeld. De connector kan slecht contact hebben."
+                },
+                {
+                    "ecode": "0703230000020007",
+                    "intro": "AMS D Slot 4 uitlaat Hall-sensor is losgekoppeld. De connector kan slecht contact hebben."
+                },
+                {
+                    "ecode": "0700220000020007",
+                    "intro": "AMS A Slot 3 uitlaat Hall-sensor is losgekoppeld. De connector kan slecht contact hebben."
+                },
+                {
+                    "ecode": "0300990000010004",
+                    "intro": "Het juiste laserveiligheidsvenster wordt niet gedetecteerd. Installeer het volgens de Wiki en start de taak opnieuw."
+                },
+                {
+                    "ecode": "0300960000010004",
+                    "intro": "Het voorste laserveiligheidsvenster wordt niet gedetecteerd. Installeer het volgens de Wiki en start de taak opnieuw."
+                },
+                {
+                    "ecode": "0C00040000020019",
+                    "intro": "De Birdseye-camera is scheef geïnstalleerd. Raadpleeg de Wiki om deze opnieuw te installeren."
+                },
+                {
+                    "ecode": "0300980000010004",
+                    "intro": "Het linkse laserveiligheidsvenster wordt niet gedetecteerd. Installeer het volgens de Wiki en start de taak opnieuw."
+                },
+                {
+                    "ecode": "1804210000020007",
+                    "intro": "De AMS-HT E Slot 2 afvoer Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0706230000020007",
+                    "intro": "De AMS G Slot 4 afvoer Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1802230000020007",
+                    "intro": "De AMS-HT C Slot 4 afvoer Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1800220000020007",
+                    "intro": "De AMS-HT A Slot 3 afvoer Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0707200000020007",
+                    "intro": "De AMS H Slot 1 afvoer Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1807230000020007",
+                    "intro": "De AMS-HT H Slot 4 afvoer Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0704210000020007",
+                    "intro": "AMS E Slot 2 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0707220000020007",
+                    "intro": "AMS H Slot 3 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1802220000020007",
+                    "intro": "AMS-HT C Slot 3 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0707210000020007",
+                    "intro": "AMS H Slot 2 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1803200000020007",
+                    "intro": "AMS-HT D Slot 1 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1806200000020007",
+                    "intro": "AMS-HT G Slot 1 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0705230000020007",
+                    "intro": "AMS F Slot 4 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1805220000020007",
+                    "intro": "AMS-HT F Slot 3 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1802210000020007",
+                    "intro": "AMS-HT C Slot 2 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1803220000020007",
+                    "intro": "AMS-HT D Slot 3 uitgaand hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0704220000020007",
+                    "intro": "AMS E Slot 3 uitvoer Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "0706210000020007",
+                    "intro": "AMS G Slot 2 uitvoer Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Een nieuwe AMS-HT gedetecteerd. Stel deze in om te controleren op welke extruder de AMS-HT is aangesloten."
+                },
+                {
+                    "ecode": "03009E0000030001",
+                    "intro": "Het Detectieniveau voor Open Deur voor deze printtaak wordt ingesteld op \"Kennisgeving\"."
+                },
+                {
+                    "ecode": "0702210000020007",
+                    "intro": "AMS C Slot 2 uitvoer Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "0300280000010001",
+                    "intro": "Krachtensordata abnormaal in het snijmodule. De magneet op de meshouder kan zijn losgekomen."
+                },
+                {
+                    "ecode": "0700230000020007",
+                    "intro": "AMS A Slot 4 uitvoer Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "0701230000020007",
+                    "intro": "AMS B Slot 4 uitvoer Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "0C00040000030018",
+                    "intro": "De calibratie van de gereedschapcamera is mislukt, waarschijnlijk omdat het materiaal niet goed hechtte. De standaardparameters zullen voor dit snijden worden gebruikt."
+                },
+                {
+                    "ecode": "0300970000010004",
+                    "intro": "De Top Laser Beschermplaat is niet gedetecteerd. Installeer deze alstublieft volgens de Wiki en herstart de taak."
+                },
+                {
+                    "ecode": "0704200000020007",
+                    "intro": "AMS E Slot 1 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0705220000020007",
+                    "intro": "AMS F Slot 3 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0705200000020007",
+                    "intro": "AMS F Slot 1 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1807200000020007",
+                    "intro": "AMS-HT H Slot 1 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1807220000020007",
+                    "intro": "AMS-HT H Slot 3 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1800230000020007",
+                    "intro": "AMS-HT A Slot 4 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1806230000020007",
+                    "intro": "AMS-HT G Slot 4 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1801220000020007",
+                    "intro": "AMS-HT B Slot 3 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0707230000020007",
+                    "intro": "AMS H Slot 4 uitgaande Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1801200000020007",
+                    "intro": "AMS-HT B Slot 1 feed-out Hall sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "1807210000020007",
+                    "intro": "AMS-HT H Slot 2 uitgang Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "1803210000020007",
+                    "intro": "AMS-HT D Slot 2 uitgang Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "0706220000020007",
+                    "intro": "AMS G Slot 3 uitgang Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "1804200000020007",
+                    "intro": "AMS-HT E Slot 1 uitgang Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "1805210000020007",
+                    "intro": "AMS-HT F Slot 2 uitgang Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "1804220000020007",
+                    "intro": "AMS-HT E Slot 3 uitgang Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
+                },
+                {
+                    "ecode": "03009B0000010003",
+                    "intro": "Noodstopknop is niet goed geïnstalleerd. Volg alstublieft de Wiki om het te installeren."
+                },
+                {
+                    "ecode": "03009D0000020001",
+                    "intro": "De XY-calibratie van het graveerlaserfocalpunt is mislukt. Maak alstublieft het Laser Hominggebied op het Laserplatform schoon en voer de kalibratie van de Laser Module Mount opnieuw uit."
+                },
+                {
+                    "ecode": "03009D0000020003",
+                    "intro": "De calibratieresultaten van het Z-focalisatiepunt van de gravurelaser wijken aanzienlijk af van de ontwerpwaarden. Gelieve de Laser Module opnieuw te installeren en de Laser Module Setup opnieuw uit te voeren. Als het meerdere keren mislukt, neem dan contact op met ons ondersteuningsteam."
+                },
+                {
+                    "ecode": "03009C0000010001",
+                    "intro": "De Active Airflow Assist Module wordt niet gedetecteerd. Controleer of de connector goed is aangesloten."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "Het apparaat ondersteunt geen meting van materiaal dikte. Installeer de Laser Module en probeer het opnieuw."
+                },
+                {
+                    "ecode": "0702230000020007",
+                    "intro": "AMS C Slot 4 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "0701220000020007",
+                    "intro": "AMS B Slot 3 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Een nieuwe AMS gedetecteerd. Stel het in om te controleren op welke extruder de AMS is aangesloten."
+                },
+                {
+                    "ecode": "0702220000020007",
+                    "intro": "AMS C Slot 3 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "0703220000020007",
+                    "intro": "AMS D Slot 3 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "0700210000020007",
+                    "intro": "AMS A Slot 2 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "0700200000020007",
+                    "intro": "AMS A Slot 1 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "0300280000010004",
+                    "intro": "Force sensor gegevens abnormaal in snijmodule. De magneet op de meshouder is mogelijk gevallen."
+                },
+                {
+                    "ecode": "1804230000020007",
+                    "intro": "AMS-HT E Slot 4 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "1801210000020007",
+                    "intro": "AMS-HT B Slot 2 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1805230000020007",
+                    "intro": "AMS-HT F Slot 4 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "0704230000020007",
+                    "intro": "AMS E Slot 4 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1806220000020007",
+                    "intro": "AMS-HT G Slot 3 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1800210000020007",
+                    "intro": "AMS-HT A Slot 2 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1805200000020007",
+                    "intro": "AMS-HT F Slot 1 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1806210000020007",
+                    "intro": "AMS-HT G Slot 2 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "0705210000020007",
+                    "intro": "AMS F Slot 2 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1801230000020007",
+                    "intro": "AMS-HT B Slot 4 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1803230000020007",
+                    "intro": "AMS-HT D Slot 4 uitgaande Hall-sensor is losgekoppeld. De connector kan slechte contacten hebben."
+                },
+                {
+                    "ecode": "1802200000020007",
+                    "intro": "AMS-HT C Slot 1 uitloop Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "0706200000020007",
+                    "intro": "AMS G Slot 1 uitloop Hall-sensor is losgekoppeld. De connector kan een slechte verbinding hebben."
+                },
+                {
+                    "ecode": "03009B0000010002",
+                    "intro": "Veiligheidsleutel is niet ingevoegd. Volg alstublieft de Wiki om deze te installeren."
+                },
+                {
+                    "ecode": "03009B0000010001",
+                    "intro": "Noodstopknop is niet geïnstalleerd. Volg alstublieft de Wiki om deze te installeren."
+                },
+                {
+                    "ecode": "03009D0000020002",
+                    "intro": "De XY-calibratieresultaten van het graveerlaserfocalpunt verschillen aanzienlijk van de ontwerpcijfers. Neem alstublieft de Laser Module opnieuw in gebruik en voer de Laser Module Setup opnieuw uit."
+                },
+                {
+                    "ecode": "0C00010000010011",
+                    "intro": "De calibratie van de Live View Camera is mislukt, graag opnieuw calibreren. Zorg ervoor dat het bouwplatform leeg is en dat het camerabeeld helder en goed georiënteerd is. Neem contact op met de klantenservice als de mislukkingen zich blijven voordoen."
+                },
+                {
+                    "ecode": "0500040000020050",
+                    "intro": "Laser Veiligheidsvenster niet geïnstalleerd."
+                },
+                {
+                    "ecode": "0500040000010052",
+                    "intro": "Veiligheidsleutel is niet ingevoegd. Volg alstublieft de Wiki om deze te installeren."
+                },
+                {
+                    "ecode": "0500040000010051",
+                    "intro": "Noodstopknop staat niet in de juiste positie. Volg alstublieft de Wiki om deze te installeren."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Diktemeting is mislukt. Het materiaal lijkt transparant of ongelijk te zijn."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "Lasergraveren Z-as focus calibratie is mislukt. Controleer of het Laser Testmateriaal (350g karton) goed is geplaatst en of het oppervlak schoon en intact is."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "Geen materiaal gedetecteerd. Plaats het te verwerken materiaal."
+                },
+                {
                     "ecode": "0300090000010001",
                     "intro": "De extruder servo motor heeft een open circuit. De verbinding kan los zijn, of de motor is mogelijk defect."
                 },
@@ -2424,10 +2836,6 @@
                     "intro": "De verwarming van de kamer is mislukt. De kamerverwarming kan mogelijk geen warme lucht blazen."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "Nieuwe AMS gedetecteerd. Stel deze in om te controleren met welke extruder de AMS is verbonden."
-                },
-                {
                     "ecode": "0C00030000020014",
                     "intro": "Detectie van vreemde objecten werkt niet. Het wordt aanbevolen om de laser of snijmodule te verwijderen als deze geïnstalleerd was, en tab \"Instellingen>Kalibratie\" op het printer scherm en hercalibreer de Live View Camera."
                 },
@@ -2438,10 +2846,6 @@
                 {
                     "ecode": "0C00030000020015",
                     "intro": "Detectie van vreemde objecten werkt niet. Gedetecteerd dat de Live View Camera is vervangen. Als er een laser of snijmodule is geïnstalleerd, verwijder dan de module, tik op \"Instellingen>Kalibratie\" op het printer scherm en hercalibreer de Live View Camera."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Nieuwe AMS-HT gedetecteerd. Stel deze in om te controleren op welke extruder de AMS-HT is aangesloten."
                 },
                 {
                     "ecode": "050004000002004A",
@@ -2516,14 +2920,6 @@
                     "intro": "Materiaal is te klein en te ver naar links geplaatst voor detectie. Verplaats het naar het midden of de rechterzijde."
                 },
                 {
-                    "ecode": "0C00040000020022",
-                    "intro": "Geen materiaal gedetecteerd, plaats alstublieft het te verwerken materiaal."
-                },
-                {
-                    "ecode": "0C00040000020024",
-                    "intro": "Het apparaat ondersteunt geen meting van materiaal dikte. Installeer alstublieft de laser kop en probeer het opnieuw."
-                },
-                {
                     "ecode": "0702700000020002",
                     "intro": "Eten van het filament in de toolhead is mislukt. Mogelijke oorzaak: filament of spoel vast."
                 },
@@ -2534,18 +2930,6 @@
                 {
                     "ecode": "1806700000020002",
                     "intro": "Eten van het filament in de toolhead is mislukt. Mogelijke oorzaak: filament of spoel vast."
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Diktemeting mislukt, het materiaal lijkt transparant of ongelijk."
-                },
-                {
-                    "ecode": "0C00030000020023",
-                    "intro": "Lasergraveer Z-as focus calibratie mislukt. Controleer of de calibratiekaart goed is geplaatst en of het oppervlak schoon en intact is."
-                },
-                {
-                    "ecode": "0C00010000020018",
-                    "intro": "BirdsEye-camera is niet gecertificeerd en camera-gerelateerde functies zijn ongeldig."
                 },
                 {
                     "ecode": "0701200000020006",
@@ -2820,14 +3204,6 @@
                     "intro": "Z-as homing mislukt. Controleer of de beweging van de bladhouder soepel is en zorg ervoor dat er geen vreemde objecten op de contactplaats op de verwarmde bed liggen."
                 },
                 {
-                    "ecode": "0300280000010001",
-                    "intro": "Force sensor gegevens abnormaal in de snijmodule, magneet op de bladhouder kan zijn losgekomen."
-                },
-                {
-                    "ecode": "0300280000010004",
-                    "intro": "Force sensor gegevens abnormaal in de snijmodule, magneet op de bladhouder kan zijn losgekomen."
-                },
-                {
                     "ecode": "0300280000010007",
                     "intro": "Communicatie fout tussen de snijmodule en de gereedschapshouder module. Controleer of de signaalkabel van de snijmodule los of kapot is. Het kan ook te wijten zijn aan een defecte force sensor spoel."
                 },
@@ -2968,18 +3344,6 @@
                     "intro": "AMS H De draden van de hulpmotor met drie fasen zijn niet aangesloten. De connector van de hulpmotor kan een slechte verbinding hebben."
                 },
                 {
-                    "ecode": "03009E0000030001",
-                    "intro": "De open deurdetectie voor deze afdruktaak wordt ingesteld op het niveau \"Melding\"."
-                },
-                {
-                    "ecode": "0500040000010052",
-                    "intro": "De veiligheidssleutel is niet geplaatst; installeer deze alstublieft correct volgens de aanwijzingen in de Wiki."
-                },
-                {
-                    "ecode": "0500040000010051",
-                    "intro": "De noodstopknop is niet geïnstalleerd; installeer deze alstublieft correct volgens de aanwijzingen in de Wiki."
-                },
-                {
                     "ecode": "0500050000010007",
                     "intro": "MQTT-opdrachtverificatie mislukt, werk alstublieft Studio of Handy bij."
                 },
@@ -3006,18 +3370,6 @@
                 {
                     "ecode": "0300A10000010001",
                     "intro": "De kamertemperatuur is te hoog. Gelieve de bovenste deksel en de voordeur te openen om af te koelen, of verlaag de omgevingstemperatuur."
-                },
-                {
-                    "ecode": "07FF800000020002",
-                    "intro": "De positie van de rechter hotend is abnormaal tijdens het printen. Controleer of de flow blocker het geprinte model krabt."
-                },
-                {
-                    "ecode": "18FF800000020002",
-                    "intro": "De positie van de rechter hotend is abnormaal tijdens het printen. Controleer of de flow blocker het geprinte model kras."
-                },
-                {
-                    "ecode": "0500040000020050",
-                    "intro": "Zijpaneel van het chassis niet geïnstalleerd."
                 },
                 {
                     "ecode": "0C00040000010012",
@@ -3540,10 +3892,6 @@
                     "intro": "Geen platform gedetecteerd; zorg ervoor dat de lasertafel op de juiste manier is geplaatst."
                 },
                 {
-                    "ecode": "050001000002000A",
-                    "intro": ""
-                },
-                {
                     "ecode": "05FF040000020042",
                     "intro": "Er is een nozzlemismatch gedetecteerd tijdens het afdrukken. Start de afdruk opnieuw na het opnieuw slicen of vervang de juiste nozzle en ga door met printen. Let op: de hotend-temperatuur is hoog."
                 },
@@ -3640,10 +3988,6 @@
                     "intro": "AMS D Slot 1 voeding Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan slecht connectorschakeling."
                 },
                 {
-                    "ecode": "0703230000020007",
-                    "intro": "AMS D Slot 4 voeding Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan slecht connectorschakeling."
-                },
-                {
                     "ecode": "1804210000020008",
                     "intro": "AMS-HT E Slot 2 voeding Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan slecht connectorschakeling."
                 },
@@ -3716,10 +4060,6 @@
                     "intro": "De motor van AMS-HT E-slot 4 is uitgeschoven. Het extrusiewiel functioneert mogelijk niet goed of het filament is te dun."
                 },
                 {
-                    "ecode": "0707200000020007",
-                    "intro": "AMS H Slot 1 uitvoer Hall-sensor is losgekoppeld, mogelijk als gevolg van slecht connectorcontact."
-                },
-                {
                     "ecode": "1805120000010001",
                     "intro": "De AMS-HT F sleuf 3 motor is uitgegleden. Het spuitmond wiel werkt mogelijk niet goed of de filament kan te dun zijn."
                 },
@@ -3728,16 +4068,8 @@
                     "intro": "AMS G Slot 2 invoer Hall-sensor is losgekoppeld, mogelijk als gevolg van slecht connectorcontact."
                 },
                 {
-                    "ecode": "1807230000020007",
-                    "intro": "AMS-HT H Slot 4 uitvoer Hall-sensor is losgekoppeld, mogelijk als gevolg van slecht connectorcontact."
-                },
-                {
                     "ecode": "1806220000020005",
                     "intro": "AMS-HT G Sleuf 3 filament is op en het oude filament is abnormaal afgevoerd. Controleer of het filament vastzit in de gereedschapskop."
-                },
-                {
-                    "ecode": "1800230000020007",
-                    "intro": "AMS-HT A Slot 4 uitvoer Hall-sensor is losgekoppeld, mogelijk als gevolg van slecht connectorcontact."
                 },
                 {
                     "ecode": "0705200000020002",
@@ -3746,10 +4078,6 @@
                 {
                     "ecode": "1806220000020001",
                     "intro": "AMS-HT G Sleuf 3 filament is op. Plaats alstublieft een nieuwe filament."
-                },
-                {
-                    "ecode": "1806220000020007",
-                    "intro": "AMS-HT G Sleuf 3 uitvoer Hall-sensor is losgekoppeld, mogelijk als gevolg van slecht connectorcontact."
                 },
                 {
                     "ecode": "0707100000010001",
@@ -3802,10 +4130,6 @@
                 {
                     "ecode": "1807220000020003",
                     "intro": "De filament van slot 3 van AMS-HT H is mogelijk gebroken in AMS-HT."
-                },
-                {
-                    "ecode": "1803220000020007",
-                    "intro": "De feed-out Hall-sensor van slot 3 van AMS-HT D is losgekoppeld, dit kan te wijten zijn aan slecht contact van de connector."
                 },
                 {
                     "ecode": "1804560000030001",
@@ -3976,14 +4300,6 @@
                     "intro": "Het filament van AMS D gleuf 3 is op. Plaats een nieuw filament."
                 },
                 {
-                    "ecode": "0700230000020007",
-                    "intro": "De feed-out Hall-sensor van AMS A gleuf 4 is losgekoppeld, mogelijk als gevolg van een slecht contact van de connector."
-                },
-                {
-                    "ecode": "0701200000020007",
-                    "intro": "De feed-out Hall-sensor van AMS B gleuf 1 is losgekoppeld, mogelijk als gevolg van een slecht contact van de connector."
-                },
-                {
                     "ecode": "1801220000020001",
                     "intro": "Het filament van AMS-HT B gleuf 3 is op. Plaats een nieuw filament."
                 },
@@ -3994,10 +4310,6 @@
                 {
                     "ecode": "0705210000030002",
                     "intro": "Het filament van slot 2 van AMS F is op en is automatisch overgeschakeld naar hetzelfde filament in een ander slot."
-                },
-                {
-                    "ecode": "0706230000020007",
-                    "intro": "De Hall-sensor van de feed-out van slot 4 van AMS G is losgekoppeld, wat kan komen door een slecht contact van de connector."
                 },
                 {
                     "ecode": "0705210000020008",
@@ -4060,10 +4372,6 @@
                     "intro": "AMS-HT B Slot 4 filament is op. Wacht alstublieft terwijl het oude filament wordt gezuiverd."
                 },
                 {
-                    "ecode": "1803200000020007",
-                    "intro": "AMS-HT D Slot 1 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan een slecht connector contact."
-                },
-                {
                     "ecode": "0706130000010003",
                     "intro": "De AMS G slot 4 motor koppelbesturing functioneert niet goed. De huidige sensor kan defect zijn."
                 },
@@ -4102,10 +4410,6 @@
                 {
                     "ecode": "0707200000020008",
                     "intro": "De AMS H Slot 1 feed-in Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan een slecht contact van de connector."
-                },
-                {
-                    "ecode": "0706200000020007",
-                    "intro": "De AMS G Slot 1 feed-out Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan een slecht contact van de connector."
                 },
                 {
                     "ecode": "0705700000020004",
@@ -4236,10 +4540,6 @@
                     "intro": "De motor van AMS-HT B sleuf 4 is overbelast. Het filament kan verward of vastgelopen zijn."
                 },
                 {
-                    "ecode": "0704230000020007",
-                    "intro": "De Hall-sensor van AMS E sleuf 4 voor het uitvoeren van filament is losgekoppeld, mogelijk als gevolg van een slecht contact van de connector."
-                },
-                {
                     "ecode": "1803120000010003",
                     "intro": "De motor torsieregeling van AMS-HT D sleuf 3 werkt niet goed. De huidige sensor kan defect zijn."
                 },
@@ -4308,10 +4608,6 @@
                     "intro": "De motor van sleuf 4 van AMS G is overbelast. De filament kan verward of vast zitten."
                 },
                 {
-                    "ecode": "1800210000020007",
-                    "intro": "De Hall-sensor voor de feed-out van sleuf 2 van AMS-HT A is losgekoppeld, wat kan te wijten zijn aan een slecht connect contact."
-                },
-                {
                     "ecode": "1804210000020003",
                     "intro": "De filament van sleuf 2 van AMS-HT E kan gebroken zijn in AMS-HT."
                 },
@@ -4326,10 +4622,6 @@
                 {
                     "ecode": "1805210000020001",
                     "intro": "De AMS-HT F-sleuf 2 filament is op. Gelieve een nieuwe filament in te voegen."
-                },
-                {
-                    "ecode": "1806200000020007",
-                    "intro": "De AMS-HT G-sleuf 1 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan een slecht connectorcontact."
                 },
                 {
                     "ecode": "0706110000010001",
@@ -4492,16 +4784,8 @@
                     "intro": "AMS D sleuf 3 is overbelast. De filament kan in de war zijn of het spoel kan vastlopen."
                 },
                 {
-                    "ecode": "0703200000020007",
-                    "intro": "De hall-sensor voor de invoer van AMS D sleuf 1 is losgekoppeld, mogelijk door een slecht contact van de connector."
-                },
-                {
                     "ecode": "0700200000020008",
                     "intro": "De hall-sensor voor de uitvoer van AMS A sleuf 1 is losgekoppeld, mogelijk door een slecht contact van de connector."
-                },
-                {
-                    "ecode": "0700210000020007",
-                    "intro": "De hall-sensor voor de invoer van AMS A sleuf 2 is losgekoppeld, mogelijk door een slecht contact van de connector."
                 },
                 {
                     "ecode": "0701200000020008",
@@ -4660,20 +4944,12 @@
                     "intro": "AMS G Sleuf 4 filament is opgebruikt. Plaats alstublieft een nieuwe filament."
                 },
                 {
-                    "ecode": "1805210000020007",
-                    "intro": "AMS-HT F Sleuf 2 feed-out Hall-sensor is losgekoppeld, wat kan worden veroorzaakt door slecht contact van de connector."
-                },
-                {
                     "ecode": "1807120000010003",
                     "intro": "De motor koppelregeling van AMS-HT H Sleuf 3 werkt niet goed. De huidige sensor kan defect zijn."
                 },
                 {
                     "ecode": "1800220000030002",
                     "intro": "AMS-HT A Sleuf 3 filament is opgebruikt en automatisch overgeschakeld naar de sleuf met dezelfde filament."
-                },
-                {
-                    "ecode": "0704220000020007",
-                    "intro": "AMS E Slot 3 feed-out Hall-sensor is losgekoppeld, wat mogelijk kan komen door slecht connector contact."
                 },
                 {
                     "ecode": "1806560000030001",
@@ -4892,10 +5168,6 @@
                     "intro": "AMS H sleuf 4 is overbelast. De filament kan in de war zijn of de spoel kan vast zitten."
                 },
                 {
-                    "ecode": "1801200000020007",
-                    "intro": "AMS-HT B-sleuf 1-feed-out Hall-sensor is losgekoppeld, dit kan komen door slecht connectorcontact."
-                },
-                {
                     "ecode": "1800220000020002",
                     "intro": "AMS-HT Sleuf 3 is leeg; voeg een nieuwe filament toe."
                 },
@@ -4934,10 +5206,6 @@
                 {
                     "ecode": "1805230000020005",
                     "intro": "AMS-HT F Sleuf 4 filament is op en het reinigen van de oude filament is abnormaal verlopen; controleer of de filament vastzit in het gereedschapshoofd."
-                },
-                {
-                    "ecode": "1803230000020007",
-                    "intro": "AMS-HT D Slot 4 uitvoerende Hall-sensor is niet aangesloten, mogelijk vanwege een slecht contact van de connector."
                 },
                 {
                     "ecode": "1804110000010003",
@@ -5140,16 +5408,8 @@
                     "intro": "AMS-HT D Sleuf 1 filament kan gebroken zijn in de printkop."
                 },
                 {
-                    "ecode": "0707220000020007",
-                    "intro": "AMS H Sleuf 3 feed-out Hall-sensor is losgekoppeld, dit kan komen door slecht connector contact."
-                },
-                {
                     "ecode": "1800230000020002",
                     "intro": "AMS-HT A Sleuf 4 is leeg; plaats een nieuwe filament."
-                },
-                {
-                    "ecode": "1801220000020007",
-                    "intro": "AMS-HT B Sleuf 3 feed-out Hall-sensor is losgekoppeld, dit kan komen door slecht connector contact."
                 },
                 {
                     "ecode": "1801100000010001",
@@ -5332,10 +5592,6 @@
                     "intro": "Het filament van AMS D Gleuf 3 kan gebroken zijn in AMS."
                 },
                 {
-                    "ecode": "0704200000020007",
-                    "intro": "De feed-out Hall-sensor van AMS E Gleuf 1 is losgekoppeld, wat kan komen door een slecht contact van de connector."
-                },
-                {
                     "ecode": "1803120000020002",
                     "intro": "De motor van AMS-HT D Gleuf 3 is overbelast. Het filament kan in de war zitten of vastzitten."
                 },
@@ -5346,10 +5602,6 @@
                 {
                     "ecode": "1803600000020001",
                     "intro": "De AMS-HT D sleuf 1 is overbelast. Het filament kan in de knoop zitten of de haspel kan vastzitten."
-                },
-                {
-                    "ecode": "0705220000020007",
-                    "intro": "De feed-out Hall-sensor van AMS F-sleuf 3 is losgekoppeld, dit kan te wijten zijn aan een slecht contact in de connector."
                 },
                 {
                     "ecode": "0706220000020001",
@@ -5680,24 +5932,12 @@
                     "intro": "AMS-HT A Slot 2 filament is opgebruikt. Voeg alstublieft een nieuwe filament toe."
                 },
                 {
-                    "ecode": "1806230000020007",
-                    "intro": "AMS-HT G Slot 4 feed-out Hall-sensor is losgekoppeld, wat kan worden veroorzaakt door een slecht contact met de connector."
-                },
-                {
-                    "ecode": "0704210000020007",
-                    "intro": "AMS E Slot 2 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan slecht contact."
-                },
-                {
                     "ecode": "1803210000030001",
                     "intro": "AMS-HT D Slot 2 filament is op. Wacht terwijl de oude filament wordt verwijderd."
                 },
                 {
                     "ecode": "0704200000020002",
                     "intro": "AMS E Slot 1 is leeg; voeg een nieuwe filament toe."
-                },
-                {
-                    "ecode": "1802220000020007",
-                    "intro": "AMS-HT C Slot 3 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan slecht contact."
                 },
                 {
                     "ecode": "1802130000010003",
@@ -5722,10 +5962,6 @@
                 {
                     "ecode": "1802210000030001",
                     "intro": "AMS-HT C Slot 2 filament is op. Wacht terwijl de oude filament wordt verwijderd."
-                },
-                {
-                    "ecode": "0706220000020007",
-                    "intro": "AMS G Slot 3 feed-out Hall-sensor is losgekoppeld, mogelijk als gevolg van slecht connectorcontact."
                 },
                 {
                     "ecode": "0704610000020001",
@@ -5904,10 +6140,6 @@
                     "intro": "AMS E wordt droog gekoeld; wacht tot deze is afgekoeld voordat u doorgaat met de bediening."
                 },
                 {
-                    "ecode": "1800220000020007",
-                    "intro": "De AMS-HT A Slot 3 feed-out Hall-sensor is losgekoppeld, wat mogelijk kan komen door een slecht contact met de connector."
-                },
-                {
                     "ecode": "1804230000030002",
                     "intro": "AMS-HT E Slot 4 heeft geen filament meer en is automatisch overgeschakeld naar de slot met hetzelfde filament."
                 },
@@ -5956,10 +6188,6 @@
                     "intro": "De AMS H slot 3 motor is overbelast. Het filament kan verstrengeld of vastgelopen zijn."
                 },
                 {
-                    "ecode": "1807210000020007",
-                    "intro": "De AMS-HT H Slot 2 feed-out Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan een slecht connectorcontact."
-                },
-                {
                     "ecode": "0705110000010003",
                     "intro": "De AMS F sleuf 2 motorkoppelregeling functioneert niet correct. De stroomsensor kan defect zijn."
                 },
@@ -5970,10 +6198,6 @@
                 {
                     "ecode": "1807110000010001",
                     "intro": "De AMS-HT H sleuf 2 motor is uitgegleden. Het extrusiewiel kan defect zijn, of het filament kan te dun zijn."
-                },
-                {
-                    "ecode": "1802210000020007",
-                    "intro": "De AMS-HT C Sleuf 2 feed-out Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan een slecht connectorcontact."
                 },
                 {
                     "ecode": "1801560000030001",
@@ -6160,10 +6384,6 @@
                     "intro": "De filament van AMS D Slot 4 kan gebroken zijn in AMS."
                 },
                 {
-                    "ecode": "0701210000020007",
-                    "intro": "De feed-out Hall-sensor van AMS B slot 2 is losgekoppeld, dit kan te wijten zijn aan slecht connectorcontact."
-                },
-                {
                     "ecode": "0705230000020004",
                     "intro": "De filament van AMS F Slot 4 kan gebroken zijn in de gereedschapskop."
                 },
@@ -6178,10 +6398,6 @@
                 {
                     "ecode": "1806610000020001",
                     "intro": "AMS-HT G Slot 2 is overbelast. De filament kan in de war zitten of de spoel kan vastzitten."
-                },
-                {
-                    "ecode": "1804230000020007",
-                    "intro": "De feed-out Hall-sensor van AMS-HT E Slot 4 is losgekoppeld, dit kan te wijten zijn aan slecht connectorcontact."
                 },
                 {
                     "ecode": "1806200000020002",
@@ -6444,18 +6660,6 @@
                     "intro": "AMS D Sleuf 4 filament is opgebruikt en het reinigen van de oude filament verliep abnormaal; controleer a.u.b. of de filament vastzit in de tool head."
                 },
                 {
-                    "ecode": "0702230000020007",
-                    "intro": "AMS C Slot 4 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan slecht contact van de connector."
-                },
-                {
-                    "ecode": "0701220000020007",
-                    "intro": "AMS B Slot 3 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan slecht contact van de connector."
-                },
-                {
-                    "ecode": "0703210000020007",
-                    "intro": "AMS D Slot 2 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan slecht contact van de connector."
-                },
-                {
                     "ecode": "1802220000020002",
                     "intro": "AMS-HT C Slot 3 is leeg; voeg een nieuw filament in."
                 },
@@ -6478,10 +6682,6 @@
                 {
                     "ecode": "0707130000020002",
                     "intro": "De AMS H-slot 4 motor is overbelast. Het filament kan in de war zijn of vastzitten."
-                },
-                {
-                    "ecode": "1807220000020007",
-                    "intro": "AMS-HT H Slot 3 feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan slecht contact van de connector."
                 },
                 {
                     "ecode": "1804200000020002",
@@ -6524,10 +6724,6 @@
                     "intro": "AMS G Sleuf 4 filament is op en het uitdrijven van het oude filament verliep abnormaal; controleer alstublieft of het filament vastzit in het gereedschapshoofd."
                 },
                 {
-                    "ecode": "0705210000020007",
-                    "intro": "De Hall-sensor voor feed-out van sleuf 2 van AMS F is losgekoppeld, mogelijk als gevolg van slecht contact van de connector."
-                },
-                {
                     "ecode": "0705130000010003",
                     "intro": "De koppelregeling van de motor van sleuf 4 van AMS F werkt niet naar behoren. De stroomsensor kan defect zijn."
                 },
@@ -6542,14 +6738,6 @@
                 {
                     "ecode": "1801110000010003",
                     "intro": "De koppelregeling van de motor van sleuf 2 van AMS-HT B werkt niet naar behoren. De stroomsensor kan defect zijn."
-                },
-                {
-                    "ecode": "1801230000020007",
-                    "intro": "De feed-out Hall-sensor voor sleuf 4 van AMS-HT B is losgekoppeld, mogelijk als gevolg van slecht contact van de connector."
-                },
-                {
-                    "ecode": "1803210000020007",
-                    "intro": "De Hall-sensor voor feed-out van sleuf 2 van AMS-HT D is losgekoppeld, mogelijk als gevolg van slecht contact van de connector."
                 },
                 {
                     "ecode": "1804230000020004",
@@ -6740,10 +6928,6 @@
                     "intro": "De filament van AMS E Slot 3 kan kapot zijn in AMS."
                 },
                 {
-                    "ecode": "0705200000020007",
-                    "intro": "De feed-out Hall-sensor van AMS F Slot 1 is losgekoppeld, wat mogelijk te wijten is aan slecht contact met de connector."
-                },
-                {
                     "ecode": "0704210000020002",
                     "intro": "AMS E Slot 2 is leeg; plaats een nieuwe filament."
                 },
@@ -6766,10 +6950,6 @@
                 {
                     "ecode": "0704620000020001",
                     "intro": "AMS E Slot 3 is overbelast. Het filament kan in de war zijn of de haspel kan vastzitten."
-                },
-                {
-                    "ecode": "1805230000020007",
-                    "intro": "AMS-HT F Slot 4 feed-out Hall-sensor is losgekoppeld, wat kan komen door een slecht contact van de connector."
                 },
                 {
                     "ecode": "1801630000020001",
@@ -6830,10 +7010,6 @@
                 {
                     "ecode": "1805120000010003",
                     "intro": "De koppelregeling van de motor van AMS -HT F-slot 3 functioneert niet goed. Mogelijk is de stroomsensor defect."
-                },
-                {
-                    "ecode": "0705230000020007",
-                    "intro": "De uitvoer-Hall-sensor van AMS F-slot 4 is niet aangesloten, dit kan te wijten zijn aan een slecht contact van de connector."
                 },
                 {
                     "ecode": "1805220000020008",
@@ -7264,14 +7440,6 @@
                     "intro": "AMS D Slot 3 filament is op en is automatisch overgeschakeld naar de gleuf met dezelfde filament."
                 },
                 {
-                    "ecode": "0702210000020007",
-                    "intro": "AMS C Slot 2 doorvoer Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan slecht connector-contact."
-                },
-                {
-                    "ecode": "0703220000020007",
-                    "intro": "AMS D Slot 3 doorvoer Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan slecht connector-contact."
-                },
-                {
                     "ecode": "1807610000020001",
                     "intro": "De AMS-HT H Slot 2 is overbelast. De filament kan in de knoop zitten of de spoel kan vastzitten."
                 },
@@ -7540,10 +7708,6 @@
                     "intro": "De motor van AMS-HT G Slot 1 is uitgegleden. Het extrusiewiel werkt mogelijk niet goed, of het filament is mogelijk te dun."
                 },
                 {
-                    "ecode": "1801210000020007",
-                    "intro": "De feed-out Hall-sensor van AMS-HT B Slot 2 is losgekoppeld, wat mogelijk komt door slecht contact van de connector."
-                },
-                {
                     "ecode": "1805110000010001",
                     "intro": "De motor van sleuf 2 van AMS-HT F is uitgegleden. Het extrusiewiel functioneert mogelijk niet goed, of de filament is mogelijk te dun."
                 },
@@ -7630,10 +7794,6 @@
                 {
                     "ecode": "1804230000020003",
                     "intro": "De filament van AMS-HT E Slot 4 kan gebroken zijn in AMS-HT."
-                },
-                {
-                    "ecode": "1802200000020007",
-                    "intro": "De feed-out Hall-sensor van AMS-HT C Slot 1 is losgekoppeld, wat mogelijk te wijten is aan slecht connectorcontact."
                 },
                 {
                     "ecode": "1801700000020020",
@@ -7760,14 +7920,6 @@
                     "intro": "AMS C Slot 1-filament is op en het spoelen van de oude filament verliep abnormaal; controleer of de filament vastzit in de toolhead."
                 },
                 {
-                    "ecode": "0702220000020007",
-                    "intro": "AMS C Slot 3-feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan een slecht connector contact."
-                },
-                {
-                    "ecode": "0701230000020007",
-                    "intro": "AMS B Slot 4-feed-out Hall-sensor is losgekoppeld, dit kan te wijten zijn aan een slecht connector contact."
-                },
-                {
                     "ecode": "1801210000020005",
                     "intro": "AMS-HT B Slot 2-filament is op en het spoelen van de oude filament verliep abnormaal; controleer of de filament vastzit in de toolhead."
                 },
@@ -7798,10 +7950,6 @@
                 {
                     "ecode": "1801120000010003",
                     "intro": "De motor koppelregeling van AMS-HT B slot 3 werkt niet goed. De stroomsensor kan defect zijn."
-                },
-                {
-                    "ecode": "1802230000020007",
-                    "intro": "De feed-out Hall-sensor van AMS-HT C Slot 4 is losgekoppeld, wat mogelijk te wijten is aan slecht connectorcontact."
                 },
                 {
                     "ecode": "1803220000020005",
@@ -7836,20 +7984,12 @@
                     "intro": "De motor van AMS-HT H slot 3 is uitgeschoven. Het extrusiewiel kan defect zijn of het filament kan te dun zijn."
                 },
                 {
-                    "ecode": "1807200000020007",
-                    "intro": "AMS-HT H Sleuf 1 uitvoersensor van de Hall-sensor is losgekoppeld, mogelijk als gevolg van een slecht connectorcontact."
-                },
-                {
                     "ecode": "0705200000020008",
                     "intro": "AMS F Sleuf 1 invoersensor van de Hall-sensor is losgekoppeld, mogelijk als gevolg van een slecht connectorcontact."
                 },
                 {
                     "ecode": "0704230000030001",
                     "intro": "AMS E Sleuf 4 filament is op. Wacht terwijl het oude filament wordt verwijderd."
-                },
-                {
-                    "ecode": "0707230000020007",
-                    "intro": "AMS H Sleuf 4 uitvoersensor van de Hall-sensor is losgekoppeld, mogelijk als gevolg van een slecht connectorcontact."
                 },
                 {
                     "ecode": "0704220000030001",
@@ -7866,10 +8006,6 @@
                 {
                     "ecode": "0704200000020003",
                     "intro": "Het filament van AMS E Sleuf 1 kan gebroken zijn."
-                },
-                {
-                    "ecode": "1805200000020007",
-                    "intro": "AMS-HT F Sleuf 1 uitvoersensor van de Hall-sensor is losgekoppeld, mogelijk als gevolg van een slecht connectorcontact."
                 },
                 {
                     "ecode": "1800130000010003",
@@ -7894,10 +8030,6 @@
                 {
                     "ecode": "0704200000020008",
                     "intro": "De feed-in Hall-sensor van AMS E Slot 1 is losgekoppeld, dit kan te wijten zijn aan een slecht contact van de connector."
-                },
-                {
-                    "ecode": "1804200000020007",
-                    "intro": "De feed-out Hall-sensor van AMS-HT E Slot 1 is losgekoppeld, dit kan te wijten zijn aan een slecht contact van de connector."
                 },
                 {
                     "ecode": "0707210000020004",
@@ -8068,14 +8200,6 @@
                     "intro": "Het filament van AMS D sleuf 2 is op. Wacht terwijl het oude filament uitloopt."
                 },
                 {
-                    "ecode": "0700220000020007",
-                    "intro": "De feed-out Hall-sensor van AMS A sleuf 3 is losgekoppeld, wat mogelijk komt door een slecht contact van de connector."
-                },
-                {
-                    "ecode": "1804210000020007",
-                    "intro": "AMS-HT De Hall-sensor van de feed-out van Slot 2 is losgekoppeld, wat mogelijk te wijten is aan een slecht contact van de connector."
-                },
-                {
                     "ecode": "1800610000020001",
                     "intro": "De AMS-HT A Slot 2 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
                 },
@@ -8152,10 +8276,6 @@
                     "intro": "AMS-HT B-sleuf 4 filament is mogelijk gebroken in de printkop."
                 },
                 {
-                    "ecode": "1800200000020007",
-                    "intro": "AMS-HT Een Hall-sensor voor het uitvoeren van Sleuf 1 is losgekoppeld, dit kan komen door een slechte connector verbinding."
-                },
-                {
                     "ecode": "1806220000020004",
                     "intro": "AMS-HT Het filament van Sleuf 3 van de tool head kan gebroken zijn."
                 },
@@ -8208,10 +8328,6 @@
                     "intro": "De filament van gleuf 1 van de AMS G is op en het reinigen van de oude filament verliep abnormaal. Controleer of de filament vastzit in de tool head."
                 },
                 {
-                    "ecode": "1805220000020007",
-                    "intro": "De feed-out Hall-sensor van gleuf 3 van de AMS-HT F is losgekoppeld, wat mogelijk te wijten is aan slecht connectorcontact."
-                },
-                {
                     "ecode": "1805230000020008",
                     "intro": "De feed-in Hall-sensor van gleuf 4 van de AMS-HT F is losgekoppeld, wat mogelijk te wijten is aan slecht connectorcontact."
                 },
@@ -8222,10 +8338,6 @@
                 {
                     "ecode": "1803220000020003",
                     "intro": "De filament van gleuf 3 van de AMS-HT D kan gebroken zijn in de AMS-HT."
-                },
-                {
-                    "ecode": "1804220000020007",
-                    "intro": "De feed-out Hall-sensor van gleuf 3 van de AMS-HT E is losgekoppeld, wat mogelijk te wijten is aan slecht connectorcontact."
                 },
                 {
                     "ecode": "18FE800000010003",
@@ -8412,10 +8524,6 @@
                     "intro": "AMS F Sleuf 1 filament is opgebruikt en automatisch overgeschakeld naar de sleuf met hetzelfde filament."
                 },
                 {
-                    "ecode": "1806210000020007",
-                    "intro": "AMS-HT G Sleuf 2 uitvoersensor van de Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan slecht connectorcontact."
-                },
-                {
                     "ecode": "0707200000020001",
                     "intro": "AMS H Sleuf 1 filament is opgebruikt. Gelieve een nieuw filament in te voegen."
                 },
@@ -8486,10 +8594,6 @@
                 {
                     "ecode": "0707230000020003",
                     "intro": "Het filament van AMS H sleuf 4 kan gebroken zijn in AMS."
-                },
-                {
-                    "ecode": "0706210000020007",
-                    "intro": "De feed-out Hall-sensor van de AMS G sleuf 2 is losgekoppeld, wat mogelijk komt door een slecht connector contact."
                 },
                 {
                     "ecode": "18FF200000020002",
@@ -8636,14 +8740,6 @@
                     "intro": "De AMS D Slot 4 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
                 },
                 {
-                    "ecode": "0702200000020007",
-                    "intro": "De feed-out Hall-sensor van AMS C Slot 1 is losgekoppeld, wat kan komen door slecht contact van de connector."
-                },
-                {
-                    "ecode": "0700200000020007",
-                    "intro": "De feed-out Hall-sensor van AMS A Slot 1 is losgekoppeld, wat kan komen door slecht contact van de connector."
-                },
-                {
                     "ecode": "0707110000010001",
                     "intro": "De AMS H Slot 2 motor heeft geslipt. Het extrusiewiel kan slecht werken, of het filament kan te dun zijn."
                 },
@@ -8714,10 +8810,6 @@
                 {
                     "ecode": "1807200000030002",
                     "intro": "AMS-HT H Slot 1 filament is op en is automatisch overgeschakeld naar de sleuf met hetzelfde filament."
-                },
-                {
-                    "ecode": "0707210000020007",
-                    "intro": "AMS H De voedingsuitgang Hall-sensor van Sleuf 2 is losgekoppeld, dit kan te wijten zijn aan slecht contact van de connector."
                 },
                 {
                     "ecode": "1807230000020008",
@@ -8844,10 +8936,6 @@
                     "intro": "De kalibratie van de Live View-camera is mislukt en het kalibratieresultaat kon niet worden opgeslagen. Probeer opnieuw te kalibreren. Als de kalibratie meerdere keren mislukt, neem dan contact op met het klantenserviceteam."
                 },
                 {
-                    "ecode": "0C00010000010011",
-                    "intro": "De kalibratie van de Live View-camera is mislukt. Controleer of de camera correct is geïnstalleerd en zorg ervoor dat het camerabeeld helder en vrij van vuil is. Na deze stappen kunt u opnieuw kalibreren."
-                },
-                {
                     "ecode": "0C00010000010010",
                     "intro": "De kalibratie van de Live View-camera is mislukt. Controleer of het printbed leeg is en zorg ervoor dat het camerabeeld helder en vrij van vuil is. Na deze stappen kunt u opnieuw kalibreren."
                 },
@@ -8878,22 +8966,6 @@
                 {
                     "ecode": "03009C0000010002",
                     "intro": "Het actieve luchtstroom assist module is abnormaal en kan beschadigd zijn."
-                },
-                {
-                    "ecode": "03009D0000020002",
-                    "intro": "Het resultaat van de gravure laserfocale punt XY-kalibratie verschilt aanzienlijk van de ontwerpwaarden; installeer alstublieft de lasermodule opnieuw en start de Laser Module Begin Setup opnieuw."
-                },
-                {
-                    "ecode": "03009D0000020001",
-                    "intro": "De kalibratie van de gravure-laserfocale punt XY is mislukt. Maak alstublieft het Laser Homing gebied op de Laser Platform schoon en voer de kalibratie van de Lasermodule opnieuw uit."
-                },
-                {
-                    "ecode": "03009D0000020003",
-                    "intro": "Het resultaat van de gravure laserfocale punt Z-kalibratie verschilt aanzienlijk van de ontwerpwaarden; installeer alstublieft de lasermodule opnieuw en start de Laser Module Begin Setup opnieuw op."
-                },
-                {
-                    "ecode": "03009C0000010001",
-                    "intro": "Het actieve luchtstroom assist-module wordt niet gedetecteerd. Controleer alstublieft of de connector correct is ingeplugd."
                 },
                 {
                     "ecode": "0500040000020047",
@@ -8996,10 +9068,6 @@
                     "intro": "De handgreep van de filament snijder is niet vrijgegeven. De handgreep of het mes kan vastzitten, of er kan een probleem zijn met de filament sensor verbinding."
                 },
                 {
-                    "ecode": "03009B0000010002",
-                    "intro": "De veiligheidssleutel is niet ingevoegd; installeer deze correct zoals aangegeven."
-                },
-                {
                     "ecode": "07FE450000020002",
                     "intro": "De snijafstand van de filament snijder is te groot. De XY-motor kan stappen verliezen."
                 },
@@ -9010,14 +9078,6 @@
                 {
                     "ecode": "07FF450000020002",
                     "intro": "De snijafstand van de filament stansmachine is te groot. De XY-motor kan stappen verliezen."
-                },
-                {
-                    "ecode": "03009B0000010003",
-                    "intro": "De noodstopknop is niet correct geïnstalleerd; installeer deze correct zoals aangegeven."
-                },
-                {
-                    "ecode": "03009B0000010001",
-                    "intro": "De noodstopknop is niet geïnstalleerd; installeer deze correct zoals aangegeven."
                 },
                 {
                     "ecode": "0300180000000000",
@@ -13012,32 +13072,12 @@
                     "intro": "De temperatuur van de juiste extruder spuitmond is abnormaal; de sensor kan een open circuit hebben."
                 },
                 {
-                    "ecode": "0300990000010004",
-                    "intro": "Er wordt gedetecteerd dat het laser-beschermglas niet is geïnstalleerd op het rechter zijraam. Installeer het beschermglas volgens de instructies en start de taak opnieuw."
-                },
-                {
                     "ecode": "07FF200000020004",
                     "intro": "Verwijder de externe filament van de rechter extruder."
                 },
                 {
-                    "ecode": "0300960000010004",
-                    "intro": "Er wordt gedetecteerd dat het laser-beschermglas niet is geïnstalleerd op de voordeur. Installeer het beschermglas volgens de instructies en start de taak opnieuw."
-                },
-                {
                     "ecode": "07FF200000020001",
                     "intro": "De externe filament van de rechter extruder is op; laad alstublieft een nieuwe filament."
-                },
-                {
-                    "ecode": "0C00040000020019",
-                    "intro": "De birds eye camera is verkeerd geïnstalleerd. Raadpleeg de handleiding om deze opnieuw te installeren."
-                },
-                {
-                    "ecode": "0300970000010004",
-                    "intro": "Er wordt gedetecteerd dat het laser-beschermglas niet is geïnstalleerd op de bovenklep. Installeer het beschermglas volgens de instructies en start de taak opnieuw."
-                },
-                {
-                    "ecode": "0300980000010004",
-                    "intro": "Er wordt gedetecteerd dat het laser-beschermglas niet is geïnstalleerd op het linker zijraam. Installeer het beschermglas volgens de instructies en start de taak opnieuw."
                 },
                 {
                     "ecode": "0300990000030001",
@@ -13054,10 +13094,6 @@
                 {
                     "ecode": "0300020000010002",
                     "intro": "De temperatuur van de rechter extruder nozzle is abnormaal; de verwarmer heeft mogelijk een open circuit."
-                },
-                {
-                    "ecode": "0C00040000030018",
-                    "intro": "De kalibratie van de toolhead camera is mislukt, hoogstwaarschijnlijk omdat het materiaal niet strak genoeg vastzat. De standaardparameters zijn gebruikt voor het snijden."
                 },
                 {
                     "ecode": "0701010000010001",

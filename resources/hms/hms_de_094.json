@@ -1,11 +1,411 @@
 {
     "result": 0,
-    "t": 1736930691,
+    "t": 1737102428,
     "ver": 202502042359,
     "data": {
         "device_error": {
             "ver": 202502042359,
             "de": [
+                {
+                    "ecode": "1800C06A",
+                    "intro": "AMS-HT A liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1805C06A",
+                    "intro": "AMS-HT F liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1807C06C",
+                    "intro": "AMS-HT H ist im Feed Assist Mode. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1800C06C",
+                    "intro": "AMS-HT A ist im Feed Assist Mode. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1807C06B",
+                    "intro": "AMS-HT H wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "10014002",
+                    "intro": "Timelapse wird nicht unterstützt, da die Drucksequenz auf \"Nach Objekt\" eingestellt ist."
+                },
+                {
+                    "ecode": "10018003",
+                    "intro": "Die Aktivierung des traditionellen Timelapses kann zu Defekten führen. Bitte aktivieren Sie es nach Bedarf."
+                },
+                {
+                    "ecode": "1800C06D",
+                    "intro": "AMS-HT A hilft beim Einsetzen des Filaments. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1803C06A",
+                    "intro": "AMS-HT D liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1803C06C",
+                    "intro": "AMS-HT D ist im Feed Assist Mode. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1805C06C",
+                    "intro": "AMS-HT F ist im Fütterungsassistenzmodus. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1803C069",
+                    "intro": "Während des Trocknens von AMS-HT D ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
+                },
+                {
+                    "ecode": "1802C06A",
+                    "intro": "AMS-HT C liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1805C06E",
+                    "intro": "Der Motor von AMS-HT F führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1806C06C",
+                    "intro": "AMS-HT G ist im Fütterungsassistenzmodus. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1806C06D",
+                    "intro": "AMS-HT G hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1800C06E",
+                    "intro": "Der Motor von AMS-HT A führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "10018004",
+                    "intro": "Der Wiper Tower ist nicht aktiviert und der Zeitraffer-Modus ist in diesem Druckjob auf Smooth eingestellt. Dies kann zu Oberflächenfehlern führen. Möchten Sie fortfahren?"
+                },
+                {
+                    "ecode": "1805C069",
+                    "intro": "Während des Trocknens von AMS-HT F ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Die Kalibrierung der Toolhead-Kamera ist fehlgeschlagen. Bitte stellen Sie sicher, dass der Laser-Homing-Bereichsmarker oder der beheizte Kalibrierungsmarker sauber und unbeschädigt sind, und führen Sie dann den Kalibrierungsprozess erneut durch."
+                },
+                {
+                    "ecode": "1807C06D",
+                    "intro": "AMS-HT H hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1802C06C",
+                    "intro": "AMS-HT C ist im Futterhilfsmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1807C06A",
+                    "intro": "AMS-HT H liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1801C06A",
+                    "intro": "AMS-HT B liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1807C069",
+                    "intro": "Ein Fehler ist während des Trocknens von AMS-HT H aufgetreten. Bitte gehen Sie zu Assistant für weitere Einzelheiten."
+                },
+                {
+                    "ecode": "1803C06E",
+                    "intro": "AMS-HT D Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1801C06D",
+                    "intro": "AMS-HT B hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1805C06B",
+                    "intro": "AMS-HT F wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1802C06D",
+                    "intro": "AMS-HT C hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1802C06E",
+                    "intro": "AMS-HT C Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1804C06C",
+                    "intro": "AMS-HT E ist im Futterassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1804C06A",
+                    "intro": "AMS-HT E liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1806C069",
+                    "intro": "Beim Trocknen von AMS-HT G ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
+                },
+                {
+                    "ecode": "1804C06D",
+                    "intro": "AMS-HT E unterstützt beim Einsetzen des Filaments. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1806C06B",
+                    "intro": "AMS-HT G wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1800C069",
+                    "intro": "Beim Trocknen von AMS-HT A ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
+                },
+                {
+                    "ecode": "1802C069",
+                    "intro": "Beim Trocknen von AMS-HT C ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
+                },
+                {
+                    "ecode": "1801C06C",
+                    "intro": "AMS-HT B ist im Futterassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1807C06E",
+                    "intro": "Der Motor von AMS-HT H führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1000C003",
+                    "intro": "Die Aktivierung von Timelapse im traditionellen Modus kann zu Mängeln führen; bitte aktivieren Sie diese Funktion nach Bedarf."
+                },
+                {
+                    "ecode": "1804C069",
+                    "intro": "Es ist ein Fehler während des AMS-HT E Trocknens aufgetreten. Bitte gehen Sie zu Assistant für weitere Details."
+                },
+                {
+                    "ecode": "1801C06E",
+                    "intro": "Der AMS-HT B Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1805C06D",
+                    "intro": "AMS-HT F hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1803C06D",
+                    "intro": "AMS-HT D hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1801C06B",
+                    "intro": "AMS-HT B wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1806C06E",
+                    "intro": "Der AMS-HT G Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1801C069",
+                    "intro": "Es ist ein Fehler während des AMS-HT B Trocknens aufgetreten. Bitte gehen Sie zu Assistant für weitere Details."
+                },
+                {
+                    "ecode": "1804C06E",
+                    "intro": "Der AMS-HT E Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1803C06B",
+                    "intro": "AMS-HT D wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1804C06B",
+                    "intro": "AMS-HT E wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "1806C06A",
+                    "intro": "AMS-HT G liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1802C06B",
+                    "intro": "AMS-HT C wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "1800C06B",
+                    "intro": "AMS-HT A wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "10014001",
+                    "intro": "Timelapse wird nicht unterstützt, da der Spiral Vase-Modus in den Schneideeinstellungen aktiviert ist."
+                },
+                {
+                    "ecode": "0500806E",
+                    "intro": "Fremdkörper auf dem Heizbett erkannt; bitte überprüfen und das Heizbett reinigen."
+                },
+                {
+                    "ecode": "05004004",
+                    "intro": "Gerät ist beschäftigt und kann keine neue Aufgabe starten. Bitte warten Sie, bis die aktuelle Aufgabe abgeschlossen ist, bevor Sie eine neue Aufgabe senden."
+                },
+                {
+                    "ecode": "0C004025",
+                    "intro": "Die Birdseye-Kamera ist schmutzig. Bitte reinigen Sie sie und starten Sie den Prozess neu."
+                },
+                {
+                    "ecode": "05008061",
+                    "intro": "Keine Druckplatte erkannt. Bitte stellen Sie sicher, dass sie korrekt platziert ist."
+                },
+                {
+                    "ecode": "0300804A",
+                    "intro": "Not-Aus-Taste falsch installiert. Bitte neu installieren gemäß der Wiki, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "05008079",
+                    "intro": "Bitte folgen Sie der Anleitung, um das Laser-Testmaterial (350 g Pappe) zu platzieren."
+                },
+                {
+                    "ecode": "0701C06C",
+                    "intro": "AMS B befindet sich im Feed Assist Mode. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0701C069",
+                    "intro": "Ein Fehler ist während des AMS B Trocknens aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
+                },
+                {
+                    "ecode": "0700C06E",
+                    "intro": "AMS A Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0703C06C",
+                    "intro": "AMS D befindet sich im Fütterungsassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0703C069",
+                    "intro": "Während des Trocknens von AMS D ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant für weitere Details."
+                },
+                {
+                    "ecode": "05008081",
+                    "intro": "AI hat erkannt, dass das linke und rechte Hotend nicht installiert sind."
+                },
+                {
+                    "ecode": "0701C06B",
+                    "intro": "AMS B ändert das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0700C06C",
+                    "intro": "AMS A ist im Futterhilfsmodus. Trocknung kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0702C069",
+                    "intro": "Bei der Trocknung von AMS C ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant für weitere Details."
+                },
+                {
+                    "ecode": "0703C06B",
+                    "intro": "AMS D wechselt das Filament. Trocknung kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "05008053",
+                    "intro": "Die linke und rechte Düse stimmt nicht mit der Slicing-Datei überein. Bitte starten Sie den Druck nach dem erneuten Slicen oder fahren Sie mit dem Drucken fort, nachdem Sie die richtige Düse ersetzt haben. Achtung: Die Hotend-Temperatur ist hoch."
+                },
+                {
+                    "ecode": "03004020",
+                    "intro": "Die Düsenpräsenzdetektion ist fehlgeschlagen. Die Düse ist möglicherweise nicht am Extruder montiert oder der Sensor könnte beschädigt sein. Bitte überprüfen Sie den Assistant auf Details."
+                },
+                {
+                    "ecode": "0C004024",
+                    "intro": "Die Birdseye-Kamera ist versetzt installiert. Bitte beziehen Sie sich auf die a si z, um sie neu zu installieren."
+                },
+                {
+                    "ecode": "05FE8053",
+                    "intro": "Die linke Düse stimmt nicht mit der Slicing-Datei überein. Bitte starten Sie den Druck nach dem Neuslicing oder setzen Sie den Druck fort, nachdem Sie die richtige Düse ersetzt haben. Vorsicht: Die Hotend-Temperatur ist hoch."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "Das Laser-Modul ist installiert, aber die Schneidplattform wird erkannt. Bitte legen Sie die passende Laser-Plattform auf und starten Sie dann die Dickenmessung in der Software neu, bevor Sie die Aufgabe starten."
+                },
+                {
+                    "ecode": "03008054",
+                    "intro": "Bitte legen Sie das für Print Then Cut erforderliche Papier auf."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Aufgabe pausiert, da das Seitenschutzfenster des Lasers offen ist."
+                },
+                {
+                    "ecode": "0703C06D",
+                    "intro": "AMS D unterstützt beim Filamenteinlegen. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "0701C06D",
+                    "intro": "AMS B unterstützt beim Filamenteinlegen. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "0702C06A",
+                    "intro": "AMS C liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "05FE8081",
+                    "intro": "AI hat erkannt, dass das linke Hotend nicht installiert ist."
+                },
+                {
+                    "ecode": "0702C06E",
+                    "intro": "AMS C Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0702C06C",
+                    "intro": "AMS C befindet sich im Feed Assist Mode. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0702C06B",
+                    "intro": "AMS C wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0700C06D",
+                    "intro": "AMS A hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "0701C06A",
+                    "intro": "AMS B liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
+                },
+                {
+                    "ecode": "05FE8080",
+                    "intro": "AI hat erkannt, dass der linke Hotend nicht installiert ist."
+                },
+                {
+                    "ecode": "0702C06D",
+                    "intro": "AMS C hilft beim Einführen des Filaments. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "05008082",
+                    "intro": "Bitte entfernen Sie die Schutzfolie von der opak glänzenden Acrylplatte vor der Bearbeitung."
+                },
+                {
+                    "ecode": "05FF8081",
+                    "intro": "AI hat erkannt, dass der rechte Hotend nicht installiert ist."
+                },
+                {
+                    "ecode": "05FF8080",
+                    "intro": "AI hat erkannt, dass der rechte Hotend nicht installiert ist."
+                },
+                {
+                    "ecode": "05008080",
+                    "intro": "AI hat erkannt, dass der linke und der rechte Hotend nicht installiert sind."
+                },
+                {
+                    "ecode": "0703C06A",
+                    "intro": "AMS D liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "0700C06B",
+                    "intro": "AMS A wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später noch einmal versuchen."
+                },
+                {
+                    "ecode": "05008060",
+                    "intro": "Das aktuelle Modul am Druckkopf entspricht nicht den Anforderungen. Bitte ersetzen Sie das Modul gemäß den Anweisungen auf dem Bildschirm."
+                },
+                {
+                    "ecode": "05FF8053",
+                    "intro": "Die rechte Düse stimmt nicht mit der Schneidedatei überein. Bitte starten Sie den Druck nach dem Neuschneiden oder fahren Sie mit dem Drucken fort, nachdem Sie die richtige Düse ersetzt haben. Vorsicht: Die Temperatur des Hotends ist hoch."
+                },
+                {
+                    "ecode": "0700C069",
+                    "intro": "Ein Fehler ist während des Trocknens von AMS A aufgetreten. Bitte gehen Sie zu Assistant für weitere Details."
+                },
+                {
+                    "ecode": "0701C06E",
+                    "intro": "Der Motor von AMS B führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "0700C06A",
+                    "intro": "AMS A liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "0703C06E",
+                    "intro": "Der AMS D Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
+                },
                 {
                     "ecode": "05008055",
                     "intro": "Laser-Modul ist installiert, aber Schneidplattform wird erkannt. Bitte platzieren Sie die Laserplattform und führen Sie die Laserkalibrierung durch."
@@ -17,10 +417,6 @@
                 {
                     "ecode": "05008066",
                     "intro": "Schneidmodul ist installiert, aber die Laserplattform wird erkannt. Bitte platzieren Sie die Schneidplattform (Schneidschutzbasis + LightGrip Schneidematte)."
-                },
-                {
-                    "ecode": "05004065",
-                    "intro": "Laser-Modul ist installiert, aber die Schneidplattform wird erkannt. Bitte platzieren Sie die passende Laserplattform und starten Sie dann die Dickenmessung in der Software neu, bevor Sie die Aufgabe starten."
                 },
                 {
                     "ecode": "0500807D",
@@ -45,10 +441,6 @@
                 {
                     "ecode": "05004076",
                     "intro": "Bitte platzieren Sie die Laserplattform korrekt und stellen Sie sicher, dass die hinteren Marker nicht blockiert sind, und starten Sie dann die Dickenmessung in der Software neu, bevor Sie die Aufgabe beginnen."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Die Kalibrierung der Werkzeugkopf-Kamera ist fehlgeschlagen. Bitte stellen Sie sicher, dass der Marker im Laser-Referenzbereich sauber und unversehrt ist, und führen Sie dann den Kalibrierungsprozess erneut aus."
                 },
                 {
                     "ecode": "05008064",
@@ -627,10 +1019,6 @@
                     "intro": "Blade Z-Achsen-Homing fehlgeschlagen."
                 },
                 {
-                    "ecode": "0300804B",
-                    "intro": "Aufgabe pausiert, da das Seitenfenster geöffnet ist."
-                },
-                {
                     "ecode": "0500807E",
                     "intro": "Bitte legen Sie eine StrongGrip-Schneidematte auf die Schneidschutzbasis."
                 },
@@ -679,254 +1067,6 @@
                     "intro": "Die rechte Heizdüse kann möglicherweise aufgrund des beschädigten Düsenmarkierers nicht identifiziert werden. Bitte stellen Sie den Heizdüsentyp manuell ein."
                 },
                 {
-                    "ecode": "1882406E",
-                    "intro": "Der AMS-HT C-Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1887406A",
-                    "intro": "AMS-HT H liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1887406D",
-                    "intro": "AMS-HT H hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1882406A",
-                    "intro": "AMS-HT C liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1886406B",
-                    "intro": "AMS-HT G wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1881406E",
-                    "intro": "AMS-HT B Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1881406C",
-                    "intro": "AMS-HT B befindet sich im Füllassistentmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1883406D",
-                    "intro": "AMS-HT D hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1885406D",
-                    "intro": "AMS-HT F hilft bei der Filamenteinführung. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1883406C",
-                    "intro": "AMS-HT D befindet sich im Füllassistentmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0702406E",
-                    "intro": "AMS C Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1884406E",
-                    "intro": "AMS-HT E Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1885406C",
-                    "intro": "AMS-HT F befindet sich im Fütterungsassistentmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1880406A",
-                    "intro": "AMS-HT A liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0702406D",
-                    "intro": "AMS C hilft beim Einfügen des Filaments. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0700406D",
-                    "intro": "AMS A hilft beim Einfügen des Filaments. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1882406B",
-                    "intro": "AMS-HT C wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1880406C",
-                    "intro": "AMS-HT A befindet sich im Fütterungsassistentmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0702406B",
-                    "intro": "AMS C wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1887406E",
-                    "intro": "AMS-HT H Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1880406B",
-                    "intro": "AMS-HT A wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1884406A",
-                    "intro": "AMS-HT E liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0701406B",
-                    "intro": "AMS B wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1885406E",
-                    "intro": "AMS-HT F Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1884406D",
-                    "intro": "AMS-HT E unterstützt bei der Filamenteinlage. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "05008079",
-                    "intro": "Bitte folgen Sie den Anweisungen, um das Laser-Testmaterial (350 g Karton) zu platzieren."
-                },
-                {
-                    "ecode": "1884406C",
-                    "intro": "AMS-HT E ist im Futterassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1883406A",
-                    "intro": "AMS-HT D liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0703406A",
-                    "intro": "AMS D liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1883406E",
-                    "intro": "AMS-HT D Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0703406C",
-                    "intro": "AMS D ist im Futterassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0700406E",
-                    "intro": "AMS A Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1880406E",
-                    "intro": "AMS-HT A Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1887406C",
-                    "intro": "AMS-HT H ist im Futterassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1886406C",
-                    "intro": "AMS-HT G ist im Futterassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0701406A",
-                    "intro": "AMS B liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0703406B",
-                    "intro": "AMS D wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0702406C",
-                    "intro": "AMS C ist im Futterassistenzmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1881406D",
-                    "intro": "AMS-HT B unterstützt das Einfüttern des Filaments. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1885406B",
-                    "intro": "AMS-HT F wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1886406E",
-                    "intro": "AMS-HT G Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0700406B",
-                    "intro": "AMS A wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0701406D",
-                    "intro": "AMS B hilft beim Einführen des Filaments. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0701406C",
-                    "intro": "AMS B ist im Fütterungsassistent-Modus. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1886406D",
-                    "intro": "AMS-HT G hilft beim Einführen des Filaments. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0700406A",
-                    "intro": "AMS A liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0702406A",
-                    "intro": "AMS C liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "03008054",
-                    "intro": "Bitte legen Sie das für den Druck benötigte Papier für den Schneidevorgang ein."
-                },
-                {
-                    "ecode": "1883406B",
-                    "intro": "AMS-HT D wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0703406D",
-                    "intro": "AMS D hilft beim Einlegen des Filaments. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1885406A",
-                    "intro": "AMS-HT F liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1886406A",
-                    "intro": "AMS-HT G liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1887406B",
-                    "intro": "AMS-HT H wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1884406B",
-                    "intro": "AMS-HT E wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0701406E",
-                    "intro": "AMS B Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1881406B",
-                    "intro": "AMS-HT B wechselt das Filament. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1882406D",
-                    "intro": "AMS-HT C hilft beim Einlegen des Filaments. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "1882406C",
-                    "intro": "AMS-HT C ist im Fütterungsunterstützungsmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1881406A",
-                    "intro": "AMS-HT B liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0700406C",
-                    "intro": "AMS A ist im Fütterungsunterstützungsmodus. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "0703406E",
-                    "intro": "AMS D-Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
-                    "ecode": "1880406D",
-                    "intro": "AMS-HT A unterstützt beim Einlegen des Filaments. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
-                },
-                {
                     "ecode": "03008064",
                     "intro": "Die Kammertemperatur ist zu hoch. Bitte öffnen Sie die obere Abdeckung und die vordere Tür, um abzukühlen. (Die Türöffnungsüberwachung für diesen Druckauftrag wird auf \"Benachrichtigung\" eingestellt.)"
                 },
@@ -961,10 +1101,6 @@
                 {
                     "ecode": "0C008040",
                     "intro": "Die KI hat einen Air-Printing-Defekt erkannt. Bitte prüfen Sie den Extrusionsstatus der Heizdüse. Konsultieren Sie den Assistenten für Lösungsvorschläge."
-                },
-                {
-                    "ecode": "0300804A",
-                    "intro": "Not-Aus-Knopf falsch installiert. Bitte gemäß Anweisungen neu installieren, bevor Sie fortfahren."
                 },
                 {
                     "ecode": "03008051",
@@ -1483,58 +1619,6 @@
                     "intro": "AMS A wird getrocknet. Bitte das Trocknungsverfahren vor dem Be- und Entladen des Materials anhalten."
                 },
                 {
-                    "ecode": "07004069",
-                    "intro": "Während des AMS A Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "18834069",
-                    "intro": "Während des AMS-HT D Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "18804069",
-                    "intro": "Während des AMS-HT A Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "07014069",
-                    "intro": "Während des AMS B Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "18844069",
-                    "intro": "Während des AMS-HT E Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "18824069",
-                    "intro": "Während des AMS-HT C Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "18814069",
-                    "intro": "Während des AMS-HT B Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "18864069",
-                    "intro": "Während des AMS-HT G Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "07034069",
-                    "intro": "Während des AMS D Trocknungsvorgangs ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant, um weitere Details zu erhalten."
-                },
-                {
-                    "ecode": "18874069",
-                    "intro": "Während des Trocknungsvorgangs bei AMS-HT H ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
-                },
-                {
-                    "ecode": "07024069",
-                    "intro": "Während des Trocknungsvorgangs bei AMS C ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
-                },
-                {
-                    "ecode": "18854069",
-                    "intro": "Während des Trocknungsvorgangs bei AMS-HT F ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
-                },
-                {
-                    "ecode": "1001C001",
-                    "intro": "Zeitraffer wird nicht unterstützt, weil der Spiralvasen-Modus in den Schneidevoreinstellungen aktiviert ist."
-                },
-                {
                     "ecode": "07FEC003",
                     "intro": "Bitte ziehen Sie den Filament auf der Spulenhalterung des linken Extruders heraus. Wenn diese Meldung weiterhin angezeigt wird, überprüfen Sie bitte, ob sich Filament im Extruder oder im PTFE-Rohr befindet. (Verbinden Sie ein PTFE-Rohr, wenn Sie einen AMS verwenden.)"
                 },
@@ -1543,20 +1627,12 @@
                     "intro": "Bitte ziehen Sie den Filament auf der Spulenhalterung des linken Extruders heraus. Wenn diese Meldung weiterhin angezeigt wird, überprüfen Sie bitte, ob sich Filament im Extruder oder im PTFE-Rohr befindet. (Verbinden Sie ein PTFE-Rohr, wenn Sie einen AMS verwenden.)"
                 },
                 {
-                    "ecode": "05008053",
-                    "intro": "Beim Drucken wurde eine Unstimmigkeit zwischen der linken und der rechten Düse festgestellt. Bitte starten Sie den Druck nach dem erneuten Slicen neu oder setzen Sie den korrekten Düsenwechsel fort, um den Druck fortzusetzen. Achtung: Die Hotend-Temperatur ist hoch."
-                },
-                {
                     "ecode": "0500405D",
                     "intro": "Fehlerhafte Seriennummer des Laser-Moduls: Kalibrierung oder Projektentwicklung nicht möglich."
                 },
                 {
                     "ecode": "0500805E",
                     "intro": "Schneidmodul Seriennummerfehler: Kalibrierung oder Projektierung nicht möglich."
-                },
-                {
-                    "ecode": "05008060",
-                    "intro": "Das aktuelle Modul erfüllt nicht die Anforderungen. Bitte ersetzen Sie das Modul gemäß den Bildschirmanweisungen."
                 },
                 {
                     "ecode": "03004067",
@@ -1579,24 +1655,8 @@
                     "intro": "Bitte ziehen Sie den Filament auf dem Spulenhalter des rechten Extruders heraus. Wenn diese Meldung weiterhin angezeigt wird, überprüfen Sie bitte, ob das Filament im Extruder oder PTFE-Rohr gebrochen ist. (Schließen Sie ein PTFE-Rohr an, wenn Sie ein AMS verwenden möchten)"
                 },
                 {
-                    "ecode": "0C004025",
-                    "intro": "Die Birdseye-Kamera ist schmutzig, bitte reinigen Sie sie und starten den Vorgang neu."
-                },
-                {
-                    "ecode": "05008061",
-                    "intro": "Keine Druckplatte erkannt; bitte stellen Sie sicher, dass sie richtig platziert ist."
-                },
-                {
                     "ecode": "0500402F",
                     "intro": "Die Daten im Sektor des USB-Flash-Laufwerks sind beschädigt; bitte formatieren Sie es. Falls es immer noch nicht erkannt wird, bitte ersetzen Sie das USB-Flash-Laufwerk."
-                },
-                {
-                    "ecode": "05FE8053",
-                    "intro": "Während des Druckens wurde eine Düsen-Diskrepanz links erkannt. Bitte starten Sie den Druck nach der Neuberechnung erneut oder setzen Sie den richtigen Nozzle ein, um den Druck fortzusetzen. Vorsicht: Die Heißendtemperatur ist hoch."
-                },
-                {
-                    "ecode": "05FF8053",
-                    "intro": "Während des Druckens wurde eine Düsen-Diskrepanz rechts erkannt. Bitte starten Sie den Druck nach der Neuberechnung erneut oder setzen Sie den richtigen Nozzle ein, um den Druck fortzusetzen. Vorsicht: Die Heißendtemperatur ist hoch."
                 },
                 {
                     "ecode": "05024002",
@@ -1609,10 +1669,6 @@
                 {
                     "ecode": "05024003",
                     "intro": "Der Drucker ist derzeit am Drucken und die Bewegungsgenauigkeitserweiterungsfunktion kann nicht ein- oder ausgeschaltet werden."
-                },
-                {
-                    "ecode": "0500806E",
-                    "intro": "Fremdkörper auf Heizbett erkannt; bitte Heizbett prüfen und reinigen."
                 },
                 {
                     "ecode": "05024005",
@@ -1839,10 +1895,6 @@
                     "intro": "Der Kühlprozess nach dem Trocknen ist in AMS B fehlgeschlagen."
                 },
                 {
-                    "ecode": "03004020",
-                    "intro": "Die Düsenpräsenzerkennung ist fehlgeschlagen. Die Düse ist möglicherweise nicht am Extruder montiert oder der Sensor kann beschädigt sein."
-                },
-                {
                     "ecode": "0C00403D",
                     "intro": "Die Vision-Encoder-Platte wurde nicht erkannt. Bitte bestätigen Sie, dass sie korrekt auf dem Heizbett positioniert ist."
                 },
@@ -1869,10 +1921,6 @@
                 {
                     "ecode": "0500402E",
                     "intro": "Das System unterstützt das derzeit von dem USB-Flash-Laufwerk verwendete Dateisystem nicht. Bitte ersetzen Sie das USB-Flash-Laufwerk durch ein solches im FAT32-Format oder formatieren Sie es entsprechend."
-                },
-                {
-                    "ecode": "0C004024",
-                    "intro": "Die Vogelperspektivenkamera ist versetzt installiert. Bitte beziehen Sie sich auf die Anleitung, um sie neu zu installieren."
                 },
                 {
                     "ecode": "07FFC009",
@@ -2013,14 +2061,6 @@
                 {
                     "ecode": "1000C002",
                     "intro": "Das Drucken von CF-Material mit Edelstahl kann zu einer Beschädigung der Düse führen."
-                },
-                {
-                    "ecode": "1000C003",
-                    "intro": "Das Aktivieren der herkömmlichen Zeitraffer-Funktion kann zu Fehlern führen. Bitte aktivieren Sie diese Funktion nur bei Bedarf."
-                },
-                {
-                    "ecode": "1001C002",
-                    "intro": "Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach Objekt\" eingestellt ist."
                 },
                 {
                     "ecode": "07038005",
@@ -2173,10 +2213,6 @@
                 {
                     "ecode": "05004003",
                     "intro": "Der Druckvorgang wurde gestoppt, weil der Drucker die Datei nicht analysieren konnte. Bitte senden Sie Ihren Druckauftrag erneut."
-                },
-                {
-                    "ecode": "05004004",
-                    "intro": "Der Drucker kann während des Druckens keine neuen Druckaufträge empfangen. Senden Sie diese bitte nach Abschluss des aktuellen Drucks erneut."
                 },
                 {
                     "ecode": "05004005",
@@ -2400,6 +2436,382 @@
             "ver": 202502042359,
             "de": [
                 {
+                    "ecode": "07FF800000020002",
+                    "intro": "Die Position des linken Hotends ist während des Drucks abnormal. Bitte überprüfen Sie, ob der Flussblocker das gedruckte Modell zerkratzt."
+                },
+                {
+                    "ecode": "18FF800000020002",
+                    "intro": "Die Position des linken Hotends ist während des Drucks abnormal. Bitte überprüfen Sie, ob der Flussblocker das gedruckte Modell zerkratzt."
+                },
+                {
+                    "ecode": "0703210000020007",
+                    "intro": "Der Hall-Sensor für das AMS D Slot 2 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1800200000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT A Slot 1 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0C00010000010018",
+                    "intro": "Die BirdsEye-Kamera ist nicht zertifiziert, und kamerabezogene Funktionen sind ungültig."
+                },
+                {
+                    "ecode": "050001000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701210000020007",
+                    "intro": "Der Hall-Sensor für das AMS B Slot 2 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0703200000020007",
+                    "intro": "Der Hall-Sensor für das AMS D Slot 1 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0702200000020007",
+                    "intro": "Der Hall-Sensor für das AMS C Slot 1 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0701200000020007",
+                    "intro": "Der Hall-Sensor für das AMS B Slot 1 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0703230000020007",
+                    "intro": "Der Hall-Sensor für das AMS D Slot 4 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0700220000020007",
+                    "intro": "Der Hall-Sensor für das AMS A Slot 3 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0300990000010004",
+                    "intro": "Das richtige Lasersicherheitsfenster wird nicht erkannt. Bitte installieren Sie es gemäß dem Wiki und starten Sie die Aufgabe erneut."
+                },
+                {
+                    "ecode": "0300960000010004",
+                    "intro": "Das vordere Lasersicherheitsfenster wird nicht erkannt. Bitte installieren Sie es gemäß dem Wiki und starten Sie die Aufgabe erneut."
+                },
+                {
+                    "ecode": "0C00040000020019",
+                    "intro": "Die Birdseye-Kamera ist versetzt installiert. Bitte konsultieren Sie das Wiki, um sie neu zu installieren."
+                },
+                {
+                    "ecode": "0300980000010004",
+                    "intro": "Das linke Lasersicherheitsfenster wird nicht erkannt. Bitte installieren Sie es gemäß dem Wiki und starten Sie die Aufgabe erneut."
+                },
+                {
+                    "ecode": "1804210000020007",
+                    "intro": "Der Hall-Sensor für den AMS-HT E Slot 2 ist vom Netz getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0706230000020007",
+                    "intro": "Der Hall-Sensor für den AMS G Slot 4 ist vom Netz getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1802230000020007",
+                    "intro": "Der Hall-Sensor für den AMS-HT C Slot 4 ist vom Netz getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1800220000020007",
+                    "intro": "Der Hall-Sensor für den AMS-HT A Slot 3 ist vom Netz getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0707200000020007",
+                    "intro": "Der Hall-Sensor für den AMS H Slot 1 ist vom Netz getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1807230000020007",
+                    "intro": "Der Hall-Sensor für den AMS-HT H Slot 4 ist vom Netz getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0704210000020007",
+                    "intro": "AMS E Slot 2 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0707220000020007",
+                    "intro": "AMS H Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1802220000020007",
+                    "intro": "AMS-HT C Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0707210000020007",
+                    "intro": "AMS H Slot 2 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1803200000020007",
+                    "intro": "AMS-HT D Slot 1 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1806200000020007",
+                    "intro": "AMS-HT G Slot 1 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0705230000020007",
+                    "intro": "AMS F Slot 4 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1805220000020007",
+                    "intro": "AMS-HT F Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1802210000020007",
+                    "intro": "AMS-HT C Slot 2 Ausgabesensor ist getrennt. Der Stecker könnte einen schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1803220000020007",
+                    "intro": "AMS-HT D Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0704220000020007",
+                    "intro": "AMS E Slot 3 Abfühler-Hall-Sensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0706210000020007",
+                    "intro": "AMS G Slot 2 Abfühler-Hall-Sensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1800550000020001",
+                    "intro": "Ein neues AMS-HT erkannt. Bitte richten Sie es ein, um zu überprüfen, mit welchem Extruder das AMS-HT verbunden ist."
+                },
+                {
+                    "ecode": "03009E0000030001",
+                    "intro": "Die Die Türöffnungs-Erkennungsebene für diesen Druckauftrag wird auf \"Benachrichtigung\" eingestellt."
+                },
+                {
+                    "ecode": "0702210000020007",
+                    "intro": "AMS C Slot 2 Abfühler-Hall-Sensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0300280000010001",
+                    "intro": "Die Daten des Kraftsensors im Schneidmodul sind abnormal. Der Magnet am Klingenhalter könnte abgefallen sein."
+                },
+                {
+                    "ecode": "0700230000020007",
+                    "intro": "AMS A Slot 4 Abfühler-Hall-Sensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0701230000020007",
+                    "intro": "AMS B Slot 4 Abfühler-Hall-Sensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0C00040000030018",
+                    "intro": "Die Kalibrierung der Werkzeugkopf-Kamera ist fehlgeschlagen, wahrscheinlich weil das Material nicht fest haften blieb. Die Standardparameter werden für diesen Schnitt verwendet."
+                },
+                {
+                    "ecode": "0300970000010004",
+                    "intro": "Die obere Laser-Schutzplatte wird nicht erkannt. Bitte installieren Sie sie gemäß dem Wiki und starten Sie die Aufgabe neu."
+                },
+                {
+                    "ecode": "0704200000020007",
+                    "intro": "AMS E Slot 1 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0705220000020007",
+                    "intro": "AMS F Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0705200000020007",
+                    "intro": "AMS F Slot 1 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1807200000020007",
+                    "intro": "AMS-HT H Slot 1 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1807220000020007",
+                    "intro": "AMS-HT H Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1800230000020007",
+                    "intro": "AMS-HT A Slot 4 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1806230000020007",
+                    "intro": "AMS-HT G Slot 4 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1801220000020007",
+                    "intro": "AMS-HT B Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0707230000020007",
+                    "intro": "AMS H Slot 4 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1801200000020007",
+                    "intro": "AMS-HT B Slot 1 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1807210000020007",
+                    "intro": "AMS-HT H Slot 2 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1803210000020007",
+                    "intro": "AMS-HT D Slot 2 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0706220000020007",
+                    "intro": "AMS G Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1804200000020007",
+                    "intro": "AMS-HT E Slot 1 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1805210000020007",
+                    "intro": "AMS-HT F Slot 2 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1804220000020007",
+                    "intro": "AMS-HT E Slot 3 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "03009B0000010003",
+                    "intro": "Der Not-Aus-Knopf ist nicht richtig installiert. Bitte folgen Sie der Wiki, um ihn zu installieren."
+                },
+                {
+                    "ecode": "03009D0000020001",
+                    "intro": "Die XY-Kalibrierung des Fokuspunkts des Gravurlasers ist fehlgeschlagen. Bitte reinigen Sie den Laser-Homing-Bereich auf der Laserplattform und führen Sie die Kalibrierung der Laser-Modulhalterung erneut durch."
+                },
+                {
+                    "ecode": "03009D0000020003",
+                    "intro": "Das Kalibrierungsergebnis des Z-Fokuspunktes des Gravurlasers weicht erheblich von den Designwerten ab. Bitte installieren Sie das Laser-Modul neu und führen Sie die Laser-Modul-Einrichtung erneut durch. Wenn es mehrmals fehlschlägt, wenden Sie sich bitte an unser Support-Team."
+                },
+                {
+                    "ecode": "03009C0000010001",
+                    "intro": "Das Active Airflow Assist Module wird nicht erkannt. Bitte überprüfen Sie, ob der Stecker richtig eingesteckt ist."
+                },
+                {
+                    "ecode": "0C00040000020024",
+                    "intro": "Das Gerät unterstützt keine Messung der Materialdicke. Bitte installieren Sie das Laser Modul und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "0702230000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS C Slot 4 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0701220000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS B Slot 3 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0700550000020001",
+                    "intro": "Ein neues AMS wurde erkannt. Bitte richten Sie es ein, um zu prüfen, mit welchem Extruder das AMS verbunden ist."
+                },
+                {
+                    "ecode": "0702220000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS C Slot 3 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0703220000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS D Slot 3 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0700210000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS A Slot 2 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0700200000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS A Slot 1 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0300280000010004",
+                    "intro": "Die Daten des Kraftsensors im Schneidemodul sind abnormal. Der Magnet am Klingenhalter könnte abgefallen sein."
+                },
+                {
+                    "ecode": "1804230000020007",
+                    "intro": "AMS-HT E Slot 4 Ausgabesensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1801210000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT B Slot 2 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1805230000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT F Slot 4 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0704230000020007",
+                    "intro": "Der Hall-Sensor für das AMS E Slot 4 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1806220000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT G Slot 3 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1800210000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT A Slot 2 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1805200000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT F Slot 1 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1806210000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT G Slot 2 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0705210000020007",
+                    "intro": "Der Hall-Sensor für das AMS F Slot 2 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1801230000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT B Slot 4 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1803230000020007",
+                    "intro": "Der Hall-Sensor für das AMS-HT D Slot 4 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "1802200000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS-HT C Slot 1 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "0706200000020007",
+                    "intro": "Der Hall-Sensor für den Feed-out im AMS G Slot 1 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
+                },
+                {
+                    "ecode": "03009B0000010002",
+                    "intro": "Der Sicherheitsschlüssel ist nicht eingesetzt. Bitte folgen Sie dem Wiki, um ihn zu installieren."
+                },
+                {
+                    "ecode": "03009B0000010001",
+                    "intro": "Der Notaus-Knopf ist nicht installiert. Bitte folgen Sie dem Wiki, um ihn zu installieren."
+                },
+                {
+                    "ecode": "03009D0000020002",
+                    "intro": "Das Kalibrierungsergebnis des XY-Fokalpunkts des Gravurlasers weicht erheblich von den Designwerten ab. Bitte installieren Sie das Laser-Modul neu und führen Sie das Setup des Laser-Moduls erneut aus."
+                },
+                {
+                    "ecode": "0C00010000010011",
+                    "intro": "Die Kalibrierung der Live View Kamera ist fehlgeschlagen, bitte kalibrieren Sie erneut. Stellen Sie sicher, dass die Bauplattform leer ist und die Kamerasicht klar und korrekt ausgerichtet ist. Bitte kontaktieren Sie den Kundensupport, wenn wiederholte Fehlversuche auftreten."
+                },
+                {
+                    "ecode": "0500040000020050",
+                    "intro": "Das Lasersicherheitsfenster ist nicht installiert."
+                },
+                {
+                    "ecode": "0500040000010052",
+                    "intro": "Der Sicherheitsschlüssel ist nicht eingesetzt. Bitte folgen Sie dem Wiki, um ihn zu installieren."
+                },
+                {
+                    "ecode": "0500040000010051",
+                    "intro": "Der Notaus-Knopf ist nicht in der richtigen Position. Bitte folgen Sie dem Wiki, um ihn zu installieren."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Die Dickenmessung ist fehlgeschlagen. Das Material scheint transparent oder uneben zu sein."
+                },
+                {
+                    "ecode": "0C00030000020023",
+                    "intro": "Die Kalibrierung des Z-Achsenfokus für die Lasergravur ist fehlgeschlagen. Bitte überprüfen Sie, ob das Laser-Testmaterial (350g Pappe) richtig platziert ist und ob die Oberfläche sauber und unbeschädigt ist."
+                },
+                {
+                    "ecode": "0C00040000020022",
+                    "intro": "Kein Material erkannt. Bitte legen Sie das zu verarbeitende Material ein."
+                },
+                {
                     "ecode": "0300090000010001",
                     "intro": "Der Extruder-Servomotor hat einen offenen Kreis. Die Verbindung könnte locker sein, oder der Motor könnte defekt sein."
                 },
@@ -2424,10 +2836,6 @@
                     "intro": "Die Kammerheizung ist ausgefallen. Der Kammerheizer könnte heißluftmäßig ausfallen."
                 },
                 {
-                    "ecode": "0700550000020001",
-                    "intro": "Neues AMS erkannt. Bitte richten Sie es ein, um zu überprüfen, mit welchem Extruder das AMS verbunden ist."
-                },
-                {
                     "ecode": "0C00030000020014",
                     "intro": "Die Fremdkörpererkennung funktioniert nicht. Es wird empfohlen, das Laser- oder Schneidemodul zu deinstallieren, falls es installiert war, und dann im Druckermenü auf \"Einstellungen>Kalibrierung\" zu tippen und die Live-View-Kamera neu zu kalibrieren."
                 },
@@ -2438,10 +2846,6 @@
                 {
                     "ecode": "0C00030000020015",
                     "intro": "Die Fremdkörpererkennung funktioniert nicht. Es wurde festgestellt, dass die Live-View-Kamera ersetzt wurde. Falls ein Laser- oder Schneidemodul installiert ist, bitte das Modul deinstallieren, im Druckermenü auf \"Einstellungen>Kalibrierung\" tippen und die Live-View-Kamera neu kalibrieren."
-                },
-                {
-                    "ecode": "1800550000020001",
-                    "intro": "Neuen AMS-HT erkannt. Bitte richten Sie ihn ein, um zu überprüfen, mit welchem Extruder der AMS-HT verbunden ist."
                 },
                 {
                     "ecode": "050004000002004A",
@@ -2516,14 +2920,6 @@
                     "intro": "Das Material ist zu klein und steht zu weit links für die Erkennung. Bitte verschieben Sie es in die Mitte oder auf die rechte Seite."
                 },
                 {
-                    "ecode": "0C00040000020022",
-                    "intro": "Kein Material erkannt, bitte legen Sie das zu verarbeitende Material bereit."
-                },
-                {
-                    "ecode": "0C00040000020024",
-                    "intro": "Das Gerät unterstützt keine Messung der Materialdicke. Bitte installieren Sie den Laser-Kopf und versuchen Sie es erneut."
-                },
-                {
                     "ecode": "0702700000020002",
                     "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule verklemmt."
                 },
@@ -2534,18 +2930,6 @@
                 {
                     "ecode": "1806700000020002",
                     "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule verklemmt."
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Die Dickenmessung ist fehlgeschlagen, das Material scheint transparent oder uneben zu sein."
-                },
-                {
-                    "ecode": "0C00030000020023",
-                    "intro": "Die Kalibrierung des Z-Achsen-Fokus für die Lasergravur ist fehlgeschlagen. Bitte überprüfen Sie, ob die Kalibrierkarte richtig platziert ist und die Oberfläche sauber und intakt ist."
-                },
-                {
-                    "ecode": "0C00010000020018",
-                    "intro": "Die BirdsEye-Kamera ist nicht zertifiziert, und kamera bezogene Funktionen sind ungültig."
                 },
                 {
                     "ecode": "0701200000020006",
@@ -2820,14 +3204,6 @@
                     "intro": "Z-Achse Homing fehlgeschlagen. Bitte überprüfen Sie, ob sich der Klingenhalter reibungslos bewegt und stellen Sie sicher, dass sich an der Kontaktstelle auf dem Heizbett keine Fremdkörper befinden."
                 },
                 {
-                    "ecode": "0300280000010001",
-                    "intro": "Kraft Sensordaten abnormal im Schneidemodul, Magnet am Klingenhalter könnte sich gelöst haben."
-                },
-                {
-                    "ecode": "0300280000010004",
-                    "intro": "Kraft Sensordaten abnormal im Schneidemodul, Magnet am Klingenhalter könnte sich gelöst haben."
-                },
-                {
                     "ecode": "0300280000010007",
                     "intro": "Kommunikationsfehler zwischen Schneidemodul und Werkzeugkopfmodul. Bitte überprüfen Sie, ob das Signalkabel des Schneidemoduls locker oder defekt ist. Es könnte auch an einer defekten Kraftsensorspule liegen."
                 },
@@ -2968,18 +3344,6 @@
                     "intro": "AMS H Die drei Phasenleitungen des Hilfsmotors sind nicht verbunden. Der Anschluss des Hilfsmotors könnte einen schlechten Kontakt haben."
                 },
                 {
-                    "ecode": "03009E0000030001",
-                    "intro": "Die Türerkennung für diesen Druckauftrag wird auf \"Benachrichtigung\" eingestellt."
-                },
-                {
-                    "ecode": "0500040000010052",
-                    "intro": "Sicherheitsschlüssel ist nicht eingesetzt; bitte korrekt gemäß den Anweisungen im Wiki installieren."
-                },
-                {
-                    "ecode": "0500040000010051",
-                    "intro": "Not-Aus-Taste ist nicht installiert; bitte korrekt gemäß den Anweisungen im Wiki installieren."
-                },
-                {
                     "ecode": "0500050000010007",
                     "intro": "MQTT-Befehlüberprüfung fehlgeschlagen, bitte aktualisieren Sie Studio oder Handy."
                 },
@@ -3006,18 +3370,6 @@
                 {
                     "ecode": "0300A10000010001",
                     "intro": "Die Kammertemperatur ist zu hoch. Bitte öffnen Sie die obere Abdeckung und die Fronttür, um abzukühlen, oder senken Sie die Umgebungstemperatur."
-                },
-                {
-                    "ecode": "07FF800000020002",
-                    "intro": "Die Position des rechten Hotends ist während des Drucks abnormal. Bitte überprüfen Sie, ob der Flussblocker das gedruckte Modell kratzt."
-                },
-                {
-                    "ecode": "18FF800000020002",
-                    "intro": "Die Position des rechten Hotends ist während des Drucks abnormal. Bitte überprüfen Sie, ob der Flussblocker das gedruckte Modell zerkratzt."
-                },
-                {
-                    "ecode": "0500040000020050",
-                    "intro": "Seitenpaneel des Chassis nicht installiert."
                 },
                 {
                     "ecode": "0C00040000010012",
@@ -3540,10 +3892,6 @@
                     "intro": "Keine Plattform erkannt; Bitte stellen Sie sicher, dass das Laser-Plateau richtig platziert ist."
                 },
                 {
-                    "ecode": "050001000002000A",
-                    "intro": ""
-                },
-                {
                     "ecode": "05FF040000020042",
                     "intro": "Ein Düsenfehler wurde während des Drucks erkannt. Bitte starten Sie den Druck nach dem Erneut-Slicen oder setzen Sie den korrekten Düsenkopf ein, um mit dem Druck fortzufahren. Achtung: Die Hotend-Temperatur ist hoch."
                 },
@@ -3640,10 +3988,6 @@
                     "intro": "AMS D Slot 1 Einspeise-Hallsensor ist abgetrennt, was auf eine schlechte Verbindungsleistung zurückzuführen sein kann."
                 },
                 {
-                    "ecode": "0703230000020007",
-                    "intro": "AMS D Slot 4 Ausgabe-Hallsensor ist abgetrennt, was auf eine schlechte Verbindungsleistung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "1804210000020008",
                     "intro": "AMS-HT E Slot 2 Einspeise-Hallsensor ist abgetrennt, was auf eine schlechte Verbindungsleistung zurückzuführen sein kann."
                 },
@@ -3716,10 +4060,6 @@
                     "intro": "Der AMS-HT E Slot 4-Motor ist gerutscht. Das Extrusionsrad kann fehlerhaft sein oder das Filament ist möglicherweise zu dünn."
                 },
                 {
-                    "ecode": "0707200000020007",
-                    "intro": "AMS H Steckplatz 1 Feed-Out-Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund schlechter Steckerverbindung."
-                },
-                {
                     "ecode": "1805120000010001",
                     "intro": "Der AMS-HT F Steckplatz 3 Motor ist verrutscht. Das Extrusionsrad kann fehlerhaft sein oder das Filament ist möglicherweise zu dünn."
                 },
@@ -3728,16 +4068,8 @@
                     "intro": "AMS G Steckplatz 2 Feed-In-Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund schlechter Steckerverbindung."
                 },
                 {
-                    "ecode": "1807230000020007",
-                    "intro": "AMS-HT H Steckplatz 4 Feed-Out-Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund schlechter Steckerverbindung."
-                },
-                {
                     "ecode": "1806220000020005",
                     "intro": "AMS-HT G Steckplatz 3 Filament ist ausgegangen und das Ausspülen des alten Filaments verlief ungewöhnlich. Überprüfen Sie bitte, ob das Filament im Werkzeugkopf stecken geblieben ist."
-                },
-                {
-                    "ecode": "1800230000020007",
-                    "intro": "AMS-HT A Steckplatz 4 Feed-Out-Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund schlechter Steckerverbindung."
                 },
                 {
                     "ecode": "0705200000020002",
@@ -3746,10 +4078,6 @@
                 {
                     "ecode": "1806220000020001",
                     "intro": "AMS-HT G Steckplatz 3 Filament ist ausgegangen. Bitte legen Sie ein neues Filament ein."
-                },
-                {
-                    "ecode": "1806220000020007",
-                    "intro": "AMS-HT G Steckplatz 3 Feed-Out-Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund schlechter Steckerverbindung."
                 },
                 {
                     "ecode": "0707100000010001",
@@ -3802,10 +4130,6 @@
                 {
                     "ecode": "1807220000020003",
                     "intro": "AMS-HT H Slot 3 Filament ist möglicherweise im AMS-HT gebrochen."
-                },
-                {
-                    "ecode": "1803220000020007",
-                    "intro": "AMS-HT D Slot 3 Ausgangshallsensor ist nicht verbunden, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "1804560000030001",
@@ -3976,14 +4300,6 @@
                     "intro": "Das AMS D Slot 3 Filament ist ausgegangen. Bitte legen Sie ein neues Filament ein."
                 },
                 {
-                    "ecode": "0700230000020007",
-                    "intro": "Der AMS A Slot 4 Feed-out Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0701200000020007",
-                    "intro": "Der AMS B Slot 1 Feed-out Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "1801220000020001",
                     "intro": "Das AMS-HT B Slot 3 Filament ist ausgegangen. Bitte legen Sie ein neues Filament ein."
                 },
@@ -3994,10 +4310,6 @@
                 {
                     "ecode": "0705210000030002",
                     "intro": "AMS F-Steckplatz 2-Faden ist leer und wurde automatisch auf den Steckplatz mit demselben Faden umgestellt."
-                },
-                {
-                    "ecode": "0706230000020007",
-                    "intro": "AMS G-Steckplatz 4-Feed-out-Hallsensor ist getrennt, möglicherweise aufgrund einer schlechten Steckverbindung."
                 },
                 {
                     "ecode": "0705210000020008",
@@ -4060,10 +4372,6 @@
                     "intro": "AMS-HT B Steckplatz 4 Filament ist leer. Bitte warten Sie, während das alte Filament gereinigt wird."
                 },
                 {
-                    "ecode": "1803200000020007",
-                    "intro": "AMS-HT D Steckplatz 1 Ablauf-Hallsensor ist nicht angeschlossen, was auf schlechten Anschlusskontakt zurückzuführen sein kann."
-                },
-                {
                     "ecode": "0706130000010003",
                     "intro": "Die Motordrehmomentsteuerung von AMS G Steckplatz 4 funktioniert nicht richtig. Der Stromsensor kann fehlerhaft sein."
                 },
@@ -4102,10 +4410,6 @@
                 {
                     "ecode": "0707200000020008",
                     "intro": "AMS H Slot 1 Einspeise-Hallsensor ist getrennt, was möglicherweise auf schlechten Steckverbinderkontakt zurückzuführen ist."
-                },
-                {
-                    "ecode": "0706200000020007",
-                    "intro": "AMS G Slot 1 Ausgabehallsensor ist getrennt, was möglicherweise auf schlechten Steckverbinderkontakt zurückzuführen ist."
                 },
                 {
                     "ecode": "0705700000020004",
@@ -4236,10 +4540,6 @@
                     "intro": "Der AMS-HT B Steckplatz 4 Motor ist überlastet. Das Filament kann verheddert oder blockiert sein."
                 },
                 {
-                    "ecode": "0704230000020007",
-                    "intro": "Der AMS E Steckplatz 4 Auszugs-Hallsensor ist nicht verbunden, möglicherweise aufgrund einer schlechten Verbinderkontaktierung."
-                },
-                {
                     "ecode": "1803120000010003",
                     "intro": "Die AMS-HT D Steckplatz 3 Motor-Drehmomentsteuerung funktioniert nicht ordnungsgemäß. Der Stromsensor kann defekt sein."
                 },
@@ -4308,10 +4608,6 @@
                     "intro": "Der AMS G Steckplatz 4-Motor ist überlastet. Das Filament kann verwickelt oder blockiert sein."
                 },
                 {
-                    "ecode": "1800210000020007",
-                    "intro": "AMS-HT A Steckplatz 2 Feed-out Hall-Sensor ist nicht angeschlossen, was an schlechtem Steckverbinder-Kontakt liegen könnte."
-                },
-                {
                     "ecode": "1804210000020003",
                     "intro": "Das Filament von AMS-HT E Steckplatz 2 kann in AMS-HT gebrochen sein."
                 },
@@ -4326,10 +4622,6 @@
                 {
                     "ecode": "1805210000020001",
                     "intro": "AMS-HT F-Slot 2-Filament ist leer. Bitte legen Sie ein neues Filament ein."
-                },
-                {
-                    "ecode": "1806200000020007",
-                    "intro": "AMS-HT G-Slot 1-Auslauf-Hallsensor ist nicht angeschlossen, möglicherweise aufgrund eines schlechten Verbinders."
                 },
                 {
                     "ecode": "0706110000010001",
@@ -4492,16 +4784,8 @@
                     "intro": "Der AMS-Steckplatz 3 ist überlastet. Das Filament könnte verwickelt sein oder die Spule stecken."
                 },
                 {
-                    "ecode": "0703200000020007",
-                    "intro": "Der Hall-Sensor für den AMS-Auswurfschacht 1 ist nicht verbunden, möglicherweise wegen schlechter Steckverbinder-Kontakte."
-                },
-                {
                     "ecode": "0700200000020008",
                     "intro": "Der Hall-Sensor für den AMS-Einzugsschacht 1 ist nicht verbunden, möglicherweise wegen schlechter Steckverbinder-Kontakte."
-                },
-                {
-                    "ecode": "0700210000020007",
-                    "intro": "Der Hall-Sensor für den AMS-Auswurfschacht 2 ist nicht verbunden, möglicherweise wegen schlechter Steckverbinder-Kontakte."
                 },
                 {
                     "ecode": "0701200000020008",
@@ -4660,20 +4944,12 @@
                     "intro": "AMS G-Slot 4 Filament ist leer. Bitte legen Sie ein neues Filament ein."
                 },
                 {
-                    "ecode": "1805210000020007",
-                    "intro": "AMS-HT F-Slot 2 Auszug-Hallsensor ist getrennt, was auf eine schlechte Steckverbinderverbindung zurückzuführen sein könnte."
-                },
-                {
                     "ecode": "1807120000010003",
                     "intro": "Die Motor-Drehmomentsteuerung des AMS-HT H-Schlitzes 3 funktioniert nicht richtig. Der Stromsensor könnte defekt sein."
                 },
                 {
                     "ecode": "1800220000030002",
                     "intro": "AMS-HT A-Slot 3 Filament ist leer und wurde automatisch auf den Slot mit demselben Filament umgeschaltet."
-                },
-                {
-                    "ecode": "0704220000020007",
-                    "intro": "AMS-E-Steckplatz 3-Ausgang, Hallsensor ist nicht angeschlossen, was auf eine schlechte Anschlussverbindung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "1806560000030001",
@@ -4892,10 +5168,6 @@
                     "intro": "Der AMS H-Steckplatz 4 ist überlastet. Das Filament kann verheddert sein oder die Spule kann stecken geblieben sein."
                 },
                 {
-                    "ecode": "1801200000020007",
-                    "intro": "Der Auszieh-Hallsensor des AMS-HT B-Steckplatzes 1 ist nicht angeschlossen, was auf eine schlechte Verbindungsqualität des Steckers zurückzuführen sein kann."
-                },
-                {
                     "ecode": "1800220000020002",
                     "intro": "AMS-HT Schacht 3 ist leer; bitte legen Sie einen neuen Faden ein."
                 },
@@ -4934,10 +5206,6 @@
                 {
                     "ecode": "1805230000020005",
                     "intro": "AMS-HT F Schacht 4 Faden ist leer und das Ausstoßen des alten Fadens ist abnorm verlaufen. Bitte überprüfen Sie, ob der Faden im Tool Head stecken geblieben ist."
-                },
-                {
-                    "ecode": "1803230000020007",
-                    "intro": "AMS-HT D Steckplatz 4 Förderausgangs Hall-Sensor ist nicht angeschlossen, was möglicherweise auf eine schlechte Verbindungsstelle zurückzuführen ist."
                 },
                 {
                     "ecode": "1804110000010003",
@@ -5140,16 +5408,8 @@
                     "intro": "AMS-HT D Steckplatz 1 Filament könnte im Werkzeugkopf gebrochen sein."
                 },
                 {
-                    "ecode": "0707220000020007",
-                    "intro": "Der AMS H Steckplatz 3 Feed-out-Hallsensor ist nicht angeschlossen, was möglicherweise auf eine schlechte Anschlussverbindung zurückzuführen ist."
-                },
-                {
                     "ecode": "1800230000020002",
                     "intro": "AMS-HT A Steckplatz 4 ist leer; Bitte legen Sie ein neues Filament ein."
-                },
-                {
-                    "ecode": "1801220000020007",
-                    "intro": "Der AMS-HT B-Steckplatz 3 Feed-out-Hallsensor ist nicht angeschlossen, was möglicherweise auf eine schlechte Anschlussverbindung zurückzuführen ist."
                 },
                 {
                     "ecode": "1801100000010001",
@@ -5332,10 +5592,6 @@
                     "intro": "Das Filament von AMS D Slot 3 könnte in AMS gebrochen sein."
                 },
                 {
-                    "ecode": "0704200000020007",
-                    "intro": "Der Ausgabeeinzugs-Hallsensor von AMS E Slot 1 ist nicht angeschlossen, möglicherweise aufgrund schlechten Steckverbinderskontakts."
-                },
-                {
                     "ecode": "1803120000020002",
                     "intro": "Der Motor des AMS-HT D-Slot 3 ist überlastet. Das Filament könnte verwickelt oder blockiert sein."
                 },
@@ -5346,10 +5602,6 @@
                 {
                     "ecode": "1803600000020001",
                     "intro": "Der AMS-HT D-Slot 1 ist überlastet. Das Filament könnte verheddert sein oder die Spule ist möglicherweise blockiert."
-                },
-                {
-                    "ecode": "0705220000020007",
-                    "intro": "Der Feed-out-Hallsensor des AMS F-Slots 3 ist nicht angeschlossen, möglicherweise aufgrund schlechten Anschlusskontakts."
                 },
                 {
                     "ecode": "0706220000020001",
@@ -5680,24 +5932,12 @@
                     "intro": "AMS-HT A-Schlitz 2 Faden ist aufgebraucht. Bitte legen Sie einen neuen Faden ein."
                 },
                 {
-                    "ecode": "1806230000020007",
-                    "intro": "AMS-HT G-Schlitz 4 Auswurf-Hallsensor ist nicht angeschlossen, was auf eine schlechte Steckerverbindung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0704210000020007",
-                    "intro": "Der AMS E Steckplatz 2 Feed-out Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund einer schlechten Steckverbinderkontaktierung."
-                },
-                {
                     "ecode": "1803210000030001",
                     "intro": "AMS-HT D Steckplatz 2 Filament ist leer. Bitte warten Sie, während das alte Filament ausgestoßen wird."
                 },
                 {
                     "ecode": "0704200000020002",
                     "intro": "AMS E Steckplatz 1 ist leer, bitte legen Sie ein neues Filament ein."
-                },
-                {
-                    "ecode": "1802220000020007",
-                    "intro": "Der AMS-HT C Steckplatz 3 Feed-out Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund einer schlechten Steckverbinderkontaktierung."
                 },
                 {
                     "ecode": "1802130000010003",
@@ -5722,10 +5962,6 @@
                 {
                     "ecode": "1802210000030001",
                     "intro": "AMS-HT C Steckplatz 2 Filament ist leer. Bitte warten Sie, während das alte Filament ausgestoßen wird."
-                },
-                {
-                    "ecode": "0706220000020007",
-                    "intro": "AMS G Steckplatz 3 Feed-out Hall Sensor ist nicht verbunden, vermutlich aufgrund schlechten Steckverbinders."
                 },
                 {
                     "ecode": "0704610000020001",
@@ -5904,10 +6140,6 @@
                     "intro": "AMS E wird einer trockenen Kühlung unterzogen. Bitte warten Sie, bis es abgekühlt ist, bevor Sie es bedienen."
                 },
                 {
-                    "ecode": "1800220000020007",
-                    "intro": "Der AMS-HT A Schacht 3 Feed-Out-Hall-Sensor ist abgeklemmt, was auf eine schlechte Steckverbinderkontaktierung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "1804230000030002",
                     "intro": "AMS-HT Eine Filamentspule des E-Schachts 4 ist leer und wurde automatisch zum Schacht mit demselben Filament gewechselt."
                 },
@@ -5956,10 +6188,6 @@
                     "intro": "Der AMS H Steckplatz 3 Motor ist überlastet. Der Faden könnte verheddert oder blockiert sein."
                 },
                 {
-                    "ecode": "1807210000020007",
-                    "intro": "Der AMS-HT H Steckplatz 2 Ausgabesensor Hall ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "0705110000010003",
                     "intro": "Die Motordrehmomentsteuerung des AMS F Steckplatz 2 funktioniert nicht einwandfrei. Der Stromsensor könnte defekt sein."
                 },
@@ -5970,10 +6198,6 @@
                 {
                     "ecode": "1807110000010001",
                     "intro": "Der AMS-HT H Steckplatz 2 Motor ist abgerutscht. Das Extrusionsrad könnte fehlerhaft sein oder der Faden ist möglicherweise zu dünn."
-                },
-                {
-                    "ecode": "1802210000020007",
-                    "intro": "Der AMS-HT C Steckplatz 2 Ausgabesensor Hall ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "1801560000030001",
@@ -6160,10 +6384,6 @@
                     "intro": "Das Filament von AMS D Slot 4 könnte in AMS gebrochen sein."
                 },
                 {
-                    "ecode": "0701210000020007",
-                    "intro": "Der Hall-Sensor zum Ausfahren des Filaments von AMS B Slot 2 ist nicht angeschlossen. Das könnte an einer schlechten Steckverbindung liegen."
-                },
-                {
                     "ecode": "0705230000020004",
                     "intro": "AMS F Slot 4 Filament könnte im Werkzeugkopf gebrochen sein."
                 },
@@ -6178,10 +6398,6 @@
                 {
                     "ecode": "1806610000020001",
                     "intro": "AMS-HT G Slot 2 ist überlastet. Das Filament könnte verheddert sein oder die Spule stecken."
-                },
-                {
-                    "ecode": "1804230000020007",
-                    "intro": "Der Hall-Sensor zum Ausfahren des Filaments von AMS-HT E Slot 4 ist nicht angeschlossen. Das könnte an einer schlechten Steckverbindung liegen."
                 },
                 {
                     "ecode": "1806200000020002",
@@ -6444,18 +6660,6 @@
                     "intro": "AMS D Steckplatz 4 Filament ist leer gelaufen und das Auswerfen des alten Filaments verlief abnormal. Bitte überprüfen Sie, ob das Filament im Werkzeugkopf stecken geblieben ist."
                 },
                 {
-                    "ecode": "0702230000020007",
-                    "intro": "AMS C Slot 4 Feed-out Hall-Sensor ist nicht verbunden, möglicherweise aufgrund einer schlechten Steckverbindung."
-                },
-                {
-                    "ecode": "0701220000020007",
-                    "intro": "AMS B Slot 3 Feed-out Hall-Sensor ist nicht verbunden, möglicherweise aufgrund einer schlechten Steckverbindung."
-                },
-                {
-                    "ecode": "0703210000020007",
-                    "intro": "AMS D Slot 2 Feed-out Hall-Sensor ist nicht verbunden, möglicherweise aufgrund einer schlechten Steckverbindung."
-                },
-                {
                     "ecode": "1802220000020002",
                     "intro": "AMS-HT C Slot 3 ist leer; Bitte legen Sie einen neuen Filament ein."
                 },
@@ -6478,10 +6682,6 @@
                 {
                     "ecode": "0707130000020002",
                     "intro": "AMS H Slot 4 Motor ist überlastet. Das Filament kann verwickelt oder stecken geblieben sein."
-                },
-                {
-                    "ecode": "1807220000020007",
-                    "intro": "AMS-HT H Slot 3 Feed-out Hall-Sensor ist nicht verbunden, möglicherweise aufgrund einer schlechten Steckverbindung."
                 },
                 {
                     "ecode": "1804200000020002",
@@ -6524,10 +6724,6 @@
                     "intro": "AMS G Steckplatz 4 Filament ist leer und die Reinigung des alten Filaments verlief abnorm; bitte überprüfen Sie, ob das Filament im Werkzeugkopf steckt."
                 },
                 {
-                    "ecode": "0705210000020007",
-                    "intro": "AMS F Slot 2 Feed-out-Hall-Sensor ist nicht angeschlossen, wahrscheinlich aufgrund eines schlechten Steckverbinders."
-                },
-                {
                     "ecode": "0705130000010003",
                     "intro": "Die Motordrehmomentregelung des AMS F Slot 4 funktioniert nicht richtig. Der Stromsensor könnte defekt sein."
                 },
@@ -6542,14 +6738,6 @@
                 {
                     "ecode": "1801110000010003",
                     "intro": "Die Motordrehmoment-regelung des AMS-HT B Slot 2 funktioniert nicht richtig. Der Stromsensor könnte defekt sein."
-                },
-                {
-                    "ecode": "1801230000020007",
-                    "intro": "AMS-HT B Slot 4 Feed-out-Hall-Sensor ist nicht angeschlossen, wahrscheinlich aufgrund eines schlechten Steckverbinders."
-                },
-                {
-                    "ecode": "1803210000020007",
-                    "intro": "AMS-HT D Slot 2 Feed-out-Hall-Sensor ist nicht angeschlossen, wahrscheinlich aufgrund eines schlechten Steckverbinders."
                 },
                 {
                     "ecode": "1804230000020004",
@@ -6740,10 +6928,6 @@
                     "intro": "AMS E Slot 3 Filament könnte in AMS gebrochen sein."
                 },
                 {
-                    "ecode": "0705200000020007",
-                    "intro": "AMS F Slot 1-Auslauf Hallsensor ist nicht angeschlossen, möglicherweise aufgrund schlechter Steckerverbindung."
-                },
-                {
                     "ecode": "0704210000020002",
                     "intro": "AMS E Slot 2 ist leer; bitte legen Sie ein neues Filament ein."
                 },
@@ -6766,10 +6950,6 @@
                 {
                     "ecode": "0704620000020001",
                     "intro": "AMS E Slot 3 ist überlastet. Das Filament kann verheddert sein oder die Spule steckt fest."
-                },
-                {
-                    "ecode": "1805230000020007",
-                    "intro": "Der AMS-HT F Slot 4 Feed-Out-Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Verbindungsqualität des Anschlusses zurückzuführen sein kann."
                 },
                 {
                     "ecode": "1801630000020001",
@@ -6830,10 +7010,6 @@
                 {
                     "ecode": "1805120000010003",
                     "intro": "Die Drehmomentsteuerung des AMS-HT F-Steckplatzes 3 ist defekt. Der Stromsensor könnte fehlerhaft sein."
-                },
-                {
-                    "ecode": "0705230000020007",
-                    "intro": "Der Ausgabe-Hallsensor im AMS F-Steckplatz 4 ist nicht angeschlossen, möglicherweise aufgrund einer schlechten Anschlussverbindung."
                 },
                 {
                     "ecode": "1805220000020008",
@@ -7264,14 +7440,6 @@
                     "intro": "Das Filament im AMS D Steckplatz 3 ist leer und es wurde automatisch auf den Steckplatz mit demselben Filament gewechselt."
                 },
                 {
-                    "ecode": "0702210000020007",
-                    "intro": "Der AMS C Steckplatz 2 Feed-Out-Hallsensor ist nicht angeschlossen, was auf eine schlechte Kontaktabdeckung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0703220000020007",
-                    "intro": "Der AMS D Steckplatz 3 Feed-Out-Hallsensor ist nicht angeschlossen, was auf eine schlechte Kontaktabdeckung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "1807610000020001",
                     "intro": "Die AMS-HT H Steckplatz 2 ist überlastet. Das Filament könnte verwickelt sein oder die Spule steckt möglicherweise fest."
                 },
@@ -7540,10 +7708,6 @@
                     "intro": "Der Motor von AMS-HT G Slot 1 ist durchgedreht. Entweder funktioniert das Extrusionsrad nicht richtig oder das Filament ist zu dünn."
                 },
                 {
-                    "ecode": "1801210000020007",
-                    "intro": "Der AMS-HT B Slot 2 Feed-Out-Hallsensor ist nicht angeschlossen, was auf eine schlechte Verbindung des Anschlusses zurückzuführen sein könnte."
-                },
-                {
                     "ecode": "1805110000010001",
                     "intro": "Der Motor des AMS-HT F Slot 2 ist durchgerutscht. Das Extrusionsrad könnte defekt sein oder das Filament ist zu dünn."
                 },
@@ -7630,10 +7794,6 @@
                 {
                     "ecode": "1804230000020003",
                     "intro": "Das Filament von AMS-HT E Slot 4 ist möglicherweise im AMS-HT gebrochen."
-                },
-                {
-                    "ecode": "1802200000020007",
-                    "intro": "Der Hall-Sensor für die Filamentzufuhr von AMS-HT C Slot 1 ist aufgrund einer schlechten Verbindungsqualität möglicherweise nicht angeschlossen."
                 },
                 {
                     "ecode": "1801700000020020",
@@ -7760,14 +7920,6 @@
                     "intro": "AMS C Slot 1 Filament ist leer und das Entleeren des alten Filaments ist abnorm verlaufen. Bitte überprüfen Sie, ob das Filament im Werkzeugkopf stecken geblieben ist."
                 },
                 {
-                    "ecode": "0702220000020007",
-                    "intro": "Der AMS C Slot 3 Feed-Out Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund einer schlechten Connector-Verbindung."
-                },
-                {
-                    "ecode": "0701230000020007",
-                    "intro": "Der AMS B Slot 4 Feed-Out Hall-Sensor ist nicht angeschlossen, möglicherweise aufgrund einer schlechten Connector-Verbindung."
-                },
-                {
                     "ecode": "1801210000020005",
                     "intro": "AMS-HT B Slot 2 Filament ist leer und das Entleeren des alten Filaments ist abnorm verlaufen. Bitte überprüfen Sie, ob das Filament im Werkzeugkopf stecken geblieben ist."
                 },
@@ -7798,10 +7950,6 @@
                 {
                     "ecode": "1801120000010003",
                     "intro": "Die AMS-HT B-Steckplatz 3-Motordrehmomentsteuerung funktioniert nicht richtig. Der Stromsensor kann defekt sein."
-                },
-                {
-                    "ecode": "1802230000020007",
-                    "intro": "Der AMS-HT C-Steckplatz 4 Feed-out-Hallsensor ist getrennt, was auf eine schlechte Steckverbinder-Kontaktierung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "1803220000020005",
@@ -7836,20 +7984,12 @@
                     "intro": "Der AMS-HT H-Steckplatz 3 Motor ist abgerutscht. Das Extrusionsrad kann fehlerhaft sein oder das Filament zu dünn sein."
                 },
                 {
-                    "ecode": "1807200000020007",
-                    "intro": "AMS-HT H Steckplatz 1 Auslass-Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "0705200000020008",
                     "intro": "AMS F Steckplatz 1 Einlass-Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "0704230000030001",
                     "intro": "AMS E Steckplatz 4 Filament ist leer. Bitte warten Sie, während das alte Filament ausgestoßen wird."
-                },
-                {
-                    "ecode": "0707230000020007",
-                    "intro": "AMS H Steckplatz 4 Auslass-Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "0704220000030001",
@@ -7866,10 +8006,6 @@
                 {
                     "ecode": "0704200000020003",
                     "intro": "AMS E Steckplatz 1 Filament könnte im AMS gebrochen sein."
-                },
-                {
-                    "ecode": "1805200000020007",
-                    "intro": "AMS-HT F Steckplatz 1 Auslass-Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckverbindung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "1800130000010003",
@@ -7894,10 +8030,6 @@
                 {
                     "ecode": "0704200000020008",
                     "intro": "Der Feed-in Hall Sensor vom AMS E Steckplatz 1 ist nicht verbunden, was auf eine schlechte Kontaktverbindung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "1804200000020007",
-                    "intro": "Der Feed-out Hall Sensor vom AMS-HT E Steckplatz 1 ist nicht verbunden, was auf eine schlechte Kontaktverbindung zurückzuführen sein kann."
                 },
                 {
                     "ecode": "0707210000020004",
@@ -8068,14 +8200,6 @@
                     "intro": "Das Filament des AMS D Steckplatzes 2 ist ausgegangen. Bitte warten Sie, während das alte Filament ausgespült wird."
                 },
                 {
-                    "ecode": "0700220000020007",
-                    "intro": "Der AMS A Steckplatz 3 Feed-out-Hallsensor ist nicht verbunden, was an einer schlechten Steckverbindung liegen könnte."
-                },
-                {
-                    "ecode": "1804210000020007",
-                    "intro": "AMS-HT E Slot 2 Feed-out Hall Sensor ist nicht angeschlossen, was auf eine schlechte Steckerverbindung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "1800610000020001",
                     "intro": "AMS-HT A Slot 2 ist überlastet. Das Filament kann verheddert sein oder die Spule steckt möglicherweise fest."
                 },
@@ -8152,10 +8276,6 @@
                     "intro": "AMS-HT B-Slot 4 Filament ist möglicherweise im Werkzeugkopf gebrochen."
                 },
                 {
-                    "ecode": "1800200000020007",
-                    "intro": "AMS-HT Ein Hall-Sensor-Steckplatz 1 ist ausgefallen, vermutlich wegen schlechtem Verbindungsstecker-Kontakt."
-                },
-                {
                     "ecode": "1806220000020004",
                     "intro": "AMS-HT Ein Filament im Werkzeugkopf Slot 3 könnte gebrochen sein."
                 },
@@ -8208,10 +8328,6 @@
                     "intro": "Das Filament des AMS G Schachts 1 ist ausgegangen und die Reinigung des alten Filaments verlief abnorm. Bitte überprüfen Sie ob das Filament im Werkzeugkopf stecken geblieben ist."
                 },
                 {
-                    "ecode": "1805220000020007",
-                    "intro": "Der Hall-Sensor für den AMS-HT F Schacht 3 ist nicht verbunden, was auf eine schlechte Verbindungsqualität des Connectors hindeuten könnte."
-                },
-                {
                     "ecode": "1805230000020008",
                     "intro": "Der Hall-Sensor für den AMS-HT F Schacht 4 ist nicht verbunden, was auf eine schlechte Verbindungsqualität des Connectors hindeuten könnte."
                 },
@@ -8222,10 +8338,6 @@
                 {
                     "ecode": "1803220000020003",
                     "intro": "Das Filament des AMS-HT D Schachts 3 könnte in AMS-HT gebrochen sein."
-                },
-                {
-                    "ecode": "1804220000020007",
-                    "intro": "Der Hall-Sensor für den AMS-HT E Schacht 3 ist nicht verbunden, was auf eine schlechte Verbindungsqualität des Connectors hindeuten könnte."
                 },
                 {
                     "ecode": "18FE800000010003",
@@ -8412,10 +8524,6 @@
                     "intro": "AMS F Steckplatz 1 Filament ist leer und automatisch zu dem Steckplatz mit dem gleichen Filament gewechselt."
                 },
                 {
-                    "ecode": "1806210000020007",
-                    "intro": "AMS-HT G Steckplatz 2 Auslauf-Hallsensor ist nicht verbunden, was auf eine schlechte Steckverbindung zurückzuführen sein könnte."
-                },
-                {
                     "ecode": "0707200000020001",
                     "intro": "AMS H Steckplatz 1 Filament ist leer. Bitte legen Sie ein neues Filament ein."
                 },
@@ -8486,10 +8594,6 @@
                 {
                     "ecode": "0707230000020003",
                     "intro": "Das Filament des AMS H Steckplatzes 4 könnte im AMS gebrochen sein."
-                },
-                {
-                    "ecode": "0706210000020007",
-                    "intro": "Der Feed-out Hall-Sensor des AMS G Steckplatzes 2 ist abgetrennt, was auf eine schlechte Steckverbindung zurückzuführen sein könnte."
                 },
                 {
                     "ecode": "18FF200000020002",
@@ -8636,14 +8740,6 @@
                     "intro": "Der AMS D Slot 4 ist überlastet. Die Füllung kann verwickelt sein oder die Spule steckt möglicherweise fest."
                 },
                 {
-                    "ecode": "0702200000020007",
-                    "intro": "Der AMS C Slot 1 feed-out Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckerverbindung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0700200000020007",
-                    "intro": "Der AMS A Slot 1 Feed-out Hall-Sensor ist nicht angeschlossen, was auf eine schlechte Steckerverbindung zurückzuführen sein kann."
-                },
-                {
                     "ecode": "0707110000010001",
                     "intro": "Der AMS H Slot 2 Motor ist gerutscht. Das Extrusionsrad funktioniert möglicherweise nicht richtig oder das Filament ist zu dünn."
                 },
@@ -8714,10 +8810,6 @@
                 {
                     "ecode": "1807200000030002",
                     "intro": "AMS-HT H Slot 1 Filament ist ausgegangen und wurde automatisch auf den Slot mit dem gleichen Filament umgeschaltet."
-                },
-                {
-                    "ecode": "0707210000020007",
-                    "intro": "AMS H Slot 2 Auslauftastsensor ist nicht angeschlossen, möglicherweise aufgrund schlechter Steckverbinderkontakt."
                 },
                 {
                     "ecode": "1807230000020008",
@@ -8844,10 +8936,6 @@
                     "intro": "Die Kalibrierung der Live-View-Kamera ist fehlgeschlagen und das Kalibrierungsergebnis konnte nicht gespeichert werden. Bitte versuchen Sie, erneut zu kalibrieren. Wenn die Kalibrierung mehrmals fehlschlägt, wenden Sie sich bitte an das Kundensupport-Team."
                 },
                 {
-                    "ecode": "0C00010000010011",
-                    "intro": "Die Kalibrierung der Live-View-Kamera ist fehlgeschlagen. Bitte überprüfen Sie, ob die Kamera korrekt installiert ist und stellen Sie sicher, dass das Kamerabild klar und frei von Schmutz ist. Nach diesen Schritten bitte erneut kalibrieren."
-                },
-                {
                     "ecode": "0C00010000010010",
                     "intro": "Die Kalibrierung der Live-View-Kamera ist fehlgeschlagen. Bitte überprüfen Sie, ob das Druckbett frei ist und stellen Sie sicher, dass das Kamerabild klar und frei von Schmutz ist. Nach diesen Schritten bitte erneut kalibrieren."
                 },
@@ -8878,22 +8966,6 @@
                 {
                     "ecode": "03009C0000010002",
                     "intro": "Das aktive Luftstromunterstützungsmodul ist abnorm und kann beschädigt sein."
-                },
-                {
-                    "ecode": "03009D0000020002",
-                    "intro": "Das Ergebnis der Kalibrierung des Gravierlaser-Fokus XY weicht signifikant von den Designwerten ab. Bitte installieren Sie das Lasermodul erneut und führen Sie den Beginn der Lasermodul-Einrichtung erneut aus."
-                },
-                {
-                    "ecode": "03009D0000020001",
-                    "intro": "Die Kalibrierung des Gravierlaser-Fokus XY ist fehlgeschlagen. Bitte reinigen Sie den Laser-Homing-Bereich auf der Laserplattform und führen Sie die Lasermodul-Montagekalibrierung erneut aus."
-                },
-                {
-                    "ecode": "03009D0000020003",
-                    "intro": "Das Ergebnis der Kalibrierung des Gravierlaser-Fokus Z weicht signifikant von den Designwerten ab. Bitte installieren Sie das Lasermodul erneut und führen Sie den Beginn der Lasermodul-Einrichtung erneut aus."
-                },
-                {
-                    "ecode": "03009C0000010001",
-                    "intro": "Das Modul für die aktive Luftstromunterstützung wird nicht erkannt. Bitte prüfen Sie, ob der Anschluss ordnungsgemäß eingesteckt ist."
                 },
                 {
                     "ecode": "0500040000020047",
@@ -8996,10 +9068,6 @@
                     "intro": "Der Griff des Filamentabschneiders wurde nicht freigegeben. Der Griff oder die Klinge kann blockiert sein oder es gibt möglicherweise ein Problem mit der Verbindung des Filamentsensors."
                 },
                 {
-                    "ecode": "03009B0000010002",
-                    "intro": "Sicherheitsschlüssel ist nicht eingeführt; bitte gemäß der Anleitung korrekt installieren."
-                },
-                {
                     "ecode": "07FE450000020002",
                     "intro": "Der Schneideabstand des Filamentabschneiders ist zu groß. Der XY-Motor kann Schritte verlieren."
                 },
@@ -9010,14 +9078,6 @@
                 {
                     "ecode": "07FF450000020002",
                     "intro": "Der Schneideabstand des Filamentabschneiders ist zu groß. Der XY-Motor kann Schritte verlieren."
-                },
-                {
-                    "ecode": "03009B0000010003",
-                    "intro": "Der Not-Aus-Knopf ist nicht richtig installiert; bitte gemäß der Anleitung korrekt installieren."
-                },
-                {
-                    "ecode": "03009B0000010001",
-                    "intro": "Der Not-Aus-Knopf ist nicht installiert; bitte gemäß der Anleitung korrekt installieren."
                 },
                 {
                     "ecode": "0300180000000000",
@@ -13012,32 +13072,12 @@
                     "intro": "Die Temperatur der rechten Extruder-Düse ist abnorm; der Sensor hat möglicherweise einen offenen Stromkreis."
                 },
                 {
-                    "ecode": "0300990000010004",
-                    "intro": "Es wurde festgestellt, dass das Laserschutzglas nicht an dem Fenster auf der rechten Seite installiert ist. Bitte installieren Sie das Schutzglas gemäß den Anweisungen und starten Sie die Aufgabe erneut."
-                },
-                {
                     "ecode": "07FF200000020004",
                     "intro": "Bitte ziehen Sie den externen Filament aus dem rechten Extruder heraus."
                 },
                 {
-                    "ecode": "0300960000010004",
-                    "intro": "Es wurde festgestellt, dass das Laserschutzglas nicht an der vorderen Tür installiert ist. Bitte installieren Sie das Schutzglas gemäß den Anweisungen und starten Sie die Aufgabe erneut."
-                },
-                {
                     "ecode": "07FF200000020001",
                     "intro": "Der externe Filament des rechten Extruders ist aufgebraucht; bitte laden Sie einen neuen Filament."
-                },
-                {
-                    "ecode": "0C00040000020019",
-                    "intro": "Die Birdseye-Kamera ist versetzt installiert. Bitte beziehen Sie sich auf die Anleitung, um sie neu zu installieren."
-                },
-                {
-                    "ecode": "0300970000010004",
-                    "intro": "Es wurde festgestellt, dass das Laserschutzglas nicht auf dem oberen Deckel installiert ist. Bitte installieren Sie das Schutzglas gemäß den Anweisungen und starten Sie die Aufgabe erneut."
-                },
-                {
-                    "ecode": "0300980000010004",
-                    "intro": "Es wurde festgestellt, dass das Laserschutzglas nicht an dem Fenster auf der linken Seite installiert ist. Bitte installieren Sie das Schutzglas gemäß den Anweisungen und starten Sie die Aufgabe erneut."
                 },
                 {
                     "ecode": "0300990000030001",
@@ -13054,10 +13094,6 @@
                 {
                     "ecode": "0300020000010002",
                     "intro": "Die Temperatur der rechten Extruder-Düse ist abnormal; Der Heizkörper hat möglicherweise einen offenen Stromkreis."
-                },
-                {
-                    "ecode": "0C00040000030018",
-                    "intro": "Die Kalibrierung der Werkzeugkopf-Kamera ist fehlgeschlagen, wahrscheinlich weil das Material nicht fest genug haftete. Die Standardsparameter wurden für diesen Schnitt verwendet."
                 },
                 {
                     "ecode": "0701010000010001",
