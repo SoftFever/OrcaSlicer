@@ -13,6 +13,7 @@
 #include "slic3r/GUI/Tab.hpp"
 #include "nlohmann/json.hpp"
 #include <map>
+#include "JusPrinPresetConfigUtils.hpp"
 
 namespace Slic3r { namespace GUI {
 

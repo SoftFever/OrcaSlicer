@@ -1,4 +1,4 @@
-#include "JusPrinConfigUtils.hpp"
+#include "JusPrinPresetConfigUtils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -8,7 +8,7 @@
 
 namespace Slic3r { namespace GUI {
 
-nlohmann::json JusPrinConfigUtils::PresetsToJson(const std::vector<std::pair<const Preset*, bool>>& presets)
+nlohmann::json JusPrinPresetConfigUtils::PresetsToJson(const std::vector<std::pair<const Preset*, bool>>& presets)
 {
     nlohmann::json j_array = nlohmann::json::array();
     for (const auto& [preset, is_selected] : presets) {
@@ -17,7 +17,7 @@ nlohmann::json JusPrinConfigUtils::PresetsToJson(const std::vector<std::pair<con
     return j_array;
 }
 
-nlohmann::json JusPrinConfigUtils::PresetToJson(const Preset* preset)
+nlohmann::json JusPrinPresetConfigUtils::PresetToJson(const Preset* preset)
 {
     nlohmann::json j;
     j["name"] = preset->name;
@@ -26,7 +26,7 @@ nlohmann::json JusPrinConfigUtils::PresetToJson(const Preset* preset)
     return j;
 }
 
-nlohmann::json JusPrinConfigUtils::GetPresetsJson(Preset::Type type) {
+nlohmann::json JusPrinPresetConfigUtils::GetPresetsJson(Preset::Type type) {
     Tab* tab = wxGetApp().get_tab(type);
     if (!tab) {
         return nlohmann::json::array();
@@ -54,7 +54,7 @@ nlohmann::json JusPrinConfigUtils::GetPresetsJson(Preset::Type type) {
     return PresetsToJson(presets);
 }
 
-nlohmann::json JusPrinConfigUtils::GetEditedPresetJson(Preset::Type type) {
+nlohmann::json JusPrinPresetConfigUtils::GetEditedPresetJson(Preset::Type type) {
     Tab* tab = wxGetApp().get_tab(type);
     if (!tab) {
         return nlohmann::json::array();
@@ -73,7 +73,7 @@ nlohmann::json JusPrinConfigUtils::GetEditedPresetJson(Preset::Type type) {
 }
 
 
-nlohmann::json JusPrinConfigUtils::GetAllPresetJson() {
+nlohmann::json JusPrinPresetConfigUtils::GetAllPresetJson() {
     nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
     nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
@@ -85,7 +85,7 @@ nlohmann::json JusPrinConfigUtils::GetAllPresetJson() {
     };
 }
 
-nlohmann::json JusPrinConfigUtils::GetAllEditedPresetJson() {
+nlohmann::json JusPrinPresetConfigUtils::GetAllEditedPresetJson() {
     nlohmann::json editedPrinterPresetJson = GetEditedPresetJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json editedFilamentPresetJson = GetEditedPresetJson(Preset::Type::TYPE_FILAMENT);
     nlohmann::json editedPrintProcessPresetJson = GetEditedPresetJson(Preset::Type::TYPE_PRINT);
@@ -97,7 +97,7 @@ nlohmann::json JusPrinConfigUtils::GetAllEditedPresetJson() {
     };
 }
 
-nlohmann::json JusPrinConfigUtils::CostItemsToJson(const Slic3r::orientation::CostItems& cost_items) {
+nlohmann::json JusPrinPresetConfigUtils::CostItemsToJson(const Slic3r::orientation::CostItems& cost_items) {
     nlohmann::json j;
     j["overhang"] = cost_items.overhang;
     j["bottom"] = cost_items.bottom;
@@ -113,7 +113,7 @@ nlohmann::json JusPrinConfigUtils::CostItemsToJson(const Slic3r::orientation::Co
     return j;
 }
 
-nlohmann::json JusPrinConfigUtils::GetModelObjectFeaturesJson(const ModelObject* obj) {
+nlohmann::json JusPrinPresetConfigUtils::GetModelObjectFeaturesJson(const ModelObject* obj) {
     if (!obj || obj->instances.size() != 1) {
         BOOST_LOG_TRIVIAL(error) << "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
         return nlohmann::json::object();
@@ -128,7 +128,7 @@ nlohmann::json JusPrinConfigUtils::GetModelObjectFeaturesJson(const ModelObject*
     return CostItemsToJson(features);
 }
 
-nlohmann::json JusPrinConfigUtils::GetPlaterConfigJson()
+nlohmann::json JusPrinPresetConfigUtils::GetPlaterConfigJson()
 {
     nlohmann::json j = nlohmann::json::object();
     Plater* plater = wxGetApp().plater();
@@ -157,7 +157,7 @@ nlohmann::json JusPrinConfigUtils::GetPlaterConfigJson()
     return j;
 }
 
-void JusPrinConfigUtils::DiscardCurrentPresetChanges() {
+void JusPrinPresetConfigUtils::DiscardCurrentPresetChanges() {
     PresetBundle* bundle = wxGetApp().preset_bundle;
     if (!bundle) {
         return;
@@ -167,7 +167,7 @@ void JusPrinConfigUtils::DiscardCurrentPresetChanges() {
     bundle->prints.discard_current_changes();
 }
 
-void JusPrinConfigUtils::UpdatePresetTabs() {
+void JusPrinPresetConfigUtils::UpdatePresetTabs() {
     std::array<Preset::Type, 2> preset_types = {Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT};
 
     for (const auto& preset_type : preset_types) {
@@ -179,7 +179,7 @@ void JusPrinConfigUtils::UpdatePresetTabs() {
     }
 }
 
-void JusPrinConfigUtils::ApplyConfig(const nlohmann::json& item) {
+void JusPrinPresetConfigUtils::ApplyConfig(const nlohmann::json& item) {
     std::string type = item.value("type", "");
     Preset::Type preset_type;
     if (type == "print") {

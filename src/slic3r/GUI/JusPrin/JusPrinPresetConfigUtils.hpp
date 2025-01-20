@@ -1,5 +1,5 @@
-#ifndef slic3r_GUI_JusPrinConfigUtils_hpp_
-#define slic3r_GUI_JusPrinConfigUtils_hpp_
+#ifndef slic3r_GUI_JusPrinPresetConfigUtils_hpp_
+#define slic3r_GUI_JusPrinPresetConfigUtils_hpp_
 
 #include <nlohmann/json.hpp>
 #include "libslic3r/Preset.hpp"
@@ -8,7 +8,7 @@
 
 namespace Slic3r { namespace GUI {
 
-class JusPrinConfigUtils {
+class JusPrinPresetConfigUtils {
 public:
     static nlohmann::json PresetsToJson(const std::vector<std::pair<const Preset*, bool>>& presets);
     static nlohmann::json GetPresetsJson(Preset::Type type);
