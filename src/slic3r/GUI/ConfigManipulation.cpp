@@ -758,7 +758,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("preheat_steps", have_ooze_prevention && (preheat_steps > 0));
 
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
-    for (auto el : {"prime_tower_width", "prime_tower_brim_width", "prime_tower_outer_first", "prime_tower_skip_points", "prime_tower_rib_wall"})
+    for (auto el : {"prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_rib_wall"})
         toggle_line(el, have_prime_tower);
 
     bool have_rib_wall = config->opt_bool("prime_tower_rib_wall")&&have_prime_tower;

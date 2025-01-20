@@ -398,14 +398,12 @@ private:
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);
 
-    double       m_nozzle_change_length = 0;
     std::vector<double> m_filaments_change_length;
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
     std::vector<int>   m_filament_map;
     bool               m_has_tpu_filament{false};
     bool               m_is_multi_extruder{false};
-    bool               m_is_print_outer_first{false};
     bool               m_use_gap_wall{false};
     bool               m_use_rib_wall{false};
     float              m_rib_length=0.f;

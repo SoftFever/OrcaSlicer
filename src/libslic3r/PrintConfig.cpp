@@ -4534,14 +4534,6 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
-    def           = this->add("extruder_change_length", coFloats);
-    def->label    = L("Extruder change length");
-    def->tooltip  = L("Extruder change length");
-    def->sidetext = L("mm");
-    def->min      = 0;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0});
-
     def = this->add("extruder_ams_count", coStrings);
     def->label = "Extruder ams count";
     def->tooltip = "Ams counts of per extruder";
@@ -6047,12 +6039,6 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->min      = 0;
     def->set_default_value(new ConfigOptionFloat(4));
-
-    def           = this->add("prime_tower_outer_first", coBool);
-    def->label    = L("Outer first");
-    def->tooltip  = L("The prime tower print outer first");
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("prime_tower_skip_points", coBool);
     def->label   = L("Skip points");
