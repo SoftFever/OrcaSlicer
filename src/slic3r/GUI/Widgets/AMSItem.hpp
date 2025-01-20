@@ -653,8 +653,11 @@ protected:
     AMSModel m_ams_item_type = AMSModel::GENERIC_AMS;
 
     ScalableBitmap m_ts_bitmap_cube;
+    ScalableBitmap m_ts_bitmap_cube_dark;
     ScalableBitmap m_four_slot_bitmap;
+    ScalableBitmap m_four_slot_bitmap_dark;
     ScalableBitmap m_single_slot_bitmap;
+    ScalableBitmap m_single_slot_bitmap_dark;
 
     void         paintEvent(wxPaintEvent &evt);
     void         render(wxDC &dc);

@@ -2372,8 +2372,13 @@ void AMSPreview::Update(AMSinfo amsinfo)
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 14);
+    m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 14);
+
     m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
+    m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot_ams_item_dark", 32);
+
     m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
+    m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot_ams_item_dark", 32);
 
     SetMinSize(size);
     SetMaxSize(size);
@@ -2437,9 +2442,22 @@ void AMSPreview::render(wxDC &dc)
 void AMSPreview::doRender(wxDC &dc)
 {
     wxSize size = GetSize();
-    auto color = *wxWHITE;
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-    dc.SetBrush(color);
+
+    // draw background
+    if (wxGetApp().dark_mode())
+    {
+        dc.SetBrush(StateColor::darkModeColorFor(*wxWHITE));
+    }
+    else
+    {
+        dc.SetBrush(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    }
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 0);
+
+    // draw container
+    auto color = *wxWHITE;
+    dc.SetBrush(StateColor::darkModeColorFor(color));
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
 
     auto left = 0;
@@ -2484,7 +2502,14 @@ void AMSPreview::doRender(wxDC &dc)
             }
             else {
                 if (iter->material_colour.Alpha() == 0) {
-                    dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+                    if (wxGetApp().dark_mode())
+                    {
+                        dc.DrawBitmap(m_ts_bitmap_cube_dark.bmp(), left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+                    }
+                    else
+                    {
+                        dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+                    }
                 }
                 else {
                     wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
@@ -2501,7 +2526,15 @@ void AMSPreview::doRender(wxDC &dc)
         }
 
         //auto pot = wxPoint((size.x - m_four_slot_bitmap.GetBmpSize().x) / 2, (size.y - m_four_slot_bitmap.GetBmpSize().y) / 2);
-        dc.DrawBitmap(m_four_slot_bitmap.bmp(), wxPoint(0,0));
+        if (wxGetApp().dark_mode())
+        {
+            dc.DrawBitmap(m_four_slot_bitmap_dark.bmp(), wxPoint(0, 0));
+        }
+        else
+        {
+            dc.DrawBitmap(m_four_slot_bitmap.bmp(), wxPoint(0, 0));
+        }
+
     }
 
     //single slot
@@ -2554,7 +2587,15 @@ void AMSPreview::doRender(wxDC &dc)
 
         if (m_ams_item_type == AMSModel::N3S_AMS) {
             //auto pot = wxPoint(((size.x - m_single_slot_bitmap.GetBmpSize().x) / 2), ((size.y - m_single_slot_bitmap.GetBmpSize().y) / 2));
-            dc.DrawBitmap(m_single_slot_bitmap.bmp(), wxPoint(0,0));
+            if (wxGetApp().dark_mode())
+            {
+                dc.DrawBitmap(m_single_slot_bitmap_dark.bmp(), wxPoint(0, 0));
+            }
+            else
+            {
+                dc.DrawBitmap(m_single_slot_bitmap.bmp(), wxPoint(0, 0));
+            }
+
         }
         if (((iter.material_colour.Red() >= 238 && iter.material_colour.Green() >= 238 && iter.material_colour.Blue() >= 238)
             || iter.material_colour.Alpha() == 0) && m_ams_item_type == AMSModel::EXT_AMS) {
@@ -2583,11 +2624,13 @@ void AMSPreview::doRender(wxDC &dc)
 
 void AMSPreview::msw_rescale()
 {
-    m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 14);
-    //m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
-    //m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 28);
+    m_ts_bitmap_cube.msw_rescale();
+    m_ts_bitmap_cube_dark.msw_rescale();
     m_four_slot_bitmap.msw_rescale();
+    m_four_slot_bitmap_dark.msw_rescale();
     m_single_slot_bitmap.msw_rescale();
+    m_single_slot_bitmap_dark.msw_rescale();
+
     Refresh();
 }
 
