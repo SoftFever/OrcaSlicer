@@ -63,7 +63,8 @@
                 showError();
             }, 5000); // 5 second timeout
 
-            fetch(CHAT_SERVER_URL + '/embedded_chat/', {
+            const pageUrl = CHAT_SERVER_URL + '/v0.3/embedded_chat/';
+            fetch(pageUrl, {
                 method: 'HEAD',
                 mode: 'no-cors'
             })
@@ -71,7 +72,7 @@
                 clearTimeout(timeoutId);
                 // Don't check response.ok when using no-cors
                 // Just redirect if we get any response
-                window.location.href = CHAT_SERVER_URL + '/embedded_chat/';
+                window.location.href = pageUrl;
             })
             .catch((e) => {
                 console.error(e);

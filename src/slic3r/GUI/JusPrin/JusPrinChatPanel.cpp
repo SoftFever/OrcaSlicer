@@ -95,24 +95,26 @@ void JusPrinChatPanel::OnClose(wxCloseEvent& evt) { this->Hide(); }
 
 void JusPrinChatPanel::init_action_handlers() {
     // Actions for preload.html only
-    action_handlers["init_server_url_and_redirect"] = &JusPrinChatPanel::handle_init_server_url_and_redirect;
+    void_action_handlers["init_server_url_and_redirect"] = &JusPrinChatPanel::handle_init_server_url_and_redirect;
 
-    // Actions for the chat page
-    action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
-    action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
-    action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
-    action_handlers["discard_current_changes"] = &JusPrinChatPanel::handle_discard_current_changes;
-    action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
-    action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
-    action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
-    action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
-    action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
-    action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
-    action_handlers["plater_undo"] = &JusPrinChatPanel::handle_plater_undo;
+    // Sync actions for the chat page (return json)
+    json_action_handlers["get_presets"] = &JusPrinChatPanel::handle_get_presets;
 
-    action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
-    action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
-    action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
+    // Actions for the chat page (void return)
+    void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
+    void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
+    void_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
+    void_action_handlers["discard_current_changes"] = &JusPrinChatPanel::handle_discard_current_changes;
+    void_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
+    void_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
+    void_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
+    void_action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
+    void_action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
+    void_action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
+    void_action_handlers["plater_undo"] = &JusPrinChatPanel::handle_plater_undo;
+    void_action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
+    void_action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
+    void_action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
 }
 
 // Actions for preload.html only
@@ -137,6 +139,22 @@ void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
 void JusPrinChatPanel::handle_refresh_oauth_token(const nlohmann::json& params) {
     UpdateOAuthAccessToken();
 }
+
+// Sync actions for the chat page
+nlohmann::json JusPrinChatPanel::handle_get_presets(const nlohmann::json& params) {
+    nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
+    nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
+    nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
+
+    nlohmann::json allPresetsJson = {
+        {"printerPresets", printerPresetsJson},
+        {"filamentPresets", filamentPresetsJson},
+        {"printProcessPresets", printPresetsJson}
+    };
+    return allPresetsJson;
+}
+
+// TODO: identify the actions obsolete by v0.3 and flag them as deprecated
 
 void JusPrinChatPanel::handle_refresh_presets(const nlohmann::json& params) {
     RefreshPresets();
@@ -460,7 +478,12 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 
 void JusPrinChatPanel::AdvertiseSupportedAction() {
     nlohmann::json action_handlers_json = nlohmann::json::array();
-    for (const auto& [action, handler] : action_handlers) {
+    // Add void action handlers
+    for (const auto& [action, handler] : void_action_handlers) {
+        action_handlers_json.push_back(action);
+    }
+    // Add json action handlers
+    for (const auto& [action, handler] : json_action_handlers) {
         action_handlers_json.push_back(action);
     }
     UpdateEmbeddedChatState("supportedActions", action_handlers_json.dump());
@@ -479,10 +502,23 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     std::string action = jsonObject["action"];
 
-    auto it = action_handlers.find(action);
-    if (it != action_handlers.end()) {
-        (this->*(it->second))(jsonObject);
-        return;
+    // Determine the appropriate handler based on the presence of "refId"
+    if (jsonObject.contains("refId")) {
+        auto json_it = json_action_handlers.find(action);
+        if (json_it != json_action_handlers.end()) {
+            auto retVal = (this->*(json_it->second))(jsonObject);
+            std::string refId = jsonObject["refId"];
+            nlohmann::json responseJson = {
+                {"refId", refId},
+                {"retVal", retVal}
+            };
+            CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
+        }
+    } else {
+        auto void_it = void_action_handlers.find(action);
+        if (void_it != void_action_handlers.end()) {
+            (this->*(void_it->second))(jsonObject);
+        }
     }
 }
 
