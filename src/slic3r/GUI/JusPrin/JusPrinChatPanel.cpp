@@ -142,16 +142,7 @@ void JusPrinChatPanel::handle_refresh_oauth_token(const nlohmann::json& params) 
 
 // Sync actions for the chat page
 nlohmann::json JusPrinChatPanel::handle_get_presets(const nlohmann::json& params) {
-    nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
-    nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
-    nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
-
-    nlohmann::json allPresetsJson = {
-        {"printerPresets", printerPresetsJson},
-        {"filamentPresets", filamentPresetsJson},
-        {"printProcessPresets", printPresetsJson}
-    };
-    return allPresetsJson;
+    return GetAllPresetJson();
 }
 
 // TODO: identify the actions obsolete by v0.3 and flag them as deprecated
@@ -353,18 +344,21 @@ void JusPrinChatPanel::CallEmbeddedChatMethod(const wxString& method, const wxSt
     RunScriptInBrowser(strJS);
 }
 
-void JusPrinChatPanel::RefreshPresets() {
+nlohmann::json JusPrinChatPanel::GetAllPresetJson() {
     nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
     nlohmann::json printPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINT);
 
-    nlohmann::json allPresetsJson = {
+    return {
         {"printerPresets", printerPresetsJson},
         {"filamentPresets", filamentPresetsJson},
         {"printProcessPresets", printPresetsJson}
     };
-    wxString allPresetsStr = allPresetsJson.dump();
-    UpdateEmbeddedChatState("presets", allPresetsStr);
+}
+
+void JusPrinChatPanel::RefreshPresets() {
+    nlohmann::json allPresetsJson = GetAllPresetJson();
+    UpdateEmbeddedChatState("presets", allPresetsJson.dump());
 }
 
 void JusPrinChatPanel::RefreshPlaterConfig() {
