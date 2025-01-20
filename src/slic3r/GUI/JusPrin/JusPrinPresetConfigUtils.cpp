@@ -97,66 +97,6 @@ nlohmann::json JusPrinPresetConfigUtils::GetAllEditedPresetJson() {
     };
 }
 
-nlohmann::json JusPrinPresetConfigUtils::CostItemsToJson(const Slic3r::orientation::CostItems& cost_items) {
-    nlohmann::json j;
-    j["overhang"] = cost_items.overhang;
-    j["bottom"] = cost_items.bottom;
-    j["bottom_hull"] = cost_items.bottom_hull;
-    j["contour"] = cost_items.contour;
-    j["area_laf"] = cost_items.area_laf;
-    j["area_projected"] = cost_items.area_projected;
-    j["volume"] = cost_items.volume;
-    j["area_total"] = cost_items.area_total;
-    j["radius"] = cost_items.radius;
-    j["height_to_bottom_hull_ratio"] = cost_items.height_to_bottom_hull_ratio;
-    j["unprintability"] = cost_items.unprintability;
-    return j;
-}
-
-nlohmann::json JusPrinPresetConfigUtils::GetModelObjectFeaturesJson(const ModelObject* obj) {
-    if (!obj || obj->instances.size() != 1) {
-        BOOST_LOG_TRIVIAL(error) << "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
-        return nlohmann::json::object();
-    }
-
-    Slic3r::orientation::OrientMesh om = OrientJob::get_orient_mesh(obj->instances[0]);
-    Slic3r::orientation::OrientParams params;
-    params.min_volume = false;
-
-    Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, {}, {});
-    Slic3r::orientation::CostItems features = orienter.get_features(om.orientation.cast<float>(), true);
-    return CostItemsToJson(features);
-}
-
-nlohmann::json JusPrinPresetConfigUtils::GetPlaterConfigJson()
-{
-    nlohmann::json j = nlohmann::json::object();
-    Plater* plater = wxGetApp().plater();
-
-    j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
-    j["modelObjects"] = nlohmann::json::array();
-
-    for (const ModelObject* object : plater->model().objects) {
-        auto object_grid_config = &(object->config);
-
-        nlohmann::json obj;
-        obj["id"] = std::to_string(object->id().id);
-        obj["name"] = object->name;
-        obj["features"] = GetModelObjectFeaturesJson(object);
-
-        int extruder_id = -1;  // Default extruder ID
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            extruder_id = *extruder_id_ptr;
-        }
-        obj["extruderId"] = extruder_id;
-
-        j["modelObjects"].push_back(obj);
-    }
-
-    return j;
-}
-
 void JusPrinPresetConfigUtils::DiscardCurrentPresetChanges() {
     PresetBundle* bundle = wxGetApp().preset_bundle;
     if (!bundle) {

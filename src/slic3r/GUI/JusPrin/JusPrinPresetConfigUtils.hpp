@@ -3,8 +3,6 @@
 
 #include <nlohmann/json.hpp>
 #include "libslic3r/Preset.hpp"
-#include "libslic3r/Model.hpp"
-#include "libslic3r/Orient.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -15,13 +13,10 @@ public:
     static nlohmann::json PresetToJson(const Preset* preset);
     static nlohmann::json GetAllPresetJson();
     static nlohmann::json GetAllEditedPresetJson();
-    static nlohmann::json GetPlaterConfigJson();
-    static nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
-    static nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items);
+    static nlohmann::json GetEditedPresetJson(Preset::Type type);
     static void DiscardCurrentPresetChanges();
     static void UpdatePresetTabs();
     static void ApplyConfig(const nlohmann::json& item);
-    static nlohmann::json GetEditedPresetJson(Preset::Type type);
 };
 
 }} // namespace Slic3r::GUI
