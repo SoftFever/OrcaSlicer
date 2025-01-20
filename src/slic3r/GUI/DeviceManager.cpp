@@ -1643,7 +1643,7 @@ bool MachineObject::is_recording()
 int MachineObject::get_liveview_remote()
 {
     if (is_support_agora) {
-        liveview_remote == LVR_None ? LVR_Agora : liveview_remote == LVR_Tutk ? LVR_TutkAgora : liveview_remote;
+        return liveview_remote == LVR_None ? LVR_Agora : liveview_remote == LVR_Tutk ? LVR_TutkAgora : liveview_remote;
     }
     return liveview_remote;
 }
