@@ -1828,8 +1828,7 @@ Vec3d PartPlate::calculate_wipe_tower_size(const DynamicPrintConfig &config, con
 
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
-
-	int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
+    int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
     double depth = std::sqrt(wipe_volume * (nozzle_nums == 2 ? plate_extruder_size : (plate_extruder_size - 1)) / layer_height);
     if (timelapse_enabled || plate_extruder_size > 1) {
         float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
@@ -1920,9 +1919,9 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 	float y = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_y"))->get_at(plate_index);
 	float w = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_width"))->value;
 	//float a = dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value;
-	float v = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_volume"))->value;
+	std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_prime_volume"))->values;
     float tower_brim_width = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_brim_width"))->value;
-    Vec3d wipe_tower_size = estimate_wipe_tower_size(config, w, v, plate_extruder_size, use_global_objects);
+	Vec3d wipe_tower_size = estimate_wipe_tower_size(config, w, get_max_element(v), plate_extruder_size, use_global_objects);
 	int plate_width=m_width, plate_depth=m_depth;
 	float depth = wipe_tower_size(1);
 	float margin = WIPE_TOWER_MARGIN + tower_brim_width, wp_brim_width = 0.f;

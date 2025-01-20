@@ -167,7 +167,7 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	// BBS: add partplate logic
-	WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float wipe_volume, size_t initial_tool, const float wipe_tower_height);
+	WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height);
 
 
 	// Set the extruder properties.
@@ -450,7 +450,6 @@ private:
     size_t 	m_current_tool  = 0;
 	// Orca: support mmu wipe tower
     std::vector<std::vector<float>> wipe_volumes;
-	const float		m_wipe_volume;
 
 	float           m_depth_traversed = 0.f; // Current y position at the wipe tower.
     bool            m_current_layer_finished = false;

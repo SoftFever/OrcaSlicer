@@ -2873,16 +2873,17 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 float a = dynamic_cast<const ConfigOptionFloat*>(proj_cfg.option("wipe_tower_rotation_angle"))->value;
                 float tower_brim_width = dynamic_cast<const ConfigOptionFloat*>(m_config->option("prime_tower_brim_width"))->value;
                 // BBS
-                float v = dynamic_cast<const ConfigOptionFloat*>(m_config->option("prime_volume"))->value;
+                std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(m_config->option("filament_prime_volume"))->values;
                 Vec3d plate_origin = ppl.get_plate(plate_id)->get_origin();
 
                 const Print* print = m_process->fff_print();
                 const auto& wipe_tower_data = print->wipe_tower_data(filaments_count);
                 float brim_width = wipe_tower_data.brim_width;
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                double wipe_vol = get_max_element(v);
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth);
                 if (dynamic_cast<const ConfigOptionBool *>(m_config->option("prime_tower_rib_wall"))->value)
-                    wipe_tower_size = ppl.get_plate(plate_id)->calculate_wipe_tower_size(print_cfg, w, v);
+                    wipe_tower_size = ppl.get_plate(plate_id)->calculate_wipe_tower_size(print_cfg, w, wipe_vol);
 
                 { // update for wipe tower position
                     part_plate->get_extruder_areas();

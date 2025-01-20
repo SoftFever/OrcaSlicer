@@ -3494,10 +3494,10 @@ int CLI::run(int argc, char **argv)
         float brim_width = brim_width_option->value;
         if (brim_width < 0) brim_width = WipeTower::get_auto_brim_by_height((float)plate_obj_size_info.obj_bbox.max.z());
 
-        ConfigOptionFloat* volume_option = print_config.option<ConfigOptionFloat>("prime_volume", true);
-        float wipe_volume = volume_option->value;
+        ConfigOptionFloats* volume_option = print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+        std::vector<double> wipe_volume = volume_option->values;
 
-        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, wipe_volume, filaments_cnt);
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), filaments_cnt);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
         Vec3d origin = plate->get_origin();
@@ -4226,9 +4226,10 @@ int CLI::run(int argc, char **argv)
                     ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
                     ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
                     ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
-                    ConfigOptionFloat* volume_option = m_print_config.option<ConfigOptionFloat>("prime_volume", true);
+                    ConfigOptionFloats *volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+                    std::vector<double> wipe_volume   = volume_option->values;
 
-                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%") % width_option->value % rotation_angle_option->value % volume_option->value;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%") % width_option->value % rotation_angle_option->value % get_max_element(wipe_volume);
 
                     wipe_x_option->set_at(&wt_x_opt, i, 0);
                     wipe_y_option->set_at(&wt_y_opt, i, 0);
@@ -4480,9 +4481,10 @@ int CLI::run(int argc, char **argv)
                         ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
                         ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
                         ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
-                        ConfigOptionFloat* volume_option = m_print_config.option<ConfigOptionFloat>("prime_volume", true);
+                        ConfigOptionFloats *volume_option         = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+                        std::vector<double> wipe_volume           = volume_option->values;
 
-                        BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%")%width_option->value %rotation_angle_option->value %volume_option->value ;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%")%width_option->value %rotation_angle_option->value %get_max_element(wipe_volume);
 
 
                         for (int bedid = 0; bedid < MAX_PLATE_COUNT; bedid++) {
@@ -4560,7 +4562,7 @@ int CLI::run(int argc, char **argv)
                         }
                         float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
                         float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
-                        float v = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_volume"))->value;
+                        std::vector<double> v = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("filament_prime_volume"))->values;
                         unsigned int filaments_cnt = plate_data_src[plate_to_slice-1]->slice_filaments_info.size();
                         if ((filaments_cnt == 0) || need_skip)
                         {
@@ -4583,7 +4585,7 @@ int CLI::run(int argc, char **argv)
 
                             //float depth = v * (filaments_cnt - 1) / (layer_height * w);
 
-                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, v, filaments_cnt);
+                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), filaments_cnt);
                             Vec3d plate_origin = cur_plate->get_origin();
                             int plate_width, plate_depth, plate_height;
                             partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
@@ -4596,8 +4598,8 @@ int CLI::run(int argc, char **argv)
                                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: wp_brim_width %1%")%wp_brim_width;
                             }
 
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%")
-                                                            %x %y %w %depth %a %v %filaments_cnt %layer_height %plate_width %plate_depth;
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%") %
+                                                           x % y % w % depth % a % get_max_element(v) % filaments_cnt % layer_height % plate_width % plate_depth;
                             if ((y + depth + margin + wp_brim_width) > (float)plate_depth) {
                                 y = (float)plate_depth - depth - margin - wp_brim_width;
                                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: exceeds the border, change y to %1%, plate_depth=%2%")%y %plate_depth;

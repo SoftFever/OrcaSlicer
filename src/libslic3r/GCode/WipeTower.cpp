@@ -1318,7 +1318,7 @@ float WipeTower::get_auto_brim_by_height(float max_height) {
     return 8.f;
 }
 
-WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float prime_volume, size_t initial_tool, const float wipe_tower_height) :
+WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height) :
     m_semm(config.single_extruder_multi_material.value),
     m_wipe_tower_pos(config.wipe_tower_x.get_at(plate_idx), config.wipe_tower_y.get_at(plate_idx)),
     m_wipe_tower_width(float(config.prime_tower_width)),
@@ -1335,7 +1335,6 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_travel_speed(config.travel_speed),
     m_current_tool(initial_tool),
     //wipe_volumes(flush_matrix)
-    m_wipe_volume(prime_volume),
     m_enable_timelapse_print(config.timelapse_type.value == TimelapseType::tlSmooth),
     m_filaments_change_length(config.filament_change_length.values),
     m_is_multi_extruder(config.nozzle_diameter.size() > 1),
