@@ -57,6 +57,7 @@ private:
 
     wxBitmapButton *m_btn;
     wxStaticText   *m_label;
+    Label          *m_disable_tip;
     Label          *m_detail;
     std::string     m_icon_path;
     bool            m_enabled{ true };

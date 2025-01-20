@@ -47,18 +47,23 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
             m_right_panel->AddColorBlock(color, idx + 1);
         }
     }
-    drag_sizer->Add(m_left_panel, 1, wxALIGN_CENTER | wxEXPAND | wxLEFT, FromDIP(20));
+    m_left_panel->SetMinSize({ FromDIP(220),-1 });
+    m_right_panel->SetMinSize({ FromDIP(220),-1 });
+
+    drag_sizer->AddStretchSpacer();
+    drag_sizer->Add(m_left_panel, 1, wxALIGN_CENTER | wxEXPAND);
     drag_sizer->AddSpacer(FromDIP(7));
     drag_sizer->Add(m_switch_btn, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(1));
     drag_sizer->AddSpacer(FromDIP(7));
-    drag_sizer->Add(m_right_panel, 1, wxALIGN_CENTER | wxEXPAND | wxRIGHT, FromDIP(20));
+    drag_sizer->Add(m_right_panel, 1, wxALIGN_CENTER | wxEXPAND);
+    drag_sizer->AddStretchSpacer();
 
     top_sizer->Add(drag_sizer, 0, wxALIGN_CENTER | wxEXPAND);
 
     m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles."));
     m_tips->SetFont(Label::Body_14);
     m_tips->SetForegroundColour(TextNormalGreyColor);
-    top_sizer->AddSpacer(FromDIP(8));
+    top_sizer->AddSpacer(FromDIP(20));
     top_sizer->Add(m_tips, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
 
     m_switch_btn->Bind(wxEVT_BUTTON, &FilamentMapManualPanel::OnSwitchFilament, this);
@@ -83,9 +88,8 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
         m_left_panel->AddColorBlock(block->GetColor(), block->GetFilamentId(), false);
         m_right_panel->RemoveColorBlock(block, false);
     }
-
-    Layout();
-    Fit();
+    this->GetParent()->Layout();
+    this->GetParent()->Fit();
 }
 
 void FilamentMapManualPanel::Hide()
@@ -130,9 +134,12 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     label_sizer->Add(m_label, 0, wxALIGN_CENTER | wxEXPAND| wxALL, FromDIP(3));
     label_sizer->AddStretchSpacer();
 
+    m_disable_tip = new Label(this, _L("(Sync with printer)"));
+
     sizer->AddSpacer(FromDIP(32));
     sizer->Add(label_sizer, 0, wxALIGN_CENTER | wxEXPAND);
-    sizer->AddSpacer(FromDIP(24));
+    sizer->Add(m_disable_tip, 0, wxALIGN_CENTER);
+    sizer->AddSpacer(FromDIP(3));
 
     auto detail_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_detail          = new Label(this, detail);
@@ -204,12 +211,15 @@ void FilamentMapBtnPanel::UpdateStatus()
         m_detail->SetBackgroundColour(BgNormalColor);
     }
     if (!m_enabled) {
+        m_disable_tip->SetLabel(_L("(Sync with printer)"));
+        m_disable_tip->SetForegroundColour(TextDisableColor);
         m_btn->SetBitmap(icon_disabled);
         m_btn->SetForegroundColour(BgDisableColor);
         m_label->SetForegroundColour(TextDisableColor);
         m_detail->SetForegroundColour(TextDisableColor);
     }
     else {
+        m_disable_tip->SetLabel("");
         m_btn->SetBitmap(icon_enabled);
         m_btn->SetForegroundColour(BgNormalColor);
         m_label->SetForegroundColour(TextNormalBlackColor);
@@ -346,6 +356,7 @@ FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(par
     m_label = new Label(this, _L("The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."));
     m_label->SetFont(Label::Body_14);
     m_label->SetBackgroundColour(*wxWHITE);
+    m_label->Wrap(FromDIP(500));
 
     sizer->AddStretchSpacer();
     sizer->Add(m_label, 1, wxEXPAND | wxALIGN_CENTER);

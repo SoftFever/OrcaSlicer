@@ -201,10 +201,8 @@ void DragDropPanel::AddColorBlock(const wxColour &color, int filament_id, bool u
     m_filament_blocks.push_back(panel);
     if (update_ui) {
         m_filament_blocks.front()->Refresh();  // FIX BUG: STUDIO-8467
-        Layout();
-        Fit();
-        GetParent()->Layout();
-        GetParent()->Fit();
+        GetParent()->GetParent()->Layout();
+        GetParent()->GetParent()->Fit();
     }
 }
 
@@ -214,10 +212,8 @@ void DragDropPanel::RemoveColorBlock(ColorPanel *panel, bool update_ui)
     panel->Destroy();
     m_filament_blocks.erase(std::remove(m_filament_blocks.begin(), m_filament_blocks.end(), panel), m_filament_blocks.end());
     if (update_ui) {
-        Layout();
-        Fit();
-        GetParent()->Layout();
-        GetParent()->Fit();
+        GetParent()->GetParent()->Layout();
+        GetParent()->GetParent()->Fit();
     }
 }
 
