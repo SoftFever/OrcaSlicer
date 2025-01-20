@@ -70,7 +70,7 @@ void JusPrinChatPanel::init_action_handlers() {
 
     // Sync actions for the chat page (return json)
     json_action_handlers["get_presets"] = &JusPrinChatPanel::handle_get_presets;
-
+    json_action_handlers["get_edited_presets"] = &JusPrinChatPanel::handle_get_edited_presets;
     // Actions for the chat page (void return)
     void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
@@ -114,6 +114,11 @@ void JusPrinChatPanel::handle_refresh_oauth_token(const nlohmann::json& params) 
 // Sync actions for the chat page
 nlohmann::json JusPrinChatPanel::handle_get_presets(const nlohmann::json& params) {
     return GetAllPresetJson();
+}
+
+nlohmann::json JusPrinChatPanel::handle_get_edited_presets(const nlohmann::json& params) {
+    nlohmann::json j = JusPrinConfigUtils::GetAllEditedPresetJson();
+    return j;
 }
 
 // TODO: identify the actions obsolete by v0.3 and flag them as deprecated
