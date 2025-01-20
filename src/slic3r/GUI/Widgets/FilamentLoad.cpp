@@ -129,7 +129,7 @@ void FilamentLoad::SetupSteps(bool has_fila_to_switch) {
     m_filament_unload_steps->DeleteAllItems();
     m_filament_vt_load_steps->DeleteAllItems();
 
-    if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::N3F_AMS) {
+    if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::N3F_AMS || m_ext_model == AMSModel::N3S_AMS) {
         if (has_fila_to_switch) {
             m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
             m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
