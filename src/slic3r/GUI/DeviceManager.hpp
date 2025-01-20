@@ -954,6 +954,9 @@ public:
     int  nozzle_selected_count = 0;
     bool flag_update_nozzle = {true};
 
+    /*target from Studio-SwitchBoard, default to INVALID_NOZZLE_ID if no switching control from PC*/
+    int targ_nozzle_id_from_pc = INVALID_NOZZLE_ID;
+
     //supported features
     bool is_support_chamber_edit{false};
     bool is_support_extrusion_cali{false};

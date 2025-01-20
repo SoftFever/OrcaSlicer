@@ -1725,8 +1725,13 @@ int MachineObject::command_select_extruder(int id)
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "select_extruder";
     j["print"]["extruder_index"] = id;
+    int rtn = this->publish_json(j.dump(), 1);
+    if (rtn == 0)
+    {
+        targ_nozzle_id_from_pc = id;
+    }
 
-    return this->publish_json(j.dump(), 1);
+    return rtn;
 }
 
 int MachineObject::command_get_version(bool with_retry)
@@ -6021,10 +6026,12 @@ void MachineObject::parse_new_info(json print)
             if (m_extder_data.current_extder_id != extder_data.current_extder_id)
             {
                 flag_update_nozzle = true;
+                targ_nozzle_id_from_pc = INVALID_NOZZLE_ID;
             }
             else if (extder_data.switch_extder_state == ES_SWITCHING_FAILED)
             {
                 flag_update_nozzle = true;
+                targ_nozzle_id_from_pc = INVALID_NOZZLE_ID;
             }
 
             extder_data.current_loading_extder_id = get_flag_bits(extruder["state"].get<int>(), 15, 4);

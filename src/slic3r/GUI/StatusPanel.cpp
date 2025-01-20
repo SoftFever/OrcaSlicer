@@ -2859,7 +2859,6 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
                 m_nozzle_btn_panel->updateState("left");
             }
 
-            targ_nozzle_id_from_pc = INVALID_NOZZLE_ID;// the switching is finished
             obj->flag_update_nozzle = false;
         }
 
@@ -2867,7 +2866,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         /* Can do switch while printing pause STUDIO-9789*/
         if ((obj->is_in_printing() && !obj->is_in_printing_pause()) ||
             obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE ||
-            targ_nozzle_id_from_pc != INVALID_NOZZLE_ID)
+            obj->targ_nozzle_id_from_pc != INVALID_NOZZLE_ID)
         {
             m_nozzle_btn_panel->Disable();
         }
@@ -4776,9 +4775,8 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
         }
 
         auto nozzle_id = event.GetInt();
-        if(obj->command_select_extruder(nozzle_id) == 0)
+        if (obj->command_select_extruder(nozzle_id) == 0)
         {
-            targ_nozzle_id_from_pc = nozzle_id;
             return;
         }
     }
