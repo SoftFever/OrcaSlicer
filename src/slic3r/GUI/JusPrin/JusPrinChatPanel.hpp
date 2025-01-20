@@ -72,6 +72,7 @@ private:
 
     void OnActionCallReceived(wxWebViewEvent& event);
     nlohmann::json GetPresetsJson(Preset::Type type);
+    nlohmann::json GetAllPresetJson();
     nlohmann::json GetPlaterConfigJson();
     nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
 
