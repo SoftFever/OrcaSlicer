@@ -3,7 +3,7 @@
 #include "libslic3r/Config.hpp"
 #include "slic3r/GUI/Jobs/OrientJob.hpp"
 #include "libslic3r/Orient.hpp"
-#include "JusPrinConfigUtils.hpp"
+#include "JusPrinPresetConfigUtils.hpp"
 
 #include <iostream>
 #include <wx/sizer.h>
@@ -117,7 +117,7 @@ nlohmann::json JusPrinChatPanel::handle_get_presets(const nlohmann::json& params
 }
 
 nlohmann::json JusPrinChatPanel::handle_get_edited_presets(const nlohmann::json& params) {
-    nlohmann::json j = JusPrinConfigUtils::GetAllEditedPresetJson();
+    nlohmann::json j = JusPrinPresetConfigUtils::GetAllEditedPresetJson();
     return j;
 }
 
@@ -183,8 +183,8 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
 }
 
 void JusPrinChatPanel::handle_discard_current_changes(const nlohmann::json& params) {
-    JusPrinConfigUtils::DiscardCurrentPresetChanges();
-    JusPrinConfigUtils::UpdatePresetTabs();
+    JusPrinPresetConfigUtils::DiscardCurrentPresetChanges();
+    JusPrinPresetConfigUtils::UpdatePresetTabs();
 }
 
 void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
@@ -204,10 +204,10 @@ void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
     }
 
     for (const auto& item : param_item) {
-        JusPrinConfigUtils::ApplyConfig(item);
+        JusPrinPresetConfigUtils::ApplyConfig(item);
     }
 
-    JusPrinConfigUtils::UpdatePresetTabs();
+    JusPrinPresetConfigUtils::UpdatePresetTabs();
 }
 
 void JusPrinChatPanel::UpdatePresetTabs() {
@@ -300,7 +300,7 @@ void JusPrinChatPanel::RefreshPresets() {
 }
 
 void JusPrinChatPanel::RefreshPlaterConfig() {
-    nlohmann::json platerJson = JusPrinConfigUtils::GetPlaterConfigJson();
+    nlohmann::json platerJson = JusPrinPresetConfigUtils::GetPlaterConfigJson();
     UpdateEmbeddedChatState("platerConfig", platerJson.dump());
 }
 
@@ -315,7 +315,7 @@ void JusPrinChatPanel::RefreshPlaterStatus() {
 }
 
 nlohmann::json JusPrinChatPanel::GetAllPresetJson() {
-    return JusPrinConfigUtils::GetAllPresetJson();
+    return JusPrinPresetConfigUtils::GetAllPresetJson();
 }
 
 void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
@@ -393,7 +393,7 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
 }
 
 void JusPrinChatPanel::DiscardCurrentPresetChanges() {
-    JusPrinConfigUtils::DiscardCurrentPresetChanges();
+    JusPrinPresetConfigUtils::DiscardCurrentPresetChanges();
 }
 
 }} // namespace Slic3r::GUI
