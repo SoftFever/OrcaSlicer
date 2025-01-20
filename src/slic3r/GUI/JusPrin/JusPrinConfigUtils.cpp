@@ -12,14 +12,18 @@ nlohmann::json JusPrinConfigUtils::PresetsToJson(const std::vector<std::pair<con
 {
     nlohmann::json j_array = nlohmann::json::array();
     for (const auto& [preset, is_selected] : presets) {
-        nlohmann::json j;
-        j["name"] = preset->name;
-        j["is_default"] = preset->is_default;
-        j["is_selected"] = is_selected;
-        j["config"] = preset->config.to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
-        j_array.push_back(j);
+        j_array.push_back(PresetToJson(preset));
     }
     return j_array;
+}
+
+nlohmann::json JusPrinConfigUtils::PresetToJson(const Preset* preset)
+{
+    nlohmann::json j;
+    j["name"] = preset->name;
+    j["is_default"] = preset->is_default;
+    j["config"] = preset->config.to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
+    return j;
 }
 
 nlohmann::json JusPrinConfigUtils::GetPresetsJson(Preset::Type type) {
@@ -50,6 +54,25 @@ nlohmann::json JusPrinConfigUtils::GetPresetsJson(Preset::Type type) {
     return PresetsToJson(presets);
 }
 
+nlohmann::json JusPrinConfigUtils::GetEditedPresetJson(Preset::Type type) {
+    Tab* tab = wxGetApp().get_tab(type);
+    if (!tab) {
+        return nlohmann::json::array();
+    }
+    PresetCollection* presets = tab->get_presets();
+    if (!presets) {
+        return nlohmann::json::array();
+    }
+
+    nlohmann::json j = PresetToJson(&presets->get_edited_preset());
+
+    const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
+    j["dirty_options"] = presets->current_dirty_options(deep_compare);
+
+    return j;
+}
+
+
 nlohmann::json JusPrinConfigUtils::GetAllPresetJson() {
     nlohmann::json printerPresetsJson = GetPresetsJson(Preset::Type::TYPE_PRINTER);
     nlohmann::json filamentPresetsJson = GetPresetsJson(Preset::Type::TYPE_FILAMENT);
@@ -59,6 +82,18 @@ nlohmann::json JusPrinConfigUtils::GetAllPresetJson() {
         {"printerPresets", printerPresetsJson},
         {"filamentPresets", filamentPresetsJson},
         {"printProcessPresets", printPresetsJson}
+    };
+}
+
+nlohmann::json JusPrinConfigUtils::GetAllEditedPresetJson() {
+    nlohmann::json editedPrinterPresetJson = GetEditedPresetJson(Preset::Type::TYPE_PRINTER);
+    nlohmann::json editedFilamentPresetJson = GetEditedPresetJson(Preset::Type::TYPE_FILAMENT);
+    nlohmann::json editedPrintProcessPresetJson = GetEditedPresetJson(Preset::Type::TYPE_PRINT);
+
+    return {
+        {"editedPrinterPreset", editedPrinterPresetJson},
+        {"editedFilamentPreset", editedFilamentPresetJson},
+        {"editedPrintProcessPreset", editedPrintProcessPresetJson}
     };
 }
 
