@@ -36,14 +36,21 @@ private:
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
 
-    using MemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
-    std::map<std::string, MemberFunctionPtr> action_handlers;
+    using VoidMemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
+    using JsonMemberFunctionPtr = nlohmann::json (JusPrinChatPanel::*)(const nlohmann::json&);
+
+    std::map<std::string, VoidMemberFunctionPtr> void_action_handlers;
+    std::map<std::string, JsonMemberFunctionPtr> json_action_handlers;
 
     // actions for preload.html only
     void handle_init_server_url_and_redirect(const nlohmann::json& params);
 
     // Actions for the chat page
     void init_action_handlers();
+
+    // Sync actions for the chat page
+    nlohmann::json handle_get_presets(const nlohmann::json& params);
+
 
     // Actions to trigger events in JusPrin
     void handle_select_preset(const nlohmann::json& params);
