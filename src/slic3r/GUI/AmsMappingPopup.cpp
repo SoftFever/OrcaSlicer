@@ -1970,7 +1970,8 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
         }
         else
         {
-            label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
+            label_txt->SetLabelText(_L("When the current filament runs out, the printer will use identical filament to continue printing.\n"
+                                       "*Identical filament: same brand, type and color."));
         }
 
         label_txt->Wrap(FromDIP(380));
