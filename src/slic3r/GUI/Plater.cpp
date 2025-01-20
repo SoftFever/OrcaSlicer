@@ -3008,23 +3008,24 @@ void Sidebar::deal_btn_sync() {
     bool only_external_material;
     auto ok = p->sync_extruder_list(only_external_material);
     if (ok) {
-        SyncNozzleAndAmsDialog::InputInfo temp_na_info;
-        wxPoint                           big_btn_pt;
-        wxSize                            big_btn_size;
-        wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
-        temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 5), FromDIP(big_btn_size.y / 10.f));
-
-        int same_dialog_pos_x = get_sidebar_pos_right_x()+ FromDIP(5);
-        temp_na_info.dialog_pos.x = same_dialog_pos_x;
-        temp_na_info.dialog_pos.y += FromDIP(2);
-        temp_na_info.only_external_material = only_external_material;
-        if (m_sna_dialog) {
-            m_sna_dialog.reset();
-        }
-        m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(this, temp_na_info);
-        m_sna_dialog->Show();
-        m_sna_dialog->Raise();
+        pop_sync_nozzle_and_ams_ialog();
     }
+}
+
+void Sidebar::pop_sync_nozzle_and_ams_ialog() {
+    SyncNozzleAndAmsDialog::InputInfo temp_na_info;
+    wxPoint                           big_btn_pt;
+    wxSize                            big_btn_size;
+    wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
+    temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 5), FromDIP(big_btn_size.y / 10.f));
+
+    int same_dialog_pos_x     = get_sidebar_pos_right_x() + FromDIP(5);
+    temp_na_info.dialog_pos.x = same_dialog_pos_x;
+    temp_na_info.dialog_pos.y += FromDIP(2);
+    if (m_sna_dialog) { m_sna_dialog.reset(); }
+    m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(this, temp_na_info);
+    m_sna_dialog->Show();
+    m_sna_dialog->Raise();
 }
 
 static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)

@@ -204,6 +204,7 @@ public:
 	bool                    get_eject_shown() const;
     bool                    is_multifilament();
     void                    deal_btn_sync();
+    void                    pop_sync_nozzle_and_ams_ialog();
     void                    update_mode();
     bool                    is_collapsed();
     void                    collapse(bool collapse);
