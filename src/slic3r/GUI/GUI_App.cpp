@@ -1816,6 +1816,9 @@ void GUI_App::init_networking_callbacks()
                         }
                     }
                 }
+
+                if (GUI::wxGetApp().plater())
+                    GUI::wxGetApp().plater()->update_machine_sync_status();
             });
         };
 

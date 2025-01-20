@@ -5232,8 +5232,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
     }
     DeviceManager::update_local_machine(*this);
 
-    if (GUI::wxGetApp().plater())
-        GUI::wxGetApp().plater()->update_machine_sync_status();
     return 0;
 }
 
