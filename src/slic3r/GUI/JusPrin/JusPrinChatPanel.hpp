@@ -14,6 +14,8 @@
 #include "nlohmann/json.hpp"
 #include <map>
 #include "JusPrinPresetConfigUtils.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Orient.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -29,6 +31,10 @@ public:
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
     void SendAutoOrientEvent(bool canceled);
+
+    static nlohmann::json GetPlaterConfigJson();
+    static nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
+    static nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items);
 
 private:
     void load_url();
