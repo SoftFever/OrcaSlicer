@@ -4361,7 +4361,7 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
     //SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
     SetTransparent(220);
     SetBackgroundColour(wxColour(23, 25, 22, 128));
-    auto win_width = 288;
+    auto win_width = 300;
     SetMinSize(wxSize(FromDIP(win_width), -1));
     SetMaxSize(wxSize(FromDIP(win_width), -1));
     SetPosition(m_input_info.dialog_pos);
@@ -4377,12 +4377,12 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
     text_sizer->Add(image_sizer);
     text_sizer->AddSpacer(FromDIP(5));
     auto finish_text = new Label(this, _L("Successfully synchronized nozzle and AMS number information."), LB_AUTO_WRAP);
-    finish_text->SetMinSize(wxSize(FromDIP(win_width - 40), -1));
-    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 40), -1));
+    finish_text->SetMinSize(wxSize(FromDIP(win_width - 64), -1));
+    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 64), -1));
     finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
     text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
     text_sizer->AddSpacer(FromDIP(20));
-    m_sizer_main->Add(text_sizer, FromDIP(0), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(20));
+    m_sizer_main->Add(text_sizer, FromDIP(0), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(15));
 
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
     bSizer_button->SetMinSize(wxSize(FromDIP(100), -1));
@@ -4466,7 +4466,7 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     // SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
     SetTransparent(220);
     SetBackgroundColour(wxColour(23, 25, 22, 128));
-    auto win_width = 288;
+    auto win_width = 300;
     SetMinSize(wxSize(FromDIP(win_width), -1));
     SetMaxSize(wxSize(FromDIP(win_width), -1));
     SetPosition(m_input_info.dialog_pos);
@@ -4482,12 +4482,12 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     text_sizer->Add(image_sizer);
     text_sizer->AddSpacer(FromDIP(5));
     auto finish_text = new Label(this, _L("Successfully synchronized color and type of filament from printer."), LB_AUTO_WRAP);
-    finish_text->SetMinSize(wxSize(FromDIP(win_width - 40), -1));
-    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 40), -1));
+    finish_text->SetMinSize(wxSize(FromDIP(win_width - 64), -1));
+    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 64), -1));
     finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
     text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
     text_sizer->AddSpacer(FromDIP(20));
-    m_sizer_main->Add(text_sizer, FromDIP(0), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(20));
+    m_sizer_main->Add(text_sizer, FromDIP(0), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(15));
 
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
     bSizer_button->SetMinSize(wxSize(FromDIP(100), -1));

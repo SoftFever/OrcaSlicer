@@ -2903,7 +2903,10 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     temp_fsa_info.dialog_pos.x = same_dialog_pos_x;
     temp_fsa_info.dialog_pos.y = small_btn_pt.y;
     if (m_fna_dialog) {
-       m_fna_dialog.reset();
+        if (m_sna_dialog) {
+            m_sna_dialog->on_hide();
+        }
+        m_fna_dialog.reset();
     }
     m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(this, temp_fsa_info);
     m_fna_dialog->Show();
@@ -3022,7 +3025,12 @@ void Sidebar::pop_sync_nozzle_and_ams_ialog() {
     int same_dialog_pos_x     = get_sidebar_pos_right_x() + FromDIP(5);
     temp_na_info.dialog_pos.x = same_dialog_pos_x;
     temp_na_info.dialog_pos.y += FromDIP(2);
-    if (m_sna_dialog) { m_sna_dialog.reset(); }
+    if (m_sna_dialog) {
+        if (m_fna_dialog) {
+            m_fna_dialog->on_hide();
+        }
+        m_sna_dialog.reset();
+    }
     m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(this, temp_na_info);
     m_sna_dialog->Show();
     m_sna_dialog->Raise();
