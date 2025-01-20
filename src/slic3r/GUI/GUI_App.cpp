@@ -1867,6 +1867,9 @@ void GUI_App::init_networking_callbacks()
                 if (obj) {
                     obj->parse_json(msg, DeviceManager::key_field_only);
                 }
+
+                if (GUI::wxGetApp().plater())
+                    GUI::wxGetApp().plater()->update_machine_sync_status();
                 });
         };
         m_agent->set_on_local_message_fn(lan_message_arrive_fn);

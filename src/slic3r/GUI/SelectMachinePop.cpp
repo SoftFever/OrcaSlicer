@@ -695,6 +695,9 @@ void SelectMachinePopup::update_user_devices()
                     mobj->erase_user_access_code();
                 }
 
+                if (GUI::wxGetApp().plater())
+                    GUI::wxGetApp().plater()->update_machine_sync_status();
+
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);
                 if (msg_wingow.ShowModal() == wxOK) { return; }
                 });
