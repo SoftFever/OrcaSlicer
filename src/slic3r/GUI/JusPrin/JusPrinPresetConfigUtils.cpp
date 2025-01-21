@@ -12,16 +12,17 @@ nlohmann::json JusPrinPresetConfigUtils::PresetsToJson(const std::vector<std::pa
 {
     nlohmann::json j_array = nlohmann::json::array();
     for (const auto& [preset, is_selected] : presets) {
-        j_array.push_back(PresetToJson(preset));
+        j_array.push_back(PresetToJson(preset, is_selected));
     }
     return j_array;
 }
 
-nlohmann::json JusPrinPresetConfigUtils::PresetToJson(const Preset* preset)
+nlohmann::json JusPrinPresetConfigUtils::PresetToJson(const Preset* preset, bool is_selected)
 {
     nlohmann::json j;
     j["name"] = preset->name;
     j["is_default"] = preset->is_default;
+    j["is_selected"] = is_selected;
     j["config"] = preset->config.to_json(preset->name, "", preset->version.to_string(), preset->custom_defined);
     return j;
 }
@@ -64,7 +65,7 @@ nlohmann::json JusPrinPresetConfigUtils::GetEditedPresetJson(Preset::Type type) 
         return nlohmann::json::array();
     }
 
-    nlohmann::json j = PresetToJson(&presets->get_edited_preset());
+    nlohmann::json j = PresetToJson(&presets->get_edited_preset(), true); // is_selected is true because it is the edited preset
 
     const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
     j["dirty_options"] = presets->current_dirty_options(deep_compare);

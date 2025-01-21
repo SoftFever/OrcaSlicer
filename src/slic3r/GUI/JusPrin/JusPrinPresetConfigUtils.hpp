@@ -8,9 +8,9 @@ namespace Slic3r { namespace GUI {
 
 class JusPrinPresetConfigUtils {
 public:
+    static nlohmann::json PresetToJson(const Preset* preset, bool is_selected);
     static nlohmann::json PresetsToJson(const std::vector<std::pair<const Preset*, bool>>& presets);
     static nlohmann::json GetPresetsJson(Preset::Type type);
-    static nlohmann::json PresetToJson(const Preset* preset);
     static nlohmann::json GetAllPresetJson();
     static nlohmann::json GetAllEditedPresetJson();
     static nlohmann::json GetEditedPresetJson(Preset::Type type);
