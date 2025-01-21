@@ -35,7 +35,7 @@ CapsuleButton::CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &la
     sizer->AddSpacer(FromDIP(8));
     sizer->Add(m_btn, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(6));
     sizer->AddSpacer(FromDIP(8));
-    sizer->Add(m_label, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(6));
+    sizer->Add(m_label, 0, wxALIGN_CENTER);
     sizer->AddSpacer(FromDIP(8));
 
     SetSizer(sizer);

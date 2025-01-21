@@ -28,13 +28,13 @@ namespace Slic3r { namespace GUI {
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
 #define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(60), FromDIP(60))
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
-
+const int LEFT_OFFSET = 2;
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-    m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", 12);
+    m_arraw_bitmap_gray  = ScalableBitmap(this, "drop_down2", FromDIP(8));
     m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", 12);
-    m_transparent_mitem = ScalableBitmap(this, "transparent_material_item", 52);
+    m_transparent_mitem = ScalableBitmap(this, "transparent_material_item", FromDIP(50));
     //m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel", FromDIP(25));
     m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel_narrow", 25);
     m_ams_not_match = ScalableBitmap(this, "filament_not_mactch", 25);
@@ -188,7 +188,7 @@ void MaterialItem::render(wxDC &dc)
     m_text_pos_y =((float)GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float)GetSize().y * 2 / 5;
 
     if (m_match) {
-        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(6), m_text_pos_y));
+        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET), m_text_pos_y));
     }
 }
 
@@ -249,10 +249,10 @@ void MaterialItem::doRender(wxDC& dc)
                 dc.SetBrush(wxBrush(m_ams_cols[i]));
                 float x = left + ((float)MATERIAL_REC_WHEEL_SIZE.x) * i / cols_size;
                 if (i != cols_size - 1) {
-                    dc.DrawRoundedRectangle(x, up, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                    dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
                 else {
-                    dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                    dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
             }
         }
@@ -261,7 +261,8 @@ void MaterialItem::doRender(wxDC& dc)
         if (m_match) {
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y);
+            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1) - FromDIP(LEFT_OFFSET),
+                             MATERIAL_REC_WHEEL_SIZE.y);
         }
     }
 
@@ -301,9 +302,9 @@ void MaterialItem::doRender(wxDC& dc)
     if (m_text_pos_y > 0 && m_match) {
         // arrow (remove arrow)
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(2), m_text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
         } else {
-            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(2), m_text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
         }
     }
 
@@ -312,9 +313,9 @@ void MaterialItem::doRender(wxDC& dc)
 
     if (!m_match) {
         wheel_left += m_ams_wheel_mitem.GetBmpSize().x;
-        dc.DrawBitmap(m_ams_not_match.bmp(), (size.x - m_ams_not_match.GetBmpWidth()) / 2, wheel_top);
+        dc.DrawBitmap(m_ams_not_match.bmp(), (size.x - m_ams_not_match.GetBmpWidth()) / 2 - FromDIP(LEFT_OFFSET), wheel_top);
     } else {
-        dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
+        dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
     }
 }
 
@@ -386,7 +387,7 @@ void MaterialSyncItem::render(wxDC &dc)
     if (m_match) {
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
         dc.SetFont(::Label::Head_12);
-        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(6), m_text_pos_y));
+        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8)- FromDIP(LEFT_OFFSET), m_text_pos_y));
     }
     else {
         dc.SetTextForeground(material_name_colour);
@@ -405,7 +406,9 @@ void MaterialSyncItem::doRender(wxDC &dc)
     auto   acolor = m_ams_coloul;
     change_the_opacity(acolor);
 
-    if (mcolor.Alpha() == 0 || acolor.Alpha() == 0) { dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1)); }
+    if (mcolor.Alpha() == 0 || acolor.Alpha() == 0) {
+        dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
+    }
 
     if (!IsEnabled()) {
         mcolor = wxColour(0x90, 0x90, 0x90);
@@ -445,16 +448,17 @@ void MaterialSyncItem::doRender(wxDC &dc)
                     dc.SetBrush(wxBrush(m_ams_cols[i]));
                     float x = left + ((float) MATERIAL_REC_WHEEL_SIZE.x) * i / cols_size;
                     if (i != cols_size - 1) {
-                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
                     } else {
-                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
                     }
                 }
             }
         } else {
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y);
+            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1) - FromDIP(LEFT_OFFSET),
+                             MATERIAL_REC_WHEEL_SIZE.y);
         }
     }
     else {
@@ -491,15 +495,15 @@ void MaterialSyncItem::doRender(wxDC &dc)
     if (m_text_pos_y > 0 && m_match) {
         // arrow (remove arrow)
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(2), m_text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
         } else {
-            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(2), m_text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
         }
     }
     auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2);
     auto wheel_top  = ((float) GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float) GetSize().y * 0.4;
     if (m_match) {// different with parent
-        dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
+        dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
     }
     //not draw m_ams_not_match
 }
@@ -1046,6 +1050,9 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* 
 
 void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 {
+#ifdef __APPLE__
+    m_mapping_item_list.push_back(item);
+#endif
     // set button
     if (tray_data.type == NORMAL) {
         if (is_match_material(tray_data.filament_type)) {
@@ -1111,7 +1118,7 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    m_transparent_mapping_item = ScalableBitmap(this, "transparent_mapping_item", FromDIP(44));
+    m_transparent_mapping_item = ScalableBitmap(this, "transparent_mapping_item", FromDIP(60));
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
 }
