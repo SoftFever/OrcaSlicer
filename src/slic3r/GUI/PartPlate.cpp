@@ -5930,10 +5930,10 @@ void PartPlateList::init_bed_type_info()
     if (!is_single_extruder) {
         m_allow_bed_type_in_double_nozzle.clear();
         pte_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pte_middle.svg");
-        pte_part2  = BedTextureInfo::TexturePart(150, -10, 148, 12, "bbl_bed_pte_bottom.svg");
+        pte_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pte_left_bottom.svg");
 
         pei_part1  = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pei_middle.svg");
-        pei_part2  = BedTextureInfo::TexturePart(150, -10, 148, 12, "bbl_bed_pei_bottom.svg");
+        pei_part2  = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pei_left_bottom.svg");
         m_allow_bed_type_in_double_nozzle[(int) btPEI] = true;
         m_allow_bed_type_in_double_nozzle[(int) btPTE] = true;
     }
