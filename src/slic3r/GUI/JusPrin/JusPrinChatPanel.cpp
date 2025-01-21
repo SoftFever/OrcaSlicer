@@ -400,7 +400,9 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
     std::string action = jsonObject["action"];
 
     // Determine the appropriate handler based on the presence of "refId"
-    if (jsonObject.contains("refId")) {
+    if (jsonObject.contains("refId") &&
+        !jsonObject["refId"].is_null() &&
+        !jsonObject["refId"].get<std::string>().empty()) {
         auto json_it = json_action_handlers.find(action);
         if (json_it != json_action_handlers.end()) {
             auto retVal = (this->*(json_it->second))(jsonObject);
