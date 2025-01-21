@@ -986,7 +986,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     }
 
     update_timelapse_enable_status();
-    update_flow_cali_check(obj);
 
     if (config && config->get("print", "timelapse") == "0") {
         m_checkbox_list["timelapse"]->setValue("off");
@@ -2995,21 +2994,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 
     //reset print status
-    update_flow_cali_check(obj);
-
     show_status(PrintDialogStatus::PrintStatusInit);
 
     update_show_status();
-}
-
-void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
-{
-    auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
-    auto show_cali_tips = true;
-
-    if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3) { show_cali_tips = false; }
-
-    set_flow_calibration_state(true, show_cali_tips);
 }
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
@@ -3527,26 +3514,6 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     Fit();
     Refresh();
-}
-
-void SelectMachineDialog::set_flow_calibration_state(bool state, bool show_tips)
-{
-    if (!state) {
-        m_checkbox_list["flow_cali"]->setValue(state ? "on" : "off");
-        m_checkbox_list["flow_cali"]->Enable();
-    }
-    else {
-
-        AppConfig* config = wxGetApp().app_config;
-        if (config && config->get("print", "flow_cali") == "0") {
-            m_checkbox_list["flow_cali"]->setValue("off");
-        }
-        else {
-            m_checkbox_list["flow_cali"]->setValue("on");
-        }
-
-        m_checkbox_list["flow_cali"]->Enable();
-    }
 }
 
 void SelectMachineDialog::set_default()
@@ -4308,9 +4275,6 @@ void SelectMachineDialog::set_default_from_sdcard()
 
     m_basic_panel->Layout();
     m_basic_panel->Fit();
-
-
-    set_flow_calibration_state(true);
 
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
