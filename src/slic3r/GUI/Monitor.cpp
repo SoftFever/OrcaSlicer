@@ -507,11 +507,6 @@ void MonitorPanel::show_status(int status)
 
     BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
-
-#if !BBL_RELEASE_TO_PUBLIC
-    m_upgrade_panel->update(nullptr);
-#endif
-
 //Freeze();
     // update panels
     if (m_side_tools) { m_side_tools->show_status(status); };
