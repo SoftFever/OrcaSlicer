@@ -1390,7 +1390,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_extra_rib_length((float)config.prime_tower_extra_rib_length.value),
     m_rib_width((float)config.prime_tower_rib_width.value),
     m_used_fillet(config.prime_tower_fillet_wall.value),
-    m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f)
+    m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f),
+    m_tower_framework(config.prime_tower_enable_framework.value)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -3541,6 +3542,16 @@ void WipeTower::generate_wipe_tower_blocks()
             if (layer_id < m_plan.size() - 1)
                 block.layer_depths[layer_id] = std::max(block.layer_depths[layer_id], block.layer_depths[layer_id + 1]);
             m_plan[layer_id].depth += block.layer_depths[layer_id];
+        }
+    }
+
+    if (m_tower_framework) {
+        for (int layer_id = 1; layer_id < m_plan.size(); ++layer_id) {
+            m_plan[layer_id].depth = 0;
+            for (auto &block : m_wipe_tower_blocks) {
+                block.layer_depths[layer_id] = block.layer_depths[0];
+                m_plan[layer_id].depth += block.layer_depths[layer_id];
+            }
         }
     }
 }

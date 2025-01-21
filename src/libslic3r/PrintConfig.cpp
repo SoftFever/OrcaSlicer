@@ -5890,6 +5890,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("prime_tower_enable_framework", coBool);
+    def->label = L("Internal ribs");
+    def->tooltip = L("");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("flush_volumes_vector", coFloats);
     // BBS: remove _L()
     def->label = ("Purging volumes - load/unload volumes");

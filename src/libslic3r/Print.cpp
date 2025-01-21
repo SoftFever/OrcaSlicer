@@ -295,6 +295,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "hot_plate_temp"
             || opt_key == "textured_plate_temp"
             || opt_key == "enable_prime_tower"
+            || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_brim_width"
             || opt_key == "prime_tower_skip_points"

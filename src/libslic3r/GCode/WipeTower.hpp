@@ -435,6 +435,7 @@ private:
     float              m_extra_rib_length=0.f;
     bool               m_used_fillet{false};
     Vec2f              m_rib_offset{Vec2f(0.f, 0.f)};
+    bool               m_tower_framework{false};
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;

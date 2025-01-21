@@ -2476,6 +2476,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower", "multimaterial_settings_prime_tower");
         optgroup->append_single_option_line("prime_tower_skip_points", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_enable_framework", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_width", "multimaterial_settings_prime_tower#width");
         optgroup->append_single_option_line("prime_tower_brim_width", "multimaterial_settings_prime_tower#brim-width");
         optgroup->append_single_option_line("prime_tower_infill_gap","parameter/prime-tower");
