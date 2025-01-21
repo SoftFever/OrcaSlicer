@@ -252,7 +252,7 @@ void MaterialItem::doRender(wxDC& dc)
                     dc.DrawRoundedRectangle(x, up, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
                 else {
-                    dc.DrawRoundedRectangle(x, up, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size, MATERIAL_REC_WHEEL_SIZE.y, 3);
+                    dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
             }
         }
@@ -445,7 +445,7 @@ void MaterialSyncItem::doRender(wxDC &dc)
                     if (i != cols_size - 1) {
                         dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
                     } else {
-                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size, MATERIAL_REC_WHEEL_SIZE.y, 3);
+                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
                     }
                 }
             }
