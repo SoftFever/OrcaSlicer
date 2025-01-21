@@ -769,15 +769,19 @@ void SelectMachinePopup::update_user_devices()
 
 bool SelectMachinePopup::search_for_printer(MachineObject* obj)
 {
-	std::string search_text = std::string((m_search_bar->GetValue()).mb_str());
+	const std::string& search_text = m_search_bar->GetValue().ToStdString();
 	if (search_text.empty()) {
 		return true;
 	}
-	auto name = obj->dev_name;
-	auto ip = obj->dev_ip;
-	auto name_it = name.find(search_text);
-	auto ip_it = ip.find(search_text);
-	if ((name_it != std::string::npos)||(ip_it != std::string::npos)) {
+
+	const auto& name = wxString::FromUTF8(obj->dev_name).ToStdString();
+    const auto& name_it = name.find(search_text);
+    if (name_it != std::string::npos) {
+        return true;
+    }
+
+	const auto& ip_it = obj->dev_ip.find(search_text);
+	if (ip_it != std::string::npos) {
 		return true;
     }
 
