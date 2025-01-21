@@ -7393,7 +7393,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
     std::unordered_map<std::string, wxString> blacklist_prompt =
     {
         {"TPU: not supported", _L("TPU is not supported by AMS.")},
-        {"Bambu PET-CF/PA6-CF: not supported",  _L("Bambu PET-CF/PA6-CF is not supported by AMS.")},
+        {"Bambu CF: not supported",  _L("Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS.")},
         {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use.")},
         {"CF/GF: hard and brittle", _L("CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution.")}
     };

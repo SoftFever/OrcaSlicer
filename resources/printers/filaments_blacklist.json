@@ -9,13 +9,19 @@
       "description": "TPU: not supported"
     },
     {
-      "vendor": "Bambulab",
+      "vendor": "Bambu Lab",
       "type": "TPU",
       "action": "prohibition",
       "description": "TPU: not supported"
     },
     {
       "vendor": "Third Party",
+      "type": "PVA",
+      "action": "warning",
+      "description": "PVA: flexible"
+    },
+    {
+      "vendor": "Bambu Lab",
       "type": "PVA",
       "action": "warning",
       "description": "PVA: flexible"
@@ -45,16 +51,52 @@
       "description": "CF/GF: hard and brittle"
     },
     {
-      "vendor": "Bambulab",
+      "vendor": "Third Party",
       "type": "PET-CF",
-      "action": "prohibition",
-      "description": "Bambu PET-CF/PA6-CF: not supported"
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
     },
     {
-      "vendor": "Bambulab",
+      "vendor": "Third Party",
+      "type": "PA6-CF",
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
+    },
+    {
+      "vendor": "Third Party",
+      "type": "PPS-CF",
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
+    },
+    {
+      "vendor": "Third Party",
+      "type": "PPA-CF",
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PET-CF",
+      "action": "prohibition",
+      "description": "Bambu CF: not supported"
+    },
+    {
+      "vendor": "Bambu Lab",
       "type": "PA6-CF",
       "action": "prohibition",
-      "description": "Bambu PET-CF/PA6-CF: not supported"
+      "description": "Bambu CF: not supported"
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PPS-CF",
+      "action": "prohibition",
+      "description": "Bambu CF: not supported"
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PPA-CF",
+      "action": "prohibition",
+      "description": "Bambu CF: not supported"
     }
   ]
 }
