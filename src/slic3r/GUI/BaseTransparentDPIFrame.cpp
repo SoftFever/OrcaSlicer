@@ -21,14 +21,14 @@ using namespace Slic3r;
 using namespace Slic3r::GUI;
 
 namespace Slic3r { namespace GUI {
-#define ANIMATION_REFRESH_INTERVAL 15
+#define ANIMATION_REFRESH_INTERVAL 20
 BaseTransparentDPIFrame::BaseTransparentDPIFrame(
     wxWindow *parent, int win_width, wxPoint dialog_pos, int ok_button_width, wxString win_text, wxString ok_text, wxString cancel_text, DisappearanceMode disappearance_mode)
     : DPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, !wxCAPTION | !wxCLOSE_BOX | wxBORDER_NONE)
     , m_timed_disappearance_mode(disappearance_mode)
 {
     // SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
-    SetTransparent(220);
+    SetTransparent(m_init_transparent);
     SetBackgroundColour(wxColour(23, 25, 22, 128));
     SetMinSize(wxSize(FromDIP(win_width), -1));
     SetMaxSize(wxSize(FromDIP(win_width), -1));
@@ -87,7 +87,9 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
 
     m_sizer_main->Add(bSizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
 
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) { this->on_hide(); });
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) {
+        on_hide();
+    });
     SetSizer(m_sizer_main);
     Layout();
     Fit();
@@ -96,11 +98,17 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
         init_timer();
         Bind(wxEVT_TIMER, &BaseTransparentDPIFrame::on_timer, this);
         Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-            clear_timer_count();
-            m_refresh_timer->Stop();
+            if (m_enter_window_valid) {
+                clear_timer_count();
+                m_display_stage = 0;
+                m_refresh_timer->Stop();
+                SetTransparent(m_init_transparent);
+            }
         });
         Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-            m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
+            if (m_enter_window_valid) {
+                m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
+            }
         });
     }
 }
@@ -137,12 +145,16 @@ void BaseTransparentDPIFrame::on_show() {
 
 void BaseTransparentDPIFrame::on_hide()
 {
-    this->Hide();
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+    }
+    Hide();
     if (wxGetApp().mainframe != nullptr) {
         wxGetApp().mainframe->Show();
         wxGetApp().mainframe->Raise();
     }
 }
+
 
 void BaseTransparentDPIFrame::clear_timer_count() {
     m_timer_count = 0;
@@ -154,17 +166,115 @@ void BaseTransparentDPIFrame::init_timer()
     m_refresh_timer->SetOwner(this);
 }
 
-void BaseTransparentDPIFrame::on_timer(wxTimerEvent &event) {
-    m_timer_count++;
-    if (m_timed_disappearance_mode == DisappearanceMode::TimedDisappearance) {
+void BaseTransparentDPIFrame::calc_step_transparent() {
+    m_max_size         = GetSize();
+    m_step_size.x      = GetSize().x / m_time_gradual_and_scale;
+    m_step_size.y      = GetSize().y / m_time_gradual_and_scale;
+    m_step_transparent = m_init_transparent / m_time_gradual_and_scale;
+}
+
+void BaseTransparentDPIFrame::on_close() {
+    Destroy();
+}
+
+void BaseTransparentDPIFrame::on_timer(wxTimerEvent &event)
+{
+    if (m_timed_disappearance_mode == DisappearanceMode::TimedDisappearance && m_display_stage == 0) {
         auto cur_time = ANIMATION_REFRESH_INTERVAL * m_timer_count;
         if (cur_time > m_disappearance_second) {
+            start_gradual_disappearance();
+            m_display_stage++;
+        }
+    }
+    if (m_display_stage == 1) {
+        if (m_move_to_target_gradual_disappearance) {
+            begin_move_to_target_and_gradual_disappearance();
+        }
+        else {
+            begin_gradual_disappearance();
+        }
+    }
+    m_timer_count++;
+}
+
+void BaseTransparentDPIFrame::call_start_gradual_disappearance()//for ok or cancel button
+{
+    m_enter_window_valid = false;
+    m_display_stage      = 1;
+    m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
+    start_gradual_disappearance();
+}
+
+void BaseTransparentDPIFrame::start_gradual_disappearance()
+{
+    clear_timer_count();
+    //hide_all();
+    calc_step_transparent();
+}
+void BaseTransparentDPIFrame::set_target_pos_and_gradual_disappearance(wxPoint pos)
+{
+    m_move_to_target_gradual_disappearance = true;
+    m_target_pos            = pos;
+    m_start_pos             = GetScreenPosition();
+    m_step_pos.x            = (m_target_pos.x - m_start_pos.x) / m_time_move;
+    m_step_pos.y            = (m_target_pos.y - m_start_pos.y) / m_time_move;
+}
+
+void BaseTransparentDPIFrame::begin_gradual_disappearance()
+{
+    if (m_timer_count <=  m_time_gradual_and_scale - 1) {
+        auto transparent = m_init_transparent - m_timer_count * m_step_transparent;
+        SetTransparent(transparent < 0 ? 0 : transparent);
+    } else {
+        on_hide();
+        return;
+    }
+    m_timer_count++;
+}
+
+void BaseTransparentDPIFrame::begin_move_to_target_and_gradual_disappearance()
+{
+    if (m_timer_count <= m_time_move) {
+        if (m_timer_count <= m_time_move - 1) {
+            auto pos = wxPoint(m_start_pos.x + m_timer_count * m_step_pos.x, m_start_pos.y + m_timer_count * m_step_pos.y);
+            SetPosition(pos);
+        } else {
+            SetPosition(m_target_pos);
+        }
+        Refresh();
+    } else {
+        SetPosition(m_target_pos);
+        if (m_timer_count <= m_time_move + m_time_gradual_and_scale - 1) {
+            auto size = wxSize(m_max_size.x - m_timer_count * m_step_size.x, m_max_size.y - m_timer_count * m_step_size.y);
+            SetSize(size);
+            SetTransparent(m_init_transparent - m_timer_count * m_step_transparent);
+        } else {
             on_hide();
+            return;
+        }
+    }
+    m_timer_count++;
+}
+
+void BaseTransparentDPIFrame::show_sizer(wxSizer *sizer, bool show)
+{
+    wxSizerItemList items = sizer->GetChildren();
+    for (wxSizerItemList::iterator it = items.begin(); it != items.end(); ++it) {
+        wxSizerItem *item   = *it;
+        if (wxWindow *window = item->GetWindow()) {
+            window->Show(show);
+        }
+        if (wxSizer *son_sizer = item->GetSizer()) {
+            show_sizer(son_sizer, show);
         }
     }
 }
 
-void BaseTransparentDPIFrame::deal_ok(){}
+void BaseTransparentDPIFrame::hide_all() {
+    show_sizer(m_sizer_main, false);
+}
+
+void BaseTransparentDPIFrame::deal_ok() {}
 
 void BaseTransparentDPIFrame::deal_cancel(){}
 

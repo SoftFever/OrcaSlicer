@@ -2904,6 +2904,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     auto same_dialog_pos_x = get_sidebar_pos_right_x() + FromDIP(5);
     temp_fsa_info.dialog_pos.x = same_dialog_pos_x;
     temp_fsa_info.dialog_pos.y = small_btn_pt.y;
+    temp_fsa_info.ams_btn_pos = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y/2);
     if (m_fna_dialog) {
         if (m_sna_dialog) {
             m_sna_dialog->on_hide();
@@ -2911,8 +2912,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         m_fna_dialog.reset();
     }
     m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(temp_fsa_info);
-    m_fna_dialog->Show();
-    m_fna_dialog->Raise();
+    m_fna_dialog->on_show();
 }
 
 void Sidebar::show_SEMM_buttons(bool bshow)
@@ -3027,6 +3027,12 @@ void Sidebar::pop_sync_nozzle_and_ams_ialog() {
     int same_dialog_pos_x     = get_sidebar_pos_right_x() + FromDIP(5);
     temp_na_info.dialog_pos.x = same_dialog_pos_x;
     temp_na_info.dialog_pos.y += FromDIP(2);
+
+    wxPoint small_btn_pt;
+    wxSize  small_btn_size;
+    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
+    temp_na_info.ams_btn_pos = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
+
     if (m_sna_dialog) {
         if (m_fna_dialog) {
             m_fna_dialog->on_hide();
@@ -3034,8 +3040,7 @@ void Sidebar::pop_sync_nozzle_and_ams_ialog() {
         m_sna_dialog.reset();
     }
     m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(temp_na_info);
-    m_sna_dialog->Show();
-    m_sna_dialog->Raise();
+    m_sna_dialog->on_show();
 }
 
 static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)

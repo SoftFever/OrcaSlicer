@@ -362,6 +362,7 @@ public:
     struct InputInfo
     {
         wxPoint dialog_pos{wxPoint(400, 200)};
+        wxPoint ams_btn_pos{wxPoint(400, 200)};
     };
     SyncNozzleAndAmsDialog(InputInfo &input_info);
     ~SyncNozzleAndAmsDialog() override;
@@ -377,6 +378,7 @@ public:
     struct InputInfo
     {
         wxPoint dialog_pos{wxPoint(400, 200)};
+        wxPoint ams_btn_pos{wxPoint(400, 200)};
     };
     FinishSyncAmsDialog(InputInfo &input_info);
     ~FinishSyncAmsDialog() override;

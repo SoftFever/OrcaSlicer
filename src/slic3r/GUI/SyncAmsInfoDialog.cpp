@@ -4372,6 +4372,8 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(InputInfo &input_info)
                               DisappearanceMode::TimedDisappearance)
     , m_input_info(input_info)
 {
+   /* set_target_pos_and_gradual_disappearance(input_info.ams_btn_pos);
+    m_move_to_target_gradual_disappearance = false;*/
 }
 
 SyncNozzleAndAmsDialog::~SyncNozzleAndAmsDialog() {}
@@ -4381,8 +4383,10 @@ void SyncNozzleAndAmsDialog::deal_ok() {
     wxGetApp().plater()->sidebar().sync_ams_list(true);
 }
 
-void SyncNozzleAndAmsDialog::deal_cancel() {
-    on_hide();
+void SyncNozzleAndAmsDialog::deal_cancel()
+{
+    //m_move_to_target_gradual_disappearance = true;
+    call_start_gradual_disappearance();
 }
 
 FinishSyncAmsDialog::FinishSyncAmsDialog(InputInfo &input_info)
@@ -4397,10 +4401,13 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(InputInfo &input_info)
     , m_input_info(input_info)
 {
     m_button_cancel->Hide();
+    //set_target_pos_and_gradual_disappearance(input_info.ams_btn_pos);
 }
 
 FinishSyncAmsDialog::~FinishSyncAmsDialog() {}
 
-void FinishSyncAmsDialog::deal_ok() { on_hide(); }
+void FinishSyncAmsDialog::deal_ok() {
+    call_start_gradual_disappearance();
+}
 
 }} // namespace Slic3r
