@@ -494,13 +494,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
     
     bool have_volumetric_extrusion_rate_slope = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope")->value > 0;
-    int have_volumetric_extrusion_rate_slope_segment_length = config->option<ConfigOptionInt>("max_volumetric_extrusion_rate_slope_segment_length")->value;
+    float have_volumetric_extrusion_rate_slope_segment_length = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope_segment_length")->value;
     toggle_field("enable_arc_fitting", !have_volumetric_extrusion_rate_slope);
     toggle_line("max_volumetric_extrusion_rate_slope_segment_length", have_volumetric_extrusion_rate_slope);
+    toggle_line("extrusion_rate_smoothing_external_perimeter_only", have_volumetric_extrusion_rate_slope);
     if(have_volumetric_extrusion_rate_slope) config->set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
-    if(have_volumetric_extrusion_rate_slope_segment_length==0) {
+    if(have_volumetric_extrusion_rate_slope_segment_length < 0.5) {
         DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("max_volumetric_extrusion_rate_slope_segment_length", new ConfigOptionInt(1));
+        new_conf.set_key_value("max_volumetric_extrusion_rate_slope_segment_length", new ConfigOptionFloat(1));
         apply(config, &new_conf);
     }
     
@@ -645,7 +646,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, have_support_material && !(support_is_normal_tree && !have_raft));
     
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
-    for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_speed", "ironing_angle" })
+    for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_speed", "ironing_angle", "ironing_inset"})
         toggle_line(el, has_ironing);
     
     bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
@@ -736,8 +737,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_detect_overhang_wall = config->opt_bool("detect_overhang_wall");
     bool has_overhang_reverse     = config->opt_bool("overhang_reverse");
     bool force_wall_direction     = config->opt_enum<WallDirection>("wall_direction") != WallDirection::Auto;
-    bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase && !force_wall_direction;
+    bool allow_overhang_reverse   = !has_spiral_vase && !force_wall_direction;
     toggle_field("overhang_reverse", allow_overhang_reverse);
+    toggle_field("overhang_reverse_threshold", has_detect_overhang_wall);
     toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
     toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse);
     bool has_overhang_reverse_internal_only = config->opt_bool("overhang_reverse_internal_only");

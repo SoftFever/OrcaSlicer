@@ -32,7 +32,6 @@ set(lisbslic3r_sources
     AABBMesh.cpp
     Algorithm/LineSplit.hpp
     Algorithm/LineSplit.cpp
-    Algorithm/PathSorting.hpp
     Algorithm/RegionExpansion.hpp
     Algorithm/RegionExpansion.cpp
     AnyPtr.hpp
@@ -307,29 +306,21 @@ set(lisbslic3r_sources
     SlicingAdaptive.hpp
     Support/SupportCommon.cpp
     Support/SupportCommon.hpp
-    Support/SupportDebug.cpp
-    Support/SupportDebug.hpp
     Support/SupportLayer.hpp
-    # Support/SupportMaterial.cpp
-    # Support/SupportMaterial.hpp
-    Support/SupportParameters.cpp
+    Support/SupportMaterial.cpp
+    Support/SupportMaterial.hpp
     Support/SupportParameters.hpp
-    Support/OrganicSupport.cpp
-    Support/OrganicSupport.hpp
-    Support/TreeSupport.cpp
+    Support/SupportSpotsGenerator.cpp
+    Support/SupportSpotsGenerator.hpp
     Support/TreeSupport.hpp
-    Support/TreeSupportCommon.cpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport3D.cpp
+    Support/TreeSupport3D.hpp
     Support/TreeSupportCommon.hpp
     Support/TreeModelVolumes.cpp
     Support/TreeModelVolumes.hpp
-    SupportMaterial.cpp
-    SupportMaterial.hpp
     PrincipalComponents2D.cpp
     PrincipalComponents2D.hpp
-    SupportSpotsGenerator.cpp
-    SupportSpotsGenerator.hpp
-    TreeSupport.hpp 
-    TreeSupport.cpp
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
     Surface.cpp
@@ -428,7 +419,6 @@ set(lisbslic3r_sources
     Arachne/BeadingStrategy/WideningBeadingStrategy.hpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
     Arachne/utils/ExtrusionJunction.hpp
-    Arachne/utils/ExtrusionJunction.cpp
     Arachne/utils/ExtrusionLine.hpp
     Arachne/utils/ExtrusionLine.cpp
     Arachne/utils/HalfEdge.hpp
@@ -443,6 +433,8 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
+    Arachne/PerimeterOrder.hpp
+    Arachne/PerimeterOrder.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp
@@ -512,7 +504,7 @@ if (_opts)
     target_compile_options(libslic3r_cgal PRIVATE "${_opts_bad}")
 endif()
 
-target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
+target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut boost_libs)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
@@ -587,10 +579,6 @@ target_link_libraries(libslic3r
     qoi
     opencv_world
     )
-
-if(NOT SLIC3R_STATIC)
-    target_compile_definitions(libslic3r PUBLIC BOOST_ALL_DYN_LINK)
-endif()
 
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)

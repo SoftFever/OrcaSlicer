@@ -502,21 +502,20 @@ std::vector<std::string> UpdateVersionDialog::splitWithStl(std::string str,std::
 void UpdateVersionDialog::update_version_info(wxString release_note, wxString version)
 {
     //bbs check whether the web display is used
-    bool use_web_link       = false;
-    url_line                = "";
-    auto split_array        =  splitWithStl(release_note.ToStdString(), "###");
-
-    if (split_array.size() >= 3) {
-        for (auto i = 0; i < split_array.size(); i++) {
-            std::string url = split_array[i];
-            if (std::strstr(url.c_str(), "http://") != NULL || std::strstr(url.c_str(), "https://") != NULL) {
-                use_web_link = true;
-                url_line = url;
-                break;
-            }
-        }
-    }
-   
+    bool use_web_link = false;
+    url_line          = "";
+    // Orca: not used in Orca Slicer
+    // auto split_array = splitWithStl(release_note.ToStdString(), "###");
+    // if (split_array.size() >= 3) {
+    //     for (auto i = 0; i < split_array.size(); i++) {
+    //         std::string url = split_array[i];
+    //         if (std::strstr(url.c_str(), "http://") != NULL || std::strstr(url.c_str(), "https://") != NULL) {
+    //             use_web_link = true;
+    //             url_line     = url;
+    //             break;
+    //         }
+    //     }
+    // }
 
     if (use_web_link) {
         m_brand->Hide();
@@ -787,7 +786,7 @@ void SecondaryCheckDialog::on_hide()
 
 void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent)
 {
-    if (m_button_style == style && title == GetTitle() == title) return;
+    if (m_button_style == style && title == GetTitle()) return;
 
     SetTitle(title);
 

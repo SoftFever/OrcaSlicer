@@ -9,7 +9,6 @@
 #include "Geometry/ConvexHull.hpp"
 #include "I18N.hpp"
 #include "ShortestPath.hpp"
-#include "Support/SupportMaterial.hpp"
 #include "Thread.hpp"
 #include "Time.hpp"
 #include "GCode.hpp"
@@ -130,6 +129,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "sparse_infill_acceleration",
         "internal_solid_infill_acceleration",
         // BBS
+        "supertack_plate_temp_initial_layer",
         "cool_plate_temp_initial_layer",
         "textured_cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",
@@ -144,11 +144,13 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "slow_down_min_speed",
         "max_volumetric_extrusion_rate_slope",
         "max_volumetric_extrusion_rate_slope_segment_length",
+        "extrusion_rate_smoothing_external_perimeter_only",
         "reduce_infill_retraction",
         "filename_format",
         "retraction_minimum_travel",
         "retract_before_wipe",
         "retract_when_changing_layer",
+        "retract_on_top_layer",
         "retraction_length",
         "retract_length_toolchange",
         "z_hop",
@@ -270,6 +272,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
+            // BBS
+            || opt_key == "supertack_plate_temp"
             || opt_key == "cool_plate_temp"
             || opt_key == "textured_cool_plate_temp"
             || opt_key == "eng_plate_temp"

@@ -1908,9 +1908,18 @@ void GUI_App::init_app_config()
 	// Mac : "~/Library/Application Support/Slic3r"
 
     if (data_dir().empty()) {
-        // Orca: check if data_dir folder exists in application folder
-        // use it if it exists
-        boost::filesystem::path app_data_dir_path = boost::filesystem::current_path() / "data_dir";
+        // Orca: check if data_dir folder exists in application folder use it if it exists
+        // Note:wxStandardPaths::Get().GetExecutablePath() return following paths
+        // Unix: /usr/local/bin/exename
+        // Windows: "C:\Programs\AppFolder\exename.exe"
+        // Mac: /Applications/exename.app/Contents/MacOS/exename
+        // TODO: have no idea what to do with Linux bundles
+        auto _app_folder = boost::filesystem::path(wxStandardPaths::Get().GetExecutablePath().ToUTF8().data()).parent_path();
+#ifdef __APPLE__
+        // On macOS, the executable is inside the .app bundle.
+        _app_folder = _app_folder.parent_path().parent_path().parent_path();
+#endif
+        boost::filesystem::path app_data_dir_path = _app_folder / "data_dir";
         if (boost::filesystem::exists(app_data_dir_path)) {
             set_data_dir(app_data_dir_path.string());
         }
@@ -4271,7 +4280,6 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                         best_pre         = tag_version;
                         best_pre_url     = root.get<std::string>("html_url");
                         best_pre_content = root.get<std::string>("body");
-                        best_pre.set_prerelease("Preview");
                     }
                 } else {
                     if (best_release < tag_version) {
@@ -4293,7 +4301,6 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                             best_pre         = tag_version;
                             best_pre_url     = json_version.second.get<std::string>("html_url");
                             best_pre_content = json_version.second.get<std::string>("body");
-                            best_pre.set_prerelease("Preview");
                         }
                     } else {
                         if (best_release < tag_version) {
@@ -5590,7 +5597,8 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
         if (remember_choice)
             act_buttons |= ActionButtons::REMEMBER_CHOISE;
         UnsavedChangesDialog dlg(caption, header, "", act_buttons);
-        if (dlg.ShowModal() == wxID_CANCEL)
+        bool no_need_change = dlg.getUpdateItemCount() == 0 ? true : false;
+        if (!no_need_change && dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         if (dlg.save_preset())  // save selected changes
@@ -5638,7 +5646,8 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
         bool is_called_from_configwizard = postponed_apply_of_keeped_changes != nullptr;
 
         UnsavedChangesDialog dlg(caption, header, "", action_buttons);
-        if (dlg.ShowModal() == wxID_CANCEL)
+        bool no_need_change = dlg.getUpdateItemCount() == 0 ? true : false;
+        if (!no_need_change && dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         auto reset_modifications = [this, is_called_from_configwizard]() {
@@ -5653,7 +5662,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
             load_current_presets(false);
         };
 
-        if (dlg.discard())
+        if (dlg.discard() || no_need_change)
             reset_modifications();
         else  // save selected changes
         {

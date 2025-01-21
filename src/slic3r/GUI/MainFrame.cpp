@@ -916,7 +916,6 @@ void MainFrame::update_title_colour_after_set_title()
 
 void MainFrame::show_option(bool show)
 {
-    if (!this) { return; }
     if (!show) {
         if (m_slice_btn->IsShown()) {
             m_slice_btn->Hide();

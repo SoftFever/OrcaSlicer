@@ -13,7 +13,27 @@
 
 namespace Slic3r {
 namespace Measure {
+bool get_point_projection_to_plane(const Vec3d &pt, const Vec3d &plane_origin, const Vec3d &plane_normal, Vec3d &intersection_pt)
+{
+    auto normal     = plane_normal.normalized();
+    auto BA         = plane_origin - pt;
+    auto length     = BA.dot(normal);
+    intersection_pt = pt + length * normal;
+    return true;
+}
 
+Vec3d get_one_point_in_plane(const Vec3d &plane_origin, const Vec3d &plane_normal)
+{
+    Vec3d dir(1, 0, 0);
+    float eps = 1e-3;
+    if (abs(plane_normal.dot(dir)) > 1 - eps) {
+        dir = Vec3d(0, 1, 0);
+    }
+    auto new_pt = plane_origin + dir;
+    Vec3d retult;
+    get_point_projection_to_plane(new_pt, plane_origin, plane_normal, retult);
+    return retult;
+}
 
 constexpr double feature_hover_limit = 0.5; // how close to a feature the mouse must be to highlight it
 
@@ -33,7 +53,7 @@ static std::tuple<Vec3d, double, double> get_center_and_radius(const std::vector
 
     double error = std::numeric_limits<double>::max();
     auto circle = Geometry::circle_ransac(out, iter, &error);
-    
+
     return std::make_tuple(trafo.inverse() * Vec3d(circle.center.x(), circle.center.y(), z), circle.radius, error);
 }
 
@@ -69,16 +89,18 @@ public:
         bool features_extracted = false;
     };
 
-    std::optional<SurfaceFeature> get_feature(size_t face_idx, const Vec3d& point);
+    std::optional<SurfaceFeature>      get_feature(size_t face_idx, const Vec3d &point, const Transform3d &world_tran,bool only_select_plane);
     int get_num_of_planes() const;
     const std::vector<int>& get_plane_triangle_indices(int idx) const;
+    std::vector<int>* get_plane_tri_indices(int idx);
     const std::vector<SurfaceFeature>& get_plane_features(unsigned int plane_id);
+    std::vector<SurfaceFeature>* get_plane_features_pointer(unsigned int plane_id);
     const indexed_triangle_set& get_its() const;
 
 private:
     void update_planes();
     void extract_features(int plane_idx);
-    
+
     std::vector<PlaneData> m_planes;
     std::vector<size_t>    m_face_to_plane;
     indexed_triangle_set   m_its;
@@ -158,7 +180,7 @@ void MeasuringImpl::update_planes()
         m_planes.back().normal = normal_ptr->cast<double>();
         std::sort(m_planes.back().facets.begin(), m_planes.back().facets.end());
     }
-    
+
     // Check that each facet is part of one of the planes.
     assert(std::none_of(m_face_to_plane.begin(), m_face_to_plane.end(), [](size_t val) { return val == size_t(-1); }));
 
@@ -175,7 +197,7 @@ void MeasuringImpl::update_planes()
         const auto& facets = planes[plane_id].facets;
         planes[plane_id].borders.clear();
         std::vector<std::array<bool, 3>> visited(facets.size(), {false, false, false});
-        
+
         for (int face_id=0; face_id<int(facets.size()); ++face_id) {
             assert(face_to_plane[facets[face_id]] == plane_id);
 
@@ -193,7 +215,7 @@ void MeasuringImpl::update_planes()
                 Halfedge_index he = sm.halfedge(Face_index(facets[face_id]));
                 while (he.side() != edge_id)
                     he = sm.next(he);
-            
+
                 // he is the first halfedge on the border. Now walk around and append the points.
                 //const Halfedge_index he_orig = he;
                 planes[plane_id].borders.emplace_back();
@@ -202,7 +224,7 @@ void MeasuringImpl::update_planes()
                 last_border.emplace_back(sm.point(sm.source(he)).cast<double>());
                 //Vertex_index target = sm.target(he);
                 const Halfedge_index he_start = he;
-                
+
                 Face_index fi = he.face();
                 auto face_it = std::lower_bound(facets.begin(), facets.end(), int(fi));
                 assert(face_it != facets.end());
@@ -228,7 +250,7 @@ void MeasuringImpl::update_planes()
                     he = sm.opposite(he);
                     if (he.is_invalid())
                         goto PLANE_FAILURE;
-                    
+
                     Face_index fi = he.face();
                     auto face_it = std::lower_bound(facets.begin(), facets.end(), int(fi));
                     if (face_it == facets.end() || *face_it != int(fi)) // This indicates a broken mesh.
@@ -264,11 +286,6 @@ void MeasuringImpl::update_planes()
     }});
     m_planes.shrink_to_fit();
 }
-
-
-
-
-
 
 void MeasuringImpl::extract_features(int plane_idx)
 {
@@ -490,7 +507,7 @@ void MeasuringImpl::extract_features(int plane_idx)
     Vec3d cog = Vec3d::Zero();
     size_t counter = 0;
     for (const std::vector<Vec3d>& b : plane.borders) {
-        for (size_t i = 1; i < b.size(); ++i) {
+        for (size_t i = 0; i < b.size(); ++i) {
             cog += b[i];
             ++counter;
         }
@@ -505,14 +522,7 @@ void MeasuringImpl::extract_features(int plane_idx)
     plane.features_extracted = true;
 }
 
-
-
-
-
-
-
-
-std::optional<SurfaceFeature> MeasuringImpl::get_feature(size_t face_idx, const Vec3d& point)
+std::optional<SurfaceFeature> MeasuringImpl::get_feature(size_t face_idx, const Vec3d &point, const Transform3d &world_tran,bool only_select_plane)
 {
     if (face_idx >= m_face_to_plane.size())
         return std::optional<SurfaceFeature>();
@@ -521,7 +531,7 @@ std::optional<SurfaceFeature> MeasuringImpl::get_feature(size_t face_idx, const 
 
     if (! plane.features_extracted)
         extract_features(m_face_to_plane[face_idx]);
-    
+
     size_t closest_feature_idx = size_t(-1);
     double min_dist = std::numeric_limits<double>::max();
 
@@ -530,40 +540,57 @@ std::optional<SurfaceFeature> MeasuringImpl::get_feature(size_t face_idx, const 
 
     assert(plane.surface_features.empty() || plane.surface_features.back().get_type() == SurfaceFeatureType::Plane);
 
-    for (size_t i=0; i<plane.surface_features.size() - 1; ++i) {
-        // The -1 is there to prevent measuring distance to the plane itself,
-        // which is needless and relatively expensive.
-        res = get_measurement(plane.surface_features[i], point_sf);
-        if (res.distance_strict) { // TODO: this should become an assert after all combinations are implemented.
-            double dist = res.distance_strict->dist;
-            if (dist < feature_hover_limit && dist < min_dist) {
-                min_dist = std::min(dist, min_dist);
-                closest_feature_idx = i;
+    if (!only_select_plane) {
+        for (size_t i = 0; i < plane.surface_features.size() - 1; ++i) {
+            // The -1 is there to prevent measuring distance to the plane itself,
+            // which is needless and relatively expensive.
+            res = get_measurement(plane.surface_features[i], point_sf);
+            if (res.distance_strict) { // TODO: this should become an assert after all combinations are implemented.
+                double dist = res.distance_strict->dist;
+                if (dist < feature_hover_limit && dist < min_dist) {
+                    min_dist            = std::min(dist, min_dist);
+                    closest_feature_idx = i;
+                }
             }
         }
-    }
 
-    if (closest_feature_idx != size_t(-1)) {
-        const SurfaceFeature& f = plane.surface_features[closest_feature_idx];
-        if (f.get_type() == SurfaceFeatureType::Edge) {
-            // If this is an edge, check if we are not close to the endpoint. If so,
-            // we will include the endpoint as well. Close = 10% of the lenghth of
-            // the edge, clamped between 0.025 and 0.5 mm.
-            const auto& [sp, ep] = f.get_edge();
-            double len_sq = (ep-sp).squaredNorm();
-            double limit_sq = std::max(0.025*0.025, std::min(0.5*0.5, 0.1 * 0.1 * len_sq));
+        if (closest_feature_idx != size_t(-1)) {
+            const SurfaceFeature &f = plane.surface_features[closest_feature_idx];
+            if (f.get_type() == SurfaceFeatureType::Edge) {
+                // If this is an edge, check if we are not close to the endpoint. If so,
+                // we will include the endpoint as well. Close = 10% of the lenghth of
+                // the edge, clamped between 0.025 and 0.5 mm.
+                const auto &[sp, ep] = f.get_edge();
+                double len_sq        = (ep - sp).squaredNorm();
+                double limit_sq      = std::max(0.025 * 0.025, std::min(0.5 * 0.5, 0.1 * 0.1 * len_sq));
+                if ((point - sp).squaredNorm() < limit_sq) {
+                    SurfaceFeature local_f(sp);
+                    local_f.origin_surface_feature = std::make_shared<SurfaceFeature>(local_f);
+                    local_f.translate(world_tran);
+                    return std::make_optional(local_f);
+                }
 
-            if ((point-sp).squaredNorm() < limit_sq)
-                return std::make_optional(SurfaceFeature(sp));
-            if ((point-ep).squaredNorm() < limit_sq)
-                return std::make_optional(SurfaceFeature(ep));
+                if ((point - ep).squaredNorm() < limit_sq) {
+                    SurfaceFeature local_f(ep);
+                    local_f.origin_surface_feature = std::make_shared<SurfaceFeature>(local_f);
+                    local_f.translate(world_tran);
+                    return std::make_optional(local_f);
+                }
+            }
+            SurfaceFeature f_tran(f);
+            f_tran.origin_surface_feature = std::make_shared<SurfaceFeature>(f);
+            f_tran.translate(world_tran);
+            return std::make_optional(f_tran);
         }
-        return std::make_optional(f);
     }
 
     // Nothing detected, return the plane as a whole.
     assert(plane.surface_features.back().get_type() == SurfaceFeatureType::Plane);
-    return std::make_optional(plane.surface_features.back());
+    auto cur_plane = const_cast<PlaneData*>(&plane);
+    SurfaceFeature f_tran(cur_plane->surface_features.back());
+    f_tran.origin_surface_feature = std::make_shared<SurfaceFeature>(cur_plane->surface_features.back());
+    f_tran.translate(world_tran);
+    return std::make_optional(f_tran);
 }
 
 
@@ -583,6 +610,12 @@ const std::vector<int>& MeasuringImpl::get_plane_triangle_indices(int idx) const
     return m_planes[idx].facets;
 }
 
+std::vector<int>* MeasuringImpl::get_plane_tri_indices(int idx)
+{
+    assert(idx >= 0 && idx < int(m_planes.size()));
+    return &m_planes[idx].facets;
+}
+
 const std::vector<SurfaceFeature>& MeasuringImpl::get_plane_features(unsigned int plane_id)
 {
     assert(plane_id < m_planes.size());
@@ -591,20 +624,17 @@ const std::vector<SurfaceFeature>& MeasuringImpl::get_plane_features(unsigned in
     return m_planes[plane_id].surface_features;
 }
 
+std::vector<SurfaceFeature>* MeasuringImpl::get_plane_features_pointer(unsigned int plane_id) {
+    assert(plane_id < m_planes.size());
+    if (!m_planes[plane_id].features_extracted)
+        extract_features(plane_id);
+    return &m_planes[plane_id].surface_features;
+}
+
 const indexed_triangle_set& MeasuringImpl::get_its() const
 {
     return this->m_its;
 }
-
-
-
-
-
-
-
-
-
-
 
 Measuring::Measuring(const indexed_triangle_set& its)
 : priv{std::make_unique<MeasuringImpl>(its)}
@@ -614,9 +644,12 @@ Measuring::~Measuring() {}
 
 
 
-std::optional<SurfaceFeature> Measuring::get_feature(size_t face_idx, const Vec3d& point) const
+std::optional<SurfaceFeature> Measuring::get_feature(size_t face_idx, const Vec3d &point, const Transform3d &world_tran, bool only_select_plane) const
 {
-    return priv->get_feature(face_idx, point);
+    if (face_idx == 7516 || face_idx == 7517) {
+        std::cout << "";
+    }
+    return priv->get_feature(face_idx, point, world_tran, only_select_plane);
 }
 
 
@@ -796,13 +829,7 @@ static AngleAndEdges angle_plane_plane(const std::tuple<int, Vec3d, Vec3d>& p1, 
     return ret;
 }
 
-
-
-
-
-
-
-MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b, const Measuring* measuring)
+MeasurementResult get_measurement(const SurfaceFeature &a, const SurfaceFeature &b, bool deal_circle_result)
 {
     assert(a.get_type() != SurfaceFeatureType::Undef && b.get_type() != SurfaceFeatureType::Undef);
 
@@ -819,7 +846,7 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
         if (f2.get_type() == SurfaceFeatureType::Point) {
             Vec3d diff = (f2.get_point() - f1.get_point());
             result.distance_strict = std::make_optional(DistAndPoints{diff.norm(), f1.get_point(), f2.get_point()});
-            result.distance_xyz = diff.cwiseAbs();
+            result.distance_xyz = diff;
 
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Edge) {
@@ -849,13 +876,18 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                 result.distance_strict = std::make_optional(DistAndPoints{ radius, c, p_on_circle });
             }
             else {
-                const Eigen::Hyperplane<double, 3> circle_plane(n, c);
-                const Vec3d proj = circle_plane.projection(f1.get_point());
-                const double dist = std::sqrt(std::pow((proj - c).norm() - radius, 2.) +
-                    (f1.get_point() - proj).squaredNorm());
+                if (deal_circle_result == false) {
+                    const Eigen::Hyperplane<double, 3> circle_plane(n, c);
+                    const Vec3d                        proj = circle_plane.projection(f1.get_point());
+                    const double                       dist = std::sqrt(std::pow((proj - c).norm() - radius, 2.) + (f1.get_point() - proj).squaredNorm());
 
-                const Vec3d p_on_circle = c + radius * (proj - c).normalized();
-                result.distance_strict = std::make_optional(DistAndPoints{ dist, f1.get_point(), p_on_circle }); // TODO
+                    const Vec3d p_on_circle = c + radius * (proj - c).normalized();
+                    result.distance_strict  = std::make_optional(DistAndPoints{dist, f1.get_point(), p_on_circle});
+                }
+                else {
+                    const double dist      = (f1.get_point() - c).norm();
+                    result.distance_strict = std::make_optional(DistAndPoints{dist, f1.get_point(), c});
+                }
             }
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
@@ -903,31 +935,31 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
             result.angle = angle_edge_edge(f1.get_edge(), f2.get_edge());
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Circle) {
-            const std::pair<Vec3d, Vec3d> e = f1.get_edge();
-            const auto& [center, radius, normal] = f2.get_circle();
-            const Vec3d e1e2 = (e.second - e.first);
-            const Vec3d e1e2_unit = e1e2.normalized();
+            const std::pair<Vec3d, Vec3d> e      = f1.get_edge();
+            const auto &[center, radius, normal] = f2.get_circle();
+            const Vec3d e1e2                     = (e.second - e.first);
+            const Vec3d e1e2_unit                = e1e2.normalized();
 
             std::vector<DistAndPoints> distances;
             distances.emplace_back(*get_measurement(SurfaceFeature(e.first), f2).distance_strict);
             distances.emplace_back(*get_measurement(SurfaceFeature(e.second), f2).distance_strict);
 
-            const Eigen::Hyperplane<double, 3> plane(e1e2_unit, center);
-            const Eigen::ParametrizedLine<double, 3> line = Eigen::ParametrizedLine<double, 3>::Through(e.first, e.second);
-            const Vec3d inter = line.intersectionPoint(plane);
-            const Vec3d e1inter = inter - e.first;
-            if (e1inter.dot(e1e2) >= 0.0 && e1inter.norm() < e1e2.norm())
-                distances.emplace_back(*get_measurement(SurfaceFeature(inter), f2).distance_strict);
+            const Eigen::Hyperplane<double, 3>       plane(e1e2_unit, center);
+            const Eigen::ParametrizedLine<double, 3> line    = Eigen::ParametrizedLine<double, 3>::Through(e.first, e.second);
+            const Vec3d                              inter   = line.intersectionPoint(plane);
+            const Vec3d                              e1inter = inter - e.first;
+            if (e1inter.dot(e1e2) >= 0.0 && e1inter.norm() < e1e2.norm()) distances.emplace_back(*get_measurement(SurfaceFeature(inter), f2).distance_strict);
 
-            auto it = std::min_element(distances.begin(), distances.end(),
-                [](const DistAndPoints& item1, const DistAndPoints& item2) {
-                    return item1.dist < item2.dist;
-                });
-            result.distance_infinite = std::make_optional(DistAndPoints{it->dist, it->from, it->to});
+            auto it = std::min_element(distances.begin(), distances.end(), [](const DistAndPoints &item1, const DistAndPoints &item2) { return item1.dist < item2.dist; });
+            if (deal_circle_result == false) {
+                result.distance_infinite = std::make_optional(DistAndPoints{it->dist, it->from, it->to});
+            }
+            else{
+                const double dist      = (it->from - center).norm();
+                result.distance_infinite = std::make_optional(DistAndPoints{dist, it->from, center});
+            }
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
-            assert(measuring != nullptr);
-
             const auto [from, to] = f1.get_edge();
             const auto [idx, normal, origin] = f2.get_plane();
 
@@ -944,9 +976,9 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                 result.distance_infinite = std::make_optional(DistAndPoints{ it->dist, it->from, it->to });
             }
             else {
-                const std::vector<SurfaceFeature>& plane_features = measuring->get_plane_features(idx);
+                auto plane_features = f2.world_plane_features;
                 std::vector<DistAndPoints> distances;
-                for (const SurfaceFeature& sf : plane_features) {
+                for (const SurfaceFeature& sf : *plane_features) {
                     if (sf.get_type() == SurfaceFeatureType::Edge) {
                         const auto m = get_measurement(sf, f1);
                         if (!m.distance_infinite.has_value()) {
@@ -975,7 +1007,7 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
             const auto [c0, r0, n0] = f1.get_circle();
             const auto [c1, r1, n1] = f2.get_circle();
 
-            // The following code is an adaptation of the algorithm found in: 
+            // The following code is an adaptation of the algorithm found in:
             // https://github.com/davideberly/GeometricTools/blob/master/GTE/Mathematics/DistCircle3Circle3.h
             // and described in:
             // https://www.geometrictools.com/Documentation/DistanceToCircle3.pdf
@@ -1120,7 +1152,7 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
             }
             else {
                 ClosestInfo& info = candidates[0];
-            
+
                 const double N0dD = n0.dot(D);
                 const Vec3d normProj = N0dD * n0;
                 const Vec3d compProj = D - normProj;
@@ -1185,22 +1217,26 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                     }
                 }
 
-                info.sqrDistance = distance * distance + N0dD * N0dD;
+                info.sqrDistance = distance * distance;
+            }
+            if (deal_circle_result == false) {
+                result.distance_infinite = std::make_optional(
+                    DistAndPoints{std::sqrt(candidates[0].sqrDistance), candidates[0].circle0Closest, candidates[0].circle1Closest}); // TODO
+            } else {
+                const double dist      = (c0 - c1).norm();
+                result.distance_strict = std::make_optional(DistAndPoints{dist, c0, c1});
             }
 
-            result.distance_infinite = std::make_optional(DistAndPoints{ std::sqrt(candidates[0].sqrDistance), candidates[0].circle0Closest, candidates[0].circle1Closest }); // TODO
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
-            assert(measuring != nullptr);
-
             const auto [center, radius, normal1] = f1.get_circle();
             const auto [idx2, normal2, origin2] = f2.get_plane();
 
             const bool coplanar = are_parallel(normal1, normal2) && Eigen::Hyperplane<double, 3>(normal1, center).absDistance(origin2) < EPSILON;
             if (!coplanar) {
-                const std::vector<SurfaceFeature>& plane_features = measuring->get_plane_features(idx2);
+                auto                       plane_features = f2.world_plane_features;
                 std::vector<DistAndPoints> distances;
-                for (const SurfaceFeature& sf : plane_features) {
+                for (const SurfaceFeature& sf : *plane_features) {
                     if (sf.get_type() == SurfaceFeatureType::Edge) {
                         const auto m = get_measurement(sf, f1);
                         if (!m.distance_infinite.has_value()) {
@@ -1218,6 +1254,13 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                         });
                     result.distance_infinite = std::make_optional(DistAndPoints{ it->dist, it->from, it->to });
                 }
+                else {
+                    const Eigen::Hyperplane<double, 3> plane(normal2, origin2);
+                    result.distance_infinite = std::make_optional(DistAndPoints{plane.absDistance(center), center, plane.projection(center)});
+                }
+            }
+            else {
+                result.distance_strict = std::make_optional(DistAndPoints{0, center, origin2});
             }
         }
     ///////////////////////////////////////////////////////////////////////////
@@ -1229,23 +1272,159 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
 
         if (are_parallel(normal1, normal2)) {
             // The planes are parallel, calculate distance.
-            const Eigen::Hyperplane<double, 3> plane(normal1, pt1);
-            result.distance_infinite = std::make_optional(DistAndPoints{ plane.absDistance(pt2), pt2, plane.projection(pt2) }); // TODO
+            const Eigen::Hyperplane<double, 3> plane(normal2, pt2);
+            result.distance_infinite = std::make_optional(DistAndPoints{ plane.absDistance(pt1), pt1, plane.projection(pt1) });
         }
         else
             result.angle = angle_plane_plane(f1.get_plane(), f2.get_plane());
     }
-    
+
+    if (swap) {
+        auto swap_dist_and_points = [](DistAndPoints& dp) {
+            auto back   = dp.to;
+            dp.to       = dp.from;
+            dp.from     = back;
+        };
+        if (result.distance_infinite.has_value()) {
+            swap_dist_and_points(*result.distance_infinite);
+        }
+        if (result.distance_strict.has_value()) {
+            swap_dist_and_points(*result.distance_strict);
+        }
+    }
     return result;
 }
 
+bool can_set_xyz_distance(const SurfaceFeature &a, const SurfaceFeature &b) {
+    const bool            swap = int(a.get_type()) > int(b.get_type());
+    const SurfaceFeature &f1   = swap ? b : a;
+    const SurfaceFeature &f2   = swap ? a : b;
+    if (f1.get_type() == SurfaceFeatureType::Point){
+        if (f2.get_type() == SurfaceFeatureType::Point) {
+            return true;
+        }
+    }
+    else if (f1.get_type() == SurfaceFeatureType::Circle) {
+        if (f2.get_type() == SurfaceFeatureType::Circle) {
+            return true;
+        }
+    }
+    return false;
+}
 
+AssemblyAction get_assembly_action(const SurfaceFeature& a, const SurfaceFeature& b)
+{
+    AssemblyAction        action;
+    const SurfaceFeature &f1   = a;
+    const SurfaceFeature &f2   = b;
+    if (f1.get_type() == SurfaceFeatureType::Plane) {
+        action.can_set_feature_1_reverse_rotation = true;
+        if (f2.get_type() == SurfaceFeatureType::Plane) {
+            const auto [idx1, normal1, pt1] = f1.get_plane();
+            const auto [idx2, normal2, pt2] = f2.get_plane();
+            action.can_set_to_center_coincidence = true;
+            action.can_set_feature_2_reverse_rotation = true;
+            if (are_parallel(normal1, normal2)) {
+                action.can_set_to_parallel = false;
+                action.has_parallel_distance = true;
+                action.can_around_center_of_faces = true;
+                Vec3d proj_pt2;
+                Measure::get_point_projection_to_plane(pt2, pt1, normal1, proj_pt2);
+                action.parallel_distance = (pt2 - proj_pt2).norm();
+                if ((pt2 - proj_pt2).dot(normal1) < 0) {
+                    action.parallel_distance = -action.parallel_distance;
+                }
+                action.angle_radian          = 0;
 
+            } else {
+                action.can_set_to_parallel = true;
+                action.has_parallel_distance = false;
+                action.can_around_center_of_faces = false;
+                action.parallel_distance     = 0;
+                action.angle_radian = std::acos(std::clamp(normal2.dot(-normal1), -1.0, 1.0));
+            }
+        }
+    }
+    return action;
+}
 
+void SurfaceFeature::translate(const Vec3d& displacement) {
+    switch (get_type()) {
+    case Measure::SurfaceFeatureType::Point: {
+        m_pt1 = m_pt1 + displacement;
+        break;
+    }
+    case Measure::SurfaceFeatureType::Edge: {
+        m_pt1 = m_pt1 + displacement;
+        m_pt2 = m_pt2 + displacement;
+        if (m_pt3.has_value()) { //extra_point()
+            m_pt3  = *m_pt3 + displacement;
+        }
+        break;
+    }
+    case Measure::SurfaceFeatureType::Plane: {
+        //m_pt1 is normal;
+        m_pt2 = m_pt2 + displacement;
+        break;
+    }
+    case Measure::SurfaceFeatureType::Circle: {
+        m_pt1 = m_pt1 + displacement;
+        // m_pt2 is normal;
+        break;
+    }
+    default: break;
+    }
+}
 
+void SurfaceFeature::translate(const Transform3d &tran)
+{
+    switch (get_type()) {
+    case Measure::SurfaceFeatureType::Point: {
+        m_pt1 = tran * m_pt1;
+        break;
+    }
+    case Measure::SurfaceFeatureType::Edge: {
+        m_pt1 = tran * m_pt1;
+        m_pt2 = tran * m_pt2;
+        if (m_pt3.has_value()) { // extra_point()
+            m_pt3 = tran *  *m_pt3;
+        }
+        break;
+    }
+    case Measure::SurfaceFeatureType::Plane: {
+        // m_pt1 is normal;
+        Vec3d temp_pt1 = m_pt2 + m_pt1;
+        temp_pt1       = tran * temp_pt1;
+        m_pt2          = tran * m_pt2;
+        m_pt1          = (temp_pt1 - m_pt2).normalized();
+        break;
+    }
+    case Measure::SurfaceFeatureType::Circle: {
+        // m_pt1 is center;
+        // m_pt2 is normal;
+        auto  local_normal = m_pt2;
+        auto  local_center = m_pt1;
+        Vec3d temp_pt2     = local_normal + local_center;
+        temp_pt2       = tran * temp_pt2;
+        m_pt1          = tran * m_pt1;
+        auto world_center   = m_pt1;
+        m_pt2          = (temp_pt2 - m_pt1).normalized();
 
-
-
-} // namespace Measure
+        auto calc_world_radius = [&local_center, &local_normal, &tran, &world_center](const Vec3d &pt, double &value) {
+            Vec3d intersection_pt;
+            get_point_projection_to_plane(pt, local_center, local_normal, intersection_pt);
+            auto local_radius_pt = (intersection_pt - local_center).normalized() * value + local_center;
+            auto radius_pt       = tran * local_radius_pt;
+            value                = (radius_pt - world_center).norm();
+        };
+        //m_value is radius
+        auto  new_pt = get_one_point_in_plane(local_center, local_normal);
+        calc_world_radius(new_pt, m_value);
+        break;
+    }
+    default: break;
+    }
+}
+   }//namespace Measure
 } // namespace Slic3r
 

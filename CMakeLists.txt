@@ -22,6 +22,18 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
 
+find_package(Git)
+if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    # Check current Git commit hash
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    add_definitions("-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+endif()
+
 if(DEFINED ENV{SLIC3R_STATIC})
         set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
 else()
@@ -281,7 +293,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-deprecated-declarations)
     endif()
 
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
+    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
         add_compile_options(-Wno-error=enum-constexpr-conversion)
     endif()
 
@@ -300,6 +312,10 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0)
         add_compile_options(-gz=zstd)
+    endif()
+
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=template-id-cdtor" )
     endif()
 
 endif()
@@ -407,12 +423,14 @@ if(SLIC3R_STATIC)
     set(Boost_USE_STATIC_LIBS ON)
     # Use boost libraries linked statically to the C++ runtime.
     # set(Boost_USE_STATIC_RUNTIME ON)
+else()
+    add_definitions(-DBOOST_LOG_DYN_LINK)
 endif()
 #set(Boost_DEBUG ON)
 # set(Boost_COMPILER "-mgw81")
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
-find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log locale regex chrono atomic date_time iostreams program_options)
+find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log log_setup locale regex chrono atomic date_time iostreams program_options)
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)

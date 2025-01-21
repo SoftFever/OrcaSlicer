@@ -2541,59 +2541,9 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 		}
 	};
 
-	int points_count = 8;
-	if (m_shape.size() == 4)
-	{
-			//rectangle case
-			for (int i = 0; i < 4; i++)
-			{
-				const Vec2d& p = m_shape[i];
-				Vec2d center;
-				double start_angle, stop_angle, radius_x, radius_y, radius;
-				switch (i) {
-					case 0:
-						radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) + radius;
-						start_angle = PI;
-						stop_angle = 1.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 1:
-						print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-					case 2:
-						radius_x = (int)(p(0)) % 10;
-                        radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) - radius;
-						center(1) = p(1) - radius;
-						start_angle = 0;
-						stop_angle = 0.5 * PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 3:
-                        radius_x = (int)(p(0)) % 10;
-						radius_y = (int)(p(1)) % 10;
-						radius = (radius_x > radius_y)?radius_y: radius_x;
-						if (radius < 5.0)
-							radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) - radius;
-						start_angle = 0.5 * PI;
-						stop_angle = PI;
-						compute_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-				}
-			}
-	}
-	else {
-		for (const Vec2d& p : m_shape) {
-			print_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+	for (const Vec2d& p : m_shape) {
+			print_polygon.contour.append({scale_(p(0)), scale_(p(1))});
 		}
-	}
 }
 
 void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
@@ -5549,7 +5499,9 @@ void PartPlateList::BedTextureInfo::reset()
 void PartPlateList::init_bed_type_info()
 {
 	BedTextureInfo::TexturePart pct_part_left(10, 130,  10, 110, "orca_bed_pct_left.svg");
-	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
+  BedTextureInfo::TexturePart st_part1(9, 70, 12.5, 170, "bbl_bed_st_left.svg");
+  BedTextureInfo::TexturePart st_part2(74, -10, 148, 12, "bbl_bed_st_bottom.svg");
+	BedTextureInfo::TexturePart pc_part1(10, 130, 10, 110, "bbl_bed_pc_left.svg");
 	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
 	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
 	BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
@@ -5561,6 +5513,8 @@ void PartPlateList::init_bed_type_info()
 		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
 	}
+    bed_texture_info[btSuperTack].parts.push_back(st_part1);
+    bed_texture_info[btSuperTack].parts.push_back(st_part2);
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
 	bed_texture_info[btPCT].parts.push_back(pct_part_left);

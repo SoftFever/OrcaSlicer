@@ -98,6 +98,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
+//Orca: External device purge tag
+const std::string GCodeProcessor::External_Purge_Tag = " EXTERNAL_PURGE";
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
@@ -2287,6 +2289,24 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     //BBS: flush end tag
     if (boost::starts_with(comment, GCodeProcessor::Flush_End_Tag)) {
         m_flushing = false;
+        return;
+    }
+    
+    // Orca: Integrate filament consumption for purging performed to an external device and controlled via macros
+    // (eg. Happy Hare) in the filament consumption stats.
+    if (boost::starts_with(comment, GCodeProcessor::External_Purge_Tag)) {
+        std::regex numberRegex(R"(\d+\.\d+)");
+        std::smatch match;
+        std::string line(comment);
+        if (std::regex_search(line, match, numberRegex)) {
+            float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ?  m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
+            float filament_radius = 0.5f * filament_diameter;
+            float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
+            
+            float dE = std::stof(match.str());
+            float volume_extruded_filament = area_filament_cross_section * dE;
+            m_used_filaments.update_flush_per_filament(m_extruder_id, volume_extruded_filament);
+        }
         return;
     }
 
@@ -4998,9 +5018,18 @@ void GCodeProcessor::run_post_process()
                 // End of line is indicated also if end of file was reached.
                 eol |= eof && it_end == it_bufend;
                 gcode_line.insert(gcode_line.end(), it, it_end);
+
+                it = it_end;
+                // append EOL.
+                if (it != it_bufend && *it == '\r') {
+                    gcode_line += *it++;
+                }
+                if (it != it_bufend && *it == '\n') {
+                    gcode_line += *it++;
+                }
+
                 if (eol) {
                     ++line_id;
-                    gcode_line += "\n";
                     const unsigned int internal_g1_lines_counter = export_lines.update(gcode_line, line_id, g1_lines_counter);
                     // replace placeholder lines
                     bool processed = process_placeholders(gcode_line);
@@ -5037,12 +5066,6 @@ void GCodeProcessor::run_post_process()
                     export_lines.write(out, 1.1f * max_backtrace_time, m_result, out_path);
                     gcode_line.clear();
                 }
-                // Skip EOL.
-                it = it_end;
-                if (it != it_bufend && *it == '\r')
-                    ++it;
-                if (it != it_bufend && *it == '\n')
-                    ++it;
             }
             if (eof)
                 break;

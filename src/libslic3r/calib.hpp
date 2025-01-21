@@ -155,7 +155,7 @@ protected:
     double e_per_mm(double line_width, double layer_height, float nozzle_diameter, float filament_diameter, float print_flow_ratio) const;
     double speed_adjust(int speed) const { return speed * 60; };
 
-    std::string convert_number_to_string(double num) const;
+    std::string convert_number_to_string(double num, unsigned precision = 0) const;
     double      number_spacing() const { return m_digit_segment_len + m_digit_gap_len; };
     std::string draw_digit(double                              startx,
                            double                              starty,
@@ -188,6 +188,7 @@ protected:
     const double                 m_digit_segment_len{2};
     const double                 m_digit_gap_len{1};
     const std::string::size_type m_max_number_len{5};
+    std::string::size_type       m_number_len{m_max_number_len}; /* Current length of number labels */
 };
 
 class CalibPressureAdvanceLine : public CalibPressureAdvance
@@ -255,6 +256,7 @@ public:
     double print_size_x() const { return object_size_x() + pattern_shift(); };
     double print_size_y() const { return object_size_y(); };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
+    double flow_val() const;
 
     void generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin);
 
@@ -264,8 +266,18 @@ public:
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_speed")->value; };
-    double line_width_first_layer() const { return m_config.get_abs_value("initial_layer_line_width"); };
-    double line_width() const { return m_config.get_abs_value("line_width"); };
+    double line_width_first_layer() const
+    {
+        // TODO: FIXME: find out current filament/extruder?
+        const double nozzle_diameter = m_config.opt_float("nozzle_diameter", 0);
+        return m_config.get_abs_value("initial_layer_line_width", nozzle_diameter);
+    };
+    double line_width() const
+    {
+        // TODO: FIXME: find out current filament/extruder?
+        const double nozzle_diameter = m_config.opt_float("nozzle_diameter", 0);
+        return m_config.get_abs_value("line_width", nozzle_diameter);
+    };
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
 private:
@@ -296,6 +308,7 @@ private:
     double glyph_length_x() const;
     double glyph_tab_max_x() const;
     double max_numbering_height() const;
+    size_t max_numbering_length() const;
 
     double pattern_shift() const;
 
