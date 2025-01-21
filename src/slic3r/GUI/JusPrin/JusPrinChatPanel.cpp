@@ -71,6 +71,8 @@ void JusPrinChatPanel::init_action_handlers() {
     // Sync actions for the chat page (return json)
     json_action_handlers["get_presets"] = &JusPrinChatPanel::handle_get_presets;
     json_action_handlers["get_edited_presets"] = &JusPrinChatPanel::handle_get_edited_presets;
+    json_action_handlers["get_plates"] = &JusPrinChatPanel::handle_get_plates;
+
     // Actions for the chat page (void return)
     void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
@@ -118,6 +120,40 @@ nlohmann::json JusPrinChatPanel::handle_get_presets(const nlohmann::json& params
 
 nlohmann::json JusPrinChatPanel::handle_get_edited_presets(const nlohmann::json& params) {
     nlohmann::json j = JusPrinPresetConfigUtils::GetAllEditedPresetJson();
+    return j;
+}
+
+nlohmann::json JusPrinChatPanel::handle_get_plates(const nlohmann::json& params) {
+    nlohmann::json j = nlohmann::json::array();
+
+    for (const auto& plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
+        nlohmann::json plate_info;
+        plate_info["name"] = plate->get_plate_name();
+        plate_info["index"] = plate->get_index();
+
+        // Loop through each ModelObject
+        nlohmann::json objects_info = nlohmann::json::array();
+        for (const auto& obj : plate->get_objects_on_this_plate()) {
+            nlohmann::json object_info;
+            object_info["id"] = std::to_string(obj->id().id);
+            object_info["name"] = obj->name;
+
+            auto object_grid_config = &(obj->config);
+            int extruder_id = -1;  // Default extruder ID
+            auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
+            if (extruder_id_ptr) {
+                extruder_id = *extruder_id_ptr;
+            }
+            object_info["extruderId"] = extruder_id;
+
+
+            objects_info.push_back(object_info);
+        }
+        plate_info["modelObjects"] = objects_info;
+
+        j.push_back(plate_info);
+    }
+
     return j;
 }
 
