@@ -284,7 +284,7 @@ void MaterialItem::doRender(wxDC& dc)
 //#else
 
     if (m_match) {
-        dc.SetPen(wxPen(wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
+        dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
     } else {
         dc.SetPen(wxPen(wxColour(234, 31, 48), FromDIP(1)));
     }
@@ -421,6 +421,8 @@ void MaterialSyncItem::doRender(wxDC &dc)
     dc.SetBrush(wxBrush(mcolor));
     dc.DrawRectangle(0, FromDIP(10), MATERIAL_ITEM_SIZE.x, FromDIP(10));
 
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(MATERIAL_ITEM_SIZE.x), FromDIP(20));
     // bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
     auto left  = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
     auto up    = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
@@ -458,14 +460,11 @@ void MaterialSyncItem::doRender(wxDC &dc)
     else {
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(mcolor));
-        dc.DrawRoundedRectangle(0, FromDIP(20), MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y - FromDIP(21), 5);
+        dc.DrawRoundedRectangle(0, FromDIP(21), MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y - FromDIP(21), 5);
 
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.SetBrush(wxBrush(mcolor));
-        dc.DrawRectangle(0, FromDIP(20), MATERIAL_ITEM_SIZE.x, FromDIP(10));
+        dc.DrawRectangle(0, FromDIP(21), MATERIAL_ITEM_SIZE.x, FromDIP(10));
     }
-    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(MATERIAL_ITEM_SIZE.x), FromDIP(20));
+
     ////border
 #if __APPLE__
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
@@ -479,14 +478,14 @@ void MaterialSyncItem::doRender(wxDC &dc)
     }
 #else
 
-    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
 
     if (m_selected) {
-        dc.SetPen(wxColour(0x00, 0xAE, 0x42));
+        dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
     }
 #endif
     if (m_text_pos_y > 0 && m_match) {
@@ -576,8 +575,8 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_tip_text = _L("Select filament that installed to the right nozzle");
 
      m_left_tips = new Label(m_left_marea_panel);
-     m_left_tips->SetForegroundColour(0x262E30);
-     m_left_tips->SetBackgroundColour(*wxWHITE);
+     m_left_tips->SetForegroundColour(StateColor::darkModeColorFor("0x262E30"));
+     m_left_tips->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
      m_left_tips->SetFont(::Label::Body_13);
      m_left_tips->SetLabel(m_left_tip_text);
 
@@ -810,7 +809,7 @@ void AmsMapingPopup::update(MachineObject* obj)
             m_right_marea_panel->Show();
             set_sizer_title(m_right_split_ams_sizer, _L("Right AMS"));
             if (m_use_in_sync_dialog) {
-                m_left_tips->SetLabel(m_left_tip_text);
+                m_left_tips->SetLabel(m_single_tip_text);
                 m_right_tips->SetLabel("");
             }
             m_right_extra_slot->Show();

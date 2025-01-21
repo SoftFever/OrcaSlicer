@@ -83,7 +83,6 @@ bool SyncAmsInfoDialog::Show(bool show)
         m_panel_prepare->Hide();
         m_rename_normal_panel->Hide();
         m_rename_switch_panel->Hide();
-        m_button_ensure->Hide();
         m_sw_print_failed_info->Hide();
         m_rename_text -> Hide();
         m_rename_button->Hide();
@@ -329,14 +328,14 @@ wxBoxSizer *SyncAmsInfoDialog::create_sizer_thumbnail(wxButton *image_button, bo
     auto sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
     if (left) {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto        sync_text  = new wxStaticText(image_button->GetParent(), wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
+        auto        sync_text  = new Label(image_button->GetParent(), _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
         sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         text_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
         sizer_thumbnail->Add(sync_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
     }
     else {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-        m_after_map_text       = new wxStaticText(image_button->GetParent(), wxID_ANY, _L("After mapping"));
+        m_after_map_text       = new Label(image_button->GetParent(), _L("After mapping"));
         m_after_map_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         text_sizer->Add(m_after_map_text, 0, wxALIGN_CENTER | wxALL, 0);
         sizer_thumbnail->Add(m_after_map_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
@@ -479,7 +478,7 @@ void SyncAmsInfoDialog::add_two_image_control()
     m_two_thumbnail_panel_sizer = new wxBoxSizer(wxVERTICAL);
 
     auto view_two_thumbnail_sizer = new wxBoxSizer(wxHORIZONTAL);
-    view_two_thumbnail_sizer->AddSpacer(FromDIP(60));
+    view_two_thumbnail_sizer->AddSpacer(FromDIP(40));
     auto swipe_left__sizer = new wxBoxSizer(wxVERTICAL);
     swipe_left__sizer->AddStretchSpacer();
     init_bitmaps();
@@ -497,16 +496,17 @@ void SyncAmsInfoDialog::add_two_image_control()
     swipe_left__sizer->Add(m_swipe_left_button, 0, wxALIGN_CENTER | wxEXPAND | wxALIGN_CENTER_VERTICAL);
     swipe_left__sizer->AddStretchSpacer();
     view_two_thumbnail_sizer->Add(swipe_left__sizer, 0, wxEXPAND);
-    view_two_thumbnail_sizer->AddSpacer(FromDIP(20));
+    view_two_thumbnail_sizer->AddSpacer(FromDIP(24));
     {
         m_two_image_panel = new StaticBox(m_two_thumbnail_panel);
         // m_two_thumbnail_panel->SetBackgroundColour(wxColour(0xF8F8F8));
         m_two_image_panel->SetBorderWidth(0);
         //m_two_image_panel->SetForegroundColour(wxColour(248, 248, 248, 100));
-        m_two_image_panel->SetBackgroundColor(wxColour(248, 248, 248, 100));
+        m_two_image_panel->SetBackgroundColor(wxGetApp().dark_mode() ? wxColour(48, 48, 48, 100) : wxColour(246, 246, 246, 100));
         m_two_image_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_left_image_button     = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH)),
                                            wxBORDER_NONE | wxBU_AUTODRAW);
+        m_left_image_button->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(61, 61, 61, 0) : wxColour(238, 238, 238, 0));
         m_left_sizer_thumbnail = create_sizer_thumbnail(m_left_image_button, true);
         m_two_image_panel_sizer->Add(m_left_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(8));
         m_two_image_panel_sizer->AddSpacer(FromDIP(5));
@@ -514,6 +514,7 @@ void SyncAmsInfoDialog::add_two_image_control()
         m_right_image_button = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition,
                                             wxSize(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH)),
                                             wxBORDER_NONE | wxBU_AUTODRAW);
+        m_right_image_button->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(61, 61, 61, 0) : wxColour(238, 238, 238, 0));
         m_right_sizer_thumbnail = create_sizer_thumbnail(m_right_image_button, false);
         m_two_image_panel_sizer->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(8));
         m_two_image_panel->SetSizer(m_two_image_panel_sizer);
@@ -540,7 +541,7 @@ void SyncAmsInfoDialog::add_two_image_control()
     swipe_right__sizer->Add(m_swipe_right_button, 0, wxALIGN_CENTER | wxEXPAND | wxALIGN_CENTER_VERTICAL);
     swipe_right__sizer->AddStretchSpacer();
     view_two_thumbnail_sizer->Add(swipe_right__sizer, 0, wxEXPAND);
-    view_two_thumbnail_sizer->AddSpacer(FromDIP(60));
+    view_two_thumbnail_sizer->AddStretchSpacer();
     m_two_thumbnail_panel_sizer->Add(view_two_thumbnail_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
 
     m_choose_plate_sizer         = new wxBoxSizer(wxHORIZONTAL);
@@ -1083,31 +1084,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_panel_prepare = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_prepare->SetBackgroundColour(m_colour_def_color);
     wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxHORIZONTAL);
-
-    /*m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
-
-    auto hyperlink_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_hyperlink          = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Click here if you can't connect to the printer"),
-                                      wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-
-    hyperlink_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
-    m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);*/
-
-    m_button_ensure = new Button(m_panel_prepare, _L("Send"));
-    m_button_ensure->SetBackgroundColor(m_btn_bg_enable);
-    m_button_ensure->SetBorderColor(m_btn_bg_enable);
-    m_button_ensure->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-    m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(5));
-    m_button_ensure->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::on_ok_btn, this);
-
-    m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
-    m_sizer_pcont->Add(m_button_ensure, 0, wxRIGHT, 0);
-
-    m_sizer_prepare->Add(m_sizer_pcont, 0, wxEXPAND, 0);
     m_panel_prepare->SetSizer(m_sizer_prepare);
     m_panel_prepare->SetMaxSize(wxSize(-1, FromDIP(0)));
     m_simplebook->AddPage(m_panel_prepare, wxEmptyString, true);
@@ -1464,8 +1440,6 @@ void SyncAmsInfoDialog::prepare_mode(bool refresh_button)
     m_is_in_sending_mode = false;
     m_worker->wait_for_idle();
     if (wxIsBusy()) wxEndBusyCursor();
-
-    if (refresh_button) { Enable_Send_Button(true); }
 
     m_status_bar->reset();
     if (m_simplebook->GetSelection() != 0) {
@@ -2095,54 +2069,43 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
         update_print_status_msg(wxEmptyString, false, false);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNoUserLogin) {
         wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
         update_print_status_msg(msg_text, false, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
         update_print_status_msg(wxEmptyString, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
         wxString msg_text = _L("Connecting to server");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReading) {
         wxString msg_text = _L("Synchronizing device information");
         update_print_status_msg(msg_text, false, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReadingFinished) {
         update_print_status_msg(wxEmptyString, false, true);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
         wxString msg_text = _L("Synchronizing device information time out");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
         wxString msg_text = _L("Cannot send the print job when the printer is updating firmware");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInSystemPrinting) {
         wxString msg_text = _L("The printer is executing instructions. Please restart printing after it ends");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
         wxString msg_text = _L("The printer is busy on other print job");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
         update_print_status_msg(wxEmptyString, false, false);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text;
@@ -2151,32 +2114,26 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
         else
             msg_text = _L("Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess) {
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
         update_print_status_msg(msg_text, false, false);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
         update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with AMS");
         update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNozzleDataInvalid) {
         wxString msg_text = _L("Invalid nozzle information, please refresh or manually set nozzle information.");
         update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid) {
         wxString msg_text = _L("Please check whether the nozzle type of the device is the same as the preset nozzle type.");
         update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingU0Invalid) {
         wxString msg_text;
@@ -2185,43 +2142,33 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
                                         params[0], params[1]);
         else
             msg_text = _L("Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
-        update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
         update_print_status_msg(msg_text, false, false);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
         update_print_status_msg(wxEmptyString, false, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
-        Enable_Send_Button(false);
         Enable_Refresh_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusSendingCanceled) {
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
         wxString msg_text = _L("Storage is not available or is in read-only mode.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
         wxString msg_text = _L("The printer firmware only supports sequential mapping of filament => AMS slot.");
         update_print_status_msg(msg_text, false, false);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
         wxString msg_text;
@@ -2255,32 +2202,26 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
             return;
         } catch (...) {}
 
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted to record timelapse.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedForceUpgrading) {
         wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedConsistencyUpgrading) {
         wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusBlankPlate) {
         wxString msg_text = _L("Cannot send the print job for empty plate");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
         wxString msg_text = _L("This printer does not support printing all plates");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusTimelapseWarning) {
         wxString   msg_text;
@@ -2295,12 +2236,10 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
             }
         }
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintStatusMixAmsAndVtSlotWarning) {
         wxString msg_text = _L("You selected external and AMS filament at the same time in an extruder, you will need manually change external filament.");
         update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     }
 
@@ -2710,8 +2649,6 @@ void SyncAmsInfoDialog::on_send_print()
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
     m_is_canceled = false;
-    Enable_Send_Button(false);
-
     if (m_mapping_popup.IsShown())
         m_mapping_popup.Dismiss();
 
@@ -3663,24 +3600,6 @@ void SyncAmsInfoDialog::Enable_Refresh_Button(bool en)
     }
 }
 
-void SyncAmsInfoDialog::Enable_Send_Button(bool en)
-{
-    if (!m_button_ensure) { return; }
-    if (!en) {
-        if (m_button_ensure->IsEnabled()) {
-            m_button_ensure->Disable();
-            m_button_ensure->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            m_button_ensure->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-        }
-    } else {
-        if (!m_button_ensure->IsEnabled()) {
-            m_button_ensure->Enable();
-            m_button_ensure->SetBackgroundColor(m_btn_bg_enable);
-            m_button_ensure->SetBorderColor(m_btn_bg_enable);
-        }
-    }
-}
-
 void SyncAmsInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     rename_editable->msw_rescale();
@@ -3689,13 +3608,15 @@ void SyncAmsInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
         ams_mapping_help_icon->msw_rescale();
         if (img_amsmapping_tip) img_amsmapping_tip->SetBitmap(ams_mapping_help_icon->bmp());
     }
-    m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(12));
     m_status_bar->msw_rescale();
 
     for (auto material1 : m_materialList) {
         material1.second->item->msw_rescale();
     }
+    m_swipe_left_button->msw_rescale();
+    m_swipe_right_button->msw_rescale();
+    m_button_ok->Rescale();
+    m_button_cancel->Rescale();
 
     Fit();
     Refresh();

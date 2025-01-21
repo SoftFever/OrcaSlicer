@@ -83,7 +83,6 @@ protected:
     wxBoxSizer *              rename_sizer_h{nullptr};
     wxBoxSizer *              m_sizer_autorefill{nullptr};
     ScalableButton *          m_button_refresh{nullptr};
-    Button *                  m_button_ensure{nullptr};
     wxStaticBitmap *          m_rename_button{nullptr};
     ComboBox *                m_comboBox_printer{nullptr};
     wxStaticBitmap *          m_staticbitmap{nullptr};
@@ -209,7 +208,6 @@ public:
     void     on_selection_changed(wxCommandEvent &event);
     void     update_flow_cali_check(MachineObject *obj);
     void     Enable_Refresh_Button(bool en);
-    void     Enable_Send_Button(bool en);
     void     update_user_machine_list();
     void     update_lan_machine_list();
     void     stripWhiteSpace(std::string &str);
@@ -305,7 +303,7 @@ private:
     Button *   m_button_ok     = nullptr;
     Button *   m_button_cancel = nullptr;
 
-    wxStaticText *m_after_map_text{nullptr};
+    Label *m_after_map_text{nullptr};
     wxStaticText *m_attention_text{nullptr};
     wxStaticText* m_tip_text{nullptr};
     //wxStaticText *m_specify_color_cluster_title = nullptr;
