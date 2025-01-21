@@ -282,14 +282,13 @@ void GUI::FilamentMapBtnPanel::Show()
 
 FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced) : wxPanel(parent)
 {
-    const wxString AutoForFlushDetail = _L("Calculate the best filament grouping "
-        "to minimize filament waste. Need to manually place filaments on the printer "
-        "based on slicing results.");
-    const wxString AutoForMatchDetail = _L("Calculate the filament grouping based on the printer's filaments, reducing the need for adjusting filaments at the printer.");
+    const wxString AutoForFlushDetail = _L("Recommends filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste");
+
+    const wxString AutoForMatchDetail = _L("Recommends filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment");
 
     auto                  sizer              = new wxBoxSizer(wxHORIZONTAL);
     m_flush_panel                            = new FilamentMapBtnPanel(this, _L("Filament-Saving Mode"), AutoForFlushDetail, "flush_mode_panel_icon");
-    m_match_panel                            = new FilamentMapBtnPanel(this, _L("Convenient Mode"), AutoForMatchDetail, "match_mode_panel_icon");
+    m_match_panel                            = new FilamentMapBtnPanel(this, _L("Convenience Mode"), AutoForMatchDetail, "match_mode_panel_icon");
 
     if (!machine_synced) m_match_panel->Enable(false);
 

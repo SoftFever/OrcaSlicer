@@ -50,14 +50,12 @@ static void set_prefered_map_mode(FilamentMapMode mode)
 FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
     const wxString AutoForFlushLabel = _L("Filament-Saving Mode");
-    const wxString AutoForMatchLabel = _L("Convenient Mode");
+    const wxString AutoForMatchLabel = _L("Convenience Mode");
     const wxString ManualLabel       = _L("Custom Mode");
 
-    const wxString AutoForFlushDetail = _L("Calculate the best filament grouping "
-        "to minimize filament waste. Need to manually place filaments on the printer "
-        "based on slicing results.");
-    const wxString AutoForMatchDetail = _L("Calculate the filament grouping based on the printer's filaments, reducing the need for adjusting filaments at the printer.");
-    const wxString ManualDetail       = _L("Manually assign filament to the left or right nozzle.");
+    const wxString AutoForFlushDetail = _L("Recommends filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste");
+    const wxString AutoForMatchDetail = _L("Recommends filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment");
+    const wxString ManualDetail       = _L("Manually assign filament to the left or right nozzle");
 
     const wxString AutoForFlushDesp = ""; //_L("(Post-slicing arrangement)");
     const wxString ManualDesp       = "";
