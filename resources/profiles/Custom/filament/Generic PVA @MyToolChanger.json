@@ -2,10 +2,11 @@
     "type": "filament",
     "filament_id": "GFS99",
     "setting_id": "GFS99_MTC_0",
-    "name": "My Generic PVA @MyToolChanger",
+    "name": "Generic PVA @MyToolChanger",
+    "renamed_from": "My Generic PVA @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pva",
+    "inherits": "Generic PVA @System",
     "filament_flow_ratio": [
         "0.95"
     ],

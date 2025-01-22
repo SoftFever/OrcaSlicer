@@ -2,10 +2,11 @@
     "type": "filament",
     "filament_id": "GFN99",
     "setting_id": "GFN99_MTC_0",
-    "name": "My Generic PA @MyToolChanger",
+    "name": "Generic PA @MyToolChanger",
+    "renamed_from": "My Generic PA @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa",
+    "inherits": "Generic PA @System",
     "nozzle_temperature_initial_layer": [
         "280"
     ],

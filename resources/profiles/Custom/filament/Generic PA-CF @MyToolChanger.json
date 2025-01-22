@@ -1,16 +1,23 @@
 {
     "type": "filament",
-    "filament_id": "GFC99",
-    "setting_id": "GFC99_MTC_0",
-    "name": "My Generic PC @MyToolChanger",
+    "filament_id": "GFN98",
+    "setting_id": "GFN98_MTC_0",
+    "name": "Generic PA-CF @MyToolChanger",
+    "renamed_from": "My Generic PA-CF @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pc",
-    "filament_max_volumetric_speed": [
-        "12"
+    "inherits": "Generic PA-CF @System",
+    "filament_type": [
+        "PA-CF"
     ],
-    "filament_flow_ratio": [
-        "0.94"
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
     ],
     "filament_cooling_final_speed": [
         "3.5"

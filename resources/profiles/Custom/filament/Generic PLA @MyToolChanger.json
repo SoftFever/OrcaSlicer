@@ -1,22 +1,20 @@
 {
     "type": "filament",
-    "filament_id": "GFL98",
-    "setting_id": "GFL98_MTC_0",
-    "name": "My Generic PLA-CF @MyToolChanger",
+    "filament_id": "GFL99",
+    "setting_id": "GFL99_MTC_0",
+    "name": "Generic PLA @MyToolChanger",
+    "renamed_from": "My Generic PLA @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
+    "inherits": "Generic PLA @System",
     "filament_flow_ratio": [
-        "0.95"
-    ],
-    "filament_type": [
-        "PLA-CF"
+        "0.98"
     ],
     "filament_max_volumetric_speed": [
         "12"
     ],
     "slow_down_layer_time": [
-        "7"
+        "8"
     ],
     "filament_cooling_final_speed": [
         "3.5"

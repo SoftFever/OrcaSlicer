@@ -2,16 +2,10 @@
     "type": "filament",
     "filament_id": "GFB99",
     "setting_id": "GFSA04",
-    "name": "ABS",
+    "name": "Generic ABS @System",
     "from": "system",
     "instantiation": "true",
+    "renamed_from": "My Generic ABS",
     "inherits": "fdm_filament_abs",
-    "filament_flow_ratio": [
-        "0.926"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
-    "compatible_printers": [
-    ]
+    "compatible_printers": []
 }

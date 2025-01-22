@@ -199,7 +199,11 @@ function SortUI()
 				let strModel=pFila.attr("model");
 				let strFilalist=pFila.attr("filalist");
 				
-				pFila.attr("model", strModel+fModel);
+				if(strModel == '' || fModel == '')
+					pFila.attr("model", '');
+				else
+					pFila.attr("model", strModel+fModel);
+					
 				pFila.attr("filalist", strFilalist+fWholeName+';');
 			}
 			

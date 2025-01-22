@@ -37,9 +37,6 @@
     "fan_cooling_layer_time": [
         "30"
     ],
-    "filament_max_volumetric_speed": [
-        "23.2"
-    ],
     "filament_type": [
         "PC"
     ],
@@ -84,5 +81,11 @@
     ],
     "slow_down_layer_time": [
         "2"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "filament_flow_ratio": [
+        "0.94"
     ]
 }

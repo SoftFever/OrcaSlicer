@@ -1,22 +1,23 @@
 {
     "type": "filament",
-    "filament_id": "GFN98",
-    "setting_id": "GFN98_MTC_0",
-    "name": "My Generic PA-CF @MyToolChanger",
+    "filament_id": "GFL98",
+    "setting_id": "GFL98_MTC_0",
+    "name": "Generic PLA-CF @MyToolChanger",
+    "renamed_from": "My Generic PLA-CF @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa",
+    "inherits": "Generic PLA-CF @System",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
     "filament_type": [
-        "PA-CF"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "280"
-    ],
-    "nozzle_temperature": [
-        "280"
+        "PLA-CF"
     ],
     "filament_max_volumetric_speed": [
-        "8"
+        "12"
+    ],
+    "slow_down_layer_time": [
+        "7"
     ],
     "filament_cooling_final_speed": [
         "3.5"

@@ -41,44 +41,44 @@
             "sub_path": "filament/fdm_filament_pa.json"
         },
         {
-            "name": "PLA",
-            "sub_path": "filament/PLA.json"
+            "name": "Generic PLA @System",
+            "sub_path": "filament/Generic PLA @System.json"
         },
         {
-            "name": "PLA-CF",
-            "sub_path": "filament/PLA-CF.json"
+            "name": "Generic PLA-CF @System",
+            "sub_path": "filament/Generic PLA-CF @System.json"
         },
         {
-            "name": "PETG",
-            "sub_path": "filament/PETG.json"
+            "name": "Generic PETG @System",
+            "sub_path": "filament/Generic PETG @System.json"
         },
         {
-            "name": "ABS",
-            "sub_path": "filament/ABS.json"
+            "name": "Generic ABS @System",
+            "sub_path": "filament/Generic ABS @System.json"
         },
         {
-            "name": "TPU",
-            "sub_path": "filament/TPU.json"
+            "name": "Generic TPU @System",
+            "sub_path": "filament/Generic TPU @System.json"
         },
         {
-            "name": "ASA",
-            "sub_path": "filament/ASA.json"
+            "name": "Generic ASA @System",
+            "sub_path": "filament/Generic ASA @System.json"
         },
         {
-            "name": "PC",
-            "sub_path": "filament/PC.json"
+            "name": "Generic PC @System",
+            "sub_path": "filament/Generic PC @System.json"
         },
         {
-            "name": "PVA",
-            "sub_path": "filament/PVA.json"
+            "name": "Generic PVA @System",
+            "sub_path": "filament/Generic PVA @System.json"
         },
         {
-            "name": "PA",
-            "sub_path": "filament/PA.json"
+            "name": "Generic PA @System",
+            "sub_path": "filament/Generic PA @System.json"
         },
         {
-            "name": "PA-CF",
-            "sub_path": "filament/PA-CF.json"
+            "name": "Generic PA-CF @System",
+            "sub_path": "filament/Generic PA-CF @System.json"
         }
     ]
 }

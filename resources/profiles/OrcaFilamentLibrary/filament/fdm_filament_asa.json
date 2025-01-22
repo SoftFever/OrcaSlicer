@@ -37,9 +37,6 @@
     "fan_cooling_layer_time": [
         "35"
     ],
-    "filament_max_volumetric_speed": [
-        "28.6"
-    ],
     "filament_type": [
         "ASA"
     ],
@@ -84,5 +81,11 @@
     ],
     "slow_down_layer_time": [
         "3"
+    ],
+    "filament_flow_ratio": [
+        "0.93"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
     ]
 }

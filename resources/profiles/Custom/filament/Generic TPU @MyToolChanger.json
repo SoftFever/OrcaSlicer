@@ -2,10 +2,11 @@
     "type": "filament",
     "filament_id": "GFU99",
     "setting_id": "GFU99_MTC_0",
-    "name": "My Generic TPU @MyToolChanger",
+    "name": "Generic TPU @MyToolChanger",
+    "renamed_from": "My Generic TPU @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_tpu",
+    "inherits": "Generic TPU @System",
     "filament_max_volumetric_speed": [
         "3.2"
     ],

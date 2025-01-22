@@ -37,9 +37,6 @@
     "fan_cooling_layer_time": [
         "4"
     ],
-    "filament_max_volumetric_speed": [
-        "8"
-    ],
     "filament_type": [
         "PA"
     ],
@@ -48,9 +45,6 @@
     ],
     "filament_cost": [
         "20"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "290"
     ],
     "reduce_fan_stop_start_freq": [
         "0"
@@ -63,9 +57,6 @@
     ],
     "overhang_fan_speed": [
         "30"
-    ],
-    "nozzle_temperature": [
-        "290"
     ],
     "temperature_vitrification": [
         "108"
@@ -81,5 +72,14 @@
     ],
     "slow_down_layer_time": [
         "2"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "290"
+    ],
+    "nozzle_temperature": [
+        "290"
+    ],
+    "filament_max_volumetric_speed": [
+        "10"
     ]
 }

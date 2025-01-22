@@ -116,6 +116,7 @@ private:
     bool network_plugin_ready {false};
 
     json m_OrcaFilaList;
+    std::string m_OrcaFilaLibPath;
 
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;
