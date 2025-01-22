@@ -1471,7 +1471,7 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<AmsTray> slots) {
     }
 }
 
-bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
+bool SelectMachineDialog::is_nozzle_type_match(ExtderData data, wxString& error_message) const {
     if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
@@ -1516,6 +1516,24 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
 
         if (target_machine_nozzle_id < flow_type_of_machine.size()) {
             if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
+
+                wxString pos;
+                if (target_machine_nozzle_id == DEPUTY_NOZZLE_ID)
+                {
+                    pos = _L("left");
+                }
+                else if((target_machine_nozzle_id == MAIN_NOZZLE_ID))
+                {
+                    pos = _L("right");
+                }
+
+                const wxString& tips = _L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting.");
+                error_message = wxString::Format(_L("The nozzle flow setting of %snozzle(%s) doesn't match with the slicing file(%s). "
+                                                     "Please make sure the nozzle installed matches with settings in printer, "
+                                                     "then set the corresponding printer preset while slicing."),
+                                                     pos, flow_type_of_machine[target_machine_nozzle_id],
+                                                     used_extruders_flow[it->first]);
+                error_message = error_message + "\n" + tips;
                 return false;
             }
         }
@@ -1739,9 +1757,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid) {
-        wxString msg_text = _L("Please check whether the nozzle type of the device is the same as the preset nozzle type.");
-        update_print_status_msg(msg_text, true, false);
+    } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid && !params.empty()) {
+        update_print_status_msg(params[0], true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintStatusNozzleDiameterMismatch && !params.empty()) {
@@ -3252,8 +3269,11 @@ void SelectMachineDialog::update_show_status()
             return;
         }
 
-        if (!is_nozzle_type_match(obj_->m_extder_data)) {
-            show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
+        wxString error_message;
+        if (!is_nozzle_type_match(obj_->m_extder_data, error_message))
+        {
+            std::vector<wxString> params { error_message };
+            show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid, params);
             return;
         }
     }
