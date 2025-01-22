@@ -125,7 +125,7 @@ PhysicalPrinterDialog::~PhysicalPrinterDialog()
 void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgroup)
 {
     m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-        if (opt_key == "host_type" || opt_key == "printhost_authorization_type" || opt_key == "spoolman_enabled")
+        if (opt_key == "host_type" || opt_key == "printhost_authorization_type")
             this->update();
         if (opt_key == "print_host")
             this->update_printhost_buttons();
@@ -136,12 +136,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     m_optgroup->append_single_option_line("host_type");
-
-    m_optgroup->append_single_option_line("spoolman_enabled");
-
-    Option option = m_optgroup->get_option("spoolman_host");
-    option.opt.width = Field::def_width_wider();
-    m_optgroup->append_single_option_line(option);
 
     auto create_sizer_with_btn = [](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
         *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
@@ -250,7 +244,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     // Set a wider width for a better alignment
-    option = m_optgroup->get_option("print_host");
+    Option option = m_optgroup->get_option("print_host");
     option.opt.width = Field::def_width_wider();
     Line host_line = m_optgroup->create_single_option_line(option);
     host_line.append_widget(printhost_browse);
@@ -584,17 +578,6 @@ void PhysicalPrinterDialog::update(bool printer_change)
             supports_multiple_printers = opt->value == htRepetier || opt->value == htObico;
         }
 
-        if (opt->value == htOctoPrint) {
-            m_optgroup->show_field("spoolman_enabled");
-            m_optgroup->show_field("spoolman_host", m_config->opt_bool("spoolman_enabled"));
-        } else {
-            m_config->set("spoolman_enabled", false);
-            m_optgroup->hide_field("spoolman_enabled");
-
-            m_config->set("spoolman_host", m_optgroup->get_option("spoolman_host").opt.get_default_value<ConfigOptionString>()->value);
-            m_optgroup->hide_field("spoolman_host");
-        }
-
         if (opt->value == htFlashforge) {
             m_optgroup->hide_field("printhost_apikey");
             m_optgroup->hide_field("printhost_authorization_type");
@@ -749,20 +732,7 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void PhysicalPrinterDialog::OnOK(wxEvent& event)
 {
-    // determine if any spoolman related keys have been updated
-    bool update_spool_stats = false;
-    const vector<string>& current_dirty_options = m_presets->current_dirty_options();
-    if (!current_dirty_options.empty()) {
-        for (const auto& option_key : {"spoolman_enabled", "spoolman_host", "print_host"}) {
-            if (std::find(current_dirty_options.begin(), current_dirty_options.end(), option_key) != current_dirty_options.end()) {
-                update_spool_stats = true;
-                break;
-            }
-        }
-    }
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->save_preset("", false, false, true, m_preset_name );
-    if (update_spool_stats) // only update spoolman if spoolman related keys were changed
-        Spoolman::update_visible_spool_statistics(true);
     event.Skip();
 }
 

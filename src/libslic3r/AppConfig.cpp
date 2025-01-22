@@ -410,6 +410,12 @@ void AppConfig::set_defaults()
     if (get("show_spoolman_consumption_dialog").empty())
         set_bool("show_spoolman_consumption_dialog", true);
 
+    if (get("spoolman", "enabled").empty())
+        set("spoolman", "enabled", false);
+
+    if (get("spoolman", "host").empty())
+        set_str("spoolman", "host", "");
+
     if (get("spoolman", "consumption_type").empty())
         set_str("spoolman", "consumption_type", "weight");
 

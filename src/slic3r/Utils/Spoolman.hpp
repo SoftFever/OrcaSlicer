@@ -80,6 +80,8 @@ class Spoolman
     /// \returns if succeeded
     bool use_spoolman_spool(const unsigned int& spool_id, const double& usage, const std::string& usage_type);
 public:
+    static constexpr auto DEFAULT_PORT = "7912";
+
     /// uses/consumes filament from multiple specified spools then updates them
     /// \param data a map with the spool ID as the key and the amount to be consumed as the value
     /// \param usage_type The consumption metric to be used. Should be "length" or "weight". This will be checked.
@@ -105,21 +107,25 @@ public:
     /// Update the statistics values for the filament profiles tied to the specified spool IDs
     static void update_specific_spool_statistics(const std::vector<unsigned int>& spool_ids);
 
+    /// Check if Spoolman is enabled and the provided host is valid
     static bool is_server_valid();
+
+    /// Check if Spoolman is enabled
+    static bool is_enabled();
 
     const std::map<unsigned int, SpoolmanSpoolShrPtr>& get_spoolman_spools(bool update = false)
     {
         if (update || !m_initialized)
             m_initialized = pull_spoolman_spools();
         return m_spools;
-    };
+    }
 
     SpoolmanSpoolShrPtr get_spoolman_spool_by_id(unsigned int spool_id, bool update = false)
     {
         if (update || !m_initialized)
             m_initialized = pull_spoolman_spools();
         return m_spools[spool_id];
-    };
+    }
 
     void clear()
     {
@@ -134,7 +140,7 @@ public:
         if (!m_instance)
             new Spoolman();
         return m_instance;
-    };
+    }
 
     friend class SpoolmanVendor;
     friend class SpoolmanFilament;

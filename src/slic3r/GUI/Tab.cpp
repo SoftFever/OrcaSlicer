@@ -3561,8 +3561,8 @@ void TabFilament::build()
         build_statistics_line("spoolman_used_length", "Used Length", "m");
         build_statistics_line("spoolman_archived", "Archived", "", coBool);
 
-    page->m_should_show_fn = [&](bool current_value) {
-        return m_preset_bundle->printers.get_edited_preset().config.opt_bool("spoolman_enabled");
+    page->m_should_show_fn = [&](bool) {
+        return Spoolman::is_enabled();
     };
 
     page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders

@@ -6617,7 +6617,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             view3D->deselect_all();
         }
 
-        Spoolman::update_visible_spool_statistics(true);
+        Spoolman::update_visible_spool_statistics();
 
 #if 0   // do not toggle auto calc when change printer
         // update flush matrix
@@ -6878,8 +6878,6 @@ void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
 {
     static constexpr auto show_dlg_key = "show_spoolman_consumption_dialog";
     if (!wxGetApp().app_config->get_bool(show_dlg_key))
-        return;
-    if (!wxGetApp().preset_bundle->printers.get_edited_preset().spoolman_enabled())
         return;
     if (!Spoolman::is_server_valid())
         return;

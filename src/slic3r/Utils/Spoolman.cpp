@@ -21,25 +21,17 @@ static constexpr long MAX_TIMEOUT = 5;
 
 static std::string get_spoolman_api_url()
 {
-    DynamicPrintConfig& config        = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    string              host          = config.opt_string("print_host");
-    string              spoolman_host = config.opt_string("spoolman_host");
-    string              spoolman_port;
+    std::string spoolman_host = wxGetApp().app_config->get("spoolman", "host");
+    std::string spoolman_port = Spoolman::DEFAULT_PORT;
 
-    if (auto idx = spoolman_host.find_last_of(':'); idx != string::npos) {
-        boost::regex  pattern("(?<host>[a-zA-Z0-9.]+):(?<port>[0-9]+)");
+    // If the host contains a port, use that rather than the default
+    if (const auto idx = spoolman_host.find_last_of(':'); idx != string::npos) {
+        static const boost::regex pattern("(?<host>[a-zA-Z0-9.]+):(?<port>[0-9]+)");
         boost::smatch result;
         boost::regex_search(spoolman_host, result, pattern);
         spoolman_port = result["port"]; // get port value first since it is overwritten when setting the host value in the next line
         spoolman_host = result["host"];
-    } else if (regex_match(spoolman_host, regex("^[0-9]+"))) {
-        spoolman_port = spoolman_host;
-        spoolman_host.clear();
-    } else if (auto idx = host.find_last_of(':'); idx != string::npos)
-        host = host.erase(idx);
-
-    if (spoolman_host.empty())
-        spoolman_host = host;
+    }
 
     return spoolman_host + ":" + spoolman_port + "/api/v1/";
 }
@@ -323,13 +315,12 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
 void Spoolman::update_visible_spool_statistics(bool clear_cache)
 {
     PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
-    PresetCollection& printers      = preset_bundle->printers;
     PresetCollection& filaments    = preset_bundle->filaments;
 
     // Clear the cache so that it can be repopulated with the correct info
     if (clear_cache) get_instance()->clear();
-    if (printers.get_edited_preset().spoolman_enabled() && is_server_valid()) {
-        for (auto item : filaments.get_compatible()) {
+    if (is_server_valid()) {
+        for (const auto item : filaments.get_compatible()) {
             if (item->is_user() && item->spoolman_enabled()) {
                 if (auto res = update_filament_preset_from_spool(item, true, true); res.has_failed())
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
@@ -342,15 +333,14 @@ void Spoolman::update_visible_spool_statistics(bool clear_cache)
 void Spoolman::update_specific_spool_statistics(const std::vector<unsigned int>& spool_ids)
 {
     PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
-    PresetCollection& printers      = preset_bundle->printers;
     PresetCollection& filaments    = preset_bundle->filaments;
 
     std::set spool_ids_set(spool_ids.begin(), spool_ids.end());
     // make sure '0' is not a value
     spool_ids_set.erase(0);
 
-    if (printers.get_edited_preset().spoolman_enabled() && is_server_valid()) {
-        for (auto item : filaments.get_compatible()) {
+    if (is_server_valid()) {
+        for (const auto item : filaments.get_compatible()) {
             if (item->is_user() && spool_ids_set.count(item->config.opt_int("spoolman_spool_id", 0)) > 0) {
                 if (auto res = update_filament_preset_from_spool(item, true, true); res.has_failed())
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
@@ -364,6 +354,9 @@ void Spoolman::update_specific_spool_statistics(const std::vector<unsigned int>&
 bool Spoolman::is_server_valid()
 {
     bool res = false;
+    if (!is_enabled())
+        return res;
+
     Http::get(get_spoolman_api_url() + "info").on_complete([&res](std::string, unsigned http_status) {
         if (http_status == 200)
             res = true;
@@ -372,6 +365,8 @@ bool Spoolman::is_server_valid()
     .perform_sync();
     return res;
 }
+
+bool Spoolman::is_enabled() { return GUI::wxGetApp().app_config->get_bool("spoolman", "enabled"); }
 
 //---------------------------------
 // SpoolmanVendor

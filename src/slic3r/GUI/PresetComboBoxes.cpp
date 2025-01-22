@@ -1107,7 +1107,7 @@ void PlaterPresetComboBox::update()
 
         if (m_type == Preset::TYPE_FILAMENT) {
             set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
-            if (m_preset_bundle->printers.get_edited_preset().config.opt_bool("spoolman_enabled"))
+            if (Spoolman::is_enabled())
                 set_label_marker(Append(separator(L("Import filament from Spoolman")), *bmp), LABEL_ITEM_IMPORT_SPOOLMAN);
         } else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
