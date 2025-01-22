@@ -729,7 +729,22 @@ void PrinterPartsDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void PrinterPartsDialog::update_machine_obj(MachineObject* obj_)
 {
+    if (!obj_)
+    {
+        return;
+    }
     obj = obj_;
+
+    if (obj->is_series_o())
+    {
+        /*STUDIO-10089 there are only 0.2 stainless nozzle in O series*/
+        nozzle_stainless_diameter_map[0] = 0.2;
+    }
+    else
+    {
+        nozzle_stainless_diameter_map[0] = 0.2;
+        nozzle_stainless_diameter_map[1] = 0.4;
+    }
 }
 
 bool PrinterPartsDialog::Show(bool show)

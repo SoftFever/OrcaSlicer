@@ -629,6 +629,9 @@ public:
     std::string get_printer_ams_type() const;
     bool        get_printer_is_enclosed() const;
 
+    // check printer device series
+    bool is_series_o() const;
+
     void reload_printer_settings();
 
     std::string printer_thumbnail_img;

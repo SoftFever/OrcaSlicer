@@ -615,6 +615,12 @@ bool MachineObject::get_printer_is_enclosed() const
     return DeviceManager::get_printer_is_enclosed(printer_type);
 }
 
+bool MachineObject::is_series_o() const
+{
+    const std::string& series = DeviceManager::get_printer_series(printer_type);
+    return (series == "series_o");
+}
+
 void MachineObject::reload_printer_settings()
 {
     print_json.load_compatible_settings("", "");
