@@ -525,7 +525,7 @@ void ArrangeJob::process(Ctl &ctl)
 {
     static const auto arrangestr = _u8L("Arranging");
     ctl.update_status(0, arrangestr);
-    ctl.call_on_main_thread([this]{ prepare(); }).wait();;
+    ctl.call_on_main_thread([this]{ prepare(); }).wait();
 
     auto & partplate_list = m_plater->get_partplate_list();
 
@@ -775,7 +775,6 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.printable_height                    = print_config.printable_height.value;
     params.allow_rotations                     = settings.enable_rotation;
     params.nozzle_height                       = print_config.nozzle_height.value;
-    params.all_objects_are_short               = print.is_all_objects_are_short();
     params.align_center                        = print_config.best_object_pos.value;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;

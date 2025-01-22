@@ -612,7 +612,7 @@ RENDER_AGAIN:
 
     clicked |= m_imgui->get_last_slider_status().clicked;
     edited |= m_imgui->get_last_slider_status().edited;
-    deactivated |= m_imgui->get_last_slider_status().deactivated_after_edit;;
+    deactivated |= m_imgui->get_last_slider_status().deactivated_after_edit;
 
     // Following is a nasty way to:
     //  - save the initial value of the slider before one starts messing with it

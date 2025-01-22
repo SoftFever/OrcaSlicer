@@ -283,7 +283,7 @@ public:
             load_model(model_name);
             
             while (!m_ui_job->is_finalized())
-                wxTheApp->Yield();;
+                wxTheApp->Yield();
             
             int w, h;
             stream >> w >> h;

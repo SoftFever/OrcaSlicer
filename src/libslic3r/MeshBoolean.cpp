@@ -312,7 +312,7 @@ void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha =
 
     // create a property-map for segment-ids
     typedef _EpicMesh::Property_map<face_descriptor, std::size_t> Facet_int_map;
-    Facet_int_map segment_property_map = mesh.add_property_map<face_descriptor, std::size_t>("f:sid").first;;
+    Facet_int_map segment_property_map = mesh.add_property_map<face_descriptor, std::size_t>("f:sid").first;
     // segment the mesh using default parameters for number of levels, and smoothing lambda
     // Any other scalar values can be used instead of using SDF values computed using the CGAL function
     std::size_t number_of_segments = CGAL::segmentation_from_sdf_values(mesh, sdf_property_map, segment_property_map, segment_number, smoothing_alpha);

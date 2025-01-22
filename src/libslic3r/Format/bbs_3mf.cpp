@@ -2468,7 +2468,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (stat.m_uncomp_size > 0) {
             const std::string& temp_path = model.get_backup_path();
 
-            std::string dest_file = temp_path + std::string("/") + "_temp_3.config";;
+            std::string dest_file = temp_path + std::string("/") + "_temp_3.config";
             std::string dest_zip_file = encode_path(dest_file.c_str());
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
@@ -2497,7 +2497,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 src_file = src_file.substr(found + METADATA_STR_LEN);
             else
                 return;*/
-            std::string dest_file = m_backup_path + std::string("/") + "_temp_2.config";;
+            std::string dest_file = m_backup_path + std::string("/") + "_temp_2.config";
             std::string dest_zip_file = encode_path(dest_file.c_str());
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;

@@ -6,6 +6,7 @@
     "filament_id": "GFU99",
     "setting_id": "GFSR99",
     "instantiation": "true",
+    "description": "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",
     "filament_max_volumetric_speed": [
         "3.2"
     ],

@@ -533,6 +533,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Serial.hpp
     Utils/SerialMessageType.hpp
     Utils/SerialMessage.hpp
+    Utils/SerialMessageType.hpp
+    Utils/SerialMessage.hpp
     Utils/MKS.cpp
     Utils/MKS.hpp
     Utils/ESP3D.cpp

@@ -6767,7 +6767,7 @@ void GLCanvas3D::_picking_pass()
         case SceneRaycaster::EType::Bed:
         {
             // BBS: add plate picking logic
-            int plate_hover_id = PartPlate::PLATE_BASE_ID - hit.raycaster_id;
+            int plate_hover_id = hit.raycaster_id;
             if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
                 wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
                 m_hover_plate_idxs.emplace_back(plate_hover_id);
@@ -8927,7 +8927,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     return get_color_idx_for_tool_change(it, extruder);
             }
 
-            return std::min<int>(filaments_cnt - 1, std::max<int>(extruder - 1, 0));;
+            return std::min<int>(filaments_cnt - 1, std::max<int>(extruder - 1, 0));
         }
 
     private:

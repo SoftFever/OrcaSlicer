@@ -4,7 +4,11 @@
 #ifndef WIDENING_BEADING_STRATEGY_H
 #define WIDENING_BEADING_STRATEGY_H
 
+#include <string>
+#include <vector>
+
 #include "BeadingStrategy.hpp"
+#include "libslic3r/libslic3r.h"
 
 namespace Slic3r::Arachne
 {

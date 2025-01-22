@@ -7,6 +7,7 @@
 #include "SerialMessage.hpp"
 #include "SerialMessageType.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
+#include "TCPConsole.hpp"
 
 namespace Slic3r {
 class DynamicPrintConfig;

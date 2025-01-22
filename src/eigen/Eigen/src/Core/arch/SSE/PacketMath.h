@@ -611,7 +611,7 @@ template<> EIGEN_STRONG_INLINE int predux_mul<Packet4i>(const Packet4i& a)
   // TODO try to call _mm_mul_epu32 directly
   EIGEN_ALIGN16 int aux[4];
   pstore(aux, a);
-  return  (aux[0] * aux[1]) * (aux[2] * aux[3]);;
+  return  (aux[0] * aux[1]) * (aux[2] * aux[3]);
 }
 
 // min

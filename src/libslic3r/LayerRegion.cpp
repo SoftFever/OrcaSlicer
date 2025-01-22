@@ -480,7 +480,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     } else {
         // TODO: Maybe there is better solution when printing with zero perimeters, but this works reasonably well, given the situation
         shell_width   = float(SCALED_EPSILON);
-        expansion_min = float(SCALED_EPSILON);;
+        expansion_min = float(SCALED_EPSILON);
     }
 
     // Scaled expansions of the respective external surfaces.

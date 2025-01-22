@@ -18,7 +18,7 @@ void CalibrationStartPage::create_when(wxWindow* parent, wxString title, wxStrin
     m_when_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     m_when_title->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 
-    m_when_content = new Label(this, content);;
+    m_when_content = new Label(this, content);
     m_when_content->SetFont(Label::Body_14);
     m_when_content->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     m_when_content->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
