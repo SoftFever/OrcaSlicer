@@ -264,10 +264,9 @@ bool ExtrusionLine::is_contour() const
     return poly.is_clockwise();
 }
 
-double ExtrusionLine::area() const {
-    if (!this->is_closed)
-        return 0.;
-
+double ExtrusionLine::area() const
+{
+    assert(this->is_closed);
     double a = 0.;
     if (this->junctions.size() >= 3) {
         Vec2d p1 = this->junctions.back().p.cast<double>();
@@ -277,23 +276,7 @@ double ExtrusionLine::area() const {
             p1 = p2;
         }
     }
-
     return 0.5 * a;
-}
-
-Points to_points(const ExtrusionLine &extrusion_line) {
-    Points points;
-    points.reserve(extrusion_line.junctions.size());
-    for (const ExtrusionJunction &junction : extrusion_line.junctions)
-        points.emplace_back(junction.p);
-    return points;
-}
-
-BoundingBox get_extents(const ExtrusionLine &extrusion_line) {
-    BoundingBox bbox;
-    for (const ExtrusionJunction &junction : extrusion_line.junctions)
-        bbox.merge(junction.p);
-    return bbox;
 }
 
 } // namespace Slic3r::Arachne
