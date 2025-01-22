@@ -713,7 +713,7 @@ namespace Slic3r
         if (filament_sequences) {
             filament_sequences->clear();
             filament_sequences->resize(layer_filaments.size());
-            bool last_group = 0;
+            int last_group_id = 0;
             //if last_group == 0,print group 0 first ,else print group 1 first
             if (!custom_layer_sequence_map.empty()) {
                 const auto& first_layer = custom_layer_sequence_map.begin()->first;
@@ -721,7 +721,7 @@ namespace Slic3r
                 assert(!first_layer_filaments.empty());
 
                 bool first_group = groups[0].count(first_layer_filaments.front()) ? 0 : 1;
-                last_group = (first_layer & 1) ? !first_group : first_group;
+                last_group_id = (first_layer & 1) ? !first_group : first_group;
             }
 
             for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {
@@ -729,23 +729,28 @@ namespace Slic3r
                 if (custom_layer_sequence_map.find(layer) != custom_layer_sequence_map.end()) {
                     curr_layer_seq = custom_layer_sequence_map[layer];
                     if (!curr_layer_seq.empty()) {
-                        last_group = groups[0].count(curr_layer_seq.back()) ? 0 : 1;
+                        last_group_id = groups[0].count(curr_layer_seq.back()) ? 0 : 1;
                     }
                     continue;
                 }
-                if (last_group) {
-                    if (!layer_sequences[1].empty())
+                if (last_group_id == 1) {
+                    // try reuse the last group
+                    if (!layer_sequences[1].empty() && !layer_sequences[1][layer].empty())
                         curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
-                    if (!layer_sequences[0].empty())
+                    if (!layer_sequences[0].empty() && !layer_sequences[0][layer].empty()) {
                         curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
+                        last_group_id = 0; // update last group id
+                    }
                 }
-                else {
-                    if (!layer_sequences[0].empty())
+                else if(last_group_id == 0) {
+                    if (!layer_sequences[0].empty() && !layer_sequences[0][layer].empty()) {
                         curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[0][layer].begin(), layer_sequences[0][layer].end());
-                    if (!layer_sequences[1].empty())
+                    }
+                    if (!layer_sequences[1].empty() && !layer_sequences[1][layer].empty()) {
                         curr_layer_seq.insert(curr_layer_seq.end(), layer_sequences[1][layer].begin(), layer_sequences[1][layer].end());
+                        last_group_id = 1; // update last group id
+                    }
                 }
-                last_group = !last_group;
             }
         }
 
