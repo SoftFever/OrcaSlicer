@@ -2771,11 +2771,11 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
             left_to_right = !left_to_right;
         }
     } else {
-        result.wipe_path.push_back(writer.pos());
+        result.wipe_path.push_back(writer.pos_rotated());
         if (m_left_to_right) {
-            result.wipe_path.push_back(Vec2f(0, writer.y()));
+            result.wipe_path.push_back(Vec2f(0, writer.pos_rotated().y()));
         } else {
-            result.wipe_path.push_back(Vec2f(m_wipe_tower_width, writer.y()));
+            result.wipe_path.push_back(Vec2f(m_wipe_tower_width, writer.pos_rotated().y()));
         }
     }
 
@@ -2783,7 +2783,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
 
     result.start_pos = writer.start_pos_rotated();
     result.origin_start_pos = initial_position;
-    result.end_pos   = writer.pos();
+    result.end_pos   = writer.pos_rotated();
     result.gcode     = writer.gcode();
     return result;
 }
