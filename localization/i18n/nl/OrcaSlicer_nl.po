@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1274,9 +1274,6 @@ msgstr "Midden van rand"
 msgid "Center of circle"
 msgstr "Middelpunt van cirkel"
 
-msgid "ShiftLeft mouse button"
-msgstr ""
-
 msgid "Select feature"
 msgstr "Functie selecteren"
 
@@ -1292,18 +1289,25 @@ msgstr "Selectie herstarten"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
+msgid "Cancel a feature until exit"
 msgstr ""
 
 msgid "Measure"
 msgstr "Maatregel"
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
+
 msgid "Edit to scale"
 msgstr "Op schaal bewerken"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "Schalen"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "Geen"
@@ -1316,6 +1320,42 @@ msgstr "Lengte"
 
 msgid "Selection"
 msgstr "Selectie"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Kopieer naar klembord"
@@ -1331,6 +1371,27 @@ msgstr "Direct distance"
 
 msgid "Distance XYZ"
 msgstr "Distance XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2760,7 +2821,7 @@ msgstr ""
 msgid "About %s"
 msgstr "Over %s"
 
-msgid "Orca Slicer "
+msgid "Orca Slicer"
 msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
@@ -3597,9 +3658,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "De huidige kamertemperatuur is hoger dan de veilige temperatuur van het "
 "materiaal; dit kan leiden tot verzachting van het materiaal en verstoppingen "
@@ -5853,6 +5914,9 @@ msgstr ""
 msgid "Edit current plate name"
 msgstr ""
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr ""
 
@@ -6405,6 +6469,13 @@ msgstr "Reason: part \"%1%\" has self intersection."
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Reason: \"%1%\" and another part have no intersection."
+
+msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -7826,8 +7897,16 @@ msgstr "Mondstuk"
 msgid "Nozzle temperature when printing"
 msgstr "Mondstuk temperatuur tijdens printen"
 
-msgid "Cool plate"
-msgstr "Koudeplaat"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr "Cool (koud) printbed"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7835,6 +7914,14 @@ msgid ""
 msgstr ""
 "Dit is de bedtemperatuur wanneer de koelplaat is geïnstalleerd. Een waarde "
 "van 0 betekent dat het filament printen op de Cool Plate niet ondersteunt."
+
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering plate"
 msgstr "Engineering plaat"
@@ -8041,7 +8128,7 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "Limieten voor laaghoogte"
 
-msgid "Lift Z Enforcement"
+msgid "Z-Hop"
 msgstr ""
 
 msgid "Retraction when switching material"
@@ -9678,6 +9765,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Dit is de bedtemperatuur voor lagen, behalve voor de eerste. Een waarde van "
@@ -9706,10 +9798,20 @@ msgstr "Printbed temperatuur voor de eerste laag"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
 "Dit is de bedtemperatuur van de beginlaag. Een waarde van 0 betekent dat het "
 "filament printen op de Cool Plate niet ondersteunt."
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -9735,11 +9837,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Printbedden ondersteund door de printer"
 
-msgid "Cool Plate"
-msgstr "Cool (koud) printbed"
+msgid "Smooth Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Engineering plate (technisch printbed)"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "Afdrukvolgorde van de eerste laag"
@@ -10040,7 +10148,9 @@ msgstr ""
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
-"Value 0 enables reversal on every even layers regardless."
+"Value 0 enables reversal on every even layers regardless.\n"
+"When Detect overhang wall is not enabled, this option is ignored and "
+"reversal happens on every even layers regardless."
 msgstr ""
 
 msgid "Classic mode"
@@ -10664,7 +10774,7 @@ msgstr ""
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10689,6 +10799,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -11216,8 +11327,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Versnelling van de schaarse invulling. Als de waarde wordt uitgedrukt als "
 "een percentage (bijvoorbeeld 100%), wordt deze berekend op basis van de "
@@ -12340,6 +12451,14 @@ msgstr ""
 "Dit forceert retraction (terugtrekken van filament) als er gewisseld wordt "
 "van laag"
 
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
+
 msgid "Retraction Length"
 msgstr "Terugtrek (retraction) lengte"
 
@@ -12375,8 +12494,8 @@ msgstr ""
 "Experimental feature. Retraction length before cutting off during filament "
 "change"
 
-msgid "Z hop when retract"
-msgstr "Z hop tijdens terugtrekken (retraction)"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12407,6 +12526,9 @@ msgid ""
 msgstr ""
 "Als deze waarde positief is, treedt Z hop alleen in werking als Z boven de "
 "parameter ligt: \"Z hop ondergrens\" en onder deze waarde ligt"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr ""
@@ -13638,9 +13760,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -16555,6 +16677,16 @@ msgstr ""
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
 
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "Schalen"
+
+#~ msgid "Cool plate"
+#~ msgstr "Koudeplaat"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "Z hop tijdens terugtrekken (retraction)"
+
 #~ msgid "Reverse on odd"
 #~ msgstr "Overhang omkering"
 
@@ -16881,13 +17013,6 @@ msgstr ""
 
 #~ msgid "Failed to parse model informations."
 #~ msgstr "Failed to parse model information"
-
-#~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be exported."
-#~ msgstr ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be exported."
 
 #, boost-format
 #~ msgid ""
@@ -17222,11 +17347,11 @@ msgstr ""
 #~ msgstr "Debuggen level"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "Sets debug logging level. 0:fataal, 1:error, 2:waarschuwing, 3:info, 4:"
-#~ "debug, 5:trace\n"
+#~ "Sets debug logging level. 0:fataal, 1:error, 2:waarschuwing, 3:info, "
+#~ "4:debug, 5:trace\n"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"

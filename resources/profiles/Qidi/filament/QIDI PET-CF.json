@@ -28,10 +28,10 @@
       "0%"
     ],
     "overhang_fan_speed": [
-      "50"
+      "40"
     ],
     "fan_cooling_layer_time": [
-      "5"
+      "10"
     ],
     "full_fan_speed_layer": [
       "0"
@@ -49,7 +49,7 @@
   "80"
 ],
 "slow_down_layer_time": [
-  "5"
+  "8"
 ],
 "filament_density":[
   "1.30"
@@ -57,6 +57,9 @@
 "filament_flow_ratio": [
   "1"
 ],
+"slow_down_min_speed": [
+        "20"
+    ],
     "compatible_printers": [
       "Qidi X-Plus 0.4 nozzle",
       "Qidi X-Max 0.4 nozzle",

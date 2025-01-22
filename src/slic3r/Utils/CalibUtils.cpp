@@ -24,12 +24,14 @@ static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
-static std::string MachineBedTypeString[5] = {
+static std::string MachineBedTypeString[7] = {
     "auto",
+    "suprtack",
     "pc",
     "ep",
     "pei",
-    "pte"
+    "pte",
+    "pct",
 };
 
 
@@ -628,7 +630,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
             print_config.get_abs_value("layer_height"), 0)));
     
     for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
-        print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
+        print_config.set_key_value(opt.first, new ConfigOptionFloatOrPercent(nozzle_diameter * opt.second / 100, false));
     }
 
     for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) {

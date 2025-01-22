@@ -1851,6 +1851,26 @@ void PresetBundle::export_selections(AppConfig &config)
 }
 
 // BBS
+void PresetBundle::set_num_filaments(unsigned int n, std::vector<std::string> new_colors) {
+    int old_filament_count = this->filament_presets.size();
+    if (n > old_filament_count && old_filament_count != 0)
+        filament_presets.resize(n, filament_presets.back());
+    else {
+        filament_presets.resize(n);
+    }
+    ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+    filament_color->resize(n);
+    ams_multi_color_filment.resize(n);
+    // BBS set new filament color to new_color
+    if (old_filament_count < n) {
+        if (!new_colors.empty()) {
+            for (int i = old_filament_count; i < n; i++) {
+                filament_color->values[i] = new_colors[i - old_filament_count];
+            }
+        }
+    }
+    update_multi_material_filament_presets();
+}
 void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 {
     int old_filament_count = this->filament_presets.size();
@@ -4168,6 +4188,26 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
     sla_prints.set_default_suppressed(default_suppressed);
     sla_materials.set_default_suppressed(default_suppressed);
     printers.set_default_suppressed(default_suppressed);
+}
+
+bool PresetBundle::has_errors() const
+{
+    if (m_errors != 0 || printers.m_errors != 0 || filaments.m_errors != 0 || prints.m_errors != 0)
+        return true;
+
+    bool has_errors = false;
+    // Orca: check if all filament presets have compatible_printers setting
+    for (auto& preset : filaments) {
+        if (!preset.is_system)
+            continue;
+        auto* compatible_printers = dynamic_cast<const ConfigOptionStrings*>(preset.config.option("compatible_printers"));
+        if (compatible_printers == nullptr || compatible_printers->values.empty()) {
+            has_errors = true;
+            BOOST_LOG_TRIVIAL(error) << "Filament preset \"" << preset.file << "\" is missing compatible_printers setting";
+        }
+    }
+
+    return has_errors;
 }
 
 } // namespace Slic3r

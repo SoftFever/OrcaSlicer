@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
-"PO-Revision-Date: 2023-09-30 15:15+0200\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
+"PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
 "Language: cs_CZ\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.5\n"
 
 msgid "Supports Painting"
 msgstr "Malování podpěr"
@@ -1286,9 +1286,6 @@ msgstr "Střed hrany"
 msgid "Center of circle"
 msgstr "Střed kruhu"
 
-msgid "ShiftLeft mouse button"
-msgstr ""
-
 msgid "Select feature"
 msgstr "Vyberat objekt"
 
@@ -1304,18 +1301,25 @@ msgstr "Zrušit výběr"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
-msgstr "Zrušení výběru"
+msgid "Cancel a feature until exit"
+msgstr ""
 
 msgid "Measure"
 msgstr "Měření"
+
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
 
 msgid "Edit to scale"
 msgstr "Změna rozměru"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "Měřítko"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "Žádné"
@@ -1328,6 +1332,42 @@ msgstr "Vzdálenost"
 
 msgid "Selection"
 msgstr "Výběr"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Kopírovat do schránky"
@@ -1343,6 +1383,27 @@ msgstr "Přímá vzdálenost"
 
 msgid "Distance XYZ"
 msgstr "Vzdálenost XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2755,8 +2816,8 @@ msgstr ""
 msgid "About %s"
 msgstr "O %s"
 
-msgid "Orca Slicer "
-msgstr "Orca Slicer "
+msgid "Orca Slicer"
+msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr "OrcaSlicer je založen na BambuStudio, PrusaSlicer a SuperSlicer."
@@ -3563,9 +3624,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Aktuální teplota komory je vyšší než bezpečná teplota materiálu,může to "
 "způsobit změkčení materiálu a jeho ucpaní. Maximální bezpečná teplota pro "
@@ -5801,6 +5862,9 @@ msgstr "Zamknout aktuální podložku"
 msgid "Edit current plate name"
 msgstr ""
 
+msgid "Move plate to the front"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Přizpůsobit aktuální podložku"
 
@@ -5996,6 +6060,7 @@ msgstr "Opravte je prosím na kartách parametrů"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr ""
+"3mf má následující úpravy G-kódu v předvolbách filamentu nebo tiskárny:"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
@@ -6012,9 +6077,11 @@ msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"Potvrďte prosím, že G-kód v těchto předvolbách je bezpečný, aby nedošlo k "
+"poškození stroje!"
 
 msgid "Customized Preset"
-msgstr ""
+msgstr "Přizpůsobená Předvolba"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Názvy součástí v souboru kroku nejsou ve formátu UTF8!"
@@ -6335,6 +6402,13 @@ msgstr ""
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
+
+msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
+"Nelze provést logickou operaci nad mashí modelů. Budou exportovány pouze "
+"kladné části."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -7677,8 +7751,16 @@ msgstr "Tryska"
 msgid "Nozzle temperature when printing"
 msgstr "Teplota trysky při tisku"
 
-msgid "Cool plate"
-msgstr "Cool podložka"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr "Cool Podložka"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7686,6 +7768,14 @@ msgid ""
 msgstr ""
 "Toto je teplota podložky, když je Cool podložka. Hodnota 0 znamená, že "
 "filament nepodporuje tisk na Cool Podložku"
+
+msgid "Textured Cool plate"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
 
 msgid "Engineering plate"
 msgstr "Engineering podložka"
@@ -7889,8 +7979,8 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "Výškové limity vrstvy"
 
-msgid "Lift Z Enforcement"
-msgstr "Vynutit Zvednout Z"
+msgid "Z-Hop"
+msgstr ""
 
 msgid "Retraction when switching material"
 msgstr "Retrakce při změně materiálu"
@@ -9484,6 +9574,11 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Toto je teplota Podložky pro vrstvy kromě první. Hodnota 0 znamená, že "
@@ -9511,10 +9606,20 @@ msgstr "Teplota podložky první vrstvy"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
 "Toto je teplota podložky první vrstvy. Hodnota 0 znamená filament "
 "nepodporuje tisk na Cool Podložku"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -9540,11 +9645,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Typy podložek podporované tiskárnou"
 
-msgid "Cool Plate"
-msgstr "Cool Podložka"
+msgid "Smooth Cool Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Engineering Podložka"
+
+msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Textured Cool Plate"
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "Sekvence tisku první vrstvy"
@@ -9853,7 +9964,9 @@ msgstr "Hranice obrácení převisu"
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
-"Value 0 enables reversal on every even layers regardless."
+"Value 0 enables reversal on every even layers regardless.\n"
+"When Detect overhang wall is not enabled, this option is ignored and "
+"reversal happens on every even layers regardless."
 msgstr ""
 
 msgid "Classic mode"
@@ -10478,7 +10591,7 @@ msgstr "Předstih tlaku (Klipper) AKA Lineární faktor předstihu (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10503,6 +10616,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -11060,8 +11174,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Zrychlení vnitřní výplně. Pokud je hodnota vyjádřena v procentech (např. 100 "
 "%), bude vypočítána na základě výchozího zrychlení."
@@ -12244,6 +12358,14 @@ msgstr "Retrakce při změně vrstvy"
 msgid "Force a retraction when changes layer"
 msgstr "Vynutit retrakci při změně vrstvy"
 
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
+
 msgid "Retraction Length"
 msgstr "Vzdálenost retrakce"
 
@@ -12272,8 +12394,8 @@ msgid ""
 "change"
 msgstr ""
 
-msgid "Z hop when retract"
-msgstr "Z hop při retrakci"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12303,6 +12425,9 @@ msgid ""
 msgstr ""
 "Pokud je tato hodnota kladná, Z hop bude mít vliv pouze tehdy, pokud je "
 "hodnota Z nad dolní mezí Z hop a zároveň pod touto hodnotou"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr "Typ Z hop"
@@ -12644,18 +12769,20 @@ msgid "Enabled"
 msgstr "Povoleno"
 
 msgid "Skirt type"
-msgstr ""
+msgstr "Typ obrysu"
 
 msgid ""
 "Combined - single skirt for all objects, Per object - individual object "
 "skirt."
 msgstr ""
+"Kombinovaný - jeden obrys pro všechny objekty, Individuální - každý objekt "
+"má vlastní obrys."
 
 msgid "Combined"
-msgstr ""
+msgstr "Kombinovaný "
 
 msgid "Per object"
-msgstr ""
+msgstr "Individuální "
 
 msgid "Skirt loops"
 msgstr "Obrysové smyčky"
@@ -13551,9 +13678,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -14223,8 +14350,8 @@ msgstr "Podpěry: šíření větví na vrstvě %d"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
-"amf(.xml)"
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj "
+"nebo .amf(.xml)"
 
 msgid "Loading of a model file failed."
 msgstr "Nahrávání souboru modelu selhalo."
@@ -16273,6 +16400,25 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "Unselect"
+#~ msgstr "Zrušení výběru"
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "Měřítko"
+
+#~ msgid "Orca Slicer "
+#~ msgstr "Orca Slicer "
+
+#~ msgid "Cool plate"
+#~ msgstr "Cool podložka"
+
+#~ msgid "Lift Z Enforcement"
+#~ msgstr "Vynutit Zvednout Z"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "Z hop při retrakci"
+
 #~ msgid "Reverse on odd"
 #~ msgstr "Obrátit na lichých"
 
@@ -16646,13 +16792,6 @@ msgstr ""
 #~ msgid "Failed to parse model informations."
 #~ msgstr "Nepodařilo se zpracovat informace o modelu."
 
-#~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be exported."
-#~ msgstr ""
-#~ "Nelze provést logickou operaci nad mashí modelů. Budou exportovány pouze "
-#~ "kladné části."
-
 #, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"
@@ -16715,10 +16854,10 @@ msgstr ""
 #~ "3mf je generován starým Orca Slicerem, načtěte pouze geometrická data."
 
 #~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" option."
-#~ "Some extruders work better with this option unchecked (absolute extrusion "
-#~ "mode). Wipe tower is only compatible with relative mode. It is always "
-#~ "enabled on BambuLab printers. Default is checked"
+#~ "Relative extrusion is recommended when using \"label_objects\" "
+#~ "option.Some extruders work better with this option unchecked (absolute "
+#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
+#~ "always enabled on BambuLab printers. Default is checked"
 #~ msgstr ""
 #~ "Při použití volby \"label_objects\" se doporučuje relativní extruzi. "
 #~ "Některé extrudery fungují lépe, když je tato možnost odškrtnuta (režim "
@@ -17086,8 +17225,8 @@ msgstr ""
 #~ msgstr "Úroveň ladění"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
 #~ "Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, "
 #~ "4:debug, 5:sledovat\n"
@@ -17132,8 +17271,8 @@ msgstr ""
 #~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
 #~ "parsed.Please delete the file and try again."
 #~ msgstr ""
-#~ "Konfigurační soubor OrcaSlicer může být poškozen a nelze jej analyzovat."
-#~ "Smažte soubor a zkuste to znovu."
+#~ "Konfigurační soubor OrcaSlicer může být poškozen a nelze jej "
+#~ "analyzovat.Smažte soubor a zkuste to znovu."
 
 #~ msgid "Online Models"
 #~ msgstr "Online modely"

@@ -40,11 +40,11 @@
 		"0"
 	],
 	"thumbnails": [
-            "205x205/COLPIC",
-            "140x140/COLPIC",
-	    "110x110/PNG"
-        ],
-	"single_extruder_multi_material": "0",
+    "205x205/COLPIC",
+    "140x140/COLPIC",
+	"110x110/PNG"
+    ],
+	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
 	"default_filament_profile": [

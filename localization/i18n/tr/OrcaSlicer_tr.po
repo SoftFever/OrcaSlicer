@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-11 22:56+0800\n"
-"PO-Revision-Date: 2024-09-09 02:58+0300\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
+"PO-Revision-Date: 2024-10-01 22:31+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -1290,9 +1290,6 @@ msgstr "Kenarın merkezi"
 msgid "Center of circle"
 msgstr "Çemberin merkezi"
 
-msgid "ShiftLeft mouse button"
-msgstr "Shift + Sol fare düğmesi"
-
 msgid "Select feature"
 msgstr "Özellik seçin"
 
@@ -1300,7 +1297,7 @@ msgid "Select point"
 msgstr "Nokta seç"
 
 msgid "Delete"
-msgstr "Delete"
+msgstr "Sil"
 
 msgid "Restart selection"
 msgstr "Seçimi sıfırla"
@@ -1308,18 +1305,25 @@ msgstr "Seçimi sıfırla"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
-msgstr "Seçimi kaldır"
+msgid "Cancel a feature until exit"
+msgstr ""
 
 msgid "Measure"
 msgstr "Ölçüm"
+
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
 
 msgid "Edit to scale"
 msgstr "Ölçeğe göre düzenleyin"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "Ölçek"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "Hiçbiri"
@@ -1332,6 +1336,42 @@ msgstr "Uzunluk"
 
 msgid "Selection"
 msgstr "Seçim"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Panoya kopyala"
@@ -1347,6 +1387,27 @@ msgstr "Doğrudan mesafe"
 
 msgid "Distance XYZ"
 msgstr "Uzaklık XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -1894,13 +1955,13 @@ msgid "Invalidate cut info"
 msgstr "Kesim bilgisini geçersiz kıl"
 
 msgid "Add Primitive"
-msgstr "Şekil Ekle"
+msgstr "Şekil ekle"
 
 msgid "Add Handy models"
-msgstr "Pratik Modeller Ekle"
+msgstr "Pratik model ekle"
 
 msgid "Add Models"
-msgstr "Model Ekle"
+msgstr "Model ekle"
 
 msgid "Show Labels"
 msgstr "Etiketleri Göster"
@@ -1948,7 +2009,7 @@ msgid "arrange current plate"
 msgstr "Mevcut plakayı hizala"
 
 msgid "Reload All"
-msgstr "Tümünü Yeniden Yükle"
+msgstr "Tümünü yeniden yükle"
 
 msgid "reload all from disk"
 msgstr "Hepsini diskten yeniden yükle"
@@ -1960,7 +2021,7 @@ msgid "auto rotate current plate"
 msgstr "Geçerli plakayı otomatik döndürme"
 
 msgid "Delete Plate"
-msgstr "Plakayı Sil"
+msgstr "Plakayı sil"
 
 msgid "Remove the selected plate"
 msgstr "Seçilen plakayı kaldır"
@@ -1996,7 +2057,7 @@ msgid "Lock"
 msgstr "Kilitle"
 
 msgid "Edit Plate Name"
-msgstr "Plaka Adını Düzenle"
+msgstr "Plaka adını düzenle"
 
 msgid "Name"
 msgstr "İsim"
@@ -2528,7 +2589,7 @@ msgid ""
 "bed:\n"
 "%s"
 msgstr ""
-"Hizalama tek tablaya sığmayan aşağıdaki nesneler göz ardı edildi:\n"
+"Hizalama tek plakaya sığmayan aşağıdaki nesneler göz ardı edildi:\n"
 "%s"
 
 msgid ""
@@ -2760,8 +2821,8 @@ msgstr ""
 msgid "About %s"
 msgstr "Hakkında %s"
 
-msgid "Orca Slicer "
-msgstr "Orca Dilimleyici "
+msgid "Orca Slicer"
+msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr "OrcaSlicer, BambuStudio, PrusaSlicer ve SuperSlicer'ı temel alır."
@@ -3587,9 +3648,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Mevcut hazne sıcaklığı malzemenin güvenli sıcaklığından yüksektir, "
 "malzemenin yumuşamasına ve tıkanmasına neden olabilir Malzeme için maksimum "
@@ -4750,10 +4811,10 @@ msgid "Clone copies of selections"
 msgstr "Seçimlerin kopyalarını kopyala"
 
 msgid "Duplicate Current Plate"
-msgstr ""
+msgstr "Geçerli plakayı çoğalt"
 
 msgid "Duplicate the current plate"
-msgstr ""
+msgstr "Geçerli plakayı çoğalt"
 
 msgid "Select all"
 msgstr "Hepsini seç"
@@ -5842,25 +5903,28 @@ msgid "Material settings"
 msgstr "Malzeme ayarları"
 
 msgid "Remove current plate (if not last one)"
-msgstr "Mevcut tablayı kaldırın (eğer sonuncusu değilse)"
+msgstr "Mevcut plakayı kaldırın (eğer sonuncusu değilse)"
 
 msgid "Auto orient objects on current plate"
-msgstr "Mevcut tablada nesneleri otomatik olarak oryante et"
+msgstr "Mevcut plakada nesneleri otomatik olarak oryante et"
 
 msgid "Arrange objects on current plate"
-msgstr "Mevcut tablada nesneleri düzenle"
+msgstr "Mevcut plakada nesneleri düzenle"
 
 msgid "Unlock current plate"
-msgstr "Mevcut tablanın kilidini aç"
+msgstr "Mevcut plakanın kilidini aç"
 
 msgid "Lock current plate"
-msgstr "Mevcut tablayı kilitle"
+msgstr "Mevcut plakayı kilitle"
 
 msgid "Edit current plate name"
-msgstr "Mevcut tabla adını düzenle"
+msgstr "Mevcut plaka adını düzenle"
+
+msgid "Move plate to the front"
+msgstr "Plakayı öne doğru hareket ettirin"
 
 msgid "Customize current plate"
-msgstr "Mevcut tablayı özelleştir"
+msgstr "Mevcut plakayı özelleştir"
 
 #, boost-format
 msgid " plate %1%:"
@@ -6405,6 +6469,13 @@ msgstr "Sebep: “%1%” kısmında kendi kendine kesişme var."
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Sebep: “%1%” ile başka bir parçanın kesişimi yok."
+
+msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
+"Model ağlarında boole işlemi gerçekleştirilemiyor. Yalnızca pozitif parçalar "
+"ihraç edilecektir."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -7798,8 +7869,16 @@ msgstr "Nozul"
 msgid "Nozzle temperature when printing"
 msgstr "Yazdırma sırasında nozul sıcaklığı"
 
-msgid "Cool plate"
-msgstr "Soğuk plaka"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr "Soğuk Plaka"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7807,6 +7886,16 @@ msgid ""
 msgstr ""
 "Soğutma plakası takıldığında yatak sıcaklığı. 0 değeri, filamentin Cool "
 "Plate üzerine yazdırmayı desteklemediği anlamına gelir"
+
+msgid "Textured Cool plate"
+msgstr "Dokulu Soğuk Plaka"
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Textured Cool Plate"
+msgstr ""
+"Soğuk plaka takıldığında yatak sıcaklığı. 0 Değeri, filamentin Dokulu Soğuk "
+"Plaka üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid "Engineering plate"
 msgstr "Mühendislik plakası"
@@ -7877,7 +7966,7 @@ msgstr ""
 "maksimum olacaktır"
 
 msgid "Auxiliary part cooling fan"
-msgstr "Yardımcı Parça Soğutma Fanı"
+msgstr "Yardımcı parça soğutma fanı"
 
 msgid "Exhaust fan"
 msgstr "Egzos Fanı"
@@ -7907,7 +7996,7 @@ msgid "Toolchange parameters with multi extruder MM printers"
 msgstr "Çoklu Ekstruder MM Yazıcılarda Araç Değiştirme Parametreleri"
 
 msgid "Printable space"
-msgstr "Tabla Ayarı"
+msgstr "Plaka Ayarı"
 
 #. TRN: First argument is parameter name, the second one is the value.
 #, boost-format
@@ -8016,8 +8105,8 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "Katman Yüksekliği Sınırları"
 
-msgid "Lift Z Enforcement"
-msgstr "Z Kaldırma Uygulaması"
+msgid "Z-Hop"
+msgstr ""
 
 msgid "Retraction when switching material"
 msgstr "Malzemeyi Değiştirirken Geri Çekme"
@@ -9690,6 +9779,13 @@ msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
+"filament does not support to print on the Textured Cool Plate"
+msgstr ""
+"İlk katman dışındaki katmanlar için yatak sıcaklığı. 0 Değeri, filamentin "
+"Dokulu Soğuk Plaka üzerine yazdırmayı desteklemediği anlamına gelir."
+
+msgid ""
+"Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "İlk katman dışındaki katmanlar için yatak sıcaklığı. Değer 0, filamentin "
@@ -9717,10 +9813,22 @@ msgstr "İlk katman yatak sıcaklığı"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
 "İlk katmanın yatak sıcaklığı. 0 değeri, filamentin Cool Plate üzerine "
 "yazdırmayı desteklemediği anlamına gelir"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Textured Cool Plate"
+msgstr ""
+"İlk katmanın yatak sıcaklığı. 0 Değeri, filamentin Dokulu Soğuk Plaka "
+"üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -9746,11 +9854,17 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Yazıcının desteklediği yatak türleri"
 
-msgid "Cool Plate"
-msgstr "Soğuk Plaka"
+msgid "Smooth Cool Plate"
+msgstr "Pürüzsüz Soğuk Plaka"
 
 msgid "Engineering Plate"
 msgstr "Mühendislik Plakası"
+
+msgid "Smooth High Temp Plate"
+msgstr "Pürüzsüz Yüksek Sıcaklık Plaka"
+
+msgid "Textured Cool Plate"
+msgstr "Dokulu Soğuk Plaka"
 
 msgid "First layer print sequence"
 msgstr "İlk katman yazdırma sırası"
@@ -10052,7 +10166,7 @@ msgstr ""
 "yolları (perimeter) oluşturun. "
 
 msgid "Reverse on even"
-msgstr ""
+msgstr "Çiftleri ters çevirin"
 
 msgid "Overhang reversal"
 msgstr "Çıkıntıyı tersine çevir"
@@ -10065,6 +10179,12 @@ msgid ""
 "This setting can also help reduce part warping due to the reduction of "
 "stresses in the part walls."
 msgstr ""
+"Eşit katmanlarda ters yönde bir çıkıntının üzerinde bir kısmı bulunan "
+"çevreleri ekstrüde edin. Bu alternatif desen, dik çıkıntıları büyük ölçüde "
+"iyileştirebilir.\n"
+"\n"
+"Bu ayar aynı zamanda parça duvarlarındaki gerilimin azalması nedeniyle "
+"parçanın bükülmesinin azaltılmasına da yardımcı olabilir."
 
 msgid "Reverse only internal perimeters"
 msgstr "Yalnızca iç çevreleri ters çevir"
@@ -10083,6 +10203,18 @@ msgid ""
 "Reverse Threshold to 0 so that all internal walls print in alternating "
 "directions on even layers irrespective of their overhang degree."
 msgstr ""
+"Ters çevre mantığını yalnızca iç çevrelere uygulayın. \n"
+"\n"
+"Bu ayar, parçalar artık farklı yönlerde dağıtıldığından parça gerilimlerini "
+"büyük ölçüde azaltır. Bu, dış duvar kalitesini korurken parçanın bükülmesini "
+"de azaltacaktır. Bu özellik, ABS/ASA gibi eğrilmeye yatkın malzemeler ve "
+"ayrıca TPU ve İpek PLA gibi elastik filamentler için çok faydalı olabilir. "
+"Ayrıca destekler üzerindeki yüzen bölgelerdeki bükülmenin azaltılmasına da "
+"yardımcı olabilir.\n"
+"\n"
+"Bu ayarın en etkili olması için, Ters Eşiğin 0’a ayarlanması önerilir; "
+"böylece tüm iç duvarlar, çıkıntı derecelerine bakılmaksızın eşit katmanlara "
+"alternatif yönlerde yazdırılır."
 
 msgid "Bridge counterbore holes"
 msgstr "Köprü havşa delikleri"
@@ -10117,7 +10249,9 @@ msgstr "Çıkıntıyı tersine çevirme eşiği"
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
-"Value 0 enables reversal on every even layers regardless."
+"Value 0 enables reversal on every even layers regardless.\n"
+"When Detect overhang wall is not enabled, this option is ignored and "
+"reversal happens on every even layers regardless."
 msgstr ""
 
 msgid "Classic mode"
@@ -10701,6 +10835,14 @@ msgid ""
 "\n"
 "This option will be disabled if spiral vase mode is enabled."
 msgstr ""
+"Yukarıdan aşağıya bakıldığında duvar döngülerinin ekstrüzyona uğradığı yön.\n"
+"\n"
+"Çift yönlü ters çevirme seçeneği etkinleştirilmediği sürece, varsayılan "
+"olarak tüm duvarlar saat yönünün tersine ekstrüde edilir. Bunu Otomatik "
+"dışında herhangi bir seçeneğe ayarlayın, Ters çevirmeden bağımsız olarak "
+"duvar yönünü eşit olarak zorlayacaktır.\n"
+"\n"
+"Spiral vazo modu etkinse bu seçenek devre dışı bırakılacaktır."
 
 msgid "Counter clockwise"
 msgstr "Saat yönünün tersine"
@@ -10868,7 +11010,7 @@ msgstr "Basınç avansı (Klipper) Doğrusal ilerleme faktörü (Marlin)"
 msgid "Enable adaptive pressure advance (beta)"
 msgstr "Uyarlanabilir basınç ilerlemesini etkinleştir (beta)"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through "
 "the nozzle) and increasing accelerations, it has been observed that the "
@@ -10910,6 +11052,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Uyarlanabilir basınç ilerleme ölçümleri (beta)"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -11544,8 +11687,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² veya %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Seyrek dolgunun hızlandırılması. Değer yüzde olarak ifade edilirse (örn. "
 "%100), varsayılan ivmeye göre hesaplanacaktır."
@@ -11945,18 +12088,18 @@ msgid "Klipper"
 msgstr "Klipper"
 
 msgid "Pellet Modded Printer"
-msgstr "Pelet Modlu Yazıcı"
+msgstr "Pelet modlu yazıcı"
 
 msgid "Enable this option if your printer uses pellets instead of filaments"
 msgstr ""
 "Yazıcınız filament yerine pellet kullanıyorsa bu seçeneği etkinleştirin"
 
 msgid "Support multi bed types"
-msgstr "Çoklu tabla"
+msgstr "Çoklu plaka"
 
 msgid "Enable this option if you want to use multiple bed types"
 msgstr ""
-"Birden fazla tabla tipi kullanmak istiyorsanız bu seçeneği etkinleştirin"
+"Birden fazla plaka tipi kullanmak istiyorsanız bu seçeneği etkinleştirin"
 
 msgid "Label objects"
 msgstr "Nesneleri etiketle"
@@ -12816,6 +12959,14 @@ msgstr "Katman değişiminde geri çek"
 msgid "Force a retraction when changes layer"
 msgstr "Katmanı değiştirdiğinde geri çekilmeyi zorla"
 
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
+
 msgid "Retraction Length"
 msgstr "Geri Çekme Uzunluğu"
 
@@ -12850,8 +13001,8 @@ msgstr ""
 "Deneysel özellik.Filament değişimi sırasında kesilmeden önce geri çekilme "
 "uzunluğu"
 
-msgid "Z hop when retract"
-msgstr "Geri çekme esnasında Z sıçraması"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12883,6 +13034,9 @@ msgstr ""
 "Bu değer pozitifse, Z sıçraması yalnızca Z parametresinin üzerinde olduğunda "
 "etkinleşir: \"Z sıçrama alt sınırı\" parametresinin üzerinde ve bu değerin "
 "altında olduğunda"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr "Z sıçraması türü"
@@ -12969,7 +13123,7 @@ msgid "Speed of retractions"
 msgstr "Geri çekme hızları"
 
 msgid "De-retraction Speed"
-msgstr "İleri itme Hızı"
+msgstr "İleri itme hızı"
 
 msgid ""
 "Speed for reloading filament into extruder. Zero means same speed with "
@@ -13554,7 +13708,7 @@ msgid ""
 msgstr ""
 "Bu değer, çıkış G-kodu içindeki tüm Z koordinatlarına eklenir (veya "
 "çıkarılır).Bu, kötü Z endstop konumunu telafi etmek için kullanılır: "
-"örneğin, endstop sıfır noktanız aslında nozulu baskı tablasından 0.3mm "
+"örneğin, endstop sıfır noktanız aslında nozulu baskı plakasından 0.3mm "
 "uzakta bırakıyorsa, bu değeri -0.3 olarak ayarlayın (veya endstop'unuzu "
 "düzeltin)."
 
@@ -14281,9 +14435,9 @@ msgid "Idle temperature"
 msgstr "Boşta sıcaklık"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 "Alet şu anda çoklu alet kurulumlarında kullanılmadığında püskürtme ucu "
 "sıcaklığı. Bu yalnızca Yazdırma Ayarlarında ‘Sızıntı önleme’ etkin olduğunda "
@@ -17307,6 +17461,38 @@ msgstr ""
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
 
+#~ msgid "ShiftLeft mouse button"
+#~ msgstr "Shift + Sol fare düğmesi"
+
+#~ msgid "Unselect"
+#~ msgstr "Seçimi kaldır"
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "Ölçek"
+
+#~ msgid "Orca Slicer "
+#~ msgstr "Orca Dilimleyici "
+
+#~ msgid "Cool plate"
+#~ msgstr "Soğuk plaka"
+
+#~ msgid "Lift Z Enforcement"
+#~ msgstr "Z Kaldırma Uygulaması"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "Geri çekme esnasında Z sıçraması"
+
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Number of mm the overhang need to be for the reversal to be considered "
+#~ "useful. Can be a % of the perimeter width.\n"
+#~ "Value 0 enables reversal on every even layers regardless."
+#~ msgstr ""
+#~ "Ters çevirmenin faydalı sayılması için çıkıntının mm sayısı olması "
+#~ "gerekir. Çevre genişliğinin %’si olabilir.\n"
+#~ "0 değeri ne olursa olsun her çift katmanda ters çevirmeyi mümkün kılar."
+
 #~ msgid "Reverse on odd"
 #~ msgstr "Tersine çevir"
 
@@ -18133,13 +18319,6 @@ msgstr ""
 #~ msgid "File not exists."
 #~ msgstr "Dosya mevcut değil."
 
-#~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be exported."
-#~ msgstr ""
-#~ "Model ağlarında boole işlemi gerçekleştirilemiyor. Yalnızca pozitif "
-#~ "parçalar ihraç edilecektir."
-
 #, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"
@@ -18335,10 +18514,10 @@ msgstr ""
 #~ msgstr "wiki"
 
 #~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" option."
-#~ "Some extruders work better with this option unchecked (absolute extrusion "
-#~ "mode). Wipe tower is only compatible with relative mode. It is always "
-#~ "enabled on BambuLab printers. Default is checked"
+#~ "Relative extrusion is recommended when using \"label_objects\" "
+#~ "option.Some extruders work better with this option unchecked (absolute "
+#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
+#~ "always enabled on BambuLab printers. Default is checked"
 #~ msgstr ""
 #~ "\"label_objects\" seçeneği kullanılırken göreceli ekstrüzyon önerilir. "
 #~ "Bazı ekstruderler bu seçeneğin işareti kaldırıldığında (mutlak ekstrüzyon "
@@ -18738,11 +18917,11 @@ msgstr ""
 #~ msgstr "Hata ayıklama düzeyi"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "Hata ayıklama günlüğü düzeyini ayarlar. 0:önemli, 1:hata, 2:uyarı, 3:"
-#~ "bilgi, 4:hata ayıklama, 5:izleme\n"
+#~ "Hata ayıklama günlüğü düzeyini ayarlar. 0:önemli, 1:hata, 2:uyarı, "
+#~ "3:bilgi, 4:hata ayıklama, 5:izleme\n"
 
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."

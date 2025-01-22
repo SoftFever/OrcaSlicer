@@ -84,7 +84,11 @@ std::vector<Slic3r::ColorRGBA> get_extruders_colors()
 
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
-float FULL_BLACK_THRESHOLD = 0.18f;
+// Be careful changing this value because it could break thumbnail color due to rounding error!
+// The color rendering on BambuLab's "send to printer" screen relies on the assumption that this color can be accurately rendered by OpenGL,
+// value like 0.18f could not because in C++ (int)(0.18f * 255) == 45 however in OpenGL it renders this as 46
+// which breaks the `SelectMachineDialog::record_edge_pixels_data()` function!
+float FULL_BLACK_THRESHOLD = 0.2f;
 
 Slic3r::ColorRGBA adjust_color_for_rendering(const Slic3r::ColorRGBA &colors)
 {
@@ -671,12 +675,13 @@ std::vector<int> GLVolumeCollection::load_object(
     int                      obj_idx,
     const std::vector<int>  &instance_idxs,
     const std::string       &color_by,
-    bool 					 opengl_initialized)
+    bool 					 opengl_initialized,
+    bool                    need_raycaster)
 {
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized));
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized, false, false, need_raycaster));
     return volumes_idx;
 }
 
@@ -689,7 +694,8 @@ int GLVolumeCollection::load_object_volume(
     const std::string   &color_by,
     bool 				 opengl_initialized,
     bool                 in_assemble_view,
-    bool                 use_loaded_id)
+    bool                 use_loaded_id,
+    bool                 need_raycaster)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
@@ -707,7 +713,7 @@ int GLVolumeCollection::load_object_volume(
     v.model.init_from(mesh, true);
 #else
     v.model.init_from(*mesh);
-    v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(mesh);
+    if (need_raycaster) { v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(mesh); }
 #endif // ENABLE_SMOOTH_NORMALS
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
 

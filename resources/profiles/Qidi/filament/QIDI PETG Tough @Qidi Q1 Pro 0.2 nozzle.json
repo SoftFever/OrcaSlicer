@@ -22,7 +22,7 @@
     "is_custom_defined": "0",
     "name": "QIDI PETG Tough @Qidi Q1 Pro 0.2 nozzle",
     "overhang_fan_speed": [
-        "100"
+        "90"
     ],
     "pressure_advance": [
         "0.04"

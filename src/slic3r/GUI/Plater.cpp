@@ -1284,21 +1284,24 @@ void Sidebar::update_all_preset_comboboxes()
 
     //p->m_staticText_filament_settings->Update();
 
-
     if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
         m_bed_type_list->Enable();
-        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
-                                                                       "curr_bed_type");
-        if (!str_bed_type.empty()) {
-            int bed_type_value = atoi(str_bed_type.c_str());
-            if (bed_type_value == 0)
-                bed_type_value = 1;
-            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
-        } else {
-            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-            m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+        // Orca: don't update bed type if loading project
+        if (!p->plater->is_loading_project()) {
+            auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                                           "curr_bed_type");
+            if (!str_bed_type.empty()) {
+                int bed_type_value = atoi(str_bed_type.c_str());
+                if (bed_type_value == 0)
+                    bed_type_value = 1;
+                m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+            } else {
+                BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+                m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+            }
         }
     } else {
+        // Orca: combobox don't have the btDefault option, so we need to -1
         m_bed_type_list->SelectAndNotify(btPEI - 1);
         m_bed_type_list->Disable();
     }
@@ -4393,7 +4396,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             cur_plate->translate_all_instance(new_origin - cur_origin);
         }
+        view3D->get_canvas3d()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
         partplate_list.reset_size(current_width, current_depth, current_height, true, true);
+        partplate_list.register_raycasters_for_picking(*view3D->get_canvas3d());
     }
 
     //BBS: add gcode loading logic in the end
@@ -4765,7 +4770,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     wxString out_path = dlg.GetPath();
     fs::path path(into_path(out_path));
 #ifdef __WXMSW__
-    if (path.extension() != output_file.extension()) {
+    if (boost::iequals(path.extension().string(), output_file.extension().string()) == false) {
         out_path += output_file.extension().string();
         boost::system::error_code ec;
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
@@ -5969,6 +5974,11 @@ void Plater::priv::reload_from_disk()
                             }
                         }
                         if (found) break;
+                        // BBS: step model,object loaded as a volume. GUI_ObfectList.cpp load_modifier()
+                        if (obj->name == old_volume->name) {
+                            new_object_idx = (int) o;
+                            break;
+                        }
                     }
                 }
 
@@ -5977,22 +5987,30 @@ void Plater::priv::reload_from_disk()
                     continue;
                 }
                 ModelObject *new_model_object = new_model.objects[new_object_idx];
-                if (new_volume_idx < 0 || int(new_model_object->volumes.size()) <= new_volume_idx) {
+                if (int(new_model_object->volumes.size()) <= new_volume_idx) {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
 
-                old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
-                ModelVolume *new_volume = old_model_object->volumes.back();
+                ModelVolume *new_volume = nullptr;
+                // BBS: step model
+                if (new_volume_idx < 0 && new_object_idx >= 0) {
+                    TriangleMesh mesh = new_model_object->mesh();
+                    new_volume = old_model_object->add_volume(std::move(mesh));
+                    new_volume->name  = new_model_object->name;
+                    new_volume->source.input_file = new_model_object->input_file;
+                }else {
+                    new_volume = old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
+                    // new_volume = old_model_object->volumes.back();
+                }
+                
                 new_volume->set_new_unique_id();
                 new_volume->config.apply(old_volume->config);
                 new_volume->set_type(old_volume->type());
                 new_volume->set_material_id(old_volume->material_id());
 
-                Transform3d transform = Transform3d::Identity();
-                transform.translate(new_volume->source.mesh_offset - old_volume->source.mesh_offset);
-                new_volume->set_transformation(old_volume->get_transformation().get_matrix() * old_volume->source.transform.get_matrix_no_offset() *
-                                               transform * new_volume->source.transform.get_matrix_no_offset().inverse());
+                new_volume->source.mesh_offset = old_volume->source.mesh_offset;
+                new_volume->set_transformation(old_volume->get_transformation());
 
                 new_volume->source.object_idx = old_volume->source.object_idx;
                 new_volume->source.volume_idx = old_volume->source.volume_idx;
@@ -9384,7 +9402,8 @@ void Plater::add_model(bool imperial_units, std::string fname)
     if (!load_files(paths, strategy, ask_multi).empty()) {
 
         if (get_project_name() == _L("Untitled") && paths.size() > 0) {
-            p->set_project_filename(wxString::FromUTF8(paths[0].string()));
+            boost::filesystem::path full_path(paths[0].string());
+            p->set_project_name(from_u8(full_path.stem().string()));
         }
 
         wxGetApp().mainframe->update_title();
@@ -9722,7 +9741,17 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
         obj_name = obj_name.substr(9);
         if (obj_name[0] == 'm')
             obj_name[0] = '-';
-        auto modifier = stof(obj_name);
+        // Orca: force set locale to C to avoid parsing error
+        const std::string _loc = std::setlocale(LC_NUMERIC, nullptr);
+        std::setlocale(LC_NUMERIC,"C");
+        auto              modifier  = 1.0f;
+        try {
+            modifier = stof(obj_name);
+        } catch (...) {
+        }
+        // restore locale
+        std::setlocale(LC_NUMERIC, _loc.c_str());
+
         if(linear)
             _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowrate + modifier)/cur_flowrate));
         else
@@ -10115,6 +10144,10 @@ void Plater::load_gcode(const wxString& filename)
         set_project_filename(filename);
     }
 
+    // Orca: Fix crash when loading gcode file multiple times
+    if (m_only_gcode) {
+        p->view3D->get_canvas3d()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
+    }
 }
 
 void Plater::reload_gcode_from_disk()
@@ -10248,7 +10281,7 @@ bool Plater::preview_zip_archive(const boost::filesystem::path& archive_path)
                             std::replace(name.begin(), name.end(), '\\', '/');
                             // rename if file exists
                             std::string filename = path.filename().string();
-                            std::string extension = boost::filesystem::extension(path);
+                            std::string extension = path.extension().string();
                             std::string just_filename = filename.substr(0, filename.size() - extension.size());
                             std::string final_filename = just_filename;
 
@@ -10848,7 +10881,7 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : normal_paths) {
-            if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
+            if (boost::iends_with(path.filename().string(), ".3mf")){
                 if (first_file.size() <= 0)
                     first_file.push_back(path);
                 else
@@ -10928,7 +10961,9 @@ int Plater::get_3mf_file_count(std::vector<fs::path> paths)
 {
     auto count = 0;
     for (const auto &path : paths) {
-        if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) count++;
+        if (boost::iends_with(path.filename().string(), ".3mf")) {
+            count++;
+        }
     }
     return count;
 }
@@ -10978,8 +11013,8 @@ void Plater::add_file()
         Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
-                p->set_project_filename(wxString::FromUTF8(paths[0].string()));
-
+                boost::filesystem::path full_path(paths[0].string());
+                p->set_project_name(from_u8(full_path.stem().string()));
             }
             wxGetApp().mainframe->update_title();
         }
@@ -10999,7 +11034,8 @@ void Plater::add_file()
         Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
-                p->set_project_filename(wxString::FromUTF8(paths[0].string()));
+                boost::filesystem::path full_path(paths[0].string());
+                p->set_project_name(from_u8(full_path.stem().string()));
             }
             wxGetApp().mainframe->update_title();
         }
@@ -11007,7 +11043,7 @@ void Plater::add_file()
     }
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : paths) {
-            if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
+            if (boost::iends_with(path.filename().string(), ".3mf")) {
                 if (first_file.size() <= 0)
                     first_file.push_back(path);
                 else
@@ -11671,14 +11707,37 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
     }
 
     // Following lambda generates a combined mesh for export with normals pointing outwards.
-    auto mesh_to_export_fff_no_boolean = [](const ModelObject &mo, int instance_id) {
+    auto mesh_to_export_fff_no_boolean = [this](const ModelObject &mo, int instance_id) {
         TriangleMesh mesh;
-        for (const ModelVolume *v : mo.volumes)
-            if (v->is_model_part()) {
-                TriangleMesh vol_mesh(v->mesh());
-                vol_mesh.transform(v->get_matrix(), true);
-                mesh.merge(vol_mesh);
-            }
+
+        //Prusa export negative parts
+        std::vector<csg::CSGPart> csgmesh;
+        csgmesh.reserve(2 * mo.volumes.size());
+        csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
+                              csg::mpartsPositive | csg::mpartsNegative | csg::mpartsDoSplits);
+
+        auto csgrange = range(csgmesh);
+        if (csg::is_all_positive(csgrange)) {
+            mesh = TriangleMesh{csg::csgmesh_merge_positive_parts(csgrange)};
+        } else if (std::get<2>(csg::check_csgmesh_booleans(csgrange)) == csgrange.end()) {
+            try {
+                auto cgalm = csg::perform_csgmesh_booleans(csgrange);
+                mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*cgalm);
+            } catch (...) {}
+        }
+
+        if (mesh.empty()) {
+            get_notification_manager()->push_plater_error_notification(
+                _u8L("Unable to perform boolean operation on model meshes. "
+                     "Only positive parts will be exported."));
+
+            for (const ModelVolume* v : mo.volumes)
+                if (v->is_model_part()) {
+                    TriangleMesh vol_mesh(v->mesh());
+                    vol_mesh.transform(v->get_matrix(), true);
+                    mesh.merge(vol_mesh);
+                }
+        }
         if (instance_id == -1) {
             TriangleMesh vols_mesh(mesh);
             mesh = TriangleMesh();
@@ -12309,7 +12368,6 @@ void Plater::reslice()
         // Post the "complete" callback message, so that it will slice the next plate soon
         wxQueueEvent(this, evt.Clone());
         p->m_is_slicing = true;
-        this->SetDropTarget(nullptr);
         if (p->m_cur_slice_plate == 0)
             reset_gcode_toolpaths();
         return;
@@ -12317,7 +12375,6 @@ void Plater::reslice()
 
     if (result) {
         p->m_is_slicing = true;
-        this->SetDropTarget(nullptr);
     }
 
     bool clean_gcode_toolpaths = true;
@@ -13382,8 +13439,10 @@ void Plater::clone_selection()
     }
     Selection& selection = p->get_selection();
     selection.clone(res);
-    if (wxGetApp().app_config->get("auto_arrange") == "true")
+    if (wxGetApp().app_config->get("auto_arrange") == "true") {
+        this->set_prepare_state(Job::PREPARE_STATE_MENU);
         this->arrange();
+    }
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
@@ -13986,7 +14045,18 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
             ret = -1;
         }
+    } else if ((action == 7) && (!right_click)) {
+        // move plate to the front
+        take_snapshot("move plate to the front");
+        ret = p->partplate_list.move_plate_to_index(plate_index,0);
+        p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+        p->sidebar->obj_list()->reload_all_plates();
+        p->partplate_list.update_plates();
+        update();
+        p->partplate_list.select_plate(0);
     }
+
     else
     {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid action %1%, with right_click=%2%" << action << right_click;

@@ -42,7 +42,7 @@ enum class FuzzySkinType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htObico, htFlashforge, htSimplyPrint
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint
 };
 
 enum AuthorizationType {
@@ -254,17 +254,19 @@ enum OverhangFanThreshold {
 // BBS
 enum BedType {
     btDefault = 0,
+    btSuperTack,
     btPC,
     btEP,
     btPEI,
     btPTE,
+    btPCT,
     btCount
 };
 
 // BBS
 enum LayerSeq {
     flsAuto, 
-    flsCutomize
+    flsCustomize
 };
 
 // BBS
@@ -321,8 +323,14 @@ static std::string bed_type_to_gcode_string(const BedType type)
     std::string type_str;
 
     switch (type) {
+    case btSuperTack:
+        type_str = "supertack_plate";
+        break;
     case btPC:
         type_str = "cool_plate";
+        break;
+    case btPCT:
+        type_str = "textured_cool_plate";
         break;
     case btEP:
         type_str = "eng_plate";
@@ -343,8 +351,14 @@ static std::string bed_type_to_gcode_string(const BedType type)
 
 static std::string get_bed_temp_key(const BedType type)
 {
+    if (type == btSuperTack)
+        return "supertack_plate_temp";
+
     if (type == btPC)
         return "cool_plate_temp";
+
+    if (type == btPCT)
+        return "textured_cool_plate_temp";
 
     if (type == btEP)
         return "eng_plate_temp";
@@ -360,8 +374,14 @@ static std::string get_bed_temp_key(const BedType type)
 
 static std::string get_bed_temp_1st_layer_key(const BedType type)
 {
+    if (type == btSuperTack)
+        return "supertack_plate_temp_initial_layer";
+
     if (type == btPC)
         return "cool_plate_temp_initial_layer";
+
+    if (type == btPCT)
+        return "textured_cool_plate_temp_initial_layer";
 
     if (type == btEP)
         return "eng_plate_temp_initial_layer";
@@ -911,6 +931,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
     ((ConfigOptionPercent, ironing_flow))
     ((ConfigOptionFloat, ironing_spacing))
+    ((ConfigOptionFloat, ironing_inset))
     ((ConfigOptionFloat, ironing_direction))
     ((ConfigOptionFloat, ironing_speed))
     ((ConfigOptionFloat, ironing_angle))
@@ -1071,7 +1092,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              time_lapse_gcode))
 
     ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope))
-    ((ConfigOptionInt,               max_volumetric_extrusion_rate_slope_segment_length))
+    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_segment_length))
+    ((ConfigOptionBool,               extrusion_rate_smoothing_external_perimeter_only))
+
     
     ((ConfigOptionPercents,            retract_before_wipe))
     ((ConfigOptionFloats,              retraction_length))
@@ -1172,10 +1195,14 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionString,             bed_custom_model))
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               cool_plate_temp))
+    ((ConfigOptionInts,               textured_cool_plate_temp))
+    ((ConfigOptionInts,               supertack_plate_temp))
     ((ConfigOptionInts,               eng_plate_temp))
     ((ConfigOptionInts,               hot_plate_temp)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp))
+    ((ConfigOptionInts,               supertack_plate_temp_initial_layer))
     ((ConfigOptionInts,               cool_plate_temp_initial_layer))
+    ((ConfigOptionInts,               textured_cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               eng_plate_temp_initial_layer))
     ((ConfigOptionInts,               hot_plate_temp_initial_layer)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp_initial_layer))
@@ -1227,6 +1254,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloats,             retraction_minimum_travel))
     ((ConfigOptionBools,              retract_when_changing_layer))
+    ((ConfigOptionBools,              retract_on_top_layer))
     ((ConfigOptionFloat,              skirt_distance))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))

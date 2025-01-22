@@ -1,16 +1,13 @@
-#include "../ClipperUtils.hpp"
-#include "../ExtrusionEntityCollection.hpp"
-#include "../Layer.hpp"
-#include "../Print.hpp"
-#include "../Fill/FillBase.hpp"
-#include "../Geometry.hpp"
-#include "../Point.hpp"
-#include "../MutablePolygon.hpp"
-
-#include "Support/SupportCommon.hpp"
+#include "ClipperUtils.hpp"
+#include "ExtrusionEntity.hpp"
+#include "ExtrusionEntityCollection.hpp"
+#include "Layer.hpp"
+#include "Print.hpp"
 #include "SupportMaterial.hpp"
-
-#include <clipper/clipper_z.hpp>
+#include "SupportCommon.hpp"
+#include "Geometry.hpp"
+#include "Point.hpp"
+#include "MutablePolygon.hpp"
 
 #include <cmath>
 #include <memory>
@@ -18,6 +15,7 @@
 #include <boost/container/static_vector.hpp>
 
 #include <tbb/parallel_for.h>
+#include <tbb/spin_mutex.h>
 #include <tbb/task_group.h>
 
 #define SUPPORT_USE_AGG_RASTERIZER
@@ -34,25 +32,29 @@
 #endif // SUPPORT_USE_AGG_RASTERIZER
 
 // #define SLIC3R_DEBUG
-
+// #define SUPPORT_TREE_DEBUG_TO_SVG
 // Make assert active if SLIC3R_DEBUG
-#ifdef SLIC3R_DEBUG
+#if defined(SLIC3R_DEBUG) || defined(SUPPORT_TREE_DEBUG_TO_SVG)
     #define DEBUG
     #define _DEBUG
     #undef NDEBUG
-    #include "../utils.hpp"
-    #include "../SVG.hpp"
+    #include "utils.hpp"
+    #include "SVG.hpp"
 #endif
 
-#include <cassert>
+#ifndef SQ
+#define SQ(x) ((x)*(x))
+#endif
 
-using namespace Slic3r::FFFSupport;
+// #undef NDEBUG
+#include <cassert>
 
 namespace Slic3r {
 
 // how much we extend support around the actual contact area
 //FIXME this should be dependent on the nozzle diameter!
-#define SUPPORT_MATERIAL_MARGIN 1.5 
+// BBS: change from 1.5 to 1.2
+#define SUPPORT_MATERIAL_MARGIN 1.2
 
 // Increment used to reach MARGIN in steps to avoid trespassing thin objects
 #define NUM_MARGIN_STEPS 3
@@ -64,6 +66,105 @@ namespace Slic3r {
 //#define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 3.
 //#define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 1.5
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
+
+static constexpr bool support_with_sheath = false;
+
+#ifdef SLIC3R_DEBUG
+const char* support_surface_type_to_color_name(const SupporLayerType surface_type)
+{
+    switch (surface_type) {
+        case SupporLayerType::TopContact:     return "rgb(255,0,0)"; // "red";
+        case SupporLayerType::TopInterface:   return "rgb(0,255,0)"; // "green";
+        case SupporLayerType::Base:           return "rgb(0,0,255)"; // "blue";
+        case SupporLayerType::BottomInterface:return "rgb(255,255,128)"; // yellow 
+        case SupporLayerType::BottomContact:  return "rgb(255,0,255)"; // magenta
+        case SupporLayerType::RaftInterface:  return "rgb(0,255,255)";
+        case SupporLayerType::RaftBase:       return "rgb(128,128,128)";
+        case SupporLayerType::Unknown:        return "rgb(128,0,0)"; // maroon
+        default:                                            return "rgb(64,64,64)";
+    };
+}
+
+Point export_support_surface_type_legend_to_svg_box_size()
+{
+    return Point(scale_(1.+10.*8.), scale_(3.)); 
+}
+
+void export_support_surface_type_legend_to_svg(SVG &svg, const Point &pos)
+{
+    // 1st row
+    coord_t pos_x0 = pos(0) + scale_(1.);
+    coord_t pos_x = pos_x0;
+    coord_t pos_y = pos(1) + scale_(1.5);
+    coord_t step_x = scale_(10.);
+    svg.draw_legend(Point(pos_x, pos_y), "top contact"    , support_surface_type_to_color_name(SupporLayerType::TopContact));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "top iface"      , support_surface_type_to_color_name(SupporLayerType::TopInterface));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "base"           , support_surface_type_to_color_name(SupporLayerType::Base));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "bottom iface"   , support_surface_type_to_color_name(SupporLayerType::BottomInterface));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "bottom contact" , support_surface_type_to_color_name(SupporLayerType::BottomContact));
+    // 2nd row
+    pos_x = pos_x0;
+    pos_y = pos(1)+scale_(2.8);
+    svg.draw_legend(Point(pos_x, pos_y), "raft interface" , support_surface_type_to_color_name(SupporLayerType::RaftInterface));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "raft base"      , support_surface_type_to_color_name(SupporLayerType::RaftBase));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "unknown"        , support_surface_type_to_color_name(SupporLayerType::Unknown));
+    pos_x += step_x;
+    svg.draw_legend(Point(pos_x, pos_y), "intermediate"   , support_surface_type_to_color_name(SupporLayerType::Intermediate));
+}
+
+void export_print_z_polygons_to_svg(const char *path, SupportGeneratorLayer ** const layers, size_t n_layers)
+{
+    BoundingBox bbox;
+    for (int i = 0; i < n_layers; ++ i)
+        bbox.merge(get_extents(layers[i]->polygons));
+    Point legend_size = export_support_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min(0), bbox.max(1));
+    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (int i = 0; i < n_layers; ++ i)
+        svg.draw(union_ex(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type), transparency);
+    for (int i = 0; i < n_layers; ++ i)
+        svg.draw(to_polylines(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type));
+    export_support_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close();
+}
+
+void export_print_z_polygons_and_extrusions_to_svg(
+    const char                                      *path, 
+    SupportGeneratorLayer ** const     layers, 
+    size_t                                           n_layers,
+    SupportLayer                                    &support_layer)
+{
+    BoundingBox bbox;
+    for (int i = 0; i < n_layers; ++ i)
+        bbox.merge(get_extents(layers[i]->polygons));
+    Point legend_size = export_support_surface_type_legend_to_svg_box_size();
+    Point legend_pos(bbox.min(0), bbox.max(1));
+    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
+    SVG svg(path, bbox);
+    const float transparency = 0.5f;
+    for (int i = 0; i < n_layers; ++ i)
+        svg.draw(union_ex(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type), transparency);
+    for (int i = 0; i < n_layers; ++ i)
+        svg.draw(to_polylines(layers[i]->polygons), support_surface_type_to_color_name(layers[i]->layer_type));
+
+    Polygons polygons_support, polygons_interface;
+    support_layer.support_fills.polygons_covered_by_width(polygons_support, float(SCALED_EPSILON));
+//    support_layer.support_interface_fills.polygons_covered_by_width(polygons_interface, SCALED_EPSILON);
+    svg.draw(union_ex(polygons_support), "brown");
+    svg.draw(union_ex(polygons_interface), "black");
+
+    export_support_surface_type_legend_to_svg(svg, legend_pos);
+    svg.Close();
+}
+#endif /* SLIC3R_DEBUG */
 
 #ifdef SUPPORT_USE_AGG_RASTERIZER
 static std::vector<unsigned char> rasterize_polygons(const Vec2i32 &grid_size, const double pixel_size, const Point &left_bottom, const Polygons &polygons)
@@ -228,13 +329,134 @@ static Polygons contours_simplified(const Vec2i32 &grid_size, const double pixel
 }
 #endif // SUPPORT_USE_AGG_RASTERIZER
 
+static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag = "bbl_ts")
+{
+    static bool rand_init = false;
+
+    if (!rand_init) {
+        srand(time(NULL));
+        rand_init = true;
+    }
+
+    int rand_num = rand() % 1000000;
+    //makedir("./SVG");
+    std::string prefix = "./SVG/";
+    std::string suffix = ".svg";
+    return prefix + tag + "_" + layer_nr_or_z /*+ "_" + std::to_string(rand_num)*/ + suffix;
+}
+
 PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params) :
+    m_object                (object),
     m_print_config          (&object->print()->config()),
     m_object_config         (&object->config()),
-    m_slicing_params        (slicing_params),
-    m_support_params        (*object)
+    m_slicing_params        (slicing_params)
 {
+    m_support_params.first_layer_flow                   = support_material_1st_layer_flow(object, float(slicing_params.first_print_layer_height));
+    m_support_params.support_material_flow              = support_material_flow(object, float(slicing_params.layer_height));
+    m_support_params.support_material_interface_flow    = support_material_interface_flow(object, float(slicing_params.layer_height));
+    m_support_params.support_layer_height_min           = 0.01;
+
+    // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
+    m_support_params.support_layer_height_min = 1000000.;
+    for (auto lh : m_print_config->min_layer_height.values)
+        m_support_params.support_layer_height_min = std::min(m_support_params.support_layer_height_min, std::max(0.01, lh));
+    for (auto layer : m_object->layers())
+        m_support_params.support_layer_height_min = std::min(m_support_params.support_layer_height_min, std::max(0.01, layer->height));
+
+    if (m_object_config->support_interface_top_layers.value == 0) {
+        // No interface layers allowed, print everything with the base support pattern.
+        m_support_params.support_material_interface_flow = m_support_params.support_material_flow;
+    }
+
+    // Evaluate the XY gap between the object outer perimeters and the support structures.
+    // Evaluate the XY gap between the object outer perimeters and the support structures.
+    coordf_t external_perimeter_width = 0.;
+    coordf_t bridge_flow = 0;
+    for (size_t region_id = 0; region_id < object->num_printing_regions(); ++ region_id) {
+        const PrintRegion &region = object->printing_region(region_id);
+        external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
+        bridge_flow += region.config().bridge_flow;
+    }
+    m_support_params.gap_xy = m_object_config->support_object_xy_distance.value;
+    bridge_flow /= object->num_printing_regions();
+
+    m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
+        m_support_params.support_material_interface_flow.with_flow_ratio(bridge_flow) :
+        Flow::bridging_flow(bridge_flow * m_support_params.support_material_interface_flow.nozzle_diameter(), m_support_params.support_material_interface_flow.nozzle_diameter());
+
+    m_support_params.can_merge_support_regions = m_object_config->support_filament.value == m_object_config->support_interface_filament.value;
+    if (!m_support_params.can_merge_support_regions && (m_object_config->support_filament.value == 0 || m_object_config->support_interface_filament.value == 0)) {
+        // One of the support extruders is of "don't care" type.
+        auto object_extruders = m_object->object_extruders();
+        if (object_extruders.size() == 1 &&
+            *object_extruders.begin() == std::max<unsigned int>(m_object_config->support_filament.value, m_object_config->support_interface_filament.value))
+            // Object is printed with the same extruder as the support.
+            m_support_params.can_merge_support_regions = true;
+    }
+
+
+    m_support_params.base_angle         = Geometry::deg2rad(float(m_object_config->support_angle.value));
+    m_support_params.interface_angle    = Geometry::deg2rad(float(m_object_config->support_angle.value + 90.));
+    m_support_params.interface_spacing  = m_object_config->support_interface_spacing.value + m_support_params.support_material_interface_flow.spacing();
+    m_support_params.interface_density  = std::min(1., m_support_params.support_material_interface_flow.spacing() / m_support_params.interface_spacing);
+    m_support_params.support_spacing    = m_object_config->support_base_pattern_spacing.value + m_support_params.support_material_flow.spacing();
+    m_support_params.support_density    = std::min(1., m_support_params.support_material_flow.spacing() / m_support_params.support_spacing);
+    if (m_object_config->support_interface_top_layers.value == 0) {
+        // No interface layers allowed, print everything with the base support pattern.
+        m_support_params.interface_spacing = m_support_params.support_spacing;
+        m_support_params.interface_density = m_support_params.support_density;
+    }
+
+    SupportMaterialPattern  support_pattern = m_object_config->support_base_pattern;
+    m_support_params.with_sheath = support_with_sheath;
+    m_support_params.base_fill_pattern      = 
+        support_pattern == smpHoneycomb ? ipHoneycomb :
+        m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
+    m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
+    if (m_object_config->support_interface_pattern == smipGrid)
+        m_support_params.contact_fill_pattern = ipGrid;
+    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+        m_support_params.contact_fill_pattern = ipRectilinear;
+    else
+        m_support_params.contact_fill_pattern =
+        (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
+        m_object_config->support_interface_pattern == smipConcentric ?
+        ipConcentric :
+        (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 }
+
+// Using the std::deque as an allocator.
+inline SupportGeneratorLayer& layer_allocate(
+    std::deque<SupportGeneratorLayer> &layer_storage, 
+    SupporLayerType      layer_type)
+{ 
+    layer_storage.push_back(SupportGeneratorLayer());
+    layer_storage.back().layer_type = layer_type;
+    return layer_storage.back();
+}
+
+inline SupportGeneratorLayer& layer_allocate(
+    std::deque<SupportGeneratorLayer> &layer_storage,
+    tbb::spin_mutex                                 &layer_storage_mutex,
+    SupporLayerType      layer_type)
+{ 
+    layer_storage_mutex.lock();
+    layer_storage.push_back(SupportGeneratorLayer());
+    SupportGeneratorLayer *layer_new = &layer_storage.back();
+    layer_storage_mutex.unlock();
+    layer_new->layer_type = layer_type;
+    return *layer_new;
+}
+
+inline void layers_append(SupportGeneratorLayersPtr &dst, const SupportGeneratorLayersPtr &src)
+{
+    dst.insert(dst.end(), src.begin(), src.end());
+}
+
+// Support layer that is covered by some form of dense interface.
+static constexpr const std::initializer_list<SupporLayerType> support_types_interface { 
+    SupporLayerType::RaftInterface, SupporLayerType::BottomContact, SupporLayerType::BottomInterface, SupporLayerType::TopContact, SupporLayerType::TopInterface
+};
 
 void PrintObjectSupportMaterial::generate(PrintObject &object)
 {
@@ -264,6 +486,9 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
         // Nothing is supported, no supports are generated.
         return;
 
+    if (object.print()->canceled())
+        return;
+
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
     iRun ++;
@@ -283,6 +508,9 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     SupportGeneratorLayersPtr bottom_contacts = this->bottom_contact_layers_and_layer_support_areas(
         object, top_contacts, buildplate_covered,
         layer_storage, layer_support_areas);
+
+    if (object.print()->canceled())
+        return;
 
 #ifdef SLIC3R_DEBUG
     for (size_t layer_id = 0; layer_id < object.layers().size(); ++ layer_id)
@@ -335,16 +563,17 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 
     // Propagate top / bottom contact layers to generate interface layers 
     // and base interface layers (for soluble interface / non souble base only)
-    SupportGeneratorLayersPtr empty_layers;
-    auto [interface_layers, base_interface_layers] = FFFSupport::generate_interface_layers(
-        *m_object_config, m_support_params, bottom_contacts, top_contacts, empty_layers, empty_layers, intermediate_layers, layer_storage);
+    auto [interface_layers, base_interface_layers] = this->generate_interface_layers(bottom_contacts, top_contacts, intermediate_layers, layer_storage);
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating raft";
 
     // If raft is to be generated, the 1st top_contact layer will contain the 1st object layer silhouette with holes filled.
     // There is also a 1st intermediate layer containing bases of support columns.
     // Inflate the bases of the support columns and create the raft base under the object.
-    SupportGeneratorLayersPtr raft_layers = FFFSupport::generate_raft_base(object, m_support_params, m_slicing_params, top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+    SupportGeneratorLayersPtr raft_layers = this->generate_raft_base(object, top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+
+    if (object.print()->canceled())
+        return;
 
 #ifdef SLIC3R_DEBUG
     for (const SupportGeneratorLayer *l : interface_layers)
@@ -389,7 +618,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
             // Due to the floating point inaccuracies, the print_z may not be the same even if in theory they should.
             int j = i + 1;
             coordf_t zmax = layers_sorted[i]->print_z + EPSILON;
-            bool empty = layers_sorted[i]->polygons.empty();
+            bool empty = true;
             for (; j < layers_sorted.size() && layers_sorted[j]->print_z <= zmax; ++j)
                 if (!layers_sorted[j]->polygons.empty())
                     empty = false;
@@ -408,8 +637,20 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     }
 #endif /* SLIC3R_DEBUG */
 
+#if 0 // #ifdef SLIC3R_DEBUG
+    // check bounds
+    std::ofstream out;
+    out.open("./SVG/ns_support_layers.txt");
+    if (out.is_open()) {
+        out << "### Support Layers ###" << std::endl;
+        for (auto& i : object.support_layers()) {
+            out << i->print_z << std::endl;
+        }
+    }
+#endif /* SLIC3R_DEBUG */
+
     // Generate the actual toolpaths and save them into each layer.
-    generate_support_toolpaths(object.support_layers(), *m_object_config, m_support_params, m_slicing_params, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+    this->generate_toolpaths(object.support_layers(), raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
 #ifdef SLIC3R_DEBUG
     {
@@ -419,7 +660,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
             // Due to the floating point inaccuracies, the print_z may not be the same even if in theory they should.
             int j = i + 1;
             coordf_t zmax = layers_sorted[i]->print_z + EPSILON;
-            bool empty = layers_sorted[i]->polygons.empty();
+            bool empty = true;
             for (; j < layers_sorted.size() && layers_sorted[j]->print_z <= zmax; ++j)
                 if (! layers_sorted[j]->polygons.empty())
                     empty = false;
@@ -477,8 +718,8 @@ struct SupportGridParams {
         grid_resolution(object_config.support_base_pattern_spacing.value + support_material_flow.spacing()),
         support_angle(Geometry::deg2rad(object_config.support_angle.value)),
         extrusion_width(support_material_flow.spacing()),
-        // support_material_closing_radius(object_config.support_material_closing_radius.value),
-        support_material_closing_radius(2.0),
+        //support_closing_radius(object_config.support_closing_radius.value),
+        support_closing_radius(2.0),
         expansion_to_slice(coord_t(support_material_flow.scaled_spacing() / 2 + 5)),
         expansion_to_propagate(-3) {}
 
@@ -486,7 +727,7 @@ struct SupportGridParams {
     double                  grid_resolution;
     double                  support_angle;
     double                  extrusion_width;
-    double                  support_material_closing_radius;
+    double                  support_closing_radius;
     coord_t                 expansion_to_slice;
     coord_t                 expansion_to_propagate;
 };
@@ -504,8 +745,9 @@ public:
         m_support_polygons(support_polygons), m_trimming_polygons(trimming_polygons),
         m_support_spacing(params.grid_resolution), m_support_angle(params.support_angle),
         m_extrusion_width(params.extrusion_width),
-        m_support_material_closing_radius(params.support_material_closing_radius)
+        m_support_material_closing_radius(params.support_closing_radius)
     {
+        if (m_style != smsSnug) m_style = smsGrid;
         switch (m_style) {
         case smsGrid:
         {
@@ -671,31 +913,24 @@ public:
             if (!support_polygons_simplified.empty())
                 bbox.merge(get_extents(support_polygons_simplified));
             SVG svg(debug_out_path("extract_support_from_grid_trimmed-%s-%d-%d-%lf.svg", step_name, iRun, layer_id, print_z).c_str(), bbox);
-            svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
-            svg.draw(islands, "red", 0.5f);
-            svg.draw(union_ex(out), "green", 0.5f);
-            svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
-            svg.draw_outline(islands, "red", "red", scale_(0.05));
-            svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
-            svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
-            for (const Point &pt : samples)
-                svg.draw(pt, "black", coord_t(scale_(0.15)));
-            svg.Close();
+            if (svg.is_opened()) {
+                svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
+                svg.draw(islands, "red", 0.5f);
+                svg.draw(union_ex(out), "green", 0.5f);
+                svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
+                svg.draw_outline(islands, "red", "red", scale_(0.05));
+                svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
+                svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
+                for (const Point& pt : samples)
+                    svg.draw(pt, "black", coord_t(scale_(0.15)));
+                svg.Close();
+            }
     #endif /* SLIC3R_DEBUG */
 
             if (m_support_angle != 0.)
                 polygons_rotate(out, m_support_angle);
             return out;
         }
-        case smsTreeSlim:
-        case smsTreeStrong:
-        case smsTreeHybrid:
-
-        // Orca: use organic as default
-        case smsDefault:
-        case smsOrganic:
-//            assert(false);
-            [[fallthrough]];
         case smsSnug:
             // Merge the support polygons by applying morphological closing and inwards smoothing.
             auto closing_distance   = scaled<float>(m_support_material_closing_radius);
@@ -981,7 +1216,7 @@ namespace SupportMaterialInternal {
     static inline bool has_bridging_perimeters(const ExtrusionLoop &loop)
     {
         for (const ExtrusionPath &ep : loop.paths)
-            if (ep.role() == ExtrusionRole::erOverhangPerimeter && ! ep.polyline.empty())
+            if (ep.role() == erOverhangPerimeter && ! ep.polyline.empty())
                 return int(ep.size()) >= (ep.is_closed() ? 3 : 2);
         return false;
     }
@@ -1007,7 +1242,7 @@ namespace SupportMaterialInternal {
             for (const ExtrusionEntity *ee2 : static_cast<const ExtrusionEntityCollection*>(ee)->entities) {
                 assert(! ee2->is_collection());
                 assert(! ee2->is_loop());
-                if (ee2->role() == ExtrusionRole::erBridgeInfill)
+                if (ee2->role() == erBridgeInfill || ee2->role() == erInternalBridgeInfill)
                     return true;
             }
         }
@@ -1028,7 +1263,7 @@ namespace SupportMaterialInternal {
     {
         assert(expansion_scaled >= 0.f);
         for (const ExtrusionPath &ep : loop.paths)
-            if (ep.role() == ExtrusionRole::erOverhangPerimeter && ! ep.polyline.empty()) {
+            if (ep.role() == erOverhangPerimeter && ! ep.polyline.empty()) {
                 float exp = 0.5f * (float)scale_(ep.width) + expansion_scaled;
                 if (ep.is_closed()) {
                     if (ep.size() >= 3) {
@@ -1062,6 +1297,89 @@ namespace SupportMaterialInternal {
             } else if (ee->is_loop())
                 collect_bridging_perimeter_areas(*static_cast<const ExtrusionLoop*>(ee), expansion_scaled, out);
         }
+    }
+
+    static void remove_bridges_from_contacts(
+        const PrintConfig   &print_config, 
+        const Layer         &lower_layer,
+        const Polygons      &lower_layer_polygons,
+        const LayerRegion   &layerm,
+        float                fw, 
+        Polygons            &contact_polygons)
+    {
+        // compute the area of bridging perimeters
+        Polygons bridges;
+        {
+            // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
+            Polygons lower_grown_slices = expand(lower_layer_polygons,
+                //FIXME to mimic the decision in the perimeter generator, we should use half the external perimeter width.
+                0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm.region().config().wall_filament-1))),
+                SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            // Collect perimeters of this layer.
+            //FIXME split_at_first_point() could split a bridge mid-way
+        #if 0
+            Polylines overhang_perimeters = layerm.perimeters.as_polylines();
+            // workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
+            for (Polyline &polyline : overhang_perimeters)
+                polyline.points[0].x += 1;
+            // Trim the perimeters of this layer by the lower layer to get the unsupported pieces of perimeters.
+            overhang_perimeters = diff_pl(overhang_perimeters, lower_grown_slices);
+        #else
+            Polylines overhang_perimeters = diff_pl(layerm.perimeters.as_polylines(), lower_grown_slices);
+        #endif
+            
+            // only consider straight overhangs
+            // only consider overhangs having endpoints inside layer's slices
+            // convert bridging polylines into polygons by inflating them with their thickness
+            // since we're dealing with bridges, we can't assume width is larger than spacing,
+            // so we take the largest value and also apply safety offset to be ensure no gaps
+            // are left in between
+            // BBS
+            const PrintObjectConfig& object_config = layerm.layer()->object()->config();
+            Flow perimeter_bridge_flow = layerm.bridging_flow(frPerimeter, object_config.thick_bridges);
+            //FIXME one may want to use a maximum of bridging flow width and normal flow width, as the perimeters are calculated using the normal flow
+            // and then turned to bridging flow, thus their centerlines are derived from non-bridging flow and expanding them by a bridging flow
+            // may not expand them to the edge of their respective islands.
+            const float w = float(0.5 * std::max(perimeter_bridge_flow.scaled_width(), perimeter_bridge_flow.scaled_spacing())) + scaled<float>(0.001);
+            for (Polyline &polyline : overhang_perimeters)
+                if (polyline.is_straight()) {
+                    // This is a bridge 
+                    polyline.extend_start(fw);
+                    polyline.extend_end(fw);
+                    // Is the straight perimeter segment supported at both sides?
+                    Point pts[2]       = { polyline.first_point(), polyline.last_point() };
+                    bool  supported[2] = { false, false };
+                    for (size_t i = 0; i < lower_layer.lslices.size() && ! (supported[0] && supported[1]); ++ i)
+                        for (int j = 0; j < 2; ++ j)
+                            if (! supported[j] && lower_layer.lslices_bboxes[i].contains(pts[j]) && lower_layer.lslices[i].contains(pts[j]))
+                                supported[j] = true;
+                    if (supported[0] && supported[1])
+                        // Offset a polyline into a thick line.
+                        polygons_append(bridges, offset(polyline, w));
+                }
+            bridges = union_(bridges);
+        }
+        // remove the entire bridges and only support the unsupported edges
+        //FIXME the brided regions are already collected as layerm.bridged. Use it?
+        for (const Surface &surface : layerm.fill_surfaces.surfaces)
+            if (surface.surface_type == stBottomBridge && surface.bridge_angle >= 0.0)
+                polygons_append(bridges, surface.expolygon);
+        //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
+        // Remove the unsupported ends of the bridges from the bridged areas.
+        //FIXME add supports at regular intervals to support long bridges!
+        bridges = diff(bridges,
+                // Offset unsupported edges into polygons.
+                offset(layerm.unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+        // Remove bridged areas from the supported areas.
+        contact_polygons = diff(contact_polygons, bridges, ApplySafetyOffset::Yes);
+
+        #ifdef SLIC3R_DEBUG
+            static int iRun = 0;
+            SVG::export_expolygons(debug_out_path("support-top-contacts-remove-bridges-run%d.svg", iRun ++),
+                { { { union_ex(offset(layerm.unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS)) }, { "unsupported_bridge_edges", "orange", 0.5f } },
+                  { { union_ex(contact_polygons) },            { "contact_polygons",           "blue",   0.5f } },
+                  { { union_ex(bridges) },                     { "bridges",                    "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
+        #endif /* SLIC3R_DEBUG */
     }
 }
 
@@ -1118,16 +1436,22 @@ struct SlicesMarginCache
     Polygons    all_polygons;
 };
 
+// BBS
+static const double length_thresh_well_supported = scale_(6);  // min: 6mm
+static const double area_thresh_well_supported = SQ(length_thresh_well_supported);  // min: 6x6=36mm^2
+static const double sharp_tail_xy_gap = 0.2f;
+static const double no_overlap_xy_gap = 0.2f;
+static const double sharp_tail_max_support_height = 16.f;
+
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
 // no_interface_offset: minimum of external perimeter widths
-static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
+static inline ExPolygons detect_overhangs(
     const Layer             &layer,
     const size_t             layer_id,
-    const Polygons          &lower_layer_polygons,
+    Polygons                &lower_layer_polygons,
     const PrintConfig       &print_config, 
     const PrintObjectConfig &object_config,
     SupportAnnotations      &annotations, 
-    SlicesMarginCache       &slices_margin, 
     const double             gap_xy
 #ifdef SLIC3R_DEBUG
     , size_t                 iRun
@@ -1136,63 +1460,50 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
 {
     // Snug overhang polygons.
     Polygons overhang_polygons;
-    // Expanded for stability, trimmed by gap_xy.
-    Polygons contact_polygons;
-    // Enforcers projected to overhangs, trimmed
-    Polygons enforcer_polygons;
 
-    const bool   support_auto    = object_config.enable_support.value && is_auto(object_config.support_type.value);
+    // BBS.
+    const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
     const bool   buildplate_only = ! annotations.buildplate_covered.empty();
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
     // +1 makes the threshold inclusive
     double thresh_angle = object_config.support_threshold_angle.value > 0 ? object_config.support_threshold_angle.value + 1 : 0;
     thresh_angle = std::min(thresh_angle, 89.); // BBS should be smaller than 90
-    const double threshold_rad   = Geometry::deg2rad(thresh_angle);
-    float        no_interface_offset = 0.f;
+    const double threshold_rad = Geometry::deg2rad(thresh_angle);
+    const coordf_t max_bridge_length = scale_(object_config.max_bridge_length.value);
+    const bool bridge_no_support = object_config.bridge_no_support.value;
+    const coordf_t xy_expansion = scale_(object_config.support_expansion.value);
 
-    if (layer_id == 0) 
+    if (layer_id == 0)
     {
-        // This is the first object layer, so the object is being printed on a raft and
-        // we're here just to get the object footprint for the raft.
-#if 0
-        // The following line was filling excessive holes in the raft, see GH #430
-        overhang_polygons = collect_slices_outer(layer);
-#else
         // Don't fill in the holes. The user may apply a higher raft_expansion if one wants a better 1st layer adhesion.
         overhang_polygons = to_polygons(layer.lslices);
-#endif
-        // Expand for better stability.
-        contact_polygons = object_config.raft_expansion.value > 0 ? expand(overhang_polygons, scaled<float>(object_config.raft_expansion.value)) : overhang_polygons;
+
+        for (auto& slice : layer.lslices) {
+            auto bbox_size = get_extents(slice).size();
+            if (g_config_support_sharp_tails &&
+                !(bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
+            {
+                layer.sharp_tails.push_back(slice);
+                layer.sharp_tails_height.insert({ &slice, layer.height });
+            }
+        }
     }
     else if (! layer.regions().empty())
     {
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer &lower_layer  = *layer.lower_layer;
-        const bool   has_enforcer = ! annotations.enforcers_layers.empty() && ! annotations.enforcers_layers[layer_id].empty();
-
-        // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
-        auto slices_margin_update = 
-            [&slices_margin, &lower_layer, &lower_layer_polygons, buildplate_only, has_enforcer, &annotations, layer_id]
-            (float slices_margin_offset, float no_interface_offset) {
-            if (slices_margin.offset != slices_margin_offset) {
-                slices_margin.offset = slices_margin_offset;
-                slices_margin.polygons = (slices_margin_offset == 0.f) ?
-                    lower_layer_polygons :
-                    // What is the purpose of no_interface_offset? Likely to not trim the contact layer by lower layer regions that are too thin to extrude?
-                    offset2(lower_layer.lslices, -no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-                if (buildplate_only && !annotations.buildplate_covered[layer_id].empty()) {
-                    if (has_enforcer)
-                        // Make a backup of trimming polygons before enforcing "on build plate only".
-                        slices_margin.all_polygons = slices_margin.polygons;
-                    // Trim the inflated contact surfaces by the top surfaces as well.
-                    slices_margin.polygons = union_(slices_margin.polygons, annotations.buildplate_covered[layer_id]);
-                }
+        const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty();
+        // Can't directly use lower_layer.lslices, or we'll miss some very sharp tails.
+        // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
+        // FIXME if there are multiple regions with different extrusion width, the following code may not be right.
+        float fw = float(layer.regions().front()->flow(frExternalPerimeter).scaled_width());
+        ExPolygons lower_layer_expolys;
+        for (const ExPolygon& expoly : lower_layer.lslices) {
+            if (!offset_ex(expoly, -fw / 2).empty()) {
+                lower_layer_expolys.emplace_back(expoly);
             }
-        };
-
-        no_interface_offset = std::accumulate(layer.regions().begin(), layer.regions().end(), FLT_MAX, 
-            [](float acc, const LayerRegion *layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
+        }
 
         float lower_layer_offset  = 0;
         for (LayerRegion *layerm : layer.regions()) {
@@ -1219,26 +1530,12 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     // This step is done before the contact surface is calculated by growing the overhang region.
                     diff_polygons = diff(diff_polygons, annotations.buildplate_covered[layer_id]);
                 }
-            } else if (support_auto) {
+            } else if (auto_normal_support) {
                 // Get the regions needing a suport, collapse very tiny spots.
                 //FIXME cache the lower layer offset if this layer has multiple regions.
-#if 0
-                //FIXME this solution will trigger stupid supports for sharp corners, see GH #4874
-                diff_polygons = opening(
-                    diff(layerm_polygons,
-                            // Likely filtering out thin regions from the lower layer, that will not be covered by perimeters, thus they
-                            // are not supporting this layer.
-                            // However this may lead to a situation where regions at the current layer that are narrow thus not extrudable will generate unnecessary supports.
-                            // For example, see GH issue #3094
-                            opening(lower_layer_polygons, 0.5f * fw, lower_layer_offset + 0.5f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS)), 
-                    //FIXME This opening is targeted to reduce very thin regions to support, but it may lead to
-                    // no support at all for not so steep overhangs.
-                    0.1f * fw);
-#else
                 diff_polygons = 
                     diff(layerm_polygons,
                             expand(lower_layer_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-#endif
                 if (buildplate_only && ! annotations.buildplate_covered[layer_id].empty()) {
                     // Don't support overhangs above the top surfaces.
                     // This step is done before the contact surface is calculated by growing the overhang region.
@@ -1248,57 +1545,159 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     // Offset the support regions back to a full overhang, restrict them to the full overhang.
                     // This is done to increase size of the supporting columns below, as they are calculated by 
                     // propagating these contact surfaces downwards.
-                    diff_polygons = diff(
-                        intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons),
-                        lower_layer_polygons);
+                    diff_polygons = diff(intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), lower_layer_polygons);
+                    if (xy_expansion != 0) { diff_polygons = expand(diff_polygons, xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS); }
                 }
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
+
+                // BBS
+                if (g_config_support_sharp_tails) {
+                    for (ExPolygon& expoly : layerm->raw_slices) {
+                        if (offset_ex(expoly, -0.5 * fw).empty()) continue;
+                        bool is_sharp_tail = false;
+                        float accum_height = layer.height;
+
+                        // 1. nothing below
+                        // Check whether this is a sharp tail region.
+                        // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
+                        if (!overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
+                            is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly, -0.1 * fw).empty();
+                        }
+
+                        if (is_sharp_tail) {
+                            ExPolygons overhang = diff_ex({ expoly }, lower_layer_expolys);
+                            layer.sharp_tails.push_back(expoly);
+                            layer.sharp_tails_height.insert({ &expoly, accum_height });
+                            overhang = offset_ex(overhang, 0.05 * fw);
+                            polygons_append(diff_polygons, to_polygons(overhang));
+                        }
+                    }
+                }
             }
 
             if (diff_polygons.empty())
                 continue;
 
             // Apply the "support blockers".
-            if (! annotations.blockers_layers.empty() && ! annotations.blockers_layers[layer_id].empty()) {
+            if (!annotations.blockers_layers.empty() && !annotations.blockers_layers[layer_id].empty()) {
                 // Expand the blocker a bit. Custom blockers produce strips
                 // spanning just the projection between the two slices.
                 // Subtracting them as they are may leave unwanted narrow
                 // residues of diff_polygons that would then be supported.
                 diff_polygons = diff(diff_polygons,
-                    expand(union_(annotations.blockers_layers[layer_id]), float(1000.*SCALED_EPSILON)));
+                    expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON)));
             }
 
-            #ifdef SLIC3R_DEBUG
-            {
-                ::Slic3r::SVG svg(debug_out_path("support-top-contacts-raw-run%d-layer%d-region%d.svg", 
-                    iRun, layer_id, 
-                    std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin()),
-                    get_extents(diff_polygons));
-                Slic3r::ExPolygons expolys = union_ex(diff_polygons);
-                svg.draw(expolys);
+            if (bridge_no_support) {
+                //FIXME Expensive, potentially not precise enough. Misses gap fill extrusions, which bridge.
+                SupportMaterialInternal::remove_bridges_from_contacts(
+                    print_config, lower_layer, lower_layer_polygons, *layerm, fw, diff_polygons);
             }
-            #endif /* SLIC3R_DEBUG */
 
-            // if (object_config.dont_support_bridges)
-            //     //FIXME Expensive, potentially not precise enough. Misses gap fill extrusions, which bridge.
-            //     remove_bridges_from_contacts(print_config, lower_layer, *layerm, fw, diff_polygons);
-
-            if (diff_polygons.empty())
+            if (diff_polygons.empty() || offset(diff_polygons, -0.1 * fw).empty())
                 continue;
 
-            #ifdef SLIC3R_DEBUG
-            Slic3r::SVG::export_expolygons(
-                debug_out_path("support-top-contacts-filtered-run%d-layer%d-region%d-z%f.svg", 
-                    iRun, layer_id, 
-                    std::find_if(layer.regions().begin(), layer.regions().end(), [layerm](const LayerRegion* other){return other == layerm;}) - layer.regions().begin(),
-                    layer.print_z),
-                union_ex(diff_polygons));
-            #endif /* SLIC3R_DEBUG */
+            polygons_append(overhang_polygons, diff_polygons);
+        } // for each layer.region
+    }
 
-            //FIXME the overhang_polygons are used to construct the support towers as well.
-            //if (this->has_contact_loops())
-                // Store the exact contour of the overhang for the contact loops.
-                polygons_append(overhang_polygons, diff_polygons);
+    ExPolygons overhang_areas = union_ex(overhang_polygons);
+    // check cantilever
+    if (layer.lower_layer) {
+        for (ExPolygon& poly : overhang_areas) {
+            float fw = float(layer.regions().front()->flow(frExternalPerimeter).scaled_width());
+            auto cluster_boundary_ex = intersection_ex(poly, offset_ex(layer.lower_layer->lslices, scale_(0.5)));
+            Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
+            if (cluster_boundary.empty()) continue;
+            double dist_max = 0;
+            for (auto& pt : poly.contour.points) {
+                double dist_pt = std::numeric_limits<double>::max();
+                for (auto& ply : cluster_boundary) {
+                    double d = ply.distance_to(pt);
+                    dist_pt = std::min(dist_pt, d);
+                }
+                dist_max = std::max(dist_max, dist_pt);
+            }
+            if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base                            
+                layer.cantilevers.emplace_back(poly);
+            }
+        }
+    }
+
+    return overhang_areas;
+}
+
+// Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
+// no_interface_offset: minimum of external perimeter widths
+static inline std::tuple<Polygons, Polygons, double> detect_contacts(
+    const Layer& layer,
+    const size_t             layer_id,
+    Polygons& overhang_polygons,
+    Polygons& lower_layer_polygons,
+    const PrintConfig& print_config,
+    const PrintObjectConfig& object_config,
+    SupportAnnotations& annotations,
+    SlicesMarginCache& slices_margin,
+    const double             gap_xy
+#ifdef SLIC3R_DEBUG
+    , size_t                 iRun
+#endif // SLIC3R_DEBUG
+)
+{
+    // Expanded for stability, trimmed by gap_xy.
+    Polygons contact_polygons;
+    // Enforcers projected to overhangs, trimmed
+    Polygons enforcer_polygons;
+
+    // BBS.
+    const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
+    const bool   buildplate_only = !annotations.buildplate_covered.empty();
+    float        no_interface_offset = 0.f;
+
+    if (layer_id == 0)
+    {
+        // Expand for better stability.
+        contact_polygons = object_config.raft_expansion.value > 0 ? expand(overhang_polygons, scaled<float>(object_config.raft_expansion.value)) : overhang_polygons;
+    }
+    else if (!layer.regions().empty())
+    {
+        // Generate overhang / contact_polygons for non-raft layers.
+        const Layer& lower_layer = *layer.lower_layer;
+        const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty();
+        const ExPolygons& lower_layer_expolys = lower_layer.lslices;
+        const ExPolygons& lower_layer_sharptails = lower_layer.sharp_tails;
+
+        // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
+        auto slices_margin_update =
+            [&slices_margin, &layer, &lower_layer, &lower_layer_polygons, buildplate_only, has_enforcer, &annotations, layer_id]
+        (float slices_margin_offset, float no_interface_offset) {
+            if (slices_margin.offset != slices_margin_offset) {
+                slices_margin.offset = slices_margin_offset;
+                slices_margin.polygons = (slices_margin_offset == 0.f) ?
+                    lower_layer_polygons :
+                    // What is the purpose of no_interface_offset? Likely to not trim the contact layer by lower layer regions that are too thin to extrude?
+                    offset2(lower_layer.lslices, -no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                if (buildplate_only && !annotations.buildplate_covered[layer_id].empty()) {
+                    if (has_enforcer)
+                        // Make a backup of trimming polygons before enforcing "on build plate only".
+                        slices_margin.all_polygons = slices_margin.polygons;
+                    // Trim the inflated contact surfaces by the top surfaces as well.
+                    slices_margin.polygons = union_(slices_margin.polygons, annotations.buildplate_covered[layer_id]);
+                }
+            }
+        };
+
+        no_interface_offset = std::accumulate(layer.regions().begin(), layer.regions().end(), FLT_MAX,
+            [](float acc, const LayerRegion* layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
+
+        float lower_layer_offset = 0;
+        for (LayerRegion* layerm : layer.regions()) {
+            Polygons layerm_polygons = to_polygons(layerm->slices.surfaces);
+
+            // Overhang polygons for this layer and region.
+            Polygons diff_polygons = intersection(overhang_polygons, layerm_polygons);
+            if (diff_polygons.empty())
+                continue;
 
             // Let's define the required contact area by using a max gap of half the upper 
             // extrusion width and extending the area according to the configured margin.
@@ -1330,30 +1729,30 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         } // for each layer.region
 
         if (has_enforcer)
-            if (const Polygons &enforcer_polygons_src = annotations.enforcers_layers[layer_id]; ! enforcer_polygons_src.empty()) {
+            if (const Polygons& enforcer_polygons_src = annotations.enforcers_layers[layer_id]; !enforcer_polygons_src.empty()) {
                 // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.
-    #ifdef SLIC3R_DEBUG
+#ifdef SLIC3R_DEBUG
                 ExPolygons enforcers_united = union_ex(enforcer_polygons_src);
-    #endif // SLIC3R_DEBUG
+#endif // SLIC3R_DEBUG
                 enforcer_polygons = diff(intersection(layer.lslices, enforcer_polygons_src),
                     // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
                     expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-    #ifdef SLIC3R_DEBUG
+#ifdef SLIC3R_DEBUG
                 SVG::export_expolygons(debug_out_path("support-top-contacts-enforcers-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z),
                     { { layer.lslices,                                 { "layer.lslices",              "gray",   0.2f } },
                       { { union_ex(lower_layer_polygons) },            { "lower_layer_polygons",       "green",  0.5f } },
                       { enforcers_united,                              { "enforcers",                  "blue",   0.5f } },
                       { { union_safety_offset_ex(enforcer_polygons) }, { "new_contacts",               "red",    "black", "", scaled<coord_t>(0.1f), 0.5f } } });
-    #endif /* SLIC3R_DEBUG */
-                if (! enforcer_polygons.empty()) {
+#endif /* SLIC3R_DEBUG */
+                if (!enforcer_polygons.empty()) {
                     polygons_append(overhang_polygons, enforcer_polygons);
                     slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
                     polygons_append(contact_polygons, diff(enforcer_polygons, slices_margin.all_polygons.empty() ? slices_margin.polygons : slices_margin.all_polygons));
                 }
             }
-        }
+    }
 
-    return std::make_tuple(std::move(overhang_polygons), std::move(contact_polygons), std::move(enforcer_polygons), no_interface_offset);
+    return std::make_tuple(std::move(contact_polygons), std::move(enforcer_polygons), no_interface_offset);
 }
 
 // Allocate one, possibly two support contact layers.
@@ -1385,8 +1784,8 @@ static inline std::pair<SupportGeneratorLayer*, SupportGeneratorLayer*> new_cont
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
     } else {
         print_z  = layer.bottom_z() - slicing_params.gap_support_object;
-        bottom_z = print_z;
-        height   = 0.;
+        height   = print_config.independent_support_layer_height ? 0. : layer.lower_layer->height/*object_config.layer_height*/; // BBS: need to consider adaptive layer heights
+        bottom_z = print_z - height;
         // Ignore this contact area if it's too low.
         // Don't want to print a layer below the first layer height as it may not stick well.
         //FIXME there may be a need for a single layer support, then one may decide to print it either as a bottom contact or a top contact
@@ -1415,6 +1814,9 @@ static inline std::pair<SupportGeneratorLayer*, SupportGeneratorLayer*> new_cont
             for (const LayerRegion* region : layer.regions())
                 bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
+            // BBS: align bridging height
+            if (!print_config.independent_support_layer_height)
+                bridging_height = std::ceil(bridging_height / object_config.layer_height - EPSILON) * object_config.layer_height;
             coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
             if (bridging_print_z >= min_print_z) {
                 // Not below the first layer height means this layer is printable.
@@ -1431,9 +1833,11 @@ static inline std::pair<SupportGeneratorLayer*, SupportGeneratorLayer*> new_cont
                         bridging_layer->bottom_z = 0;
                         bridging_layer->height = slicing_params.first_print_layer_height;
                     } else {
+                        // BBS: if independent_support_layer_height is not enabled, the support layer_height should be the same as layer height.
+                        // Note that for this case, adaptive layer height must be disabled.
+                        bridging_layer->height = print_config.independent_support_layer_height ? 0. : object_config.layer_height;
                         // Don't know the height yet.
-                        bridging_layer->bottom_z = bridging_print_z;
-                        bridging_layer->height = 0;
+                        bridging_layer->bottom_z = bridging_print_z - bridging_layer->height;
                     }
                 }
             }
@@ -1486,7 +1890,7 @@ static inline void fill_contact_layer(
 #endif // SLIC3R_DEBUG
         ));
     // 2) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
-    bool reduce_interfaces = object_config.support_style.value == smsGrid && layer_id > 0 && !slicing_params.soluble_interface;
+    bool reduce_interfaces = object_config.support_style.value != smsSnug && layer_id > 0 && !slicing_params.soluble_interface;
     if (reduce_interfaces) {
         // Reduce the amount of dense interfaces: Do not generate dense interfaces below overhangs with 60% overhang of the extrusions.
         Polygons dense_interface_polygons = diff(overhang_polygons, lower_layer_polygons_for_dense_interface());
@@ -1644,6 +2048,75 @@ static void merge_contact_layers(const SlicingParameters &slicing_params, double
         layers.erase(layers.begin() + k, layers.end());
 }
 
+
+struct OverhangCluster {
+    std::map<int, std::vector<ExPolygon*>> layer_overhangs;
+    ExPolygons merged_overhangs_dilated;
+    int min_layer = 1e7;
+    int max_layer = 0;
+    coordf_t offset_scaled = 0;
+    bool is_cantilever = false;
+    bool is_sharp_tail = false;
+    bool is_small_overhang = false;
+
+    OverhangCluster(ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
+        this->offset_scaled = offset_scaled;
+        insert(overhang, layer_nr);
+    }
+
+    void insert(ExPolygon* overhang_new, int layer_nr) {
+        if (layer_overhangs.find(layer_nr) != layer_overhangs.end()) {
+            layer_overhangs[layer_nr].push_back(overhang_new);
+        }
+        else {
+            layer_overhangs.emplace(layer_nr, std::vector<ExPolygon*>{ overhang_new });
+        }
+        ExPolygons overhang_dilated = offset_scaled > EPSILON ? offset_ex(*overhang_new, offset_scaled) : ExPolygons{ *overhang_new };
+        if (!overhang_dilated.empty())
+            merged_overhangs_dilated = union_ex(merged_overhangs_dilated, overhang_dilated);
+        min_layer = std::min(min_layer, layer_nr);
+        max_layer = std::max(max_layer, layer_nr);
+    }
+
+    int height() {
+        return max_layer - min_layer + 1;
+    }
+
+    bool intersects(const ExPolygon& overhang_new, int layer_nr) {
+        if (layer_nr < 1)
+            return false;
+
+        //auto it = layer_overhangs.find(layer_nr - 1);
+        //if (it == layer_overhangs.end())
+        //    return false;
+        //ExPolygons overhangs_lower;
+        //for (ExPolygon* poly : it->second) {
+        //    overhangs_lower.push_back(*poly);
+        //}
+        if (layer_nr<min_layer - 1 || layer_nr>max_layer + 1)
+            return false;
+        const ExPolygons overhang_dilated = offset_ex(overhang_new, offset_scaled);
+        return overlaps(overhang_dilated, merged_overhangs_dilated);
+    }
+};
+
+static OverhangCluster* add_overhang(std::vector<OverhangCluster>& clusters, ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
+    OverhangCluster* cluster = nullptr;
+    bool found = false;
+    for (int i = 0; i < clusters.size(); i++) {
+        auto cluster_i = &clusters[i];
+        if (cluster_i->intersects(*overhang, layer_nr)) {
+            cluster_i->insert(overhang, layer_nr);
+            cluster = cluster_i;
+            break;
+        }
+    }
+    if (!cluster) {
+        cluster = &clusters.emplace_back(overhang, layer_nr, offset_scaled);
+    }
+    return cluster;
+};
+
 // Generate top contact layers supporting overhangs.
 // For a soluble interface material synchronize the layer heights with the object, otherwise leave the layer height undefined.
 // If supports over bed surface only are requested, don't generate contact layers over an object.
@@ -1655,6 +2128,12 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     ++ iRun; 
     #define SLIC3R_IRUN , iRun
 #endif /* SLIC3R_DEBUG */
+
+    // BBS: tree support is selected so normal supports need not be generated.
+    // Note we still need to go through the following steps if support is disabled but raft is enabled.
+    if (m_object_config->enable_support.value && (m_object_config->support_type.value != stNormalAuto && m_object_config->support_type.value != stNormal)) {
+        return SupportGeneratorLayersPtr();
+    }
 
     // Slice support enforcers / support blockers.
     SupportAnnotations annotations(object, buildplate_covered);
@@ -1672,51 +2151,235 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     // For each overhang layer, two supporting layers may be generated: One for the overhangs extruded with a bridging flow, 
     // and the other for the overhangs extruded with a normal flow.
     contact_out.assign(num_layers * 2, nullptr);
-    tbb::parallel_for(tbb::blocked_range<size_t>(this->has_raft() ? 0 : 1, num_layers),
-        [this, &object, &annotations, &layer_storage, &contact_out]
-        (const tbb::blocked_range<size_t>& range) {
-            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) 
-            {
-                const Layer        &layer                = *object.layers()[layer_id];
+
+    std::vector<ExPolygons> overhangs_per_layers(num_layers);
+    size_t layer_id_start = this->has_raft() ? 0 : 1;
+     // main part of overhang detection can be parallel
+    tbb::parallel_for(tbb::blocked_range<size_t>(layer_id_start, num_layers),
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
+                const Layer& layer = *object.layers()[layer_id];
                 Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
-                SlicesMarginCache   slices_margin;
 
-                auto [overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset] =
-                    detect_overhangs(layer, layer_id, lower_layer_polygons, *m_print_config, *m_object_config, annotations, slices_margin, m_support_params.gap_xy
-                #ifdef SLIC3R_DEBUG
-                                    , iRun
-                #endif // SLIC3R_DEBUG
-                        );
+                overhangs_per_layers[layer_id] = detect_overhangs(layer, layer_id, lower_layer_polygons, *m_print_config, *m_object_config, annotations, m_support_params.gap_xy
+#ifdef SLIC3R_DEBUG
+                    , iRun
+#endif // SLIC3R_DEBUG
+                );
 
-                // Now apply the contact areas to the layer where they need to be made.
-                if (! contact_polygons.empty() || ! overhang_polygons.empty()) {
-                    // Allocate the two empty layers.
-                    auto [new_layer, bridging_layer] = new_contact_layer(*m_print_config, *m_object_config, m_slicing_params, m_support_params.support_layer_height_min, layer, layer_storage);
-                    if (new_layer) {
-                        // Fill the non-bridging layer with polygons.
-                        fill_contact_layer(*new_layer, layer_id, m_slicing_params,
-                            *m_object_config, slices_margin, overhang_polygons, contact_polygons, enforcer_polygons, lower_layer_polygons,
-                            m_support_params.support_material_flow, no_interface_offset
-                    #ifdef SLIC3R_DEBUG
-                            , iRun, layer
-                    #endif // SLIC3R_DEBUG
-                            );
-                        // Insert new layer even if there is no interface generated: Likely the support angle is not steep enough to require dense interface,
-                        // however generating a sparse support will be useful for the object stability.
-                        // if (! new_layer->polygons.empty())
-                        contact_out[layer_id * 2] = new_layer;
-                        if (bridging_layer != nullptr) {
-                            bridging_layer->polygons          = new_layer->polygons;
-                            bridging_layer->contact_polygons  = std::make_unique<Polygons>(*new_layer->contact_polygons);
-                            bridging_layer->overhang_polygons = std::make_unique<Polygons>(*new_layer->overhang_polygons);
-                            if (new_layer->enforcer_polygons)
-                                bridging_layer->enforcer_polygons = std::make_unique<Polygons>(*new_layer->enforcer_polygons);
-                            contact_out[layer_id * 2 + 1] = bridging_layer;
+                if (object.print()->canceled())
+                    break;
+            }
+        }
+    ); // end tbb::parallel_for
+
+    if (object.print()->canceled())
+        return SupportGeneratorLayersPtr();
+
+    // check if the sharp tails should be extended higher
+    bool detect_first_sharp_tail_only = false;
+    const coordf_t extrusion_width = m_object_config->line_width.get_abs_value(object.print()->config().nozzle_diameter.get_at(object.config().support_interface_filament-1));
+    const coordf_t extrusion_width_scaled = scale_(extrusion_width);
+    if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
+        for (size_t layer_nr = layer_id_start; layer_nr < num_layers; layer_nr++) {
+            if (object.print()->canceled())
+                break;
+
+            const Layer* layer = object.get_layer(layer_nr);
+            const Layer* lower_layer = layer->lower_layer;
+            if (!lower_layer)
+                continue;
+
+            // BBS detect sharp tail
+            const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
+            const auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
+            for (const ExPolygon& expoly : layer->lslices) {
+                bool  is_sharp_tail = false;
+                float accum_height = layer->height;
+                do {
+                    // 2. something below
+                    // check whether this is above a sharp tail region.
+
+                    // 2.1 If no sharp tail below, this is considered as common region.
+                    ExPolygons supported_by_lower = intersection_ex({ expoly }, lower_layer_sharptails);
+                    if (supported_by_lower.empty()) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.2 If sharp tail below, check whether it support this region enough.
+#if 0
+                    // judge by area isn't reliable, failure cases include 45 degree rotated cube
+                    float       supported_area = area(supported_by_lower);
+                    if (supported_area > area_thresh_well_supported) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+#endif
+                    BoundingBox bbox = get_extents(supported_by_lower);
+                    if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.3 check whether sharp tail exceed the max height
+                    for (const auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
+                        if (lower_sharp_tail_height.first->overlaps(expoly)) {
+                            accum_height += lower_sharp_tail_height.second;
+                            break;
                         }
                     }
+                    if (accum_height > sharp_tail_max_support_height) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.4 if the area grows fast than threshold, it get connected to other part or
+                    // it has a sharp slop and will be auto supported.
+                    ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
+                    Point size_diff = get_extents(new_overhang_expolys).size() - get_extents(lower_layer_sharptails).size();
+                    if (size_diff.both_comp(Point(scale_(5), scale_(5)), ">") || !offset_ex(new_overhang_expolys, -5.0 * extrusion_width_scaled).empty()) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.5 mark the expoly as sharptail
+                    is_sharp_tail = true;
+                } while (0);
+
+                if (is_sharp_tail) {
+                    ExPolygons overhang = diff_ex({ expoly }, lower_layer->lslices);
+                    layer->sharp_tails.push_back(expoly);
+                    layer->sharp_tails_height.insert({ &expoly, accum_height });
+                    append(overhangs_per_layers[layer_nr], overhang);
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+                    SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), object.bounding_box());
+                    if (svg.is_opened()) svg.draw(overhang, "yellow");
+#endif
+                }
+
+            }
+        }
+    }
+
+    if (object.print()->canceled())
+        return SupportGeneratorLayersPtr();
+
+    // BBS group overhang clusters
+    const bool config_remove_small_overhangs = m_object_config->support_remove_small_overhang.value;
+    if (config_remove_small_overhangs) {
+        std::vector<OverhangCluster> clusters;
+      double fw_scaled = scale_(extrusion_width);
+        std::set<ExPolygon*> removed_overhang;
+
+        for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
+            const Layer* layer = object.get_layer(layer_id);
+            for (auto& overhang : overhangs_per_layers[layer_id]) {
+                OverhangCluster* cluster = add_overhang(clusters, &overhang, layer_id, fw_scaled);
+                if (overlaps({ overhang }, layer->cantilevers))
+                    cluster->is_cantilever = true;
+            }
+        }
+
+        for (OverhangCluster& cluster : clusters) {
+            // 3. check whether the small overhang is sharp tail
+            cluster.is_sharp_tail = false;
+            for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
+                const Layer* layer = object.get_layer(layer_id);
+                if (overlaps(layer->sharp_tails, cluster.merged_overhangs_dilated)) {
+                    cluster.is_sharp_tail = true;
+                    break;
                 }
             }
-        });
+
+            if (!cluster.is_sharp_tail && !cluster.is_cantilever) {
+                // 2. check overhang cluster size is small
+                cluster.is_small_overhang = false;
+                auto erode1 = offset_ex(cluster.merged_overhangs_dilated, -1.0 * fw_scaled);
+                Point bbox_sz = get_extents(erode1).size();
+                if (bbox_sz.x() < 2 * fw_scaled || bbox_sz.y() < 2 * fw_scaled) {
+                    cluster.is_small_overhang = true;
+                }
+            }
+
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+            const Layer* layer1 = object.get_layer(cluster.min_layer);
+            BoundingBox bbox = get_extents(cluster.merged_overhangs_dilated);
+            bbox.merge(get_extents(layer1->lslices));
+            SVG svg(format("SVG/overhangCluster_%s_%s_tail=%s_cantilever=%s_small=%s.svg", cluster.min_layer, layer1->print_z, cluster.is_sharp_tail, cluster.is_cantilever, cluster.is_small_overhang), bbox);
+            if (svg.is_opened()) {
+                svg.draw(layer1->lslices, "red");
+                svg.draw(cluster.merged_overhangs_dilated, "blue");
+            }
+#endif
+
+            // 5. remove small overhangs
+            if (cluster.is_small_overhang) {
+                for (auto overhangs : cluster.layer_overhangs) {
+                    for (auto* poly : overhangs.second)
+                        removed_overhang.insert(poly);
+                }
+            }
+        }
+
+        for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
+            auto& layer_overhangs = overhangs_per_layers[layer_id];
+            if (layer_overhangs.empty())
+                continue;
+
+            for (int poly_idx = 0; poly_idx < layer_overhangs.size(); poly_idx++) {
+                auto* overhang = &layer_overhangs[poly_idx];
+                if (removed_overhang.find(overhang) != removed_overhang.end()) {
+                    overhang->clear();
+                }
+            }
+        }
+    }
+
+    if (object.print()->canceled())
+        return SupportGeneratorLayersPtr();
+
+    for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
+        const Layer& layer = *object.layers()[layer_id];
+        Polygons            overhang_polygons = to_polygons(overhangs_per_layers[layer_id]);
+        Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
+        SlicesMarginCache   slices_margin;
+
+        auto [contact_polygons, enforcer_polygons, no_interface_offset] =
+            detect_contacts(layer, layer_id, overhang_polygons, lower_layer_polygons, *m_print_config, *m_object_config, annotations, slices_margin, m_support_params.gap_xy
+#ifdef SLIC3R_DEBUG
+                , iRun
+#endif // SLIC3R_DEBUG
+            );
+
+        // Now apply the contact areas to the layer where they need to be made.
+        if (!contact_polygons.empty() || !overhang_polygons.empty()) {
+            // Allocate the two empty layers.
+            auto [new_layer, bridging_layer] = new_contact_layer(*m_print_config, *m_object_config, m_slicing_params, m_support_params.support_layer_height_min, layer, layer_storage);
+            if (new_layer) {
+                // Fill the non-bridging layer with polygons.
+                fill_contact_layer(*new_layer, layer_id, m_slicing_params,
+                    *m_object_config, slices_margin, overhang_polygons, contact_polygons, enforcer_polygons, lower_layer_polygons,
+                    m_support_params.support_material_flow, no_interface_offset
+#ifdef SLIC3R_DEBUG
+                    , iRun, layer
+#endif // SLIC3R_DEBUG
+                );
+                // Insert new layer even if there is no interface generated: Likely the support angle is not steep enough to require dense interface,
+                // however generating a sparse support will be useful for the object stability.
+                // if (! new_layer->polygons.empty())
+                contact_out[layer_id * 2] = new_layer;
+                if (bridging_layer != nullptr) {
+                    bridging_layer->polygons = new_layer->polygons;
+                    bridging_layer->contact_polygons = std::make_unique<Polygons>(*new_layer->contact_polygons);
+                    bridging_layer->overhang_polygons = std::make_unique<Polygons>(*new_layer->overhang_polygons);
+                    if (new_layer->enforcer_polygons)
+                        bridging_layer->enforcer_polygons = std::make_unique<Polygons>(*new_layer->enforcer_polygons);
+                    contact_out[layer_id * 2 + 1] = bridging_layer;
+                }
+            }
+        }
+    }
 
     // Compress contact_out, remove the nullptr items.
     remove_nulls(contact_out);
@@ -1733,11 +2396,11 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
 // Find the bottom contact layers above the top surfaces of this layer.
 static inline SupportGeneratorLayer* detect_bottom_contacts(
     const SlicingParameters                          &slicing_params,
-    const SupportParameters                          &support_params,
+    const PrintObjectSupportMaterial::SupportParams  &support_params,
     const PrintObject                                &object,
     const Layer                                      &layer,
     // Existing top contact layers, to which this newly created bottom contact layer will be snapped to guarantee a minimum layer height.
-    const SupportGeneratorLayersPtr                  &top_contacts,
+    const SupportGeneratorLayersPtr    &top_contacts,
     // First top contact layer index overlapping with this new bottom interface layer.
     size_t                                            contact_idx,
     // To allocate a new layer from.
@@ -1782,7 +2445,7 @@ static inline SupportGeneratorLayer* detect_bottom_contacts(
     // top shapes so this can be done here
     //FIXME calculate layer height based on the actual thickness of the layer:
     // If the layer is extruded with no bridging flow, support just the normal extrusions.
-    layer_new.height = slicing_params.soluble_interface ?
+    layer_new.height = slicing_params.soluble_interface || !object.print()->config().independent_support_layer_height ?
         // Align the interface layer with the object's layer height.
         layer.upper_layer->height :
         // Place a bridge flow interface layer or the normal flow interface layer over the top surface.
@@ -1805,12 +2468,18 @@ static inline SupportGeneratorLayer* detect_bottom_contacts(
                 // A top layer has been found, which is close to the new bottom layer.
                 coordf_t diff = layer_new.print_z - top_contacts[top_idx]->print_z;
                 assert(std::abs(diff) <= support_params.support_layer_height_min + EPSILON);
-                if (diff > 0.) {
-                    // The top contact layer is below this layer. Make the bridging layer thinner to align with the existing top layer.
-                    assert(diff < layer_new.height + EPSILON);
-                    assert(layer_new.height - diff >= support_params.support_layer_height_min - EPSILON);
-                    layer_new.print_z = top_contacts[top_idx]->print_z;
-                    layer_new.height -= diff;
+                if (diff > 0.F) {
+                    if (layer_new.height - diff > support_params.support_layer_height_min) {
+                        // The top contact layer is below this layer. Make the bridging layer thinner to align with the existing top layer.
+                        assert(diff < layer_new.height + EPSILON);
+                        assert(layer_new.height - diff >= support_params.support_layer_height_min - EPSILON);
+                        layer_new.print_z = top_contacts[top_idx]->print_z;
+                        layer_new.height -= diff;
+                    }
+                    else {
+                        // BBS: The trimmed layer height is smaller than support_layer_height_min. Walk to the next top contact layer.
+                        continue;
+                    }
                 }
                 else {
                     // The top contact layer is above this layer. One may either make this layer thicker or thinner.
@@ -2157,7 +2826,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
     // Generate intermediate layers.
     // The first intermediate layer is the same as the 1st layer if there is no raft,
     // or the bottom of the first intermediate layer is aligned with the bottom of the raft contact layer.
-    // Intermediate layers are always printed with a normal etrusion flow (non-bridging).
+    // Intermediate layers are always printed with a normal extrusion flow (non-bridging).
     size_t idx_layer_object = 0;
     size_t idx_extreme_first = 0;
     if (! extremes.empty() && std::abs(extremes.front()->extreme_z() - m_slicing_params.raft_interface_top_z) < EPSILON) {
@@ -2172,10 +2841,10 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
         if (std::abs(extr2z - m_slicing_params.first_print_layer_height) < EPSILON) {
             // This is a bottom of a synchronized (or soluble) top contact layer, its height has been decided in this->top_contact_layers().
             assert(extr2->layer_type == SupporLayerType::TopContact);
-            assert(extr2->bottom_z == m_slicing_params.first_print_layer_height);
+            assert(std::abs(extr2->bottom_z - m_slicing_params.first_print_layer_height) < EPSILON);
             assert(extr2->print_z >= m_slicing_params.first_print_layer_height + m_support_params.support_layer_height_min - EPSILON);
             if (intermediate_layers.empty() || intermediate_layers.back()->print_z < m_slicing_params.first_print_layer_height) {
-                SupportGeneratorLayer &layer_new = layer_storage.allocate_unguarded(SupporLayerType::Intermediate);
+                SupportGeneratorLayer &layer_new = layer_storage.allocate(SupporLayerType::Intermediate);
                 layer_new.bottom_z = 0.;
                 layer_new.print_z  = m_slicing_params.first_print_layer_height;
                 layer_new.height   = m_slicing_params.first_print_layer_height;
@@ -2197,7 +2866,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
             // At this point only layers above first_print_layer_heigth + EPSILON are expected as the other cases were captured earlier.
             assert(extr2z >= m_slicing_params.first_print_layer_height + EPSILON);
             // Generate a new intermediate layer.
-            SupportGeneratorLayer &layer_new = layer_storage.allocate_unguarded(SupporLayerType::Intermediate);
+            SupportGeneratorLayer &layer_new = layer_storage.allocate(SupporLayerType::Intermediate);
             layer_new.bottom_z = 0.;
             layer_new.print_z  = extr1z = m_slicing_params.first_print_layer_height;
             layer_new.height   = extr1z;
@@ -2217,7 +2886,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
                 ++ idx_layer_object;
             if (idx_layer_object == 0 && extr1z == m_slicing_params.raft_interface_top_z) {
                 // Insert one base support layer below the object.
-                SupportGeneratorLayer &layer_new = layer_storage.allocate_unguarded(SupporLayerType::Intermediate);
+                SupportGeneratorLayer &layer_new = layer_storage.allocate(SupporLayerType::Intermediate);
                 layer_new.print_z  = m_slicing_params.object_print_z_min;
                 layer_new.bottom_z = m_slicing_params.raft_interface_top_z;
                 layer_new.height   = layer_new.print_z - layer_new.bottom_z;
@@ -2225,7 +2894,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
             }
             // Emit all intermediate support layers synchronized with object layers up to extr2z.
             for (; idx_layer_object < object.layers().size() && object.layers()[idx_layer_object]->print_z < extr2z + EPSILON; ++ idx_layer_object) {
-                SupportGeneratorLayer &layer_new = layer_storage.allocate_unguarded(SupporLayerType::Intermediate);
+                SupportGeneratorLayer &layer_new = layer_storage.allocate(SupporLayerType::Intermediate);
                 layer_new.print_z  = object.layers()[idx_layer_object]->print_z;
                 layer_new.height   = object.layers()[idx_layer_object]->height;
                 layer_new.bottom_z = (idx_layer_object > 0) ? object.layers()[idx_layer_object - 1]->print_z : (layer_new.print_z - layer_new.height);
@@ -2243,7 +2912,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
                 // between the 1st intermediate layer print_z and extr1->print_z is not too small.
                 assert(extr1->bottom_z + m_support_params.support_layer_height_min < extr1->print_z + EPSILON);
                 // Generate the first intermediate layer.
-                SupportGeneratorLayer &layer_new = layer_storage.allocate_unguarded(SupporLayerType::Intermediate);
+                SupportGeneratorLayer &layer_new = layer_storage.allocate(SupporLayerType::Intermediate);
                 layer_new.bottom_z = extr1->bottom_z;
                 layer_new.print_z  = extr1z = extr1->print_z;
                 layer_new.height   = extr1->height;
@@ -2267,7 +2936,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
             coordf_t extr2z_large_steps = extr2z;
             // Take the largest allowed step in the Z axis until extr2z_large_steps is reached.
             for (size_t i = 0; i < n_layers_extra; ++ i) {
-                SupportGeneratorLayer &layer_new = layer_storage.allocate_unguarded(SupporLayerType::Intermediate);
+                SupportGeneratorLayer &layer_new = layer_storage.allocate(SupporLayerType::Intermediate);
                 if (i + 1 == n_layers_extra) {
                     // Last intermediate layer added. Align the last entered layer with extr2z_large_steps exactly.
                     layer_new.bottom_z = (i == 0) ? extr1z : intermediate_layers.back()->print_z;
@@ -2291,6 +2960,36 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
         assert(top_contacts[i]->height > 0.);
 #endif /* _DEBUG */
 
+#if 0 // #ifdef SLIC3R_DEBUG
+    // check bounds
+    std::ofstream out;
+    out.open("./SVG/ns_bounds.txt");
+    if (out.is_open()) {
+        if (!top_contacts.empty()) {
+            out << "### Top Contacts ###" << std::endl;
+            for (auto& t : top_contacts) {
+                out << t->print_z << std::endl;
+            }
+        }
+        if (!bottom_contacts.empty()) {
+            out << "### Bottome Contacts ###" << std::endl;
+            for (auto& b : bottom_contacts) {
+                out << b->print_z << std::endl;
+            }
+        }
+        if (!intermediate_layers.empty()) {
+            out << "### Intermediate Layers ###" << std::endl;
+            for (auto& i : intermediate_layers) {
+                out << i->print_z << std::endl;
+            }
+        }
+        out << "### Slice Layers ###" << std::endl;
+        for (size_t j = 0; j < object.layers().size(); ++j) {
+            out << object.layers()[j]->print_z << std::endl;
+        }
+    }
+#endif /* SLIC3R_DEBUG */
+    
     return intermediate_layers;
 }
 
@@ -2420,7 +3119,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
                 layer_intermediate.layer_type = SupporLayerType::Base;
 
         #if 0
-                    // coordf_t fillet_radius_scaled = scale_(m_object_config->support_material_spacing);
+                    // coordf_t fillet_radius_scaled = scale_(m_object_config->support_base_pattern_spacing);
                     // Fillet the base polygons and trim them again with the top, interface and contact layers.
                     $base->{$i} = diff(
                         offset2(
@@ -2475,13 +3174,27 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
         tbb::blocked_range<size_t>(0, nonempty_layers.size()),
         [this, &object, &nonempty_layers, gap_extra_above, gap_extra_below, gap_xy_scaled](const tbb::blocked_range<size_t>& range) {
             size_t idx_object_layer_overlapping = size_t(-1);
+
+            auto is_layers_overlap = [](const SupportGeneratorLayer& support_layer, const Layer& object_layer, coordf_t bridging_height = 0.f) -> bool {
+                if (std::abs(support_layer.print_z - object_layer.print_z) < EPSILON)
+                    return true;
+
+                coordf_t object_lh = bridging_height > EPSILON ? bridging_height : object_layer.height;
+                if (support_layer.print_z < object_layer.print_z && support_layer.print_z > object_layer.print_z - object_lh)
+                    return true;
+
+                if (support_layer.print_z > object_layer.print_z && support_layer.bottom_z < object_layer.print_z - EPSILON)
+                    return true;
+
+                return false;
+            };
             for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                 SupportGeneratorLayer &support_layer = *nonempty_layers[idx_layer];
                 // BOOST_LOG_TRIVIAL(trace) << "Support generator - trim_support_layers_by_object - trimmming non-empty layer " << idx_layer << " of " << nonempty_layers.size();
                 assert(! support_layer.polygons.empty() && support_layer.print_z >= m_slicing_params.raft_contact_top_z + EPSILON);
                 // Find the overlapping object layers including the extra above / below gap.
                 coordf_t z_threshold = support_layer.bottom_print_z() - gap_extra_below + EPSILON;
-                idx_object_layer_overlapping = idx_higher_or_equal(
+                idx_object_layer_overlapping = Layer::idx_higher_or_equal(
                     object.layers().begin(), object.layers().end(), idx_object_layer_overlapping,
                     [z_threshold](const Layer *layer){ return layer->print_z >= z_threshold; });
                 // Collect all the object layers intersecting with this layer.
@@ -2491,7 +3204,16 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                     const Layer &object_layer = *object.layers()[i];
                     if (object_layer.bottom_z() > support_layer.print_z + gap_extra_above - EPSILON)
                         break;
-                    polygons_append(polygons_trimming, offset(object_layer.lslices, gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+
+                    bool is_overlap = is_layers_overlap(support_layer, object_layer);
+                    for (const ExPolygon& expoly : object_layer.lslices) {
+                        // BBS
+                        bool is_sharptail = !intersection_ex({ expoly }, object_layer.sharp_tails).empty();
+                        coordf_t trimming_offset = is_sharptail ? scale_(sharp_tail_xy_gap) :
+                                                   is_overlap ? gap_xy_scaled :
+                                                   scale_(no_overlap_xy_gap);
+                        polygons_append(polygons_trimming, offset({ expoly }, trimming_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                    }
                 }
                 if (! m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
                     // Collect all bottom surfaces, which will be extruded with a bridging flow.
@@ -2503,8 +3225,11 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                             if (object_layer.print_z - bridging_height > support_layer.print_z + gap_extra_above - EPSILON)
                                 break;
                             some_region_overlaps = true;
+
+                            bool is_overlap = is_layers_overlap(support_layer, object_layer, bridging_height);
+                            coordf_t trimming_offset = is_overlap ? gap_xy_scaled : scale_(no_overlap_xy_gap);
                             polygons_append(polygons_trimming, 
-                                offset(region->fill_surfaces.filter_by_type(stBottomBridge), gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                                offset(region->fill_surfaces.filter_by_type(stBottomBridge), trimming_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                             if (region->region().config().detect_overhang_wall.value)
                                 // Add bridging perimeters.
                                 SupportMaterialInternal::collect_bridging_perimeter_areas(region->perimeters, gap_xy_scaled, polygons_trimming);
@@ -2513,6 +3238,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                             break;
                     }
                 }
+
                 // $layer->slices contains the full shape of layer, thus including
                 // perimeter's width. $support contains the full shape of support
                 // material, thus including the width of its foremost extrusion.
@@ -2521,6 +3247,1482 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
             }
         });
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::trim_support_layers_by_object() in parallel - end";
+}
+
+SupportGeneratorLayersPtr PrintObjectSupportMaterial::generate_raft_base(
+    const PrintObject   &object,
+    const SupportGeneratorLayersPtr   &top_contacts,
+    const SupportGeneratorLayersPtr   &interface_layers,
+    const SupportGeneratorLayersPtr   &base_interface_layers,
+    const SupportGeneratorLayersPtr   &base_layers,
+    SupportGeneratorLayerStorage      &layer_storage) const
+{
+    // If there is brim to be generated, calculate the trimming regions.
+    Polygons brim;
+    if (object.has_brim()) {
+        // Calculate the area covered by the brim.
+        const BrimType brim_type       = object.config().brim_type;
+        const bool     brim_outer      = brim_type == btOuterOnly || brim_type == btOuterAndInner;
+        const bool     brim_inner      = brim_type == btInnerOnly || brim_type == btOuterAndInner;
+        // BBS: the pattern of raft and brim are the same, thus the brim can be serpated by support raft.
+        const auto     brim_object_gap = scaled<float>(object.config().brim_object_gap.value);
+        //const auto     brim_object_gap = scaled<float>(object.config().brim_object_gap.value + object.config().brim_width.value);
+        for (const ExPolygon &ex : object.layers().front()->lslices) {
+            if (brim_outer && brim_inner)
+                polygons_append(brim, offset(ex, brim_object_gap));
+            else {
+                if (brim_outer)
+                    polygons_append(brim, offset(ex.contour, brim_object_gap, ClipperLib::jtRound, float(scale_(0.1))));
+                else
+                    brim.emplace_back(ex.contour);
+                if (brim_inner) {
+                    Polygons holes = ex.holes;
+                    polygons_reverse(holes);
+                    holes = shrink(holes, brim_object_gap, ClipperLib::jtRound, float(scale_(0.1)));
+                    polygons_reverse(holes);
+                    polygons_append(brim, std::move(holes));
+                } else
+                    polygons_append(brim, ex.holes);
+            }
+        }
+        brim = union_(brim);
+    }
+
+    // How much to inflate the support columns to be stable. This also applies to the 1st layer, if no raft layers are to be printed.
+    const float inflate_factor_fine      = float(scale_((m_slicing_params.raft_layers() > 1) ? 0.5 : EPSILON));
+    const float inflate_factor_1st_layer = std::max(0.f, float(scale_(object.config().raft_first_layer_expansion)) - inflate_factor_fine);
+    SupportGeneratorLayer       *contacts         = top_contacts         .empty() ? nullptr : top_contacts         .front();
+    SupportGeneratorLayer       *interfaces       = interface_layers     .empty() ? nullptr : interface_layers     .front();
+    SupportGeneratorLayer       *base_interfaces  = base_interface_layers.empty() ? nullptr : base_interface_layers.front();
+    SupportGeneratorLayer       *columns_base     = base_layers          .empty() ? nullptr : base_layers          .front();
+    if (contacts != nullptr && contacts->print_z > std::max(m_slicing_params.first_print_layer_height, m_slicing_params.raft_contact_top_z) + EPSILON)
+        // This is not the raft contact layer.
+        contacts = nullptr;
+    if (interfaces != nullptr && interfaces->bottom_print_z() > m_slicing_params.raft_interface_top_z + EPSILON)
+        // This is not the raft column base layer.
+        interfaces = nullptr;
+    if (base_interfaces != nullptr && base_interfaces->bottom_print_z() > m_slicing_params.raft_interface_top_z + EPSILON)
+        // This is not the raft column base layer.
+        base_interfaces = nullptr;
+    if (columns_base != nullptr && columns_base->bottom_print_z() > m_slicing_params.raft_interface_top_z + EPSILON)
+        // This is not the raft interface layer.
+        columns_base = nullptr;
+
+    Polygons interface_polygons;
+    if (contacts != nullptr && ! contacts->polygons.empty())
+        polygons_append(interface_polygons, expand(contacts->polygons, inflate_factor_fine, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+    if (interfaces != nullptr && ! interfaces->polygons.empty())
+        polygons_append(interface_polygons, expand(interfaces->polygons, inflate_factor_fine, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+    if (base_interfaces != nullptr && ! base_interfaces->polygons.empty())
+        polygons_append(interface_polygons, expand(base_interfaces->polygons, inflate_factor_fine, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+ 
+    // Output vector.
+    SupportGeneratorLayersPtr raft_layers;
+
+    if (m_slicing_params.raft_layers() > 1) {
+        Polygons base;
+        Polygons columns;
+        if (columns_base != nullptr) {
+            base = columns_base->polygons;
+            columns = base;
+            if (! interface_polygons.empty())
+                // Trim the 1st layer columns with the inflated interface polygons.
+                columns = diff(columns, interface_polygons);
+        }
+        if (! interface_polygons.empty()) {
+            // Merge the untrimmed columns base with the expanded raft interface, to be used for the support base and interface.
+            base = union_(base, interface_polygons); 
+        }
+        // Do not add the raft contact layer, only add the raft layers below the contact layer.
+        // Insert the 1st layer.
+        {
+            SupportGeneratorLayer &new_layer = layer_storage.allocate((m_slicing_params.base_raft_layers > 0) ? SupporLayerType::RaftBase : SupporLayerType::RaftInterface);
+            raft_layers.push_back(&new_layer);
+            new_layer.print_z = m_slicing_params.first_print_layer_height;
+            new_layer.height  = m_slicing_params.first_print_layer_height;
+            new_layer.bottom_z = 0.;
+            new_layer.polygons = inflate_factor_1st_layer > 0 ? expand(base, inflate_factor_1st_layer) : base;
+        }
+        // Insert the base layers.
+        for (size_t i = 1; i < m_slicing_params.base_raft_layers; ++ i) {
+            coordf_t print_z = raft_layers.back()->print_z;
+            SupportGeneratorLayer &new_layer  = layer_storage.allocate(SupporLayerType::RaftBase);
+            raft_layers.push_back(&new_layer);
+            new_layer.print_z  = print_z + m_slicing_params.base_raft_layer_height;
+            new_layer.height   = m_slicing_params.base_raft_layer_height;
+            new_layer.bottom_z = print_z;
+            new_layer.polygons = base;
+        }
+        // Insert the interface layers.
+        for (size_t i = 1; i < m_slicing_params.interface_raft_layers; ++ i) {
+            coordf_t print_z = raft_layers.back()->print_z;
+            SupportGeneratorLayer &new_layer = layer_storage.allocate(SupporLayerType::RaftInterface);
+            raft_layers.push_back(&new_layer);
+            new_layer.print_z = print_z + m_slicing_params.interface_raft_layer_height;
+            new_layer.height  = m_slicing_params.interface_raft_layer_height;
+            new_layer.bottom_z = print_z;
+            new_layer.polygons = interface_polygons;
+            //FIXME misusing contact_polygons for support columns.
+            new_layer.contact_polygons = std::make_unique<Polygons>(columns);
+        }
+    } else {
+        if (columns_base != nullptr) {
+        // Expand the bases of the support columns in the 1st layer.
+            Polygons &raft     = columns_base->polygons;
+            Polygons  trimming;
+            // BBS: if first layer of support is intersected with object island, it must have the same function as brim unless in nobrim mode.
+            if (object.has_brim())
+                trimming = offset(m_object->layers().front()->lslices, (float)scale_(object.config().brim_object_gap.value), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            else
+                trimming = offset(m_object->layers().front()->lslices, (float)scale_(m_support_params.gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            if (inflate_factor_1st_layer > SCALED_EPSILON) {
+                // Inflate in multiple steps to avoid leaking of the support 1st layer through object walls.
+                auto  nsteps = std::max(5, int(ceil(inflate_factor_1st_layer / m_support_params.first_layer_flow.scaled_width())));
+                float step   = inflate_factor_1st_layer / nsteps;
+                for (int i = 0; i < nsteps; ++ i)
+                    raft = diff(expand(raft, step), trimming);
+            } else
+                raft = diff(raft, trimming);
+            if (! interface_polygons.empty())
+                columns_base->polygons = diff(columns_base->polygons, interface_polygons);
+        }
+        if (! brim.empty()) {
+            if (columns_base)
+                columns_base->polygons = diff(columns_base->polygons, brim);
+            if (contacts)
+                contacts->polygons = diff(contacts->polygons, brim);
+            if (interfaces)
+                interfaces->polygons = diff(interfaces->polygons, brim);
+            if (base_interfaces)
+                base_interfaces->polygons = diff(base_interfaces->polygons, brim);
+        }
+    }
+
+    return raft_layers;
+}
+
+// Convert some of the intermediate layers into top/bottom interface layers as well as base interface layers.
+std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> PrintObjectSupportMaterial::generate_interface_layers(
+    const SupportGeneratorLayersPtr   &bottom_contacts,
+    const SupportGeneratorLayersPtr   &top_contacts,
+    SupportGeneratorLayersPtr         &intermediate_layers,
+    SupportGeneratorLayerStorage      &layer_storage) const
+{
+//    my $area_threshold = $self->interface_flow->scaled_spacing ** 2;
+
+    std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> base_and_interface_layers;
+    SupportGeneratorLayersPtr &interface_layers       = base_and_interface_layers.first;
+    SupportGeneratorLayersPtr &base_interface_layers  = base_and_interface_layers.second;
+
+    // distinguish between interface and base interface layers
+    // Contact layer is considered an interface layer, therefore run the following block only if support_interface_top_layers > 1.
+    // Contact layer needs a base_interface layer, therefore run the following block if support_interface_top_layers > 0, has soluble support and extruders are different.
+    bool   soluble_interface_non_soluble_base =
+        // Zero z-gap between the overhangs and the support interface.
+        m_slicing_params.soluble_interface && 
+        // Interface extruder soluble.
+        m_object_config->support_interface_filament.value > 0 && m_print_config->filament_soluble.get_at(m_object_config->support_interface_filament.value - 1) && 
+        // Base extruder: Either "print with active extruder" not soluble.
+        (m_object_config->support_filament.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_filament.value - 1));
+    bool   snug_supports                 = m_object_config->support_style.value == smsSnug;
+    // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
+    bool differnt_support_interface_filament = m_object_config->support_interface_filament.value != m_object_config->support_filament.value;
+    int num_base_interface_layers_top = differnt_support_interface_filament ? 1 : 0;
+    int num_base_interface_layers_bottom = differnt_support_interface_filament ? 1 : 0;
+    int num_interface_layers_top = m_object_config->support_interface_top_layers + num_base_interface_layers_top;
+    int num_interface_layers_bottom = m_object_config->support_interface_bottom_layers + num_base_interface_layers_bottom;
+    if (num_interface_layers_bottom < 0)
+        num_interface_layers_bottom = num_interface_layers_top;
+
+    if (! intermediate_layers.empty() && (num_interface_layers_top > 1 || num_interface_layers_bottom > 1)) {
+        // For all intermediate layers, collect top contact surfaces, which are not further than support_interface_top_layers.
+        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - start";
+        // Since the intermediate layer index starts at zero the number of interface layer needs to be reduced by 1.
+        -- num_interface_layers_top;
+        -- num_interface_layers_bottom;
+        int num_interface_layers_only_top    = num_interface_layers_top    - num_base_interface_layers_top;
+        int num_interface_layers_only_bottom = num_interface_layers_bottom - num_base_interface_layers_bottom;
+        interface_layers.assign(intermediate_layers.size(), nullptr);
+        if (num_base_interface_layers_top || num_base_interface_layers_bottom)
+            base_interface_layers.assign(intermediate_layers.size(), nullptr);
+        auto smoothing_distance              = m_support_params.support_material_interface_flow.scaled_spacing() * 1.5;
+        auto minimum_island_radius           = m_support_params.support_material_interface_flow.scaled_spacing() / m_support_params.interface_density;
+        auto closing_distance                = smoothing_distance; // scaled<float>(m_object_config->support_closing_radius.value);
+        // Insert a new layer into base_interface_layers, if intersection with base exists.
+        auto insert_layer = [&layer_storage, snug_supports, closing_distance, smoothing_distance, minimum_island_radius](
+                SupportGeneratorLayer &intermediate_layer, Polygons &bottom, Polygons &&top, const Polygons *subtract, SupporLayerType type) -> SupportGeneratorLayer* {
+            assert(! bottom.empty() || ! top.empty());
+            // Merge top into bottom, unite them with a safety offset.
+            append(bottom, std::move(top));
+            // Merge top / bottom interfaces. For snug supports, merge using closing distance and regularize (close concave corners).
+            bottom = intersection(
+                snug_supports ?
+                    smooth_outward(closing(std::move(bottom), closing_distance + minimum_island_radius, closing_distance, SUPPORT_SURFACES_OFFSET_PARAMETERS), smoothing_distance) :
+                    union_safety_offset(std::move(bottom)),
+                intermediate_layer.polygons);
+            if (! bottom.empty()) {
+                //FIXME Remove non-printable tiny islands, let them be printed using the base support.
+                //bottom = opening(std::move(bottom), minimum_island_radius);
+                if (! bottom.empty()) {
+                    SupportGeneratorLayer &layer_new = layer_storage.allocate(type);
+                    layer_new.polygons   = std::move(bottom);
+                    layer_new.print_z    = intermediate_layer.print_z;
+                    layer_new.bottom_z   = intermediate_layer.bottom_z;
+                    layer_new.height     = intermediate_layer.height;
+                    layer_new.bridging   = intermediate_layer.bridging;
+                    // Subtract the interface from the base regions.
+                    intermediate_layer.polygons = diff(intermediate_layer.polygons, layer_new.polygons);
+                    if (subtract)
+                        // Trim the base interface layer with the interface layer.
+                        layer_new.polygons = diff(std::move(layer_new.polygons), *subtract);
+                    //FIXME filter layer_new.polygons islands by a minimum area?
+        //                  $interface_area = [ grep abs($_->area) >= $area_threshold, @$interface_area ];
+                    return &layer_new;
+                }
+            }
+            return nullptr;
+        };
+        tbb::parallel_for(tbb::blocked_range<int>(0, int(intermediate_layers.size())),
+            [&bottom_contacts, &top_contacts, &intermediate_layers, &insert_layer, 
+             num_interface_layers_top, num_interface_layers_bottom, num_base_interface_layers_top, num_base_interface_layers_bottom, num_interface_layers_only_top, num_interface_layers_only_bottom,
+             snug_supports, &interface_layers, &base_interface_layers](const tbb::blocked_range<int>& range) {                
+                // Gather the top / bottom contact layers intersecting with num_interface_layers resp. num_interface_layers_only intermediate layers above / below
+                // this intermediate layer.
+                // Index of the first top contact layer intersecting the current intermediate layer.
+                auto idx_top_contact_first      = -1;
+                // Index of the first bottom contact layer intersecting the current intermediate layer.
+                auto idx_bottom_contact_first   = -1;
+                auto num_intermediate = int(intermediate_layers.size());
+                for (int idx_intermediate_layer = range.begin(); idx_intermediate_layer < range.end(); ++ idx_intermediate_layer) {
+                    SupportGeneratorLayer &intermediate_layer = *intermediate_layers[idx_intermediate_layer];
+                    Polygons polygons_top_contact_projected_interface;
+                    Polygons polygons_top_contact_projected_base;
+                    Polygons polygons_bottom_contact_projected_interface;
+                    Polygons polygons_bottom_contact_projected_base;
+                    if (num_interface_layers_top > 0) {
+                        // Top Z coordinate of a slab, over which we are collecting the top / bottom contact surfaces
+                        coordf_t top_z              = intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + num_interface_layers_top - 1)]->print_z;
+                        coordf_t top_inteface_z     = std::numeric_limits<coordf_t>::max();
+                        if (num_base_interface_layers_top > 0)
+                            // Some top base interface layers will be generated.
+                            top_inteface_z = num_interface_layers_only_top == 0 ?
+                                // Only base interface layers to generate.
+                                - std::numeric_limits<coordf_t>::max() :
+                                intermediate_layers[std::min(num_intermediate - 1, idx_intermediate_layer + num_interface_layers_only_top - 1)]->print_z;
+                        // Move idx_top_contact_first up until above the current print_z.
+                        idx_top_contact_first = idx_higher_or_equal(top_contacts, idx_top_contact_first, [&intermediate_layer](const SupportGeneratorLayer *layer){ return layer->print_z >= intermediate_layer.print_z; }); //  - EPSILON
+                        // Collect the top contact areas above this intermediate layer, below top_z.
+                        for (int idx_top_contact = idx_top_contact_first; idx_top_contact < int(top_contacts.size()); ++ idx_top_contact) {
+                            const SupportGeneratorLayer &top_contact_layer = *top_contacts[idx_top_contact];
+                            //FIXME maybe this adds one interface layer in excess?
+                            if (top_contact_layer.bottom_z - EPSILON > top_z)
+                                break;
+                            polygons_append(top_contact_layer.bottom_z - EPSILON > top_inteface_z ? polygons_top_contact_projected_base : polygons_top_contact_projected_interface, 
+                                // For snug supports, project the overhang polygons covering the whole overhang, so that they will merge without a gap with support polygons of the other layers.
+                                // For grid supports, merging of support regions will be performed by the projection into grid.
+                                snug_supports ? *top_contact_layer.overhang_polygons : top_contact_layer.polygons);
+                        }
+                    }
+                    if (num_interface_layers_bottom > 0) {
+                        // Bottom Z coordinate of a slab, over which we are collecting the top / bottom contact surfaces
+                        coordf_t bottom_z           = intermediate_layers[std::max(0, idx_intermediate_layer - num_interface_layers_bottom + 1)]->bottom_z;
+                        coordf_t bottom_interface_z = - std::numeric_limits<coordf_t>::max();
+                        if (num_base_interface_layers_bottom > 0)
+                            // Some bottom base interface layers will be generated.
+                            bottom_interface_z = num_interface_layers_only_bottom == 0 ? 
+                                // Only base interface layers to generate.
+                                std::numeric_limits<coordf_t>::max() :
+                                intermediate_layers[std::max(0, idx_intermediate_layer - num_interface_layers_only_bottom)]->bottom_z;
+                        // Move idx_bottom_contact_first up until touching bottom_z.
+                        idx_bottom_contact_first = idx_higher_or_equal(bottom_contacts, idx_bottom_contact_first, [bottom_z](const SupportGeneratorLayer *layer){ return layer->print_z >= bottom_z - EPSILON; });
+                        // Collect the top contact areas above this intermediate layer, below top_z.
+                        for (int idx_bottom_contact = idx_bottom_contact_first; idx_bottom_contact < int(bottom_contacts.size()); ++ idx_bottom_contact) {
+                            const SupportGeneratorLayer &bottom_contact_layer = *bottom_contacts[idx_bottom_contact];
+                            if (bottom_contact_layer.print_z - EPSILON > intermediate_layer.bottom_z)
+                                break;
+                            polygons_append(bottom_contact_layer.print_z - EPSILON > bottom_interface_z ? polygons_bottom_contact_projected_interface : polygons_bottom_contact_projected_base, bottom_contact_layer.polygons);
+                        }
+                    }
+                    SupportGeneratorLayer *interface_layer = nullptr;
+                    if (! polygons_bottom_contact_projected_interface.empty() || ! polygons_top_contact_projected_interface.empty()) {
+                        interface_layer = insert_layer(
+                            intermediate_layer, polygons_bottom_contact_projected_interface, std::move(polygons_top_contact_projected_interface), nullptr,
+                            polygons_top_contact_projected_interface.empty() ? SupporLayerType::BottomInterface : SupporLayerType::TopInterface);
+                        interface_layers[idx_intermediate_layer] = interface_layer;
+                    }
+                    if (! polygons_bottom_contact_projected_base.empty() || ! polygons_top_contact_projected_base.empty())
+                        base_interface_layers[idx_intermediate_layer] = insert_layer(
+                            intermediate_layer, polygons_bottom_contact_projected_base, std::move(polygons_top_contact_projected_base), 
+                            interface_layer ? &interface_layer->polygons : nullptr, SupporLayerType::Base);
+                }
+            });
+
+        // Compress contact_out, remove the nullptr items.
+        remove_nulls(interface_layers);
+        remove_nulls(base_interface_layers);
+        BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - end";
+    }
+
+    return base_and_interface_layers;
+}
+
+static inline void fill_expolygon_generate_paths(
+    ExtrusionEntitiesPtr    &dst,
+    ExPolygon              &&expolygon,
+    Fill                    *filler,
+    const FillParams        &fill_params,
+    ExtrusionRole            role,
+    const Flow              &flow)
+{
+    Surface surface(stInternal, std::move(expolygon));
+    Polylines polylines;
+    try {
+        polylines = filler->fill_surface(&surface, fill_params);
+    } catch (InfillFailedException &) {
+    }
+    extrusion_entities_append_paths(
+        dst,
+        std::move(polylines),
+        role,
+        flow.mm3_per_mm(), flow.width(), flow.height());
+}
+
+static inline void fill_expolygons_generate_paths(
+    ExtrusionEntitiesPtr    &dst,
+    ExPolygons             &&expolygons,
+    Fill                    *filler,
+    const FillParams        &fill_params,
+    ExtrusionRole            role,
+    const Flow              &flow)
+{
+    for (ExPolygon &expoly : expolygons)
+        fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, role, flow);
+}
+
+static inline void fill_expolygons_generate_paths(
+    ExtrusionEntitiesPtr    &dst,
+    ExPolygons             &&expolygons,
+    Fill                    *filler,
+    float                    density,
+    ExtrusionRole            role,
+    const Flow              &flow)
+{
+    FillParams fill_params;
+    fill_params.density     = density;
+    fill_params.dont_adjust = true;
+    fill_expolygons_generate_paths(dst, std::move(expolygons), filler, fill_params, role, flow);
+}
+
+static inline void fill_expolygons_with_sheath_generate_paths(
+    ExtrusionEntitiesPtr    &dst,
+    const Polygons          &polygons,
+    Fill                    *filler,
+    float                    density,
+    ExtrusionRole            role,
+    const Flow              &flow,
+    bool                     with_sheath,
+    bool                     no_sort)
+{
+    if (polygons.empty())
+        return;
+
+    if (! with_sheath) {
+        fill_expolygons_generate_paths(dst, closing_ex(polygons, float(SCALED_EPSILON)), filler, density, role, flow);
+        return;
+    }
+
+    FillParams fill_params;
+    fill_params.density     = density;
+    fill_params.dont_adjust = true;
+
+    double spacing = flow.scaled_spacing();
+    // Clip the sheath path to avoid the extruder to get exactly on the first point of the loop.
+    double clip_length = spacing * 0.15;
+
+    for (ExPolygon &expoly : closing_ex(polygons, float(SCALED_EPSILON), float(SCALED_EPSILON + 0.5*flow.scaled_width()))) {
+        // Don't reorder the skirt and its infills.
+        std::unique_ptr<ExtrusionEntityCollection> eec;
+        if (no_sort) {
+            eec = std::make_unique<ExtrusionEntityCollection>();
+            eec->no_sort = true;
+        }
+        ExtrusionEntitiesPtr &out = no_sort ? eec->entities : dst;
+        // Draw the perimeters.
+        Polylines polylines;
+        polylines.reserve(expoly.holes.size() + 1);
+        for (size_t i = 0; i <= expoly.holes.size();  ++ i) {
+            Polyline pl(i == 0 ? expoly.contour.points : expoly.holes[i - 1].points);
+            pl.points.emplace_back(pl.points.front());
+            pl.clip_end(clip_length);
+            polylines.emplace_back(std::move(pl));
+        }
+        extrusion_entities_append_paths(out, polylines, erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height());
+        // Fill in the rest.
+        fill_expolygons_generate_paths(out, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, role, flow);
+        if (no_sort && ! eec->empty())
+            dst.emplace_back(eec.release());
+    }
+}
+
+// Support layers, partially processed.
+struct MyLayerExtruded
+{
+    MyLayerExtruded& operator=(MyLayerExtruded &&rhs) {
+        this->layer = rhs.layer;
+        this->extrusions = std::move(rhs.extrusions);
+        m_polygons_to_extrude = std::move(rhs.m_polygons_to_extrude);
+        rhs.layer = nullptr;
+        return *this;
+    }
+
+    bool empty() const {
+        return layer == nullptr || layer->polygons.empty();
+    }
+
+    void set_polygons_to_extrude(Polygons &&polygons) { 
+        if (m_polygons_to_extrude == nullptr) 
+            m_polygons_to_extrude = std::make_unique<Polygons>(std::move(polygons));
+        else
+            *m_polygons_to_extrude = std::move(polygons);
+    }
+    Polygons& polygons_to_extrude() { return (m_polygons_to_extrude == nullptr) ? layer->polygons : *m_polygons_to_extrude; }
+    const Polygons& polygons_to_extrude() const { return (m_polygons_to_extrude == nullptr) ? layer->polygons : *m_polygons_to_extrude; }
+
+    bool could_merge(const MyLayerExtruded &other) const {
+        return ! this->empty() && ! other.empty() && 
+            std::abs(this->layer->height - other.layer->height) < EPSILON &&
+            this->layer->bridging == other.layer->bridging; 
+    }
+
+    // Merge regions, perform boolean union over the merged polygons.
+    void merge(MyLayerExtruded &&other) {
+        assert(this->could_merge(other));
+        // 1) Merge the rest polygons to extrude, if there are any.
+        if (other.m_polygons_to_extrude != nullptr) {
+            if (m_polygons_to_extrude == nullptr) {
+                // This layer has no extrusions generated yet, if it has no m_polygons_to_extrude (its area to extrude was not reduced yet).
+                assert(this->extrusions.empty());
+                m_polygons_to_extrude = std::make_unique<Polygons>(this->layer->polygons);
+            }
+            Slic3r::polygons_append(*m_polygons_to_extrude, std::move(*other.m_polygons_to_extrude));
+            *m_polygons_to_extrude = union_safety_offset(*m_polygons_to_extrude);
+            other.m_polygons_to_extrude.reset();
+        } else if (m_polygons_to_extrude != nullptr) {
+            assert(other.m_polygons_to_extrude == nullptr);
+            // The other layer has no extrusions generated yet, if it has no m_polygons_to_extrude (its area to extrude was not reduced yet).
+            assert(other.extrusions.empty());
+            Slic3r::polygons_append(*m_polygons_to_extrude, other.layer->polygons);
+            *m_polygons_to_extrude = union_safety_offset(*m_polygons_to_extrude);
+        }
+        // 2) Merge the extrusions.
+        this->extrusions.insert(this->extrusions.end(), other.extrusions.begin(), other.extrusions.end());
+        other.extrusions.clear();
+        // 3) Merge the infill polygons.
+        Slic3r::polygons_append(this->layer->polygons, std::move(other.layer->polygons));
+        this->layer->polygons = union_safety_offset(this->layer->polygons);
+        other.layer->polygons.clear();
+    }
+
+    void polygons_append(Polygons &dst) const {
+        if (layer != NULL && ! layer->polygons.empty())
+            Slic3r::polygons_append(dst, layer->polygons);
+    }
+
+    // The source layer. It carries the height and extrusion type (bridging / non bridging, extrusion height).
+    SupportGeneratorLayer  *layer { nullptr };
+    // Collect extrusions. They will be exported sorted by the bottom height.
+    ExtrusionEntitiesPtr                  extrusions;
+
+private:
+    // In case the extrusions are non-empty, m_polygons_to_extrude may contain the rest areas yet to be filled by additional support.
+    // This is useful mainly for the loop interfaces, which are generated before the zig-zag infills.
+    std::unique_ptr<Polygons>             m_polygons_to_extrude;
+};
+
+typedef std::vector<MyLayerExtruded*> MyLayerExtrudedPtrs;
+
+struct LoopInterfaceProcessor
+{
+    LoopInterfaceProcessor(coordf_t circle_r) :
+        n_contact_loops(0),
+        circle_radius(circle_r),
+        circle_distance(circle_r * 3.)
+    {
+        // Shape of the top contact area.
+        circle.points.reserve(6);
+        for (size_t i = 0; i < 6; ++ i) {
+            double angle = double(i) * M_PI / 3.;
+            circle.points.push_back(Point(circle_radius * cos(angle), circle_radius * sin(angle)));
+        }
+    }
+
+    // Generate loop contacts at the top_contact_layer,
+    // trim the top_contact_layer->polygons with the areas covered by the loops.
+    void generate(MyLayerExtruded &top_contact_layer, const Flow &interface_flow_src) const;
+
+    int         n_contact_loops;
+    coordf_t    circle_radius;
+    coordf_t    circle_distance;
+    Polygon     circle;
+};
+
+void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const Flow &interface_flow_src) const
+{
+    if (n_contact_loops == 0 || top_contact_layer.empty())
+        return;
+
+    Flow flow = interface_flow_src.with_height(top_contact_layer.layer->height);
+
+    Polygons overhang_polygons;
+    if (top_contact_layer.layer->overhang_polygons != nullptr)
+        overhang_polygons = std::move(*top_contact_layer.layer->overhang_polygons);
+
+    // Generate the outermost loop.
+    // Find centerline of the external loop (or any other kind of extrusions should the loop be skipped)
+    ExPolygons top_contact_expolygons = offset_ex(union_ex(top_contact_layer.layer->polygons), - 0.5f * flow.scaled_width());
+
+    // Grid size and bit shifts for quick and exact to/from grid coordinates manipulation.
+    coord_t circle_grid_resolution = 1;
+    coord_t circle_grid_powerof2 = 0;
+    {
+        // epsilon to account for rounding errors
+        coord_t circle_grid_resolution_non_powerof2 = coord_t(2. * circle_distance + 3.);
+        while (circle_grid_resolution < circle_grid_resolution_non_powerof2) {
+            circle_grid_resolution <<= 1;
+            ++ circle_grid_powerof2;
+        }
+    }
+
+    struct PointAccessor {
+        const Point* operator()(const Point &pt) const { return &pt; }
+    };
+    typedef ClosestPointInRadiusLookup<Point, PointAccessor> ClosestPointLookupType;
+    
+    Polygons loops0;
+    {
+        // find centerline of the external loop of the contours
+        // Only consider the loops facing the overhang.
+        Polygons external_loops;
+        // Holes in the external loops.
+        Polygons circles;
+        Polygons overhang_with_margin = offset(union_ex(overhang_polygons), 0.5f * flow.scaled_width());
+        for (ExPolygons::iterator it_contact_expoly = top_contact_expolygons.begin(); it_contact_expoly != top_contact_expolygons.end(); ++ it_contact_expoly) {
+            // Store the circle centers placed for an expolygon into a regular grid, hashed by the circle centers.
+            ClosestPointLookupType circle_centers_lookup(coord_t(circle_distance - SCALED_EPSILON));
+            Points circle_centers;
+            Point  center_last;
+            // For each contour of the expolygon, start with the outer contour, continue with the holes.
+            for (size_t i_contour = 0; i_contour <= it_contact_expoly->holes.size(); ++ i_contour) {
+                Polygon     &contour = (i_contour == 0) ? it_contact_expoly->contour : it_contact_expoly->holes[i_contour - 1];
+                const Point *seg_current_pt = nullptr;
+                coordf_t     seg_current_t  = 0.;
+                if (! intersection_pl(contour.split_at_first_point(), overhang_with_margin).empty()) {
+                    // The contour is below the overhang at least to some extent.
+                    //FIXME ideally one would place the circles below the overhang only.
+                    // Walk around the contour and place circles so their centers are not closer than circle_distance from each other.
+                    if (circle_centers.empty()) {
+                        // Place the first circle.
+                        seg_current_pt = &contour.points.front();
+                        seg_current_t  = 0.;
+                        center_last    = *seg_current_pt;
+                        circle_centers_lookup.insert(center_last);
+                        circle_centers.push_back(center_last);
+                    }
+                    for (Points::const_iterator it = contour.points.begin() + 1; it != contour.points.end(); ++it) {
+                        // Is it possible to place a circle on this segment? Is it not too close to any of the circles already placed on this contour?
+                        const Point &p1 = *(it-1);
+                        const Point &p2 = *it;
+                        // Intersection of a ray (p1, p2) with a circle placed at center_last, with radius of circle_distance.
+                        const Vec2d v_seg(coordf_t(p2(0)) - coordf_t(p1(0)), coordf_t(p2(1)) - coordf_t(p1(1)));
+                        const Vec2d v_cntr(coordf_t(p1(0) - center_last(0)), coordf_t(p1(1) - center_last(1)));
+                        coordf_t a = v_seg.squaredNorm();
+                        coordf_t b = 2. * v_seg.dot(v_cntr);
+                        coordf_t c = v_cntr.squaredNorm() - circle_distance * circle_distance;
+                        coordf_t disc = b * b - 4. * a * c;
+                        if (disc > 0.) {
+                            // The circle intersects a ray. Avoid the parts of the segment inside the circle.
+                            coordf_t t1 = (-b - sqrt(disc)) / (2. * a);
+                            coordf_t t2 = (-b + sqrt(disc)) / (2. * a);
+                            coordf_t t0 = (seg_current_pt == &p1) ? seg_current_t : 0.;
+                            // Take the lowest t in <t0, 1.>, excluding <t1, t2>.
+                            coordf_t t;
+                            if (t0 <= t1)
+                                t = t0;
+                            else if (t2 <= 1.)
+                                t = t2;
+                            else {
+                                // Try the following segment.
+                                seg_current_pt = nullptr;
+                                continue;
+                            }
+                            seg_current_pt = &p1;
+                            seg_current_t  = t;
+                            center_last    = Point(p1(0) + coord_t(v_seg(0) * t), p1(1) + coord_t(v_seg(1) * t));
+                            // It has been verified that the new point is far enough from center_last.
+                            // Ensure, that it is far enough from all the centers.
+                            std::pair<const Point*, coordf_t> circle_closest = circle_centers_lookup.find(center_last);
+                            if (circle_closest.first != nullptr) {
+                                -- it;
+                                continue;
+                            }
+                        } else {
+                            // All of the segment is outside the circle. Take the first point.
+                            seg_current_pt = &p1;
+                            seg_current_t  = 0.;
+                            center_last    = p1;
+                        }
+                        // Place the first circle.
+                        circle_centers_lookup.insert(center_last);
+                        circle_centers.push_back(center_last);
+                    }
+                    external_loops.push_back(std::move(contour));
+                    for (const Point &center : circle_centers) {
+                        circles.push_back(circle);
+                        circles.back().translate(center);
+                    }
+                }
+            }
+        }
+        // Apply a pattern to the external loops.
+        loops0 = diff(external_loops, circles);
+    }
+
+    Polylines loop_lines;
+    {
+        // make more loops
+        Polygons loop_polygons = loops0;
+        for (int i = 1; i < n_contact_loops; ++ i)
+            polygons_append(loop_polygons,
+                opening(
+                    loops0, 
+                    i * flow.scaled_spacing() + 0.5f * flow.scaled_spacing(),
+                    0.5f * flow.scaled_spacing()));
+        // Clip such loops to the side oriented towards the object.
+        // Collect split points, so they will be recognized after the clipping.
+        // At the split points the clipped pieces will be stitched back together.
+        loop_lines.reserve(loop_polygons.size());
+        std::unordered_map<Point, int, PointHash> map_split_points;
+        for (Polygons::const_iterator it = loop_polygons.begin(); it != loop_polygons.end(); ++ it) {
+            assert(map_split_points.find(it->first_point()) == map_split_points.end());
+            map_split_points[it->first_point()] = -1;
+            loop_lines.push_back(it->split_at_first_point());
+        }
+        loop_lines = intersection_pl(loop_lines, expand(overhang_polygons, scale_(SUPPORT_MATERIAL_MARGIN)));
+        // Because a closed loop has been split to a line, loop_lines may contain continuous segments split to 2 pieces.
+        // Try to connect them.
+        for (int i_line = 0; i_line < int(loop_lines.size()); ++ i_line) {
+            Polyline &polyline = loop_lines[i_line];
+            auto it = map_split_points.find(polyline.first_point());
+            if (it != map_split_points.end()) {
+                // This is a stitching point.
+                // If this assert triggers, multiple source polygons likely intersected at this point.
+                assert(it->second != -2);
+                if (it->second < 0) {
+                    // First occurence.
+                    it->second = i_line;
+                } else {
+                    // Second occurence. Join the lines.
+                    Polyline &polyline_1st = loop_lines[it->second];
+                    assert(polyline_1st.first_point() == it->first || polyline_1st.last_point() == it->first);
+                    if (polyline_1st.first_point() == it->first)
+                        polyline_1st.reverse();
+                    polyline_1st.append(std::move(polyline));
+                    it->second = -2;
+                }
+                continue;
+            }
+            it = map_split_points.find(polyline.last_point());
+            if (it != map_split_points.end()) {
+                // This is a stitching point.
+                // If this assert triggers, multiple source polygons likely intersected at this point.
+                assert(it->second != -2);
+                if (it->second < 0) {
+                    // First occurence.
+                    it->second = i_line;
+                } else {
+                    // Second occurence. Join the lines.
+                    Polyline &polyline_1st = loop_lines[it->second];
+                    assert(polyline_1st.first_point() == it->first || polyline_1st.last_point() == it->first);
+                    if (polyline_1st.first_point() == it->first)
+                        polyline_1st.reverse();
+                    polyline.reverse();
+                    polyline_1st.append(std::move(polyline));
+                    it->second = -2;
+                }
+            }
+        }
+        // Remove empty lines.
+        remove_degenerate(loop_lines);
+    }
+    
+    // add the contact infill area to the interface area
+    // note that growing loops by $circle_radius ensures no tiny
+    // extrusions are left inside the circles; however it creates
+    // a very large gap between loops and contact_infill_polygons, so maybe another
+    // solution should be found to achieve both goals
+    // Store the trimmed polygons into a separate polygon set, so the original infill area remains intact for
+    // "modulate by layer thickness".
+    top_contact_layer.set_polygons_to_extrude(diff(top_contact_layer.layer->polygons, offset(loop_lines, float(circle_radius * 1.1))));
+
+    // Transform loops into ExtrusionPath objects.
+    extrusion_entities_append_paths(
+        top_contact_layer.extrusions,
+        std::move(loop_lines),
+        erSupportMaterialInterface, flow.mm3_per_mm(), flow.width(), flow.height());
+}
+
+#ifdef SLIC3R_DEBUG
+static std::string dbg_index_to_color(int idx)
+{
+    if (idx < 0)
+        return "yellow";
+    idx = idx % 3;
+    switch (idx) {
+        case 0: return "red";
+        case 1: return "green";
+        default: return "blue";
+    }
+}
+#endif /* SLIC3R_DEBUG */
+
+// When extruding a bottom interface layer over an object, the bottom interface layer is extruded in a thin air, therefore
+// it is being extruded with a bridging flow to not shrink excessively (the die swell effect).
+// Tiny extrusions are better avoided and it is always better to anchor the thread to an existing support structure if possible.
+// Therefore the bottom interface spots are expanded a bit. The expanded regions may overlap with another bottom interface layers,
+// leading to over extrusion, where they overlap. The over extrusion is better avoided as it often makes the interface layers
+// to stick too firmly to the object.
+//
+// Modulate thickness (increase bottom_z) of extrusions_in_out generated for this_layer
+// if they overlap with overlapping_layers, whose print_z is above this_layer.bottom_z() and below this_layer.print_z.
+void modulate_extrusion_by_overlapping_layers(
+    // Extrusions generated for this_layer.
+    ExtrusionEntitiesPtr                               &extrusions_in_out,
+    const SupportGeneratorLayer          &this_layer,
+    // Multiple layers overlapping with this_layer, sorted bottom up.
+    const SupportGeneratorLayersPtr      &overlapping_layers)
+{
+    size_t n_overlapping_layers = overlapping_layers.size();
+    if (n_overlapping_layers == 0 || extrusions_in_out.empty())
+        // The extrusions do not overlap with any other extrusion.
+        return;
+
+    // Get the initial extrusion parameters.
+    ExtrusionPath *extrusion_path_template = dynamic_cast<ExtrusionPath*>(extrusions_in_out.front());
+    assert(extrusion_path_template != nullptr);
+    ExtrusionRole extrusion_role  = extrusion_path_template->role();
+    float         extrusion_width = extrusion_path_template->width;
+
+    struct ExtrusionPathFragment
+    {
+        ExtrusionPathFragment() : mm3_per_mm(-1), width(-1), height(-1) {};
+        ExtrusionPathFragment(double mm3_per_mm, float width, float height) : mm3_per_mm(mm3_per_mm), width(width), height(height) {};
+
+        Polylines       polylines;
+        double          mm3_per_mm;
+        float           width;
+        float           height;
+    };
+
+    // Split the extrusions by the overlapping layers, reduce their extrusion rate.
+    // The last path_fragment is from this_layer.
+    std::vector<ExtrusionPathFragment> path_fragments(
+        n_overlapping_layers + 1, 
+        ExtrusionPathFragment(extrusion_path_template->mm3_per_mm, extrusion_path_template->width, extrusion_path_template->height));
+    // Don't use it, it will be released.
+    extrusion_path_template = nullptr;
+
+#ifdef SLIC3R_DEBUG
+    static int iRun = 0;
+    ++ iRun;
+    BoundingBox bbox;
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer < n_overlapping_layers; ++ i_overlapping_layer) {
+        const SupportGeneratorLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        bbox.merge(get_extents(overlapping_layer.polygons));
+    }
+    for (ExtrusionEntitiesPtr::const_iterator it = extrusions_in_out.begin(); it != extrusions_in_out.end(); ++ it) {
+        ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(*it);
+        assert(path != nullptr);
+        bbox.merge(get_extents(path->polyline));
+    }
+    SVG svg(debug_out_path("support-fragments-%d-%lf.svg", iRun, this_layer.print_z).c_str(), bbox);
+    const float transparency = 0.5f;
+    // Filled polygons for the overlapping regions.
+    svg.draw(union_ex(this_layer.polygons), dbg_index_to_color(-1), transparency);
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer < n_overlapping_layers; ++ i_overlapping_layer) {
+        const SupportGeneratorLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        svg.draw(union_ex(overlapping_layer.polygons), dbg_index_to_color(int(i_overlapping_layer)), transparency);
+    }
+    // Contours of the overlapping regions.
+    svg.draw(to_polylines(this_layer.polygons), dbg_index_to_color(-1), scale_(0.2));
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer < n_overlapping_layers; ++ i_overlapping_layer) {
+        const SupportGeneratorLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        svg.draw(to_polylines(overlapping_layer.polygons), dbg_index_to_color(int(i_overlapping_layer)), scale_(0.1));
+    }
+    // Fill extrusion, the source.
+    for (ExtrusionEntitiesPtr::const_iterator it = extrusions_in_out.begin(); it != extrusions_in_out.end(); ++ it) {
+        ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(*it);
+        std::string color_name;
+        switch ((it - extrusions_in_out.begin()) % 9) {
+            case 0: color_name = "magenta"; break;
+            case 1: color_name = "deepskyblue"; break;
+            case 2: color_name = "coral"; break;
+            case 3: color_name = "goldenrod"; break;
+            case 4: color_name = "orange"; break;
+            case 5: color_name = "olivedrab"; break;
+            case 6: color_name = "blueviolet"; break;
+            case 7: color_name = "brown"; break;
+            default: color_name = "orchid"; break;
+        }
+        svg.draw(path->polyline, color_name, scale_(0.2));
+    }
+#endif /* SLIC3R_DEBUG */
+
+    // End points of the original paths.
+    std::vector<std::pair<Point, Point>> path_ends; 
+    // Collect the paths of this_layer.
+    {
+        Polylines &polylines = path_fragments.back().polylines;
+        for (ExtrusionEntity *ee : extrusions_in_out) {
+            ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(ee);
+            assert(path != nullptr);
+            polylines.emplace_back(Polyline(std::move(path->polyline)));
+            path_ends.emplace_back(std::pair<Point, Point>(polylines.back().points.front(), polylines.back().points.back()));
+        }
+    }
+    // Destroy the original extrusion paths, their polylines were moved to path_fragments already.
+    // This will be the destination for the new paths.
+    extrusions_in_out.clear();
+
+    // Fragment the path segments by overlapping layers. The overlapping layers are sorted by an increasing print_z.
+    // Trim by the highest overlapping layer first.
+    for (int i_overlapping_layer = int(n_overlapping_layers) - 1; i_overlapping_layer >= 0; -- i_overlapping_layer) {
+        const SupportGeneratorLayer &overlapping_layer = *overlapping_layers[i_overlapping_layer];
+        ExtrusionPathFragment &frag = path_fragments[i_overlapping_layer];
+        Polygons polygons_trimming = offset(union_ex(overlapping_layer.polygons), float(scale_(0.5*extrusion_width)));
+        frag.polylines = intersection_pl(path_fragments.back().polylines, polygons_trimming);
+        path_fragments.back().polylines = diff_pl(path_fragments.back().polylines, polygons_trimming);
+        // Adjust the extrusion parameters for a reduced layer height and a non-bridging flow (nozzle_dmr = -1, does not matter).
+        assert(this_layer.print_z > overlapping_layer.print_z);
+        frag.height = float(this_layer.print_z - overlapping_layer.print_z);
+        frag.mm3_per_mm = Flow(frag.width, frag.height, -1.f).mm3_per_mm();
+#ifdef SLIC3R_DEBUG
+        svg.draw(frag.polylines, dbg_index_to_color(i_overlapping_layer), scale_(0.1));
+#endif /* SLIC3R_DEBUG */
+    }
+
+#ifdef SLIC3R_DEBUG
+    svg.draw(path_fragments.back().polylines, dbg_index_to_color(-1), scale_(0.1));
+    svg.Close();
+#endif /* SLIC3R_DEBUG */
+
+    // Now chain the split segments using hashing and a nearly exact match, maintaining the order of segments.
+    // Create a single ExtrusionPath or ExtrusionEntityCollection per source ExtrusionPath.
+    // Map of fragment start/end points to a pair of <i_overlapping_layer, i_polyline_in_layer>
+    // Because a non-exact matching is used for the end points, a multi-map is used.
+    // As the clipper library may reverse the order of some clipped paths, store both ends into the map.
+    struct ExtrusionPathFragmentEnd
+    {
+        ExtrusionPathFragmentEnd(size_t alayer_idx, size_t apolyline_idx, bool ais_start) :
+            layer_idx(alayer_idx), polyline_idx(apolyline_idx), is_start(ais_start) {}
+        size_t layer_idx;
+        size_t polyline_idx;
+        bool   is_start;
+    };
+    class ExtrusionPathFragmentEndPointAccessor {
+    public:
+        ExtrusionPathFragmentEndPointAccessor(const std::vector<ExtrusionPathFragment> &path_fragments) : m_path_fragments(path_fragments) {}
+        // Return an end point of a fragment, or nullptr if the fragment has been consumed already.
+        const Point* operator()(const ExtrusionPathFragmentEnd &fragment_end) const {
+            const Polyline &polyline = m_path_fragments[fragment_end.layer_idx].polylines[fragment_end.polyline_idx];
+            return polyline.points.empty() ? nullptr :
+                (fragment_end.is_start ? &polyline.points.front() : &polyline.points.back());
+        }
+    private:
+        ExtrusionPathFragmentEndPointAccessor& operator=(const ExtrusionPathFragmentEndPointAccessor&) {
+            return *this;
+        }
+
+        const std::vector<ExtrusionPathFragment> &m_path_fragments;
+    };
+    const coord_t search_radius = 7;
+    ClosestPointInRadiusLookup<ExtrusionPathFragmentEnd, ExtrusionPathFragmentEndPointAccessor> map_fragment_starts(
+        search_radius, ExtrusionPathFragmentEndPointAccessor(path_fragments));
+    for (size_t i_overlapping_layer = 0; i_overlapping_layer <= n_overlapping_layers; ++ i_overlapping_layer) {
+        const Polylines &polylines = path_fragments[i_overlapping_layer].polylines;
+        for (size_t i_polyline = 0; i_polyline < polylines.size(); ++ i_polyline) {
+            // Map a starting point of a polyline to a pair of <layer, polyline>
+            if (polylines[i_polyline].points.size() >= 2) {
+                map_fragment_starts.insert(ExtrusionPathFragmentEnd(i_overlapping_layer, i_polyline, true));
+                map_fragment_starts.insert(ExtrusionPathFragmentEnd(i_overlapping_layer, i_polyline, false));
+            }
+        }
+    }
+
+    // For each source path:
+    for (size_t i_path = 0; i_path < path_ends.size(); ++ i_path) {
+        const Point &pt_start = path_ends[i_path].first;
+        const Point &pt_end   = path_ends[i_path].second;
+        Point pt_current = pt_start;
+        // Find a chain of fragments with the original / reduced print height.
+        ExtrusionMultiPath multipath;
+        for (;;) {
+            // Find a closest end point to pt_current.
+            std::pair<const ExtrusionPathFragmentEnd*, coordf_t> end_and_dist2 = map_fragment_starts.find(pt_current);
+            // There may be a bug in Clipper flipping the order of two last points in a fragment?
+            // assert(end_and_dist2.first != nullptr);
+            assert(end_and_dist2.first == nullptr || end_and_dist2.second < search_radius * search_radius);
+            if (end_and_dist2.first == nullptr) {
+                // New fragment connecting to pt_current was not found.
+                // Verify that the last point found is close to the original end point of the unfragmented path.
+                //const double d2 = (pt_end - pt_current).cast<double>.squaredNorm();
+                //assert(d2 < coordf_t(search_radius * search_radius));
+                // End of the path.
+                break;
+            }
+            const ExtrusionPathFragmentEnd &fragment_end_min = *end_and_dist2.first;
+            // Fragment to consume.
+            ExtrusionPathFragment &frag = path_fragments[fragment_end_min.layer_idx];
+            Polyline              &frag_polyline = frag.polylines[fragment_end_min.polyline_idx];
+            // Path to append the fragment to.
+            ExtrusionPath         *path = multipath.paths.empty() ? nullptr : &multipath.paths.back();
+            if (path != nullptr) {
+                // Verify whether the path is compatible with the current fragment.
+                assert(this_layer.layer_type == SupporLayerType::BottomContact || path->height != frag.height || path->mm3_per_mm != frag.mm3_per_mm);
+                if (path->height != frag.height || path->mm3_per_mm != frag.mm3_per_mm) {
+                    path = nullptr;
+                }
+                // Merging with the previous path. This can only happen if the current layer was reduced by a base layer, which was split into a base and interface layer.
+            }
+            if (path == nullptr) {
+                // Allocate a new path.
+                multipath.paths.push_back(ExtrusionPath(extrusion_role, frag.mm3_per_mm, frag.width, frag.height));
+                path = &multipath.paths.back();
+            }
+            // The Clipper library may flip the order of the clipped polylines arbitrarily.
+            // Reverse the source polyline, if connecting to the end.
+            if (! fragment_end_min.is_start)
+                frag_polyline.reverse();
+            // Enforce exact overlap of the end points of successive fragments.
+            assert(frag_polyline.points.front() == pt_current);
+            frag_polyline.points.front() = pt_current;
+            // Don't repeat the first point.
+            if (! path->polyline.points.empty())
+                path->polyline.points.pop_back();
+            // Consume the fragment's polyline, remove it from the input fragments, so it will be ignored the next time.
+            path->polyline.append(std::move(frag_polyline));
+            frag_polyline.points.clear();
+            pt_current = path->polyline.points.back();
+            if (pt_current == pt_end) {
+                // End of the path.
+                break;
+            }
+        }
+        if (!multipath.paths.empty()) {
+            if (multipath.paths.size() == 1) {
+                // This path was not fragmented.
+                extrusions_in_out.push_back(new ExtrusionPath(std::move(multipath.paths.front())));
+            } else {
+                // This path was fragmented. Copy the collection as a whole object, so the order inside the collection will not be changed
+                // during the chaining of extrusions_in_out.
+                extrusions_in_out.push_back(new ExtrusionMultiPath(std::move(multipath)));
+            }
+        }
+    }
+    // If there are any non-consumed fragments, add them separately.
+    //FIXME this shall not happen, if the Clipper works as expected and all paths split to fragments could be re-connected.
+    for (auto it_fragment = path_fragments.begin(); it_fragment != path_fragments.end(); ++ it_fragment)
+        extrusion_entities_append_paths(extrusions_in_out, std::move(it_fragment->polylines), extrusion_role, it_fragment->mm3_per_mm, it_fragment->width, it_fragment->height);
+}
+
+void PrintObjectSupportMaterial::generate_toolpaths(
+    SupportLayerPtrs    &support_layers,
+    const SupportGeneratorLayersPtr   &raft_layers,
+    const SupportGeneratorLayersPtr   &bottom_contacts,
+    const SupportGeneratorLayersPtr   &top_contacts,
+    const SupportGeneratorLayersPtr   &intermediate_layers,
+    const SupportGeneratorLayersPtr   &interface_layers,
+    const SupportGeneratorLayersPtr   &base_interface_layers) const
+{
+    // loop_interface_processor with a given circle radius.
+    LoopInterfaceProcessor loop_interface_processor(1.5 * m_support_params.support_material_interface_flow.scaled_width());
+    loop_interface_processor.n_contact_loops = this->has_contact_loops() ? 1 : 0;
+
+    std::vector<float>      angles { m_support_params.base_angle };
+    if (m_object_config->support_base_pattern == smpRectilinearGrid)
+        angles.push_back(m_support_params.interface_angle);
+
+    BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
+
+//    const coordf_t link_max_length_factor = 3.;
+    const coordf_t link_max_length_factor = 0.;
+
+    float raft_angle_1st_layer  = 0.f;
+    float raft_angle_base       = 0.f;
+    float raft_angle_interface  = 0.f;
+    if (m_slicing_params.base_raft_layers > 1) {
+        // There are all raft layer types (1st layer, base, interface & contact layers) available.
+        raft_angle_1st_layer  = m_support_params.interface_angle;
+        raft_angle_base       = m_support_params.base_angle;
+        raft_angle_interface  = m_support_params.interface_angle;
+    } else if (m_slicing_params.base_raft_layers == 1 || m_slicing_params.interface_raft_layers > 1) {
+        // 1st layer, interface & contact layers available.
+        raft_angle_1st_layer  = m_support_params.base_angle;
+        if (this->has_support())
+            // Print 1st layer at 45 degrees from both the interface and base angles as both can land on the 1st layer.
+            raft_angle_1st_layer += 0.7854f;
+        raft_angle_interface  = m_support_params.interface_angle;
+    } else if (m_slicing_params.interface_raft_layers == 1) {
+        // Only the contact raft layer is non-empty, which will be printed as the 1st layer.
+        assert(m_slicing_params.base_raft_layers == 0);
+        assert(m_slicing_params.interface_raft_layers == 1);
+        assert(m_slicing_params.raft_layers() == 1 && raft_layers.size() == 0);
+    } else {
+        // No raft.
+        assert(m_slicing_params.base_raft_layers == 0);
+        assert(m_slicing_params.interface_raft_layers == 0);
+        assert(m_slicing_params.raft_layers() == 0 && raft_layers.size() == 0);
+    }
+
+    // Insert the raft base layers.
+    size_t n_raft_layers = size_t(std::max(0, int(m_slicing_params.raft_layers()) - 1));
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, n_raft_layers),
+        [this, &support_layers, &raft_layers, 
+            &bbox_object, raft_angle_1st_layer, raft_angle_base, raft_angle_interface, link_max_length_factor]
+            (const tbb::blocked_range<size_t>& range) {
+        for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id)
+        {
+            assert(support_layer_id < raft_layers.size());
+            SupportLayer &support_layer = *support_layers[support_layer_id];
+            assert(support_layer.support_fills.entities.empty());
+            SupportGeneratorLayer      &raft_layer    = *raft_layers[support_layer_id];
+
+            std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.interface_fill_pattern));
+            std::unique_ptr<Fill> filler_support   = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
+            filler_interface->set_bounding_box(bbox_object);
+            filler_support->set_bounding_box(bbox_object);
+
+            // Print the support base below the support columns, or the support base for the support columns plus the contacts.
+            if (support_layer_id > 0) {
+                const Polygons &to_infill_polygons = (support_layer_id < m_slicing_params.base_raft_layers) ? 
+                    raft_layer.polygons :
+                    //FIXME misusing contact_polygons for support columns.
+                    ((raft_layer.contact_polygons == nullptr) ? Polygons() : *raft_layer.contact_polygons);
+                if (! to_infill_polygons.empty()) {
+                    assert(! raft_layer.bridging);
+                    Flow flow(float(m_support_params.support_material_flow.width()), float(raft_layer.height), m_support_params.support_material_flow.nozzle_diameter());
+                    Fill * filler = filler_support.get();
+                    filler->angle = raft_angle_base;
+                    filler->spacing = m_support_params.support_material_flow.spacing();
+                    filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / m_support_params.support_density));
+                    fill_expolygons_with_sheath_generate_paths(
+                        // Destination
+                        support_layer.support_fills.entities,
+                        // Regions to fill
+                        to_infill_polygons,
+                        // Filler and its parameters
+                        filler, float(m_support_params.support_density),
+                        // Extrusion parameters
+                        erSupportMaterial, flow,
+                        m_support_params.with_sheath, false);
+                }
+            }
+
+            Fill *filler = filler_interface.get();
+            Flow  flow = m_support_params.first_layer_flow;
+            float density = 0.f;
+            if (support_layer_id == 0) {
+                // Base flange.
+                filler->angle = raft_angle_1st_layer;
+                filler->spacing = m_support_params.first_layer_flow.spacing();
+                density       = float(m_object_config->raft_first_layer_density.value * 0.01);
+            } else if (support_layer_id >= m_slicing_params.base_raft_layers) {
+                filler->angle = raft_angle_interface;
+                // We don't use $base_flow->spacing because we need a constant spacing
+                // value that guarantees that all layers are correctly aligned.
+                filler->spacing = m_support_params.support_material_flow.spacing();
+                assert(! raft_layer.bridging);
+                flow          = Flow(float(m_support_params.support_material_interface_flow.width()), float(raft_layer.height), m_support_params.support_material_flow.nozzle_diameter());
+                density       = float(m_support_params.interface_density);
+            } else
+                continue;
+            filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));
+            fill_expolygons_with_sheath_generate_paths(
+                // Destination
+                support_layer.support_fills.entities, 
+                // Regions to fill
+                raft_layer.polygons,
+                // Filler and its parameters
+                filler, density,
+                // Extrusion parameters
+                (support_layer_id < m_slicing_params.base_raft_layers) ? erSupportMaterial : erSupportMaterialInterface, flow, 
+                // sheath at first layer
+                support_layer_id == 0, support_layer_id == 0);
+        }
+    });
+
+    struct LayerCacheItem {
+        LayerCacheItem(MyLayerExtruded *layer_extruded = nullptr) : layer_extruded(layer_extruded) {}
+        MyLayerExtruded         *layer_extruded;
+        std::vector<SupportGeneratorLayer*>    overlapping;
+    };
+    struct LayerCache {
+        MyLayerExtruded                                     bottom_contact_layer;
+        MyLayerExtruded                                     top_contact_layer;
+        MyLayerExtruded                                     base_layer;
+        MyLayerExtruded                                     interface_layer;
+        MyLayerExtruded                                     base_interface_layer;
+        boost::container::static_vector<LayerCacheItem, 5>  nonempty;
+
+        void add_nonempty_and_sort() {
+            for (MyLayerExtruded *item : { &bottom_contact_layer, &top_contact_layer, &interface_layer, &base_interface_layer, &base_layer })
+                if (! item->empty())
+                    this->nonempty.emplace_back(item);
+            // Sort the layers with the same print_z coordinate by their heights, thickest first.
+            std::stable_sort(this->nonempty.begin(), this->nonempty.end(), [](const LayerCacheItem &lc1, const LayerCacheItem &lc2) { return lc1.layer_extruded->layer->height > lc2.layer_extruded->layer->height; });
+        }
+    };
+    std::vector<LayerCache>             layer_caches(support_layers.size());
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
+        [this, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &layer_caches, &loop_interface_processor, 
+            &bbox_object, &angles, link_max_length_factor]
+            (const tbb::blocked_range<size_t>& range) {
+        // Indices of the 1st layer in their respective container at the support layer height.
+        size_t idx_layer_bottom_contact   = size_t(-1);
+        size_t idx_layer_top_contact      = size_t(-1);
+        size_t idx_layer_intermediate     = size_t(-1);
+        size_t idx_layer_interface        = size_t(-1);
+        size_t idx_layer_base_interface   = size_t(-1);
+        // BBS
+        const auto fill_type_first_layer  = ipConcentric;
+        auto filler_interface       = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
+        // Filler for the 1st layer interface, if different from filler_interface.
+        auto filler_first_layer_ptr = std::unique_ptr<Fill>(range.begin() == 0 && m_support_params.contact_fill_pattern != fill_type_first_layer ? Fill::new_from_type(fill_type_first_layer) : nullptr);
+        // Pointer to the 1st layer interface filler.
+        auto filler_first_layer     = filler_first_layer_ptr ? filler_first_layer_ptr.get() : filler_interface.get();
+        // Filler for the base interface (to be used for soluble interface / non soluble base, to produce non soluble interface layer below soluble interface layer).
+        auto filler_base_interface  = std::unique_ptr<Fill>(base_interface_layers.empty() ? nullptr : 
+            Fill::new_from_type(m_support_params.interface_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase));
+        auto filler_support         = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
+        filler_interface->set_bounding_box(bbox_object);
+        if (filler_first_layer_ptr)
+            filler_first_layer_ptr->set_bounding_box(bbox_object);
+        if (filler_base_interface)
+            filler_base_interface->set_bounding_box(bbox_object);
+        filler_support->set_bounding_box(bbox_object);
+        for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id)
+        {
+            SupportLayer &support_layer = *support_layers[support_layer_id];
+            LayerCache   &layer_cache   = layer_caches[support_layer_id];
+            float         interface_angle_delta = m_object_config->support_style.value == smsSnug ? 
+                (support_layer.interface_id() & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.) :
+                0;
+
+            // Find polygons with the same print_z.
+            MyLayerExtruded &bottom_contact_layer = layer_cache.bottom_contact_layer;
+            MyLayerExtruded &top_contact_layer    = layer_cache.top_contact_layer;
+            MyLayerExtruded &base_layer           = layer_cache.base_layer;
+            MyLayerExtruded &interface_layer      = layer_cache.interface_layer;
+            MyLayerExtruded &base_interface_layer = layer_cache.base_interface_layer;
+            // Increment the layer indices to find a layer at support_layer.print_z.
+            {
+                auto fun = [&support_layer](const SupportGeneratorLayer *l){ return l->print_z >= support_layer.print_z - EPSILON; };
+                idx_layer_bottom_contact  = idx_higher_or_equal(bottom_contacts,     idx_layer_bottom_contact,  fun);
+                idx_layer_top_contact     = idx_higher_or_equal(top_contacts,        idx_layer_top_contact,     fun);
+                idx_layer_intermediate    = idx_higher_or_equal(intermediate_layers, idx_layer_intermediate,    fun);
+                idx_layer_interface       = idx_higher_or_equal(interface_layers,    idx_layer_interface,       fun);
+                idx_layer_base_interface  = idx_higher_or_equal(base_interface_layers, idx_layer_base_interface,fun);
+            }
+            // Copy polygons from the layers.
+            if (idx_layer_bottom_contact < bottom_contacts.size() && bottom_contacts[idx_layer_bottom_contact]->print_z < support_layer.print_z + EPSILON)
+                bottom_contact_layer.layer = bottom_contacts[idx_layer_bottom_contact];
+            if (idx_layer_top_contact < top_contacts.size() && top_contacts[idx_layer_top_contact]->print_z < support_layer.print_z + EPSILON)
+                top_contact_layer.layer = top_contacts[idx_layer_top_contact];
+            if (idx_layer_interface < interface_layers.size() && interface_layers[idx_layer_interface]->print_z < support_layer.print_z + EPSILON)
+                interface_layer.layer = interface_layers[idx_layer_interface];
+            if (idx_layer_base_interface < base_interface_layers.size() && base_interface_layers[idx_layer_base_interface]->print_z < support_layer.print_z + EPSILON)
+                base_interface_layer.layer = base_interface_layers[idx_layer_base_interface];
+            if (idx_layer_intermediate < intermediate_layers.size() && intermediate_layers[idx_layer_intermediate]->print_z < support_layer.print_z + EPSILON)
+                base_layer.layer = intermediate_layers[idx_layer_intermediate];
+
+            if (m_object_config->support_interface_top_layers == 0) {
+                // If no top interface layers were requested, we treat the contact layer exactly as a generic base layer.
+                if (m_support_params.can_merge_support_regions) {
+                    if (base_layer.could_merge(top_contact_layer)) 
+                        base_layer.merge(std::move(top_contact_layer));
+                    else if (base_layer.empty())
+                        base_layer = std::move(top_contact_layer);
+                }
+            } else {
+                loop_interface_processor.generate(top_contact_layer, m_support_params.support_material_interface_flow);
+                // If no loops are allowed, we treat the contact layer exactly as a generic interface layer.
+                // Merge interface_layer into top_contact_layer, as the top_contact_layer is not synchronized and therefore it will be used
+                // to trim other layers.
+                if (top_contact_layer.could_merge(interface_layer))
+                    top_contact_layer.merge(std::move(interface_layer));
+            } 
+            if ((m_object_config->support_interface_top_layers == 0 || m_object_config->support_interface_bottom_layers == 0) && m_support_params.can_merge_support_regions) {
+                if (base_layer.could_merge(bottom_contact_layer))
+                    base_layer.merge(std::move(bottom_contact_layer));
+                else if (base_layer.empty() && ! bottom_contact_layer.empty() && ! bottom_contact_layer.layer->bridging)
+                    base_layer = std::move(bottom_contact_layer);
+            } else if (bottom_contact_layer.could_merge(top_contact_layer))
+                top_contact_layer.merge(std::move(bottom_contact_layer));
+            else if (bottom_contact_layer.could_merge(interface_layer))
+                bottom_contact_layer.merge(std::move(interface_layer));
+
+#if 0
+            if ( ! interface_layer.empty() && ! base_layer.empty()) {
+                // turn base support into interface when it's contained in our holes
+                // (this way we get wider interface anchoring)
+                //FIXME The intention of the code below is unclear. One likely wanted to just merge small islands of base layers filling in the holes
+                // inside interface layers, but the code below fills just too much, see GH #4570
+                Polygons islands = top_level_islands(interface_layer.layer->polygons);
+                polygons_append(interface_layer.layer->polygons, intersection(base_layer.layer->polygons, islands));
+                base_layer.layer->polygons = diff(base_layer.layer->polygons, islands);
+            }
+#endif
+
+            // Calculate top interface angle
+            float angle_of_biggest_bridge = -1.f;
+            do
+            {
+                // Currently only works when thick_bridges is off
+                if (m_object->config().thick_bridges)
+                    break;
+
+                coordf_t object_layer_bottom_z = support_layer.print_z + m_slicing_params.gap_support_object;
+                const Layer* object_layer = m_object->get_layer_at_bottomz(object_layer_bottom_z, 10.0 * EPSILON);
+                if (object_layer == nullptr)
+                    break;
+
+                if (object_layer != nullptr) {
+                    float biggest_bridge_area = 0.f;
+                    const Polygons& top_contact_polys = top_contact_layer.polygons_to_extrude();
+                    for (auto layerm : object_layer->regions()) {
+                        for (auto bridge_surface : layerm->fill_surfaces.filter_by_type(stBottomBridge)) {
+                            float bs_area = bridge_surface->area();
+                            if (bs_area <= biggest_bridge_area || bridge_surface->bridge_angle < 0.f)
+                                continue;
+
+                            angle_of_biggest_bridge = bridge_surface->bridge_angle;
+                            biggest_bridge_area = bs_area;
+                        }
+                    }
+                }
+            } while (0);
+
+            auto calc_included_angle_degree = [](int degree_a, int degree_b) {
+                int iad = std::abs(degree_b - degree_a);
+                return std::min(iad, 180 - iad);
+            };
+
+            // Top and bottom contacts, interface layers.
+            for (size_t i = 0; i < 3; ++ i) {
+                MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
+                if (layer_ex.empty() || layer_ex.polygons_to_extrude().empty())
+                    continue;
+                bool interface_as_base = m_object_config->support_interface_top_layers.value == 0 || 
+                    (m_object_config->support_interface_bottom_layers == 0 && &layer_ex == &bottom_contact_layer);
+                //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
+                // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
+                Flow interface_flow;
+                if (layer_ex.layer->bridging)
+                    interface_flow = Flow::bridging_flow(layer_ex.layer->height, m_support_params.support_material_bottom_interface_flow.nozzle_diameter());
+                else if (layer_ex.layer->bottom_z < EPSILON) {
+                    interface_flow = m_support_params.first_layer_flow;
+                }else
+                    interface_flow = (interface_as_base ? &m_support_params.support_material_flow : &m_support_params.support_material_interface_flow)->with_height(float(layer_ex.layer->height));
+                filler_interface->angle = interface_as_base ?
+                        // If zero interface layers are configured, use the same angle as for the base layers.
+                        angles[support_layer_id % angles.size()] :
+                        // Use interface angle for the interface layers.
+                        m_support_params.interface_angle + interface_angle_delta;
+
+                // BBS
+                bool can_adjust_top_interface_angle = (m_object_config->support_interface_top_layers.value > 1 && &layer_ex == &top_contact_layer);
+                if (can_adjust_top_interface_angle && angle_of_biggest_bridge >= 0.f) {
+                    int bridge_degree = (int)Geometry::rad2deg(angle_of_biggest_bridge);
+                    int support_intf_degree = (int)Geometry::rad2deg(filler_interface->angle);
+                    int max_included_degree = 0;
+                    int step = 90;
+                    for (int add_on_degree = 0; add_on_degree < 180; add_on_degree += step) {
+                        int degree_to_try = support_intf_degree + add_on_degree;
+                        int included_degree = calc_included_angle_degree(bridge_degree, degree_to_try);
+                        if (included_degree > max_included_degree) {
+                            max_included_degree = included_degree;
+                            filler_interface->angle = Geometry::deg2rad((float)degree_to_try);
+                        }
+                    }
+                }
+                double density = interface_as_base ? m_support_params.support_density : m_support_params.interface_density;
+                filler_interface->spacing = interface_as_base ? m_support_params.support_material_flow.spacing() : m_support_params.support_material_interface_flow.spacing();
+                filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / density));
+                // BBS support more interface patterns
+                FillParams fill_params;
+                fill_params.density = density;
+                fill_params.dont_adjust = true;
+                if (m_object_config->support_interface_pattern == smipGrid) {
+                    filler_interface->angle = Geometry::deg2rad(m_support_params.base_angle);
+                    fill_params.dont_sort = true;
+                }
+                if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+                    filler_interface->layer_id = support_layer.interface_id();
+                fill_expolygons_generate_paths(
+                    // Destination
+                    layer_ex.extrusions, 
+                    // Regions to fill
+                    union_safety_offset_ex(layer_ex.polygons_to_extrude()),
+                    // Filler and its parameters
+                    filler_interface.get(), fill_params,
+                    // Extrusion parameters
+                    interface_as_base ? erSupportMaterial : erSupportMaterialInterface, interface_flow);
+            }
+
+            // Base interface layers under soluble interfaces
+            if ( ! base_interface_layer.empty() && ! base_interface_layer.polygons_to_extrude().empty()) {
+                Fill *filler = filler_base_interface.get();
+                //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
+                // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
+                assert(! base_interface_layer.layer->bridging);
+                Flow interface_flow = m_support_params.support_material_flow.with_height(float(base_interface_layer.layer->height));
+                filler->angle   = m_support_params.interface_angle + interface_angle_delta;
+                filler->spacing = m_support_params.support_material_interface_flow.spacing();
+                filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / m_support_params.interface_density));
+                fill_expolygons_generate_paths(
+                    // Destination
+                    base_interface_layer.extrusions, 
+                    //base_layer_interface.extrusions,
+                    // Regions to fill
+                    union_safety_offset_ex(base_interface_layer.polygons_to_extrude()),
+                    // Filler and its parameters
+                    filler, float(m_support_params.interface_density),
+                    // Extrusion parameters
+                    erSupportMaterial, interface_flow);
+            }
+
+            // Base support or flange.
+            if (! base_layer.empty() && ! base_layer.polygons_to_extrude().empty()) {
+                Fill *filler = filler_support.get();
+                filler->angle = angles[support_layer_id % angles.size()];
+                // We don't use $base_flow->spacing because we need a constant spacing
+                // value that guarantees that all layers are correctly aligned.
+                assert(! base_layer.layer->bridging);
+                auto flow = m_support_params.support_material_flow.with_height(float(base_layer.layer->height));
+                filler->spacing = m_support_params.support_material_flow.spacing();
+                filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / m_support_params.support_density));
+                float density = float(m_support_params.support_density);
+                bool  sheath  = m_support_params.with_sheath;
+                bool  no_sort = false;
+                if (base_layer.layer->bottom_z < EPSILON) {
+                    // Base flange (the 1st layer).
+                    filler = filler_first_layer;
+                    // BBS: the 1st layer use the same fill direction as other layers(in rectilinear) to avoid
+                    // that 2nd layer detaches from the 1st layer.
+                    //filler->angle = Geometry::deg2rad(float(m_object_config->support_angle.value + 90.));
+                    density = float(m_object_config->raft_first_layer_density.value * 0.01);
+                    flow = m_support_params.first_layer_flow;
+                    // use the proper spacing for first layer as we don't need to align
+                    // its pattern to the other layers
+                    //FIXME When paralellizing, each thread shall have its own copy of the fillers.
+                    filler->spacing = flow.spacing();
+                    filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));
+                    sheath  = true;
+                    no_sort = true;
+                }
+                fill_expolygons_with_sheath_generate_paths(
+                    // Destination
+                    base_layer.extrusions,
+                    // Regions to fill
+                    base_layer.polygons_to_extrude(),
+                    // Filler and its parameters
+                    filler, density,
+                    // Extrusion parameters
+                    erSupportMaterial, flow,
+                    sheath, no_sort);
+
+            }
+
+            // Merge base_interface_layers to base_layers to avoid unneccessary retractions
+            if (! base_layer.empty() && ! base_interface_layer.empty() && ! base_layer.polygons_to_extrude().empty() && ! base_interface_layer.polygons_to_extrude().empty() &&
+                base_layer.could_merge(base_interface_layer))
+                base_layer.merge(std::move(base_interface_layer));
+
+            layer_cache.add_nonempty_and_sort();
+
+            // Collect the support areas with this print_z into islands, as there is no need
+            // for retraction over these islands.
+            Polygons polys;
+            // Collect the extrusions, sorted by the bottom extrusion height.
+            for (LayerCacheItem &layer_cache_item : layer_cache.nonempty) {
+                // Collect islands to polys.
+                layer_cache_item.layer_extruded->polygons_append(polys);
+                // The print_z of the top contact surfaces and bottom_z of the bottom contact surfaces are "free"
+                // in a sense that they are not synchronized with other support layers. As the top and bottom contact surfaces
+                // are inflated to achieve a better anchoring, it may happen, that these surfaces will at least partially
+                // overlap in Z with another support layers, leading to over-extrusion.
+                // Mitigate the over-extrusion by modulating the extrusion rate over these regions.
+                // The print head will follow the same print_z, but the layer thickness will be reduced
+                // where it overlaps with another support layer.
+                //FIXME When printing a briging path, what is an equivalent height of the squished extrudate of the same width?
+                // Collect overlapping top/bottom surfaces.
+                layer_cache_item.overlapping.reserve(20);
+                coordf_t bottom_z = layer_cache_item.layer_extruded->layer->bottom_print_z() + EPSILON;
+                auto add_overlapping = [&layer_cache_item, bottom_z](const SupportGeneratorLayersPtr &layers, size_t idx_top) {
+                    for (int i = int(idx_top) - 1; i >= 0 && layers[i]->print_z > bottom_z; -- i)
+                        layer_cache_item.overlapping.push_back(layers[i]);
+                };
+                add_overlapping(top_contacts, idx_layer_top_contact);
+                if (layer_cache_item.layer_extruded->layer->layer_type == SupporLayerType::BottomContact) {
+                    // Bottom contact layer may overlap with a base layer, which may be changed to interface layer.
+                    add_overlapping(intermediate_layers,   idx_layer_intermediate);
+                    add_overlapping(interface_layers,      idx_layer_interface);
+                    add_overlapping(base_interface_layers, idx_layer_base_interface);
+                }
+                // Order the layers by lexicographically by an increasing print_z and a decreasing layer height.
+                std::stable_sort(layer_cache_item.overlapping.begin(), layer_cache_item.overlapping.end(), [](auto *l1, auto *l2) { return *l1 < *l2; });
+            }
+            if (! polys.empty())
+                expolygons_append(support_layer.support_islands, union_ex(polys));
+        } // for each support_layer_id
+    });
+
+    // Now modulate the support layer height in parallel.
+    tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
+        [&support_layers, &layer_caches]
+            (const tbb::blocked_range<size_t>& range) {
+        for (size_t support_layer_id = range.begin(); support_layer_id < range.end(); ++ support_layer_id) {
+            SupportLayer &support_layer = *support_layers[support_layer_id];
+            LayerCache   &layer_cache   = layer_caches[support_layer_id];
+            // For all extrusion types at this print_z, ordered by decreasing layer height:
+            for (LayerCacheItem &layer_cache_item : layer_cache.nonempty) {
+                // Trim the extrusion height from the bottom by the overlapping layers.
+                modulate_extrusion_by_overlapping_layers(layer_cache_item.layer_extruded->extrusions, *layer_cache_item.layer_extruded->layer, layer_cache_item.overlapping);
+                support_layer.support_fills.append(std::move(layer_cache_item.layer_extruded->extrusions));
+            }
+        }
+    });
+
+#ifndef NDEBUG
+    struct Test {
+        static bool verify_nonempty(const ExtrusionEntityCollection *collection) {
+            for (const ExtrusionEntity *ee : collection->entities) {
+                if (const ExtrusionPath *path = dynamic_cast<const ExtrusionPath*>(ee))
+                    assert(! path->empty());
+                else if (const ExtrusionMultiPath *multipath = dynamic_cast<const ExtrusionMultiPath*>(ee))
+                    assert(! multipath->empty());
+                else if (const ExtrusionEntityCollection *eecol = dynamic_cast<const ExtrusionEntityCollection*>(ee)) {
+                    assert(! eecol->empty());
+                    return verify_nonempty(eecol);
+                } else
+                    assert(false);
+            }
+            return true;
+        }
+    };
+    for (const SupportLayer *support_layer : support_layers)
+    assert(Test::verify_nonempty(&support_layer->support_fills));
+#endif // NDEBUG
 }
 
 /*

@@ -248,8 +248,6 @@ bool Field::is_matched(const std::string& string, const std::string& pattern)
 	return std::regex_match(string, regex_pattern);
 }
 
-static wxString na_value() { return _(L("N/A")); }
-
 void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true*/)
 {
 	switch (m_opt.type) {
@@ -287,7 +285,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 		}
         double val;
 
-        bool is_na_value = m_opt.nullable && str == na_value();
+        bool is_na_value = m_opt.nullable && str == m_na_value;
 
         const char dec_sep = is_decimal_separator_point() ? '.' : ',';
         const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
@@ -827,7 +825,6 @@ bool TextCtrl::value_was_changed()
 
 void TextCtrl::propagate_value()
 {
-    
     if (!is_defined_input_value<wxTextCtrl>(text_ctrl(), m_opt.type)) { // BBS
 		// on_kill_focus() cause a call of OptionsGroup::reload_config(),
 		// Thus, do it only when it's really needed (when undefined value was input)
@@ -840,11 +837,10 @@ void TextCtrl::propagate_value()
 void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/) {
     m_disable_change_event = !change_event;
     if (m_opt.nullable) {
-        const bool m_is_na_val = boost::any_cast<wxString>(value) == na_value();
-        if (!m_is_na_val)
+        if (boost::any_cast<wxString>(value) != _(L("N/A")))
             m_last_meaningful_value = value;
-        text_ctrl()->SetValue(m_is_na_val ? na_value() :
-                                            boost::any_cast<wxString>(value)); // BBS
+
+        text_ctrl()->SetValue(boost::any_cast<wxString>(value)); // BBS
     }
     else
         text_ctrl()->SetValue(value.empty() ? "" : boost::any_cast<wxString>(value)); // BBS // BBS: null value
@@ -866,9 +862,14 @@ void TextCtrl::set_last_meaningful_value()
     propagate_value();
 }
 
+void TextCtrl::update_na_value(const boost::any& value)
+{
+    m_na_value = boost::any_cast<wxString>(value);
+}
+
 void TextCtrl::set_na_value()
 {
-    text_ctrl()->SetValue(na_value()); // BBS
+    text_ctrl()->SetValue(m_na_value); // BBS
     propagate_value();
 }
 
@@ -978,10 +979,16 @@ void CheckBox::set_value(const boost::any& value, bool change_event)
 {
     m_disable_change_event = !change_event;
     if (m_opt.nullable) {
-        m_is_na_val = boost::any_cast<unsigned char>(value) == ConfigOptionBoolsNullable::nil_value();
+        const bool is_value_unsigned_char = value.type() == typeid(unsigned char);
+        m_is_na_val = is_value_unsigned_char &&
+                      boost::any_cast<unsigned char>(value) == ConfigOptionBoolsNullable::nil_value();
         if (!m_is_na_val)
-            m_last_meaningful_value = value;
-        dynamic_cast<::CheckBox*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0); // BBS
+            m_last_meaningful_value = is_value_unsigned_char ? value : static_cast<unsigned char>(boost::any_cast<bool>(value));
+
+        const auto bool_value = is_value_unsigned_char ?
+                                    boost::any_cast<unsigned char>(value) != 0 :
+                                    boost::any_cast<bool>(value);
+        dynamic_cast<::CheckBox*>(window)->SetValue(m_is_na_val ? false : bool_value); // BBS
     }
     else if (!value.empty()) // BBS: null value
         dynamic_cast<::CheckBox*>(window)->SetValue(boost::any_cast<bool>(value)); // BBS
@@ -1057,16 +1064,7 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
-    const int min_val = m_opt.min == INT_MIN
-#ifdef __WXOSX__
-    // We will forcibly set the input value for SpinControl, since the value
-    // inserted from the keyboard is not updated under OSX.
-    // So, we can't set min control value bigger then 0.
-    // Otherwise, it couldn't be possible to input from keyboard value
-    // less then min_val.
-    || m_opt.min > 0
-#endif
-    ? 0 : m_opt.min;
+    const int min_val = m_opt.min == INT_MIN ? 0 : m_opt.min;
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
     static Builder<SpinInput> builder;
@@ -1163,14 +1161,6 @@ void SpinCtrl::propagate_value()
         if (!m_value.empty()) // BBS: null value
             on_kill_focus();
 	} else {
-#ifdef __WXOSX__
-        // check input value for minimum
-        if (m_opt.min > 0 && tmp_value < m_opt.min) {
-            SpinInput* spin = static_cast<SpinInput*>(window);
-            spin->SetValue(m_opt.min);
-            // spin->GetText()->SetInsertionPointEnd(); // BBS
-        }
-#endif
         auto ctrl = dynamic_cast<SpinInput *>(window);
         if (m_value.empty() 
             ? !ctrl->GetTextCtrl()->GetLabel().IsEmpty()
