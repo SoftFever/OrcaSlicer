@@ -4040,7 +4040,7 @@ LayerResult GCode::process_layer(
     if (!m_spiral_vase && (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print())) {
         if (printer_structure == PrinterStructure::psI3 && print.config().print_sequence == PrintSequence::ByLayer)
             need_insert_timelapse_gcode_for_traditional = true;
-        else if (m_config.nozzle_diameter.values.size() == 2)
+        else if (m_config.nozzle_diameter.values.size() == 2 && print.config().print_sequence == PrintSequence::ByLayer)
             need_insert_timelapse_gcode_for_traditional = true;
     }
     bool has_insert_timelapse_gcode = false;
