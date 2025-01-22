@@ -57,10 +57,15 @@ public:
     bool switch_right{false};
     bool is_enable {true};
 
+    void* client_data = nullptr;/*MachineObject* in StatusPanel*/
+
 public:
     void Enable();
     void Disable();
     bool IsEnabled(){return is_enable;};
+
+    void  SetClientData(void* data) { client_data = data; };
+    void* GetClientData() { return client_data; };
 
     void SetAutoDisableWhenSwitch() { auto_disable_when_switch = true; };
 

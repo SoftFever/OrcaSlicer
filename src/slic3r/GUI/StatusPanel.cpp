@@ -2852,19 +2852,24 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         }
 
         /*current*/
-        if (obj->flag_update_nozzle) {
+        /*update when extder position changed or the machine changed*/
+        if (obj->flag_update_nozzle || (m_nozzle_btn_panel->GetClientData() != obj))
+        {
             if (obj->m_extder_data.current_extder_id == 0xf) {
                 m_extruderImage[select_index]->setExtruderUsed("");
                 m_nozzle_btn_panel->updateState("");
-            } else if (obj->m_extder_data.current_extder_id == MAIN_NOZZLE_ID) {
+            }
+            else if (obj->m_extder_data.current_extder_id == MAIN_NOZZLE_ID) {
                 m_extruderImage[select_index]->setExtruderUsed("right");
                 m_nozzle_btn_panel->updateState("right");
-            } else if (obj->m_extder_data.current_extder_id == DEPUTY_NOZZLE_ID) {
+            }
+            else if (obj->m_extder_data.current_extder_id == DEPUTY_NOZZLE_ID) {
                 m_extruderImage[select_index]->setExtruderUsed("left");
                 m_nozzle_btn_panel->updateState("left");
             }
 
             obj->flag_update_nozzle = false;
+            m_nozzle_btn_panel->SetClientData(obj);
         }
 
         /*enable status*/
