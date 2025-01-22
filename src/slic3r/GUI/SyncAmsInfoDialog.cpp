@@ -233,6 +233,7 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
                 image.SetAlpha((int) c, (int) r, px[3]);
             }
         }
+        //image.SaveFile("E:/preview.png", wxBITMAP_TYPE_PNG);
         image = image.Rescale(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH));
         m_right_image_button->SetBitmap(image);
         auto extruders = wxGetApp().plater()->get_partplate_list().get_plate(m_specify_plate_idx)->get_extruders();
@@ -459,14 +460,22 @@ void SyncAmsInfoDialog::update_more_setting(bool layout)
 
 void SyncAmsInfoDialog::init_bitmaps()
 {
-    m_swipe_left_bmp_normal  = ScalableBitmap(this, "previous_item", m_bmp_pix_cont);
-    m_swipe_left_bmp_hover   = ScalableBitmap(this, "previous_item_hover", m_bmp_pix_cont);
-    m_swipe_left_bmp_disable  = ScalableBitmap(this, "previous_item_disable", m_bmp_pix_cont);
-    m_swipe_right_bmp_normal = ScalableBitmap(this, "next_item", m_bmp_pix_cont);
-    m_swipe_right_bmp_hover  = ScalableBitmap(this, "next_item_hover", m_bmp_pix_cont);
-    m_swipe_right_bmp_disable  = ScalableBitmap(this, "next_item_disable", m_bmp_pix_cont);
+    if (wxGetApp().dark_mode()) {
+        m_swipe_left_bmp_normal   = ScalableBitmap(this, "previous_item", m_bmp_pix_cont);
+        m_swipe_left_bmp_hover    = ScalableBitmap(this, "previous_item_disable", m_bmp_pix_cont);
+        m_swipe_left_bmp_disable  = ScalableBitmap(this, "previous_item_dark_disable", m_bmp_pix_cont);
+        m_swipe_right_bmp_normal  = ScalableBitmap(this, "next_item", m_bmp_pix_cont);
+        m_swipe_right_bmp_hover   = ScalableBitmap(this, "next_item_disable", m_bmp_pix_cont);
+        m_swipe_right_bmp_disable = ScalableBitmap(this, "next_item_dark_disable", m_bmp_pix_cont);
+    } else {
+        m_swipe_left_bmp_normal   = ScalableBitmap(this, "previous_item", m_bmp_pix_cont);
+        m_swipe_left_bmp_hover    = ScalableBitmap(this, "previous_item_hover", m_bmp_pix_cont);
+        m_swipe_left_bmp_disable  = ScalableBitmap(this, "previous_item_disable", m_bmp_pix_cont);
+        m_swipe_right_bmp_normal  = ScalableBitmap(this, "next_item", m_bmp_pix_cont);
+        m_swipe_right_bmp_hover   = ScalableBitmap(this, "next_item_hover", m_bmp_pix_cont);
+        m_swipe_right_bmp_disable = ScalableBitmap(this, "next_item_disable", m_bmp_pix_cont);
+    }
 }
-
 
 void SyncAmsInfoDialog::add_two_image_control()
 {// thumbnail
@@ -515,6 +524,7 @@ void SyncAmsInfoDialog::add_two_image_control()
                                             wxSize(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH)),
                                             wxBORDER_NONE | wxBU_AUTODRAW);
         m_right_image_button->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(61, 61, 61, 0) : wxColour(238, 238, 238, 0));
+        m_right_image_button->SetToolTip(_L("If the transparency of the mapping changes, this thumbnail is for reference only."));
         m_right_sizer_thumbnail = create_sizer_thumbnail(m_right_image_button, false);
         m_two_image_panel_sizer->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(8));
         m_two_image_panel->SetSizer(m_two_image_panel_sizer);
@@ -4147,7 +4157,7 @@ void SyncAmsInfoDialog::change_default_normal(int old_filament_id, wxColour temp
                     wxColour temp_ams_color_in_loop = m_cur_colors_in_thumbnail[filament_id];
                     wxColour ams_color              = adjust_color_for_render(temp_ams_color_in_loop);
                     // change color
-                    new_px[3]                     = origin_px[3]; // alpha
+                    new_px[3] = ams_color.Alpha(); //origin_px[3]; // alpha
                     int           origin_rgb      = origin_px[0] + origin_px[1] + origin_px[2];
                     int           no_light_px_rgb = no_light_px[0] + no_light_px[1] + no_light_px[2];
                     unsigned char i               = 0;
@@ -4310,6 +4320,12 @@ void SyncNozzleAndAmsDialog::deal_cancel()
     call_start_gradual_disappearance();
 }
 
+void SyncNozzleAndAmsDialog::update_info(InputInfo &info) {
+    m_input_info = info;
+    restart();
+    SetPosition(m_input_info.dialog_pos);
+}
+
 FinishSyncAmsDialog::FinishSyncAmsDialog(InputInfo &input_info)
     : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
                               300,
@@ -4329,6 +4345,13 @@ FinishSyncAmsDialog::~FinishSyncAmsDialog() {}
 
 void FinishSyncAmsDialog::deal_ok() {
     call_start_gradual_disappearance();
+}
+
+void FinishSyncAmsDialog::update_info(InputInfo &info)
+{
+    m_input_info = info;
+    restart();
+    SetPosition(m_input_info.dialog_pos);
 }
 
 }} // namespace Slic3r

@@ -39,6 +39,7 @@ public:
     virtual void on_timer(wxTimerEvent &event);
     void         set_target_pos_and_gradual_disappearance(wxPoint pos);
     void         call_start_gradual_disappearance();
+    void         restart();
 
 protected:
     Button *m_button_ok     = nullptr;

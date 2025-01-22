@@ -366,6 +366,8 @@ public:
     ~SyncNozzleAndAmsDialog() override;
     void deal_ok() override;
     void deal_cancel() override;
+    void update_info(InputInfo& info);
+
 private:
     InputInfo& m_input_info;
 };
@@ -381,6 +383,8 @@ public:
     FinishSyncAmsDialog(InputInfo &input_info);
     ~FinishSyncAmsDialog() override;
     void deal_ok();
+    void update_info(InputInfo &info);
+
 private:
     InputInfo& m_input_info;
 };

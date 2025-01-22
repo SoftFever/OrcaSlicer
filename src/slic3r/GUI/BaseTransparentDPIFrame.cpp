@@ -205,6 +205,15 @@ void BaseTransparentDPIFrame::call_start_gradual_disappearance()//for ok or canc
     start_gradual_disappearance();
 }
 
+void BaseTransparentDPIFrame::restart() {
+    m_display_stage = 0;
+    m_enter_window_valid = true;
+    SetTransparent(m_init_transparent);
+    if (m_refresh_timer) {
+        clear_timer_count();
+        m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
+    }
+}
 void BaseTransparentDPIFrame::start_gradual_disappearance()
 {
     clear_timer_count();

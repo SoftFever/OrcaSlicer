@@ -165,6 +165,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_thumbnailPanel->SetMinSize(wxSize(FromDIP(198), FromDIP(198)));
     m_thumbnailPanel->SetMaxSize(wxSize(FromDIP(198), FromDIP(198)));
     m_thumbnailPanel->SetBackgroundColour(*wxWHITE);
+    m_thumbnailPanel->SetToolTip(_L("If the transparency of the mapping changes, this thumbnail is for reference only."));
     m_sizer_thumbnail->Add(m_thumbnailPanel, 0, wxALIGN_CENTER, 0);
     m_panel_image->SetSizer(m_sizer_thumbnail);
     m_panel_image->Layout();
@@ -4038,7 +4039,7 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
                     wxColour temp_ams_color_in_loop = m_cur_colors_in_thumbnail[filament_id];
                     wxColour ams_color              = adjust_color_for_render(temp_ams_color_in_loop);
                     //change color
-                    new_px[3] = origin_px[3]; // alpha
+                    new_px[3]                       = ams_color.Alpha(); //origin_px[3]; // alpha
                     int origin_rgb = origin_px[0] + origin_px[1] + origin_px[2];
                     int no_light_px_rgb   = no_light_px[0] + no_light_px[1] + no_light_px[2];
                     unsigned char i               = 0;

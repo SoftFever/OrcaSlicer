@@ -89,6 +89,7 @@ public:
     ScalableBitmap m_arraw_bitmap_gray;
     ScalableBitmap m_arraw_bitmap_white;
     ScalableBitmap m_transparent_mitem;
+    ScalableBitmap m_filament_wheel_transparent;
     ScalableBitmap m_ams_wheel_mitem;
     ScalableBitmap m_ams_not_match;
 
