@@ -289,7 +289,7 @@ public:
     void doRender(wxDC& dc);
 
 public:
-    int current_humidity_level;
+    int current_humidity_level = 0;
 
     ScalableBitmap close_img;
     wxStaticBitmap* curr_humidity_img;

@@ -5018,6 +5018,15 @@ void StatusPanel::msw_rescale()
     m_tempCtrl_chamber->SetMinSize(size);
     m_tempCtrl_chamber->Rescale();
 
+    for(int i = 0; i < m_extruder_book->GetPageCount(); i++)
+    {
+        ExtruderImage* ext_img = dynamic_cast<ExtruderImage*> (m_extruder_book->GetPage(i));
+        if (ext_img)
+        {
+            ext_img->msw_rescale();
+        }
+    }
+
     m_bitmap_speed.msw_rescale();
     m_bitmap_speed_active.msw_rescale();
 

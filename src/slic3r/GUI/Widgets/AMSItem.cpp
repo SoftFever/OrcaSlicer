@@ -2761,9 +2761,9 @@ void AMSHumidity::doRender(wxDC& dc)
         dc.DrawText(hum_percentage, pot);
 
         pot.x += (tsize.x + FromDIP(5));
-        pot.y += (tsize.y / 2 - FromDIP(4));
-        tsize = dc.GetMultiLineTextExtent(_L("%"));
         dc.SetFont(Label::Body_12);
+        tsize = dc.GetMultiLineTextExtent(_L("%"));
+        pot.y += (tsize.y / 2 - FromDIP(4));
         dc.DrawText(_L("%"), pot);
 
         //vertical line
@@ -2776,7 +2776,7 @@ void AMSHumidity::doRender(wxDC& dc)
         //sun image
         /*pot.x = FromDIP(size.x * 0.69);
         pot.y = FromDIP((size.y - ams_sun_img.GetBmpHeight()) / 2);*/
-        pot.x = pot.x + FromDIP(4);
+        pot.x = pot.x + FromDIP(ams_sun_img.GetBmpWidth() / 2);
         pot.y = FromDIP((size.y - ams_sun_img.GetBmpHeight()) / 2);
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.DrawBitmap(ams_sun_img.bmp(), pot);
