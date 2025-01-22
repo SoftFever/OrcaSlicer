@@ -63,18 +63,47 @@ jobs:
   flatpak:
     name: "Flatpak"
     runs-on: ubuntu-latest
+    env:
+      date:
+      ver:
+      ver_pure:
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-46
       options: --privileged
+      volumes:
+        - /usr/local/lib/android:/usr/local/lib/android
+        - /usr/share/dotnet:/usr/share/dotnet
+        - /opt/ghc:/opt/ghc1
+        - /usr/local/share/boost:/usr/local/share/boost1
     steps:
-    # maybe i'm too dumb and fucked up to do CI. OH WELL :D -ppd
     - name: "Remove unneeded stuff to free disk space"
       run:
-        sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
+        rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
     - uses: actions/checkout@v4
+    - name: Get the version and date
+      run: |
+        ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          ver="PR-${{ github.event.number }}"
+        else
+          ver=V$ver_pure
+        fi
+        echo "ver=$ver" >> $GITHUB_ENV
+        echo "ver_pure=$ver_pure" >> $GITHUB_ENV
+        echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
+      shell: bash
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: orcaslicer.flatpak
+        bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
-        cache-key: flatpak-builder-${{ github.sha }}
-        cache: false
+        cache: true
+    - name: Deploy Flatpak to nightly release
+      if: ${{github.ref == 'refs/heads/main'}}
+      uses: WebFreak001/deploy-nightly@v3.2.0
+      with:
+        upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+        release_id: 137995723
+        asset_path: /__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
+        asset_name: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
+        asset_content_type: application/octet-stream
+        max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted

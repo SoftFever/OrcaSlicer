@@ -786,7 +786,7 @@ void SecondaryCheckDialog::on_hide()
 
 void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent)
 {
-    if (m_button_style == style && title == GetTitle() == title) return;
+    if (m_button_style == style && title == GetTitle()) return;
 
     SetTitle(title);
 

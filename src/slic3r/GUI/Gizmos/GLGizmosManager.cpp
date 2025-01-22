@@ -375,6 +375,9 @@ void GLGizmosManager::update_data()
                                    : CommonGizmosDataID(0));
     if (m_current != Undefined) m_gizmos[m_current]->data_changed(m_serializing);
 
+    // Orca: hack: Fix issue that flatten gizmo faces not updated after reload from disk
+    if (m_current != Flatten && !m_gizmos.empty()) m_gizmos[Flatten]->data_changed(m_serializing);
+
     //BBS: GUI refactor: add object manipulation in gizmo
     m_object_manipulation.update_ui_from_settings();
     m_object_manipulation.UpdateAndShow(true);
@@ -915,7 +918,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         }
         else if (m_current == FdmSupports) {
             GLGizmoFdmSupports* fdm_support = dynamic_cast<GLGizmoFdmSupports*>(get_current());
-            if (fdm_support != nullptr && keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'G') {
+            if (fdm_support != nullptr && (keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'G')) {
                 processed = fdm_support->on_key_down_select_tool_type(keyCode);
             }
             if (processed) {
@@ -925,7 +928,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         }
         else if (m_current == Seam) {
             GLGizmoSeam* seam = dynamic_cast<GLGizmoSeam*>(get_current());
-            if (seam != nullptr && keyCode == 'S' || keyCode == 'C') {
+            if (seam != nullptr && (keyCode == 'S' || keyCode == 'C')) {
                 processed = seam->on_key_down_select_tool_type(keyCode);
             }
             if (processed) {
