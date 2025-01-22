@@ -1730,7 +1730,7 @@ std::vector<int> PartPlate::get_used_filaments()
 bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxString& error_message)
 {
     error_message.clear();
-    FilamentMapMode mode = config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
+    FilamentMapMode mode = this->get_real_filament_map_mode(config);
     // only check printablity if we have explicit map result
     if (mode != fmmManual)
         return true;
