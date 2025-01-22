@@ -5958,7 +5958,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("prime_tower_brim_width", coFloat);
     def->label = L("Brim width");
-    def->tooltip = L("Brim width, -1 means the brim width is automatically calculated based on the height ");
+    def->tooltip = L("Brim width of wipe tower, -1 means auto calculated width based on the height of wipe tower.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->mode = comAdvanced;
     def->min = -1;
