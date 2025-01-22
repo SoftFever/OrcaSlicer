@@ -148,7 +148,7 @@ void SyncAmsInfoDialog::update_ams_check(MachineObject *obj)
             m_checkbox_list["use_ams"]->setValue("on");
         } else {
             m_checkbox_list["use_ams"]->Hide();
-            m_checkbox_list["use_ams"]->setValue("off");
+            //m_checkbox_list["use_ams"]->setValue("off");
         }
     } else {
         m_checkbox_list["use_ams"]->Hide();
@@ -1067,7 +1067,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         sync_ams_mapping_result(m_ams_mapping_result);
     });
 
-    option_use_ams->setValue("off");
+    option_use_ams->setValue("on");
     m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_use_ams, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_auto_bed_level, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));

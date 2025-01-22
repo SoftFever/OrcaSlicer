@@ -1085,7 +1085,7 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
     if (result.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "ams_mapping result is empty";
         for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
-            wxString ams_id = "-";
+            wxString ams_id = "Ext";//
             wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
             it->second->item->set_ams_info(ams_col, ams_id);
         }
@@ -3025,14 +3025,17 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
         if (obj->has_ams()) {
             m_checkbox_list["use_ams"]->Show();
             m_checkbox_list["use_ams"]->setValue("on");
+            change_materialitem_tip(false);
         }
         else {
             m_checkbox_list["use_ams"]->Hide();
             m_checkbox_list["use_ams"]->setValue("off");
+            change_materialitem_tip(true);
         }
     }else{
         m_checkbox_list["use_ams"]->Hide();
         m_checkbox_list["use_ams"]->setValue("on");
+        change_materialitem_tip(false);
     }
 }
 
@@ -3629,6 +3632,23 @@ void SelectMachineDialog::set_default()
     Fit();
 }
 
+void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
+{
+    MaterialHash::iterator iter = m_materialList.begin();
+    while (iter != m_materialList.end()) {
+        int       id   = iter->first;
+        Material *item = iter->second;
+        if (item) {
+            if (no_ams_only_ext) {
+                item->item->SetToolTip(m_ams_tooltip_ext);
+            }
+            else {
+                item->item->SetToolTip(m_ams_tooltip);
+            }
+        }
+        iter++;
+    }
+}
 void SelectMachineDialog::reset_and_sync_ams_list()
 {
     // for black list
@@ -3676,7 +3696,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_sizer_ams_mapping->Clear();
     m_materialList.clear();
     m_filaments.clear();
-
+    m_ams_tooltip =_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
+    m_ams_tooltip_ext = _L("Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited.");
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
@@ -3716,7 +3737,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
-        item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify"));
+        item->SetToolTip(m_ams_tooltip);
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();

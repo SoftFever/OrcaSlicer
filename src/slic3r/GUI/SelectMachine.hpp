@@ -299,6 +299,8 @@ private:
 
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     std::map<std::string, PrintOption*>   m_checkbox_list;
+    wxString                             m_ams_tooltip;
+    wxString                             m_ams_tooltip_ext;
     std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
@@ -450,6 +452,7 @@ public:
     void on_set_finish_mapping(wxCommandEvent& evt);
     void on_print_job_cancel(wxCommandEvent& evt);
     void set_default();
+    void change_materialitem_tip(bool no_ams_only_ext);
     void reset_and_sync_ams_list();
     void clone_thumbnail_data();
     void record_edge_pixels_data();
