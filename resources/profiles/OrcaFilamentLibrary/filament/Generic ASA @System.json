@@ -5,7 +5,7 @@
     "name": "Generic ASA @System",
     "from": "system",
     "instantiation": "true",
-    "renamed_from": "My Generic ADA",
+    "renamed_from": "My Generic ASA",
     "inherits": "fdm_filament_asa",
     "compatible_printers": []
 }
