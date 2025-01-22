@@ -1404,7 +1404,7 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
     if (object_result.filaments.empty())
         return {false,false};
 
-    static const std::vector<std::string> nozzle_name_list = { _u8L("left nozzle"), _u8L("right nozzle") };
+    const std::vector<std::string> nozzle_name_list = { _u8L("left nozzle"), _u8L("right nozzle") };
 
     std::vector<ObjectFilamentInfo> left_unprintable_objects;
     std::vector<ObjectFilamentInfo> right_unprintable_objects;
@@ -2962,6 +2962,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
         _set_warning_notification(EWarning::FilamentUnPrintableOnFirstLayer, false);
+        _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
+        _set_warning_notification_if_needed(EWarning::MultiExtruderHeightOutside);
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
@@ -3007,6 +3009,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::TPUPrintableError, false);
            _set_warning_notification(EWarning::FilamentPrintableError, false);
            _set_warning_notification(EWarning::MixUsePLAAndPETG, false);
+           _set_warning_notification(EWarning::MultiExtruderPrintableError,false);
+           _set_warning_notification(EWarning::MultiExtruderHeightOutside,false);
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
     }
@@ -9966,10 +9970,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 text += (boost::format(_u8L("Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
         }
-        if (!text.empty()) {
-            text += "\n";
-            text += _u8L("Open wiki for more information.");
-        }
         error = ErrorType::SLICING_LIMIT_ERROR;
         break;
     }
@@ -10071,20 +10071,20 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case PLATER_ERROR:
         if (warning == EWarning::LeftExtruderPrintableError) {
             if (state) {
-                if (auto left_str = get_left_extruder_unprintable_text();!left_str.empty())
-                    notification_manager.push_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel, left_str);
+                if (auto left_str = get_left_extruder_unprintable_text(); !left_str.empty())
+                    notification_manager.bbl_show_filament_map_invalid_notification_before_slice(NotificationType::LeftExtruderUnprintableError, left_str);
             }
             else {
-                notification_manager.close_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel);
+                notification_manager.bbl_close_filament_map_invalid_notification_before_slice(NotificationType::LeftExtruderUnprintableError);
             }
         }
         else if (warning == EWarning::RightExtruderPrintableError) {
             if (state) {
                 if (auto right_str = get_right_extruder_unprintable_text(); !right_str.empty())
-                    notification_manager.push_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel, right_str);
+                    notification_manager.bbl_show_filament_map_invalid_notification_before_slice(NotificationType::RightExtruderUnprintableError, right_str);
             }
             else {
-                notification_manager.close_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError, NotificationLevel::ErrorNotificationLevel);
+                notification_manager.bbl_close_filament_map_invalid_notification_before_slice(NotificationType::RightExtruderUnprintableError);
             }
         }
         else if (warning == EWarning::ObjectClashed) {
@@ -10134,9 +10134,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_LIMIT_ERROR:
         if (state)
-            notification_manager.push_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationLevel::ErrorNotificationLevel, text);
+            notification_manager.bbl_show_filament_map_invalid_notification_after_slice(NotificationType::BBLSliceLimitError, text);
         else
-            notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceLimitError, NotificationLevel::ErrorNotificationLevel);
+            notification_manager.bbl_close_filament_map_invalid_notification_after_slice(NotificationType::BBLSliceLimitError);
         break;
     case SLICING_HEIGHT_OUTSIDE:
         if (state)

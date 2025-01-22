@@ -34,6 +34,9 @@ static std::vector<int> get_applied_map(DynamicConfig& proj_config, const Plater
     return plater_ref->get_global_filament_map();
 }
 
+extern std::string& get_left_extruder_unprintable_text();
+extern std::string& get_right_extruder_unprintable_text();
+
 
 bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate* partplate_ref)
 {
@@ -85,6 +88,11 @@ bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate
             plater_ref->set_global_filament_map_mode(new_mode);
             if (new_mode == fmmManual)
                 plater_ref->set_global_filament_map(new_maps);
+        }
+        plater_ref->update();
+        // check whether able to slice, if not, return false
+        if (!get_left_extruder_unprintable_text().empty() || !get_right_extruder_unprintable_text().empty()){
+            return false;
         }
         return true;
     }

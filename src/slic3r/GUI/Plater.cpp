@@ -15690,22 +15690,18 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
         std::string left_unprintable_text = get_left_extruder_unprintable_text(), right_unprintable_text = get_right_extruder_unprintable_text();
         if (!left_unprintable_text.empty())
         {
-            p->notification_manager->push_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError,
-                NotificationManager::NotificationLevel::ErrorNotificationLevel, left_unprintable_text);
+            p->notification_manager->bbl_show_filament_map_invalid_notification_before_slice(NotificationType::LeftExtruderUnprintableError, left_unprintable_text);
         }
         else {
-            p->notification_manager->close_slicing_customize_error_notification(NotificationType::LeftExtruderUnprintableError,
-                NotificationManager::NotificationLevel::ErrorNotificationLevel);
+            p->notification_manager->bbl_close_filament_map_invalid_notification_before_slice(NotificationType::LeftExtruderUnprintableError);
         }
 
         if (!right_unprintable_text.empty())
         {
-            p->notification_manager->push_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError,
-                NotificationManager::NotificationLevel::ErrorNotificationLevel, right_unprintable_text);
+            p->notification_manager->bbl_show_filament_map_invalid_notification_before_slice(NotificationType::RightExtruderUnprintableError,right_unprintable_text);
         }
         else {
-            p->notification_manager->close_slicing_customize_error_notification(NotificationType::RightExtruderUnprintableError,
-                NotificationManager::NotificationLevel::ErrorNotificationLevel);
+            p->notification_manager->bbl_close_filament_map_invalid_notification_before_slice(NotificationType::RightExtruderUnprintableError);
         }
 
         /*if (state == ModelInstancePVS_Limited) {
@@ -15806,7 +15802,6 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 {
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
     int value = evt.GetInt(); //1 means from gcode view
-    bool force_manual = value == 1;  // If from gcode view, should display manual page
     bool need_slice = value ==1;  // If from gcode view, should slice
 
     const auto& project_config = wxGetApp().preset_bundle->project_config;

@@ -365,6 +365,12 @@ public:
 	void bbl_show_bed_filament_incompatible_notification(const std::string& text);
 	void bbl_close_bed_filament_incompatible_notification();
 
+	void bbl_show_filament_map_invalid_notification_before_slice(const NotificationType type, const std::string& text);
+	void bbl_close_filament_map_invalid_notification_before_slice(const NotificationType type);
+
+	void bbl_show_filament_map_invalid_notification_after_slice(const NotificationType type, const std::string& text);
+	void bbl_close_filament_map_invalid_notification_after_slice(const NotificationType type);
+
 	//BBS--sole notification
     void bbl_show_sole_text_notification(NotificationType sType,const std::string &text, bool bOverride, int level, bool autohide);
     void bbl_chose_sole_text_notification(NotificationType sType);

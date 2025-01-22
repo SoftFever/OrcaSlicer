@@ -281,7 +281,7 @@ void FilamentGroupPopup::OnRadioBtn(int idx)
     if (m_mode != mode_list.at(idx)) {
         m_mode = mode_list.at(idx);
         SetFilamentMapMode(m_mode);
-        plater_ref->schedule_background_process();
+        plater_ref->update();
         UpdateButtonStatus(m_mode);
     }
 }
