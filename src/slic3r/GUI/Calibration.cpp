@@ -53,6 +53,12 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     select_nozzle_cali  = create_check_option(_L("Nozzle offset calibration"), cali_left_panel, _L("Nozzle offset calibration"), "nozzle_cali");
     select_heatbed_cali = create_check_option(_L("High-temperature Heatbed Calibration"), cali_left_panel, _L("High-temperature Heatbed Calibration"), "bed_cali");
 
+    // STUDIO-10091 the default not checked option
+    if(m_checkbox_list.count("bed_cali") != 0)
+    {
+        m_checkbox_list["bed_cali"]->SetValue(false);
+    }
+
     cali_left_sizer->Add(0, FromDIP(18), 0, wxEXPAND, 0);
     cali_left_sizer->Add(select_xcam_cali, 0, wxLEFT, FromDIP(15));
     cali_left_sizer->Add(select_bed_leveling, 0, wxLEFT, FromDIP(15));
