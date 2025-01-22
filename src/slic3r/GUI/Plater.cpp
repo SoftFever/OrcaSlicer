@@ -5974,6 +5974,11 @@ void Plater::priv::reload_from_disk()
                             }
                         }
                         if (found) break;
+                        // BBS: step model,object loaded as a volume. GUI_ObfectList.cpp load_modifier()
+                        if (obj->name == old_volume->name) {
+                            new_object_idx = (int) o;
+                            break;
+                        }
                     }
                 }
 
@@ -5982,22 +5987,30 @@ void Plater::priv::reload_from_disk()
                     continue;
                 }
                 ModelObject *new_model_object = new_model.objects[new_object_idx];
-                if (new_volume_idx < 0 || int(new_model_object->volumes.size()) <= new_volume_idx) {
+                if (int(new_model_object->volumes.size()) <= new_volume_idx) {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
                     continue;
                 }
 
-                old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
-                ModelVolume *new_volume = old_model_object->volumes.back();
+                ModelVolume *new_volume = nullptr;
+                // BBS: step model
+                if (new_volume_idx < 0 && new_object_idx >= 0) {
+                    TriangleMesh mesh = new_model_object->mesh();
+                    new_volume = old_model_object->add_volume(std::move(mesh));
+                    new_volume->name  = new_model_object->name;
+                    new_volume->source.input_file = new_model_object->input_file;
+                }else {
+                    new_volume = old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
+                    // new_volume = old_model_object->volumes.back();
+                }
+                
                 new_volume->set_new_unique_id();
                 new_volume->config.apply(old_volume->config);
                 new_volume->set_type(old_volume->type());
                 new_volume->set_material_id(old_volume->material_id());
 
-                Transform3d transform = Transform3d::Identity();
-                transform.translate(new_volume->source.mesh_offset - old_volume->source.mesh_offset);
-                new_volume->set_transformation(old_volume->get_transformation().get_matrix() * old_volume->source.transform.get_matrix_no_offset() *
-                                               transform * new_volume->source.transform.get_matrix_no_offset().inverse());
+                new_volume->source.mesh_offset = old_volume->source.mesh_offset;
+                new_volume->set_transformation(old_volume->get_transformation());
 
                 new_volume->source.object_idx = old_volume->source.object_idx;
                 new_volume->source.volume_idx = old_volume->source.volume_idx;
