@@ -72,13 +72,13 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["get_presets"] = &JusPrinChatPanel::handle_get_presets;
     json_action_handlers["get_edited_presets"] = &JusPrinChatPanel::handle_get_edited_presets;
     json_action_handlers["get_plates"] = &JusPrinChatPanel::handle_get_plates;
+    json_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
+    json_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
 
     // Actions for the chat page (void return)
     void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
-    void_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     void_action_handlers["discard_current_changes"] = &JusPrinChatPanel::handle_discard_current_changes;
-    void_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     void_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     void_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     void_action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
@@ -182,12 +182,12 @@ void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
 
 }
 
-void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
+nlohmann::json JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
 {
     nlohmann::json payload = params.value("payload", nlohmann::json::object());
     if (payload.is_null()) {
         BOOST_LOG_TRIVIAL(error) << "handle_select_preset: missing payload parameter";
-        return;
+        throw std::runtime_error("Missing payload parameter");
     }
     Preset::Type preset_type;
     std::string  type = payload.value("type", "");
@@ -199,23 +199,18 @@ void JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
         preset_type = Preset::Type::TYPE_PRINTER;
     } else {
         BOOST_LOG_TRIVIAL(error) << "handle_select_preset: invalid type parameter";
-        return;
+        throw std::runtime_error("Invalid type parameter");
     }
 
     DiscardCurrentPresetChanges(); // Selecting a printer will result in selecting a filament or print preset. So we need to discard changes for all presets in order not to have the "transfer or discard" dialog pop up
 
-    try {
-        std::string  name = payload.value("name", "");
-        Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
-        if (tab != nullptr) {
-            tab->select_preset(name, false, std::string(), false);
-        }
-    } catch (const std::exception& e) {
-        // TODO: propogate the error to the web page
-        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: error selecting preset " << e.what();
+    std::string  name = payload.value("name", "");
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab != nullptr) {
+        tab->select_preset(name, false, std::string(), false);
     }
 
-    RefreshPresets(); // JusPrin is the source of truth for presets. Update the web page whenever a preset changes
+    return nlohmann::json::object();
 }
 
 void JusPrinChatPanel::handle_discard_current_changes(const nlohmann::json& params) {
@@ -223,20 +218,20 @@ void JusPrinChatPanel::handle_discard_current_changes(const nlohmann::json& para
     JusPrinPresetConfigUtils::UpdatePresetTabs();
 }
 
-void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
+nlohmann::json JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
     nlohmann::json param_item = params.value("payload", nlohmann::json::object());
     if (param_item.is_null()) {
         BOOST_LOG_TRIVIAL(error) << "handle_apply_config: missing payload parameter";
-        return;
+        throw std::runtime_error("Missing payload parameter");
     }
 
     if (!param_item.is_array()) {
         BOOST_LOG_TRIVIAL(error) << "handle_apply_config: payload is not an array";
-        return;
+        throw std::runtime_error("Payload is not an array");
     }
 
     if (param_item.empty()) {
-        return;
+        return nlohmann::json::object();
     }
 
     for (const auto& item : param_item) {
@@ -244,6 +239,8 @@ void JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
     }
 
     JusPrinPresetConfigUtils::UpdatePresetTabs();
+
+    return nlohmann::json::object();
 }
 
 void JusPrinChatPanel::UpdatePresetTabs() {
@@ -405,13 +402,22 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
         !jsonObject["refId"].get<std::string>().empty()) {
         auto json_it = json_action_handlers.find(action);
         if (json_it != json_action_handlers.end()) {
-            auto retVal = (this->*(json_it->second))(jsonObject);
-            std::string refId = jsonObject["refId"];
-            nlohmann::json responseJson = {
-                {"refId", refId},
-                {"retVal", retVal}
-            };
-            CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
+            try {
+                auto retVal = (this->*(json_it->second))(jsonObject);
+                std::string refId = jsonObject["refId"];
+                nlohmann::json responseJson = {
+                    {"refId", refId},
+                    {"retVal", retVal}
+                };
+                CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
+            } catch (const std::exception& e) {
+                std::string refId = jsonObject["refId"];
+                nlohmann::json responseJson = {
+                    {"refId", refId},
+                    {"error", e.what()}
+                };
+                CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
+            }
         }
     } else {
         auto void_it = void_action_handlers.find(action);

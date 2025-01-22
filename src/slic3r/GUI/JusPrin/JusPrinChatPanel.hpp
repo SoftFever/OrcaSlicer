@@ -59,11 +59,11 @@ private:
     nlohmann::json handle_get_presets(const nlohmann::json& params);
     nlohmann::json handle_get_edited_presets(const nlohmann::json& params);
     nlohmann::json handle_get_plates(const nlohmann::json& params);
+    nlohmann::json handle_select_preset(const nlohmann::json& params);
+    nlohmann::json handle_apply_config(const nlohmann::json& params);
 
     // Actions to trigger events in JusPrin
-    void handle_select_preset(const nlohmann::json& params);
     void handle_discard_current_changes(const nlohmann::json& params);
-    void handle_apply_config(const nlohmann::json& params);
     void handle_add_printers(const nlohmann::json& params);
     void handle_add_filaments(const nlohmann::json& params);
     void handle_switch_to_classic_mode(const nlohmann::json& params);
