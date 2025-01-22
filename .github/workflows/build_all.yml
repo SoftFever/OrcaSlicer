@@ -78,7 +78,7 @@ jobs:
     steps:
     - name: "Remove unneeded stuff to free disk space"
       run:
-        sudo rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
+        rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
     - uses: actions/checkout@v4
     - name: Get the version and date
       run: |
