@@ -362,7 +362,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 // BBS
 static const t_config_enum_values s_keys_map_LayerSeq = {
     { "Auto",              flsAuto },
-    { "Customize",         flsCutomize },
+    { "Customize",         flsCustomize },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LayerSeq)
 
@@ -3082,7 +3082,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0.1));
 
     def           = this->add("ironing_inset", coFloat);
     def->label    = L("Ironing inset");
@@ -4406,17 +4406,17 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_type", coEnum);
     def->label = L("Type");
     def->category = L("Support");
-    def->tooltip = L("normal(auto) and tree(auto) is used to generate support automatically. "
-                     "If normal(manual) or tree(manual) is selected, only support enforcers are generated");
+    def->tooltip = L("Normal (auto) and Tree (auto) is used to generate support automatically. "
+                     "If Normal (manual) or Tree (manual) is selected, only support enforcers are generated");
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
     def->enum_values.push_back("normal(manual)");
     def->enum_values.push_back("tree(manual)");
-    def->enum_labels.push_back(L("normal(auto)"));
-    def->enum_labels.push_back(L("tree(auto)"));
-    def->enum_labels.push_back(L("normal(manual)"));
-    def->enum_labels.push_back(L("tree(manual)"));
+    def->enum_labels.push_back(L("Normal (auto)"));
+    def->enum_labels.push_back(L("Tree (auto)"));
+    def->enum_labels.push_back(L("Normal (manual)"));
+    def->enum_labels.push_back(L("Tree (manual)"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
 
