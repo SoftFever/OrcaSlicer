@@ -35,6 +35,22 @@ struct AMSMapInfo
     std::string ams_id{""};
     std::string slot_id{""};
 };
+struct AMSComboInfo
+{
+    std::vector<std::string>              ams_filament_colors;
+    std::vector<std::vector<std::string>> ams_multi_color_filment;
+    std::vector<std::string>              ams_filament_presets;
+    std::vector<std::string>              ams_names;
+    void  clear() {
+        ams_filament_colors.clear();
+        ams_multi_color_filment.clear();
+        ams_filament_presets.clear();
+        ams_names.clear();
+    }
+    bool empty() {
+        return ams_names.empty();
+    }
+};
 struct MergeFilamentInfo {
     std::vector<std::vector<int>> merges;
     bool  is_empty() { return merges.empty();}
@@ -128,7 +144,7 @@ public:
     void            set_num_filaments(unsigned int n, std::string new_col = "");
     void         update_num_filaments(unsigned int to_del_flament_id);
 
-    std::vector<std::string> get_ams_colors();
+    void get_ams_cobox_infos(AMSComboInfo &combox_info);
     unsigned int sync_ams_list(unsigned int &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo& merge_info);
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);

@@ -73,6 +73,8 @@ class MaterialItem: public wxPanel
 {
 protected:
     int m_text_pos_y = -1;
+    bool m_dropdown_allow_painted = true;
+
 public:
     MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname);
     ~MaterialItem();
@@ -98,6 +100,7 @@ public:
     bool m_match {true};
 
     void msw_rescale();
+    void allow_paint_dropdown(bool flag);
     void set_ams_info(wxColour col, wxString txt, int ctype=0, std::vector<wxColour> cols= std::vector<wxColour>());
 
     void disable();
@@ -118,7 +121,7 @@ class MaterialSyncItem : public MaterialItem
 public:
     MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname);
     ~MaterialSyncItem();
-
+    int  get_real_offset();
     void render(wxDC &dc) override;
     void doRender(wxDC &dc) override;
 };

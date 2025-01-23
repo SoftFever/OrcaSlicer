@@ -1944,23 +1944,25 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     update_multi_material_filament_presets(to_del_flament_id);
 }
 
-std::vector<std::string> PresetBundle::get_ams_colors() {
-    std::vector<std::string> ams_filament_colors;
-    std::vector<std::string> ams_filament_presets;
-    auto                 is_double_extruder = get_printer_extruder_count() == 2;
+
+void PresetBundle::get_ams_cobox_infos(AMSComboInfo& combox_info)
+{
+    combox_info.clear();
     for (auto &entry : filament_ams_list) {
         auto &ams                  = entry.second;
         auto  filament_id          = ams.opt_string("filament_id", 0u);
         auto  filament_color       = ams.opt_string("filament_colour", 0u);
+        auto  ams_name             = ams.opt_string("tray_name", 0u);
         auto  filament_changed     = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
         auto  filament_multi_color = ams.opt<ConfigOptionStrings>("filament_multi_colors")->values;
         if (filament_id.empty()) {
             continue;
         }
-        if (!filament_changed && this->filament_presets.size() > ams_filament_presets.size()) {
-            ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
-            ams_filament_colors.push_back(filament_color);
-            ams_multi_color_filment.push_back(filament_multi_color);
+        if (!filament_changed && this->filament_presets.size() > combox_info.ams_filament_presets.size()) {
+            combox_info.ams_filament_presets.push_back(this->filament_presets[combox_info.ams_filament_presets.size()]);
+            combox_info.ams_filament_colors.push_back(filament_color);
+            combox_info.ams_multi_color_filment.push_back(filament_multi_color);
+            combox_info.ams_names.push_back(ams_name);
             continue;
         }
         auto iter = std::find_if(filaments.begin(), filaments.end(),
@@ -1975,10 +1977,11 @@ std::vector<std::string> PresetBundle::get_ams_colors() {
             }
             if (iter == filaments.end()) {
                 // Prefer old selection
-                if (ams_filament_presets.size() < this->filament_presets.size()) {
-                    ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
-                    ams_filament_colors.push_back(filament_color);
-                    ams_multi_color_filment.push_back(filament_multi_color);
+                if (combox_info.ams_filament_presets.size() < this->filament_presets.size()) {
+                    combox_info.ams_filament_presets.push_back(this->filament_presets[combox_info.ams_filament_presets.size()]);
+                    combox_info.ams_filament_colors.push_back(filament_color);
+                    combox_info.ams_multi_color_filment.push_back(filament_multi_color);
+                    combox_info.ams_names.push_back(ams_name);
                     continue;
                 }
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system; });
@@ -1987,10 +1990,11 @@ std::vector<std::string> PresetBundle::get_ams_colors() {
             }
             filament_id = iter->filament_id;
         }
-        ams_filament_presets.push_back(iter->name);
-        ams_filament_colors.push_back(filament_color);
+        combox_info.ams_filament_presets.push_back(iter->name);
+        combox_info.ams_filament_colors.push_back(filament_color);
+        combox_info.ams_multi_color_filment.push_back(filament_multi_color);
+        combox_info.ams_names.push_back(ams_name);
     }
-    return ams_filament_colors;
 }
 
 unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo &merge_info)

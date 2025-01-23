@@ -26,6 +26,7 @@ using namespace Slic3r::GUI;
 #define BUTTON_SIZE             wxSize(FromDIP(58), FromDIP(24))
 #define SyncAmsInfoDialogWidth  FromDIP(675)
 #define SyncLabelWidth FromDIP(640)
+#define SyncAttentionTipWidth FromDIP(550)
 namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
@@ -94,6 +95,7 @@ bool SyncAmsInfoDialog::Show(bool show)
     bool dirty_filament = is_dirty_filament();
     if (!m_input_info.connected_printer || m_is_empty_project || dirty_filament) {
         show_color_panel(false);
+        show_ams_controls(false);
         m_filament_left_panel->Show(false); // empty_project
         m_filament_right_panel->Show(false);
         m_are_you_sure_title->Show(false);
@@ -132,8 +134,7 @@ void SyncAmsInfoDialog::updata_ui_data_after_connected_printer() {
 
     m_two_thumbnail_panel->Show(true);
 
-    m_attention_text->Show();
-    m_tip_text->Show();
+    show_ams_controls(true);
     //m_specify_color_cluster_title->Show();
     m_button_cancel->Show();
 }
@@ -365,32 +366,42 @@ void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
         show_color_panel(true);
         m_confirm_title->SetLabel(m_undone_str);
         m_after_map_text->SetLabel(_L("After mapping"));
+        m_tip_text->SetLabel(m_tip_attention_color_map);
     } else if (m_map_mode == MapModeEnum::Override) {
         show_color_panel(false);
         m_confirm_title->Show();
         m_confirm_title->SetLabel(m_override_undone_str);
+        m_are_you_sure_title->Show();
         m_after_map_text->SetLabel(_L("After overwriting"));
+        m_tip_text->SetLabel(m_tip_attention_override);
     }
     update_map_when_change_map_mode();
     Layout();
     Fit();
 }
 
-void SyncAmsInfoDialog::update_map_when_change_map_mode() {
+wxColour SyncAmsInfoDialog::decode_ams_color(const std::string &color_str) {
+    auto temp_str = color_str;
+    if (temp_str.front() == '#') {
+        temp_str = temp_str.substr(1);
+    }
+    if (temp_str.size() == 6) {
+        temp_str += "FF";
+    }
+    return AmsTray::decode_color(temp_str);
+}
+
+void     SyncAmsInfoDialog::update_map_when_change_map_mode()
+{
     if (m_map_mode == MapModeEnum::ColorMap) {
         m_cur_colors_in_thumbnail = m_back_cur_colors_in_thumbnail;
     } else if (m_map_mode == MapModeEnum::Override) {
-        auto ams_colors = wxGetApp().preset_bundle->get_ams_colors();
+        if (m_ams_combo_info.empty()) {
+            wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info);
+        }
         for (size_t i = 0; i < m_preview_colors_in_thumbnail.size(); i++) {
-            if (i < ams_colors.size()) {
-                auto color_str = ams_colors[i];
-                if (color_str.front() == '#') {
-                    color_str = color_str.substr(1);
-                }
-                if (color_str.size() == 6) {
-                    color_str += "FF";
-                }
-                auto result                  = AmsTray::decode_color(color_str);
+            if (i < m_ams_combo_info.ams_filament_colors.size()) {
+                auto result                  = decode_ams_color(m_ams_combo_info.ams_filament_colors[i]);
                 m_cur_colors_in_thumbnail[i] = result;
             }
             else {
@@ -429,8 +440,6 @@ void SyncAmsInfoDialog::update_panel_status(PageType page)
 void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
 {
     //show_sizer(m_plate_combox_sizer, flag);
-    m_filament_panel->Show(flag);  // empty_project
-    show_ams_controls(flag);
     show_advanced_settings(flag);
     m_confirm_title->Show(flag);
     m_are_you_sure_title->Show(flag);
@@ -938,6 +947,18 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     //sizer_split_filament->Add(m_sizer_autorefill, 0, wxALIGN_CENTER, 0);
 
     /*filament area*/
+    //overrider fix filament
+    m_fix_filament_panel = new StaticBox(this);
+    m_fix_filament_panel->SetBorderWidth(0);
+    m_fix_filament_panel->SetMinSize(wxSize(FromDIP(637), -1));
+    m_fix_filament_panel->SetMaxSize(wxSize(FromDIP(637), -1));
+    m_fix_filament_panel_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_fix_sizer_ams_mapping = new wxFlexGridSizer(0, SYNC_FLEX_GRID_COL, FromDIP(6), FromDIP(7));
+    m_fix_filament_panel_sizer->Add(m_fix_sizer_ams_mapping, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    m_fix_filament_panel->SetSizer(m_fix_filament_panel_sizer);
+    m_fix_filament_panel->Layout();
+    m_fix_filament_panel->Fit();
     /*1 extruder*/
     m_filament_panel = new StaticBox(this);
     //m_filament_panel->SetBackgroundColour(wxColour(0xF8F8F8));
@@ -1207,6 +1228,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
    // m_sizer_main->Add(m_basic_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
     //m_sizer_main->Add(sizer_split_filament, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_filament_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
+    m_sizer_main->Add(m_fix_filament_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
+    m_fix_filament_panel->Show(false);
     m_sizer_main->Add(m_sizer_filament_2extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
 
     //m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
@@ -1222,10 +1245,14 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         wxBoxSizer *tip_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_attention_text      = new wxStaticText(this, wxID_ANY, _L("Attention") + ": ");
         tip_sizer->Add(m_attention_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
-        m_tip_text            = new wxStaticText(this, wxID_ANY, _L("Only synchronize filament type and color, not including AMS slot information."));
+        m_tip_attention_color_map = _L("Only synchronize filament type and color, not including AMS slot information.");
+        m_tip_attention_override  = _L("Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list.");
+        m_tip_text                = new Label(this, m_tip_attention_color_map, LB_AUTO_WRAP);
+        m_tip_text->SetMinSize(wxSize(SyncAttentionTipWidth, -1));
+        m_tip_text->SetMaxSize(wxSize(SyncAttentionTipWidth, -1));
         m_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         tip_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
-        tip_sizer->AddSpacer(FromDIP(25));
+        tip_sizer->AddSpacer(FromDIP(20));
         bSizer->Add(tip_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
 
         add_two_image_control();
@@ -1281,12 +1308,12 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
         wxBoxSizer *confirm_boxsizer = new wxBoxSizer(wxVERTICAL);
 
-        m_override_undone_str = _L("The project's filament list will be directly replaced with the information of all filaments from the printer. This action cannot be undone.");
+        m_override_undone_str = _L("After being synced, this action cannot be undone.");
         m_undone_str = _L("After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone.");
         m_confirm_title = new Label(this, m_undone_str, LB_AUTO_WRAP);
         m_confirm_title->SetMinSize(wxSize(SyncLabelWidth, -1));
         m_confirm_title->SetMaxSize(wxSize(SyncLabelWidth, -1));
-        confirm_boxsizer->Add(m_confirm_title, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(10));
+        confirm_boxsizer->Add(m_confirm_title, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP | wxRIGHT, FromDIP(10));
         m_are_you_sure_title = new wxStaticText(this, wxID_ANY,_L("Are you sure to synchronize the filaments?"));
         //m_are_you_sure_title->SetFont(Label::Head_14);
         confirm_boxsizer->Add(m_are_you_sure_title, 0, wxALIGN_LEFT  | wxTOP, FromDIP(0));
@@ -3926,6 +3953,154 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
     // reset_ams_material();//show "-"
 }
 
+void SyncAmsInfoDialog::generate_override_fix_ams_list()
+{
+    if (m_generate_fix_sizer_ams_mapping) {
+        return;
+    }
+    m_generate_fix_sizer_ams_mapping = true;
+    // for black list
+    std::vector<std::string> materials;
+    std::vector<std::string> brands;
+    std::vector<std::string> display_materials;
+    std::vector<std::string> m_filaments_id;
+    auto                     preset_bundle = wxGetApp().preset_bundle;
+
+    for (auto filament_name : preset_bundle->filament_presets) {
+        for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
+            PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+            Preset *          preset           = &filament_presets->preset(f_index);
+            int               size             = preset_bundle->filaments.size();
+            if (preset && filament_name.compare(preset->name) == 0) {
+                std::string display_filament_type;
+                std::string filament_type = preset->config.get_filament_type(display_filament_type);
+                std::string m_filament_id = preset->filament_id;
+                display_materials.push_back(display_filament_type);
+                materials.push_back(filament_type);
+                m_filaments_id.push_back(m_filament_id);
+
+                std::string m_vendor_name = "";
+                auto        vendor        = dynamic_cast<ConfigOptionStrings *>(preset->config.option("filament_vendor"));
+                if (vendor && (vendor->values.size() > 0)) {
+                    std::string vendor_name = vendor->values[0];
+                    m_vendor_name           = vendor_name;
+                }
+                brands.push_back(m_vendor_name);
+            }
+        }
+    }
+    if (m_ams_combo_info.empty()) {
+        wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info);
+    }
+    std::vector<int> extruders(wxGetApp().plater()->get_extruders_colors().size());
+    std::iota(extruders.begin(), extruders.end(), 1);
+    BitmapCache            bmcache;
+    MaterialHash::iterator iter = m_fix_materialList.begin();
+    while (iter != m_fix_materialList.end()) {
+        int       id   = iter->first;
+        Material *item = iter->second;
+        item->item->Destroy();
+        delete item;
+        iter++;
+    }
+
+    m_fix_sizer_ams_mapping->Clear();
+    m_fix_materialList.clear();
+    m_fix_filaments.clear();
+
+    bool use_double_extruder = get_is_double_extruder();
+    if (use_double_extruder) {
+        const auto &project_config = preset_bundle->project_config;
+        m_filaments_map            = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
+    }
+    auto contronal_index = 0;
+    bool is_first_row    = true;
+    for (auto i = 0; i < extruders.size(); i++) {
+        auto          extruder = extruders[i] - 1;
+        auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
+        unsigned char rgb[4];
+        bmcache.parse_color4(colour, rgb);
+
+        auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
+        if (extruder >= extruders.size() || extruder < 0 || extruder >= m_ams_combo_info.ams_filament_colors.size())
+            continue;
+
+        if (contronal_index % SYNC_FLEX_GRID_COL == 0) {
+            wxBoxSizer *ams_tip_sizer = new wxBoxSizer(wxVERTICAL);
+            if (is_first_row) {
+                is_first_row   = false;
+                auto tip0_text = new wxStaticText(m_fix_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
+                tip0_text->SetForegroundColour(wxColour(107, 107, 107, 100));
+                ams_tip_sizer->Add(tip0_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+
+                auto tip1_text = new wxStaticText(m_fix_filament_panel, wxID_ANY, _L("AMS"));
+                tip1_text->SetForegroundColour(wxColour(107, 107, 107, 100));
+                ams_tip_sizer->Add(tip1_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
+            }
+            m_fix_sizer_ams_mapping->Add(ams_tip_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+            contronal_index++;
+        }
+
+        MaterialSyncItem *item = nullptr;
+        if (use_double_extruder) {
+            if (m_filaments_map[extruder] == 1) {
+                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_left_panel//special
+                m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                       // m_sizer_ams_mapping_left
+            } else if (m_filaments_map[extruder] == 2) {
+                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
+                m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                       // m_sizer_ams_mapping_right
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "check error:MaterialItem *item = nullptr";
+                continue;
+            }
+        } else {
+            item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+        }
+        contronal_index++;
+        item->allow_paint_dropdown(false);
+        item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you cannot click it to modify"));
+
+        Material *material_item = new Material();
+        material_item->id       = extruder;
+        material_item->item     = item;
+        m_fix_materialList[i]       = material_item;
+
+        // build for ams mapping
+        if (extruder < materials.size() && extruder >= 0) {
+            FilamentInfo info;
+            info.id          = extruder;
+            info.type        = materials[extruder];
+            info.brand       = brands[extruder];
+            info.filament_id = m_filaments_id[extruder];
+            info.color       = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
+            m_fix_filaments.push_back(info);
+        }
+    }
+    {
+        if (!m_ams_combo_info.empty()) {
+            auto index = 0;
+            for (auto it = m_fix_materialList.begin(); it != m_fix_materialList.end(); it++) {
+                if (index >= m_ams_combo_info.ams_filament_colors.size() || index >= extruders.size()) {
+                    break;
+                }
+                auto     ams_color = decode_ams_color(m_ams_combo_info.ams_filament_colors[index]);
+                wxString ams_id    = m_ams_combo_info.ams_names[index];
+                std::vector<wxColour> cols;
+                for (auto col : m_ams_combo_info.ams_multi_color_filment[index]) {
+                    cols.push_back(decode_ams_color(col));
+                }
+                it->second->item->set_ams_info(ams_color, ams_id, 0, cols);
+                index++;
+            }
+        }
+    }
+    m_fix_filament_panel->Show(); // SyncAmsInfoDialog::reset_and_sync_ams_list()
+    m_fix_sizer_ams_mapping->SetCols(SYNC_FLEX_GRID_COL);
+    m_fix_sizer_ams_mapping->Layout();
+    m_fix_filament_panel_sizer->Layout();
+}
+
 void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
 {
     // record preview_colors
@@ -4085,11 +4260,14 @@ void SyncAmsInfoDialog::show_ams_controls(bool flag)
 void SyncAmsInfoDialog::update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color)
 {
     if (m_map_mode == MapModeEnum::Override) {
-        show_ams_controls(false);
         show_advanced_settings(false);
+        m_filament_panel->Show(false);
+        m_fix_filament_panel->Show();
+        generate_override_fix_ams_list();
     } else if (m_map_mode == MapModeEnum::ColorMap) {
-        show_ams_controls(true);
         show_advanced_settings(true);
+        m_filament_panel->Show();
+        m_fix_filament_panel->Show(false);
     }
     // change thumbnail_data
     ThumbnailData &input_data    = m_specify_plate_idx == -1 ? m_plater->get_partplate_list().get_curr_plate()->thumbnail_data :

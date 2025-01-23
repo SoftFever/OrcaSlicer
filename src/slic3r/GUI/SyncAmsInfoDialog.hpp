@@ -152,6 +152,13 @@ protected:
     StaticBox *m_filament_left_panel{nullptr};
     StaticBox *m_filament_right_panel{nullptr};
 
+    StaticBox * m_fix_filament_panel{nullptr};
+    wxFlexGridSizer *m_fix_sizer_ams_mapping{nullptr};
+    MaterialHash     m_fix_materialList;
+    wxBoxSizer *     m_fix_filament_panel_sizer{nullptr};
+    std::vector<FilamentInfo> m_fix_filaments;
+    bool             m_generate_fix_sizer_ams_mapping = false;
+
     wxBoxSizer *m_filament_panel_sizer;
     wxBoxSizer *m_filament_panel_left_sizer;
     wxBoxSizer *m_filament_panel_right_sizer;
@@ -194,6 +201,7 @@ public:
     void     on_set_finish_mapping(wxCommandEvent &evt);
     void     on_print_job_cancel(wxCommandEvent &evt);
     void     reset_and_sync_ams_list();
+    void     generate_override_fix_ams_list();
     void     clone_thumbnail_data(bool allow_clone_ams_color);
     void     record_edge_pixels_data();
     wxColour adjust_color_for_render(const wxColour &color);
@@ -286,6 +294,7 @@ private:
     void        update_when_change_plate(int);
     void        update_when_change_map_mode(int);
     void        update_map_when_change_map_mode();
+    wxColour    decode_ams_color(const std::string &color);
     void        update_when_change_map_mode(wxCommandEvent &e);
     void        update_panel_status(PageType page);
     void        show_color_panel(bool,bool update_layout = true);
@@ -303,9 +312,12 @@ private:
     Button *   m_button_ok     = nullptr;
     Button *   m_button_cancel = nullptr;
 
+    AMSComboInfo  m_ams_combo_info;
     Label *m_after_map_text{nullptr};
     wxStaticText *m_attention_text{nullptr};
-    wxStaticText* m_tip_text{nullptr};
+    wxString m_tip_attention_color_map;
+    wxString m_tip_attention_override;
+    Label* m_tip_text{nullptr};
     //wxStaticText *m_specify_color_cluster_title = nullptr;
     //wxStaticText*  m_used_colors_tip_text{nullptr};
     wxStaticText* m_warning_text{nullptr};

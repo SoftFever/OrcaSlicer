@@ -66,6 +66,12 @@ void MaterialItem::msw_rescale() {
     m_ams_wheel_mitem.msw_rescale();
 }
 
+void MaterialItem::allow_paint_dropdown(bool flag) {
+    if (m_dropdown_allow_painted != flag) {
+        m_dropdown_allow_painted = flag;
+    }
+}
+
 void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vector<wxColour> cols)
 {
     auto need_refresh = false;
@@ -250,10 +256,10 @@ void MaterialItem::doRender(wxDC& dc)
                 dc.SetBrush(wxBrush(m_ams_cols[i]));
                 float x = left + ((float)MATERIAL_REC_WHEEL_SIZE.x) * i / cols_size;
                 if (i != cols_size - 1) {
-                    dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
                 else {
-                    dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
             }
         }
@@ -262,7 +268,7 @@ void MaterialItem::doRender(wxDC& dc)
         if (m_match) {
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1) - FromDIP(LEFT_OFFSET),
+            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(LEFT_OFFSET), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
                              MATERIAL_REC_WHEEL_SIZE.y);
         }
     }
@@ -331,6 +337,10 @@ void MaterialItem::doRender(wxDC& dc)
 
 MaterialSyncItem::~MaterialSyncItem() {}
 
+int  MaterialSyncItem::get_real_offset() {
+    int real_left_offset = m_dropdown_allow_painted ? LEFT_OFFSET : -2;
+    return real_left_offset;
+}
 
 void MaterialSyncItem::render(wxDC &dc)
 {
@@ -347,7 +357,12 @@ void MaterialSyncItem::render(wxDC &dc)
     } else {
         m_match = true;
     }
-
+    dc.SetFont(::Label::Body_12);
+    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
+        dc.SetFont(::Label::Body_10);
+    }
+    auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
+    m_text_pos_y          = ((float) GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float) GetSize().y * 2 / 5;
 #ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
@@ -381,18 +396,17 @@ void MaterialSyncItem::render(wxDC &dc)
     if (mcolor.Alpha() == 0) { material_name_colour = wxColour(0x26, 0x2E, 0x30); }
     dc.SetTextForeground(material_name_colour);
 
-    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) { dc.SetFont(::Label::Body_10); }
+    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
+        dc.SetFont(::Label::Body_10);
+    }
 
     auto material_txt_size = dc.GetTextExtent(m_material_name);
     dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, ((float) GetSize().y * 2 / 5 - material_txt_size.y) / 2));
-
-    auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
-    m_text_pos_y = ((float) GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float) GetSize().y * 2 / 5;
-
+    int real_left_offset = get_real_offset();
     if (m_match) {
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
         dc.SetFont(::Label::Head_12);
-        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8)- FromDIP(LEFT_OFFSET), m_text_pos_y));
+        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(real_left_offset), m_text_pos_y));
     }
     else {
         dc.SetTextForeground(material_name_colour);
@@ -436,6 +450,7 @@ void MaterialSyncItem::doRender(wxDC &dc)
     auto up    = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
     auto right = left + MATERIAL_REC_WHEEL_SIZE.x;
     dc.SetPen(*wxTRANSPARENT_PEN);
+    int real_left_offset = get_real_offset();
     // bottom
     if (m_match) {
         if (m_ams_cols.size() > 1) {
@@ -453,16 +468,16 @@ void MaterialSyncItem::doRender(wxDC &dc)
                     dc.SetBrush(wxBrush(m_ams_cols[i]));
                     float x = left + ((float) MATERIAL_REC_WHEEL_SIZE.x) * i / cols_size;
                     if (i != cols_size - 1) {
-                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                        dc.DrawRoundedRectangle(x - FromDIP(real_left_offset), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
                     } else {
-                        dc.DrawRoundedRectangle(x, up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1) - FromDIP(LEFT_OFFSET), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                        dc.DrawRoundedRectangle(x - FromDIP(real_left_offset), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
                     }
                 }
             }
         } else {
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1) - FromDIP(LEFT_OFFSET),
+            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(real_left_offset), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
                              MATERIAL_REC_WHEEL_SIZE.y);
         }
     }
@@ -497,21 +512,22 @@ void MaterialSyncItem::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
     }
 #endif
-    if (m_text_pos_y > 0 && m_match) {
+
+    if (m_text_pos_y > 0 && m_match && m_dropdown_allow_painted) {
         // arrow (remove arrow)
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4) - FromDIP(real_left_offset), m_text_pos_y + FromDIP(3));
         } else {
-            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
+            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(4) - FromDIP(real_left_offset), m_text_pos_y + FromDIP(3));
         }
     }
     auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2);
     auto wheel_top  = ((float) GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float) GetSize().y * 0.4;
     if (m_match) {// different with parent
         if (acolor.Alpha() == 0) {
-            dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
+            dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left - FromDIP(real_left_offset), wheel_top);
         } else {
-            dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
+            dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(real_left_offset), wheel_top);
         }
     }
     //not draw m_ams_not_match
