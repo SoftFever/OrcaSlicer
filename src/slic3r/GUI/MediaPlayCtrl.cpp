@@ -212,6 +212,7 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
 
 wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
 {
+#if BBL_RELEASE_TO_PUBLIC
     for (auto &p : passwords) {
         auto i = url.find(p);
         if (i == wxString::npos)
@@ -228,6 +229,7 @@ wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
         else if (j == url.length() || url[j] == '@' || url[j] == '&')
             url.replace(i, l, l, wxUniChar('*'));
     }
+#endif
     return url;
 }
 
@@ -312,8 +314,8 @@ void MediaPlayCtrl::Play()
     m_disable_lan = false;
     m_failed_code = 0;
     m_last_state  = MEDIASTATE_INITIALIZING;
-    
-    if (!m_remote_support) { // not support tutk
+
+    if (!m_remote_proto) { // not support tutk
         m_failed_code = -1;
         m_url = "bambu:///local/";
         Stop(_L("Please enter the IP of printer to connect."));
