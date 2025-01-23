@@ -2313,7 +2313,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         filament_ids += pa_data.calib_datas[i].filament_id;
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: " << j.dump();
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali: " << j.dump();
 
     try {
         json js;
@@ -2359,7 +2359,7 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
                 j["print"]["filaments"][i]["n_coef"]  = "0.0";
         }
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_set: " << j.dump();
+        BOOST_LOG_TRIVIAL(info) << "extrusion_cali_set: " << j.dump();
         return this->publish_json(j.dump());
     }
 
@@ -2377,7 +2377,7 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["cali_idx"]        = pa_calib.cali_idx;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_del: " << j.dump();
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_del: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -2395,7 +2395,8 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
         j["print"]["nozzle_id"] = generate_nozzle_id(calib_info.nozzle_volume_type, to_string_nozzle_diameter(calib_info.nozzle_diameter)).ToStdString();
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get: " << j.dump();
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << j.dump();
+    request_tab_from_bbs = true;
     return this->publish_json(j.dump());
 }
 
@@ -2406,7 +2407,7 @@ int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get_result: " << j.dump();
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -2422,7 +2423,7 @@ int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["filament_id"]     = pa_calib_info.filament_id;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_info.nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: " << j.dump();
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_sel: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -2452,7 +2453,7 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             filament_ids += calib_data.calib_datas[i].filament_id;
         }
 
-        BOOST_LOG_TRIVIAL(trace) << "flowrate_cali: " << j.dump();
+        BOOST_LOG_TRIVIAL(info) << "flowrate_cali: " << j.dump();
         return this->publish_json(j.dump());
     }
     return -1;
@@ -2465,7 +2466,7 @@ int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diamet
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-    BOOST_LOG_TRIVIAL(trace) << "flowrate_get_result: " << j.dump();
+    BOOST_LOG_TRIVIAL(info) << "flowrate_get_result: " << j.dump();
     return this->publish_json(j.dump());
 }
 
@@ -4582,7 +4583,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 info = reason;
                             }
                             GUI::wxGetApp().push_notification(info, _L("Calibration error"), UserNotificationStyle::UNS_WARNING_CONFIRM);
-                            BOOST_LOG_TRIVIAL(trace) << cali_mode << " result fail, reason = " << reason;
+                            BOOST_LOG_TRIVIAL(info) << cali_mode << " result fail, reason = " << reason;
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
@@ -4685,73 +4686,78 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
                     std::string str = jj.dump();
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << str;
-                    reset_pa_cali_history_result();
-                    bool is_succeed = true;
-                    if (jj.contains("result") && jj.contains("reason")) {
-                        if (jj["result"].get<std::string>() == "fail") {
-                            if (jj.contains("err_code")) {
-                                auto err_code = jj["err_code"].get<int>();
-                                print_error   = err_code;
+                    if (request_tab_from_bbs) {
+                        BOOST_LOG_TRIVIAL(info) << "bbs extrusion_cali_get: " << str;
+                        request_tab_from_bbs = false;
+                        reset_pa_cali_history_result();
+                        bool is_succeed = true;
+                        if (jj.contains("result") && jj.contains("reason")) {
+                            if (jj["result"].get<std::string>() == "fail") {
+                                if (jj.contains("err_code")) {
+                                    auto err_code = jj["err_code"].get<int>();
+                                    print_error   = err_code;
+                                }
+                                is_succeed = false;
                             }
-                            is_succeed = false;
                         }
-                    }
 
-                    if (is_succeed) {
-                        last_cali_version = cali_version;
-                        has_get_pa_calib_tab = true;
-                    }
+                        if (is_succeed) {
+                            last_cali_version = cali_version;
+                            has_get_pa_calib_tab = true;
+                        }
 
-                    if (jj.contains("filaments") && jj["filaments"].is_array()) {
-                        try {
-                            for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
-                                PACalibResult pa_calib_result;
-                                pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
-                                pa_calib_result.name        = (*it)["name"].get<std::string>();
-                                pa_calib_result.cali_idx    = (*it)["cali_idx"].get<int>();
+                        if (jj.contains("filaments") && jj["filaments"].is_array()) {
+                            try {
+                                for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
+                                    PACalibResult pa_calib_result;
+                                    pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
+                                    pa_calib_result.name        = (*it)["name"].get<std::string>();
+                                    pa_calib_result.cali_idx    = (*it)["cali_idx"].get<int>();
 
-                                if ((*it).contains("setting_id")) {
-                                    pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                    if ((*it).contains("setting_id")) {
+                                        pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                    }
+
+                                    if ((*it).contains("extruder_id")) {
+                                        pa_calib_result.extruder_id = (*it)["extruder_id"].get<int>();
+                                    }
+
+                                    if ((*it).contains("nozzle_id")) {
+                                        pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
+                                    }
+
+                                    if (jj["nozzle_diameter"].is_number_float()) {
+                                        pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
+                                    } else if (jj["nozzle_diameter"].is_string()) {
+                                        pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
+                                    }
+
+                                    if ((*it)["k_value"].is_number_float())
+                                        pa_calib_result.k_value = (*it)["k_value"].get<float>();
+                                    else if ((*it)["k_value"].is_string())
+                                        pa_calib_result.k_value = string_to_float((*it)["k_value"].get<std::string>());
+
+                                    if ((*it)["n_coef"].is_number_float())
+                                        pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
+                                    else if ((*it)["n_coef"].is_string())
+                                        pa_calib_result.n_coef = string_to_float((*it)["n_coef"].get<std::string>());
+
+                                    if (check_pa_result_validation(pa_calib_result))
+                                        pa_calib_tab.push_back(pa_calib_result);
+                                    else {
+                                        BOOST_LOG_TRIVIAL(info) << "pa result is invalid";
+                                    }
                                 }
 
-                                if ((*it).contains("extruder_id")) {
-                                    pa_calib_result.extruder_id = (*it)["extruder_id"].get<int>();
-                                }
-
-                                if ((*it).contains("nozzle_id")) {
-                                    pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
-                                }
-
-                                if (jj["nozzle_diameter"].is_number_float()) {
-                                    pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
-                                } else if (jj["nozzle_diameter"].is_string()) {
-                                    pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
-                                }
-
-                                if ((*it)["k_value"].is_number_float())
-                                    pa_calib_result.k_value = (*it)["k_value"].get<float>();
-                                else if ((*it)["k_value"].is_string())
-                                    pa_calib_result.k_value = string_to_float((*it)["k_value"].get<std::string>());
-
-                                if ((*it)["n_coef"].is_number_float())
-                                    pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
-                                else if ((*it)["n_coef"].is_string())
-                                    pa_calib_result.n_coef = string_to_float((*it)["n_coef"].get<std::string>());
-
-                                if (check_pa_result_validation(pa_calib_result))
-                                    pa_calib_tab.push_back(pa_calib_result);
-                                else {
-                                    BOOST_LOG_TRIVIAL(info) << "pa result is invalid";
-                                }
                             }
+                            catch (...) {
 
+                            }
                         }
-                        catch (...) {
-
-                        }
+                        // notify cali history to update
+                    } else {
+                        BOOST_LOG_TRIVIAL(info) << "printer extrusion_cali_get: " << str;
                     }
-                    // notify cali history to update
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
                     std::string str = jj.dump();

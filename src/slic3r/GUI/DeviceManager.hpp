@@ -723,6 +723,7 @@ public:
 
     ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
+    bool                       request_tab_from_bbs { false };
     std::vector<PACalibResult> pa_calib_tab;
     bool                       get_pa_calib_result { false };
     std::vector<PACalibResult> pa_calib_results;
