@@ -713,6 +713,34 @@
             "name": "Bambu Support W @base",
             "sub_path": "filament/Bambu Support W @base.json"
         },
+		{
+            "name": "SUNLU PLA Matte @base",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @base.json"
+        },
+		{
+            "name": "SUNLU PLA+ @base",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @base.json"
+        },
+		{
+            "name": "SUNLU PLA+ 2.0 @base",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @base.json"
+        },
+		{
+            "name": "SUNLU Silk PLA+ @base",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @base.json"
+        },
+        {
+            "name": "SUNLU Marble PLA @base",
+            "sub_path": "filament/SUNLU/SUNLU Marble PLA @base.json"
+        },
+		{
+            "name": "SUNLU Wood PLA @base",
+            "sub_path": "filament/SUNLU/SUNLU Wood PLA @base.json"
+        },
+		{
+            "name": "SUNLU PETG @base",
+            "sub_path": "filament/SUNLU/SUNLU PETG @base.json"
+        },
         {
             "name": "eSUN PLA+ @base",
             "sub_path": "filament/eSUN PLA+ @base.json"
@@ -1292,6 +1320,222 @@
         {
             "name": "Bambu Support W @BBL A1 0.2 nozzle",
             "sub_path": "filament/Bambu Support W @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL X1",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL X1.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL P1P",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL P1P.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL A1.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @BBL A1 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL X1",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL X1.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL P1P",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL P1P.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL A1.json"
+        },
+        {
+            "name": "SUNLU PLA+ @BBL A1 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL X1",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL X1.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL P1P",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL P1P.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL A1.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @BBL A1 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL X1",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL X1.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL P1P",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL P1P.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL A1.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @BBL A1 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU Marble PLA @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU Marble PLA @BBL X1",
+            "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL X1.json"
+        },
+        {
+            "name": "SUNLU Marble PLA @BBL P1P",
+            "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL P1P.json"
+        },
+        {
+            "name": "SUNLU Marble PLA @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU Marble PLA @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL A1.json"
+        },
+        {
+            "name": "SUNLU Wood PLA @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU Wood PLA @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU Wood PLA @BBL X1",
+            "sub_path": "filament/SUNLU/SUNLU Wood PLA @BBL X1.json"
+        },
+        {
+            "name": "SUNLU Wood PLA @BBL P1P",
+            "sub_path": "filament/SUNLU/SUNLU Wood PLA @BBL P1P.json"
+        },
+        {
+            "name": "SUNLU Wood PLA @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU Wood PLA @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU Wood PLA @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU Wood PLA @BBL A1.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1 0.8 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1 0.8 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL X1C",

@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP017",
-    "name": "0.20mm Optimal 0.6 nozzle @Anker.json",
+    "name": "0.20mm Optimal 0.6 nozzle @Anker",
     "from": "system",
     "inherits": "fdm_process_anker_common_0_6",
     "instantiation": "true",
