@@ -4730,7 +4730,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_threshold_overlap", coFloatOrPercent);
     def->label = L("Threshold overlap");
     def->category = L("Support");
-    def->tooltip = L("Support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support.");
+    def->tooltip = L("If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->max = 100;
