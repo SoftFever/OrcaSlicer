@@ -100,6 +100,34 @@ void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
+void JusPrinChatPanel::SendModelObjectsChangedEvent() {
+    nlohmann::json j = nlohmann::json::object();
+    Plater* plater = wxGetApp().plater();
+
+    j["type"] = "modelObjectsChanged";
+    j["data"] = nlohmann::json::array();
+
+    for (const ModelObject* object : plater->model().objects) {
+        auto object_grid_config = &(object->config);
+
+        nlohmann::json obj;
+        obj["id"] = std::to_string(object->id().id);
+        obj["name"] = object->name;
+        obj["features"] = GetModelObjectFeaturesJson(object);
+
+        int extruder_id = -1;  // Default extruder ID
+        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
+        if (extruder_id_ptr) {
+            extruder_id = *extruder_id_ptr;
+        }
+        obj["extruderId"] = extruder_id;
+
+        j["data"].push_back(obj);
+    }
+
+    CallEmbeddedChatMethod("processAgentEvent", j.dump());
+}
+
 // End of Agent events that are processed by the chat panel
 
 

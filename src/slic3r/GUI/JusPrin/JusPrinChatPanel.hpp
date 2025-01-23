@@ -28,6 +28,7 @@ public:
 
     // Agent events that are processed by the chat panel
     void SendAutoOrientEvent(bool canceled);
+    void SendModelObjectsChangedEvent();
 
     // End of Agent events that are processed by the chat panel
 
@@ -35,7 +36,6 @@ public:
     void RefreshPresets();
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
-
 
 
     static nlohmann::json GetPlaterConfigJson();
