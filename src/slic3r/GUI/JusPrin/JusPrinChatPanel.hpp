@@ -41,7 +41,7 @@ public:
     static nlohmann::json GetPlaterConfigJson();
     static nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
     static nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items);
-
+    static nlohmann::json GetAllModelObjectsJson();
 
 private:
     void load_url();
@@ -49,6 +49,7 @@ private:
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
+
 
     using VoidMemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
     using JsonMemberFunctionPtr = nlohmann::json (JusPrinChatPanel::*)(const nlohmann::json&);
@@ -85,7 +86,6 @@ private:
     void handle_refresh_plater_config(const nlohmann::json& params);
 
     void OnActionCallReceived(wxWebViewEvent& event);
-    nlohmann::json GetAllPresetJson();
 
     void UpdatePresetTabs();
     void AdvertiseSupportedAction();

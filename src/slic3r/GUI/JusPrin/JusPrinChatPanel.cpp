@@ -97,33 +97,14 @@ void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
     j["type"] = "autoOrient";
     j["data"] = nlohmann::json::object();
     j["data"]["status"] = canceled ? "canceled" : "completed";
+    j["data"]["modelObjects"] = GetAllModelObjectsJson();
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
 void JusPrinChatPanel::SendModelObjectsChangedEvent() {
     nlohmann::json j = nlohmann::json::object();
-    Plater* plater = wxGetApp().plater();
-
     j["type"] = "modelObjectsChanged";
-    j["data"] = nlohmann::json::array();
-
-    for (const ModelObject* object : plater->model().objects) {
-        auto object_grid_config = &(object->config);
-
-        nlohmann::json obj;
-        obj["id"] = std::to_string(object->id().id);
-        obj["name"] = object->name;
-        obj["features"] = GetModelObjectFeaturesJson(object);
-
-        int extruder_id = -1;  // Default extruder ID
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            extruder_id = *extruder_id_ptr;
-        }
-        obj["extruderId"] = extruder_id;
-
-        j["data"].push_back(obj);
-    }
+    j["data"] = GetAllModelObjectsJson();
 
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
@@ -156,7 +137,7 @@ void JusPrinChatPanel::handle_refresh_oauth_token(const nlohmann::json& params) 
 
 // Sync actions for the chat page
 nlohmann::json JusPrinChatPanel::handle_get_presets(const nlohmann::json& params) {
-    return GetAllPresetJson();
+    return JusPrinPresetConfigUtils::GetAllPresetJson();
 }
 
 nlohmann::json JusPrinChatPanel::handle_get_edited_presets(const nlohmann::json& params) {
@@ -364,7 +345,7 @@ void JusPrinChatPanel::CallEmbeddedChatMethod(const wxString& method, const wxSt
 }
 
 void JusPrinChatPanel::RefreshPresets() {
-    nlohmann::json allPresetsJson = GetAllPresetJson();
+    nlohmann::json allPresetsJson = JusPrinPresetConfigUtils::GetAllPresetJson();
     UpdateEmbeddedChatState("presets", allPresetsJson.dump());
 }
 
@@ -381,10 +362,6 @@ void JusPrinChatPanel::RefreshPlaterStatus() {
     j["currentPlate"]["gCodeCanExport"] = plater->get_partplate_list().get_curr_plate()->is_slice_result_ready_for_export();
 
     UpdateEmbeddedChatState("platerStatus", j.dump());
-}
-
-nlohmann::json JusPrinChatPanel::GetAllPresetJson() {
-    return JusPrinPresetConfigUtils::GetAllPresetJson();
 }
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
@@ -528,5 +505,29 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
     return j;
 }
 
+nlohmann::json JusPrinChatPanel::GetAllModelObjectsJson() {
+    nlohmann::json j = nlohmann::json::array();
+    Plater* plater = wxGetApp().plater();
+
+    for (const ModelObject* object : plater->model().objects) {
+        auto object_grid_config = &(object->config);
+
+        nlohmann::json obj;
+        obj["id"] = std::to_string(object->id().id);
+        obj["name"] = object->name;
+        obj["features"] = GetModelObjectFeaturesJson(object);
+
+        int extruder_id = -1;  // Default extruder ID
+        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
+        if (extruder_id_ptr) {
+            extruder_id = *extruder_id_ptr;
+        }
+        obj["extruderId"] = extruder_id;
+
+        j.push_back(obj);
+    }
+
+    return j;
+}
 
 }} // namespace Slic3r::GUI
