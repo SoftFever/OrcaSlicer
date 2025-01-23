@@ -206,6 +206,7 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
 {
     m_is_BBL_printer = object.print()->is_BBL_printer();
+    m_print_full_config = &object.print()->full_print_config();
     m_print_object_ptr = &object;
     if (object.layers().empty())
         return;
@@ -250,6 +251,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
     m_is_BBL_printer = print.is_BBL_printer();
+    m_print_full_config = &print.full_print_config();
     m_print_config_ptr = &print.config();
 
     // Initialize the print layers for all objects and all layers.
@@ -315,6 +317,24 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->mark_skirt_layers(print.config(), max_layer_height);
 }
 
+static void apply_first_layer_order(const DynamicPrintConfig* config, std::vector<unsigned int>& tool_order) {
+    const ConfigOptionInts* first_layer_print_sequence_op = config->option<ConfigOptionInts>("first_layer_print_sequence");
+    if (first_layer_print_sequence_op) {
+        const std::vector<int>& print_sequence_1st = first_layer_print_sequence_op->values;
+        if (print_sequence_1st.size() >= tool_order.size()) {
+            std::sort(tool_order.begin(), tool_order.end(), [&print_sequence_1st](int lh, int rh) {
+                auto lh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), lh);
+                auto rh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), rh);
+
+                if (lh_it == print_sequence_1st.end() || rh_it == print_sequence_1st.end())
+                    return false;
+
+                return lh_it < rh_it;
+            });
+        }
+    }
+}
+
 // BBS
 std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Print& print)
 {
@@ -359,21 +379,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         tool_order.insert(iter, ape.first);
     }
 
-    const ConfigOptionInts* first_layer_print_sequence_op = print.full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
-    if (first_layer_print_sequence_op) {
-        const std::vector<int>& print_sequence_1st = first_layer_print_sequence_op->values;
-        if (print_sequence_1st.size() >= tool_order.size()) {
-            std::sort(tool_order.begin(), tool_order.end(), [&print_sequence_1st](int lh, int rh) {
-                auto lh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), lh);
-                auto rh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), rh);
-
-                if (lh_it == print_sequence_1st.end() || rh_it == print_sequence_1st.end())
-                    return false;
-
-                return lh_it < rh_it;
-            });
-        }
-    }
+    apply_first_layer_order(m_print_full_config, tool_order);
 
     return tool_order;
 }
@@ -417,21 +423,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         tool_order.insert(iter, ape.first);
     }
 
-    const ConfigOptionInts* first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
-    if (first_layer_print_sequence_op) {
-        const std::vector<int>& print_sequence_1st = first_layer_print_sequence_op->values;
-        if (print_sequence_1st.size() >= tool_order.size()) {
-            std::sort(tool_order.begin(), tool_order.end(), [&print_sequence_1st](int lh, int rh) {
-                auto lh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), lh);
-                auto rh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), rh);
-
-                if (lh_it == print_sequence_1st.end() || rh_it == print_sequence_1st.end())
-                    return false;
-
-                return lh_it < rh_it;
-            });
-        }
-    }
+    apply_first_layer_order(m_print_full_config, tool_order);
 
     return tool_order;
 }
@@ -606,14 +598,19 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
                     break;
                 }
 
-            // On first layer with wipe tower, prefer a soluble extruder
-            // at the beginning, so it is not wiped on the first layer.
-            if (lt == m_layer_tools[0] && m_print_config_ptr && m_print_config_ptr->enable_prime_tower) {
-                for (size_t i = 0; i<lt.extruders.size(); ++i)
-                    if (m_print_config_ptr->filament_soluble.get_at(lt.extruders[i]-1)) { // 1-based...
-                        std::swap(lt.extruders[i], lt.extruders.front());
-                        break;
-                    }
+            if (lt == m_layer_tools[0]) {
+                // On first layer with wipe tower, prefer a soluble extruder
+                // at the beginning, so it is not wiped on the first layer.
+                if (m_print_config_ptr && m_print_config_ptr->enable_prime_tower) {
+                    for (size_t i = 0; i<lt.extruders.size(); ++i)
+                        if (m_print_config_ptr->filament_soluble.get_at(lt.extruders[i]-1)) { // 1-based...
+                            std::swap(lt.extruders[i], lt.extruders.front());
+                            break;
+                        }
+                }
+
+                // Then, if we specified the tool order, apply it now
+                apply_first_layer_order(m_print_full_config, lt.extruders);
             }
         }
         last_extruder_id = lt.extruders.back();
@@ -1005,13 +1002,17 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	bool 						tool_changes_as_color_changes = mode == CustomGCode::SingleExtruder && model_mode == CustomGCode::MultiAsSingle;
 
 	// From the last layer to the first one:
+    coordf_t print_z_above = std::numeric_limits<coordf_t>::lowest();
 	for (auto it_lt = m_layer_tools.rbegin(); it_lt != m_layer_tools.rend(); ++ it_lt) {
 		LayerTools &lt = *it_lt;
 		// Add the extruders of the current layer to the set of extruders printing at and above this print_z.
 		for (unsigned int i : lt.extruders)
 			extruder_printing_above[i] = true;
 		// Skip all custom G-codes above this layer and skip all extruder switches.
-		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->type == CustomGCode::ToolChange); ++ custom_gcode_it);
+		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (
+            (print_z_above > lt.print_z && custom_gcode_it->print_z > 0.5 * (lt.print_z + print_z_above))
+            || custom_gcode_it->type == CustomGCode::ToolChange); ++ custom_gcode_it);
+        print_z_above = lt.print_z;
 		if (custom_gcode_it == custom_gcode_per_print_z.gcodes.rend())
 			// Custom G-codes were processed.
 			break;
@@ -1021,7 +1022,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 		coordf_t print_z_below = 0.;
 		if (auto it_lt_below = it_lt; ++ it_lt_below != m_layer_tools.rend())
 			print_z_below = it_lt_below->print_z;
-		if (custom_gcode.print_z > print_z_below + 0.5 * EPSILON) {
+        if (custom_gcode.print_z > 0.5 * (print_z_below + lt.print_z)) {
 			// The custom G-code applies to the current layer.
 			bool color_change = custom_gcode.type == CustomGCode::ColorChange;
 			bool tool_change  = custom_gcode.type == CustomGCode::ToolChange;
