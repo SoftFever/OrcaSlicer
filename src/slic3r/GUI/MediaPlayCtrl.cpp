@@ -314,6 +314,7 @@ void MediaPlayCtrl::Play()
     m_disable_lan = false;
     m_failed_code = 0;
     m_last_state  = MEDIASTATE_INITIALIZING;
+    m_button_play->SetIcon("media_stop");
 
     if (!m_remote_proto) { // not support tutk
         m_failed_code = -1;
