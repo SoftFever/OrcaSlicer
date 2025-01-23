@@ -535,6 +535,13 @@ public:
     FilamentMapMode get_global_filament_map_mode() const;
 
     void update_menus();
+    wxString get_selected_printer_name_in_combox();
+    enum class PrinterWarningType {
+        NOT_CONNECTED,
+        INCONSISTENT,
+    };
+    void pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title);
+    bool check_printer_initialized(MachineObject *obj, bool only_warning = false);
     bool is_same_printer_for_connected_and_selected();
     // BBS
     //void show_action_buttons(const bool is_ready_to_slice) const;
@@ -904,7 +911,7 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
 Preset *get_printer_preset(MachineObject *obj);
 wxArrayString get_all_camera_view_type();
 
-bool check_printer_initialized(MachineObject *obj, bool only_warning = false);
+
 } // namespace GUI
 } // namespace Slic3r
 

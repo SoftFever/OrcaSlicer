@@ -80,7 +80,6 @@ void DropDown::Invalidate(bool clear)
 
 void DropDown::SetSelection(int n)
 {
-    assert(n < (int) items.size());
     if (n >= (int) items.size())
         n = -1;
     if (selection == n) return;

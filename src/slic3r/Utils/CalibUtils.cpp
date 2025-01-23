@@ -224,7 +224,7 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
         return false;
     }
 
-    if (!check_printer_initialized(obj))
+    if (!Slic3r::GUI::wxGetApp().plater()->check_printer_initialized(obj))
         return false;
 
     // P1P/S

@@ -1119,18 +1119,17 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtHighFlow);
     printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtStandard);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    auto           printer_name = plater->get_selected_printer_name_in_combox();
     if (obj == nullptr) {
-        MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync printer information"), wxOK | wxICON_WARNING);
-        dlg.ShowModal();
+        plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return false;
     }
-    if (obj->m_extder_data.extders.size() != 2) {
-        MessageDialog dlg(this->plater, _L("The currently connected printer does not have two extruders."), _L("Sync printer information"), wxOK | wxICON_WARNING);
-        dlg.ShowModal();
+    if (obj->m_extder_data.extders.size() != 2) {//wxString(obj->get_preset_printer_model_name(machine_print_name))
+        plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::INCONSISTENT, _L("Sync printer information"));
         return false;
     }
 
-    if (!check_printer_initialized(obj))
+    if (!plater->check_printer_initialized(obj))
         return false;
 
     std::string machine_print_name = obj->printer_type;
@@ -2765,9 +2764,8 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 
     auto & list = wxGetApp().preset_bundle->filament_ams_list;
     if (list.empty()) {
-        SyncAmsInfoDialog::SyncInfo temp_info;
-        SyncAmsInfoDialog           sync_dlg(this, temp_info);
-        sync_dlg.ShowModal();//printer is not connected
+        auto printer_name = p->plater->get_selected_printer_name_in_combox();
+        p->plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return;
     }
     if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected()) {
@@ -13277,7 +13275,7 @@ Preset *get_printer_preset(MachineObject *obj)
     return printer_preset;
 }
 
-bool check_printer_initialized(MachineObject *obj,bool only_warning)
+bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning)
 {
     if (!obj)
         return false;
@@ -13305,8 +13303,8 @@ bool check_printer_initialized(MachineObject *obj,bool only_warning)
             print_parts_dlg->update_machine_obj(obj);
             print_parts_dlg->ShowModal();
         } else {
-            MessageDialog dlg(wxGetApp().plater(), _L("Printer not connected. Please connect or choose a printer on the Device page and try again."), _L("Warning"), wxOK | wxICON_WARNING);
-            dlg.ShowModal();
+            auto printer_name = get_selected_printer_name_in_combox(); // wxString(obj->get_preset_printer_model_name(machine_print_name))
+            pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         }
         return false;
     }
@@ -15286,6 +15284,30 @@ void Plater::optimize_rotation()
     }
 }
 void Plater::update_menus()         { p->menus.update(); }
+
+wxString Plater::get_selected_printer_name_in_combox() {
+    PresetBundle *        preset_bundle    = wxGetApp().preset_bundle;
+    std::string           printer_model    = preset_bundle->printers.get_selected_preset().config.option<ConfigOptionString>("printer_model")->value;
+    return printer_model;
+}
+
+void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title)
+{
+    printer_name.Replace("Bambu Lab", "", false);
+    wxString content;
+    if (type == PrinterWarningType::NOT_CONNECTED) {
+        content = wxString::Format(_L("Printer not connected. Please go to the device page to connect an %s printer before syncing."), printer_name);
+
+    } else if (type == PrinterWarningType::INCONSISTENT) {
+        content = wxString::Format(_L("The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."), printer_name, printer_name);
+    }
+    MessageDialog dlg(this, content, title, wxOK | wxFORWARD | wxICON_WARNING, _L("Device Page"));
+    auto          result = dlg.ShowModal();
+    if (result == wxFORWARD) {
+        wxGetApp().mainframe->select_tab(size_t(MainFrame::tpMonitor));
+    }
+}
+
 bool Plater::is_same_printer_for_connected_and_selected()
 {
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
@@ -15302,9 +15324,8 @@ bool Plater::is_same_printer_for_connected_and_selected()
         return false;
 
     if (machine_print_name != target_model_id) {
-        MessageDialog dlg(this,_L("The currently selected machine preset is inconsistent with the connected printer type.Please change device or currently selected machine.\n"),
-                          _L("Synchronize AMS Filament Information"), wxICON_WARNING | wxOK);
-        dlg.ShowModal();
+        auto printer_name = get_selected_printer_name_in_combox(); // wxString(obj->get_preset_printer_model_name(machine_print_name))
+        pop_warning_and_go_to_device_page(printer_name, PrinterWarningType::INCONSISTENT, _L("Synchronize AMS Filament Information"));
         return false;
     }
     return true;
