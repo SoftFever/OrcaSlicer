@@ -1169,6 +1169,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                         gcode_out += oss.str();
                     }
                 }
+                old_pos = Vec2f{-1000.1f, -1000.1f};
+                pos     = tcr.tool_change_start_pos;
+                transformed_pos = pos;
             }
         }
         return gcode_out;
