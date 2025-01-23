@@ -143,7 +143,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
     { "lightning",          ipLightning },
-    { "crosshatch",         ipCrossHatch}
+    { "crosshatch",         ipCrossHatch},
+    { "quartercubic",       ipQuarterCubic}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -362,7 +363,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 // BBS
 static const t_config_enum_values s_keys_map_LayerSeq = {
     { "Auto",              flsAuto },
-    { "Customize",         flsCutomize },
+    { "Customize",         flsCustomize },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LayerSeq)
 
@@ -2272,6 +2273,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("supportcubic");
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("crosshatch");
+    def->enum_values.push_back("quartercubic");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2290,6 +2292,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
+    def->enum_labels.push_back(L("Quarter Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
@@ -3084,6 +3087,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.1));
 
+    def           = this->add("ironing_inset", coFloat);
+    def->label    = L("Ironing inset");
+    def->category = L("Quality");
+    def->tooltip  = L("The distance to keep from the edges. A value of 0 sets this to half of the nozzle diameter");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing speed");
     def->category = L("Quality");
@@ -3345,16 +3358,25 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
     
-    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coInt);
+    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coFloat);
     def->label = L("Smoothing segment length");
     def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
     				 "and more instructions for the printer to process. \n\n"
     				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
-    				 "Allowed values: 1-5");
-    def->min = 1;
+    				 "Allowed values: 0.5-5");
+    def->min = 0.5;
     def->max = 5;
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(3));
+    def->set_default_value(new ConfigOptionFloat(3.0));
+    
+    def = this->add("extrusion_rate_smoothing_external_perimeter_only", coBool);
+    def->label = L("Apply only on external features");
+    def->tooltip = L("Applies extrusion rate smoothing only on external perimeters and overhangs. This can help reduce artefacts due to sharp speed transitions on externally visible "
+                     "overhangs without impacting the print speed of features that will not be visible to the user.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
 
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
@@ -3386,8 +3408,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("slow_down_min_speed", coFloats);
     def->label = L("Min print speed");
-    def->tooltip = L("The minimum printing speed that the printer will slow down to to attempt to maintain the minimum layer time "
-                     "above, when slow down for better layer cooling is enabled.");
+    def->tooltip = L("The minimum print speed to which the printer slows down to maintain the minimum layer time defined above "
+                     "when the slowdown for better layer cooling is enabled.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -4387,17 +4409,17 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_type", coEnum);
     def->label = L("Type");
     def->category = L("Support");
-    def->tooltip = L("normal(auto) and tree(auto) is used to generate support automatically. "
-                     "If normal(manual) or tree(manual) is selected, only support enforcers are generated");
+    def->tooltip = L("Normal (auto) and Tree (auto) is used to generate support automatically. "
+                     "If Normal (manual) or Tree (manual) is selected, only support enforcers are generated");
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
     def->enum_values.push_back("normal(manual)");
     def->enum_values.push_back("tree(manual)");
-    def->enum_labels.push_back(L("normal(auto)"));
-    def->enum_labels.push_back(L("tree(auto)"));
-    def->enum_labels.push_back(L("normal(manual)"));
-    def->enum_labels.push_back(L("tree(manual)"));
+    def->enum_labels.push_back(L("Normal (auto)"));
+    def->enum_labels.push_back(L("Tree (auto)"));
+    def->enum_labels.push_back(L("Normal (manual)"));
+    def->enum_labels.push_back(L("Tree (manual)"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
 
@@ -4700,10 +4722,21 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("Support will be generated for overhangs whose slope angle is below the threshold.");
     def->sidetext = L("°");
-    def->min = 1;
+    def->min = 0;
     def->max = 90;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(30));
+
+    def = this->add("support_threshold_overlap", coFloatOrPercent);
+    def->label = L("Threshold overlap");
+    def->category = L("Support");
+    def->tooltip = L("If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support.");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->max = 100;
+    def->max_literal = 0.5;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloatOrPercent(50., true));
 
     def = this->add("tree_support_branch_angle", coFloat);
     def->label = L("Tree support branch angle");

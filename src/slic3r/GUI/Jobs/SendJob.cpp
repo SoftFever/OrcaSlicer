@@ -38,12 +38,10 @@ SendJob::SendJob(std::string dev_id)
 void SendJob::prepare()
 {
     m_plater->get_print_job_data(&job_data);
-    if (&job_data) {
-        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
-        auto check_access_code_path = temp_file.c_str();
-        BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
-        job_data._temp_path = fs::path(check_access_code_path);
-    }
+    std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+    auto check_access_code_path = temp_file.c_str();
+    BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
+    job_data._temp_path = fs::path(check_access_code_path);
 }
 
 wxString SendJob::get_http_error_msg(unsigned int status, std::string body)

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-01 08:07+0100\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -1269,9 +1269,6 @@ msgstr "边的中心"
 msgid "Center of circle"
 msgstr "圆心"
 
-msgid "ShiftLeft mouse button"
-msgstr "Shift + 鼠标左键"
-
 msgid "Select feature"
 msgstr "选择特征"
 
@@ -1287,18 +1284,25 @@ msgstr "重新选择"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
-msgstr "取消选择"
+msgid "Cancel a feature until exit"
+msgstr ""
 
 msgid "Measure"
 msgstr "测量"
+
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
 
 msgid "Edit to scale"
 msgstr "编辑比例"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "比例"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "无"
@@ -1311,6 +1315,42 @@ msgstr "长度"
 
 msgid "Selection"
 msgstr "选中"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
@@ -1326,6 +1366,27 @@ msgstr "直线距离"
 
 msgid "Distance XYZ"
 msgstr "距离 XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2685,8 +2746,8 @@ msgstr "本软件使用开源组件，其版权和其他所有权属于各自的
 msgid "About %s"
 msgstr "关于 %s"
 
-msgid "Orca Slicer "
-msgstr "逆戟鲸切片"
+msgid "Orca Slicer"
+msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr "OrcaSlicer基于BambuStudio、PrusaSlicer 以及SuperSlicer开发。"
@@ -3463,9 +3524,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温"
 "度为 %d。"
@@ -5033,8 +5094,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
 "and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf文件中不包含G-code数据。请使用Orca Slicer进行切片并导出新的."
-"gcode.3mf文件。"
+".gcode.3mf文件中不包含G-code数据。请使用Orca Slicer进行切片并导出新"
+"的.gcode.3mf文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7465,7 +7526,15 @@ msgstr "喷嘴"
 msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
 
-msgid "Cool plate"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
 msgstr "低温打印热床"
 
 msgid ""
@@ -7675,8 +7744,8 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "层高限制"
 
-msgid "Lift Z Enforcement"
-msgstr "强化抬Z策略"
+msgid "Z-Hop"
+msgstr ""
 
 msgid "Retraction when switching material"
 msgstr "切换材料时的回抽量"
@@ -9241,6 +9310,11 @@ msgstr "首层床温"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热床"
 
@@ -10779,8 +10853,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² 或 %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "稀疏填充的加速度。如果该值表示为百分比（例如100%），则将根据默认加速度进行计"
 "算。"
@@ -11920,8 +11994,8 @@ msgid ""
 "change"
 msgstr "实验性选项。在更换耗材丝时，切断前的回抽长度"
 
-msgid "Z hop when retract"
-msgstr "回抽时抬升Z"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -11946,6 +12020,9 @@ msgid ""
 "If this value is positive, Z hop will only come into effect when Z is above "
 "the parameter: \"Z hop lower boundary\" and is below this value"
 msgstr "如果该值为正，则Z抬升仅在Z高于参数(Z抬升下边界)且低于该值时才会生效"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr "抬Z类型"
@@ -13156,9 +13233,9 @@ msgid "Idle temperature"
 msgstr "待机温度"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -14020,10 +14097,10 @@ msgid ""
 msgstr ""
 "请从我们的wiki中找到动态流量校准的详细信息。\n"
 "\n"
-"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选"
-"了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
-"多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
-"生良好的效果。\n"
+"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选了"
+"“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/多"
+"材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产生"
+"良好的效果。\n"
 "\n"
 "有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使"
 "用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
@@ -15909,8 +15986,27 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
-#~ msgid "Cool Plate"
+#~ msgid "ShiftLeft mouse button"
+#~ msgstr "Shift + 鼠标左键"
+
+#~ msgid "Unselect"
+#~ msgstr "取消选择"
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "比例"
+
+#~ msgid "Orca Slicer "
+#~ msgstr "逆戟鲸切片"
+
+#~ msgid "Cool plate"
 #~ msgstr "低温打印热床"
+
+#~ msgid "Lift Z Enforcement"
+#~ msgstr "强化抬Z策略"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "回抽时抬升Z"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "反转奇数层悬垂方向"
@@ -16796,11 +16892,11 @@ msgstr ""
 #~ msgstr "调试等级"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
-#~ "trace\n"
+#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， "
+#~ "5:trace\n"
 
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."

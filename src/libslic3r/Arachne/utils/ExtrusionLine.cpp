@@ -2,10 +2,21 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 
 #include "ExtrusionLine.hpp"
-#include "linearAlg2D.hpp"
 #include "../../VariableWidth.hpp"
+#include "libslic3r/Arachne/utils/ExtrusionJunction.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Polyline.hpp"
+
+namespace Slic3r {
+class Flow;
+}  // namespace Slic3r
 
 namespace Slic3r::Arachne
 {
@@ -27,15 +38,6 @@ int64_t ExtrusionLine::getLength() const
         len += (front().p - back().p).cast<int64_t>().norm();
 
     return len;
-}
-
-coord_t ExtrusionLine::getMinimalWidth() const
-{
-    return std::min_element(junctions.cbegin(), junctions.cend(),
-                            [](const ExtrusionJunction& l, const ExtrusionJunction& r)
-                            {
-                                return l.w < r.w;
-                            })->w;
 }
 
 void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const int64_t allowed_error_distance_squared, const int64_t maximum_extrusion_area_deviation)
