@@ -180,6 +180,53 @@ static float get_z_height(const std::string_view comment_1)
     return print_z;
 }
 
+CommandProcessor::CommandProcessor()
+{
+    root = std::make_unique<TrieNode>();
+}
+
+void CommandProcessor::register_command(const std::string& str, command_handler_t handler, bool early_quit)
+{
+    TrieNode* node = root.get();
+    for (char ch : str) {
+        auto iter = node->children.find(ch);
+        if (iter == node->children.end()) {
+            std::unique_ptr<TrieNode> new_node = std::make_unique<TrieNode>();
+            auto raw_ptr = new_node.get();
+            node->children[ch] = std::move(new_node);
+            node = raw_ptr;
+        }
+        else {
+            node = iter->second.get();
+        }
+    }
+    if (node->handler != nullptr) {
+        assert(false);// duplicated command
+    }
+    node->handler = handler;
+    node->early_quit = early_quit;
+}
+
+bool CommandProcessor::process_comand(std::string_view cmd, const GCodeReader::GCodeLine& line)
+{
+    TrieNode* node = root.get();
+    for (char ch : cmd) {
+        if (node->early_quit && node->handler) {
+            node->handler(line);
+            return true;
+        }
+        auto iter = node->children.find(ch);
+        if (iter == node->children.end()) {
+            return false;
+        }
+        node = iter->second.get();
+    }
+    if (!node || !node->handler)
+        return false;
+    node->handler(line);
+    return true;
+}
+
 void GCodeProcessor::CachedPosition::reset()
 {
     std::fill(position.begin(), position.end(), FLT_MAX);
@@ -1529,7 +1576,93 @@ GCodeProcessor::GCodeProcessor()
     m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].line_m73_stop_mask = "M73 C%s\n";
     m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].line_m73_main_mask = "M73 Q%s S%s\n";
     m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].line_m73_stop_mask = "M73 D%s\n";
+
+    register_commands();
 }
+
+void GCodeProcessor::register_commands()
+{
+    // !!! registered command must be upper case
+    std::unordered_map<std::string, CommandProcessor::command_handler_t> command_handler_list = {
+        {"G0", [this](const GCodeReader::GCodeLine& line) { process_G0(line); }}, // Move
+        {"G1", [this](const GCodeReader::GCodeLine& line) { process_G1(line); }}, // Move
+        {"G2", [this](const GCodeReader::GCodeLine& line) { process_G2_G3(line); }}, // Move
+        {"G3", [this](const GCodeReader::GCodeLine& line) { process_G2_G3(line); }}, // Move
+        {"G4", [this](const GCodeReader::GCodeLine& line) { process_G4(line); }}, // Delay
+
+        {"G10", [this](const GCodeReader::GCodeLine& line) { process_G10(line); }}, // Retract
+        {"G11", [this](const GCodeReader::GCodeLine& line) { process_G11(line); }}, // Unretract
+
+        {"G20", [this](const GCodeReader::GCodeLine& line) { process_G20(line); }}, // Set Units to Inches
+        {"G21", [this](const GCodeReader::GCodeLine& line) { process_G21(line); }}, // Set Units to Millimeters
+        {"G22", [this](const GCodeReader::GCodeLine& line) { process_G22(line); }}, // Firmware controlled retract
+        {"G23", [this](const GCodeReader::GCodeLine& line) { process_G23(line); }}, // Firmware controlled unretract
+        {"G28", [this](const GCodeReader::GCodeLine& line) { process_G28(line); }}, // Move to origin
+        {"G29", [this](const GCodeReader::GCodeLine& line) { process_G29(line); }},
+
+        {"G90", [this](const GCodeReader::GCodeLine& line) { process_G90(line); }}, // Set to Absolute Positioning
+        {"G91", [this](const GCodeReader::GCodeLine& line) { process_G91(line); }}, // Set to Relative Positioning
+        {"G92", [this](const GCodeReader::GCodeLine& line) { process_G92(line); }}, // Set Position
+
+        {"M1", [this](const GCodeReader::GCodeLine& line) { process_M1(line); }}, // Sleep or Conditional stop
+
+        {"M82", [this](const GCodeReader::GCodeLine& line) { process_M82(line); }}, // Set extruder to absolute mode
+        {"M83", [this](const GCodeReader::GCodeLine& line) { process_M83(line); }}, // Set extruder to relative mode
+
+        {"M104", [this](const GCodeReader::GCodeLine& line) { process_M104(line); }}, // Set extruder temperature
+        {"M106", [this](const GCodeReader::GCodeLine& line) { process_M106(line); }}, // Set fan speed
+        {"M107", [this](const GCodeReader::GCodeLine& line) { process_M107(line); }}, // Disable fan
+        {"M108", [this](const GCodeReader::GCodeLine& line) { process_M108(line); }}, // Set tool (Sailfish)
+        {"M109", [this](const GCodeReader::GCodeLine& line) { process_M109(line); }}, // Set extruder temperature and wait
+
+        {"M132", [this](const GCodeReader::GCodeLine& line) { process_M132(line); }}, // Recall stored home offsets
+        {"M135", [this](const GCodeReader::GCodeLine& line) { process_M135(line); }}, // Set tool (MakerWare)
+
+        {"M140", [this](const GCodeReader::GCodeLine& line) { process_M140(line); }}, // Set bed temperature
+        {"M190", [this](const GCodeReader::GCodeLine& line) { process_M190(line); }}, // Wait bed temperature
+        {"M191", [this](const GCodeReader::GCodeLine& line) { process_M191(line); }}, // Wait chamber temperature
+
+        {"M201", [this](const GCodeReader::GCodeLine& line) { process_M201(line); }}, // Set max printing acceleration
+        {"M203", [this](const GCodeReader::GCodeLine& line) { process_M203(line); }}, // Set maximum feedrate
+        {"M204", [this](const GCodeReader::GCodeLine& line) { process_M204(line); }}, // Set default acceleration
+        {"M205", [this](const GCodeReader::GCodeLine& line) { process_M205(line); }}, // Advanced settings
+        {"M221", [this](const GCodeReader::GCodeLine& line) { process_M221(line); }}, // Set extrude factor override percentage
+
+        {"M400", [this](const GCodeReader::GCodeLine& line) { process_M400(line); }}, // BBS delay
+        {"M401", [this](const GCodeReader::GCodeLine& line) { process_M401(line); }}, // Repetier: Store x, y and z position
+        {"M402", [this](const GCodeReader::GCodeLine& line) { process_M402(line); }}, // Repetier: Go to stored position
+        {"M566", [this](const GCodeReader::GCodeLine& line) { process_M566(line); }}, // Set allowable instantaneous speed change
+        {"M702", [this](const GCodeReader::GCodeLine& line) { process_M702(line); }}, // Unload the current filament into the MK3 MMU2 unit at the end of print.
+        {"M1020", [this](const GCodeReader::GCodeLine& line) { process_M1020(line); }}, // Select Tool
+
+        {"T", [this](const GCodeReader::GCodeLine& line) { process_T(line); }}, // Select Tool
+        {"SYNC", [this](const GCodeReader::GCodeLine& line) { process_SYNC(line); }}, // SYNC TIME
+
+        {"VG1", [this](const GCodeReader::GCodeLine& line) { process_VG1(line); }},
+        {"VM104", [this](const GCodeReader::GCodeLine& line) { process_VM104(line); }},
+        {"VM109", [this](const GCodeReader::GCodeLine& line) { process_VM109(line); }}
+    };
+
+    std::unordered_set<std::string>early_quit_commands = {
+        "T"
+    };
+
+    auto to_lowercase = [](std::string str)->std::string {
+        std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
+            return std::tolower(c);
+            });
+        return str;
+        };
+
+    for (auto elem : command_handler_list) {
+        auto& uppercase_cmd = elem.first;
+        auto& handler = elem.second;
+        bool early_quit = early_quit_commands.count(uppercase_cmd) > 0;
+        m_command_processor.register_command(uppercase_cmd, handler,early_quit);
+        if (auto lowercase_cmd = to_lowercase(uppercase_cmd); lowercase_cmd != uppercase_cmd)
+            m_command_processor.register_command(lowercase_cmd, handler,early_quit);
+    }
+} 
 
 bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<double>& printable_heights, const std::vector<int> &filament_map)
 {
@@ -2523,252 +2656,25 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
 
     if (cmd.length() > 1) {
         // process command lines
-        switch (cmd[0])
-        {
-        case 'g':
-        case 'G':
-            switch (cmd.size()) {
-            case 2:
-                switch (cmd[1]) {
-                case '0': { process_G0(line); break; }  // Move
-                case '1': { process_G1(line); break; }  // Move
-                case '2':
-                case '3': { process_G2_G3(line); break; }  // Move
-                //BBS
-                case '4':  { process_G4(line); break; }  // Delay
-                default: break;
-                }
-                break;
-            case 3:
-                switch (cmd[1]) {
-                case '1':
-                    switch (cmd[2]) {
-                    case '0': { process_G10(line); break; } // Retract
-                    case '1': { process_G11(line); break; } // Unretract
-                    default: break;
-                    }
-                    break;
-                case '2':
-                    switch (cmd[2]) {
-                    case '0': { process_G20(line); break; } // Set Units to Inches
-                    case '1': { process_G21(line); break; } // Set Units to Millimeters
-                    case '2': { process_G22(line); break; } // Firmware controlled retract
-                    case '3': { process_G23(line); break; } // Firmware controlled unretract
-                    case '8': { process_G28(line); break; } // Move to origin
-                    case '9': { process_G29(line); break; }
-                    default: break;
-                    }
-                    break;
-                case '9':
-                    switch (cmd[2]) {
-                    case '0': { process_G90(line); break; } // Set to Absolute Positioning
-                    case '1': { process_G91(line); break; } // Set to Relative Positioning
-                    case '2': { process_G92(line); break; } // Set Position
-                    default: break;
-                    }
-                    break;
-                }
-                break;
-            default:
-                break;
-            }
-            break;
-        case 'm':
-        case 'M':
-            switch (cmd.size()) {
-            case 2:
-                switch (cmd[1]) {
-                case '1': { process_M1(line); break; }   // Sleep or Conditional stop
-                default: break;
-                }
-                break;
-            case 3:
-                switch (cmd[1]) {
-                case '8':
-                    switch (cmd[2]) {
-                    case '2': { process_M82(line); break; }  // Set extruder to absolute mode
-                    case '3': { process_M83(line); break; }  // Set extruder to relative mode
-                    default: break;
-                    }
-                    break;
-                default:
-                    break;
-                }
-                break;
-            case 4:
-                switch (cmd[1]) {
-                case '1':
-                    switch (cmd[2]) {
-                    case '0':
-                        switch (cmd[3]) {
-                        case '4': { process_M104(line); break; } // Set extruder temperature
-                        case '6': { process_M106(line); break; } // Set fan speed
-                        case '7': { process_M107(line); break; } // Disable fan
-                        case '8': { process_M108(line); break; } // Set tool (Sailfish)
-                        case '9': { process_M109(line); break; } // Set extruder temperature and wait
-                        default: break;
-                        }
-                        break;
-                    case '3':
-                        switch (cmd[3]) {
-                        case '2': { process_M132(line); break; } // Recall stored home offsets
-                        case '5': { process_M135(line); break; } // Set tool (MakerWare)
-                        default: break;
-                        }
-                        break;
-                    case '4':
-                        switch (cmd[3]) {
-                        case '0': { process_M140(line); break; } // Set bed temperature
-                        default: break;
-                        }
-                        break;
-                    case '9':
-                        switch (cmd[3]) {
-                        case '0': { process_M190(line); break; } // Wait bed temperature
-                        case '1': { process_M191(line); break; } // Wait chamber temperature
-                        default: break;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                    break;
-                case '2':
-                    switch (cmd[2]) {
-                    case '0':
-                        switch (cmd[3]) {
-                        case '1': { process_M201(line); break; } // Set max printing acceleration
-                        case '3': { process_M203(line); break; } // Set maximum feedrate
-                        case '4': { process_M204(line); break; } // Set default acceleration
-                        case '5': { process_M205(line); break; } // Advanced settings
-                        default: break;
-                        }
-                        break;
-                    case '2':
-                        switch (cmd[3]) {
-                        case '1': { process_M221(line); break; } // Set extrude factor override percentage
-                        default: break;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                    break;
-                case '4':
-                    switch (cmd[2]) {
-                    case '0':
-                        switch (cmd[3]) {
-                        //BBS
-                        case '0': { process_M400(line); break; } // BBS delay
-                        case '1': { process_M401(line); break; } // Repetier: Store x, y and z position
-                        case '2': { process_M402(line); break; } // Repetier: Go to stored position
-                        default: break;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                    break;
-                case '5':
-                    switch (cmd[2]) {
-                    case '6':
-                        switch (cmd[3]) {
-                        case '6': { process_M566(line); break; } // Set allowable instantaneous speed change
-                        default: break;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                    break;
-                case '7':
-                    switch (cmd[2]) {
-                    case '0':
-                        switch (cmd[3]) {
-                        case '2': { process_M702(line); break; } // Unload the current filament into the MK3 MMU2 unit at the end of print.
-                        default: break;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                    break;
-                default:
-                    break;
-                }
-                break;
-            case 5:
-                switch (cmd[1]) {
-                case '1':
-                    switch (cmd[2]) {
-                    case '0':
-                        switch (cmd[3]) {
-                        case '2':
-                            switch (cmd[4]) {
-                            case '0': {
-                                process_M1020(line); // Select Tool
-                                break;
-                            }
-                            default: break;
-                            }
-                        default: break;
-                        }
-                    default: break;
-                    }
-                default: break;
-                }
-            default: break;
-            }
-            break;
-        case 't':
-        case 'T':
-            process_T(line); // Select Tool
-            break;
-        case 'S':
-            switch (cmd.size()) {
-                case 4:
-                    switch (cmd[1]){
-                        case 'Y':
-                            switch (cmd[2]){
-                                case 'N':
-                                    switch (cmd[3]){
-                                        case 'C':
-                                            process_SYNC(line);
-                                            break;
-                                        default: break;
-                                    }
-                                    break;
-                                default: break;
-                            }
-                            break;
-                        default: break;
-                    }
-                    break;
-                default: break;
-            }
-            break;
-        default:
-            break;
-        }
+        m_command_processor.process_comand(cmd, line);
     }
     else {
         const std::string &comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';')
         {
-            GCodeReader reader;
-            GCodeReader::GCodeLine new_line;
-            reader.parse_line(line.raw().substr(1), [&new_line](const auto& greader, const auto& gline){
+            std::string comment_content = comment.substr(1); // only format like ";V{cmd}" is valid
+            if (comment_content[0] == 'V' || comment_content[0] == 'v') {
+                GCodeReader reader;
+                GCodeReader::GCodeLine new_line;
+                reader.parse_line(comment_content, [&new_line](const auto& greader, const auto& gline) {
                     new_line = gline;
-                });
-            std::string_view cmd = new_line.cmd();
-
-            if (cmd == "VG1") {
-                process_VG1(new_line);
+                    });
+                m_command_processor.process_comand(new_line.cmd(), new_line);
             }
             else {
                 // Process tags embedded into comments. Tag comments always start at the start of a line
                 // with a comment and continue with a tag without any whitespace separator.
-                process_tags(comment.substr(1), producers_enabled);
+                process_tags(comment_content, producers_enabled);
             }
         }
     }
@@ -5073,6 +4979,11 @@ void GCodeProcessor::process_M104(const GCodeReader::GCodeLine& line)
         m_extruder_temps[filament_id] = new_temp;
 }
 
+void GCodeProcessor::process_VM104(const GCodeReader::GCodeLine& line)
+{
+    process_M104(line);
+}
+
 void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
 {
     //BBS: for Bambu machine ,we both use M106 P1 and M106 to indicate the part cooling fan
@@ -5122,6 +5033,11 @@ void GCodeProcessor::process_M109(const GCodeReader::GCodeLine& line)
     }
     else if (line.has_value('S', new_temp))
         m_extruder_temps[filament_id] = new_temp;
+}
+
+void GCodeProcessor::process_VM109(const GCodeReader::GCodeLine& line)
+{
+    process_M109(line);
 }
 
 void GCodeProcessor::process_M132(const GCodeReader::GCodeLine& line)

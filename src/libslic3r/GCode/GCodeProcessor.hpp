@@ -307,6 +307,24 @@ class Print;
     };
 
 
+    class CommandProcessor {
+    public:
+        using command_handler_t = std::function<void(const GCodeReader::GCodeLine& line)>;
+    private:
+        struct TrieNode {
+            command_handler_t handler{ nullptr };
+            std::unordered_map<char, std::unique_ptr<TrieNode>> children;
+            bool early_quit{ false }; // stop matching, trigger handle imediately
+        };
+    public:
+        CommandProcessor();
+        void register_command(const std::string& str, command_handler_t handler,bool early_quit = false);
+        bool process_comand(std::string_view cmd, const GCodeReader::GCodeLine& line);
+    private:
+        std::unique_ptr<TrieNode> root;
+    };
+
+
     class GCodeProcessor
     {
         static const std::vector<std::string> Reserved_Tags;
@@ -715,6 +733,7 @@ class Print;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     private:
+        CommandProcessor m_command_processor;
         GCodeReader m_parser;
         EUnits m_units;
         EPositioningType m_global_positioning_type;
@@ -861,6 +880,7 @@ class Print;
         void detect_layer_based_on_tag(bool enabled) { m_detect_layer_based_on_tag = enabled; }
 
     private:
+        void register_commands();
         void apply_config(const DynamicPrintConfig& config);
         void apply_config_simplify3d(const std::string& filename);
         void apply_config_superslicer(const std::string& filename);
@@ -933,6 +953,12 @@ class Print;
 
         // Set extruder temperature
         void process_M104(const GCodeReader::GCodeLine& line);
+
+        // Process virtual command of M104, in order to help gcodeviewer work
+        void process_VM104(const GCodeReader::GCodeLine& line);
+
+        // Process virtual command of M109, in order to help gcodeviewer work
+        void process_VM109(const GCodeReader::GCodeLine& line);
 
         // Set fan speed
         void process_M106(const GCodeReader::GCodeLine& line);
