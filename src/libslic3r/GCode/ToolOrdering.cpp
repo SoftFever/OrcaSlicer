@@ -1159,7 +1159,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
         check_filament_printable_after_group(used_filaments, filament_maps, print_config);
 
-        if (!check_tpu_group(used_filaments, filament_maps, print_config)) {
+        if (nozzle_nums > 1 && !check_tpu_group(used_filaments, filament_maps, print_config)) {
             if (map_mode == FilamentMapMode::fmmManual) {
                 throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
             }
