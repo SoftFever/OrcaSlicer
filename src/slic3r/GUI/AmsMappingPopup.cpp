@@ -34,8 +34,8 @@ const int LEFT_OFFSET = 2;
  {
     m_arraw_bitmap_gray  = ScalableBitmap(this, "drop_down2", FromDIP(8));
     m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", 12);
-    m_transparent_mitem = ScalableBitmap(this, "transparent_material_up", FromDIP(16));
-    m_filament_wheel_transparent = ScalableBitmap(this,   "filament_transparent", FromDIP(20));//wxGetApp().dark_mode() ? "filament_dark_transparent"
+    m_transparent_mitem          = ScalableBitmap(this, "transparent_material_up", 20);
+    m_filament_wheel_transparent = ScalableBitmap(this,   "filament_transparent", 25);//wxGetApp().dark_mode() ? "filament_dark_transparent"
     //m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel", FromDIP(25));
     m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel_narrow", 25);
     m_ams_not_match = ScalableBitmap(this, "filament_not_mactch", 25);
@@ -316,7 +316,7 @@ void MaterialItem::doRender(wxDC& dc)
         wheel_left += m_ams_wheel_mitem.GetBmpSize().x;
         dc.DrawBitmap(m_ams_not_match.bmp(), (size.x - m_ams_not_match.GetBmpWidth()) / 2 - FromDIP(LEFT_OFFSET), wheel_top);
     } else {
-        if (mcolor.Alpha() == 0) {
+        if (acolor.Alpha() == 0) {
             dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
         } else {
             dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
@@ -508,7 +508,7 @@ void MaterialSyncItem::doRender(wxDC &dc)
     auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2);
     auto wheel_top  = ((float) GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float) GetSize().y * 0.4;
     if (m_match) {// different with parent
-        if (mcolor.Alpha() == 0) {
+        if (acolor.Alpha() == 0) {
             dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
         } else {
             dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
