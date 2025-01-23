@@ -5,51 +5,51 @@
     "description": "Wanhao France D12 configurations",
     "machine_model_list": [
         {
-            "name": "D12 230 PRO M2 MONO DUAL",
+            "name": "Wanhao D12 230 PRO M2 MONO DUAL",
             "sub_path": "machine/D12 230 PRO M2 MONO DUAL.json"
         },
         {
-            "name": "D12 230 PRO SMARTPAD MONO DUAL",
+            "name": "Wanhao D12 230 PRO SMARTPAD MONO DUAL",
             "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL.json"
         },
         {
-            "name": "D12 230 PRO M2 DIRECT",
+            "name": "Wanhao D12 230 PRO M2 DIRECT",
             "sub_path": "machine/D12 230 PRO M2 DIRECT.json"
         },
         {
-            "name": "D12 230 PRO SMARTPAD DIRECT",
+            "name": "Wanhao D12 230 PRO SMARTPAD DIRECT",
             "sub_path": "machine/D12 230 PRO SMARTPAD DIRECT.json"
         },
         {
-            "name": "D12 300 PRO M2 DIRECT",
+            "name": "Wanhao D12 300 PRO MAX M2 DIRECT",
             "sub_path": "machine/D12 300 PRO M2 DIRECT.json"
         },
         {
-            "name": "D12 300 PRO M2 MONO DUAL",
+            "name": "Wanhao D12 300 PRO M2 MONO DUAL",
             "sub_path": "machine/D12 300 PRO M2 MONO DUAL.json"
         },
         {
-            "name": "D12 300 PRO SMARTPAD DIRECT",
+            "name": "Wanhao D12 300 PRO MAX SMARTPAD DIRECT",
             "sub_path": "machine/D12 300 PRO SMARTPAD DIRECT.json"
         },
         {
-            "name": "D12 300 PRO SMARTPAD MONO DUAL",
+            "name": "Wanhao D12 300 PRO SMARTPAD MONO DUAL",
             "sub_path": "machine/D12 300 PRO SMARTPAD MONO DUAL.json"
         },
         {
-            "name": "D12 500 PRO M2 DIRECT",
+            "name": "Wanhao D12 500 PRO MAX M2 DIRECT",
             "sub_path": "machine/D12 500 PRO M2 DIRECT.json"
         },
         {
-            "name": "D12 500 PRO M2 MONO DUAL",
+            "name": "Wanhao D12 500 PRO M2 MONO DUAL",
             "sub_path": "machine/D12 500 PRO M2 MONO DUAL.json"
         },
         {
-            "name": "D12 500 PRO SMARTPAD DIRECT",
+            "name": "Wanhao D12 500 PRO MAX SMARTPAD DIRECT",
             "sub_path": "machine/D12 500 PRO SMARTPAD DIRECT.json"
         },
         {
-            "name": "D12 500 PRO SMARTPAD MONO DUAL",
+            "name": "Wanhao D12 500 PRO SMARTPAD MONO DUAL",
             "sub_path": "machine/D12 500 PRO SMARTPAD MONO DUAL.json"
         }
     ],

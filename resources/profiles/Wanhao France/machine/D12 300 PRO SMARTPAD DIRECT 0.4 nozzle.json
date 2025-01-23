@@ -5,39 +5,42 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_model": "D12 300 PRO SMARTPAD DIRECT",
+    "printer_model": "Wanhao D12 300 PRO MAX SMARTPAD DIRECT",
     "gcode_flavor": "klipper",
     "default_print_profile": "0.20mm Standard @Wanhao D12-300",
     "nozzle_diameter": [
         "0.4"
       ],
-      "printable_area": [
+    "printable_area": [
           "0x0",
           "330x0",
           "330x330",
           "0x330"
-        ],
-      "printable_height": "400",
-      "nozzle_type": "brass",
-      "auxiliary_fan": "0",
-      "printer_variant": "0.4",
-      "default_filament_profile": [
+    ],
+    "printable_height": "400",
+    "nozzle_type": "brass",
+    "auxiliary_fan": "0",
+    "printer_variant": "0.4",
+    "default_filament_profile": [
           "YUMI PLA"
-      ],
-      "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nLOG_Z\nTIMELAPSE_TAKE_FRAME\nG92 E0",
-      "change_filament_gcode": "M600",
-      "extra_loading_move": "1",
-      "extruder_clearance_height_to_lid": "140",
-      "extruder_clearance_height_to_rod": "36",
-      "extruder_clearance_radius": "65",
-      "nozzle_height": "4",
-      "thumbnails": "48x48/PNG, 300x300/PNG",
-      "wipe_distance": [
+    ],
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nLOG_Z\nTIMELAPSE_TAKE_FRAME\nG92 E0",
+    "change_filament_gcode": "M600",
+    "z_hop": [
+        "0.4"
+    ],
+    "extra_loading_move": "-2",
+    "extruder_clearance_height_to_lid": "140",
+    "extruder_clearance_height_to_rod": "36",
+    "extruder_clearance_radius": "65",
+    "nozzle_height": "4",
+    "thumbnails": "48x48/PNG, 300x300/PNG",
+    "wipe_distance": [
           "2"
-      ],
-      "z_hop_types": [
+    ],
+    "z_hop_types": [
           "Auto Lift"
-      ],
+    ],
     "deretraction_speed": [
       "70"
     ],
@@ -111,7 +114,7 @@
     "retract_when_changing_layer": [
         "0"
     ],
-     "machine_end_gcode": "PRINT_END",
-     "machine_pause_gcode": "PAUSE",
-     "machine_start_gcode": "PRINT_START BED_TEMP=[first_layer_bed_temperature] EXTRUDER_TEMP=[first_layer_temperature]\nG0 X65 Y5 Z1 F5000.0                                                   ; Move the probe to the heating position.\nM117 Getting the heaters up to temp!\nM104 S140                                                          ; Set Extruder temperature, no wait\nM140 S60                                                            ; Set Heat Bed temperature\nG4 S90\nM117 Post warming re-home\nG28                                                                      ; Home all axes again after warming\nM117 Z-Dance of my people\nM117 ABL Probing\n;Run Bed leveling\n;BED_MESH_CALIBRATE\n;T1\nT[initial_tool]\nG1 Z2.0 F3000                                        ; Move Z Axis up little to prevent scratching of Heat Bed\nG1 X4.1 Y10 Z0.3 F5000.0                      ; Move to start position\nM117 Getting the extruder up to temp\nM140 S[first_layer_bed_temperature]      ; Set Heat Bed temperature\nM104 S[first_layer_temperature]    ; Set Extruder temperature\nM109 S[first_layer_temperature]    ; Wait for Extruder temperature\nM190 S[first_layer_bed_temperature]      ; Wait for Heat Bed temperature\nG92 E0                                        ; Reset Extruder\nM117 Purging\n;G1 X4.1 Y200.0 Z0.3 F1500.0 E15               ; Draw the first line\n;G1 X4.4 Y200.0 Z0.3 F5000.0                   ; Move to side a little\n;G1 X4.4 Y20 Z0.3 F1500.0 E30                  ; Draw the second line\nG92 E0                                        ; Reset Extruder\nM117 Lets make\n;G1 X8 Y20 Z0.3 F5000.0                        ; Move over to prevent blob squish"
+    "machine_end_gcode": "PRINT_END",
+    "machine_pause_gcode": "PAUSE",
+    "machine_start_gcode": "PRINT_START BED_TEMP=[first_layer_bed_temperature] EXTRUDER_TEMP=[first_layer_temperature]\nG0 X65 Y5 Z1 F5000.0                                                   ; Move the probe to the heating position.\nM117 Getting the heaters up to temp!\nM104 S140                                                          ; Set Extruder temperature, no wait\nM140 S60                                                            ; Set Heat Bed temperature\nG4 S90\nM117 Post warming re-home\nG28                                                                      ; Home all axes again after warming\nM117 Z-Dance of my people\nM117 ABL Probing\n;Run Bed leveling\n;BED_MESH_CALIBRATE\n;T1\nT[initial_tool]\nG1 Z2.0 F3000                                        ; Move Z Axis up little to prevent scratching of Heat Bed\nG1 X4.1 Y10 Z0.3 F5000.0                      ; Move to start position\nM117 Getting the extruder up to temp\nM140 S[first_layer_bed_temperature]      ; Set Heat Bed temperature\nM104 S[first_layer_temperature]    ; Set Extruder temperature\nM109 S[first_layer_temperature]    ; Wait for Extruder temperature\nM190 S[first_layer_bed_temperature]      ; Wait for Heat Bed temperature\nG92 E0                                        ; Reset Extruder\nM117 Purging\n;G1 X4.1 Y200.0 Z0.3 F1500.0 E15               ; Draw the first line\n;G1 X4.4 Y200.0 Z0.3 F5000.0                   ; Move to side a little\n;G1 X4.4 Y20 Z0.3 F1500.0 E30                  ; Draw the second line\nG92 E0                                        ; Reset Extruder\nM117 Lets make\n;G1 X8 Y20 Z0.3 F5000.0                        ; Move over to prevent blob squish"
 }

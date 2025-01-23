@@ -5,14 +5,14 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_model": "D12 230 PRO SMARTPAD DIRECT",
+    "printer_model": "Wanhao D12 230 PRO SMARTPAD DIRECT",
     "default_print_profile": "0.20mm Standard @Wanhao D12-230",
     "default_filament_profile": [
 		"YUMI PLA"
 	],
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nLOG_Z\nTIMELAPSE_TAKE_FRAME\nG92 E0",
     "change_filament_gcode": "M600",
-    "extra_loading_move": "1",
+    "extra_loading_move": "-2",
     "extruder_clearance_height_to_lid": "140",
     "extruder_clearance_height_to_rod": "36",
     "extruder_clearance_radius": "65",
@@ -28,7 +28,10 @@
     "nozzle_diameter": [
       "0.4"
     ],
-   "printable_area": [
+    "z_hop": [
+        "0.4"
+    ],
+    "printable_area": [
         "0x0",
         "230x0",
         "230x230",

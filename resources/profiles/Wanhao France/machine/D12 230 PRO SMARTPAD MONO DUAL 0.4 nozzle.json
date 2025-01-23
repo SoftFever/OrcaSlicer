@@ -5,7 +5,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_model": "D12 230 PRO SMARTPAD MONO DUAL",
+    "printer_model": "Wanhao D12 230 PRO SMARTPAD MONO DUAL",
     "default_print_profile": "0.20mm Standard @Wanhao D12-230",
     "default_filament_profile": [
 		"YUMI PLA"
@@ -26,7 +26,11 @@
     "nozzle_diameter": [
       "0.4"
     ],
-   "printable_area": [
+    "z_hop": [
+        "0.4"
+    ],
+    "extra_loading_move": "-2",
+    "printable_area": [
         "0x0",
         "230x0",
         "230x230",
@@ -110,7 +114,7 @@
     "retract_when_changing_layer": [
         "0"
     ],
-     "machine_end_gcode": "PRINT_END",
-     "machine_pause_gcode": "PAUSE",
-     "machine_start_gcode": "PRINT_START BED_TEMP=[first_layer_bed_temperature] EXTRUDER_TEMP=[first_layer_temperature]\nG0 X65 Y5 Z1 F5000.0                                                   ; Move the probe to the heating position.\nM117 Getting the heaters up to temp!\nM104 S140                                                          ; Set Extruder temperature, no wait\nM140 S60                                                            ; Set Heat Bed temperature\nG4 S90\nM117 Post warming re-home\nG28                                                                      ; Home all axes again after warming\nM117 Z-Dance of my people\nM117 ABL Probing\n;Run Bed leveling\n;BED_MESH_CALIBRATE\n;T1\nT[initial_tool]\nG1 Z2.0 F3000                                        ; Move Z Axis up little to prevent scratching of Heat Bed\nG1 X4.1 Y10 Z0.3 F5000.0                      ; Move to start position\nM117 Getting the extruder up to temp\nM140 S[first_layer_bed_temperature]      ; Set Heat Bed temperature\nM104 S[first_layer_temperature]    ; Set Extruder temperature\nM109 S[first_layer_temperature]    ; Wait for Extruder temperature\nM190 S[first_layer_bed_temperature]      ; Wait for Heat Bed temperature\nG92 E0                                        ; Reset Extruder\nM117 Purging\n;G1 X4.1 Y200.0 Z0.3 F1500.0 E15               ; Draw the first line\n;G1 X4.4 Y200.0 Z0.3 F5000.0                   ; Move to side a little\n;G1 X4.4 Y20 Z0.3 F1500.0 E30                  ; Draw the second line\nG92 E0                                        ; Reset Extruder\nM117 Lets make\n;G1 X8 Y20 Z0.3 F5000.0                        ; Move over to prevent blob squish"
+    "machine_end_gcode": "PRINT_END",
+    "machine_pause_gcode": "PAUSE",
+    "machine_start_gcode": "PRINT_START BED_TEMP=[first_layer_bed_temperature] EXTRUDER_TEMP=[first_layer_temperature]\nG0 X65 Y5 Z1 F5000.0                                                   ; Move the probe to the heating position.\nM117 Getting the heaters up to temp!\nM104 S140                                                          ; Set Extruder temperature, no wait\nM140 S60                                                            ; Set Heat Bed temperature\nG4 S90\nM117 Post warming re-home\nG28                                                                      ; Home all axes again after warming\nM117 Z-Dance of my people\nM117 ABL Probing\n;Run Bed leveling\n;BED_MESH_CALIBRATE\n;T1\nT[initial_tool]\nG1 Z2.0 F3000                                        ; Move Z Axis up little to prevent scratching of Heat Bed\nG1 X4.1 Y10 Z0.3 F5000.0                      ; Move to start position\nM117 Getting the extruder up to temp\nM140 S[first_layer_bed_temperature]      ; Set Heat Bed temperature\nM104 S[first_layer_temperature]    ; Set Extruder temperature\nM109 S[first_layer_temperature]    ; Wait for Extruder temperature\nM190 S[first_layer_bed_temperature]      ; Wait for Heat Bed temperature\nG92 E0                                        ; Reset Extruder\nM117 Purging\n;G1 X4.1 Y200.0 Z0.3 F1500.0 E15               ; Draw the first line\n;G1 X4.4 Y200.0 Z0.3 F5000.0                   ; Move to side a little\n;G1 X4.4 Y20 Z0.3 F1500.0 E30                  ; Draw the second line\nG92 E0                                        ; Reset Extruder\nM117 Lets make\n;G1 X8 Y20 Z0.3 F5000.0                        ; Move over to prevent blob squish"
 }

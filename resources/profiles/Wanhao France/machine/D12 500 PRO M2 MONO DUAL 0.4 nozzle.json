@@ -5,39 +5,42 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_model": "D12 500 PRO M2 MONO DUAL",
+    "printer_model": "Wanhao D12 500 PRO M2 MONO DUAL",
     "gcode_flavor": "marlin2",
     "default_print_profile": "0.20mm Standard @Wanhao D12-500",
     "nozzle_diameter": [
         "0.4"
       ],
-      "printable_area": [
+    "printable_area": [
           "0x0",
           "500x0",
           "500x500",
           "0x500"
         ],
-      "printable_height": "500",
-      "nozzle_type": "brass",
-      "auxiliary_fan": "0",
-      "printer_variant": "0.4",
-      "default_filament_profile": [
+    "printable_height": "500",
+    "nozzle_type": "brass",
+    "auxiliary_fan": "0",
+    "printer_variant": "0.4",
+    "default_filament_profile": [
           "YUMI PLA"
-      ],
-      "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0",
-      "change_filament_gcode": "M600",
-      "extra_loading_move": "1",
-      "extruder_clearance_height_to_lid": "140",
-      "extruder_clearance_height_to_rod": "36",
-      "extruder_clearance_radius": "65",
-      "nozzle_height": "4",
-      "thumbnails": "48x48/PNG, 300x300/PNG",
-      "wipe_distance": [
+    ],
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0",
+    "change_filament_gcode": "M600",
+    "z_hop": [
+        "0.4"
+    ],
+    "extra_loading_move": "-2",
+    "extruder_clearance_height_to_lid": "140",
+    "extruder_clearance_height_to_rod": "36",
+    "extruder_clearance_radius": "65",
+    "nozzle_height": "4",
+    "thumbnails": "48x48/PNG, 300x300/PNG",
+    "wipe_distance": [
           "2"
-      ],
-      "z_hop_types": [
+    ],
+    "z_hop_types": [
           "Auto Lift"
-      ],
+    ],
     "deretraction_speed": [
       "25"
     ],

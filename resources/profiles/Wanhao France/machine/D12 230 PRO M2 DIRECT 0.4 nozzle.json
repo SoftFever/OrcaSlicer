@@ -5,7 +5,8 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_model": "D12 230 PRO M2 DIRECT",
+    "printer_model": "Wanhao D12 230 PRO M2 DIRECT",
+    "version": "2.2.0.4",
     "gcode_flavor": "marlin2",
     "default_print_profile": "0.20mm Standard @Wanhao D12-230",
     "nozzle_diameter": [
@@ -26,7 +27,7 @@
 	],
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0",
     "change_filament_gcode": "M600",
-    "extra_loading_move": "1",
+    "extra_loading_move": "-2",
     "extruder_clearance_height_to_lid": "140",
     "extruder_clearance_height_to_rod": "36",
     "extruder_clearance_radius": "65",
@@ -34,6 +35,9 @@
     "thumbnails": "48x48/PNG, 300x300/PNG",
     "wipe_distance": [
         "2"
+    ],
+    "z_hop": [
+        "0.4"
     ],
     "z_hop_types": [
         "Auto Lift"
