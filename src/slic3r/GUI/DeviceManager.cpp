@@ -1542,7 +1542,11 @@ void MachineObject::parse_status(int flag)
     }
 
     camera_recording            = ((flag >> 5) & 0x1) != 0;
-    ams_calibrate_remain_flag   = ((flag >> 7) & 0x1) != 0;
+
+    if (time(nullptr) - ams_user_setting_start > HOLD_COUNT_MAX)
+    {
+        ams_calibrate_remain_flag = ((flag >> 7) & 0x1) != 0;
+    }
 
     sdcard_state = MachineObject::SdcardState(get_flag_bits(flag, 8, 2));
 
@@ -2071,7 +2075,7 @@ int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bo
     ams_insert_flag = tray_read_opt;
     ams_power_on_flag = start_read_opt;
     ams_calibrate_remain_flag = remain_flag;
-    ams_user_setting_hold_count = HOLD_COUNT_MAX;
+    ams_user_setting_start = time(nullptr);
 
     return this->publish_json(j.dump());
 }
@@ -4276,9 +4280,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                                 if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")
                                     || jj["ams"].contains("calibrate_remain_flag")) {
-                                    if (ams_user_setting_hold_count > 0) {
-                                        ams_user_setting_hold_count--;
-                                    } else {
+                                    if (time(nullptr) - ams_user_setting_start > HOLD_TIME_MAX)
+                                    {
                                         if (jj["ams"].contains("insert_flag")) {
                                             ams_insert_flag = jj["ams"]["insert_flag"].get<bool>();
                                         }
@@ -5801,7 +5804,6 @@ void MachineObject::parse_new_info(json print)
     BOOST_LOG_TRIVIAL(info) << "new print data cfg = " << cfg;
 
     if(!cfg.empty()){
-        if (ams_user_setting_hold_count > 0) ams_user_setting_hold_count--;
         if (camera_recording_hold_count > 0) camera_recording_hold_count--;
         if (camera_resolution_hold_count > 0) camera_resolution_hold_count--;
         if (camera_timelapse_hold_count > 0) camera_timelapse_hold_count--;
@@ -5815,9 +5817,12 @@ void MachineObject::parse_new_info(json print)
         if (nozzle_setting_hold_count > 0)nozzle_setting_hold_count--;
 
 
+        if (time(nullptr) - ams_user_setting_start > HOLD_COUNT_MAX)
+        {
+            ams_insert_flag = get_flag_bits(cfg, 0);
+            ams_power_on_flag = get_flag_bits(cfg, 1);
+        }
 
-        ams_insert_flag = get_flag_bits(cfg, 0);
-        ams_power_on_flag = get_flag_bits(cfg, 1);
         upgrade_force_upgrade = get_flag_bits(cfg, 2);
         camera_recording_when_printing = get_flag_bits(cfg, 3);
         camera_resolution = get_flag_bits(cfg, 4) == 0 ? "720p" : "1080p";
@@ -5847,7 +5852,12 @@ void MachineObject::parse_new_info(json print)
 
         xcam_ai_monitoring = get_flag_bits(cfg, 15);
         xcam_auto_recovery_step_loss = get_flag_bits(cfg, 16);
-        ams_calibrate_remain_flag = get_flag_bits(cfg, 17);
+
+        if (time(nullptr) - ams_user_setting_start > HOLD_COUNT_MAX)
+        {
+            ams_calibrate_remain_flag = get_flag_bits(cfg, 17);
+        }
+
         ams_auto_switch_filament_flag = get_flag_bits(cfg, 18);
         xcam_allow_prompt_sound = get_flag_bits(cfg, 22);
         xcam_filament_tangle_detect = get_flag_bits(cfg, 23);

@@ -35,6 +35,8 @@
 
 #define HOLD_COUNT_MAX          3
 #define HOLD_COUNT_CAMERA       6
+#define HOLD_TIME_MAX           3 // 3 seconds
+
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
 
@@ -681,7 +683,7 @@ public:
     bool  ams_auto_switch_filament_flag  { false };
     bool  ams_air_print_status { false };
     bool  ams_support_virtual_tray { true };
-    int   ams_user_setting_hold_count = 0;
+    time_t ams_user_setting_start = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
     int   ams_version = 0;
