@@ -78,7 +78,6 @@ void JusPrinChatPanel::init_action_handlers() {
     // Actions for the chat page (void return)
     void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
-    void_action_handlers["discard_current_changes"] = &JusPrinChatPanel::handle_discard_current_changes;
     void_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     void_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     void_action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
@@ -89,6 +88,20 @@ void JusPrinChatPanel::init_action_handlers() {
     void_action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
     void_action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
 }
+
+
+// Agent events that are processed by the chat panel
+
+void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
+    nlohmann::json j = nlohmann::json::object();
+    j["type"] = "autoOrient";
+    j["data"] = nlohmann::json::object();
+    j["data"]["status"] = canceled ? "canceled" : "completed";
+    CallEmbeddedChatMethod("processAgentEvent", j.dump());
+}
+
+// End of Agent events that are processed by the chat panel
+
 
 // Actions for preload.html only
 void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json& params) {
@@ -211,11 +224,6 @@ nlohmann::json JusPrinChatPanel::handle_select_preset(const nlohmann::json& para
     }
 
     return nlohmann::json::object();
-}
-
-void JusPrinChatPanel::handle_discard_current_changes(const nlohmann::json& params) {
-    JusPrinPresetConfigUtils::DiscardCurrentPresetChanges();
-    JusPrinPresetConfigUtils::UpdatePresetTabs();
 }
 
 nlohmann::json JusPrinChatPanel::handle_apply_config(const nlohmann::json& params) {
@@ -349,14 +357,6 @@ void JusPrinChatPanel::RefreshPlaterStatus() {
 
 nlohmann::json JusPrinChatPanel::GetAllPresetJson() {
     return JusPrinPresetConfigUtils::GetAllPresetJson();
-}
-
-void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
-    nlohmann::json j = nlohmann::json::object();
-    j["type"] = "autoOrient";
-    j["data"] = nlohmann::json::object();
-    j["data"]["status"] = canceled ? "canceled" : "completed";
-    CallEmbeddedChatMethod("eventReceived", j.dump());
 }
 
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
@@ -499,5 +499,6 @@ nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
 
     return j;
 }
+
 
 }} // namespace Slic3r::GUI

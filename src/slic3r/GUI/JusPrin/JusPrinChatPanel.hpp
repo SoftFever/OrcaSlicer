@@ -26,15 +26,22 @@ public:
     virtual ~JusPrinChatPanel();
     void reload();
 
+    // Agent events that are processed by the chat panel
+    void SendAutoOrientEvent(bool canceled);
+
+    // End of Agent events that are processed by the chat panel
+
     void UpdateOAuthAccessToken();
     void RefreshPresets();
     void RefreshPlaterConfig();
     void RefreshPlaterStatus();
-    void SendAutoOrientEvent(bool canceled);
+
+
 
     static nlohmann::json GetPlaterConfigJson();
     static nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
     static nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items);
+
 
 private:
     void load_url();
@@ -63,7 +70,6 @@ private:
     nlohmann::json handle_apply_config(const nlohmann::json& params);
 
     // Actions to trigger events in JusPrin
-    void handle_discard_current_changes(const nlohmann::json& params);
     void handle_add_printers(const nlohmann::json& params);
     void handle_add_filaments(const nlohmann::json& params);
     void handle_switch_to_classic_mode(const nlohmann::json& params);
