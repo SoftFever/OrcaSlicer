@@ -2803,8 +2803,47 @@ void GCode::process_layers(
             }
         );
     
+    // Orca: Layer time smoothing filter. Collects all layers in a static vector to enable
+    // previous layer loop back.
+    const auto layer_time_smoothing = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [this, total_layers = layers_to_print.size()](std::string in) -> std::string {
+            // Static storage for collected layers
+            static std::vector<std::string> collected_layers;
+            static size_t processed_layers = 0;
+
+            // Collect the current layer
+            collected_layers.push_back(std::move(in));
+            ++processed_layers;
+
+            // If this is the last layer, process and return the batch
+            if (processed_layers == total_layers) {
+                std::string processed_batch;
+                // TODO: Remove debug comments
+                printf("Object layers gathered!\n");
+                
+                // TODO: Create processing function taking the collected layers vector and applying layer time smoothing
+                // TODO: by adjusting extrusion speed.
+                // TODO: The below for loop will be replaced by the above function
+                for (const auto& layer : collected_layers) {
+                    processed_batch += layer + "\n"; // Add newline or a delimiter as needed
+                }
+
+                // Clear the collected layers for any subsequent calls
+                collected_layers.clear();
+                processed_layers = 0;
+
+                // TODO: Remove debug comments
+                printf("Object processed!\n");
+                return processed_batch;
+            }
+
+            // Return an empty string for intermediate layers . This is filtered out in the output filter.
+            return "";
+        }
+    );
+    
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
-        [&output_stream](std::string s) { output_stream.write(s); }
+        [&output_stream](std::string s) { if (!s.empty()) output_stream.write(s); } // Orca: filter out empty string lines generated upstream
     );
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
@@ -2829,13 +2868,13 @@ void GCode::process_layers(
 
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase && m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & spiral_mode & pressure_equalizer & cooling & fan_mover & output);
+        tbb::parallel_pipeline(12, generator & spiral_mode & pressure_equalizer & cooling & fan_mover & layer_time_smoothing & output);
     else if (m_spiral_vase)
-    	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & layer_time_smoothing & output);
     else if	(m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & pa_processor_filter & output);
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & pa_processor_filter & layer_time_smoothing & output);
     else
-    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & pa_processor_filter & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & pa_processor_filter & layer_time_smoothing & output);
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -2896,8 +2935,48 @@ void GCode::process_layers(
                 return in.gcode;
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
+    
+    // Orca: Layer time smoothing filter. Collects all layers in a static vector to enable
+    // previous layer loop back.
+    const auto layer_time_smoothing = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [this, total_layers = layers_to_print.size()](std::string in) -> std::string {
+            // Static storage for collected layers
+            static std::vector<std::string> collected_layers;
+            static size_t processed_layers = 0;
+
+            // Collect the current layer
+            collected_layers.push_back(std::move(in));
+            ++processed_layers;
+
+            // If this is the last layer, process and return the batch
+            if (processed_layers == total_layers) {
+                std::string processed_batch;
+                // TODO: Remove debug comments
+                printf("Object layers gathered!\n");
+                
+                // TODO: Create processing function taking the collected layers vector and applying layer time smoothing
+                // TODO: by adjusting extrusion speed.
+                // TODO: The below for loop will be replaced by the above function
+                for (const auto& layer : collected_layers) {
+                    processed_batch += layer + "\n"; // Add newline or a delimiter as needed
+                }
+
+                // Clear the collected layers for any subsequent calls
+                collected_layers.clear();
+                processed_layers = 0;
+
+                // TODO: Remove debug comments
+                printf("Object processed!\n");
+                return processed_batch;
+            }
+
+            // Return an empty string for intermediate layers . This is filtered out in the output filter.
+            return "";
+        }
+    );
+    
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
-        [&output_stream](std::string s) { output_stream.write(s); }
+        [&output_stream](std::string s) { if (!s.empty()) output_stream.write(s); } // Orca: filter out empty string lines generated upstream
     );
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
@@ -2920,13 +2999,13 @@ void GCode::process_layers(
 
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase && m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & spiral_mode & pressure_equalizer & cooling & fan_mover & output);
+        tbb::parallel_pipeline(12, generator & spiral_mode & pressure_equalizer & cooling & fan_mover & layer_time_smoothing & output);
     else if (m_spiral_vase)
-    	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & layer_time_smoothing & output);
     else if	(m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & output);
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & layer_time_smoothing & output);
     else
-    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & layer_time_smoothing & output);
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
