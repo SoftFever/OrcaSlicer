@@ -4010,18 +4010,7 @@ void SelectMachineDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, T
     m_cur_no_light_thumbnail_data = no_light_data;
     clone_thumbnail_data();
     MaterialHash::iterator iter               = m_materialList.begin();
-    bool                   is_connect_printer = true;
-    while (iter != m_materialList.end()) {
-        int           id   = iter->first;
-        Material *    item = iter->second;
-        MaterialItem *m    = item->item;
-        if (m->m_ams_name == "-") {
-            is_connect_printer = false;
-            break;
-        }
-        iter++;
-    }
-    if (is_connect_printer) {
+    if (m_cur_colors_in_thumbnail.size() > 0) {
         change_default_normal(-1, wxColour());
         final_deal_edge_pixels_data(m_preview_thumbnail_data);
         set_default_normal(m_preview_thumbnail_data);
