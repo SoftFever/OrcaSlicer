@@ -15,8 +15,8 @@
         "Bambu PLA Basic @BBL H2D"
     ],
     "default_nozzle_volume_type": [
-        "High Flow",
-        "High Flow"
+        "Standard",
+        "Standard"
     ],
     "default_print_profile": "0.20mm Standard @BBL H2D",
     "deretraction_speed": [
