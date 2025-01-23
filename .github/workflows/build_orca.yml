@@ -216,8 +216,8 @@ jobs:
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
-          asset_path: ${{ github.workspace }}/build/OrcaSlicer
-          asset_name: OrcaSlicer_Windows_${{ env.ver }}_portable
+          asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
+          asset_name: OrcaSlicer_Windows_${{ env.ver }}_portable.zip
           asset_content_type: application/x-zip-compressed
           max_releases: 1
 
