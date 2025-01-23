@@ -1467,9 +1467,9 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
         std::string nozzle_name = nozzle_name_list[idx];
         std::string model_prefix;
         if ((idx == 0 && left_unprintable_objects.size() > 1) || (idx == 1 && right_unprintable_objects.size() > 1))
-            model_prefix = (boost::format(_u8L("The position or size of some models exceed the %s's printable range.")) % nozzle_name).str();
+            model_prefix = (boost::format(_u8L("The position or size of some models exceeds the %s's printable range.")) % nozzle_name).str();
         else
-            model_prefix = (boost::format(_u8L("The position or size of the model %s exceed the %s's printable range."))
+            model_prefix = (boost::format(_u8L("The position or size of the model %s exceeds the %s's printable range."))
                            %object_result.object_filaments.front().object->name % nozzle_name).str();
         tips[idx] += model_prefix;
 
