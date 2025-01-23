@@ -301,7 +301,7 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
             "Preset provided does not have a valid Spoolman spool ID"); // IDs below 1 are not used by spoolman and should be ignored
         return result;
     }
-    SpoolmanSpoolShrPtr& spool = get_instance()->m_spools[spool_id];
+    SpoolmanSpoolShrPtr spool = get_instance()->get_spoolman_spool_by_id(spool_id);
     if (!spool) {
         result.messages.emplace_back("The spool ID does not exist in the local spool cache");
         return result;
