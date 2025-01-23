@@ -57,7 +57,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_printer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
 
     m_printer_img->SetBitmap(m_img_printer.bmp());
-    m_ota_sizer->Add(m_printer_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    m_ota_sizer->Add(m_printer_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
 
     wxBoxSizer *m_ota_content_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -405,8 +405,8 @@ void MachineInfoPanel::msw_rescale()
 void MachineInfoPanel::init_bitmaps()
 {
     m_img_printer        = ScalableBitmap(this, "printer_thumbnail", 160);
-    m_img_monitor_ams    = ScalableBitmap(this, "monitor_upgrade_ams", 200);
-    m_img_ext            = ScalableBitmap(this, "monitor_upgrade_ext", 200);
+    m_img_monitor_ams    = ScalableBitmap(this, "monitor_upgrade_ams", 160);
+    m_img_ext            = ScalableBitmap(this, "monitor_upgrade_ext", 160);
     if (wxGetApp().dark_mode()) {
         m_img_air_pump = ScalableBitmap(this, "air_pump_dark", 160);
         m_img_extra_ams = ScalableBitmap(this, "extra_icon_dark", 160);
