@@ -27,6 +27,9 @@
 // ORCA: post processor below used for Dynamic Pressure advance
 #include "GCode/AdaptivePAProcessor.hpp"
 
+// ORCA: post processor below used for layer time smoothing
+#include "GCode/LayerTimeSmoothingProcessor.hpp"
+
 #include <memory>
 #include <map>
 #include <set>
@@ -563,6 +566,8 @@ private:
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
     
     std::unique_ptr<AdaptivePAProcessor>      m_pa_processor;
+    
+    std::unique_ptr<LayerTimeSmoothingProcessor>      m_layer_time_smoothing_processor;
 
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 

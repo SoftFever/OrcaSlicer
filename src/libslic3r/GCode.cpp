@@ -2157,6 +2157,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Orca: Initialise AdaptivePA processor filter
     m_pa_processor = std::make_unique<AdaptivePAProcessor>(*this, tool_ordering.all_extruders());
 
+    // Orca: Initialise Layer Time Smoothing processor filter
+    m_layer_time_smoothing_processor = std::make_unique<LayerTimeSmoothingProcessor>(*this, tool_ordering.all_extruders());
+    
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print);
 
@@ -2807,35 +2810,28 @@ void GCode::process_layers(
     // Orca: Layer time smoothing filter. Collects all layers in a static vector to enable
     // previous layer loop back.
     const auto layer_time_smoothing = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [this, total_layers = layers_to_print.size()](std::string in) -> std::string {
+            [&lts_processor = *this->m_layer_time_smoothing_processor, total_layers = layers_to_print.size()](std::string in) -> std::string {
             // Static storage for collected layers
-            static std::vector<std::string> collected_layers;
+            static std::vector<std::string> collected_layers_gcode;
+            static std::vector<float> layer_times;
             static size_t processed_layers = 0;
 
-            // Collect the current layer
-            collected_layers.push_back(std::move(in));
+            // Collect the current layer and extract baseline layer time.
+            // Store in two vectors, one for the layer time and one for the layer gcode.
+            layer_times.push_back(lts_processor.extract_layer_time(in));
+            collected_layers_gcode.push_back(std::move(in));
             ++processed_layers;
 
             // If this is the last layer, process and return the batch
             if (processed_layers == total_layers) {
-                std::string processed_batch;
-                // TODO: Remove debug comments
-                printf("Object layers gathered!\n");
-                
-                // TODO: Create processing function taking the collected layers vector and applying layer time smoothing
-                // TODO: by adjusting extrusion speed.
-                // TODO: The below for loop will be replaced by the above function
-                for (const auto& layer : collected_layers) {
-                    processed_batch += layer + "\n"; // Add newline or a delimiter as needed
-                }
-
+                std::string processed_gcode;
+                processed_gcode = lts_processor.process_layers(collected_layers_gcode, layer_times);
                 // Clear the collected layers for any subsequent calls
-                collected_layers.clear();
+                collected_layers_gcode.clear();
+                layer_times.clear();
                 processed_layers = 0;
-
-                // TODO: Remove debug comments
-                printf("Object processed!\n");
-                return processed_batch;
+                // return processed gcode
+                return processed_gcode;
             }
 
             // Return an empty string for intermediate layers . This is filtered out in the output filter.
@@ -2873,9 +2869,9 @@ void GCode::process_layers(
     else if (m_spiral_vase)
     	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & layer_time_smoothing & output);
     else if	(m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & pa_processor_filter & layer_time_smoothing & output);
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & layer_time_smoothing & pa_processor_filter & output);
     else
-    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & pa_processor_filter & layer_time_smoothing & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & layer_time_smoothing & pa_processor_filter & output);
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -2940,35 +2936,28 @@ void GCode::process_layers(
     // Orca: Layer time smoothing filter. Collects all layers in a static vector to enable
     // previous layer loop back.
     const auto layer_time_smoothing = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [this, total_layers = layers_to_print.size()](std::string in) -> std::string {
+            [&lts_processor = *this->m_layer_time_smoothing_processor, total_layers = layers_to_print.size()](std::string in) -> std::string {
             // Static storage for collected layers
-            static std::vector<std::string> collected_layers;
+            static std::vector<std::string> collected_layers_gcode;
+            static std::vector<float> layer_times;
             static size_t processed_layers = 0;
 
-            // Collect the current layer
-            collected_layers.push_back(std::move(in));
+            // Collect the current layer and extract baseline layer time.
+            // Store in two vectors, one for the layer time and one for the layer gcode.
+            layer_times.push_back(lts_processor.extract_layer_time(in));
+            collected_layers_gcode.push_back(std::move(in));
             ++processed_layers;
 
             // If this is the last layer, process and return the batch
             if (processed_layers == total_layers) {
-                std::string processed_batch;
-                // TODO: Remove debug comments
-                printf("Object layers gathered!\n");
-                
-                // TODO: Create processing function taking the collected layers vector and applying layer time smoothing
-                // TODO: by adjusting extrusion speed.
-                // TODO: The below for loop will be replaced by the above function
-                for (const auto& layer : collected_layers) {
-                    processed_batch += layer + "\n"; // Add newline or a delimiter as needed
-                }
-
+                std::string processed_gcode;
+                processed_gcode = lts_processor.process_layers(collected_layers_gcode, layer_times);
                 // Clear the collected layers for any subsequent calls
-                collected_layers.clear();
+                collected_layers_gcode.clear();
+                layer_times.clear();
                 processed_layers = 0;
-
-                // TODO: Remove debug comments
-                printf("Object processed!\n");
-                return processed_batch;
+                // return processed gcode
+                return processed_gcode;
             }
 
             // Return an empty string for intermediate layers . This is filtered out in the output filter.

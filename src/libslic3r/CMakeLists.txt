@@ -163,6 +163,8 @@ set(lisbslic3r_sources
     GCode/AdaptivePAInterpolator.hpp
     GCode/AdaptivePAProcessor.cpp
     GCode/AdaptivePAProcessor.hpp
+    GCode/LayerTimeSmoothingProcessor.cpp
+    GCode/LayerTimeSmoothingProcessor.hpp
     GCode/SpiralVase.cpp
     GCode/SpiralVase.hpp
     GCode/SeamPlacer.cpp

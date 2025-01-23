@@ -324,7 +324,8 @@ std::string CoolingBuffer::process_layer(std::string &&gcode, size_t layer_id, b
         m_gcode.clear();
         // ORCA: Insert custom gcode tag containing adjusted layer time after slowdown is applied.
         char buf[64];
-        sprintf(buf, ";LAYER_TIME_ADJ:%d\n", int(layer_time_stretched));
+        sprintf(buf, ";LAYER_TIME_ESTIMATE:%.2f\n", layer_time_stretched);
+        out += "; LayerID: " + std::to_string(layer_id) +"\n";
         out += buf;
     }
     return out;
