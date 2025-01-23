@@ -2285,7 +2285,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Category");
     def->tooltip  = L("Filament category");
     def->min      = 0;
-    def->mode     = comAdvanced;
+    def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionInts{0});
 
     def = this->add("filament_loading_speed", coFloats);

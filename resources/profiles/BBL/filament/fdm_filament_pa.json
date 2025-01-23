@@ -85,6 +85,9 @@
     "textured_plate_temp_initial_layer": [
         "100"
     ],
+    "filament_category": [
+        "400"
+    ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"
     ]
