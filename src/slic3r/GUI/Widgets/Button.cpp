@@ -241,6 +241,8 @@ void Button::Rescale()
 
     if(m_has_style)
         SetStyle(m_style, m_type);
+
+    Refresh();
 }
 
 void Button::paintEvent(wxPaintEvent& evt)

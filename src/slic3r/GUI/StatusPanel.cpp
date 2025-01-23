@@ -1647,7 +1647,7 @@ wxPanel *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_10->SetBorderColor(z_10_ctrl_bd);
     m_bpButton_z_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
-    m_bpButton_z_10->SetMaxSize(Z_BUTTON_SIZE);
+    m_bpButton_z_10->SetSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
     m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_1->SetFont(::Label::Body_12);
@@ -1655,7 +1655,7 @@ wxPanel *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
     m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
     m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);
-    m_bpButton_z_1->SetMaxSize(Z_BUTTON_SIZE);
+    m_bpButton_z_1->SetSize(Z_BUTTON_SIZE);
     m_bpButton_z_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
 
     //bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
@@ -1683,11 +1683,11 @@ wxPanel *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_down_10->SetSize(Z_BUTTON_SIZE);
     m_bpButton_z_down_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
 
-    bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL, 0);
-    bSizer_z_ctrl->Add(m_bpButton_z_1, 0, wxEXPAND | wxALL, 0);
-    bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(17));
-    bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL, 0);
-    bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxEXPAND | wxALL, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_1, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(2));
+    bSizer_z_ctrl->Add(m_staticText_z_tip, 0, wxALIGN_CENTRE, FromDIP(5));
+    bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(2));
+    bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
 
     panel->SetSizer(bSizer_z_ctrl);
     panel->Layout();
@@ -5049,6 +5049,10 @@ void StatusPanel::msw_rescale()
     //m_switch_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     //m_switch_fan->Rescale();
 
+    m_bpButton_z_10->Rescale();
+    m_bpButton_z_1->Rescale();
+    m_bpButton_z_down_1->Rescale();
+    m_bpButton_z_down_10->Rescale();
 
     m_ams_control->msw_rescale();
     // m_filament_step->Rescale();
