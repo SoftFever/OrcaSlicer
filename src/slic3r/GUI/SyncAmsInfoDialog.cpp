@@ -4305,8 +4305,7 @@ void SyncNozzleAndAmsDialog::deal_ok() {
 
 void SyncNozzleAndAmsDialog::deal_cancel()
 {
-    //m_move_to_target_gradual_disappearance = true;
-    call_start_gradual_disappearance();
+    on_hide();
 }
 
 void SyncNozzleAndAmsDialog::update_info(InputInfo &info) {
@@ -4333,7 +4332,7 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(InputInfo &input_info)
 FinishSyncAmsDialog::~FinishSyncAmsDialog() {}
 
 void FinishSyncAmsDialog::deal_ok() {
-    call_start_gradual_disappearance();
+    on_hide();
 }
 
 void FinishSyncAmsDialog::update_info(InputInfo &info)

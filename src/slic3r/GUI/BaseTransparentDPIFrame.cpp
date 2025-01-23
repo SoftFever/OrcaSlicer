@@ -199,10 +199,12 @@ void BaseTransparentDPIFrame::on_timer(wxTimerEvent &event)
 
 void BaseTransparentDPIFrame::call_start_gradual_disappearance()//for ok or cancel button
 {
-    m_enter_window_valid = false;
-    m_display_stage      = 1;
-    m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
-    start_gradual_disappearance();
+    if (m_enter_window_valid) {
+        m_enter_window_valid = false;
+        m_display_stage      = 1;
+        m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
+        start_gradual_disappearance();
+    }
 }
 
 void BaseTransparentDPIFrame::restart() {
