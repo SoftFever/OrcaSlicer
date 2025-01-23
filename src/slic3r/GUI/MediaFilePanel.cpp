@@ -255,7 +255,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     m_button_management->Enable(false);
     SetSelecting(false);
     if (m_machine.empty()) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Please confirm if the printer is connected."));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         fs->Attached();
@@ -296,7 +296,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             switch (status) {
             case PrinterFileSystem::Initializing: icon = m_bmp_loading; msg = _L("Initializing..."); break;
             case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
-            case PrinterFileSystem::Failed: icon = m_bmp_failed; if (extra != 1) msg = _L("Connect failed [%d]!"); break;
+            case PrinterFileSystem::Failed: icon = m_bmp_failed; if (extra != 1) msg = _L("Please check the network and try again, You can restart or update the printer if the issue persists."); break;
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
             case PrinterFileSystem::ListReady: icon = extra == 0 ? m_bmp_empty : m_bmp_failed; msg = extra == 0 ? _L("No files") : _L("Load failed"); break;
             }
@@ -310,7 +310,6 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             if (e.GetInt() == PrinterFileSystem::Initializing)
                 fetchUrl(boost::weak_ptr(fs));
 
-            err = fs->GetLastError();
             if ((status == PrinterFileSystem::Failed && m_last_errors.find(err) == m_last_errors.end()) ||
                 status == PrinterFileSystem::ListReady) {
                 m_last_errors.insert(fs->GetLastError());
@@ -429,7 +428,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     if (!fs || fs != m_image_grid->GetFileSystem()) return;
     if (!IsEnabled()) {
         m_waiting_enable = true;
-        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Device connection not ready)!"));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Please confirm if the printer is connected."));
         fs->SetUrl("0");
         return;
     }
@@ -441,7 +440,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     if (!m_sdcard_exist) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Storage unavailable, insert SD card.)!"));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Please check if the SD card is inserted into the printer.\nIf it still cannot be read, you can try formatting the SD card."));
         fs->SetUrl("0");
         return;
     }
@@ -495,9 +494,9 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;
                 if (boost::algorithm::starts_with(url, "bambu:///")) {
-                    fs->SetUrl(url + "&device=" + m + "&dev_ver=" + v);
+                    fs->SetUrl(url);
                 } else {
-                    m_image_grid->SetStatus(m_bmp_failed, wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
+                    m_image_grid->SetStatus(m_bmp_failed, _L("Connection Failed. Please check the network and try again"));
                     fs->SetUrl("3");
                 }
             });

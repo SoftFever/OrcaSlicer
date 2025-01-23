@@ -8,9 +8,11 @@
 #ifndef MediaFilePanel_h
 #define MediaFilePanel_h
 
+#include <set>
+
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
-#include <set>
+
 #include <wx/frame.h>
 
 class Button;

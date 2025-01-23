@@ -638,7 +638,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
             }
         });
     }
-    
+
     if (!file_version_newer) {
         m_later_btn = new Button(this, _L("Not for now"));
         m_later_btn->SetBackgroundColor(btn_bg_white);
@@ -671,7 +671,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
 
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
-    
+
     wxBoxSizer* sizer_bacis_text = new wxBoxSizer(wxVERTICAL);
 
     m_text_basic = new Label(this, _L("The server is unable to respond. Please click the link below to check the server status."));
@@ -702,7 +702,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     m_text_proposal->Wrap(FromDIP(470));
     m_text_proposal->SetFont(::Label::Body_14);
     m_text_proposal->SetForegroundColour(0x323A3C);
-    
+
     m_text_wiki = new wxHyperlinkCtrl(this, wxID_ANY, _L("How to use LAN only mode"), "");
     m_text_wiki->SetFont(::Label::Body_13);
     m_text_wiki->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_lan_only_wiki(); });
@@ -719,7 +719,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     checkbox->SetValue(false);
 
 
-    auto checkbox_title = new Label(this, _L("Dont't show this dialog again"));
+    auto checkbox_title = new Label(this, _L("Don't show this dialog again"));
     checkbox_title->SetForegroundColour(0x323A3C);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(-1);

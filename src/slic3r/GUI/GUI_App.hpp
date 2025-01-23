@@ -1,13 +1,6 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
-#include <wx/app.h>
-#include <wx/colour.h>
-#include <wx/font.h>
-#include <wx/string.h>
-#include <wx/snglinst.h>
-#include <wx/msgdlg.h>
-
 #include <memory>
 #include <string>
 #include "ImGuiWrapper.hpp"
@@ -25,6 +18,13 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
+
+#include <wx/app.h>
+#include <wx/colour.h>
+#include <wx/font.h>
+#include <wx/string.h>
+#include <wx/snglinst.h>
+#include <wx/msgdlg.h>
 
 #include <mutex>
 #include <stack>
@@ -275,7 +275,7 @@ private:
 	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     std::string m_instance_hash_string;
-	    size_t m_instance_hash_int;
+	size_t m_instance_hash_int;
 
     std::unique_ptr<Downloader> m_downloader;
 
@@ -310,8 +310,8 @@ private:
     HttpServer       m_http_server;
     bool             m_show_gcode_window{true};
     boost::thread    m_check_network_thread;
-  public:
-      //try again when subscription fails
+public:
+    //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
@@ -557,7 +557,7 @@ private:
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
-    GizmoObjectManipulation*  obj_manipul();
+    GizmoObjectManipulation *obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
     ObjectLayers*        obj_layers();

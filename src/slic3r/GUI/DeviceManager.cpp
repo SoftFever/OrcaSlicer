@@ -2668,7 +2668,6 @@ std::string MachineObject::setting_id_to_type(std::string setting_id, std::strin
         if (type.empty()) { type = tray_type; }
         BOOST_LOG_TRIVIAL(info) << "The values of tray_info_idx and tray_type do not match tray_info_idx " << setting_id << " tray_type " << tray_type << " system_type" << type;
     }
-
     return type;
 }
 
@@ -2700,7 +2699,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
         if (j_pre.empty()) {
             return 0;
         }
-
         if (j_pre.contains("print")) {
             if (m_active_state == NotActive) m_active_state = Active;
             if (j_pre["print"].contains("command")) {
@@ -3083,9 +3081,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 }
             }
 
-
             if (jj.contains("command")) {
-
                 if (jj["command"].get<std::string>() == "ams_change_filament") {
                     if (jj.contains("errno")) {
                         if (jj["errno"].is_number()) {
@@ -3117,8 +3113,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                     }
                 }
-
-
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
                     last_push_time = last_update_time;
@@ -3283,7 +3277,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (jj.contains("project_id")
                         && jj.contains("profile_id")
                         && jj.contains("subtask_id")
-                        ){
+                        ) {
                         obj_subtask_id = jj["subtask_id"].get<std::string>();
 
                         int plate_index = -1;
@@ -3313,7 +3307,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                         }
                     }
-
 
 #pragma endregion
 
@@ -3584,13 +3577,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     && jj["upgrade_state"]["dis_state"].get<int>() == 3) {
                                     GUI::wxGetApp().CallAfter([this] {
                                         this->command_get_version();
-                                    });
+                                        });
                                 }
                                 if (upgrade_display_hold_count > 0)
                                     upgrade_display_hold_count--;
                                 else
                                     upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
-                            } else {
+                            }
+                            else {
                                 if (upgrade_display_hold_count > 0)
                                     upgrade_display_hold_count--;
                                 else {
@@ -3641,7 +3635,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                                     new_ver_list.insert(std::make_pair(ver_info.name, ver_info));
                                 }
-                            } else {
+                            }
+                            else {
                                 new_ver_list.clear();
                             }
                         }
@@ -5331,6 +5326,8 @@ void DeviceManager::check_pushing()
     }
 }
 
+
+
 void DeviceManager::on_machine_alive(std::string json_str)
 {
     try {
@@ -5855,7 +5852,7 @@ void DeviceManager::parse_user_print_info(std::string body)
             }
         }
     }
-    catch (std::exception&) {
+    catch (std::exception& e) {
         ;
     }
 }
@@ -6094,15 +6091,11 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
             {
                 vendor = prohibited_filament["vendor"].get<std::string>();
                 type = prohibited_filament["type"].get<std::string>();
-
-		if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
-
-		    action = "warning";
-		}
-                else {
-
-		    action = prohibited_filament["action"].get<std::string>();
-		}
+                if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
+                    action = "warning";
+                } else {
+                    action = prohibited_filament["action"].get<std::string>();
+                }
                 description = prohibited_filament["description"].get<std::string>();
 
                 description = blacklist_prompt[description].ToUTF8().data();

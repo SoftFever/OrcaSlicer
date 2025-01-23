@@ -1028,7 +1028,7 @@ void GUI_App::post_init()
                        std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
                        files_vec.push_back({ lw_t, temp_path.filename().string() });
                    }
-               } catch (const std::exception &ex) {
+               } catch (const std::exception &) {
                }
            }
            std::sort(files_vec.begin(), files_vec.end(), [](
