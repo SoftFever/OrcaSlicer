@@ -18,6 +18,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "fast_float/fast_float.h"
+#include <wx/dir.h>
 
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
