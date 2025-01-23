@@ -1527,18 +1527,13 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_printer_bed = new ComboBox(p->panel_printer_bed, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY | wxALIGN_CENTER_HORIZONTAL);
         p->combo_printer_bed->SetBorderWidth(0);
         p->combo_printer_bed->GetDropDown().SetUseContentWidth(true);
-        const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
-        if (bed_type_def && bed_type_def->enum_keys_map) {
-            for (auto item : bed_type_def->enum_labels) {
-                p->combo_printer_bed->AppendString(_L(item));
-            }
-        }
+        reset_bed_type_combox_choices();
 
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
-            int selection = p->combo_printer_bed->GetSelection();
-            bool isDual    = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(selection + 1)], this, isDual ? 48 : 32));
-            e.Skip();//fix bug:Event spreads to sidebar
+            auto select_bed_type = get_cur_select_bed_type();
+            bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, isDual ? 48 : 32));
+            e.Skip(); // fix bug:Event spreads to sidebar
         });
 
         {
@@ -2043,6 +2038,7 @@ void Sidebar::update_all_preset_comboboxes()
         p->combo_printer_bed->Enable();
         // Orca: don't update bed type if loading project
         if (!p->plater->is_loading_project()) {
+            reset_bed_type_combox_choices();
             auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
                                                                            "curr_bed_type");
             if (!str_bed_type.empty()) {
@@ -2167,13 +2163,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         bool is_dual_extruder = nozzle_diameter->size() == 2;
         p->layout_printer(isBBL, is_dual_extruder);
+        auto select_bed_type = get_cur_select_bed_type();
         if (is_dual_extruder) {
             AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
             AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 48));
+
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, 48));
         } else {
             AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 32));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, 32));
         }
 
         if (GUI::wxGetApp().plater())
@@ -2224,6 +2222,47 @@ void Sidebar::update_presets_from_to(Slic3r::Preset::Type preset_type, std::stri
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": exit!");
 }
 
+BedType Sidebar::get_cur_select_bed_type() {
+    int selection = p->combo_printer_bed->GetSelection();
+    if (selection < 0 && selection >= m_cur_combox_bed_types.size()) {
+        p->combo_printer_bed->SetSelection(0);
+        selection = 0;
+    }
+    auto select_bed_type = m_cur_combox_bed_types[selection];
+    return select_bed_type;
+}
+
+void  Sidebar::reset_bed_type_combox_choices() {
+    if (!p->combo_printer_bed) { return; }
+    auto                               bundle = wxGetApp().preset_bundle;
+    const Preset *                     curr   = &bundle->printers.get_selected_preset();
+    const VendorProfile::PrinterModel *pm     = PresetUtils::system_printer_model(*curr);
+
+    const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
+    p->combo_printer_bed->Clear();
+    m_cur_combox_bed_types.clear();
+    if (pm &&bed_type_def && bed_type_def->enum_keys_map) {
+        int index = 0;
+        for (auto item : bed_type_def->enum_labels) {
+            index++;
+            bool find = std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), item) != pm->not_support_bed_types.end();
+            if (find) {
+                continue;
+            }
+            m_cur_combox_bed_types.emplace_back(BedType(index));//BedType //btPC =1
+            p->combo_printer_bed->AppendString(_L(item));
+        }
+    }
+    else {
+        int index = 0;
+        for (auto item : bed_type_def->enum_labels) {
+            index++;
+            m_cur_combox_bed_types.emplace_back(BedType(index)); // BedType //btPC =1
+            p->combo_printer_bed->AppendString(_L(item));
+        }
+    }
+}
+
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 {
     // BBS
@@ -2246,7 +2285,8 @@ void Sidebar::msw_rescale()
     p->btn_edit_printer->msw_rescale();
     p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
     bool isDual = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
-    p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 48));
+    auto select_bed_type = get_cur_select_bed_type();
+    p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, 48));
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
@@ -3344,6 +3384,7 @@ struct Plater::priv
 {
     // PIMPL back pointer ("Q-Pointer")
     Plater *q;
+    Sidebar *  sidebar;
     MainFrame *main_frame;
 
     MenuFactory menus;
@@ -3366,7 +3407,7 @@ struct Plater::priv
     wxString m_default_window_layout;
     wxPanel* current_panel{ nullptr };
     std::vector<wxPanel*> panels;
-    Sidebar *sidebar;
+
     struct SidebarLayout
     {
         bool                  is_enabled{false};
@@ -7772,8 +7813,8 @@ void Plater::priv::on_combobox_select(wxCommandEvent &evt)
 void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
 {
     ComboBox* combo = static_cast<ComboBox*>(evt.GetEventObject());
-    int selection = combo->GetSelection();
-    std::string bed_type_name = print_config_def.get("curr_bed_type")->enum_values[selection];
+    auto        select_bed_type = sidebar->get_cur_select_bed_type();
+    std::string bed_type_name = print_config_def.get("curr_bed_type")->enum_values[(int)select_bed_type - 1];
 
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     DynamicPrintConfig& proj_config = wxGetApp().preset_bundle->project_config;

@@ -77,7 +77,9 @@ ComboBox::ComboBox(wxWindow *parent,
     for (int i = 0; i < n; ++i) Append(choices[i]);
 }
 
-int ComboBox::GetSelection() const { return drop.GetSelection(); }
+int ComboBox::GetSelection() const {
+    return drop.GetSelection();
+}
 
 void ComboBox::SetSelection(int n)
 {

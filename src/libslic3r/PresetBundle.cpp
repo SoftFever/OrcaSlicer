@@ -3252,6 +3252,18 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                         ++m_errors;
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid default_materials %1% for Vendor %1%") % default_materials_field % vendor_name;
                     }
+                } else if (boost::iequals(it.key(), BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE)) {
+                    // get machine list
+                    std::string not_support_bed_type_field = it.value();
+                    if (Slic3r::unescape_strings_cstyle(not_support_bed_type_field, model.not_support_bed_types)) {
+                        Slic3r::sort_remove_duplicates(model.not_support_bed_types);
+                        if (!model.not_support_bed_types.empty() && model.not_support_bed_types.front().empty())
+                            // An empty material was inserted into the list of default materials. Remove it.
+                            model.not_support_bed_types.erase(model.not_support_bed_types.begin());
+                    } else {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                                 << boost::format(": invalid not_support_bed_types %1% for Vendor %1%") % not_support_bed_type_field % vendor_name;
+                    }
                 }
             }
         }
