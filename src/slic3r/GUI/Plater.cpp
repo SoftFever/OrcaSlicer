@@ -2572,20 +2572,13 @@ void Sidebar::add_custom_filament(wxColour new_col) {
 bool Sidebar::is_new_project_in_gcode3mf()
 {
     if (p->plater->using_exported_file()) {
-        ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"));
-        bool                    is_cancle = true;
-        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &is_cancle](wxCommandEvent &e) {
-            is_cancle = false;
-            });
-        confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
-        auto filename = p->plater->get_preview_only_filename();
-        auto text     = wxString::Format(_L("After completing your operation, %s project will be closed and create a new project. Do you want to continue?"), filename);
-        confirm_dlg.update_text(text);
-        confirm_dlg.on_show();
-        if (!is_cancle) {
-            p->plater->new_project();
-        }
-        return is_cancle;
+        auto          filename = p->plater->get_preview_only_filename();
+        auto          text     = wxString::Format(_L("After completing your operation, %s project will be closed and create a new project."), filename);
+        MessageDialog dlg(wxGetApp().plater(), text, _L("Warning"),
+                          wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+        p->plater->new_project();
+        return true;
     }
     return false;
 }
@@ -10291,13 +10284,16 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
 {
     bool transfer_preset_changes = false;
     // BBS: save confirm
-    auto check = [&transfer_preset_changes](bool yes_or_no) {
+    auto check = [this,&transfer_preset_changes](bool yes_or_no) {
         wxString header = _L("Some presets are modified.") + "\n" +
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
                 _L("You can keep the modified presets to the new project, discard or save changes as new presets."));
         int act_buttons = ActionButtons::KEEP | ActionButtons::REMEMBER_CHOISE;
         if (!yes_or_no)
             act_buttons |= ActionButtons::SAVE;
+        if (m_exported_file) { //.gcode.3mf ignore presets modify
+            m_exported_file = false;
+        }
         return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons, &transfer_preset_changes);
     };
     int result;
