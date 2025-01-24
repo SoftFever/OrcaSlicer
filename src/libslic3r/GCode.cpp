@@ -5101,7 +5101,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     const auto get_sloped_z = [&sloped, this](double z_ratio) {
         const auto height = sloped->height;
-        return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
+        const auto z_offset = sloped->z_offset;
+        return lerp(m_nominal_z + z_offset * height - height, m_nominal_z + z_offset * height, z_ratio);
     };
 
     // go to first point of extrusion path
@@ -5112,7 +5113,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             path.first_point(),
             path.role(),
             "move to first " + description + " point",
-            sloped == nullptr ? DBL_MAX : get_sloped_z(sloped->slope_begin.z_ratio)
+            sloped == nullptr ? m_nominal_z + path.z_offset * path.height : get_sloped_z(sloped->slope_begin.z_ratio)
         );
         m_need_change_layer_lift_z = false;
     }
@@ -5182,7 +5183,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // calculate extrusion length per distance unit
-    auto _mm3_per_mm = path.mm3_per_mm * this->config().print_flow_ratio;
+    auto _mm3_per_mm = path.mm3_per_mm * path.extrusion_multiplier * this->config().print_flow_ratio;
     if (path.role() == erTopSolidInfill)
         _mm3_per_mm *= m_config.top_solid_infill_flow_ratio;
     else if (path.role() == erBottomSurface)

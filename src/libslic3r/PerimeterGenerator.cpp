@@ -1258,6 +1258,16 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 }
                 assert(extrusion_loop.paths.front().first_point() == extrusion_loop.paths.back().last_point());
 
+				//This is for staggered layers. 
+				//All odd perimeters are staggerd up by half the layer height                
+                if (extrusion->inset_idx % 2 == 1 && perimeter_generator.print_config->staggered_layers) {
+                    for (size_t path_idx = 0; path_idx < extrusion_loop.paths.size(); path_idx++) {
+                        ExtrusionPath& cur_path = extrusion_loop.paths[path_idx];
+                        if (perimeter_generator.layer_id == 0)
+							cur_path.extrusion_multiplier = 1.5;
+						cur_path.z_offset             = 0.5;
+                    }
+                }
                 extrusion_coll.append(std::move(extrusion_loop));
             }
             else {
@@ -1281,13 +1291,12 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
 				//This is for staggered layers. 
 				//All odd perimeters are staggerd up by half the layer height                
-                if (extrusion->inset_idx % 2 == 1) {
+                if (extrusion->inset_idx % 2 == 1 && perimeter_generator.print_config->staggered_layers) {
                     for (size_t path_idx = 0; path_idx < multi_path.paths.size(); path_idx++) {
-                        ExtrusionPath cur_path = multi_path.paths[path_idx];
+                        ExtrusionPath& cur_path = multi_path.paths[path_idx];
                         if (perimeter_generator.layer_id == 0)
 							cur_path.extrusion_multiplier = 1.5;
-                        else if (perimeter_generator.layer_id > 0)
-							cur_path.z_offset             = 0.5;
+						cur_path.z_offset             = 0.5;
                     }
                 }
 
