@@ -84,10 +84,10 @@
 		"0.4"
 	],
 	"max_layer_height": [
-		"0.32"
+		"0.16"
 	],
 	"min_layer_height": [
-		"0.08"
+		"0.04"
 	],
 	"retraction_minimum_travel": [
 		"2"

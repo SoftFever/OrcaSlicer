@@ -68,14 +68,14 @@ WORKDIR OrcaSlicer
 RUN ./BuildLinux.sh -u
 
 # Build dependencies in ./deps
-RUN ./BuildLinux.sh -d
+RUN ./BuildLinux.sh -dr
 
 # Build slic3r
-RUN ./BuildLinux.sh -s
+RUN ./BuildLinux.sh -sr
 
 # Build AppImage
 ENV container podman
-RUN ./BuildLinux.sh -i
+RUN ./BuildLinux.sh -ir
 
 # It's easier to run Orca Slicer as the same username,
 # UID and GID as your workstation.  Since we bind mount

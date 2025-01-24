@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 23:05+0800\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "PO-Revision-Date: 2024-11-06 21:10+0900\n"
-"Last-Translator: ElectricalBoy <15651807+ElectricalBoy@users.noreply.github."
-"com>\n"
+"Last-Translator: ElectricalBoy "
+"<15651807+ElectricalBoy@users.noreply.github.com>\n"
 "Language-Team: crwusiz@gmail.com\n"
 "Language: ko_KR\n"
 "MIME-Version: 1.0\n"
@@ -1282,9 +1282,6 @@ msgstr "가장자리 중심"
 msgid "Center of circle"
 msgstr "원의 중심"
 
-msgid "ShiftLeft mouse button"
-msgstr "Shift + 왼쪽 마우스 버튼"
-
 msgid "Select feature"
 msgstr "기능 선택"
 
@@ -1300,18 +1297,25 @@ msgstr "다시 선택"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
-msgstr "선택 취소"
+msgid "Cancel a feature until exit"
+msgstr ""
 
 msgid "Measure"
 msgstr "측정"
+
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
 
 msgid "Edit to scale"
 msgstr "규모에 맞게 편집"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "규모"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "없음"
@@ -1324,6 +1328,42 @@ msgstr "길이"
 
 msgid "Selection"
 msgstr "선택"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "클립보드로 복사"
@@ -1339,6 +1379,27 @@ msgstr "직접적인 거리"
 
 msgid "Distance XYZ"
 msgstr "XYZ 거리"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2730,8 +2791,8 @@ msgstr ""
 msgid "About %s"
 msgstr "%s 정보"
 
-msgid "Orca Slicer "
-msgstr "Orca Slicer "
+msgid "Orca Slicer"
+msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr ""
@@ -3532,9 +3593,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "현재 챔버 온도가 재료의 안전 온도보다 높으므로 재료가 부드러워지고 막힐 수 있"
 "습니다. 재료의 최대 안전 온도는 %d입니다"
@@ -4309,7 +4370,7 @@ msgstr "용량:"
 msgid "Size:"
 msgstr "크기:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -5122,8 +5183,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
 "and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf 파일에는 G코드 데이터가 없습니다. OrcaSlicer에서 슬라이스하고 새 ."
-"gcode.3mf 파일을 내보내십시오."
+".gcode.3mf 파일에는 G코드 데이터가 없습니다. OrcaSlicer에서 슬라이스하고 "
+"새 .gcode.3mf 파일을 내보내십시오."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7649,7 +7710,15 @@ msgstr "노즐"
 msgid "Nozzle temperature when printing"
 msgstr "출력 시 노즐 온도"
 
-msgid "Cool plate"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
 msgstr "쿨 플레이트"
 
 msgid ""
@@ -7873,8 +7942,8 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "레이어 높이 한도"
 
-msgid "Lift Z Enforcement"
-msgstr "강제 Z 올리기"
+msgid "Z-Hop"
+msgstr ""
 
 msgid "Retraction when switching material"
 msgstr "재료 전환 시 후퇴"
@@ -9399,9 +9468,9 @@ msgid ""
 msgstr ""
 "Orca Slicer은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 "
 "프린터 호스트 인스턴스의 호스트 이름, IP 주소 또는 URL이 포함되어야 합니다. "
-"기본 인증이 활성화된 HAProxy 뒤의 출력 호스트는 https://username:"
-"password@your-octopi-address/ 형식의 URL에 사용자 이름과 암호를 입력하여 액세"
-"스할 수 있습니다"
+"기본 인증이 활성화된 HAProxy 뒤의 출력 호스트는 https://"
+"username:password@your-octopi-address/ 형식의 URL에 사용자 이름과 암호를 입력"
+"하여 액세스할 수 있습니다"
 
 msgid "Device UI"
 msgstr "장치 UI"
@@ -9532,6 +9601,11 @@ msgstr "초기 레이어"
 
 msgid "Initial layer bed temperature"
 msgstr "초기 레이어 베드 온도"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -11324,8 +11398,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² 또는 %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "드문 채우기 가속도. 값이 백분율 (예. 100%)로 표시되면 기본 가속도를 기준으로 "
 "계산됩니다."
@@ -12540,6 +12614,14 @@ msgstr "레이어 변경 시 후퇴"
 msgid "Force a retraction when changes layer"
 msgstr "레이어 변경 시 강제로 후퇴를 실행합니다"
 
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
+
 msgid "Retraction Length"
 msgstr "후퇴 길이"
 
@@ -12571,8 +12653,8 @@ msgid ""
 "change"
 msgstr "실험적 기능. 필라멘트 교체 시 절단 전 후퇴 길이"
 
-msgid "Z hop when retract"
-msgstr "후퇴 시 Z 올리기"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12602,6 +12684,9 @@ msgid ""
 msgstr ""
 "이 값이 양수인 경우 Z 올리기는 Z가 매개변수 \"Z 올리기 하한 경계\"보다 높고 "
 "이 값보다 낮을 때만 적용됩니다"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr "Z 올리기 유형"
@@ -13926,9 +14011,9 @@ msgid "Idle temperature"
 msgstr "공회전 온도"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 "도구가 현재 다중 도구 설정에서 사용되지 않을 때의 노즐 온도. 이는 출력 설정에"
 "서 '얼룩 방지'가 활성화된 경우에만 사용됩니다. 비활성화하려면 0으로 설정합니"
@@ -16836,6 +16921,107 @@ msgstr ""
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 "
 "높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+#: src/slic3r/GUI/Tab.cpp: 
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "This is a default preset."
+msgstr ""
+
+msgid "This is a system preset."
+msgstr ""
+
+msgid "Current preset is inherited from the default preset."
+msgstr ""
+
+msgid "Current preset is inherited from"
+msgstr ""
+
+msgid "It can't be deleted or modified."
+msgstr ""
+
+msgid "Any modifications should be saved as a new preset inherited from this one."
+msgstr ""
+
+msgid "To do that please specify a new name for the preset."
+msgstr ""
+
+msgid "Additional information:"
+msgstr ""
+
+msgid "vendor"
+msgstr ""
+
+msgid ", ver: "
+msgstr ""
+
+msgid "printer model"
+msgstr ""
+
+msgid "default print profile"
+msgstr ""
+
+msgid "default filament profile"
+msgstr ""
+
+msgid "default SLA material profile"
+msgstr ""
+
+msgid "default SLA print profile"
+msgstr ""
+
+msgid "full profile name"
+msgstr ""
+
+msgid "symbolic profile name"
+msgstr ""
+
+msgid ""
+"A copy of the current system preset will be created, which will be detached from the system preset."
+msgstr ""
+
+msgid ""
+"The current custom preset will be detached from the parent system preset."
+msgstr ""
+
+msgid ""
+"Modifications to the current profile will be saved."
+msgstr ""
+
+msgid ""
+"This action is not revertible.\nDo you want to proceed?"
+msgstr ""
+
+msgid ""
+"Detach preset"
+msgstr ""
+
+
+#~ msgid "ShiftLeft mouse button"
+#~ msgstr "Shift + 왼쪽 마우스 버튼"
+
+#~ msgid "Unselect"
+#~ msgstr "선택 취소"
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "규모"
+
+#~ msgid "Orca Slicer "
+#~ msgstr "Orca Slicer "
+
+#~ msgid "Cool plate"
+#~ msgstr "쿨 플레이트"
+
+#~ msgid "Lift Z Enforcement"
+#~ msgstr "강제 Z 올리기"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "후퇴 시 Z 올리기"
+
 #, no-c-format, no-boost-format
 #~ msgid ""
 #~ "Number of mm the overhang need to be for the reversal to be considered "
@@ -16845,9 +17031,6 @@ msgstr ""
 #~ "반전이 유용한 것으로 간주되기 위해 필요한 오버행의 수(mm)입니다. 둘레 너비"
 #~ "의 %일 수 있습니다.\n"
 #~ "값 0은 관계없이 모든 짝수 레이어에서 반전을 활성화합니다."
-
-#~ msgid "Cool Plate"
-#~ msgstr "쿨 플레이트"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "홀수에 반전"
@@ -17649,10 +17832,10 @@ msgstr ""
 #~ msgstr "위키"
 
 #~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" option."
-#~ "Some extruders work better with this option unchecked (absolute extrusion "
-#~ "mode). Wipe tower is only compatible with relative mode. It is always "
-#~ "enabled on BambuLab printers. Default is checked"
+#~ "Relative extrusion is recommended when using \"label_objects\" "
+#~ "option.Some extruders work better with this option unchecked (absolute "
+#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
+#~ "always enabled on BambuLab printers. Default is checked"
 #~ msgstr ""
 #~ "상대적 압출은 \"label_objects\" 옵션(기타; 개체 이름표)을 사용할 때 권장됩"
 #~ "니다. 일부 압출기는 이 옵션을 해제하면 더 잘 작동합니다(절대 압출 모드). "
@@ -18043,8 +18226,8 @@ msgstr ""
 #~ msgstr "디버그 수준"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
 #~ "디버그 로깅 수준을 설정합니다. 0:치명적, 1:오류, 2:경고, 3:정보, 4:디버"
 #~ "그, 5:추적\n"
