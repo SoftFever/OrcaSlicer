@@ -74,7 +74,7 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     json_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     json_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
-    json_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;"]
+    json_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
 
     // Actions for the chat page (void return)
     void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
