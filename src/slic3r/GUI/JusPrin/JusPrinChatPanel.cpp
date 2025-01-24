@@ -106,6 +106,14 @@ void JusPrinChatPanel::SendModelObjectsChangedEvent() {
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
+void JusPrinChatPanel::SendClassicModeChangedEvent(bool use_classic_mode) {
+    nlohmann::json j = nlohmann::json::object();
+    j["type"] = "classicModeChanged";
+    j["data"] = nlohmann::json::object();
+    j["data"]["useClassicMode"] = use_classic_mode;
+    CallEmbeddedChatMethod("processAgentEvent", j.dump());
+}
+
 // End of Agent events that are processed by the chat panel
 
 
