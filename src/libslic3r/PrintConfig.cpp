@@ -5957,11 +5957,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("prime_tower_brim_width", coFloat);
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Brim width");
-    def->tooltip = L("Brim width of wipe tower, -1 means auto calculated width based on the height of wipe tower.");
+    def->tooltip = L("Brim width of wipe tower, negative number means auto calculated width based on the height of wipe tower.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->mode = comAdvanced;
     def->min = -1;
+    def->enum_values.push_back("-1");
+    def->enum_labels.push_back(L("Auto"));
     def->set_default_value(new ConfigOptionFloat(3.));
 
     def = this->add("wipe_tower_cone_angle", coFloat);
