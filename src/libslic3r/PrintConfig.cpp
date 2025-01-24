@@ -1262,38 +1262,38 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible machine");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
     //BBS.
     def        = this->add("upward_compatible_machine", coStrings);
     def->label = L("upward compatible machine");
-    def->mode  = comDevelop;
+    def->mode  = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli   = ConfigOptionDef::nocli;
 
     def = this->add("compatible_printers_condition", coString);
     def->label = L("Compatible machine condition");
-    //def->tooltip = L("A boolean expression using the configuration values of an active printer profile. "
-    //               "If this expression evaluates to true, this profile is considered compatible "
-    //               "with the active printer profile.");
-    def->mode = comDevelop;
+    def->tooltip = L("A boolean expression using the configuration values of an active printer profile. "
+                  "If this expression evaluates to true, this profile is considered compatible "
+                  "with the active printer profile.");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("compatible_prints", coStrings);
     def->label = L("Compatible process profiles");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("compatible_prints_condition", coString);
     def->label = L("Compatible process profiles condition");
-    //def->tooltip = L("A boolean expression using the configuration values of an active print profile. "
-    //               "If this expression evaluates to true, this profile is considered compatible "
-    //               "with the active print profile.");
-    def->mode = comDevelop;
+    def->tooltip = L("A boolean expression using the configuration values of an active print profile. "
+                  "If this expression evaluates to true, this profile is considered compatible "
+                  "with the active print profile.");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
