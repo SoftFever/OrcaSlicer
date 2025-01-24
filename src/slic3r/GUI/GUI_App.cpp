@@ -3640,10 +3640,7 @@ void GUI_App::set_classic_mode(bool use_classic_mode) {
     app_config->set_bool("use_classic_mode", use_classic_mode);
     app_config->save();
     update_ui_from_settings();
-    if (!use_classic_mode) {
-        // It is still a good idea to reload the chat panel when switched from classic mode. Otherwise there are too many edge cases to handle
-        sidebar().jusprin_chat_panel()->reload();
-    }
+    sidebar().jusprin_chat_panel()->SendClassicModeChangedEvent(use_classic_mode);
 }
 
 // TODO: Remove BBL login

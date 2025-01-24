@@ -29,6 +29,7 @@ public:
     // Agent events that are processed by the chat panel
     void SendAutoOrientEvent(bool canceled);
     void SendModelObjectsChangedEvent();
+    void SendClassicModeChangedEvent(bool use_classic_mode);
 
     // End of Agent events that are processed by the chat panel
 
