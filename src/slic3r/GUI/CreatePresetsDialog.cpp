@@ -542,21 +542,24 @@ static char* read_json_file(const std::string &preset_path)
 }
 
 static std::string get_printer_nozzle_diameter(std::string printer_name) {
+    // Create a lowercase version of the printer_name for case-insensitive search
+    std::string printer_name_lower = printer_name;
+    std::transform(printer_name_lower.begin(), printer_name_lower.end(), printer_name_lower.begin(), ::tolower);
 
-    size_t index = printer_name.find(" nozzle)");
+    size_t index = printer_name_lower.find(" nozzle)");
     if (std::string::npos == index) {
-        size_t index = printer_name.find(" nozzle");
+        size_t index = printer_name_lower.find(" nozzle");
         if (std::string::npos == index) {
             return "";
         }
-        std::string nozzle           = printer_name.substr(0, index);
+        std::string nozzle = printer_name_lower.substr(0, index);
         size_t      last_space_index = nozzle.find_last_of(" ");
         if (std::string::npos == index) {
             return "";
         }
         return nozzle.substr(last_space_index + 1);
     } else {
-        std::string nozzle = printer_name.substr(0, index);
+        std::string nozzle = printer_name_lower.substr(0, index);
         size_t      last_bracket_index = nozzle.find_last_of("(");
         if (std::string::npos == index) {
             return "";

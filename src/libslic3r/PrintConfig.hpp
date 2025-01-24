@@ -52,7 +52,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch,
+    ipLightning, ipCrossHatch, ipQuarterCubic,
     ipCount,
 };
 
@@ -266,7 +266,7 @@ enum BedType {
 // BBS
 enum LayerSeq {
     flsAuto, 
-    flsCutomize
+    flsCustomize
 };
 
 // BBS
@@ -820,6 +820,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
+    ((ConfigOptionFloatOrPercent,      support_threshold_overlap))
     ((ConfigOptionFloat,               support_object_xy_distance))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
@@ -931,6 +932,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
     ((ConfigOptionPercent, ironing_flow))
     ((ConfigOptionFloat, ironing_spacing))
+    ((ConfigOptionFloat, ironing_inset))
     ((ConfigOptionFloat, ironing_direction))
     ((ConfigOptionFloat, ironing_speed))
     ((ConfigOptionFloat, ironing_angle))
@@ -1092,7 +1094,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              time_lapse_gcode))
 
     ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope))
-    ((ConfigOptionInt,               max_volumetric_extrusion_rate_slope_segment_length))
+    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_segment_length))
+    ((ConfigOptionBool,               extrusion_rate_smoothing_external_perimeter_only))
+
     
     ((ConfigOptionPercents,            retract_before_wipe))
     ((ConfigOptionFloats,              retraction_length))
