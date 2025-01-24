@@ -56,7 +56,7 @@ modules:
       - "*.a"
     sources:
       - type: archive
-        url: https://archive.mesa3d.org/mesa-20.2.6.tar.xz
+        url: https://archive.mesa3d.org/older-versions/20.x/mesa-20.2.6.tar.xz
         sha256: f12ca3c6c622f11cd79ad66b4220f04514fa96f795062fe92a37339ab19885db
 
   - name: glu
@@ -265,8 +265,8 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        mkdir -p build && cd build
-        CXXFLAGS=-std=gnu++20 cmake ../ \
+        mkdir -p build
+        CXXFLAGS=-std=gnu++20 cmake . -B build \
           -DSLIC3R_PCH=OFF \
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
@@ -278,7 +278,9 @@ modules:
           -DBBL_RELEASE_TO_PUBLIC=1 \
           -DCMAKE_PREFIX_PATH=/app \
           -DCMAKE_INSTALL_PREFIX=/app
-        CXXFLAGS=-std=gnu++20 cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
+        CXXFLAGS=-std=gnu++20 cmake --build build --target OrcaSlicer -j$FLATPAK_BUILDER_N_JOBS
+        ./run_gettext.sh
+        CXXFLAGS=-std=gnu++20 cmake --build build --target install -j$FLATPAK_BUILDER_N_JOBS
 
     cleanup:
       - /include
