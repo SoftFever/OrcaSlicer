@@ -1759,23 +1759,8 @@ bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, co
 {
     bool tpu_valid = true;
 
-    if (!tpu_filaments.empty()) {
-        if (tpu_filaments.size() > 1)
-            tpu_valid = false;
-        else if (get_real_filament_map_mode(config) == FilamentMapMode::fmmManual) {
-            if (config.has("master_extruder_id")) {
-                int tpu_filament_id = *tpu_filaments.begin();
-                std::vector<int> filament_map    = get_real_filament_maps(config);
-                int extruder_id = filament_map[tpu_filament_id];
-
-                int master_extruder_id = config.opt_int("master_extruder_id");  // base 1
-                if (master_extruder_id != extruder_id)
-                    tpu_valid = false;
-            }
-        }
-    }
-
-    return tpu_valid;
+    // only support at most 1 tpu
+    return tpu_filaments.size() <=1;
 }
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)

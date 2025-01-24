@@ -9934,11 +9934,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ToolHeightOutside:  text = _u8L("A G-code path goes beyond the max print height."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::TPUPrintableError: {
-        int master_extruder_id = 1;  // main extruder is left or right
-        if (m_config->has("master_extruder_id"))
-            master_extruder_id = m_config->opt_int("master_extruder_id"); // base 1
-        std::string extruder_name = extruder_name_list[master_extruder_id-1];
-        text = (boost::format(_u8L("Only the %s with external filament spool can print TPU")) %extruder_name).str();
+        text = _u8L("Not support printing 2 or more TPU filaments.");
         error = ErrorType::SLICING_ERROR;
         break;
     }
