@@ -139,9 +139,11 @@ void JusPrinPresetConfigUtils::ApplyConfig(const nlohmann::json& item) {
             if (!config) return;
 
             ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::Enable);
-            config->set_deserialize(item.value("key", ""), item["value"], context);
+            const std::string value_str = item["value"].is_string() ? // Can't blindly dump json object to string, otherwise the original string will become "\"value\""
+                item["value"].get<std::string>() : item["value"].dump();
+            config->set_deserialize(item.value("key", ""), value_str, context);
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "ApplyConfig: error applying config " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "ApplyConfig: '" << item.value("key", "") << ":" << item["value"] << "' failed: " << e.what();
         }
     }
 }
