@@ -2037,7 +2037,10 @@ void Sidebar::update_all_preset_comboboxes()
         p->combo_printer_bed->Enable();
         // Orca: don't update bed type if loading project
         if (!p->plater->is_loading_project()) {
-            reset_bed_type_combox_choices();
+            bool has_changed = reset_bed_type_combox_choices();
+            if (m_begin_sync_printer_status && !has_changed) {
+                return;
+            }
             auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
                                                                            "curr_bed_type");
             if (!str_bed_type.empty()) {
@@ -2231,12 +2234,30 @@ BedType Sidebar::get_cur_select_bed_type() {
     return select_bed_type;
 }
 
-void  Sidebar::reset_bed_type_combox_choices() {
-    if (!p->combo_printer_bed) { return; }
+void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
+    for (size_t i = 0; i < m_cur_combox_bed_types.size(); i++) {
+        if (m_cur_combox_bed_types[i] == bed_type) {
+            p->combo_printer_bed->SelectAndNotify(i);
+            return;
+        }
+    }
+    p->combo_printer_bed->SelectAndNotify(0);
+}
+
+bool  Sidebar::reset_bed_type_combox_choices() {
+    if (!p->combo_printer_bed) {
+        return false;
+    }
+
     auto                               bundle = wxGetApp().preset_bundle;
     const Preset *                     curr   = &bundle->printers.get_selected_preset();
     const VendorProfile::PrinterModel *pm     = PresetUtils::system_printer_model(*curr);
-
+    if (m_last_combo_bedtype_count != 0 && pm) {
+        auto cur_count = (int) BedType::btCount - 1 - pm->not_support_bed_types.size();
+        if (cur_count == m_last_combo_bedtype_count) {//no change
+            return false;
+        }
+    }
     const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
     p->combo_printer_bed->Clear();
     m_cur_combox_bed_types.clear();
@@ -2260,6 +2281,8 @@ void  Sidebar::reset_bed_type_combox_choices() {
             p->combo_printer_bed->AppendString(_L(item));
         }
     }
+    m_last_combo_bedtype_count = p->combo_printer_bed->GetCount();
+    return true;
 }
 
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
@@ -3042,11 +3065,13 @@ bool Sidebar::is_multifilament()
 }
 
 void Sidebar::deal_btn_sync() {
+    m_begin_sync_printer_status = true;
     bool only_external_material;
     auto ok = p->sync_extruder_list(only_external_material);
     if (ok) {
         pop_sync_nozzle_and_ams_ialog();
     }
+    m_begin_sync_printer_status = false;
 }
 
 void Sidebar::pop_sync_nozzle_and_ams_ialog() {

@@ -130,6 +130,8 @@ class Sidebar : public wxPanel
     std::shared_ptr<SyncNozzleAndAmsDialog> m_sna_dialog{nullptr};
     std::shared_ptr<FinishSyncAmsDialog>    m_fna_dialog{nullptr};
     std::vector<BedType>                    m_cur_combox_bed_types;
+    int                                     m_last_combo_bedtype_count{0};
+    bool                                    m_begin_sync_printer_status{false};
 
 public:
     enum DockingState
@@ -153,7 +155,8 @@ public:
     //BBS
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
     BedType get_cur_select_bed_type();
-    void reset_bed_type_combox_choices();
+    void set_bed_type_accord_combox(BedType bed_type);
+    bool reset_bed_type_combox_choices();
     void change_top_border_for_mode_sizer(bool increase_border);
     void msw_rescale();
     void sys_color_changed();
