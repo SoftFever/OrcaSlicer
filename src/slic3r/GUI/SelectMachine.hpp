@@ -373,6 +373,7 @@ protected:
     Label*                              m_statictext_ams_msg{ nullptr };
     Label*                              m_txt_change_filament_times{ nullptr };
     Label*                              m_text_printer_msg{ nullptr };
+    Label*                              m_text_printer_msg_tips{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
     wxStaticText*                       m_statictext_finish{nullptr};
@@ -475,6 +476,7 @@ public:
     void stripWhiteSpace(std::string& str);
     void update_ams_status_msg(wxString msg, bool is_warning = false);
     void update_priner_status_msg(wxString msg, bool is_warning = false);
+    void update_printer_status_msg_tips(const wxString& msg_tips);
     void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state, bool show_tips = true);
