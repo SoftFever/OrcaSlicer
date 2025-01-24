@@ -179,8 +179,8 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-		, z_offset(0.0)
-		, extrusion_multiplier(1.0)
+		, z_offset(rhs.z_offset)
+		, extrusion_multiplier(rhs.extrusion_multiplier)
     {}
     ExtrusionPath(ExtrusionPath &&rhs)
         : polyline(std::move(rhs.polyline))
@@ -192,8 +192,8 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-		, z_offset(0.0)
-		, extrusion_multiplier(1.0)
+		, z_offset(rhs.z_offset)
+		, extrusion_multiplier(rhs.extrusion_multiplier)
     {}
     ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs)
         : polyline(polyline)
@@ -205,8 +205,8 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-		, z_offset(0.0)
-		, extrusion_multiplier(1.0)
+		, z_offset(rhs.z_offset)
+		, extrusion_multiplier(rhs.extrusion_multiplier)
     {}
     ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs)
         : polyline(std::move(polyline))
@@ -218,8 +218,8 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-		, z_offset(0.0)
-		, extrusion_multiplier(1.0)
+		, z_offset(rhs.z_offset)
+		, extrusion_multiplier(rhs.extrusion_multiplier)
     {}
 
     ExtrusionPath& operator=(const ExtrusionPath& rhs) {
@@ -232,6 +232,8 @@ public:
         this->overhang_degree = rhs.overhang_degree;
         this->curve_degree = rhs.curve_degree;
         this->polyline = rhs.polyline;
+        this->z_offset = rhs.z_offset;
+        this->extrusion_multiplier = rhs.extrusion_multiplier;
         return *this;
     }
     ExtrusionPath& operator=(ExtrusionPath&& rhs) {
@@ -244,6 +246,8 @@ public:
         this->overhang_degree = rhs.overhang_degree;
         this->curve_degree = rhs.curve_degree;
         this->polyline = std::move(rhs.polyline);
+        this->z_offset = rhs.z_offset;
+        this->extrusion_multiplier = rhs.extrusion_multiplier;
         return *this;
     }
 
