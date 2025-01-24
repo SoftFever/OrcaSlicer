@@ -950,6 +950,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, internal_solid_infill_speed))
     // Detect thin walls.
     ((ConfigOptionBool, detect_thin_wall))
+    //staggered layer checking
+    ((ConfigOptionBool,               staggered_layers))
     ((ConfigOptionFloatOrPercent, top_surface_line_width))
     ((ConfigOptionInt, top_shell_layers))
     ((ConfigOptionFloat, top_shell_thickness))
@@ -1333,7 +1335,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoint,               bed_mesh_probe_distance))
     ((ConfigOptionFloat,               adaptive_bed_mesh_margin))
 
-    ((ConfigOptionBool,               staggered_layers))
 
 )
 
