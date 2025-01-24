@@ -14,7 +14,6 @@
 
 namespace Slic3r { namespace GUI {
 
-
 JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     init_action_handlers();
@@ -74,19 +73,17 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["get_plates"] = &JusPrinChatPanel::handle_get_plates;
     json_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     json_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
+    json_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
+    json_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;"]
 
     // Actions for the chat page (void return)
     void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
-    void_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
-    void_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     void_action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
     void_action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
     void_action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
     void_action_handlers["plater_undo"] = &JusPrinChatPanel::handle_plater_undo;
     void_action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
-    void_action_handlers["refresh_presets"] = &JusPrinChatPanel::handle_refresh_presets;
-    void_action_handlers["refresh_plater_config"] = &JusPrinChatPanel::handle_refresh_plater_config;
 }
 
 
@@ -179,30 +176,17 @@ nlohmann::json JusPrinChatPanel::handle_get_plates(const nlohmann::json& params)
     return j;
 }
 
+nlohmann::json JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
+    return nlohmann::json::object();
+}
+
+nlohmann::json JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
+    return nlohmann::json::object();
+}
+
 // TODO: identify the actions obsolete by v0.3 and flag them as deprecated
-
-void JusPrinChatPanel::handle_refresh_presets(const nlohmann::json& params) {
-    RefreshPresets();
-}
-
-void JusPrinChatPanel::handle_refresh_plater_config(const nlohmann::json& params) {
-    RefreshPlaterConfig();
-}
-
-void JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
-    GUI::wxGetApp().CallAfter([this] {
-        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
-        RefreshPresets();
-    });
-}
-
-void JusPrinChatPanel::handle_add_filaments(const nlohmann::json& params) {
-    GUI::wxGetApp().CallAfter([this] {
-        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
-        RefreshPresets();
-    });
-
-}
 
 nlohmann::json JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
 {
@@ -349,11 +333,6 @@ void JusPrinChatPanel::RefreshPresets() {
     UpdateEmbeddedChatState("presets", allPresetsJson.dump());
 }
 
-void JusPrinChatPanel::RefreshPlaterConfig() {
-    nlohmann::json platerJson = GetPlaterConfigJson();
-    UpdateEmbeddedChatState("platerConfig", platerJson.dump());
-}
-
 void JusPrinChatPanel::RefreshPlaterStatus() {
     nlohmann::json j = nlohmann::json::object();
     Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
@@ -388,7 +367,6 @@ void JusPrinChatPanel::AdvertiseSupportedAction() {
     UpdateEmbeddedChatState("supportedActions", action_handlers_json.dump());
 }
 
-
 void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 {
     m_chat_page_loaded = true;  // If we received an action call, the chat page is loaded and javascript is ready
@@ -399,32 +377,34 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 
     std::string jsonString = std::string(message.mb_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
-    std::string action = jsonObject["action"];
 
     // Determine the appropriate handler based on the presence of "refId"
     if (jsonObject.contains("refId") &&
         !jsonObject["refId"].is_null() &&
         !jsonObject["refId"].get<std::string>().empty()) {
-        auto json_it = json_action_handlers.find(action);
-        if (json_it != json_action_handlers.end()) {
-            try {
-                auto retVal = (this->*(json_it->second))(jsonObject);
-                std::string refId = jsonObject["refId"];
-                nlohmann::json responseJson = {
-                    {"refId", refId},
-                    {"retVal", retVal}
-                };
-                CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
-            } catch (const std::exception& e) {
-                std::string refId = jsonObject["refId"];
-                nlohmann::json responseJson = {
-                    {"refId", refId},
-                    {"error", e.what()}
-                };
-                CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
+        GUI::wxGetApp().CallAfter([this, jsonObject] {
+            auto json_it = json_action_handlers.find(jsonObject["action"]);
+            if (json_it != json_action_handlers.end()) {
+                try {
+                    auto retVal = (this->*(json_it->second))(jsonObject);
+                    std::string refId = jsonObject["refId"];
+                    nlohmann::json responseJson = {
+                        {"refId", refId},
+                        {"retVal", retVal}
+                    };
+                    CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
+                } catch (const std::exception& e) {
+                    std::string refId = jsonObject["refId"];
+                    nlohmann::json responseJson = {
+                        {"refId", refId},
+                        {"error", e.what()}
+                    };
+                    CallEmbeddedChatMethod("setAgentActionRetVal", responseJson.dump());
+                }
             }
-        }
+        });
     } else {
+        std::string action = jsonObject["action"];
         auto void_it = void_action_handlers.find(action);
         if (void_it != void_action_handlers.end()) {
             (this->*(void_it->second))(jsonObject);
