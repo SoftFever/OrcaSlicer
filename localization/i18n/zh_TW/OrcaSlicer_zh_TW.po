@@ -15796,6 +15796,7 @@ msgid ""
 "Did you know that you can use sandwich mode (inner-outer-inner) to improve precision and layer consistency if your model doesn't have very steep overhangs?"
 msgstr ""
 "三明治模式\n"
+
 "你知道嗎？如果模型中沒有太陡峭的懸空區域，可以使用三明治模式\n""（內層-外層-內層）來提升精度並增強層的一致性。"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
@@ -15958,7 +15959,6 @@ msgstr ""
 "減去零件\n"
 "你知道嗎？你可以使用「負零件修飾器」將一個網格從另一個網格中減\n""去。這樣，就能直接在 Orca Slicer 裡輕鬆創建尺寸可調的孔洞。"
 
-
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
 "STEP\n"
@@ -16083,7 +16083,6 @@ msgstr ""
 "避免翹曲\n"
 "你知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度\n""可以降低翹曲的機率。"
 
-
 #: src/slic3r/GUI/Tab.cpp: 
 msgid "Dependencies"
 msgstr "相依項目"
@@ -16163,3 +16162,5 @@ msgstr ""
 msgid ""
 "Detach preset"
 msgstr "解除預設關聯"
+=======
+"你知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度可以降低翹曲的機率。"
