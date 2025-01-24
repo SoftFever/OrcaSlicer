@@ -1,17 +1,12 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
-    "setting_id": "GFB99_MTC_0",
-    "name": "My Generic ABS @MyToolChanger",
+    "filament_id": "GFS99",
+    "setting_id": "GFS99_MTC_0",
+    "name": "Generic PVA @MyToolChanger",
+    "renamed_from": "My Generic PVA @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_abs",
-    "filament_flow_ratio": [
-        "0.926"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
+    "inherits": "Generic PVA @System",
     "filament_cooling_final_speed": [
         "3.5"
     ],

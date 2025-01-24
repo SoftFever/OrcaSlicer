@@ -1,32 +1,32 @@
 {
     "type": "filament",
-    "name": "fdm_filament_pc",
+    "name": "fdm_filament_abs",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
-    "cool_plate_temp" : [
-        "0"
+    "cool_plate_temp": [
+        "105"
     ],
-    "eng_plate_temp" : [
-        "110"
+    "eng_plate_temp": [
+        "105"
     ],
-    "hot_plate_temp" : [
-        "110"
+    "hot_plate_temp": [
+        "105"
     ],
-    "textured_plate_temp" : [
-        "110"
+    "textured_plate_temp": [
+        "105"
     ],
-    "cool_plate_temp_initial_layer" : [
-        "0"
+    "cool_plate_temp_initial_layer": [
+        "105"
     ],
-    "eng_plate_temp_initial_layer" : [
-        "110"
+    "eng_plate_temp_initial_layer": [
+        "105"
     ],
-    "hot_plate_temp_initial_layer" : [
-        "110"
+    "hot_plate_temp_initial_layer": [
+        "105"
     ],
-    "textured_plate_temp_initial_layer" : [
-        "110"
+    "textured_plate_temp_initial_layer": [
+        "105"
     ],
     "slow_down_for_layer_cooling": [
         "1"
@@ -37,11 +37,8 @@
     "fan_cooling_layer_time": [
         "30"
     ],
-    "filament_max_volumetric_speed": [
-        "23.2"
-    ],
     "filament_type": [
-        "PC"
+        "ABS"
     ],
     "filament_density": [
         "1.04"
@@ -50,13 +47,13 @@
         "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "270"
+        "260"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
     ],
     "fan_max_speed": [
-        "60"
+        "80"
     ],
     "fan_min_speed": [
         "10"
@@ -65,24 +62,30 @@
         "25%"
     ],
     "overhang_fan_speed": [
-        "60"
+        "80"
     ],
     "nozzle_temperature": [
-        "280"
-    ],
-    "temperature_vitrification": [
-        "140"
-    ],
-    "nozzle_temperature_range_low": [
         "260"
     ],
+    "temperature_vitrification": [
+        "110"
+    ],
+    "nozzle_temperature_range_low": [
+        "240"
+    ],
     "nozzle_temperature_range_high": [
-        "280"
+        "270"
     ],
     "slow_down_min_speed": [
         "10"
     ],
     "slow_down_layer_time": [
-        "2"
+        "3"
+    ],
+    "filament_flow_ratio": [
+        "0.926"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
     ]
 }
