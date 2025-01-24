@@ -34,7 +34,6 @@ public:
 
     void UpdateOAuthAccessToken();
     void RefreshPresets();
-    void RefreshPlaterConfig();
     void RefreshPlaterStatus();
 
 
@@ -69,10 +68,10 @@ private:
     nlohmann::json handle_get_plates(const nlohmann::json& params);
     nlohmann::json handle_select_preset(const nlohmann::json& params);
     nlohmann::json handle_apply_config(const nlohmann::json& params);
+    nlohmann::json handle_add_printers(const nlohmann::json& params);
+    nlohmann::json handle_add_filaments(const nlohmann::json& params);
 
     // Actions to trigger events in JusPrin
-    void handle_add_printers(const nlohmann::json& params);
-    void handle_add_filaments(const nlohmann::json& params);
     void handle_switch_to_classic_mode(const nlohmann::json& params);
     void handle_show_login(const nlohmann::json& params);
     void handle_start_slicer_all(const nlohmann::json& params);
@@ -82,8 +81,6 @@ private:
 
     // Actions to fetch info to be sent to the web page
     void handle_refresh_oauth_token(const nlohmann::json& params);
-    void handle_refresh_presets(const nlohmann::json& params);
-    void handle_refresh_plater_config(const nlohmann::json& params);
 
     void OnActionCallReceived(wxWebViewEvent& event);
 
@@ -99,6 +96,7 @@ private:
 
     void RunScriptInBrowser(const wxString& script);
     void DiscardCurrentPresetChanges();
+
 };
 
 }} // namespace Slic3r::GUI
