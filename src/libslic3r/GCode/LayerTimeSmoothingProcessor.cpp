@@ -245,6 +245,8 @@ std::string LayerTimeSmoothingProcessor::process_layers(const std::vector<std::s
         std::istringstream layerStream(collected_layers[layerIndex]);
         std::string line;
         
+        bool external_perimeter = false;
+        
         while (std::getline(layerStream, line))
         {
             // Check if this line is a G1 command that might contain an F parameter.
@@ -260,11 +262,20 @@ std::string LayerTimeSmoothingProcessor::process_layers(const std::vector<std::s
                 }
             }
             
+            // Detect outer wall
+            if (tokens.size() >= 1) {
+                if (tokens[0].rfind(";TYPE:Outer", 0) == 0) { // Outer wall
+                    external_perimeter = true;
+                } else if (tokens[0].rfind(";TYPE:", 0) == 0) { // any other feature
+                    external_perimeter = false;
+                }
+            }
+            
             // Case 1: G1 F<number> (2 tokens)
             if (tokens.size() == 2)
             {
                 // tokens[0] == "G1" && tokens[1] == "FNNNN"
-                if (tokens[0] == "G1")
+                if (tokens[0] == "G1" && !external_perimeter) // dont amend the print speed if its an outer wall.
                 {
                     bool feedrateAdjusted = scaleFeedrate(tokens[1], factor);
                     if (feedrateAdjusted)

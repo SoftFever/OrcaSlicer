@@ -32,7 +32,7 @@ private:
     
     float m_current_layer_time;
 
-    constexpr static float MAX_RATIO = 1.30f; // Maximum layer time deviation between layers. TODO: Make this a user defined variable (in the filament profile?)
+    constexpr static float MAX_RATIO = 1.20f; // Maximum layer time deviation between layers. TODO: Make this a user defined variable (in the filament profile?)
     
     // Helper function that calculates the layer time multiplication factors that will be used to multiply the G1 Fx statements with.
     std::vector<float> calculateLayerTimeFactors(const std::vector<float>& layerTimes);
