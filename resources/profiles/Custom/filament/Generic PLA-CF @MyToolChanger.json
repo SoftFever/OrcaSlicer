@@ -7,18 +7,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PLA-CF @System",
-    "filament_flow_ratio": [
-        "0.95"
-    ],
-    "filament_type": [
-        "PLA-CF"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
-    "slow_down_layer_time": [
-        "7"
-    ],
     "filament_cooling_final_speed": [
         "3.5"
     ],

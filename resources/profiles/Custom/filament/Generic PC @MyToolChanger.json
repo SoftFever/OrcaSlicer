@@ -7,12 +7,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PC @System",
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
-    "filament_flow_ratio": [
-        "0.94"
-    ],
     "filament_cooling_final_speed": [
         "3.5"
     ],

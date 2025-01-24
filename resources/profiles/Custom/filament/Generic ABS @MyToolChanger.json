@@ -1,18 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
     "setting_id": "GFB99_MTC_0",
     "name": "Generic ABS @MyToolChanger",
     "renamed_from": "My Generic ABS @MyToolChanger",
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic ABS @System",
-    "filament_flow_ratio": [
-        "0.926"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
     "filament_cooling_final_speed": [
         "3.5"
     ],

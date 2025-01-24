@@ -7,15 +7,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PLA @System",
-    "filament_flow_ratio": [
-        "0.98"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
-    "slow_down_layer_time": [
-        "8"
-    ],
     "filament_cooling_final_speed": [
         "3.5"
     ],

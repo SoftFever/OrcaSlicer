@@ -1,24 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "GFN98",
     "setting_id": "GFN98_MTC_0",
     "name": "Generic PA-CF @MyToolChanger",
     "renamed_from": "My Generic PA-CF @MyToolChanger",
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PA-CF @System",
-    "filament_type": [
-        "PA-CF"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "280"
-    ],
-    "nozzle_temperature": [
-        "280"
-    ],
-    "filament_max_volumetric_speed": [
-        "8"
-    ],
     "filament_cooling_final_speed": [
         "3.5"
     ],
