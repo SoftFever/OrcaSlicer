@@ -3510,8 +3510,10 @@ void WipeTower::plan_tower_new()
 
     // only for get m_extra_spacing
     {
-        if (m_enable_timelapse_print && max_depth < EPSILON)
+        if (m_enable_timelapse_print && max_depth < EPSILON) {
             max_depth = min_wipe_tower_depth;
+            if (m_use_rib_wall) { m_wipe_tower_width = max_depth; }
+        }
 
         if (max_depth + EPSILON < min_wipe_tower_depth) {
             m_extra_spacing = min_wipe_tower_depth / max_depth;
