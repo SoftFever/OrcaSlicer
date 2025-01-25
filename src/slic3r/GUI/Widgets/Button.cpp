@@ -225,15 +225,26 @@ void Button::render(wxDC& dc)
             szContent.x -= d;
         }
     }
-    // move to center
-    wxRect rcContent = { {0, 0}, size };
-    if (isCenter) {
-        wxSize offset = (size - szContent) / 2;
-        if (offset.x < 0) offset.x = 0;
-        rcContent.Deflate(offset.x, offset.y);
-    }
-    // start draw
+
+	// ORCA Align content. Button content centered as default until use of SetContentAlignment("L")
+    wxRect rcContent = {{0, 0}, size};
+    wxSize offset    = (size - szContent) / 2;
+    if (offset.x < 0)
+        offset.x = 0;
+    rcContent.Deflate(offset.x, offset.y);
+
     wxPoint pt = rcContent.GetLeftTop();
+
+    if (alignment == 0) { // to left
+        if (offset.x > 0)
+            pt.x = pt.x - offset.x + paddingSize.x;
+    } else if (alignment == 2) { // to right
+        if (offset.x > 0)
+            pt.x = pt.x + offset.x - paddingSize.x;
+    } 
+
+    // start draw
+    //wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {
         pt.y += (rcContent.height - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
