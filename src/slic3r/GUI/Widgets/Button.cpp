@@ -148,6 +148,12 @@ void Button::SetCenter(bool isCenter)
     this->isCenter = isCenter;
 }
 
+// ORCA: add support for alignment
+void Button::SetContentAlignment(const wxString& side /* "L" / "R"  Center is default*/)
+{
+    alignment = (side == "L") ? 0 : (side == "R") ? 1 : 0;
+}
+
 // ORCA: Use style management for easier styling with less code repeats
 void Button::SetStyleDefault(const wxFont& font /* Label::Body_14 */)
 {

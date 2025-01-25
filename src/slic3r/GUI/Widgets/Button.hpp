@@ -19,6 +19,8 @@ class Button : public StaticBox
     bool canFocus  = true;
     bool isCenter = true;
 
+	int alignment = 1;
+
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
 
@@ -40,6 +42,8 @@ public:
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
+
+	void SetContentAlignment(const wxString& side);
 
 	void SetStyleDefault(const wxFont& font);
     
