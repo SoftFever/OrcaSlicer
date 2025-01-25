@@ -40,6 +40,8 @@ public:
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
+
+	void SetStyleDefault(const wxFont& font);
     
     void SetTextColor(StateColor const &color);
 

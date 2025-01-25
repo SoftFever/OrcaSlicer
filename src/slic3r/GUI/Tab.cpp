@@ -3504,10 +3504,15 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_stamping_loading_speed");
         optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
-            auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-            wxGetApp().UpdateDarkUI(ramming_dialog_btn);
-            ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
+            // auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize,
+            // wxBU_EXACTFIT); wxGetApp().UpdateDarkUI(ramming_dialog_btn);
+            // ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+            // ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
+
+            Button* ramming_dialog_btn = new Button(parent, _(L("Set")) + " " + dots); // Use regular button to match style
+            ramming_dialog_btn->SetStyleDefault(Label::Body_14);        // ORCA: Match Button Style
+            ramming_dialog_btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(ramming_dialog_btn);
 
