@@ -30,7 +30,6 @@
 	"precise_outer_wall": "1",
 	"outer_wall_line_width": "0.4",
 	"wall_infill_order": "inner wall/outer wall/infill",
-	"wall_sequence": "inner-outer-inner wall",
 	"line_width": "0.4",
 	"infill_direction": "45",
 	"sparse_infill_density": "10%",
