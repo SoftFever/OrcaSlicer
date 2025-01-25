@@ -136,9 +136,16 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     m_optgroup->append_single_option_line("host_type");
 
-    auto create_sizer_with_btn = [](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
-        *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
-        (*btn)->SetFont(wxGetApp().normal_font());
+    auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
+        //*btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
+        //(*btn)->SetFont(wxGetApp().normal_font());
+
+        // ORCA: Match Button Style
+        *btn = new Button(parent, label, icon_name, 0, parent->FromDIP(16));
+        (*btn)->SetMinSize(wxSize(parent->FromDIP(80), parent->FromDIP(26)));
+        //(*btn)->SetContentAlignment("L");
+        (*btn)->SetStyleDefault(Label::Body_14);
+        (*btn)->SetPaddingSize(wxSize(5, 5));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(*btn);
@@ -236,8 +243,8 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     auto print_host_printers = [this, create_sizer_with_btn](wxWindow* parent) {
         //add_scaled_button(parent, &m_printhost_port_browse_btn, "browse", _(L("Refresh Printers")), wxBU_LEFT | wxBU_EXACTFIT);
         auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _(L("Refresh Printers")));
-        ScalableButton* btn = m_printhost_port_browse_btn;
-        btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        Button* btn = m_printhost_port_browse_btn; // ORCA
+        //btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
         return sizer;
     };
@@ -712,11 +719,11 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
 
-    m_printhost_browse_btn->msw_rescale();
-    m_printhost_test_btn->msw_rescale();
-    m_printhost_logout_btn->msw_rescale();
+    m_printhost_browse_btn->Rescale(); //ORCA
+    m_printhost_test_btn->Rescale(); //ORCA
+    m_printhost_logout_btn->Rescale(); //ORCA
     if (m_printhost_cafile_browse_btn)
-        m_printhost_cafile_browse_btn->msw_rescale();
+        m_printhost_cafile_browse_btn->Rescale(); //ORCA
 
     m_optgroup->msw_rescale();
 
