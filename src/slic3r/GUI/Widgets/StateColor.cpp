@@ -28,6 +28,8 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#DBDBDB", "#4A4A51"}, // rgb(219, 219, 219)  Input/Combo Box Border Color
     {"#EDFAF2", "#283232"}, // rgb(229, 240, 238)  Not Used anymore // Was used for BBS Combo / Dropdown focused background color
     {"#323A3C", "#E5E5E6"}, // rgb(50, 58, 60)     Text color used on search list | 
+    {"#DFDFDF", "#3E3E45"}, // rgb(223, 223, 223)  Button default bg color
+    {"#D4D4D4", "#4D4D54"}, // rgb(212, 212, 212)  Button hover bg color
     {"#6B6B6A", "#B3B3B5"}, // rgb(107, 107, 106)  Button Dimmed text | Input box side text 
     {"#303A3C", "#E5E5E5"}, // rgb(48, 58, 60)     Object Table > Column header text color | StaticBox Border Color
     {"#FEFFFF", "#242428"}, // rgb(254, 255, 255)  Side Tabbar bg | 
