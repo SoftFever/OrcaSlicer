@@ -6739,8 +6739,8 @@ std::string CLI::output_filepath(const ModelObject &object, unsigned int index, 
     // use --outputdir when available
     file_name = object.name.empty()?object.input_file:object.name;
     file_name = "obj_"+std::to_string(index)+"_"+file_name;
-    size_t pos = file_name.find_last_of(ext), ext_pos = file_name.size() - 1;
-    if (pos != ext_pos)
+    size_t pos = file_name.rfind(ext), ext_pos = file_name.size() - ext.size();
+    if ((pos == std::string::npos) || (pos != ext_pos))
         file_name += ext;
 
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": dir = "<< path_dir<<", file_name="<<file_name<< ", pos = "<<pos<<", ext_pos="<<ext_pos;
