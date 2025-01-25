@@ -226,7 +226,7 @@ struct PresetUpdater::priv
     bool get_cached_plugins_version(std::string &cached_version, bool& force);
 
 	//BBS: refine preset update logic
-	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
+	bool install_bundles_rsrc(const std::vector<std::string>& bundles, bool snapshot) const;
 	void check_installed_vendor_profiles() const;
     Updates get_printer_config_updates(bool update = false) const;
 	Updates get_config_updates(const Semver& old_slic3r_version) const;
@@ -1042,7 +1042,7 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
     }
 }
 
-bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
+bool PresetUpdater::priv::install_bundles_rsrc(const std::vector<std::string>& bundles, bool snapshot) const
 {
 	Updates updates;
 
@@ -1079,9 +1079,9 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
     AppConfig *app_config = GUI::wxGetApp().app_config;
     const auto enabled_vendors = app_config->vendors();
 
-    std::vector<std::string> bundles;
+    std::set<std::string> bundles;
     // Orca: always install filament library
-    bundles.push_back(PresetBundle::ORCA_FILAMENT_LIBRARY);
+    bundles.insert(PresetBundle::ORCA_FILAMENT_LIBRARY);
     for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_path)) {
         const auto &path = dir_entry.path();
         std::string file_path = path.string();
@@ -1090,6 +1090,7 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
             std::string vendor_name = path.filename().string();
             // Remove the .json suffix.
             vendor_name.erase(vendor_name.size() - 5);
+            if (bundles.find(vendor_name) != bundles.end())continue;
             if (enabled_config_update) {
                 if ( fs::exists(path_in_vendor)) {
                     if (enabled_vendors.find(vendor_name) != enabled_vendors.end()) {
@@ -1100,7 +1101,7 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
 
                         if (!version_match || (vendor_ver < resource_ver)) {
                             BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
-                            bundles.push_back(vendor_name);
+                            bundles.insert(vendor_name);
                         }
                     }
                     else {
@@ -1112,17 +1113,18 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                     }
                 }
                 else if ((vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) {//if vendor has no file, copy it from resource for ORCA_DEFAULT_BUNDLE
-                    bundles.push_back(vendor_name);
+                    bundles.insert(vendor_name);
                 }
             }
             else if ((vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) { //always update configs from resource to vendor for ORCA_DEFAULT_BUNDLE
-                bundles.push_back(vendor_name);
+                bundles.insert(vendor_name);
             }
         }
     }
 
-    if (bundles.size() > 0)
-        install_bundles_rsrc(bundles, false);
+    if (bundles.size() > 0) {
+        install_bundles_rsrc(std::vector(bundles.begin(), bundles.end()), false);
+    }
 }
 
 Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
