@@ -29,6 +29,7 @@
 	"retraction_minimum_travel": [
 		"1"
 	],
+	"support_multi_bed_types": "1",
 	"machine_max_acceleration_e": [
 		"5000",
 		"5000"
