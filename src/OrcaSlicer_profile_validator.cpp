@@ -147,6 +147,8 @@ int main(int argc, char* argv[])
         std::cout << "Validation failed" << std::endl;
         return 1;
     }
+    // Report loaded presets
+    std::cout << "Total loaded vendors: " << preset_bundle->vendors.size() << std::endl;
 
     if (generate_user_preset) {
         generate_custom_presets(preset_bundle, app_config);
