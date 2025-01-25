@@ -1260,7 +1260,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
 				//This is for staggered layers. 
 				//All odd perimeters are staggerd up by half the layer height                
-                if (extrusion->inset_idx % 2 == 1 && perimeter_generator.config->staggered_layers) {
+                if (extrusion->inset_idx % 2 == 1 && perimeter_generator.config->staggered_perimeters) {
                     for (size_t path_idx = 0; path_idx < extrusion_loop.paths.size(); path_idx++) {
                         ExtrusionPath& cur_path = extrusion_loop.paths[path_idx];
                         if (perimeter_generator.layer_id == 0) //i.e. first layer
@@ -1295,7 +1295,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
 				//This is for staggered layers. 
 				//All odd perimeters are staggerd up by half the layer height                
-                if (extrusion->inset_idx % 2 == 1 && perimeter_generator.config->staggered_layers) {
+                if (extrusion->inset_idx % 2 == 1 && perimeter_generator.config->staggered_perimeters) {
                     for (size_t path_idx = 0; path_idx < multi_path.paths.size(); path_idx++) {
                         ExtrusionPath& cur_path = multi_path.paths[path_idx];
                         if (perimeter_generator.layer_id == 0)
@@ -3141,7 +3141,7 @@ void PerimeterGenerator::process_arachne()
             }
         }
 
-        if (this->config->staggered_layers) { // If staggered layers are on, all odd perimeters will be staggered and should be printed after the non staggered perimeters
+        if (this->config->staggered_perimeters) { // If staggered layers are on, all odd perimeters will be staggered and should be printed after the non staggered perimeters
             std::sort(ordered_extrusions.begin(), ordered_extrusions.end(), 
                 [](PerimeterGeneratorArachneExtrusion extrusion_1, PerimeterGeneratorArachneExtrusion extrusion_2) -> bool {
                 return extrusion_1.extrusion->inset_idx % 2 <= extrusion_2.extrusion->inset_idx % 2;
@@ -3149,7 +3149,7 @@ void PerimeterGenerator::process_arachne()
         }
 
        // printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0 && !this->config->staggered_layers ) { // only enable inner outer inner algorithm after first layer
+        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0 && !this->config->staggered_perimeters ) { // only enable inner outer inner algorithm after first layer
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops

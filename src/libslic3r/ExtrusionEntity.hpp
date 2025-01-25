@@ -160,7 +160,7 @@ public:
     // Height of the extrusion, used for visualization purposes.
     float height;
 
-    //These properties are just for staggered layer production.
+    //These properties are just for staggered perimeter production.
     float z_offset; //z_offset to be multiplied to the layer height, default is 0
     float extrusion_multiplier; //increase in extrusion, default is 1
 

@@ -951,7 +951,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Detect thin walls.
     ((ConfigOptionBool, detect_thin_wall))
     //staggered layer checking
-    ((ConfigOptionBool,               staggered_layers))
+    ((ConfigOptionBool,               staggered_perimeters))
     ((ConfigOptionFloatOrPercent, top_surface_line_width))
     ((ConfigOptionInt, top_shell_layers))
     ((ConfigOptionFloat, top_shell_thickness))
