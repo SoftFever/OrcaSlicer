@@ -1091,9 +1091,12 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
             // Remove the .json suffix.
             vendor_name.erase(vendor_name.size() - 5);
             if (bundles.find(vendor_name) != bundles.end())continue;
+
+            const auto is_vendor_enabled = (vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) // always update configs from resource to vendor for ORCA_DEFAULT_BUNDLE
+                                           || (enabled_vendors.find(vendor_name) != enabled_vendors.end());
             if (enabled_config_update) {
                 if ( fs::exists(path_in_vendor)) {
-                    if (enabled_vendors.find(vendor_name) != enabled_vendors.end()) {
+                    if (is_vendor_enabled) {
                         Semver resource_ver = get_version_from_json(file_path);
                         Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
@@ -1112,11 +1115,11 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                             fs::remove_all(path_of_vendor);
                     }
                 }
-                else if ((vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) {//if vendor has no file, copy it from resource for ORCA_DEFAULT_BUNDLE
+                else if (is_vendor_enabled) {
                     bundles.insert(vendor_name);
                 }
             }
-            else if ((vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) { //always update configs from resource to vendor for ORCA_DEFAULT_BUNDLE
+            else if (is_vendor_enabled) {
                 bundles.insert(vendor_name);
             }
         }
