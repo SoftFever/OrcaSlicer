@@ -104,7 +104,12 @@ struct SupportParameters {
             this->support_density > 0.95 || this->with_sheath ? ipRectilinear : ipSupportBase;
         this->interface_fill_pattern = (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
         this->raft_interface_fill_pattern = this->raft_interface_density > 0.95 ? ipRectilinear : ipSupportBase;
-        this->contact_fill_pattern   =
+        if (object_config.support_interface_pattern == smipGrid)
+            this->contact_fill_pattern = ipGrid;
+        else if (object_config.support_interface_pattern == smipRectilinearInterlaced)
+            this->contact_fill_pattern = ipRectilinear;
+        else
+            this->contact_fill_pattern =
             (object_config.support_interface_pattern == smipAuto && slicing_params.soluble_interface) ||
             object_config.support_interface_pattern == smipConcentric ?
             ipConcentric :
@@ -142,11 +147,25 @@ struct SupportParameters {
             assert(slicing_params.interface_raft_layers == 0);
             assert(slicing_params.raft_layers() == 0);
         }
-        
-        this->tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(object_config.tree_support_branch_diameter_double_wall.value)) * M_PI;
-    }
 
-    // Both top / bottom contacts and interfaces are soluble.
+	    const auto     nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_interface_filament - 1);
+        const coordf_t extrusion_width = object_config.line_width.get_abs_value(nozzle_diameter);
+        support_extrusion_width        = object_config.support_line_width.get_abs_value(nozzle_diameter);
+        support_extrusion_width        = support_extrusion_width > 0 ? support_extrusion_width : extrusion_width;
+    
+        tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(object_config.tree_support_branch_diameter_double_wall.value)) * M_PI;
+
+        support_style = object_config.support_style;
+        if (support_style == smsDefault) {
+            if (is_tree(object_config.support_type)) {
+                // Orca: use organic as default
+                support_style = smsOrganic;
+            } else {
+                support_style = smsGrid;
+            }
+        }
+    }
+	// Both top / bottom contacts and interfaces are soluble.
     bool                    soluble_interface;
     // Support contact & interface are soluble, but support base is non-soluble.
     bool                    soluble_interface_non_soluble_base;
@@ -181,6 +200,7 @@ struct SupportParameters {
 	Flow 					support_material_bottom_interface_flow;
 	// Flow at raft inteface & contact layers.
 	Flow    				raft_interface_flow;
+    coordf_t support_extrusion_width;
 	// Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
 	bool 					can_merge_support_regions;
 
@@ -198,6 +218,7 @@ struct SupportParameters {
     coordf_t 				raft_interface_density;
     // Density of the base support layers.
     coordf_t 				support_density;
+    SupportMaterialStyle    support_style = smsDefault;
 
     // Pattern of the sparse infill including sparse raft layers.
     InfillPattern           base_fill_pattern;
@@ -219,6 +240,8 @@ struct SupportParameters {
     // Produce a raft interface angle for a given SupportLayer::interface_id()
     float 					raft_interface_angle(size_t interface_id) const 
     	{ return this->raft_angle_interface + ((interface_id & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.)); }
+		
+    const double thresh_big_overhang = Slic3r::sqr(scale_(10));
 };
 
 } // namespace Slic3r

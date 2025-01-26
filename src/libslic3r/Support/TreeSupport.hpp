@@ -11,6 +11,7 @@
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
 #include "Fill/Lightning/Generator.hpp"
+#include "TreeSupport3D.hpp"
 
 #ifndef SQ
 #define SQ(x) ((x)*(x))
@@ -361,35 +362,6 @@ public:
         }
     };
 
-    struct SupportParams
-    {
-        Flow first_layer_flow;
-        Flow support_material_flow;
-        Flow support_material_interface_flow;
-        Flow support_material_bottom_interface_flow;
-        coordf_t support_extrusion_width;
-        // Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
-        bool can_merge_support_regions;
-
-        coordf_t support_layer_height_min;
-        //	coordf_t	support_layer_height_max;
-
-        coordf_t gap_xy;
-
-        float    base_angle;
-        float    interface_angle;
-        coordf_t interface_spacing;
-        coordf_t interface_density;
-        coordf_t support_spacing;
-        coordf_t support_density;
-
-        InfillPattern base_fill_pattern;
-        InfillPattern interface_fill_pattern;
-        InfillPattern contact_fill_pattern;
-        bool          with_sheath;
-        const double thresh_big_overhang = SQ(scale_(10));
-    };
-
     int  avg_node_per_layer = 0;
     float nodes_angle       = 0;
     bool  has_overhangs = false;
@@ -397,7 +369,6 @@ public:
     bool  has_cantilever = false;
     double max_cantilever_dist = 0;
     SupportType support_type;
-    SupportMaterialStyle support_style;
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
@@ -422,7 +393,7 @@ private:
     const PrintObjectConfig *m_object_config;
     SlicingParameters        m_slicing_params;
     // Various precomputed support parameters to be shared with external functions.
-    SupportParams   m_support_params;
+    SupportParameters   m_support_params;
     size_t          m_raft_layers = 0;
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;

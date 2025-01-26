@@ -140,8 +140,8 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
     if (! intermediate_layers.empty() && support_params.has_interfaces()) {
         // For all intermediate layers, collect top contact surfaces, which are not further than support_material_interface_layers.
         BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - start";
-        const bool snug_supports = config.support_style.value == smsSnug;
-        const bool smooth_supports = config.support_style.value != smsGrid;
+        const bool                 snug_supports          = support_params.support_style == smsSnug;
+        const bool                 smooth_supports        = support_params.support_style != smsGrid;
         SupportGeneratorLayersPtr &interface_layers       = base_and_interface_layers.first;
         SupportGeneratorLayersPtr &base_interface_layers  = base_and_interface_layers.second;
         interface_layers.assign(intermediate_layers.size(), nullptr);
@@ -1646,7 +1646,7 @@ void generate_support_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
-            const float   support_interface_angle = config.support_style.value == smsGrid ?
+            const float   support_interface_angle = support_params.support_style == smsGrid ?
                 support_params.interface_angle : support_params.raft_interface_angle(support_layer.interface_id());
 
             // Find polygons with the same print_z.
@@ -1808,9 +1808,7 @@ void generate_support_toolpaths(
                     filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));
                     sheath  = true;
                     no_sort = true;
-                } else if (config.support_style == SupportMaterialStyle::smsOrganic ||
-                    // Orca: use organic as default
-                    config.support_style == smsDefault) {
+                } else if (support_params.support_style == SupportMaterialStyle::smsOrganic) {
                     tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params);
                     done = true;
                 }

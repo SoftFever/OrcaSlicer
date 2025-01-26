@@ -667,41 +667,21 @@ static Point bounding_box_middle(const BoundingBox &bbox)
 }
 
 TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_params)
-    : m_object(&object), m_slicing_params(slicing_params), m_object_config(&object.config())
+    : m_object(&object), m_slicing_params(slicing_params), m_support_params(object), m_object_config(&object.config())
 {
     m_print_config = &m_object->print()->config();
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
     support_type = m_object_config->support_type;
-    support_style = m_object_config->support_style;
-    if (support_style == smsDefault)
-        // Orca: use organic as default
-        support_style = smsOrganic;
+
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
-    if (support_style == smsTreeHybrid && support_pattern == smpDefault)
+    if (m_support_params.support_style == smsTreeHybrid && support_pattern == smpDefault)
         support_pattern = smpRectilinear;
-    m_support_params.base_fill_pattern =
-        support_pattern == smpLightning ? ipLightning :
-        support_pattern == smpHoneycomb ? ipHoneycomb :
-        m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
 
-    m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-    if (m_object_config->support_interface_pattern == smipGrid)
-        m_support_params.contact_fill_pattern = ipGrid;
-    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
-        m_support_params.contact_fill_pattern = ipRectilinear;
-    else
-        m_support_params.contact_fill_pattern = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
-        m_object_config->support_interface_pattern == smipConcentric ?
-        ipConcentric :
-        (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
+    if(support_pattern == smpLightning)
+        m_support_params.base_fill_pattern = ipLightning;
 
-    const auto nozzle_diameter = object.print()->config().nozzle_diameter.get_at(object.config().support_interface_filament-1);
-    const coordf_t extrusion_width = m_object_config->line_width.get_abs_value(nozzle_diameter);
-    const coordf_t support_extrusion_width = m_object_config->support_line_width.get_abs_value(nozzle_diameter);
-
-    m_support_params.support_extrusion_width = support_extrusion_width > 0 ? support_extrusion_width : extrusion_width;
-    is_slim                                  = is_tree_slim(support_type, support_style);
-    is_strong = is_tree(support_type) && support_style == smsTreeStrong;
+    is_slim                                  = is_tree_slim(support_type, m_support_params.support_style);
+    is_strong = is_tree(support_type) && m_support_params.support_style == smsTreeStrong;
     MAX_BRANCH_RADIUS                        = 10.0;
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
@@ -1132,7 +1112,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
         if (max_bridge_length > 0 && ts_layer->overhang_areas.size() > 0 && lower_layer) {
             // do not break bridge for normal part in TreeHybrid
-            bool break_bridge = !(support_style == smsTreeHybrid && area(ts_layer->overhang_areas) > m_support_params.thresh_big_overhang);
+            bool break_bridge = !(m_support_params.support_style == smsTreeHybrid && area(ts_layer->overhang_areas) > m_support_params.thresh_big_overhang);
             m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &ts_layer->overhang_areas, max_bridge_length, break_bridge);
         }
 
@@ -1587,7 +1567,7 @@ void TreeSupport::generate_toolpaths()
                         bool need_infill = with_infill;
                         if(m_object_config->support_base_pattern==smpDefault)
                             need_infill &= area_group.need_infill;
-                        if (layer_id>0 && area_group.dist_to_top < 10 && !need_infill && support_style!=smsTreeHybrid) {
+                        if (layer_id>0 && area_group.dist_to_top < 10 && !need_infill && m_support_params.support_style!=smsTreeHybrid) {
                             if (area_group.dist_to_top < 5)  // 1 wall at the top <5mm
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, 1, flow, erSupportMaterial);
                             else // at least 2 walls for range [5,10)
@@ -1880,7 +1860,7 @@ Polygons TreeSupport::contact_nodes_to_polygon(const std::vector<Node*>& contact
 
 void TreeSupport::generate()
 {
-    if (support_style == smsOrganic) {
+    if (m_support_params.support_style == smsOrganic) {
         generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;
     }
@@ -3438,7 +3418,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
         for (const ExPolygon &overhang_part : overhang)
         {
             BoundingBox overhang_bounds = get_extents(overhang_part);
-            if (support_style==smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang) {
+            if (m_support_params.support_style==smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang) {
                 Point candidate = overhang_bounds.center();
                 if (!overhang_part.contains(candidate))
                     move_inside_expoly(overhang_part, candidate);
