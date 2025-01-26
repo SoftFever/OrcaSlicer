@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "fdm_filament_abs",
+    "name": "fdm_filament_asa",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
@@ -35,13 +35,10 @@
         "3"
     ],
     "fan_cooling_layer_time": [
-        "30"
-    ],
-    "filament_max_volumetric_speed": [
-        "28.6"
+        "35"
     ],
     "filament_type": [
-        "ABS"
+        "ASA"
     ],
     "filament_density": [
         "1.04"
@@ -84,5 +81,11 @@
     ],
     "slow_down_layer_time": [
         "3"
+    ],
+    "filament_flow_ratio": [
+        "0.93"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
     ]
 }

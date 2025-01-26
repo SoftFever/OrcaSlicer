@@ -1,17 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "GFC99",
-    "setting_id": "GFC99_MTC_0",
-    "name": "My Generic PC @MyToolChanger",
+    "setting_id": "GFB98_MTC_0",
+    "name": "Generic ASA @MyToolChanger",
+    "renamed_from": "My Generic ASA @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pc",
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
-    "filament_flow_ratio": [
-        "0.94"
-    ],
+    "inherits": "Generic ASA @System",
     "filament_cooling_final_speed": [
         "3.5"
     ],

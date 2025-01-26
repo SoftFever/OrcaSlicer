@@ -1,20 +1,12 @@
 {
     "type": "filament",
-    "filament_id": "GFN99",
-    "setting_id": "GFN99_MTC_0",
-    "name": "My Generic PA @MyToolChanger",
+    "filament_id": "GFG99",
+    "setting_id": "GFG99_MTC_0",
+    "name": "Generic PETG @MyToolChanger",
+    "renamed_from": "My Generic PETG @MyToolChanger",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa",
-    "nozzle_temperature_initial_layer": [
-        "280"
-    ],
-    "nozzle_temperature": [
-        "280"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
+    "inherits": "Generic PETG @System",
     "filament_cooling_final_speed": [
         "3.5"
     ],
