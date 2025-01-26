@@ -344,6 +344,10 @@ void AppConfig::set_defaults()
         set("download_path", "");
     }
 
+    if (get("pymeshlab_path").empty()) {
+        set("pymeshlab_path", "");
+    }
+
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }

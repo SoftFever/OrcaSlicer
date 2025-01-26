@@ -1187,6 +1187,8 @@ wxWindow* PreferencesDialog::create_general_page()
     //downloads
     auto title_paths = create_item_title(_L("Paths"), page, _L("Paths"));
     auto item_downloads = create_item_path_selector(page,50,"download_path", _L("Downloads"), _L("Choose Download Directory"));
+    auto item_pymeshlab = create_item_path_selector(page,50,"pymeshlab_path", _L("PyMeshLab"), _L("Choose PyMeshLab installation path"));
+
 
     //dark mode
 #ifdef _WIN32
@@ -1254,6 +1256,9 @@ wxWindow* PreferencesDialog::create_general_page()
 
     sizer_page->Add(title_paths, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+#ifndef _WIN32
+    sizer_page->Add(item_pymeshlab, 0, wxEXPAND, FromDIP(3));
+#endif
 
 #ifdef _WIN32
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
