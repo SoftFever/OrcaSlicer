@@ -4469,21 +4469,18 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 				//ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
                 ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - window_padding);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
-                ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+                //ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
 
+				// ORCA replace checkboxes with eye icon
                 ImVec2  p = ImGui::GetCursorScreenPos();
                 int		h = ImGui::GetFrameHeight();
                 auto eye_color = visible ? IM_COL32(0, 150, 136, 255) : IM_COL32(255, 255, 255, 90);
-                draw_list->AddBezierCurve({p.x + h*.1f ,p.y + h*.5f}, {p.x + h*.3f, p.y + h*.9f}, {p.x + h*.7f, p.y + h*.9f}, {p.x + h*.9f, p.y + h*.5f},
-					eye_color, 1.0f, 24
-				);
-				draw_list->AddBezierCurve({p.x + h*.1f, p.y + h*.5f}, {p.x + h*.3f, p.y + h*.1f}, {p.x + h*.7f, p.y + h*.1f}, {p.x + h*.9f, p.y + h*.5f},
-					eye_color, 1.0f, 24
-				);
-                draw_list->AddCircleFilled({p.x + h*.5f, p.y + h*.5f}, h*.2f, eye_color);
+                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.9f},{p.x + h*.7f,p.y + h*.9f},{p.x + h*.9f, p.y + h*.5f},eye_color,1.0f,24);
+                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.1f},{p.x + h*.7f,p.y + h*.1f},{p.x + h*.9f,p.y + h*.5f},eye_color,1.0f,24);
+                draw_list->AddCircleFilled({p.x + h*.5f,p.y + h*.5f},h*.2f,eye_color);
 
-                ImGui::PopStyleColor(1);
+                //ImGui::PopStyleColor(1);
                 ImGui::PopStyleVar(1);
             }
         }
@@ -4698,7 +4695,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     pop_combo_style();
 
 	ImGui::SameLine();
-	const wchar_t gCodeToggle = ImGui::gCodeButtonIcon;
+    const wchar_t gCodeToggle = ImGui::gCodeButtonIcon;
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
