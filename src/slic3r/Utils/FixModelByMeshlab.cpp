@@ -18,14 +18,25 @@
 #include "../GUI/GUI.hpp"
 #include "../GUI/I18N.hpp"
 #include "../GUI/MsgDialog.hpp"
+#include "../GUI/GUI_App.hpp"
 
 namespace Slic3r {
 
 namespace {
 
+std::string python_path()
+{
+    std::string path = GUI::wxGetApp().app_config->get("pymeshlab_path");
+    if (path.empty())
+        path = "/usr/bin";
+
+    return path + "/python3 ";
+}
+
 std::string pymeshlab_script()
 {
-    return resources_dir() + "/meshlab/meshlab-task.py";
+
+    return python_path() + resources_dir() + "/meshlab/meshlab-task.py";
 }
 
 }
