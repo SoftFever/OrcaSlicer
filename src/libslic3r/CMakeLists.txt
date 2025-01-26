@@ -552,7 +552,7 @@ set(OCCT_LIBS
     TKernel
 )
 
-
+find_package(libnoise REQUIRED)
 target_link_libraries(libslic3r
     libnest2d
     admesh
@@ -578,7 +578,7 @@ target_link_libraries(libslic3r
     JPEG::JPEG
     qoi
     opencv_world
-    libnoise
+    noise::noise
     )
 
 if(NOT WIN32)

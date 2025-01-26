@@ -23,7 +23,7 @@
 #include "libslic3r/AABBTreeLines.hpp"
 #include "Print.hpp"
 #include "Algorithm/LineSplit.hpp"
-#include "noise.h"
+#include "libnoise/noise.h"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
