@@ -139,6 +139,10 @@ struct SupportElementStateBits {
 
 struct SupportElementState : public SupportElementStateBits
 {
+    int type = 0;
+    coordf_t radius = 0;
+    float print_z = 0;
+
     /*!
      * \brief The layer this support elements wants reach
      */

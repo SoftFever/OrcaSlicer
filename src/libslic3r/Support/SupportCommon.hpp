@@ -50,6 +50,9 @@ SupportGeneratorLayersPtr generate_raft_base(
 	const SupportGeneratorLayersPtr &base_layers,
 	SupportGeneratorLayerStorage    &layer_storage);
 
+void fill_expolygons_with_sheath_generate_paths(
+    ExtrusionEntitiesPtr &dst, const Polygons &polygons, Fill *filler, float density, ExtrusionRole role, const Flow &flow, const SupportParameters& support_params, bool with_sheath, bool no_sort);
+
 // returns sorted layers
 SupportGeneratorLayersPtr generate_support_layers(
 	PrintObject							&object,

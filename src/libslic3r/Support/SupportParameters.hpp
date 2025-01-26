@@ -152,7 +152,9 @@ struct SupportParameters {
         const coordf_t extrusion_width = object_config.line_width.get_abs_value(nozzle_diameter);
         support_extrusion_width        = object_config.support_line_width.get_abs_value(nozzle_diameter);
         support_extrusion_width        = support_extrusion_width > 0 ? support_extrusion_width : extrusion_width;
-    
+
+        independent_layer_height = print_config.independent_support_layer_height;
+
         tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(object_config.tree_support_branch_diameter_double_wall.value)) * M_PI;
 
         support_style = object_config.support_style;
@@ -241,6 +243,7 @@ struct SupportParameters {
     float 					raft_interface_angle(size_t interface_id) const 
     	{ return this->raft_angle_interface + ((interface_id & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.)); }
 		
+    bool independent_layer_height = false;
     const double thresh_big_overhang = Slic3r::sqr(scale_(10));
 };
 
