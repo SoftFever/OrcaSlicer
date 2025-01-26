@@ -4655,22 +4655,18 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::SameLine();
-    std::wstring btn_name;
-    if (m_fold)
-        btn_name = ImGui::UnfoldButtonIcon + boost::nowide::widen(std::string(""));
-    else
-        btn_name = ImGui::FoldButtonIcon + boost::nowide::widen(std::string(""));
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0)); // ORCA removed colored background on hover to prevent non square background
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0)); // ORCA removed colored background on hover to prevent non square background
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+    const wchar_t btn_name = m_fold ? ImGui::UnfoldButtonIcon : ImGui::FoldButtonIcon;
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
     //ImGui::PushItemWidth(
-    float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
-    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, 0))) {
+    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(21, 21))) { // ORCA give exact resolution to fix non square icon. 16x16 icon and +2 padding
         m_fold = !m_fold;
     }
     ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
     //ImGui::SameLine();
     //imgui.bold_text(_u8L("Color Scheme"));
     push_combo_style();
@@ -4702,18 +4698,18 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     pop_combo_style();
 
 	ImGui::SameLine();
-	std::wstring gCodeToggle = ImGui::gCodeButtonIcon + boost::nowide::widen(std::string(""));
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-    float button_width_g = ImGui::CalcTextSize(into_u8(gCodeToggle).c_str()).x;
-    if (ImGui::Button(into_u8(gCodeToggle).c_str(), ImVec2(button_width_g, 0))) {
+	const wchar_t gCodeToggle = ImGui::gCodeButtonIcon;
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
+    if (ImGui::Button(into_u8(gCodeToggle).c_str(), ImVec2(21, 21))) { // ORCA give exact resolution to fix non square icon. 16x16 icon and +2 padding
         wxGetApp().toggle_show_gcode_window();
         wxGetApp().plater()-> get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
     }
     ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
 
     ImGui::SameLine();
     ImGui::Dummy({ window_padding, window_padding });
