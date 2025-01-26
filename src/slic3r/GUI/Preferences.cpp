@@ -788,14 +788,18 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     return m_sizer_checkbox;
 }
 
-wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding_left, std::string param)
+wxWindow* PreferencesDialog::create_item_path_selector(wxWindow* parent, int padding_left, std::string param, const wxString &label, const wxString &message)
 {
-    wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
+    wxString download_path = wxString::FromUTF8(app_config->get(param));
     auto item_panel = new wxWindow(parent, wxID_ANY);
     item_panel->SetBackgroundColour(*wxWHITE);
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+
+    auto m_labelPath = new Label(item_panel, label);
+    m_labelPath->SetFont(::Label::Body_13);
+
     auto m_staticTextPath = new wxStaticText(item_panel, wxID_ANY, download_path, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     //m_staticTextPath->SetMaxSize(wxSize(FromDIP(440), -1));
     m_staticTextPath->SetForegroundColour(DESIGN_GRAY600_COLOR);
@@ -817,19 +821,20 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
     m_button_download->SetCornerRadius(FromDIP(12));
 
-    m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, item_panel](auto& e) {
+    m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, item_panel, param, message](auto& e) {
         wxString defaultPath = wxT("/");
-        wxDirDialog dialog(this, _L("Choose Download Directory"), defaultPath, wxDD_NEW_DIR_BUTTON);
+        wxDirDialog dialog(this, message, defaultPath, wxDD_NEW_DIR_BUTTON);
 
         if (dialog.ShowModal() == wxID_OK) {
             wxString download_path = dialog.GetPath();
             std::string download_path_str = download_path.ToUTF8().data();
-            app_config->set("download_path", download_path_str);
+            app_config->set(param, download_path_str);
             m_staticTextPath->SetLabelText(download_path);
             item_panel->Layout();
         }
         });
 
+    m_sizer_checkbox->Add(m_labelPath, 0, wxALIGN_LEFT | wxALL, FromDIP(5));
     m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     m_sizer_checkbox->Add(m_button_download, 0, wxALL, FromDIP(5));
 
@@ -1180,8 +1185,8 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The period of backup in seconds."), "backup_interval");
 
     //downloads
-    auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
-    auto item_downloads = create_item_downloads(page,50,"download_path");
+    auto title_paths = create_item_title(_L("Paths"), page, _L("Paths"));
+    auto item_downloads = create_item_path_selector(page,50,"download_path", _L("Downloads"), _L("Choose Download Directory"));
 
     //dark mode
 #ifdef _WIN32
@@ -1247,7 +1252,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
-    sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(title_paths, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
 
 #ifdef _WIN32
