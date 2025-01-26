@@ -4403,9 +4403,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImVec2 pos_rect = ImGui::GetCursorScreenPos();
     float window_padding = 4.0f * m_scale;
 
-    draw_list->AddRectFilled(ImVec2(pos_rect.x,pos_rect.y - ImGui::GetStyle().WindowPadding.y),
-        ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
-        ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
+    //draw_list->AddRectFilled(ImVec2(pos_rect.x,pos_rect.y - ImGui::GetStyle().WindowPadding.y),
+    //    ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
+    //    ImGui::GetColorU32(ImVec4(0,0,0,0.3))); // Hiding gives much more modern look
 
     auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](
         EItemType type,
@@ -4648,7 +4648,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::Dummy({0, window_padding}); // Adds unnessary spacing if window_padding used on X 
     ImGui::SameLine();
     const wchar_t btn_name = m_fold ? ImGui::UnfoldButtonIcon : ImGui::FoldButtonIcon;
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
@@ -4708,10 +4708,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     pop_combo_style();
 
     ImGui::SameLine();
-    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::Dummy({ 0, window_padding }); // Adds unnessary spacing if window_padding used on X 
+
+    ImGui::Dummy({window_padding, window_padding}); // Adds spacing after toolbar
 
     if (m_fold) {
-        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 2.5;
+        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4;
         imgui.end();
         ImGui::PopStyleColor(6);
         ImGui::PopStyleVar(2);
