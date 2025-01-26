@@ -1927,7 +1927,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
 
     // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, m_object->layer_count(), m_object->layer_count()),
+        tbb::blocked_range<size_t>(0, m_object->layer_count()),
         [&](const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
@@ -2581,8 +2581,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                         node_ = p_node->parent ? p_node : neighbour;
                     // Make sure the next pass doesn't drop down either of these (since that already happened).
                     node_->merged_neighbours.push_front(node_ == p_node ? neighbour : p_node);
-                    //const bool to_buildplate = !is_inside_ex(get_collision(0, layer_nr_next), next_position);
-                    const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr_next], next_position);
+                    const bool to_buildplate = !is_inside_ex(get_collision(0, layer_nr_next), next_position);
                     SupportNode *     next_node     = new SupportNode(next_position, node_->distance_to_top + 1, layer_nr_next, node_->support_roof_layers_below-1, to_buildplate, node_,
                                                print_z_next, height_next);
                     next_node->movement = next_position - node.position;
@@ -2625,11 +2624,26 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                 }
                 if (node.type == ePolygon) {
                     // polygon node do not merge or move
-                    const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], p_node->position);
-                    SupportNode *     next_node = new SupportNode(p_node->position, p_node->distance_to_top + 1, layer_nr_next, p_node->support_roof_layers_below - 1, to_buildplate,
-                                               p_node, print_z_next, height_next);
-                    next_node->max_move_dist = 0;
-                    contact_nodes[layer_nr_next].emplace_back(next_node);
+                    const bool to_buildplate = true;
+                    // keep only the part that won't be removed by the next layer
+                    ExPolygons overhangs_next = diff_clipped({ node.overhang }, get_collision_polys(0, layer_nr_next));
+                    // find the biggest overhang if there are many
+                    float area_biggest = -1;
+                    int index_biggest = -1;
+                    for (int i = 0; i < overhangs_next.size(); i++) {
+                        float a=area(overhangs_next[i]);
+                        if (a > area_biggest) {
+                            area_biggest = a;
+                            index_biggest = i;
+                        }
+                    }
+                    if (index_biggest >= 0) {
+                        SupportNode* next_node = new SupportNode(p_node->position, p_node->distance_to_top + 1, layer_nr_next, p_node->support_roof_layers_below - 1, to_buildplate,
+                            p_node, print_z_next, height_next);
+                        next_node->max_move_dist = 0;
+                        next_node->overhang = std::move(overhangs_next[index_biggest]);
+                        contact_nodes[layer_nr_next].emplace_back(next_node);
+                    }
                     continue;
                 }
 
@@ -2760,7 +2774,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                     }
                 }
 
-                const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], next_layer_vertex);
+                const bool to_buildplate = !is_inside_ex(get_collision(0, layer_nr_next), next_layer_vertex);
                 SupportNode *     next_node     = new SupportNode(next_layer_vertex, node.distance_to_top + 1, layer_nr_next, node.support_roof_layers_below - 1, to_buildplate, p_node,
                     print_z_next, height_next);
                 next_node->movement  = movement;
@@ -3096,10 +3110,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
         {
             BoundingBox overhang_bounds = get_extents(overhang_part);
             if (m_support_params.support_style==smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang) {
-                Point candidate = overhang_bounds.center();
-                if (!overhang_part.contains(candidate))
-                    move_inside_expoly(overhang_part, candidate);
-                if (!(config.support_on_build_plate_only && is_inside_ex(m_ts_data->m_layer_outlines_below[layer_nr], candidate))) {
+                if (!overlaps({ overhang_part }, m_ts_data->m_layer_outlines_below[layer_nr-1])) {
+                    Point candidate = overhang_bounds.center();
                     SupportNode* contact_node = new SupportNode(candidate, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, true, SupportNode::NO_PARENT, print_z,
                         height, z_distance_top);
                     contact_node->type = ePolygon;
