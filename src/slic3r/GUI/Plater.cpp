@@ -9569,7 +9569,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     arrangement::ArrangePolygons arranged_items;
     {
         arrangement::ArrangeParams ap;
-        ap.all_objects_are_short = true;
         Points bedpts = arrangement::get_shrink_bedpts(&full_config, ap);
 
         for(size_t i = 0; i < speeds.size() * accels.size(); i++) {
