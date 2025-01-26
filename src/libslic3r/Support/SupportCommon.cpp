@@ -329,19 +329,21 @@ SupportGeneratorLayersPtr generate_raft_base(
         const BrimType brim_type       = object.config().brim_type;
         const bool     brim_outer      = brim_type == btOuterOnly || brim_type == btOuterAndInner;
         const bool     brim_inner      = brim_type == btInnerOnly || brim_type == btOuterAndInner;
-        const auto     brim_separation = scaled<float>(object.config().brim_object_gap.value + object.config().brim_width.value);
+        // BBS: the pattern of raft and brim are the same, thus the brim can be serpated by support raft.
+        const auto     brim_object_gap = scaled<float>(object.config().brim_object_gap.value);
+        //const auto     brim_object_gap = scaled<float>(object.config().brim_object_gap.value + object.config().brim_width.value);
         for (const ExPolygon &ex : object.layers().front()->lslices) {
             if (brim_outer && brim_inner)
-                polygons_append(brim, offset(ex, brim_separation));
+                polygons_append(brim, offset(ex, brim_object_gap));
             else {
                 if (brim_outer)
-                    polygons_append(brim, offset(ex.contour, brim_separation, ClipperLib::jtRound, float(scale_(0.1))));
+                    polygons_append(brim, offset(ex.contour, brim_object_gap, ClipperLib::jtRound, float(scale_(0.1))));
                 else
                     brim.emplace_back(ex.contour);
                 if (brim_inner) {
                     Polygons holes = ex.holes;
                     polygons_reverse(holes);
-                    holes = shrink(holes, brim_separation, ClipperLib::jtRound, float(scale_(0.1)));
+                    holes = shrink(holes, brim_object_gap, ClipperLib::jtRound, float(scale_(0.1)));
                     polygons_reverse(holes);
                     polygons_append(brim, std::move(holes));
                 } else
@@ -378,7 +380,7 @@ SupportGeneratorLayersPtr generate_raft_base(
         polygons_append(interface_polygons, expand(interfaces->polygons, inflate_factor_fine, SUPPORT_SURFACES_OFFSET_PARAMETERS));
     if (base_interfaces != nullptr && ! base_interfaces->polygons.empty())
         polygons_append(interface_polygons, expand(base_interfaces->polygons, inflate_factor_fine, SUPPORT_SURFACES_OFFSET_PARAMETERS));
- 
+
     // Output vector.
     SupportGeneratorLayersPtr raft_layers;
 
@@ -402,12 +404,12 @@ SupportGeneratorLayersPtr generate_raft_base(
         }
         if (! interface_polygons.empty()) {
             // Merge the untrimmed columns base with the expanded raft interface, to be used for the support base and interface.
-            base = union_(base, interface_polygons); 
+            base = union_(base, interface_polygons);
         }
         // Do not add the raft contact layer, only add the raft layers below the contact layer.
         // Insert the 1st layer.
         {
-            SupportGeneratorLayer &new_layer = layer_storage.allocate_unguarded(slicing_params.base_raft_layers > 0 ? SupporLayerType::RaftBase : SupporLayerType::RaftInterface);
+            SupportGeneratorLayer &new_layer = layer_storage.allocate(slicing_params.base_raft_layers > 0 ? SupporLayerType::RaftBase : SupporLayerType::RaftInterface);
             raft_layers.push_back(&new_layer);
             new_layer.print_z = slicing_params.first_print_layer_height;
             new_layer.height  = slicing_params.first_print_layer_height;
@@ -441,7 +443,12 @@ SupportGeneratorLayersPtr generate_raft_base(
         if (columns_base != nullptr) {
             // Expand the bases of the support columns in the 1st layer.
             Polygons &raft     = columns_base->polygons;
-            Polygons  trimming = offset(object.layers().front()->lslices, (float)scale_(support_params.gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            Polygons  trimming;
+            // BBS: if first layer of support is intersected with object island, it must have the same function as brim unless in nobrim mode.
+            if (object.has_brim())
+                trimming = offset(object.layers().front()->lslices, (float)scale_(object.config().brim_object_gap.value), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            else
+                trimming = offset(object.layers().front()->lslices, (float)scale_(support_params.gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS);
             if (inflate_factor_1st_layer > SCALED_EPSILON) {
                 // Inflate in multiple steps to avoid leaking of the support 1st layer through object walls.
                 auto  nsteps = std::max(5, int(ceil(inflate_factor_1st_layer / support_params.first_layer_flow.scaled_width())));
@@ -536,10 +543,10 @@ static Polylines draw_perimeters(const ExPolygon &expoly, double clip_length)
     return polylines;
 }
 
-static inline void tree_supports_generate_paths(
+void tree_supports_generate_paths(
     ExtrusionEntitiesPtr    &dst,
     const Polygons          &polygons,
-    const Flow              &flow, 
+    const Flow              &flow,
     const SupportParameters &support_params)
 {
     // Offset expolygon inside, returns number of expolygons collected (0 or 1).
@@ -606,7 +613,7 @@ static inline void tree_supports_generate_paths(
                 // No hole remaining after an offset. Just copy the outer contour.
                 append(out, std::move(contours));
             } else {
-                // Negative offset. There is a chance, that the offsetted hole intersects the outer contour. 
+                // Negative offset. There is a chance, that the offsetted hole intersects the outer contour.
                 // Subtract the offsetted holes from the offsetted contours.
                 ClipperLib_Z::Clipper clipper;
                 clipper.ZFillFunction([](const ClipperLib_Z::IntPoint &e1bot, const ClipperLib_Z::IntPoint &e1top, const ClipperLib_Z::IntPoint &e2bot, const ClipperLib_Z::IntPoint &e2top, ClipperLib_Z::IntPoint &pt) {
@@ -637,124 +644,126 @@ static inline void tree_supports_generate_paths(
     ClipperLib_Z::Paths anchor_candidates;
     for (ExPolygon& expoly : closing_ex(polygons, float(SCALED_EPSILON), float(SCALED_EPSILON + 0.5 * flow.scaled_width()))) {
         std::unique_ptr<ExtrusionEntityCollection> eec;
+        ExPolygons                                 regions_to_draw_inner_wall{expoly};
         if (support_params.tree_branch_diameter_double_wall_area_scaled > 0)
             if (double area = expoly.area(); area > support_params.tree_branch_diameter_double_wall_area_scaled) {
+                BOOST_LOG_TRIVIAL(debug)<< "TreeSupports: double wall area: " << area<< " > " << support_params.tree_branch_diameter_double_wall_area_scaled;
                 eec = std::make_unique<ExtrusionEntityCollection>();
-                // Don't reoder internal / external loops of the same island, always start with the internal loop.
+                // Don't reorder internal / external loops of the same island, always start with the internal loop.
                 eec->no_sort = true;
                 // Make the tree branch stable by adding another perimeter.
-                ExPolygons level2 = offset2_ex({ expoly }, -1.5 * flow.scaled_width(), 0.5 * flow.scaled_width());
-                if (level2.size() == 1) {
-                    Polylines polylines;
+                ExPolygons level2 = offset2_ex({expoly}, -1.5 * flow.scaled_width(), 0.5 * flow.scaled_width());
+                if (level2.size() > 0) {
+                    regions_to_draw_inner_wall = level2;
                     extrusion_entities_append_paths(eec->entities, draw_perimeters(expoly, clip_length), ExtrusionRole::erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height(),
-                        // Disable reversal of the path, always start with the anchor, always print CCW.
-                        false);
+                            // Disable reversal of the path, always start with the anchor, always print CCW.
+                            false);
                     expoly = level2.front();
                 }
             }
+        for (ExPolygon &expoly : regions_to_draw_inner_wall)
+        {
+            // Try to produce one more perimeter to place the seam anchor.
+            // First genrate a 2nd perimeter loop as a source for anchor candidates.
+            // The anchor candidate points are annotated with an index of the source contour or with -1 if on intersection.
+            anchor_candidates.clear();
+            shrink_expolygon_with_contour_idx(expoly, flow.scaled_width(), DefaultJoinType, 1.2, anchor_candidates);
+            // Orient all contours CW.
+            for (auto &path : anchor_candidates)
+                if (ClipperLib_Z::Area(path) > 0) std::reverse(path.begin(), path.end());
 
-        // Try to produce one more perimeter to place the seam anchor.
-        // First genrate a 2nd perimeter loop as a source for anchor candidates.
-        // The anchor candidate points are annotated with an index of the source contour or with -1 if on intersection.
-        anchor_candidates.clear();
-        shrink_expolygon_with_contour_idx(expoly, flow.scaled_width(), DefaultJoinType, 1.2, anchor_candidates);
-        // Orient all contours CW.
-        for (auto &path : anchor_candidates)
-            if (ClipperLib_Z::Area(path) > 0)
-                std::reverse(path.begin(), path.end());
-
-        // Draw the perimeters.
-        Polylines polylines;
-        polylines.reserve(expoly.holes.size() + 1);
-        for (int idx_loop = 0; idx_loop < int(expoly.num_contours()); ++ idx_loop) {
-            // Open the loop with a seam.
-            const Polygon &loop = expoly.contour_or_hole(idx_loop);
-            Polyline pl(loop.points);
-            // Orient all contours CW, because the anchor will be added to the end of polyline while we want to start a loop with the anchor.
-            if (idx_loop == 0)
-                // It is an outer contour.
-                pl.reverse();
-            pl.points.emplace_back(pl.points.front());
-            pl.clip_end(clip_length);
-            if (pl.size() < 2)
-                continue;
-            // Find the foot of the seam point on anchor_candidates. Only pick an anchor point that was created by offsetting the source contour.
-            ClipperLib_Z::Path *closest_contour = nullptr;
-            Vec2d               closest_point;
-            int                 closest_point_idx = -1;
-            double              closest_point_t = 0.;
-            double              d2min = std::numeric_limits<double>::max();
-            Vec2d               seam_pt = pl.back().cast<double>();
-            for (ClipperLib_Z::Path &path : anchor_candidates)
-                for (int i = 0; i < int(path.size()); ++ i) {
-                    int j = next_idx_modulo(i, path);
-                    if (path[i].z() == idx_loop || path[j].z() == idx_loop) {
-                        Vec2d pi(path[i].x(), path[i].y());
-                        Vec2d pj(path[j].x(), path[j].y());
-                        Vec2d v = pj - pi;
-                        Vec2d w = seam_pt - pi;
-                        auto   l2  = v.squaredNorm();
-                        auto   t   = std::clamp((l2 == 0) ? 0 : v.dot(w) / l2, 0., 1.);
-                        if ((path[i].z() == idx_loop || t > EPSILON) && (path[j].z() == idx_loop || t < 1. - EPSILON)) {
-                            // Closest point.
-                            Vec2d fp = pi + v * t;
-                            double d2 = (fp - seam_pt).squaredNorm();
-                            if (d2 < d2min) {
-                                d2min = d2;
-                                closest_contour   = &path;
-                                closest_point     = fp;
-                                closest_point_idx = i;
-                                closest_point_t   = t;
+            // Draw the perimeters.
+            Polylines polylines;
+            polylines.reserve(expoly.holes.size() + 1);
+            for (int idx_loop = 0; idx_loop < int(expoly.num_contours()); ++idx_loop) {
+                // Open the loop with a seam.
+                const Polygon &loop = expoly.contour_or_hole(idx_loop);
+                Polyline       pl(loop.points);
+                // Orient all contours CW, because the anchor will be added to the end of polyline while we want to start a loop with the anchor.
+                if (idx_loop == 0)
+                    // It is an outer contour.
+                    pl.reverse();
+                pl.points.emplace_back(pl.points.front());
+                pl.clip_end(clip_length);
+                if (pl.size() < 2) continue;
+                // Find the foot of the seam point on anchor_candidates. Only pick an anchor point that was created by offsetting the source contour.
+                ClipperLib_Z::Path *closest_contour = nullptr;
+                Vec2d               closest_point;
+                int                 closest_point_idx = -1;
+                double              closest_point_t   = 0.;
+                double              d2min             = std::numeric_limits<double>::max();
+                Vec2d               seam_pt           = pl.back().cast<double>();
+                for (ClipperLib_Z::Path &path : anchor_candidates)
+                    for (int i = 0; i < int(path.size()); ++i) {
+                        int j = next_idx_modulo(i, path);
+                        if (path[i].z() == idx_loop || path[j].z() == idx_loop) {
+                            Vec2d pi(path[i].x(), path[i].y());
+                            Vec2d pj(path[j].x(), path[j].y());
+                            Vec2d v  = pj - pi;
+                            Vec2d w  = seam_pt - pi;
+                            auto  l2 = v.squaredNorm();
+                            auto  t  = std::clamp((l2 == 0) ? 0 : v.dot(w) / l2, 0., 1.);
+                            if ((path[i].z() == idx_loop || t > EPSILON) && (path[j].z() == idx_loop || t < 1. - EPSILON)) {
+                                // Closest point.
+                                Vec2d  fp = pi + v * t;
+                                double d2 = (fp - seam_pt).squaredNorm();
+                                if (d2 < d2min) {
+                                    d2min             = d2;
+                                    closest_contour   = &path;
+                                    closest_point     = fp;
+                                    closest_point_idx = i;
+                                    closest_point_t   = t;
+                                }
                             }
                         }
                     }
-                }
-            if (d2min < sqr(flow.scaled_width() * 3.)) {
-                // Try to cut an anchor from the closest_contour.
-                // Both closest_contour and pl are CW oriented.
-                pl.points.emplace_back(closest_point.cast<coord_t>());
-                const ClipperLib_Z::Path &path = *closest_contour;
-                double remaining_length = anchor_length - (seam_pt - closest_point).norm();
-                int i = closest_point_idx;
-                int j = next_idx_modulo(i, *closest_contour);
-                Vec2d pi(path[i].x(), path[i].y());
-                Vec2d pj(path[j].x(), path[j].y());
-                Vec2d v = pj - pi;
-                double l = v.norm();
-                if (remaining_length < (1. - closest_point_t) * l) {
-                    // Just trim the current line.
-                    pl.points.emplace_back((closest_point + v * (remaining_length / l)).cast<coord_t>());
-                } else {
-                    // Take the rest of the current line, continue with the other lines.
-                    pl.points.emplace_back(path[j].x(), path[j].y());
-                    pi = pj;
-                    for (i = j; path[i].z() == idx_loop && remaining_length > 0; i = j, pi = pj) {
-                        j = next_idx_modulo(i, path);
-                        pj = Vec2d(path[j].x(), path[j].y());
-                        v = pj - pi;
-                        l = v.norm();
-                        if (i == closest_point_idx) {
-                            // Back at the first segment. Most likely this should not happen and we may end the anchor.
-                            break;
-                        }
-                        if (remaining_length <= l) {
-                            pl.points.emplace_back((pi + v * (remaining_length / l)).cast<coord_t>());
-                            break;
-                        }
+                if (d2min < sqr(flow.scaled_width() * 3.)) {
+                    // Try to cut an anchor from the closest_contour.
+                    // Both closest_contour and pl are CW oriented.
+                    pl.points.emplace_back(closest_point.cast<coord_t>());
+                    const ClipperLib_Z::Path &path             = *closest_contour;
+                    double                    remaining_length = anchor_length - (seam_pt - closest_point).norm();
+                    int                       i                = closest_point_idx;
+                    int                       j                = next_idx_modulo(i, *closest_contour);
+                    Vec2d                     pi(path[i].x(), path[i].y());
+                    Vec2d                     pj(path[j].x(), path[j].y());
+                    Vec2d                     v = pj - pi;
+                    double                    l = v.norm();
+                    if (remaining_length < (1. - closest_point_t) * l) {
+                        // Just trim the current line.
+                        pl.points.emplace_back((closest_point + v * (remaining_length / l)).cast<coord_t>());
+                    } else {
+                        // Take the rest of the current line, continue with the other lines.
                         pl.points.emplace_back(path[j].x(), path[j].y());
-                        remaining_length -= l;
+                        pi = pj;
+                        for (i = j; path[i].z() == idx_loop && remaining_length > 0; i = j, pi = pj) {
+                            j  = next_idx_modulo(i, path);
+                            pj = Vec2d(path[j].x(), path[j].y());
+                            v  = pj - pi;
+                            l  = v.norm();
+                            if (i == closest_point_idx) {
+                                // Back at the first segment. Most likely this should not happen and we may end the anchor.
+                                break;
+                            }
+                            if (remaining_length <= l) {
+                                pl.points.emplace_back((pi + v * (remaining_length / l)).cast<coord_t>());
+                                break;
+                            }
+                            pl.points.emplace_back(path[j].x(), path[j].y());
+                            remaining_length -= l;
+                        }
                     }
                 }
+                // Start with the anchor.
+                pl.reverse();
+                polylines.emplace_back(std::move(pl));
             }
-            // Start with the anchor.
-            pl.reverse();
-            polylines.emplace_back(std::move(pl));
-        }
 
-        ExtrusionEntitiesPtr &out = eec ? eec->entities : dst;
-        extrusion_entities_append_paths(out, std::move(polylines), ExtrusionRole::erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height(), 
-            // Disable reversal of the path, always start with the anchor, always print CCW.
-            false);
+            ExtrusionEntitiesPtr &out = eec ? eec->entities : dst;
+            extrusion_entities_append_paths(out, std::move(polylines), ExtrusionRole::erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height(),
+                                            // Disable reversal of the path, always start with the anchor, always print CCW.
+                                            false);
+        }
         if (eec) {
             std::reverse(eec->entities.begin(), eec->entities.end());
             dst.emplace_back(eec.release());
@@ -762,20 +771,27 @@ static inline void tree_supports_generate_paths(
     }
 }
 
-static inline void fill_expolygons_with_sheath_generate_paths(
+void fill_expolygons_with_sheath_generate_paths(
     ExtrusionEntitiesPtr    &dst,
     const Polygons          &polygons,
     Fill                    *filler,
     float                    density,
     ExtrusionRole            role,
     const Flow              &flow,
+    const SupportParameters& support_params,
     bool                     with_sheath,
     bool                     no_sort)
 {
     if (polygons.empty())
         return;
 
-    if (! with_sheath) {
+    if (with_sheath) {
+        if (density == 0) {
+            tree_supports_generate_paths(dst, polygons, flow, support_params);
+            return;
+        }
+    }
+    else {
         fill_expolygons_generate_paths(dst, closing_ex(polygons, float(SCALED_EPSILON)), filler, density, role, flow);
         return;
     }
@@ -1510,7 +1526,7 @@ void generate_support_toolpaths(
 
             // Print the support base below the support columns, or the support base for the support columns plus the contacts.
             if (support_layer_id > 0) {
-                const Polygons &to_infill_polygons = (support_layer_id < slicing_params.base_raft_layers) ? 
+                const Polygons &to_infill_polygons = (support_layer_id < slicing_params.base_raft_layers) ?
                     raft_layer.polygons :
                     //FIXME misusing contact_polygons for support columns.
                     ((raft_layer.contact_polygons == nullptr) ? Polygons() : *raft_layer.contact_polygons);
@@ -1531,7 +1547,7 @@ void generate_support_toolpaths(
                         filler, float(support_params.support_density),
                         // Extrusion parameters
                         ExtrusionRole::erSupportMaterial, flow,
-                        support_params.with_sheath, false);
+                        support_params, support_params.with_sheath, false);
                 }
                 if (! tree_polygons.empty())
                     tree_supports_generate_paths(support_layer.support_fills.entities, tree_polygons, flow, support_params);
@@ -1558,15 +1574,15 @@ void generate_support_toolpaths(
             filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));
             fill_expolygons_with_sheath_generate_paths(
                 // Destination
-                support_layer.support_fills.entities, 
+                support_layer.support_fills.entities,
                 // Regions to fill
                 tree_polygons.empty() ? raft_layer.polygons : diff(raft_layer.polygons, tree_polygons),
                 // Filler and its parameters
                 filler, density,
                 // Extrusion parameters
-                (support_layer_id < slicing_params.base_raft_layers) ? ExtrusionRole::erSupportMaterial : ExtrusionRole::erSupportMaterialInterface, flow, 
+                (support_layer_id < slicing_params.base_raft_layers) ? ExtrusionRole::erSupportMaterial : ExtrusionRole::erSupportMaterialInterface, flow,
                 // sheath at first layer
-                support_layer_id == 0, support_layer_id == 0);
+                support_params, support_layer_id == 0, support_layer_id == 0);
         }
     });
 
@@ -1734,7 +1750,7 @@ void generate_support_toolpaths(
                         // Filler and its parameters
                         filler, float(density),
                         // Extrusion parameters
-                        ExtrusionRole::erSupportMaterialInterface, interface_flow);
+                        interface_as_base ? ExtrusionRole::erSupportMaterial : ExtrusionRole::erSupportMaterialInterface, interface_flow);
                 }
             };
             const bool top_interfaces = config.support_interface_top_layers.value != 0;
@@ -1808,7 +1824,7 @@ void generate_support_toolpaths(
                         filler, density,
                         // Extrusion parameters
                         ExtrusionRole::erSupportMaterial, flow,
-                        sheath, no_sort);
+                        support_params, sheath, no_sort);
             }
 
             // Merge base_interface_layers to base_layers to avoid unneccessary retractions
