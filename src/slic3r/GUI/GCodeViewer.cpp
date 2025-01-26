@@ -1056,8 +1056,6 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         set_view_type(EViewType::ColorPrint);
     }
 
-    m_fold = false;
-
     bool only_gcode_3mf = false;
     PartPlate* current_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     bool current_has_print_instances = current_plate->has_printable_instances();
