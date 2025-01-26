@@ -1019,6 +1019,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_expansion"
             //|| opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
+            || opt_key == "support_threshold_overlap"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
@@ -2513,7 +2514,10 @@ void PrintObject::bridge_over_infill()
                                                          [](const Line &s) { return s.a == s.b; }),
                                           polygon_sections[i].end());
                 std::sort(polygon_sections[i].begin(), polygon_sections[i].end(),
-                          [](const Line &a, const Line &b) { return a.a.y() < b.b.y(); });
+                          [](const Line &a, const Line &b) {
+                              if (a == b) return false; // Ensure irreflexivity
+                              return a.a.y() < b.b.y();
+                          });
             }
 
             // reconstruct polygon from polygon sections
