@@ -845,7 +845,7 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
             }
 
             if (filename.empty()) {
-                filename = preset_bundle->get_hotend_model_for_printer_model(PresetBundle::BBL_DEFAULT_PRINTER_MODEL);
+                filename = preset_bundle->get_hotend_model_for_printer_model(PresetBundle::ORCA_DEFAULT_PRINTER_MODEL);
             }
         }
     }
