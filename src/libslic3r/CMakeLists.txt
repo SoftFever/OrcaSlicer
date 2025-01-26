@@ -433,8 +433,6 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
-    Arachne/PerimeterOrder.hpp
-    Arachne/PerimeterOrder.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp
