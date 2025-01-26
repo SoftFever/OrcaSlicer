@@ -4119,8 +4119,8 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x + style.WindowPadding.x);
         for (size_t i = 1; i < title_columns.size() - 1; i++)
             offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-        if (title_columns.back().first == _u8L("Display"))
-            offsets.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding;
+        if (title_columns.back().first == _u8L("   "))
+            offsets.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("   ").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding;
 
         float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
         std::vector<float> ret;
@@ -4422,7 +4422,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         switch (type) {
         default:
         case EItemType::Rect: {
-            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
+            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 2.0f * m_scale }, { pos.x + int(icon_size*.8f - 1.0f * m_scale), pos.y + icon_size + 2.0f * m_scale},
                                      ImGuiWrapper::to_ImU32(color));
             break;
         }
@@ -4466,10 +4466,23 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (b_menu_item)
                 callback();
             if (checkbox) {
-                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
+				//ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
+                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - window_padding);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
                 ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-                ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
+                //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
+
+                ImVec2  p = ImGui::GetCursorScreenPos();
+                int		h = ImGui::GetFrameHeight();
+                auto eye_color = visible ? IM_COL32(0, 150, 136, 255) : IM_COL32(255, 255, 255, 90);
+                draw_list->AddBezierCurve({p.x + h*.1f ,p.y + h*.5f}, {p.x + h*.3f, p.y + h*.9f}, {p.x + h*.7f, p.y + h*.9f}, {p.x + h*.9f, p.y + h*.5f},
+					eye_color, 1.0f, 24
+				);
+				draw_list->AddBezierCurve({p.x + h*.1f, p.y + h*.5f}, {p.x + h*.3f, p.y + h*.1f}, {p.x + h*.7f, p.y + h*.1f}, {p.x + h*.9f, p.y + h*.5f},
+					eye_color, 1.0f, 24
+				);
+                draw_list->AddCircleFilled({p.x + h*.5f, p.y + h*.5f}, h*.2f, eye_color);
+
                 ImGui::PopStyleColor(1);
                 ImGui::PopStyleVar(1);
             }
@@ -4479,7 +4492,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         {
             if(callback && !checkbox && !visible)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));
-            float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size;
+            float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + int(icon_size*.8f - 1.0f * m_scale);
             ImGui::SameLine(dummy_size);
             imgui.text(columns_offsets[0].first);
 
@@ -4542,8 +4555,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x);
             for (size_t i = 1; i < title_columns.size() - 1; i++)
                 offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-            if (title_columns.back().first == _u8L("Display")) {
-                const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
+            if (title_columns.back().first == _u8L("   ")) {
+                const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("   ").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
                 if (preferred_offset > offsets.back()) {
                     offsets.back() = preferred_offset;
                 }
@@ -4648,8 +4661,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     else
         btn_name = ImGui::FoldButtonIcon + boost::nowide::widen(std::string(""));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.59f, 0.53f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.59f, 0.53f, 0.78f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0)); // ORCA removed colored background on hover to prevent non square background
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0)); // ORCA removed colored background on hover to prevent non square background
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
     //ImGui::PushItemWidth(
     float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
@@ -4658,13 +4671,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(1);
-    ImGui::SameLine();
-    imgui.bold_text(_u8L("Color Scheme"));
+    //ImGui::SameLine();
+    //imgui.bold_text(_u8L("Color Scheme"));
     push_combo_style();
 
     ImGui::SameLine();
     const char* view_type_value = view_type_items_str[m_view_type_sel].c_str();
-    ImGuiComboFlags flags = 0;
+    ImGuiComboFlags flags = ImGuiComboFlags_HeightLargest; // ORCA allow to fit all items to prevent scrolling on reaching last elements
     if (ImGui::BBLBeginCombo("", view_type_value, flags)) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         for (int i = 0; i < view_type_items_str.size(); i++) {
@@ -4687,6 +4700,21 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::EndCombo();
     }
     pop_combo_style();
+
+	ImGui::SameLine();
+	std::wstring gCodeToggle = ImGui::gCodeButtonIcon + boost::nowide::widen(std::string(""));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+    float button_width_g = ImGui::CalcTextSize(into_u8(gCodeToggle).c_str()).x;
+    if (ImGui::Button(into_u8(gCodeToggle).c_str(), ImVec2(button_width_g, 0))) {
+        wxGetApp().toggle_show_gcode_window();
+        wxGetApp().plater()-> get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+    }
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(1);
+
     ImGui::SameLine();
     ImGui::Dummy({ window_padding, window_padding });
 
@@ -4816,15 +4844,15 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 auto [time, percent] = role_time_and_percent(role);
                 times.push_back((time > 0.0f) ? short_time(get_time_dhms(time)) : "");
                 if (percent == 0)
-                    ::sprintf(buffer, "0%%");
+                    ::sprintf(buffer, "0");
                 else
-                    percent > 0.001 ? ::sprintf(buffer, "%.1f%%", percent * 100) : ::sprintf(buffer, "<0.1%%");
+                    percent > 0.001 ? ::sprintf(buffer, "%.1f", percent * 100) : ::sprintf(buffer, "<0.1");
                 percents.push_back(buffer);
 
                 auto [model_used_filament_m, model_used_filament_g] = used_filament_per_role(role);
-                ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", model_used_filament_m);
+                ::sprintf(buffer, imperial_units ? "%.2fin" : "%.2fm", model_used_filament_m);
                 used_filaments_length.push_back(buffer);
-                ::sprintf(buffer, imperial_units ? "%.2f oz" : "%.2f g", model_used_filament_g);
+                ::sprintf(buffer, imperial_units ? "%.2foz" : "%.2fg", model_used_filament_g);
                 used_filaments_weight.push_back(buffer);
             }
         }
@@ -4834,14 +4862,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             auto [time, percent] = move_time_and_percent(EMoveType::Travel);
             travel_time = (time > 0.0f) ? short_time(get_time_dhms(time)) : "";
             if (percent == 0)
-                ::sprintf(buffer, "0%%");
+                ::sprintf(buffer, "0");
             else
-                percent > 0.001 ? ::sprintf(buffer, "%.1f%%", percent * 100) : ::sprintf(buffer, "<0.1%%");
+				percent > 0.001 ? ::sprintf(buffer, "%.1f", percent * 100) : ::sprintf(buffer, "<0.1");
             travel_percent = buffer;
         }
 
-        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
-        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("Percent"), offsets[2]}, {_u8L("Used filament"), offsets[3]}, {_u8L("Display"), offsets[5]}});
+        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("%"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("   "), {""}}}, icon_size);
+        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("%"), offsets[2]}, {_u8L("Usage"), offsets[3]}, {_u8L("   "), offsets[5]}});
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
@@ -4872,7 +4900,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
 
         offsets = calculate_offsets({ { "Extruder NNN", {""}}}, icon_size);
-        append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Used filament"), offsets[1]} });
+        append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Usage"), offsets[1]} });
         break;
     }
     case EViewType::ColorPrint:
@@ -4994,8 +5022,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Spacing();
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        offsets = calculate_offsets({ { _u8L("Options"), { _u8L("Travel")}}, { _u8L("Display"), {""}} }, icon_size);
-        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
+        offsets = calculate_offsets({ { _u8L("Options"), { _u8L("Travel")}}, { _u8L("   "), {""}} }, icon_size);
+        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("   "), offsets[1]} });
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 3.0f));
         append_item(EItemType::None, Travel_Colors[0], { {_u8L("travel"), offsets[0] }}, true, travel_visible, [this, travel_visible]() {
@@ -5686,8 +5714,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Spacing();
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
-        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
+        offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("   "), {""}} }, icon_size);
+        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("   "), offsets[1]} });
         for (auto item : options_items)
             append_option_item(item, offsets);
     }
