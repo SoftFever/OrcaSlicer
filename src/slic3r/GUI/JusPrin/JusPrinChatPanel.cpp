@@ -204,8 +204,6 @@ nlohmann::json JusPrinChatPanel::handle_add_filaments(const nlohmann::json& para
     return nlohmann::json::object();
 }
 
-// TODO: identify the actions obsolete by v0.3 and flag them as deprecated
-
 nlohmann::json JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)
 {
     nlohmann::json payload = params.value("payload", nlohmann::json::object());
@@ -346,11 +344,6 @@ void JusPrinChatPanel::CallEmbeddedChatMethod(const wxString& method, const wxSt
     RunScriptInBrowser(strJS);
 }
 
-void JusPrinChatPanel::RefreshPresets() {
-    nlohmann::json allPresetsJson = JusPrinPresetConfigUtils::GetAllPresetJson();
-    UpdateEmbeddedChatState("presets", allPresetsJson.dump());
-}
-
 void JusPrinChatPanel::RefreshPlaterStatus() {
     nlohmann::json j = nlohmann::json::object();
     Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
@@ -457,7 +450,9 @@ nlohmann::json JusPrinChatPanel::CostItemsToJson(const Slic3r::orientation::Cost
 
 nlohmann::json JusPrinChatPanel::GetModelObjectFeaturesJson(const ModelObject* obj) {
     if (!obj || obj->instances.size() != 1) {
-        BOOST_LOG_TRIVIAL(error) << "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
+        std::string error_message = "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
+        wxGetApp().sidebar().jusprin_chat_panel()->SendNativeErrorOccurredEvent(error_message);
+        BOOST_LOG_TRIVIAL(error) << error_message;
         return nlohmann::json::object();
     }
 
@@ -468,35 +463,6 @@ nlohmann::json JusPrinChatPanel::GetModelObjectFeaturesJson(const ModelObject* o
     Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, {}, {});
     Slic3r::orientation::CostItems features = orienter.get_features(om.orientation.cast<float>(), true);
     return CostItemsToJson(features);
-}
-
-nlohmann::json JusPrinChatPanel::GetPlaterConfigJson()
-{
-    nlohmann::json j = nlohmann::json::object();
-    Plater* plater = wxGetApp().plater();
-
-    j["plateCount"] = plater->get_partplate_list().get_plate_list().size();
-    j["modelObjects"] = nlohmann::json::array();
-
-    for (const ModelObject* object : plater->model().objects) {
-        auto object_grid_config = &(object->config);
-
-        nlohmann::json obj;
-        obj["id"] = std::to_string(object->id().id);
-        obj["name"] = object->name;
-        obj["features"] = GetModelObjectFeaturesJson(object);
-
-        int extruder_id = -1;  // Default extruder ID
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            extruder_id = *extruder_id_ptr;
-        }
-        obj["extruderId"] = extruder_id;
-
-        j["modelObjects"].push_back(obj);
-    }
-
-    return j;
 }
 
 nlohmann::json JusPrinChatPanel::GetAllModelObjectsJson() {
