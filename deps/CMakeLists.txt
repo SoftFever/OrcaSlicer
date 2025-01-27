@@ -361,6 +361,7 @@ set(_dep_list
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
+    dep_libnoise
     )
 
 if (MSVC)

@@ -1,5 +1,5 @@
 find_path(LIBNOISE_INCLUDE_DIR libnoise/noise.h)
-find_library(LIBNOISE_LIBRARY NAMES libnoise libnoise_static)
+find_library(LIBNOISE_LIBRARY NAMES libnoise libnoise_static liblibnoise_static)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(libnoise DEFAULT_MSG
     LIBNOISE_LIBRARY

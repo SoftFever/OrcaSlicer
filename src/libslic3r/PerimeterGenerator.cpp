@@ -1035,7 +1035,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             const auto& config = regions.begin()->first;
             const bool  fuzzify = should_fuzzify(config, perimeter_generator.layer_id, extrusion->inset_idx, is_contour);
             if (fuzzify)
-                fuzzy_extrusion_line(extrusion.junctions, slice_z, config);
+                fuzzy_extrusion_line(extrusion->junctions, slice_z, config);
         } else {
             // Find all affective regions
             std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
@@ -1057,7 +1057,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     // Fuzzy splitted extrusion
                     if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
                         // The entire polygon is fuzzified
-                        fuzzy_extrusion_line(extrusion.junctions, slice_z, r.first);
+                        fuzzy_extrusion_line(extrusion->junctions, slice_z, r.first);
                     } else {
                         const auto current_ext = extrusion->junctions;
                         std::vector<Arachne::ExtrusionJunction> segment;
@@ -1065,11 +1065,11 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                         extrusion->junctions.clear();
 
                         const auto fuzzy_current_segment = [&segment, &extrusion, &r, slice_z]() {
-                            extrusion.junctions.push_back(segment.front());
+                            extrusion->junctions.push_back(segment.front());
                             const auto back = segment.back();
                             fuzzy_extrusion_line(segment, slice_z, r.first);
-                            extrusion.junctions.insert(extrusion.junctions.end(), segment.begin(), segment.end());
-                            extrusion.junctions.push_back(back);
+                            extrusion->junctions.insert(extrusion->junctions.end(), segment.begin(), segment.end());
+                            extrusion->junctions.push_back(back);
                             segment.clear();
                         };
 
