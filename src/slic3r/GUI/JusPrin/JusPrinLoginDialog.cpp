@@ -1,16 +1,18 @@
 #include "JusPrinLoginDialog.hpp"
 
-#include "../I18N.hpp"
-#include "../GUI_App.hpp"
-#include "../../libslic3r/AppConfig.hpp"
-#include "libslic3r_version.h"
-#include "../wxExtensions.hpp"
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
+
 #include <boost/lexical_cast.hpp>
 #include <nlohmann/json.hpp>
-#include <slic3r/GUI/Widgets/WebView.hpp>
+
+#include "../I18N.hpp"
+#include "../GUI_App.hpp"
+#include "../wxExtensions.hpp"
+#include "../../libslic3r/AppConfig.hpp"
+#include "libslic3r_version.h"
+#include "slic3r/GUI/Widgets/WebView.hpp"
 
 using namespace nlohmann;
 
