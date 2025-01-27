@@ -116,6 +116,14 @@ void JusPrinChatPanel::SendClassicModeChangedEvent(bool use_classic_mode) {
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
+void JusPrinChatPanel::SendNativeErrorOccurredEvent(const std::string& error_message) {
+    nlohmann::json j = nlohmann::json::object();
+    j["type"] = "nativeErrorOccurred";
+    j["data"] = nlohmann::json::object();
+    j["data"]["errorMessage"] = error_message;
+    CallEmbeddedChatMethod("processAgentEvent", j.dump());
+}
+
 // End of Agent events that are processed by the chat panel
 
 

@@ -5,7 +5,6 @@
 #include "slic3r/GUI/PresetComboBoxes.hpp"
 #include "slic3r/GUI/Jobs/OrientJob.hpp"
 
-
 namespace Slic3r { namespace GUI {
 
 nlohmann::json JusPrinPresetConfigUtils::PresetsToJson(const std::vector<std::pair<const Preset*, bool>>& presets)
@@ -128,7 +127,9 @@ void JusPrinPresetConfigUtils::ApplyConfig(const nlohmann::json& item) {
     } else if (type == "filament") {
         preset_type = Preset::Type::TYPE_FILAMENT;
     } else {
-        BOOST_LOG_TRIVIAL(error) << "ApplyConfig: invalid type parameter";
+        std::string error_message = "ApplyConfig: invalid type parameter: " + type;
+        wxGetApp().sidebar().jusprin_chat_panel()->SendNativeErrorOccurredEvent(error_message);
+        BOOST_LOG_TRIVIAL(error) << error_message;
         return;
     }
 
@@ -143,7 +144,10 @@ void JusPrinPresetConfigUtils::ApplyConfig(const nlohmann::json& item) {
                 item["value"].get<std::string>() : item["value"].dump();
             config->set_deserialize(item.value("key", ""), value_str, context);
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "ApplyConfig: '" << item.value("key", "") << ":" << item["value"] << "' failed: " << e.what();
+            std::string error_message = "ApplyConfig: '" + item.value("key", "") + ":" + item["value"].dump() + "' failed: " + e.what();
+            wxGetApp().sidebar().jusprin_chat_panel()->SendNativeErrorOccurredEvent(error_message);
+            BOOST_LOG_TRIVIAL(error) << error_message;
+            return;
         }
     }
 }
