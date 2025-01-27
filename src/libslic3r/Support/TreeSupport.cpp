@@ -1920,7 +1920,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
 
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
-    const size_t wall_count = config.tree_support_wall_count.value;
+    const float tree_brim_width = config.tree_support_brim_width.value;
 
     const PrintObjectConfig& object_config = m_object->config();
     BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
@@ -2011,11 +2011,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                             }
                         }
                         if (layer_nr == 0 && m_raft_layers == 0) {
-                            double brim_width =
-                                config.tree_support_auto_brim
-                                    ? node.dist_mm_to_top /
-                                          (scale * branch_radius) * 0.5
-                                    : config.tree_support_brim_width;
+                            double brim_width = !config.tree_support_auto_brim ? tree_brim_width : std::max(0.0, std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
                             auto tmp=offset(circle, scale_(brim_width));
                             if(!tmp.empty())
                                 circle = tmp[0];
