@@ -1631,7 +1631,7 @@ void TreeSupport::generate_toolpaths()
 
 void TreeSupport::generate()
 {
-    if (m_support_params.support_style == smsOrganic) {
+    if (m_support_params.support_style == smsTreeOrganic) {
         generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;
     }

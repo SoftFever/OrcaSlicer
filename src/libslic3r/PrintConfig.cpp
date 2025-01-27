@@ -230,7 +230,7 @@ static t_config_enum_values s_keys_map_SupportMaterialStyle {
     { "tree_slim",      smsTreeSlim },
     { "tree_strong",    smsTreeStrong },
     { "tree_hybrid",    smsTreeHybrid },
-    { "organic",        smsOrganic }
+    { "organic",        smsTreeOrganic }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 

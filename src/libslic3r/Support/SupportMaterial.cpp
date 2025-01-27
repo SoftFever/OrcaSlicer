@@ -678,7 +678,7 @@ public:
         m_support_material_closing_radius(params.support_closing_radius)
     {
         if (m_style == smsDefault) m_style = smsGrid;
-        if (std::set<SupportMaterialStyle>{smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic}.count(m_style))
+        if (std::set<SupportMaterialStyle>{smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic}.count(m_style))
             m_style = smsGrid;
         switch (m_style) {
         case smsGrid:
@@ -774,7 +774,7 @@ public:
         case smsTreeSlim:
         case smsTreeStrong:
         case smsTreeHybrid:
-        case smsOrganic:
+        case smsTreeOrganic:
             assert(false);
             //[[fallthrough]];
             return Polygons();

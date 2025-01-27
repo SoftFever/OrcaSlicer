@@ -1808,7 +1808,7 @@ void generate_support_toolpaths(
                     filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));
                     sheath  = true;
                     no_sort = true;
-                } else if (support_params.support_style == SupportMaterialStyle::smsOrganic) {
+                } else if (support_params.support_style == SupportMaterialStyle::smsTreeOrganic) {
                     tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params);
                     done = true;
                 }
