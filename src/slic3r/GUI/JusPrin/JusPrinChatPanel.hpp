@@ -96,8 +96,6 @@ private:
     void CallEmbeddedChatMethod(const wxString& method, const wxString& params);
 
     void RunScriptInBrowser(const wxString& script);
-    void DiscardCurrentPresetChanges();
-
 };
 
 }} // namespace Slic3r::GUI

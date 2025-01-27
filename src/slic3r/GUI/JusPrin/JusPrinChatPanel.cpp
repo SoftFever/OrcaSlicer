@@ -216,7 +216,7 @@ nlohmann::json JusPrinChatPanel::handle_select_preset(const nlohmann::json& para
         throw std::runtime_error("Invalid type parameter");
     }
 
-    DiscardCurrentPresetChanges(); // Selecting a printer will result in selecting a filament or print preset. So we need to discard changes for all presets in order not to have the "transfer or discard" dialog pop up
+    JusPrinPresetConfigUtils::DiscardCurrentPresetChanges(); // Selecting a printer will result in selecting a filament or print preset. So we need to discard changes for all presets in order not to have the "transfer or discard" dialog pop up
 
     std::string  name = payload.value("name", "");
     Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
@@ -427,10 +427,6 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << script;
     WebView::RunScript(m_browser, script);
-}
-
-void JusPrinChatPanel::DiscardCurrentPresetChanges() {
-    JusPrinPresetConfigUtils::DiscardCurrentPresetChanges();
 }
 
 nlohmann::json JusPrinChatPanel::CostItemsToJson(const Slic3r::orientation::CostItems& cost_items) {
