@@ -10567,7 +10567,8 @@ msgstr ""
 "2. 避免因外牆速度變化而產生類似 Z 條紋的瑕疵。\n"
 "3. 防止外牆因列印速度過快而出現 VFAs（細微表面瑕疵）。\n"
 "\n"
-"譯者補充：最小層時間（Minimum Layer Time）是指列印每一層所需的最短時間。如果列印機以較快的速度完成一層的列印時間短於這個設定值，為了確保每層有足夠的時間冷卻和固化，列印機會自動減慢速度，以延長該層的列印時間，"
+"譯者補充：最小層時間（Minimum Layer Time）是指列印每一層所需的最短時間。如果列印機以較快的速度完成一層的列印時間短於這個設定值，"
+"為了確保每層有足夠的時間冷卻和固化，列印機會自動減慢速度，以延長該層的列印時間，"
 "達到最小層時間的要求。這樣可以避免因冷卻不足而導致的列印缺陷，如層間附著不良或變形。\n"
 "\n"
 
@@ -14691,7 +14692,7 @@ msgstr ""
 "結束 > 開始 + 步距）"
 
 msgid "VFA test"
-msgstr "VFA震紋測試"
+msgstr "VFA 震紋測試"
 
 msgid "Start speed: "
 msgstr "起始速度："
@@ -15795,7 +15796,7 @@ msgid ""
 "Did you know that you can use sandwich mode (inner-outer-inner) to improve precision and layer consistency if your model doesn't have very steep overhangs?"
 msgstr ""
 "三明治模式\n"
-"你知道嗎？如果模型中沒有太陡峭的懸空區域，可以使用三明治模式（內層-外層-內層）來提升精度並增強層的一致性。"
+"你知道嗎？如果模型中沒有太陡峭的懸空區域，可以使用三明治模式\n""（內層-外層-內層）來提升精度並增強層的一致性。"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
 msgid ""
@@ -15811,7 +15812,7 @@ msgid ""
 "Did you know that calibrating your printer can do wonders? Check out our beloved calibration solution in OrcaSlicer."
 msgstr ""
 "校準\n"
-"你知道校準列印設備可以帶來奇效嗎？快來看看我們在 OrcaSlicer 中的校準解決方案。"
+"你知道校準列印設備可以帶來奇效嗎？快來看看我們在 OrcaSlicer 中的\n""校準解決方案。"
 
 #: resources/data/hints.ini: [hint:Auxiliary fan]
 msgid ""
@@ -15859,7 +15860,7 @@ msgid ""
 "Did you know that <b>Reverse on odd</b> feature can significantly improve the surface quality of your overhangs?"
 msgstr ""
 "奇數反向\n"
-"你知道 <b>奇數反向</b> 功能可以顯著改善懸垂部分的表面品質嗎？"
+"你知道嗎？<b>奇數反向</b> 功能能大幅提升懸空結構的表面品質 "
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -15875,7 +15876,7 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing problems on the Windows system?"
 msgstr ""
 "修復模型\n"
-"你知道可以修復損壞的 3D 模型，以避免在 Windows 系統上出現大量切片問題嗎？"
+"你知道嗎？在 Windows 系統上修復損壞的 3D 模型，\n""可以有效避免許多切片時的問題。"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -15899,7 +15900,7 @@ msgid ""
 "Did you know that you can rotate objects to an optimal orientation for printing by a simple click?"
 msgstr ""
 "自動定向\n"
-"你知道嗎，你只需單擊滑鼠，即可將物件旋轉到適合的列印方向。"
+"你知道嗎？你只需單擊滑鼠，即可將物件旋轉到適合的列印方向。"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
@@ -15907,7 +15908,7 @@ msgid ""
 "Did you know that you can quickly orient a model so that one of its faces sits on the print bed? Select the \"Place on face\" function or press the <b>F</b> key."
 msgstr ""
 "指定列印物件底部\n"
-"你知道嗎，你可以快速指定模型的底面，使其位於列印板上。選擇 \"選擇底面\" 功能或按<b>F</b>鍵。"
+"你知道嗎？你可以快速指定模型的底面，使其位於列印板上。\n""選擇「選擇底面」或按 <b>F</b> 鍵。"
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -15915,7 +15916,7 @@ msgid ""
 "Did you know that you can view all objects/parts in a list and change settings for each object/part?"
 msgstr ""
 "物件清單\n"
-"你知道嗎？你可以在清單中檢視所有物件/部件，並為每個物件/部件調整設定。"
+"你知道嗎？你可以在清單中檢視所有物件/部件，並為每個物件/部件\n""調整設定。"
 
 #: resources/data/hints.ini: [hint:Search Functionality]
 msgid ""
@@ -15923,7 +15924,7 @@ msgid ""
 "Did you know that you use the Search tool to quickly find a specific Orca Slicer setting?"
 msgstr ""
 "搜尋功能\n"
-"你知道可以使用搜尋工具快速找到特定的設定嗎？"
+"你知道嗎？使用「搜尋工具」可以快速定位特定的 Orca Slicer 設定。"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -15931,7 +15932,7 @@ msgid ""
 "Did you know that you can reduce the number of triangles in a mesh using the Simplify mesh feature? Right-click the model and select Simplify model."
 msgstr ""
 "簡化模型\n"
-"你知道可以使用簡化網格功能來減少網格中的三角形數量嗎？右鍵點擊模型並選擇簡化模型。"
+"你知道嗎？透過「簡化網格」功能，你可以減少模型中的三角形數量。\n""只需右鍵點擊模型，然後選擇「簡化模型」。"
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -15939,7 +15940,7 @@ msgid ""
 "Did you know that you can view all objects/parts on a table and change settings for each object/part?"
 msgstr ""
 "參數表格\n"
-"你知道嗎？你可以看參數表格上的所有物件/零件，並更改每個物件/零件的設定。"
+"你知道嗎？你可以看參數表格上的所有物件/零件，並更改每個物件/零\n""件的設定。"
 
 #: resources/data/hints.ini: [hint:Split to Objects/Parts]
 msgid ""
@@ -15947,7 +15948,7 @@ msgid ""
 "Did you know that you can split a big object into small ones for easy colorizing or printing?"
 msgstr ""
 "分割成物件/零件\n"
-"你知道嗎？你可以把一個大物件分割成多個小物件/零件以便著色或列印。"
+"你知道嗎？你可以把一個大物件分割成多個小物件/零件以便著色或\n""列印。"
 
 #: resources/data/hints.ini: [hint:Subtract a Part]
 msgid ""
@@ -15955,7 +15956,7 @@ msgid ""
 "Did you know that you can subtract one mesh from another using the Negative part modifier? That way you can, for example, create easily resizable holes directly in Orca Slicer."
 msgstr ""
 "減去零件\n"
-"你知道可以使用負零件修飾器從一個網格中減去另一個網格嗎？這樣，你可以在 Orca Slicer 中輕鬆創建可調整大小的孔洞。"
+"你知道嗎？你可以使用「負零件修飾器」將一個網格從另一個網格中減\n""去。這樣，就能直接在 Orca Slicer 裡輕鬆創建尺寸可調的孔洞。"
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
@@ -15964,8 +15965,9 @@ msgid ""
 "Orca Slicer supports slicing STEP files, providing smoother results than a lower resolution STL. Give it a try!"
 msgstr ""
 "STEP檔案\n"
-"你知道嗎，通過切片 STEP 檔案而不是 STL 檔案可以提高列印品質。\n"
-" Orca Slicer 支援切片 STEP 檔案，提供比低解析度 STL 更平滑的結果。試試看！"
+"你知道嗎？通過切片 STEP 檔案而不是 STL 檔案可以提高列印品質。\n"
+"Orca Slicer 支援切片 STEP 檔案，提供比低解析度 STL 更平滑的結果。\n"
+"試試看！"
 
 #: resources/data/hints.ini: [hint:Z seam location]
 msgid ""
@@ -15973,7 +15975,7 @@ msgid ""
 "Did you know that you can customize the location of the Z seam, and even paint it on your print, to have it in a less visible location? This improves the overall look of your model. Check it out!"
 msgstr ""
 "Z接縫位置\n"
-"你知道嗎，你可以自訂Z接縫的位置，甚至可以將其繪製在列印上，使其位於不太可見的位置。這樣可以改善模型的整體外觀。試試看！"
+"你知道嗎？你可以自訂Z接縫的位置，甚至可以將其繪製在列印上，使\n""其位於不太可見的位置。這樣可以改善模型的整體外觀。試試看！"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
@@ -15981,7 +15983,7 @@ msgid ""
 "Did you know that flow rate can be fine-tuned for even better-looking prints? Depending on the material, you can improve the overall finish of the printed model by doing some fine-tuning."
 msgstr ""
 "流量微調\n"
-"你知道嗎，你可以微調流量，以獲得更好看的列印效果。根據線材的不同，可以通過進行一些微調來提高列印模型的整體光潔度。"
+"你知道嗎？你可以微調流量，以獲得更好看的列印效果。根據線材的不\n""同，可以通過進行一些微調來提高列印模型的整體光潔度。"
 
 #: resources/data/hints.ini: [hint:Split your prints into plates]
 msgid ""
@@ -15989,7 +15991,7 @@ msgid ""
 "Did you know that you can split a model that has a lot of parts into individual plates ready to print? This will simplify the process of keeping track of all the parts."
 msgstr ""
 "分類列印\n"
-"你知道嗎，你可以把一個有很多零件的模型安排到多個獨立的列印板，然後列印出來，這將簡化對所有零件的管理。"
+"你知道嗎？你可以把一個有很多零件的模型安排到多個獨立的列印板，\n""然後列印出來，這將簡化對所有零件的管理。"
 
 #: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
@@ -15997,7 +15999,7 @@ msgid ""
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
 msgstr ""
 "自適應層高度加速列印\n"
-"你知道嗎，你可以使用\"自適應層高度\"選項可以更快地列印模型。試試看！"
+"你知道嗎？你可以使用\"自適應層高度\"選項可以更快地列印模型。\n""試試看！"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -16005,7 +16007,7 @@ msgid ""
 "Did you know that you can paint the location of your supports? This feature makes it easy to place the support material only on the sections of the model that actually need it."
 msgstr ""
 "自訂支撐\n"
-"你知道嗎，你可以手動繪製增加/隱藏支撐的位置，此功能使僅將支撐材料放置在實際需要的模型截面上變得容易。"
+"你知道嗎？你可以手動繪製增加/隱藏支撐的位置，此功能使僅將支撐\n""材料放置在實際需要的模型截面上變得容易。"
 
 #: resources/data/hints.ini: [hint:Different types of supports]
 msgid ""
@@ -16013,7 +16015,7 @@ msgid ""
 "Did you know that you can choose from multiple types of supports? Tree supports work great for organic models, while saving filament and improving print speed. Check them out!"
 msgstr ""
 "支撐類型\n"
-"你知道嗎，有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，同時可以節線材並提高列印速度。試試看！"
+"你知道嗎？有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，\n""同時可以節線材並提高列印速度。試試看！"
 
 #: resources/data/hints.ini: [hint:Printing Silk Filament]
 msgid ""
@@ -16021,7 +16023,7 @@ msgid ""
 "Did you know that Silk filament needs special consideration to print it successfully? Higher temperature and lower speed are always recommended for the best results."
 msgstr ""
 "列印絲綢線材\n"
-"你知道嗎，絲綢線材需要特別考慮才能成功列印。為了獲得最佳效果，通常建議使用較高的溫度和較低的速度。"
+"你知道嗎？絲綢線材需要特別考慮才能成功列印。為了獲得最佳效果，\n""通常建議使用較高的溫度和較低的速度。"
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
@@ -16029,7 +16031,7 @@ msgid ""
 "Did you know that when printing models have a small contact interface with the printing surface, it's recommended to use a brim?"
 msgstr ""
 "使用 Brim\n"
-"你知道嗎？當模型與熱床表面的接觸面積較小時，建議使用 Brim 以提高列印成功率。"
+"你知道嗎？當模型與熱床表面的接觸面積較小時，建議使用 Brim 以提\n""高列印成功率。"
 
 #: resources/data/hints.ini: [hint:Set parameters for multiple objects]
 msgid ""
@@ -16053,7 +16055,7 @@ msgid ""
 "Did you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
 msgstr ""
 "廢料運用到支撐/物件/填充中\n"
-"你知道嗎？你可以在換料時將廢料運用到支撐/物件/填充，以節省浪費的線材。"
+"你知道嗎？你可以在換料時將廢料運用到支撐/物件/填充，以節省浪費\n""的線材。"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
@@ -16061,15 +16063,16 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""
 "提高強度\n"
-"你知道嗎？你可以使用更多的牆層數和更高的疏散填充密度來提高模型的強度。"
+"你知道嗎？你可以使用更多的牆層數和更高的疏散填充密度來提高模型\n""強度。"
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
-"需要在開啟列印設備門的情況下列印\n"
-"你知道當列印低溫耗材且機身溫度較高時，開啟列印設備門可以減少擠出機/熱端堵塞的機率嗎？更多資訊請參閱Wiki。"
+"當列印時需要打開機門時\n"
+"你知道嗎？在列印低溫耗材且機箱內溫度較高的情況下，打開列印\n""設備機門可以有效降低擠出機或噴嘴堵塞的機率。\n"
+"詳情可在Wiki上查看。"
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -16077,4 +16080,85 @@ msgid ""
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
 "避免翹曲\n"
+"你知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度\n""可以降低翹曲的機率。"
+
+#: src/slic3r/GUI/Tab.cpp: 
+msgid "Dependencies"
+msgstr "相依項目"
+
+msgid "Profile dependencies"
+msgstr "設定檔相依項目"
+
+msgid "This is a default preset."
+msgstr "預設配置。"
+
+msgid "This is a system preset."
+msgstr "這是系統預設配置"
+
+msgid "Current preset is inherited from the default preset."
+msgstr "目前的配置繼承自預設配置。"
+
+msgid "Current preset is inherited from"
+msgstr "目前的配置繼承自"
+
+msgid "It can't be deleted or modified."
+msgstr "它無法被刪除或修改。"
+
+msgid "Any modifications should be saved as a new preset inherited from this one."
+msgstr "若要進行任何修改，請另存為一個新的預設配置，並繼承自此預設配置。"
+
+msgid "To do that please specify a new name for the preset."
+msgstr "為此，請為新的預設配置指定一個名稱。"
+
+msgid "Additional information:"
+msgstr "其他資訊："
+
+msgid "vendor"
+msgstr "供應商"
+
+msgid ", ver: "
+msgstr "，版本"
+
+msgid "printer model"
+msgstr "列印設備型號"
+
+msgid "default print profile"
+msgstr "預設列印設定檔"
+
+msgid "default filament profile"
+msgstr "預設線材設定檔"
+
+msgid "default SLA material profile"
+msgstr "預設 SLA 材料設定檔"
+
+msgid "default SLA print profile"
+msgstr "預設 SLA 列印設定檔"
+
+msgid "full profile name"
+msgstr "完整設定檔名稱"
+
+msgid "symbolic profile name"
+msgstr "簡易設定檔名稱"
+
+msgid ""
+"A copy of the current system preset will be created, which will be detached from the system preset."
+msgstr "將建立目前系統配置的副本，且該副本將與系統配置分離不相關聯。"
+
+msgid ""
+"The current custom preset will be detached from the parent system preset."
+msgstr "當前的自訂配置將與父系統配置分離不相關聯。"
+
+msgid ""
+"Modifications to the current profile will be saved."
+msgstr ""
+"目前設定檔的修改將會保存下來。"
+
+msgid ""
+"This action is not revertible.\nDo you want to proceed?"
+msgstr ""
+"此操作無法還原。\n您確定要繼續嗎？"
+
+msgid ""
+"Detach preset"
+msgstr "解除預設關聯"
 "你知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度可以降低翹曲的機率。"
