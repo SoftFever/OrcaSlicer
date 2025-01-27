@@ -35,11 +35,9 @@ public:
     // End of Agent events that are processed by the chat panel
 
     void UpdateOAuthAccessToken();
-    void RefreshPresets();
     void RefreshPlaterStatus();
 
 
-    static nlohmann::json GetPlaterConfigJson();
     static nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
     static nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items);
     static nlohmann::json GetAllModelObjectsJson();
