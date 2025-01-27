@@ -30,6 +30,7 @@ public:
     void SendAutoOrientEvent(bool canceled);
     void SendModelObjectsChangedEvent();
     void SendClassicModeChangedEvent(bool use_classic_mode);
+    void SendNativeErrorOccurredEvent(const std::string& error_message);
 
     // End of Agent events that are processed by the chat panel
 
