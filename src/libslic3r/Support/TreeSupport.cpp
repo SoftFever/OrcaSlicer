@@ -65,6 +65,9 @@ inline Point turn90_ccw(const Point pt)
 inline Point normal(Point pt, double scale)
 {
     double length = scale_(sqrt(vsize2_with_unscale(pt)));
+    if (length < SCALED_EPSILON) {
+        return pt;
+    }
 
     return pt * (scale / length);
 }
