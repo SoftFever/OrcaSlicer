@@ -1,15 +1,17 @@
 #include "JusPrinChatPanel.hpp"
-#include "../PresetComboBoxes.hpp"
-#include "libslic3r/Config.hpp"
-#include "slic3r/GUI/Jobs/OrientJob.hpp"
-#include "libslic3r/Orient.hpp"
-#include "JusPrinPresetConfigUtils.hpp"
 
 #include <iostream>
 #include <wx/sizer.h>
-#include <libslic3r/Model.hpp>
-#include <slic3r/GUI/PartPlate.hpp>
-#include <slic3r/GUI/MainFrame.hpp>
+
+#include "libslic3r/Config.hpp"
+#include "libslic3r/Orient.hpp"
+#include "libslic3r/Model.hpp"
+#include "slic3r/GUI/PresetComboBoxes.hpp"
+#include "slic3r/GUI/Jobs/OrientJob.hpp"
+#include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
+
+#include "JusPrinPresetConfigUtils.hpp"
 
 
 namespace Slic3r { namespace GUI {
