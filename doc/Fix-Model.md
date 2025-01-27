@@ -19,7 +19,7 @@ There are no standard mesh repairing software provided on Linux and MacOS system
     # create virtualenv directory
     python3 -m venv pymeshlab
     # activate virtualenv
-    source pymeshlab/bin/activate.sh
+    source pymeshlab/bin/activate
     # install pymeshlab
     pip3 install pymeshlab
     ``` 
