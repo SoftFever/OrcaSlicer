@@ -66,8 +66,6 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
-            mkdir ${{ github.workspace }}/deps/build
-            mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
             .\build_release_vs2022.bat deps
             .\build_release_vs2022.bat pack
             cd ${{ github.workspace }}/deps/build

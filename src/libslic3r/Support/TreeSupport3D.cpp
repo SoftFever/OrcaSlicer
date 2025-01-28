@@ -239,7 +239,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     for (const LayerRegion *layerm : lower_layer.regions())
                         external_perimeter_width += layerm->flow(frExternalPerimeter).scaled_width();
                     external_perimeter_width /= lower_layer.region_count();
-                    lower_layer_offset = float(0.5 * external_perimeter_width);
+                    lower_layer_offset = external_perimeter_width - float(scale_(config.support_threshold_overlap.get_abs_value(unscale_(external_perimeter_width))));
                 } else
                     lower_layer_offset = scaled<float>(lower_layer.height / tan_threshold);
                 overhangs = lower_layer_offset == 0 ?

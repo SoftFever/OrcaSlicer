@@ -6,7 +6,7 @@
 	"instantiation": "true",
 	"inherits": "fdm_machine_common",
 	"printer_model": "Sovol SV06 Plus ACE",
-	"default_print_profile": "0.20mm Standard @Sovol SV06 Plus ACE - official",
+	"default_print_profile": "0.20mm Standard @Sovol SV06 Plus ACE",
 	"nozzle_diameter": [
 		"0.4"
 	],
@@ -73,7 +73,6 @@
 		"10"
 	],
 	"z_hop": [
-		"0.4",
 		"0.4"
 	],
 	"z_hop_types":[
@@ -96,16 +95,10 @@
 		"40"
 	],
 	"wipe_distance": [
-        "2",
-		"2"
+        "2"
     ],
-	"retract_minimum_trave": [
-		"1",
-		"1"
-	],
 	"retract_before_wipe": [
-		"100",
-		"100"
+		"100%"
 	],
 	"retract_length_toolchange": [
 		"2",

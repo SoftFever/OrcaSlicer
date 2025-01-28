@@ -375,6 +375,9 @@ void GLGizmosManager::update_data()
                                    : CommonGizmosDataID(0));
     if (m_current != Undefined) m_gizmos[m_current]->data_changed(m_serializing);
 
+    // Orca: hack: Fix issue that flatten gizmo faces not updated after reload from disk
+    if (m_current != Flatten && !m_gizmos.empty()) m_gizmos[Flatten]->data_changed(m_serializing);
+
     //BBS: GUI refactor: add object manipulation in gizmo
     m_object_manipulation.update_ui_from_settings();
     m_object_manipulation.UpdateAndShow(true);
