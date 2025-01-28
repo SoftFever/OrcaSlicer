@@ -71,30 +71,7 @@ function SortUI()
 			ModelList.push(OneMode);
 	}
 	
-	//machine
-//	let HtmlMachine='';
-//	
-//	let nMachine=m_ProfileItem['machine'].length;
-//	for(let n=0;n<nMachine;n++)
-//	{
-//		let OneMachine=m_ProfileItem['machine'][n];
-//		
-//		let sName=OneMachine['name'];
-//		let sModel=OneMachine['model'];
-//	
-//		if( ModelList.in_array(sModel) )
-//		{
-//			HtmlMachine+='<div><input type="checkbox" mode="'+sModel+'" onChange="MachineClick()" />'+sName+'</div>';
-//		}
-//	}
-//	
-//	$('#MachineList .CValues').append(HtmlMachine);	
-//	$('#MachineList .CValues input').prop("checked",true);
-//	if(nMachine<=1)
-//	{
-//		$('#MachineList').hide();
-//	}
-	
+
 	//model
 	let HtmlMode='';
 	nMode=ModelList.length;
@@ -130,15 +107,6 @@ function SortUI()
 		let fType=OneFila['type'];
 		let fSelect=OneFila['selected'];
 		let fModel=OneFila['models']
-		
-		//alert( fWholeName+' - '+fShortName+' - '+fVendor+' - '+fType+' - '+fSelect+' - '+fModel );
-		
-//		if(OneFila['name'].indexOf("Bambu PA-CF")>=0)
-//		{
-//			alert( fShortName+' - '+fVendor+' - '+fType+' - '+fSelect+' - '+fModel )
-//			
-//			let b=1+2;
-//		}
 		
         let bFind=false;		
 		//let bCheck=$("#MachineList input:first").prop("checked");
@@ -204,7 +172,10 @@ function SortUI()
 				let strModel=pFila.attr("model");
 				let strFilalist=pFila.attr("filalist");
 				
-				pFila.attr("model", strModel+fModel);
+				if(strModel == '' || fModel == '')
+					pFila.attr("model", '');
+				else
+					pFila.attr("model", strModel+fModel);
 				pFila.attr("filalist", strFilalist+fWholeName+';');
 			}
 			
