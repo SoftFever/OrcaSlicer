@@ -1,5 +1,5 @@
 
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/KDW06/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+<h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
 
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 <br>Orca Slicer is an open source slicer for FDM printers. 
@@ -10,11 +10,15 @@ Join our Discord community here:<br>
  
  <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
 
-Please be aware that "**orcaslicer.net**" or "**orcaslicer.info**" are NOT an official website for OrcaSlicer and may be potentially malicious. This site appears to use AI-generated content, lacking genuine context, and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
+Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised. 
+
+If you see the above sites in your searches, report them as spam or unsafe to the search engine. This small action will assist everyone.
 
 The only official platforms for OrcaSlicer are our GitHub project page and the  <a href="https://discord.gg/P4VE9UY9gJ">official Discord channel</a> .
 
 We deeply value our OrcaSlicer community and appreciate all the social groups that support us. However, it is crucial to address the risk posed by any group that falsely claims to be official or misleads its members. If you encounter such a group or are part of one, please assist by encouraging the group owner to add a clear disclaimer or by alerting its members.
+
+
 
 Thank you for your vigilance and support in keeping our community safe!
 
@@ -129,7 +133,7 @@ resolution: 0.1
 ```
 
 # Supports
-**Orca Slicer** is an open-source project, and I'm deeply grateful to all my sponsors and backers.   
+**Orca Slicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.   
 Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.   
 Thank you! :)
 

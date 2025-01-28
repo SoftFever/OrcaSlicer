@@ -1019,6 +1019,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_expansion"
             //|| opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
+            || opt_key == "support_threshold_overlap"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
@@ -1116,6 +1117,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "fuzzy_skin_first_layer"
+            || opt_key == "fuzzy_skin_noise_type"
+            || opt_key == "fuzzy_skin_scale"
+            || opt_key == "fuzzy_skin_octaves"
+            || opt_key == "fuzzy_skin_persistence"
             || opt_key == "detect_overhang_wall"
             || opt_key == "overhang_reverse"
             || opt_key == "overhang_reverse_internal_only"

@@ -160,7 +160,12 @@ public:
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
     VendorMap                   vendors;
 
-    struct ObsoletePresets {
+    // Orca: for OrcaFilamentLibrary
+    std::map<std::string, DynamicPrintConfig> m_config_maps;
+    std::map<std::string, std::string> m_filament_id_maps;
+
+        struct ObsoletePresets
+    {
         std::vector<std::string> prints;
         std::vector<std::string> sla_prints;
         std::vector<std::string> filaments;
@@ -212,9 +217,9 @@ public:
     // Don't do any config substitutions when loading a system profile, perform and report substitutions otherwise.
     /*std::pair<PresetsConfigSubstitutions, size_t> load_configbundle(
         const std::string &path, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule);*/
-    //BBS: add json related logic
+    //Orca: load config bundle from json, pass the base bundle to support cross vendor inheritance
     std::pair<PresetsConfigSubstitutions, size_t> load_vendor_configs_from_json(
-        const std::string &path, const std::string &vendor_name, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule);
+        const std::string &path, const std::string &vendor_name, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule, const PresetBundle* base_bundle = nullptr);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     //void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
@@ -261,11 +266,13 @@ public:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_filaments_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     VendorProfile                                      get_custom_vendor_models() const;
 
-    //BBS: add BBL as default
-    static const char *BBL_BUNDLE;
-	static const char *BBL_DEFAULT_PRINTER_MODEL;
-	static const char *BBL_DEFAULT_PRINTER_VARIANT;
-	static const char *BBL_DEFAULT_FILAMENT;
+    //orca: add 'custom' as default
+    static const char *ORCA_DEFAULT_BUNDLE;
+	static const char *ORCA_DEFAULT_PRINTER_MODEL;
+	static const char *ORCA_DEFAULT_PRINTER_VARIANT;
+	static const char *ORCA_DEFAULT_FILAMENT;
+    static const char *ORCA_FILAMENT_LIBRARY;
+
 
     static std::array<Preset::Type, 3>  types_list(PrinterTechnology pt) {
         if (pt == ptFFF)
