@@ -4473,10 +4473,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 				// ORCA replace checkboxes with eye icon
                 ImVec2  p = ImGui::GetCursorScreenPos();
                 int		h = ImGui::GetFrameHeight();
-                auto eye_color = visible ? IM_COL32(0, 150, 136, 255) : IM_COL32(255, 255, 255, 90);
-                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.9f},{p.x + h*.7f,p.y + h*.9f},{p.x + h*.9f, p.y + h*.5f},eye_color,1.0f,24);
-                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.1f},{p.x + h*.7f,p.y + h*.1f},{p.x + h*.9f,p.y + h*.5f},eye_color,1.0f,24);
+                auto    eye_color = visible ? IM_COL32(0, 150, 136, 255) : IM_COL32(120, 120, 120, 255);
+                int     eye_line_width = 1.0f * m_scale;
+                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.9f},{p.x + h*.7f,p.y + h*.9f},{p.x + h*.9f,p.y + h*.5f},eye_color,eye_line_width,24);
+                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.1f},{p.x + h*.7f,p.y + h*.1f},{p.x + h*.9f,p.y + h*.5f},eye_color,eye_line_width,24);
                 draw_list->AddCircleFilled({p.x + h*.5f,p.y + h*.5f},h*.2f,eye_color);
+                if (!visible) {
+                    draw_list->AddLine({p.x + h*.1f,p.y + h*.15f},{p.x + h*.9f,p.y + h*.85f},IM_COL32(120, 120, 120, 255),eye_line_width);
+                }
 
                 //ImGui::PopStyleColor(1);
                 ImGui::PopStyleVar(1);
