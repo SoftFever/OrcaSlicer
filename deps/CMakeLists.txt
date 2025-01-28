@@ -293,6 +293,7 @@ include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
+include(libnoise/libnoise.cmake)
 
 
 # I *think* 1.1 is used for *just* md5 hashing?
@@ -360,6 +361,7 @@ set(_dep_list
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
+    dep_libnoise
     )
 
 if (MSVC)

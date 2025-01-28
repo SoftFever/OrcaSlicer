@@ -22,6 +22,7 @@
 #include "libslic3r/AABBTreeLines.hpp"
 #include "Print.hpp"
 #include "Algorithm/LineSplit.hpp"
+#include "libnoise/noise.h"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
@@ -43,6 +44,14 @@ static double random_value() {
     thread_local std::uniform_real_distribution<double> dist(0.0, 1.0);
     return dist(gen);
 }
+
+class UniformNoise: public noise::module::Module {
+    public:
+        UniformNoise(): Module (GetSourceModuleCount ()) {};
+
+        virtual int GetSourceModuleCount() const { return 0; }
+        virtual double GetValue(double x, double y, double z) const { return random_value() * 2 - 1; }
+};
 
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
@@ -66,9 +75,39 @@ public:
     bool is_internal_contour() const;
 };
 
+static std::unique_ptr<noise::module::Module> get_noise_module(const FuzzySkinConfig& cfg) {
+    if (cfg.noise_type == NoiseType::Perlin) {
+        auto perlin_noise = noise::module::Perlin();
+        perlin_noise.SetFrequency(1 / cfg.noise_scale);
+        perlin_noise.SetOctaveCount(cfg.noise_octaves);
+        perlin_noise.SetPersistence(cfg.noise_persistence);
+        return std::make_unique<noise::module::Perlin>(perlin_noise);
+    } else if (cfg.noise_type == NoiseType::Billow) {
+        auto billow_noise = noise::module::Billow();
+        billow_noise.SetFrequency(1 / cfg.noise_scale);
+        billow_noise.SetOctaveCount(cfg.noise_octaves);
+        billow_noise.SetPersistence(cfg.noise_persistence);
+        return std::make_unique<noise::module::Billow>(billow_noise);
+    } else if (cfg.noise_type == NoiseType::RidgedMulti) {
+        auto ridged_multi_noise = noise::module::RidgedMulti();
+        ridged_multi_noise.SetFrequency(1 / cfg.noise_scale);
+        ridged_multi_noise.SetOctaveCount(cfg.noise_octaves);
+        return std::make_unique<noise::module::RidgedMulti>(ridged_multi_noise);
+    } else if (cfg.noise_type == NoiseType::Voronoi) {
+        auto voronoi_noise = noise::module::Voronoi();
+        voronoi_noise.SetFrequency(1 / cfg.noise_scale);
+        voronoi_noise.SetDisplacement(1.0);
+        return std::make_unique<noise::module::Voronoi>(voronoi_noise);
+    } else {
+        return std::make_unique<UniformNoise>();
+    }
+}
+
 // Thanks Cura developers for this function.
-static void fuzzy_polyline(Points& poly, bool closed, const FuzzySkinConfig& cfg)
+static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkinConfig& cfg)
 {
+    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
+
     const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = cfg.point_distance / 2.;
     double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
@@ -90,8 +129,9 @@ static void fuzzy_polyline(Points& poly, bool closed, const FuzzySkinConfig& cfg
         for (; p0pa_dist < p0p1_size;
             p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist)
         {
-            double r = random_value() * (cfg.thickness * 2.) - cfg.thickness;
-            out.emplace_back(*p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
+            Point pa = *p0 + (p0p1 * (p0pa_dist / p0p1_size)).cast<coord_t>();
+            double r = noise->GetValue(unscale_(pa.x()), unscale_(pa.y()), slice_z) * cfg.thickness;
+            out.emplace_back(pa + (perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
         }
         dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
@@ -108,8 +148,10 @@ static void fuzzy_polyline(Points& poly, bool closed, const FuzzySkinConfig& cfg
 }
 
 // Thanks Cura developers for this function.
-static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_lines, const FuzzySkinConfig& cfg)
+static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_lines, coordf_t slice_z, const FuzzySkinConfig& cfg)
 {
+    std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
+
     const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = cfg.point_distance / 2.;
     double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
@@ -128,8 +170,9 @@ static void fuzzy_extrusion_line(std::vector<Arachne::ExtrusionJunction>& ext_li
         double p0p1_size = p0p1.norm();
         double p0pa_dist = dist_left_over;
         for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist) {
-            double r = random_value() * (cfg.thickness * 2.) - cfg.thickness;
-            out.emplace_back(p0->p + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
+            Point pa = p0->p + (p0p1 * (p0pa_dist / p0p1_size)).cast<coord_t>();
+            double r = noise->GetValue(unscale_(pa.x()), unscale_(pa.y()), slice_z) * cfg.thickness;
+            out.emplace_back(pa + (perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
         }
         dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
@@ -544,7 +587,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 }
 
                 fuzzified = loop.polygon;
-                fuzzy_polyline(fuzzified.points, true, config);
+                fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, config);
                 return &fuzzified;
             }
 
@@ -589,16 +632,17 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 // Fuzzy splitted polygon
                 if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
                     // The entire polygon is fuzzified
-                    fuzzy_polyline(fuzzified.points, true, r.first);
+                    fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, r.first);
                 } else {
                     Points segment;
                     segment.reserve(splitted.size());
                     fuzzified.points.clear();
 
-                    const auto fuzzy_current_segment = [&segment, &fuzzified, &r]() {
+                    const auto slice_z = perimeter_generator.slice_z;
+                    const auto fuzzy_current_segment = [&segment, &fuzzified, &r, slice_z]() {
                         fuzzified.points.push_back(segment.front());
                         const auto back = segment.back();
-                        fuzzy_polyline(segment, false, r.first);
+                        fuzzy_polyline(segment, false, slice_z, r.first);
                         fuzzified.points.insert(fuzzified.points.end(), segment.begin(), segment.end());
                         fuzzified.points.push_back(back);
                         segment.clear();
@@ -970,6 +1014,8 @@ static void smooth_overhang_level(ExtrusionPaths &paths)
 static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions,
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
+    const auto slice_z = perimeter_generator.slice_z;
+
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
                              perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on even (from GUI POV) layers
@@ -989,7 +1035,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             const auto& config = regions.begin()->first;
             const bool  fuzzify = should_fuzzify(config, perimeter_generator.layer_id, extrusion->inset_idx, is_contour);
             if (fuzzify)
-                fuzzy_extrusion_line(extrusion->junctions, config);
+                fuzzy_extrusion_line(extrusion->junctions, slice_z, config);
         } else {
             // Find all affective regions
             std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
@@ -1011,17 +1057,17 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     // Fuzzy splitted extrusion
                     if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
                         // The entire polygon is fuzzified
-                        fuzzy_extrusion_line(extrusion->junctions, r.first);
+                        fuzzy_extrusion_line(extrusion->junctions, slice_z, r.first);
                     } else {
                         const auto current_ext = extrusion->junctions;
                         std::vector<Arachne::ExtrusionJunction> segment;
                         segment.reserve(current_ext.size());
                         extrusion->junctions.clear();
 
-                        const auto fuzzy_current_segment = [&segment, extrusion, &r]() {
+                        const auto fuzzy_current_segment = [&segment, &extrusion, &r, slice_z]() {
                             extrusion->junctions.push_back(segment.front());
                             const auto back = segment.back();
-                            fuzzy_extrusion_line(segment, r.first);
+                            fuzzy_extrusion_line(segment, slice_z, r.first);
                             extrusion->junctions.insert(extrusion->junctions.end(), segment.begin(), segment.end());
                             extrusion->junctions.push_back(back);
                             segment.clear();
@@ -1858,7 +1904,11 @@ static void group_region_by_fuzzify(PerimeterGenerator& g)
             region_config.fuzzy_skin,
             scaled<coord_t>(region_config.fuzzy_skin_thickness.value),
             scaled<coord_t>(region_config.fuzzy_skin_point_distance.value),
-            region_config.fuzzy_skin_first_layer
+            region_config.fuzzy_skin_first_layer,
+            region_config.fuzzy_skin_noise_type,
+            region_config.fuzzy_skin_scale,
+            region_config.fuzzy_skin_octaves,
+            region_config.fuzzy_skin_persistence
         };
         auto& surfaces = regions[cfg];
         for (const auto& surface : region->slices.surfaces) {
