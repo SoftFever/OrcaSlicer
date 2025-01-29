@@ -2382,8 +2382,8 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         option.opt.height = 25;//250;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
-        optgroup = page->new_optgroup(L("Profile dependencies"));
+    page = add_options_page(L("Dependencies"), "param_profile_dependencies"); // ORCA: icon only visible on placeholders
+        optgroup = page->new_optgroup(L("Profile dependencies"), "param_profile_dependencies");
 
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
