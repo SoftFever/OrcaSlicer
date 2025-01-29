@@ -2948,7 +2948,7 @@ void PerimeterGenerator::process_arachne()
         if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
             loop_number = 0;
         
-        auto apply_precise_outer_wall = config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter;
+        auto apply_precise_outer_wall = config->precise_outer_wall;
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
                        apply_precise_outer_wall? -float(ext_perimeter_width - ext_perimeter_spacing )
