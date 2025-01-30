@@ -3177,12 +3177,22 @@ void PerimeterGenerator::process_arachne()
                 // Debug statement to print spacing values:
                 //printf("External threshold - Ext perimeter: %d Ext spacing: %d Int perimeter: %d Int spacing: %d\n", this->ext_perimeter_flow.scaled_width(),this->ext_perimeter_flow.scaled_spacing(),this->perimeter_flow.scaled_width(), this->perimeter_flow.scaled_spacing());
                
-                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by 3% to cover
-                // rounding errors
-                coord_t threshold_external = (this->ext_perimeter_flow.scaled_spacing()/2 + this->perimeter_flow.scaled_spacing()/2)*1.03;
+                // Expand by 3% to cover rounding issues
+                const float expand_factor = 1.03f;
+
+                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by the factor
+                // rounding errors. When precise wall is enabled, the external perimeter full spacing is used.
+                coord_t threshold_external = (apply_precise_outer_wall)
+                    // Precise outer wall ⇒ use “full external spacing”
+                    ? ( this->ext_perimeter_flow.scaled_spacing()
+                        + this->perimeter_flow.scaled_spacing()/2.0 )
+                    // Normal ⇒ half ext spacing + half int spacing
+                    : ( this->ext_perimeter_flow.scaled_spacing()/2.0
+                        + this->perimeter_flow.scaled_spacing()/2.0 );
+                threshold_external *= expand_factor;
                 
-                // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by 3% to cover rounding errors.
-                coord_t threshold_internal = this->perimeter_flow.scaled_spacing() * 1.03;
+                // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by the factor to cover rounding errors.
+                coord_t threshold_internal = this->perimeter_flow.scaled_spacing() * expand_factor;
                 
                 // Re-order extrusions based on distance
                 // Alorithm will aggresively optimise for the appearance of the outermost perimeter
