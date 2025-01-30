@@ -3873,6 +3873,12 @@ std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
 		out += "RightUp ";
 	if (evt.RightDClick())
 		out += "RightDClick ";
+    if (evt.AltDown())
+        out += "AltDown ";
+    if (evt.ShiftDown())
+        out += "ShiftDown ";
+    if (evt.ControlDown())
+        out += "ControlDown ";
 
 	sprintf(buf, "(%d, %d)", evt.GetX(), evt.GetY());
 	out += buf;
