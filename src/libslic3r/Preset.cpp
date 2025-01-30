@@ -576,9 +576,10 @@ std::string Preset::label(bool no_alias) const
 
 bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
-		// The current profile has a vendor assigned and it is different from the active print's vendor.
-		return false;
+    // Orca: we allow cross vendor compatibility
+	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
+	// 	// The current profile has a vendor assigned and it is different from the active print's vendor.
+	// 	return false;
     auto &condition             = preset.preset.compatible_prints_condition();
     auto *compatible_prints     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_prints"));
     bool  has_compatible_prints = compatible_prints != nullptr && ! compatible_prints->values.empty();
@@ -613,9 +614,19 @@ bool is_compatible_with_parent_printer(const PresetWithVendorProfile& preset, co
 
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer, const DynamicPrintConfig *extra_config)
 {
-	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
-		// The current profile has a vendor assigned and it is different from the active print's vendor.
-		return false;
+    // Orca: we allow cross vendor compatibility
+	// if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
+	// 	// The current profile has a vendor assigned and it is different from the active print's vendor.
+	// 	return false;
+
+    // Orca: check excluded printers
+    if (preset.vendor != nullptr && preset.preset.type == Preset::TYPE_FILAMENT) {
+        const auto& excluded_printers = preset.preset.m_excluded_from;
+        const auto  excluded         = preset.vendor->name == PresetBundle::ORCA_FILAMENT_LIBRARY &&
+                              excluded_printers.find(active_printer.preset.name) != excluded_printers.end();
+        if (excluded)
+            return false;
+    }
     auto &condition               = preset.preset.compatible_printers_condition();
     auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_printers"));
     bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();
@@ -629,10 +640,9 @@ bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const Pre
         }
     }
     return preset.preset.is_default || active_printer.preset.name.empty() || !has_compatible_printers ||
-        std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.preset.name) !=
-        compatible_printers->values.end()
-        //BBS
-        || (!active_printer.preset.is_system && is_compatible_with_parent_printer(preset, active_printer));
+           std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.preset.name) !=
+               compatible_printers->values.end() ||
+           (!active_printer.preset.is_system && is_compatible_with_parent_printer(preset, active_printer));
 }
 
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer)
@@ -779,7 +789,7 @@ static std::vector<std::string> s_Preset_print_options {
     "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern","gap_fill_target",
     "ironing_type", "ironing_pattern", "ironing_flow", "ironing_speed", "ironing_spacing", "ironing_angle", "ironing_inset",
     "max_travel_detour_distance",
-    "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer",
+    "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer", "fuzzy_skin_noise_type", "fuzzy_skin_scale", "fuzzy_skin_octaves", "fuzzy_skin_persistence",
     "max_volumetric_extrusion_rate_slope", "max_volumetric_extrusion_rate_slope_segment_length","extrusion_rate_smoothing_external_perimeter_only",
     "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
@@ -1145,7 +1155,7 @@ void PresetCollection::load_presets(
                     if (key_values.find("instantiation") != key_values.end())
                         preset.is_visible = key_values["instantiation"] != "false";
 
-                    //BBS: use inherit config as the base
+                    //Orca: find and use the inherit config as the base
                     Preset* inherit_preset = nullptr;
                     ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
 
@@ -1154,6 +1164,12 @@ void PresetCollection::load_presets(
                         ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
                         std::string inherits_value = option_str->value;
                         inherit_preset = this->find_preset(inherits_value, false, true);
+                        // Orca: try to find if the parent preset has been renamed
+                        if (inherit_preset == nullptr) {
+                            auto it = this->find_preset_renamed(inherits_value);
+                            if (it != m_presets.end())
+                                inherit_preset = &(*it);
+                        }
                     } else {
                         ;
                     }
@@ -2123,6 +2139,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
         auto &preset = new_presets.back();
         preset.vendor         = nullptr;
         preset.renamed_from.clear();
+        preset.m_excluded_from.clear();
         preset.setting_id.clear();
         preset.inherits().clear();
         preset.is_default  = false;
@@ -2251,6 +2268,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
 			preset.inherits().clear();
 			preset.alias.clear();
 			preset.renamed_from.clear();
+            preset.m_excluded_from.clear();
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
         }
         //BBS: add lock logic for sync preset in background
@@ -2278,6 +2296,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         preset.vendor = nullptr;
 		preset.alias.clear();
         preset.renamed_from.clear();
+        preset.m_excluded_from.clear();
         preset.setting_id.clear();
         if (detach) {
         	// Clear the link to the parent profile.
@@ -2523,6 +2542,17 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
     // Ensure that a temporary copy is returned if the preset found is currently selected.
     return (it != m_presets.end() && it->name == key.name) ? &this->preset(it - m_presets.begin(), real) :
         first_visible_if_not_found ? &this->first_visible() : nullptr;
+}
+
+const Preset* PresetCollection::find_preset2(const std::string& name) const
+{
+    auto preset = const_cast<PresetCollection*>(this)->find_preset(name, false, true);
+    if (preset == nullptr) {
+        auto _name = get_preset_name_renamed(name);
+        if(_name != nullptr) 
+            preset     = const_cast<PresetCollection*>(this)->find_preset(*_name, false, true);
+    }
+    return preset;
 }
 
 // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
@@ -2857,6 +2887,38 @@ void PresetCollection::update_map_alias_to_profile_name()
     }
 	// now m_map_alias_to_profile_name is map, not need sort
 	//std::sort(m_map_alias_to_profile_name.begin(), m_map_alias_to_profile_name.end(), [](auto &l, auto &r) { return l.first < r.first; });
+}
+
+void PresetCollection::update_library_profile_excluded_from()
+{
+    // Orca: Collect all filament presets that has empty compatible_printers and belongs to the Orca Filament Library.
+    std::map<std::string, std::set<std::string>*> excluded_froms;
+    for (Preset& preset : m_presets) {
+        if (preset.vendor != nullptr && preset.vendor->name == PresetBundle::ORCA_FILAMENT_LIBRARY) {
+            // check if the preset has empty compatible_printers
+            const auto* compatible_printers = dynamic_cast<const ConfigOptionStrings*>(preset.config.option("compatible_printers"));
+            if (compatible_printers == nullptr || compatible_printers->values.empty())
+                excluded_froms[preset.alias] = &preset.m_excluded_from;
+        }
+    }
+
+    // Check all presets that has the same alias as the filament presets with empty compatible_printers in Orca Filament Library.
+    for (const Preset& preset : m_presets) {
+        if (preset.vendor == nullptr || preset.vendor->name == PresetBundle::ORCA_FILAMENT_LIBRARY)
+            continue;
+
+        const auto* compatible_printers = dynamic_cast<const ConfigOptionStrings*>(preset.config.option("compatible_printers"));
+        // All profiles in concrete vendor profile shouldn't have empty compatible_printers, but here we check it for safety.
+        if (compatible_printers == nullptr || compatible_printers->values.empty())
+            continue;
+        auto itr = excluded_froms.find(preset.alias);
+        if (itr != excluded_froms.end()) {
+            // Add the printer models to the excluded_from list.
+            for (const std::string& printer_name : compatible_printers->values) {
+                itr->second->insert(printer_name);
+            }
+        }
+    }
 }
 
 void PresetCollection::update_map_system_profile_renamed()
