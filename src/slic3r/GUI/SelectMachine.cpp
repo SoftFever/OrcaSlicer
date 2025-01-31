@@ -740,6 +740,11 @@ void SelectMachinePopup::update_user_devices()
             op->Bind(EVT_UNBIND_MACHINE, [this, dev, mobj](wxCommandEvent& e) {
                 dev->set_selected_machine("");
                 if (mobj) {
+                    AppConfig* config = wxGetApp().app_config;
+                    if (config) {
+                        config->erase_local_machine(mobj->dev_id);
+                    }
+
                     mobj->set_access_code("");
                     mobj->erase_user_access_code();
                 }

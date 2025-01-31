@@ -426,14 +426,14 @@ public:
     std::string dev_connection_name;    /* lan | eth */
     void set_dev_ip(std::string ip) {dev_ip = ip;}
     std::string get_ftp_folder();
-    bool has_access_right() { return !get_access_code().empty(); }
-    std::string get_access_code();
+    bool has_access_right() const { return !get_access_code().empty(); }
+    std::string get_access_code() const;
 
     void set_access_code(std::string code, bool only_refresh = true);
     void set_user_access_code(std::string code, bool only_refresh = true);
     void erase_user_access_code();
-    std::string get_user_access_code();
-    bool is_lan_mode_printer();
+    std::string get_user_access_code() const;
+    bool is_lan_mode_printer() const;
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
@@ -1085,6 +1085,8 @@ public:
     static std::vector<std::string> get_compatible_machine(std::string type_str);
     static boost::bimaps::bimap<std::string, std::string> get_all_model_id_with_name();
     static std::string load_gcode(std::string type_str, std::string gcode_file);
+
+    static void update_local_machine(const MachineObject& m);
 };
 
 // change the opacity
