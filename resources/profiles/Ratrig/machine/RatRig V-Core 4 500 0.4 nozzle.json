@@ -49,7 +49,7 @@
   "change_filament_gcode": "M600",
   "machine_pause_gcode": "PAUSE",
   "printing_by_object_gcode": ";BETWEEN_OBJECTS\nG92 E0",
-  "printable_height": "300",
+  "printable_height": "500",
   "thumbnails": [
     "64x64/PNG",
     "400x300/PNG"
