@@ -433,8 +433,6 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
-    Arachne/PerimeterOrder.hpp
-    Arachne/PerimeterOrder.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp
@@ -552,7 +550,7 @@ set(OCCT_LIBS
     TKernel
 )
 
-
+find_package(libnoise REQUIRED)
 target_link_libraries(libslic3r
     libnest2d
     admesh
@@ -578,6 +576,7 @@ target_link_libraries(libslic3r
     JPEG::JPEG
     qoi
     opencv_world
+    noise::noise
     )
 
 if(NOT WIN32)

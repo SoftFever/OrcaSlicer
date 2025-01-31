@@ -123,6 +123,15 @@ static t_config_enum_values s_keys_map_FuzzySkinType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinType)
 
+static t_config_enum_values s_keys_map_NoiseType {
+    { "classic",        int(NoiseType::Classic) },
+    { "perlin",         int(NoiseType::Perlin) },
+    { "billow",         int(NoiseType::Billow) },
+    { "ridgedmulti",    int(NoiseType::RidgedMulti) },
+    { "voronoi",        int(NoiseType::Voronoi) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
+
 static t_config_enum_values s_keys_map_InfillPattern {
     { "concentric",         ipConcentric },
     { "zig-zag",            ipRectilinear },
@@ -143,7 +152,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
     { "lightning",          ipLightning },
-    { "crosshatch",         ipCrossHatch}
+    { "crosshatch",         ipCrossHatch},
+    { "quartercubic",       ipQuarterCubic}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -362,7 +372,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 // BBS
 static const t_config_enum_values s_keys_map_LayerSeq = {
     { "Auto",              flsAuto },
-    { "Customize",         flsCutomize },
+    { "Customize",         flsCustomize },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LayerSeq)
 
@@ -1261,38 +1271,38 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible machine");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
     //BBS.
     def        = this->add("upward_compatible_machine", coStrings);
     def->label = L("upward compatible machine");
-    def->mode  = comDevelop;
+    def->mode  = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli   = ConfigOptionDef::nocli;
 
     def = this->add("compatible_printers_condition", coString);
     def->label = L("Compatible machine condition");
-    //def->tooltip = L("A boolean expression using the configuration values of an active printer profile. "
-    //               "If this expression evaluates to true, this profile is considered compatible "
-    //               "with the active printer profile.");
-    def->mode = comDevelop;
+    def->tooltip = L("A boolean expression using the configuration values of an active printer profile. "
+                  "If this expression evaluates to true, this profile is considered compatible "
+                  "with the active printer profile.");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("compatible_prints", coStrings);
     def->label = L("Compatible process profiles");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("compatible_prints_condition", coString);
     def->label = L("Compatible process profiles condition");
-    //def->tooltip = L("A boolean expression using the configuration values of an active print profile. "
-    //               "If this expression evaluates to true, this profile is considered compatible "
-    //               "with the active print profile.");
-    def->mode = comDevelop;
+    def->tooltip = L("A boolean expression using the configuration values of an active print profile. "
+                  "If this expression evaluates to true, this profile is considered compatible "
+                  "with the active print profile.");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
@@ -2272,6 +2282,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("supportcubic");
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("crosshatch");
+    def->enum_values.push_back("quartercubic");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2290,6 +2301,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
+    def->enum_labels.push_back(L("Quarter Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
@@ -2628,6 +2640,57 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Whether to apply fuzzy skin on the first layer");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(0));
+
+    def = this->add("fuzzy_skin_noise_type", coEnum);
+    def->label = L("Fuzzy skin noise type");
+    def->category = L("Others");
+    def->tooltip = L("Noise type to use for fuzzy skin generation.\n"
+                     "Classic: Classic uniform random noise.\n"
+                     "Perlin: Perlin noise, which gives a more consistent texture.\n"
+                     "Billow: Similar to perlin noise, but clumpier.\n"
+                     "Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+                     "Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture.");
+    def->enum_keys_map = &ConfigOptionEnum<NoiseType>::get_enum_values();
+    def->enum_values.push_back("classic");
+    def->enum_values.push_back("perlin");
+    def->enum_values.push_back("billow");
+    def->enum_values.push_back("ridgedmulti");
+    def->enum_values.push_back("voronoi");
+    def->enum_labels.push_back(L("Classic"));
+    def->enum_labels.push_back(L("Perlin"));
+    def->enum_labels.push_back(L("Billow"));
+    def->enum_labels.push_back(L("Ridged Multifractal"));
+    def->enum_labels.push_back(L("Voronoi"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<NoiseType>(NoiseType::Classic));
+
+    def = this->add("fuzzy_skin_scale", coFloat);
+    def->label = L("Fuzzy skin feature size");
+    def->category = L("Others");
+    def->tooltip = L("The base size of the coherent noise features, in mm. Higher values will result in larger features.");
+    def->sidetext = L("mm");
+    def->min = 0.1;
+    def->max = 500;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def = this->add("fuzzy_skin_octaves", coInt);
+    def->label = L("Fuzzy Skin Noise Octaves");
+    def->category = L("Others");
+    def->tooltip = L("The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time.");
+    def->min = 1;
+    def->max = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(4));
+
+    def = this->add("fuzzy_skin_persistence", coFloat);
+    def->label = L("Fuzzy skin noise persistence");
+    def->category = L("Others");
+    def->tooltip = L("The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise.");
+    def->min = 0.01;
+    def->max = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("filter_out_gap_fill", coFloat);
     def->label = L("Filter out tiny gaps");
@@ -3082,7 +3145,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0.1));
 
     def           = this->add("ironing_inset", coFloat);
     def->label    = L("Ironing inset");
@@ -4406,17 +4469,17 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_type", coEnum);
     def->label = L("Type");
     def->category = L("Support");
-    def->tooltip = L("normal(auto) and tree(auto) is used to generate support automatically. "
-                     "If normal(manual) or tree(manual) is selected, only support enforcers are generated");
+    def->tooltip = L("Normal (auto) and Tree (auto) is used to generate support automatically. "
+                     "If Normal (manual) or Tree (manual) is selected, only support enforcers are generated");
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
     def->enum_values.push_back("normal(manual)");
     def->enum_values.push_back("tree(manual)");
-    def->enum_labels.push_back(L("normal(auto)"));
-    def->enum_labels.push_back(L("tree(auto)"));
-    def->enum_labels.push_back(L("normal(manual)"));
-    def->enum_labels.push_back(L("tree(manual)"));
+    def->enum_labels.push_back(L("Normal (auto)"));
+    def->enum_labels.push_back(L("Tree (auto)"));
+    def->enum_labels.push_back(L("Normal (manual)"));
+    def->enum_labels.push_back(L("Tree (manual)"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
 
@@ -4719,10 +4782,21 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("Support will be generated for overhangs whose slope angle is below the threshold.");
     def->sidetext = L("°");
-    def->min = 1;
+    def->min = 0;
     def->max = 90;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(30));
+
+    def = this->add("support_threshold_overlap", coFloatOrPercent);
+    def->label = L("Threshold overlap");
+    def->category = L("Support");
+    def->tooltip = L("If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support.");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->max = 100;
+    def->max_literal = 0.5;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloatOrPercent(50., true));
 
     def = this->add("tree_support_branch_angle", coFloat);
     def->label = L("Tree support branch angle");

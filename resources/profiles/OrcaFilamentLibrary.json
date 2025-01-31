@@ -1,0 +1,84 @@
+{
+    "name": "OrcaFilamentLibrary",
+    "version": "02.02.00.04",
+    "force_update": "0",
+    "description": "Orca Filament Library",
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "Generic PLA @System",
+            "sub_path": "filament/Generic PLA @System.json"
+        },
+        {
+            "name": "Generic PLA-CF @System",
+            "sub_path": "filament/Generic PLA-CF @System.json"
+        },
+        {
+            "name": "Generic PETG @System",
+            "sub_path": "filament/Generic PETG @System.json"
+        },
+        {
+            "name": "Generic ABS @System",
+            "sub_path": "filament/Generic ABS @System.json"
+        },
+        {
+            "name": "Generic TPU @System",
+            "sub_path": "filament/Generic TPU @System.json"
+        },
+        {
+            "name": "Generic ASA @System",
+            "sub_path": "filament/Generic ASA @System.json"
+        },
+        {
+            "name": "Generic PC @System",
+            "sub_path": "filament/Generic PC @System.json"
+        },
+        {
+            "name": "Generic PVA @System",
+            "sub_path": "filament/Generic PVA @System.json"
+        },
+        {
+            "name": "Generic PA @System",
+            "sub_path": "filament/Generic PA @System.json"
+        },
+        {
+            "name": "Generic PA-CF @System",
+            "sub_path": "filament/Generic PA-CF @System.json"
+        }
+    ]
+}

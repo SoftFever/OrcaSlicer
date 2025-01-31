@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
@@ -63,7 +64,8 @@
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
 
-//BBL: json path
+// Orca extension
+#define ORCA_JSON_KEY_RENAMED_FROM              "renamed_from"
 
 
 namespace Slic3r {
@@ -231,6 +233,11 @@ public:
     // This list is then used to match profiles by their names when loaded from .gcode, .3mf, .amf,
     // and to match the "inherits" field of user profiles with updated system profiles.
     std::vector<std::string> renamed_from;
+
+    // Orca: maintain a list of printer models that are excluded from this preset, designed for filaments without compatible_printer defined
+    // (hence they are visible to all printer models by default) in Orca Filament Library. However, we might have speciliazed filament for
+    // certain printer models defined in the vendor profile as well, in this case we want to hide this generic preset for these printer models.
+    std::set<std::string> m_excluded_from;
 
     //BBS
     Semver              version;         // version of preset
@@ -595,6 +602,8 @@ public:
     Preset*         find_preset(const std::string &name, bool first_visible_if_not_found = false, bool real = false);
     const Preset*   find_preset(const std::string &name, bool first_visible_if_not_found = false) const
         { return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found); }
+    // Orca: find preset, if not found, keep searching in the renamed history
+    const Preset*   find_preset2(const std::string &name) const;
 
     size_t          first_visible_idx() const;
     // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
@@ -717,6 +726,10 @@ protected:
 
     // Update m_map_system_profile_renamed from loaded system profiles.
     void 			update_map_system_profile_renamed();
+
+    // Orca: update m_excluded_from loaded system profiles.
+    void 			update_library_profile_excluded_from();
+
 
     void            set_custom_preset_alias(Preset &preset);
 
