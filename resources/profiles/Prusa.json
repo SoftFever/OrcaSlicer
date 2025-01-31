@@ -31,6 +31,14 @@
         {
             "name": "Prusa XL 5T",
             "sub_path": "machine/Prusa XL 5T.json"
+        },
+        {
+            "name": "MK4S",
+            "sub_path": "machine/Prusa MK4S.json"
+        },
+        {
+            "name": "MK4S HF",
+            "sub_path": "machine/Prusa MK4S HF.json"
         }
     ],
     "process_list": [
@@ -65,6 +73,10 @@
         {
             "name": "process_common_xl_5t",
             "sub_path": "process/process_common_xl_5t.json"
+        },
+        {
+            "name": "process_common_mk4s",
+            "sub_path": "process/process_common_mk4s.json"
         },
         {
             "name": "0.20mm Standard @MINI 0.25",
@@ -613,7 +625,220 @@
         {
             "name": "0.30mm Detail @Prusa XL 5T 0.8",
             "sub_path": "process/0.30mm Detail @Prusa XL 5T 0.8.json"
+        },
+        {
+            "name": "0.07mm DETAIL @MK4S 0.25",
+            "sub_path": "process/0.07mm DETAIL @MK4S 0.25.json"
+        },
+        {
+            "name": "0.05mm DETAIL @MK4S 0.25",
+            "sub_path": "process/0.05mm DETAIL @MK4S 0.25.json"
+        },
+        {
+            "name": "0.15mm SPEED @MK4S 0.4",
+            "sub_path": "process/0.15mm SPEED @MK4S 0.4.json"
+        },
+        {
+            "name": "0.10mm FAST DETAIL @MK4S 0.4",
+            "sub_path": "process/0.10mm FAST DETAIL @MK4S 0.4.json"
+        },
+        {
+            "name": "0.10mm STRUCTURAL @MK4S 0.5",
+            "sub_path": "process/0.10mm STRUCTURAL @MK4S 0.5.json"
+        },
+        {
+            "name": "0.12mm SPEED @MK4S 0.25",
+            "sub_path": "process/0.12mm SPEED @MK4S 0.25.json"
+        },
+        {
+            "name": "0.12mm STRUCTURAL @MK4S 0.25",
+            "sub_path": "process/0.12mm STRUCTURAL @MK4S 0.25.json"
+        },
+        {
+            "name": "0.12mm STRUCTURAL @MK4S 0.3",
+            "sub_path": "process/0.12mm STRUCTURAL @MK4S 0.3.json"
+        },
+        {
+            "name": "0.15mm SPEED @MK4S 0.25",
+            "sub_path": "process/0.15mm SPEED @MK4S 0.25.json"
+        },
+        {
+            "name": "0.15mm SPEED @MK4S HF0.4",
+            "sub_path": "process/0.15mm SPEED @MK4S HF0.4.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @MK4S 0.25",
+            "sub_path": "process/0.15mm STRUCTURAL @MK4S 0.25.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @MK4S 0.4",
+            "sub_path": "process/0.20mm STRUCTURAL @MK4S 0.4.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @MK4S 0.4",
+            "sub_path": "process/0.15mm STRUCTURAL @MK4S 0.4.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @MK4S 0.5",
+            "sub_path": "process/0.15mm STRUCTURAL @MK4S 0.5.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @MK4S 0.6",
+            "sub_path": "process/0.15mm STRUCTURAL @MK4S 0.6.json"
+        },
+        {
+            "name": "0.16mm STRUCTURAL @MK4S 0.3",
+            "sub_path": "process/0.16mm STRUCTURAL @MK4S 0.3.json"
+        },
+        {
+            "name": "0.16mm SPEED @MK4S 0.3",
+            "sub_path": "process/0.16mm SPEED @MK4S 0.3.json"
+        },
+        {
+            "name": "0.20mm SPEED @MK4S 0.3",
+            "sub_path": "process/0.20mm SPEED @MK4S 0.3.json"
+        },
+        {
+            "name": "0.20mm SPEED @MK4S 0.4",
+            "sub_path": "process/0.20mm SPEED @MK4S 0.4.json"
+        },
+        {
+            "name": "0.20mm SPEED @MK4S 0.5",
+            "sub_path": "process/0.20mm SPEED @MK4S 0.5.json"
+        },
+        {
+            "name": "0.20mm SPEED @MK4S 0.6",
+            "sub_path": "process/0.20mm SPEED @MK4S 0.6.json"
+        },
+        {
+            "name": "0.20mm SPEED @MK4S HF0.4",
+            "sub_path": "process/0.20mm SPEED @MK4S HF0.4.json"
+        },
+        {
+            "name": "0.20mm SPEED @MK4S HF0.5",
+            "sub_path": "process/0.20mm SPEED @MK4S HF0.5.json"
+        },
+        {
+            "name": "0.20mm SPEED @MK4S HF0.6",
+            "sub_path": "process/0.20mm SPEED @MK4S HF0.6.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @MK4S 0.3",
+            "sub_path": "process/0.20mm STRUCTURAL @MK4S 0.3.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @MK4S 0.5",
+            "sub_path": "process/0.20mm STRUCTURAL @MK4S 0.5.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @MK4S 0.6",
+            "sub_path": "process/0.20mm STRUCTURAL @MK4S 0.6.json"
+        },
+        {
+            "name": "0.25mm SPEED @MK4S 0.5",
+            "sub_path": "process/0.25mm SPEED @MK4S 0.5.json"
+        },
+        {
+            "name": "0.25mm SPEED @MK4S 0.6",
+            "sub_path": "process/0.25mm SPEED @MK4S 0.6.json"
+        },
+        {
+            "name": "0.25mm SPEED @MK4S HF0.4",
+            "sub_path": "process/0.25mm SPEED @MK4S HF0.4.json"
+        },
+        {
+            "name": "0.25mm SPEED @MK4S HF0.5",
+            "sub_path": "process/0.25mm SPEED @MK4S HF0.5.json"
+        },
+        {
+            "name": "0.25mm SPEED @MK4S HF0.6",
+            "sub_path": "process/0.25mm SPEED @MK4S HF0.6.json"
+        },
+        {
+            "name": "0.25mm STRUCTURAL @MK4S 0.5",
+            "sub_path": "process/0.25mm STRUCTURAL @MK4S 0.5.json"
+        },
+        {
+            "name": "0.25mm STRUCTURAL @MK4S 0.6",
+            "sub_path": "process/0.25mm STRUCTURAL @MK4S 0.6.json"
+        },
+        {
+            "name": "0.25mm STRUCTURAL @MK4S HF0.4",
+            "sub_path": "process/0.25mm STRUCTURAL @MK4S HF0.4.json"
+        },
+        {
+            "name": "0.28mm DRAFT @MK4S HF0.4",
+            "sub_path": "process/0.28mm DRAFT @MK4S HF0.4.json"
+        },
+        {
+            "name": "0.30mm DETAIL @MK4S 0.8",
+            "sub_path": "process/0.30mm DETAIL @MK4S 0.8.json"
+        },
+        {
+            "name": "0.30mm SPEED @MK4S HF0.8",
+            "sub_path": "process/0.30mm SPEED @MK4S HF0.8.json"
+        },
+        {
+            "name": "0.30mm STRUCTURAL @MK4S HF0.8",
+            "sub_path": "process/0.30mm STRUCTURAL @MK4S HF0.8.json"
+        },
+        {
+            "name": "0.32mm SPEED @MK4S 0.6",
+            "sub_path": "process/0.32mm SPEED @MK4S 0.6.json"
+        },
+        {
+            "name": "0.32mm SPEED @MK4S HF0.5",
+            "sub_path": "process/0.32mm SPEED @MK4S HF0.5.json"
+        },
+        {
+            "name": "0.32mm SPEED @MK4S HF0.6",
+            "sub_path": "process/0.32mm SPEED @MK4S HF0.6.json"
+        },
+        {
+            "name": "0.32mm STRUCTURAL @MK4S 0.6",
+            "sub_path": "process/0.32mm STRUCTURAL @MK4S 0.6.json"
+        },
+        {
+            "name": "0.32mm STRUCTURAL @MK4S HF0.5",
+            "sub_path": "process/0.32mm STRUCTURAL @MK4S HF0.5.json"
+        },
+        {
+            "name": "0.32mm STRUCTURAL @MK4S HF0.6",
+            "sub_path": "process/0.32mm STRUCTURAL @MK4S HF0.6.json"
+        },
+        {
+            "name": "0.40mm QUALITY @MK4S 0.8",
+            "sub_path": "process/0.40mm QUALITY @MK4S 0.8.json"
+        },
+        {
+            "name": "0.40mm SPEED @MK4S HF0.6",
+            "sub_path": "process/0.40mm SPEED @MK4S HF0.6.json"
+        },
+        {
+            "name": "0.40mm SPEED @MK4S HF0.8",
+            "sub_path": "process/0.40mm SPEED @MK4S HF0.8.json"
+        },
+        {
+            "name": "0.40mm STRUCTURAL @MK4S HF0.6",
+            "sub_path": "process/0.40mm STRUCTURAL @MK4S HF0.6.json"
+        },
+        {
+            "name": "0.40mm STRUCTURAL @MK4S HF0.8",
+            "sub_path": "process/0.40mm STRUCTURAL @MK4S HF0.8.json"
+        },
+        {
+            "name": "0.55mm DRAFT @MK4S 0.8",
+            "sub_path": "process/0.55mm DRAFT @MK4S 0.8.json"
+        },
+        {
+            "name": "0.55mm SPEED @MK4S HF0.8",
+            "sub_path": "process/0.55mm SPEED @MK4S HF0.8.json"
+        },
+        {
+            "name": "0.55mm STRUCTURAL @MK4S HF0.8",
+            "sub_path": "process/0.55mm STRUCTURAL @MK4S HF0.8.json"
         }
+
     ],
     "filament_list": [
         {
@@ -1107,6 +1332,142 @@
         {
             "name": "Prusa Generic PA-CF @MK3.5 0.8",
             "sub_path": "filament/Prusa Generic PA-CF @MK3.5 0.8.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4S",
+            "sub_path": "filament/Prusa Generic ABS @MK4S.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4S 0.6",
+            "sub_path": "filament/Prusa Generic ABS @MK4S 0.6.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4S 0.8",
+            "sub_path": "filament/Prusa Generic ABS @MK4S 0.8.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4S HF0.4",
+            "sub_path": "filament/Prusa Generic ABS @MK4S HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4S HF0.5",
+            "sub_path": "filament/Prusa Generic ABS @MK4S HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4S HF0.6",
+            "sub_path": "filament/Prusa Generic ABS @MK4S HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4S HF0.8",
+            "sub_path": "filament/Prusa Generic ABS @MK4S HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4S",
+            "sub_path": "filament/Prusa Generic ASA @MK4S.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4S 0.6",
+            "sub_path": "filament/Prusa Generic ASA @MK4S 0.6.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4S 0.8",
+            "sub_path": "filament/Prusa Generic ASA @MK4S 0.8.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4S HF0.4",
+            "sub_path": "filament/Prusa Generic ASA @MK4S HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4S HF0.5",
+            "sub_path": "filament/Prusa Generic ASA @MK4S HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4S HF0.6",
+            "sub_path": "filament/Prusa Generic ASA @MK4S HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4S HF0.8",
+            "sub_path": "filament/Prusa Generic ASA @MK4S HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic TPU @MK4S",
+            "sub_path": "filament/Prusa Generic TPU @MK4S.json"
+        },
+        {
+            "name": "Prusa Generic TPU @MK4S 0.6",
+            "sub_path": "filament/Prusa Generic TPU @MK4S 0.6.json"
+        },
+        {
+            "name": "Prusa Generic TPU @MK4S 0.8",
+            "sub_path": "filament/Prusa Generic TPU @MK4S 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PETG @MK4S",
+            "sub_path": "filament/Prusa Generic PETG @MK4S.json"
+        },
+        {
+            "name": "Prusa Generic PETG @MK4S 0.6",
+            "sub_path": "filament/Prusa Generic PETG @MK4S 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PETG @MK4S 0.8",
+            "sub_path": "filament/Prusa Generic PETG @MK4S 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PETG @MK4S HF0.4",
+            "sub_path": "filament/Prusa Generic PETG @MK4S HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic PETG @MK4S HF0.5",
+            "sub_path": "filament/Prusa Generic PETG @MK4S HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic PETG @MK4S HF0.6",
+            "sub_path": "filament/Prusa Generic PETG @MK4S HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic PETG @MK4S HF0.8",
+            "sub_path": "filament/Prusa Generic PETG @MK4S HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA @MK4S",
+            "sub_path": "filament/Prusa Generic PLA @MK4S.json"
+        },
+        {
+            "name": "Prusa Generic PLA @MK4S 0.6",
+            "sub_path": "filament/Prusa Generic PLA @MK4S 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PLA @MK4S 0.8",
+            "sub_path": "filament/Prusa Generic PLA @MK4S 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA @MK4S HF0.4",
+            "sub_path": "filament/Prusa Generic PLA @MK4S HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic PLA @MK4S HF0.5",
+            "sub_path": "filament/Prusa Generic PLA @MK4S HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic PLA @MK4S HF0.6",
+            "sub_path": "filament/Prusa Generic PLA @MK4S HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic PLA @MK4S HF0.8",
+            "sub_path": "filament/Prusa Generic PLA @MK4S HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA Silk @MK4S",
+            "sub_path": "filament/Prusa Generic PLA Silk @MK4S.json"
+        },
+        {
+            "name": "Prusa Generic PLA Silk @MK4S 0.6",
+            "sub_path": "filament/Prusa Generic PLA Silk @MK4S 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PLA Silk @MK4S 0.8",
+            "sub_path": "filament/Prusa Generic PLA Silk @MK4S 0.8.json"
         }
     ],
     "machine_list": [
@@ -1121,6 +1482,10 @@
         {
             "name": "fdm_machine_common_xl_5t",
             "sub_path": "machine/fdm_machine_common_xl_5t.json"
+        },
+        {
+            "name": "fdm_machine_common_mk4s",
+            "sub_path": "machine/fdm_machine_common_mk4s.json"
         },
         {
             "name": "Prusa MK3S 0.25 nozzle",
@@ -1249,6 +1614,46 @@
         {
             "name": "Prusa XL 5T 0.8 nozzle",
             "sub_path": "machine/Prusa XL 5T 0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S 0.4 nozzle",
+            "sub_path": "machine/Prusa MK4S 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S HF0.4 nozzle",
+            "sub_path": "machine/Prusa MK4S HF0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S 0.25 nozzle",
+            "sub_path": "machine/Prusa MK4S 0.25 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S 0.3 nozzle",
+            "sub_path": "machine/Prusa MK4S 0.3 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S 0.5 nozzle",
+            "sub_path": "machine/Prusa MK4S 0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S 0.6 nozzle",
+            "sub_path": "machine/Prusa MK4S 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S 0.8 nozzle",
+            "sub_path": "machine/Prusa MK4S 0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S HF0.5 nozzle",
+            "sub_path": "machine/Prusa MK4S HF0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S HF0.6 nozzle",
+            "sub_path": "machine/Prusa MK4S HF0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa MK4S HF0.8 nozzle",
+            "sub_path": "machine/Prusa MK4S HF0.8 nozzle.json"
         }
     ]
 }
