@@ -1635,6 +1635,24 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
+    m_button_manual_setup = new Button(this, _L("Manual Setup"));
+    m_button_manual_setup->SetBackgroundColor(btn_bg_green);
+    m_button_manual_setup->SetBorderColor(*wxWHITE);
+    m_button_manual_setup->SetTextColor(wxColour(0xFFFFFE));
+    m_button_manual_setup->SetFont(Label::Body_12);
+    m_button_manual_setup->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_manual_setup->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_manual_setup->SetCornerRadius(FromDIP(12));
+    m_button_manual_setup->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+        wxCommandEvent event(EVT_CHECK_IP_ADDRESS_LAYOUT);
+        event.SetEventObject(this);
+        event.SetInt(1);
+        wxPostEvent(this, event);
+    });
+    m_button_manual_setup->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_manual_setup->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    m_button_manual_setup->Hide();
+
     /*auto m_button_cancel = new Button(this, _L("Close"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
@@ -1648,6 +1666,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     });*/
 
     m_sizer_button->AddStretchSpacer();
+    m_sizer_button->Add(m_button_manual_setup, 0, wxALL, FromDIP(5));
     m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     // m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     m_sizer_button->Layout();
@@ -1772,6 +1791,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     Bind(EVT_UPDATE_TEXT_MSG, &InputIpAddressDialog::update_test_msg_event, this);
     Bind(EVT_CHECK_IP_ADDRESS_LAYOUT, [this](auto& e) {
         int mode = e.GetInt();
+        update_test_msg(wxEmptyString, true);
         switch_input_panel(mode);
         Layout();
         Fit();
@@ -1780,6 +1800,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
 void InputIpAddressDialog::switch_input_panel(int index) 
 {
+    m_button_manual_setup->Hide();
     if (index == 0) {
         ip_input_top_panel->Show();
         ip_input_bot_panel->Hide();
@@ -1865,6 +1886,12 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              m_test_wrong_msg->SetLabelText(msg);
              m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
              m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+             if (current_input_index == 0) {
+                 m_button_manual_setup->Show();
+                 m_button_manual_setup->Enable();
+             }
+             wxCommandEvent e;
+             on_text(e);
          } 
     }
 
@@ -1903,6 +1930,9 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         str_model_id = it->get_left();
     }
 
+    m_button_manual_setup->Enable(false);
+    m_button_manual_setup->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_manual_setup->SetBorderColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
@@ -2056,29 +2086,32 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
         }
     }
 
+    const auto enable_btn = [](Button* btn, bool enabled) {
+        btn->Enable(enabled);
+        if (enabled) {
+            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                                    std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+            btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+            btn->SetBackgroundColor(btn_bg_green);
+        } else {
+            btn->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            btn->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        }
+    };
+
     if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8 && invalid_access_code) {
-        m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                                std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-        m_button_ok->SetBackgroundColor(btn_bg_green);
+        enable_btn(m_button_manual_setup, true);
+        enable_btn(m_button_ok, true);
     } else {
-        m_button_ok->Enable(false);
-        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        enable_btn(m_button_manual_setup, false);
+        enable_btn(m_button_ok, false);
     }
 
     if (current_input_index == 1){
         if (!str_name.IsEmpty() && str_sn.length() == 15) {
-            m_button_ok->Enable(true);
-            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                                    std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-            m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-            m_button_ok->SetBackgroundColor(btn_bg_green);
+            enable_btn(m_button_ok, true);
         } else {
-            m_button_ok->Enable(false);
-            m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+            enable_btn(m_button_ok, false);
         }
     }
 }

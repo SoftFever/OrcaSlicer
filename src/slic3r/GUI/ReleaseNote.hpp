@@ -293,6 +293,7 @@ public:
     wxPanel * ip_input_top_panel{ nullptr };
     wxPanel * ip_input_bot_panel{ nullptr };
     Button* m_button_ok{ nullptr };
+    Button* m_button_manual_setup{ nullptr };
     Label* m_tips_ip{ nullptr };
     Label* m_tips_access_code{ nullptr };
     Label* m_tips_sn{nullptr};
