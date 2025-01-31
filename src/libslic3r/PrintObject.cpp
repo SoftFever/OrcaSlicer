@@ -1445,7 +1445,90 @@ void PrintObject::detect_surfaces_type()
 	        for (size_t i = num_layers; i < m_layers.size(); ++ i)
 	        	m_layers[i]->m_regions[region_id]->slices.set_type(stInternal);
         }
-
+        
+        // ==================================================================================================
+        // === ORCA: Create a SECOND bridge layer above the first bridge layer. =============================
+        // === ORCA: Surface is flagged as a new surface type called stInternalAfterBridge ==================
+        // === Algorithm only considers stInternal surfaces for re-classification, leaving stTop unaffected =
+        // ==================================================================================================
+        // Only iterate to the second-to-last layer, since we look at layer i+1.
+        if(this->config().second_external_bridge){
+            const size_t last = (m_layers.empty() ? 0 : m_layers.size() - 1);
+            tbb::parallel_for( tbb::blocked_range<size_t>(0, last), [this, region_id](const tbb::blocked_range<size_t> &range) {
+                for (size_t i = range.begin(); i < range.end(); ++i) {
+                    m_print->throw_if_canceled();
+                    
+                    // Current layer (i): Search for stBottomBridge polygons.
+                    const Surfaces &bot_surfs = m_layers[i]->m_regions[region_id]->slices.surfaces;
+                    // Next layer (i+1): The layer where stInternal polygons may be re-classified.
+                    Surfaces &top_surfs = m_layers[i + 1]->m_regions[region_id]->slices.surfaces;
+                    
+                    // Collect polygons where layer i is stBottomBridge.
+                    Polygons polygons_bridge;
+                    for (const Surface &sbot : bot_surfs) {
+                        if (sbot.surface_type == stBottomBridge) {
+                            polygons_append(polygons_bridge, to_polygons(sbot));
+                        }
+                    }
+                    // No bridge polygons found, continue to the next layer
+                    if (polygons_bridge.empty())
+                        continue;
+                    
+                    // Bottom bridge polygons found.
+                    // For each surface in layer i+1, split it into overlaping polygons with the bottom bridge polygons vs remainder.
+                    Surfaces new_surfaces;
+                    new_surfaces.reserve(top_surfs.size());
+                    
+                    for (Surface &s_up : top_surfs) {
+                        // Only reclassify stInternal polygons (i.e. what will become later solid and sparse infill)
+                        // Leave the rest unaffected
+                        if (s_up.surface_type != stInternal) {
+                            new_surfaces.push_back(std::move(s_up)); // do not modify them
+                            continue; // continue to the next surface
+                        }
+                        // Check stInternal polygons for overlap with the bottom bridging polygons on the layer underneath.
+                        Polygons p_up = to_polygons(s_up);
+                        ExPolygons overlap   = intersection_ex(p_up, polygons_bridge);
+                        ExPolygons remainder = diff_ex(p_up, polygons_bridge);
+                        
+                        // Remainder stays stInternal
+                        for (auto &ex_remainder : remainder) {
+                            Surface s(stInternal, ex_remainder);
+                            new_surfaces.push_back(std::move(s));
+                        }
+                        // Overlap portion becomes new polygon type - stInternalAfterBridge
+                        for (auto &ex_overlap : overlap) {
+                            Surface s(stInternalAfterBridge, ex_overlap);
+                            new_surfaces.push_back(std::move(s));
+                        }
+                    }
+                    top_surfs = std::move(new_surfaces);
+                }
+            }
+            );
+            // ==============================================================================================================
+            // === ORCA: Interim workaround - for now the new stInternalAfterBridge surfaace is re-classified  ==============
+            // === back to a bottom bridge. As a starting point, this improves bridging reliability as it extrudes ==========
+            // === two external bridge layers. However, TODO: Implement a new surface type throughout the codebase ==========
+            // ==============================================================================================================
+            for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+                tbb::parallel_for( tbb::blocked_range<size_t>(0, m_layers.size()), [this, region_id](const tbb::blocked_range<size_t> &range) {
+                    for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
+                        Surfaces &surfs = m_layers[idx_layer]->m_regions[region_id]->slices.surfaces;
+                        for (Surface &s : surfs) {
+                            if (s.surface_type == stInternalAfterBridge) {
+                                s.surface_type = stBottomBridge;
+                            }
+                        }
+                    }
+                }
+              );
+            }
+        }
+        // ==============================================================================================================
+        // === ORCA: End of second external bridge layer changes  =======================================================
+        // ==============================================================================================================
+        
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - start";
         // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
         tbb::parallel_for(

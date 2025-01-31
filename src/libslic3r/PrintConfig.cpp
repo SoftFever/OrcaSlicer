@@ -969,7 +969,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(100));
     
     def = this->add("internal_bridge_density", coPercent);
-    def->label = L("Internal Bridge density");
+    def->label = L("Internal bridge density");
     def->category = L("Strength");
     def->tooltip = L("Controls the density (spacing) of internal bridge lines. 100% means solid bridge. Default is 100%.\n\n "
                      "Lower density internal bridges can help reduce top surface pillowing and improve internal bridge reliability as there is more space for "
@@ -1432,7 +1432,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("thick_bridges", coBool);
-    def->label = L("Thick bridges");
+    def->label = L("Thick external bridges");
     def->category = L("Quality");
     def->tooltip = L("If enabled, bridges are more reliable, can bridge longer distances, but may look worse. "
         "If disabled, bridges look better but are reliable just for shorter bridged distances.");
@@ -1452,12 +1452,21 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("If enabled, a second internal bridge layer is printed over sparse infill, prependicular to the first. \n\n"
                      "This option helps reduce over extrusion and pillowing on top layers as the internal solid infill is better supported."
-                     "This option is especially usefull for high speed printers due to the large difference in speed between internal bridges "
+                     "This option is especially useful for high speed printers due to the large difference in speed between internal bridges "
                      "and solid infill. It is recomended to be enabled together with a slightly reduced internal bridge density to improve surface cooling."
                      "As a side effect, with both options enabled, the benchy hull line artefact is slightly reduced due to a more gradual transition from sparse to solid infill");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
     
+    def = this->add("second_external_bridge", coBool);
+    def->label = L("Two external bridge layers");
+    def->category = L("Quality");
+    def->tooltip = L("If enabled, a two bridging layers are printed for external facing bridges. \n\n"
+                     "This option helps improve external bridge appearance as more material is layed down ahead of the, usually faster, solid infill being extruded."
+                     "This option is especially useful for high speed printers due to the large difference in speed between external bridges "
+                     "and solid infill. It is recomended to be enabled together with a slightly reduced external bridge density to improve bridge cooling.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("dont_filter_internal_bridges", coEnum);
     def->label = L("Filter out small internal bridges (beta)");

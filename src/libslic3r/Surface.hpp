@@ -13,6 +13,8 @@ enum SurfaceType {
     stBottom,
     // Bottom horizontal surface, visible from the bottom, unsupported, printed with a bridging extrusion flow.
     stBottomBridge,
+    // Bottom horizontal surface, visible from the bottom, unsupported, printed with a bridging extrusion flow.
+    stInternalAfterBridge,
     // Normal sparse infill.
     stInternal,
     // Full infill, supporting the top surfaces and/or defining the verticall wall thickness.
