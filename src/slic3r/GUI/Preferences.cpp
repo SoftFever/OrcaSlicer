@@ -1166,6 +1166,8 @@ wxWindow* PreferencesDialog::create_general_page()
     // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
 
     auto title_project = create_item_title(_L("Project"), page, "");
+    std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry")};
+    auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions);
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
@@ -1241,6 +1243,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // update_modelmall(eee);
     // item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));

@@ -347,7 +347,11 @@ void AppConfig::set_defaults()
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }
-    
+
+    if (get(SETTING_PROJECT_LOAD_BEHAVIOUR).empty()) {
+        set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT);
+    }
+
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
     }
