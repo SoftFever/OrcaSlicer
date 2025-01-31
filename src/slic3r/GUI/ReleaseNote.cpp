@@ -1922,6 +1922,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_trouble_shoot->Hide();
     std::string str_ip = m_input_ip->GetTextCtrl()->GetValue().ToStdString();
     std::string str_access_code = m_input_access_code->GetTextCtrl()->GetValue().ToStdString();
+    std::string str_name = m_input_printer_name->GetTextCtrl()->GetValue().Strip(wxString::both).ToStdString();
     std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().ToStdString();
     std::string str_model_id = "";
 
@@ -1940,7 +1941,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     Refresh();
     Layout();
     Fit();
-    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id));
+    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id, str_name));
 }
 
 void InputIpAddressDialog::update_test_msg_event(wxCommandEvent& evt)
@@ -1961,7 +1962,7 @@ void InputIpAddressDialog::post_update_test_msg(wxString text, bool beconnect)
     wxPostEvent(this, event);
 }
 
-void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id)
+void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id, std::string name)
 {
     post_update_test_msg(_L("connecting..."), true);
 
@@ -1977,10 +1978,11 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 
     } else {
         result = 0;
-        detectData.dev_name = sn;
+        detectData.model_id = model_id;
+        detectData.dev_name = name;
         detectData.dev_id = sn;
         detectData.connect_type = "lan";
-        detectData.connect_type = "free";
+        detectData.bind_state   = "free";
     }
 
     if (result < 0) {
@@ -2012,27 +2014,34 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         return;
     }
 
-    DeviceManager* dev = wxGetApp().getDeviceManager();
-    m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
+    CallAfter([this, detectData, str_ip, str_access_code]() {
+        DeviceManager* dev = wxGetApp().getDeviceManager();
+        BBLocalMachine machine;
+        machine.dev_name = detectData.dev_name;
+        machine.dev_ip = str_ip;
+        machine.dev_id = detectData.dev_id;
+        machine.printer_type = detectData.model_id;
+        m_obj = dev->insert_local_device(machine, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
 
 
-    if (m_obj) {
-        m_obj->set_user_access_code(str_access_code);
-        wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
-    }
+        if (m_obj) {
+            m_obj->set_user_access_code(str_access_code);
+            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id, true);
+        }
 
 
-    closeCount = 1;
+        closeCount = 1;
 
-    post_update_test_msg(wxEmptyString, true);
-    post_update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
+        post_update_test_msg(wxEmptyString, true);
+        post_update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
 
 #ifdef __APPLE__
-    wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
-    wxPostEvent(this, event);
+        wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
+        wxPostEvent(this, event);
 #else
-    closeTimer->Start(1000);
+        closeTimer->Start(1000);
 #endif
+    });
 }
 
 void InputIpAddressDialog::OnTimer(wxTimerEvent& event) {

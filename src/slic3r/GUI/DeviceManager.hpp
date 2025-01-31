@@ -54,6 +54,7 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+struct BBLocalMachine;
 class SecondaryCheckDialog;
 enum PrinterArch {
     ARCH_CORE_XY,
@@ -1032,7 +1033,7 @@ public:
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string json_str);
-    MachineObject* insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code);
+    MachineObject* insert_local_device(const BBLocalMachine& machine, std::string connection_type, std::string bind_state, std::string version, std::string access_code);
     /* disconnect all machine connections */
     void disconnect_all();
     int query_bind_status(std::string &msg);

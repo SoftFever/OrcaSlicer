@@ -329,7 +329,7 @@ public:
     void on_ok(wxMouseEvent& evt);
     void update_test_msg_event(wxCommandEvent &evt);
     void post_update_test_msg(wxString text, bool beconnect);
-    void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id);
+    void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id, std::string name);
     void OnTimer(wxTimerEvent& event);
     void on_text(wxCommandEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
