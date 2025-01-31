@@ -2,17 +2,18 @@
 #define slic3r_DeviceManager_hpp_
 
 #include <map>
+#include <mutex>
 #include <vector>
 #include <string>
 #include <memory>
 #include <chrono>
-#include <mutex>
 #include <boost/thread.hpp>
 #include <boost/nowide/fstream.hpp>
 #include "nlohmann/json.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "boost/bimap/bimap.hpp"
 #include "CameraPopup.hpp"
 #include "libslic3r/calib.hpp"
 #include "libslic3r/Utils.hpp"
@@ -313,6 +314,7 @@ struct DisValue {
     bool  is_type_match = true;
 };
 
+class Preset;
 class MachineObject
 {
 private:
@@ -708,9 +710,22 @@ public:
         LVL_Rtsps,
         LVL_Rtsp
     } liveview_local{ LVL_None };
-    bool        liveview_remote{false};
-    bool        file_local{false};
-    bool        file_remote{false};
+    enum LiveviewRemote {
+        LVR_None,
+        LVR_Tutk, 
+        LVR_Agora,
+        LVR_TutkAgora
+    } liveview_remote{ LVR_None };
+    enum FileLocal {
+        FL_None, 
+        FL_Local
+    } file_local{ FL_None };
+    enum FileRemote {
+        FR_None, 
+        FR_Tutk, 
+        FR_Agora,
+        FR_TutkAgora
+    } file_remote{ FR_None };
     bool        file_model_download{false};
     bool        virtual_camera{false};
 
@@ -762,6 +777,8 @@ public:
     bool is_support_p1s_plus{false};
     bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
+    bool is_support_filament_setting_inprinting{false};
+    bool is_support_agora{false};
 
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
@@ -958,6 +975,15 @@ public:
     void get_firmware_info();
     bool is_firmware_info_valid();
     std::string get_string_from_fantype(FanType type);
+
+    /* Device Filament Check */
+    std::set<std::string> m_checked_filament;
+    std::string m_printer_preset_name;
+    std::map<std::string, std::pair<int, int>> m_filament_list; // filament_id, pair<min temp, max temp>
+    void update_filament_list();
+    int get_flag_bits(std::string str, int start, int count = 1);
+    int get_flag_bits(int num, int start, int count = 1);
+    void update_printer_preset_name(const std::string &nozzle_diameter_str);
 };
 
 class DeviceManager
@@ -1006,7 +1032,7 @@ public:
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string json_str);
-
+    MachineObject* insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code);
     /* disconnect all machine connections */
     void disconnect_all();
     int query_bind_status(std::string &msg);
@@ -1052,11 +1078,12 @@ public:
     static std::string get_printer_ams_img(std::string type_str);
     static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
-    static bool        get_printer_is_enclosed(std::string type_str);
-    static std::vector<std::string> get_resolution_supported(std::string type_str);
-    static std::vector<std::string> get_compatible_machine(std::string type_str);
+    static bool get_printer_is_enclosed(std::string type_str);
     static bool load_filaments_blacklist_config();
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
+    static std::vector<std::string> get_resolution_supported(std::string type_str);
+    static std::vector<std::string> get_compatible_machine(std::string type_str);
+    static boost::bimaps::bimap<std::string, std::string> get_all_model_id_with_name();
     static std::string load_gcode(std::string type_str, std::string gcode_file);
 };
 

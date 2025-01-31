@@ -83,6 +83,7 @@
 	"machine_max_speed_z": [
         "20"
     ],
+	"retract_lift_below":["279"],
 	"extruder_clearance_radius": "72",
     "extruder_clearance_height_to_rod": "32",
     "extruder_clearance_height_to_lid": "135",
