@@ -1448,9 +1448,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
     
     def = this->add("second_internal_bridge_over_infill", coBool);
-    def->label = L("Print second internal bridge over infill");
+    def->label = L("Two internal bridge layers");
     def->category = L("Quality");
-    def->tooltip = L("If enabled, a second internal bridge is printed over sparse infill, prependicular to the first. \n\n"
+    def->tooltip = L("If enabled, a second internal bridge layer is printed over sparse infill, prependicular to the first. \n\n"
                      "This option helps reduce over extrusion and pillowing on top layers as the internal solid infill is better supported."
                      "This option is especially usefull for high speed printers due to the large difference in speed between internal bridges "
                      "and solid infill. It is recomended to be enabled together with a slightly reduced internal bridge density to improve surface cooling."
