@@ -1577,6 +1577,18 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_input_modelID_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
     m_input_modelID_area->Add(m_input_modelID, 0, wxALIGN_CENTER, 0);
 
+    auto* tips_printer_name = new Label(ip_input_bot_panel, _L("Printer name"));
+
+    m_input_printer_name = new TextInput(ip_input_bot_panel, wxEmptyString, wxEmptyString);
+    m_input_printer_name->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
+    m_input_printer_name->SetMinSize(wxSize(FromDIP(352), FromDIP(28)));
+    m_input_printer_name->SetMaxSize(wxSize(FromDIP(352), FromDIP(28)));
+
+    m_input_bot_sizer->Add(tips_printer_name, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_input_bot_sizer->Add(m_input_printer_name, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+
     m_input_bot_sizer->Add(m_input_sn_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
     m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_input_bot_sizer->Add(m_input_modelID_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
@@ -1809,6 +1821,7 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     m_obj = obj;
     m_input_ip->GetTextCtrl()->SetLabelText(m_obj->dev_ip);
     m_input_access_code->GetTextCtrl()->SetLabelText(m_obj->get_access_code());
+    m_input_printer_name->GetTextCtrl()->SetLabelText(m_obj->dev_name);
 
     std::string img_str = DeviceManager::get_printer_diagram_img(m_obj->printer_type);
     auto diagram_bmp = create_scaled_bitmap(img_str + "_en", this, 198);
@@ -2032,7 +2045,8 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
 {
     auto str_ip              = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code     = m_input_access_code->GetTextCtrl()->GetValue();
-    auto str_sn     = m_input_sn->GetTextCtrl()->GetValue();
+    auto str_name            = m_input_printer_name->GetTextCtrl()->GetValue().Strip(wxString::both);
+    auto str_sn              = m_input_sn->GetTextCtrl()->GetValue();
     bool invalid_access_code = true;
 
     for (char c : str_access_code) {
@@ -2055,9 +2069,9 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
     }
 
     if (current_input_index == 1){
-        if (str_sn.length() == 15) {
+        if (!str_name.IsEmpty() && str_sn.length() == 15) {
             m_button_ok->Enable(true);
-            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
                                     std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
             m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
             m_button_ok->SetBackgroundColor(btn_bg_green);

@@ -301,6 +301,7 @@ public:
     Label* m_test_wrong_msg{ nullptr };
     TextInput* m_input_ip{ nullptr };
     TextInput* m_input_access_code{ nullptr };
+    TextInput* m_input_printer_name{ nullptr };
     TextInput* m_input_sn{ nullptr };
     ComboBox*  m_input_modelID{ nullptr };
     wxStaticBitmap* m_img_help{ nullptr };
