@@ -2105,6 +2105,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_flow");
 	    optgroup->append_single_option_line("internal_bridge_flow");
         optgroup->append_single_option_line("bridge_density");
+        optgroup->append_single_option_line("internal_bridge_density");
+        optgroup->append_single_option_line("second_internal_bridge_over_infill");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("thick_internal_bridges");
         optgroup->append_single_option_line("dont_filter_internal_bridges");

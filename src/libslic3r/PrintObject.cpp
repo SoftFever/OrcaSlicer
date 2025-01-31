@@ -1080,7 +1080,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
-            || opt_key == "bridge_density") {
+            || opt_key == "bridge_density"
+            || opt_key == "internal_bridge_density") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
@@ -2852,6 +2853,87 @@ void PrintObject::bridge_over_infill()
                     new_surfaces.emplace_back(stInternalSolid, ep);
                 }
 
+                // ========================================================================
+                // === ORCA: Create a SECOND bridge layer above the first bridge layer. ===
+                // ========================================================================
+                if(po->m_config.second_internal_bridge_over_infill){
+                    
+                    // 1) Gather the bridging polygons we just created for layer lidx.
+                    ExPolygons bridging_current_layer;
+                    double bridging_angle_current = 0.0;
+                    for (const auto &surf : new_surfaces) {
+                        if (surf.surface_type == stInternalBridge) {
+                            bridging_current_layer.push_back(surf.expolygon);
+                            bridging_angle_current = surf.bridge_angle;
+                        }
+                    }
+                    
+                    // 2) For the next layer, use bridging_angle_second which is 90 degrees to the first bridge:
+                    double bridging_angle_second = bridging_angle_current + M_PI / 2.0; // (angle in radians)
+                    
+                    // 2) If bridging polygons exist, apply them to the NEXT layer
+                    if (!bridging_current_layer.empty() && (lidx + 1 < po->layers().size())) {
+                        Layer *next_layer = po->get_layer(lidx + 1);
+                        
+                        // For each region in the next layer, we will transform stInternal (or stInternalSolid)
+                        // surfaces into bridging if they overlap bridging_current_layer.
+                        for (LayerRegion *next_region : next_layer->regions()) {
+                            // We’ll create new bridging surfaces in next_new_surfaces,
+                            // and keep everything else in keep_surfaces.
+                            Surfaces next_new_surfaces;
+                            Surfaces keep_surfaces;
+                            
+                            // We only want to convert certain stInternal and stInternalSolid types to bridging
+                            // TODO: Are both needed?
+                            SurfacesPtr next_internals = next_region->fill_surfaces.filter_by_types({stInternal, stInternalSolid});
+                            
+                            // 2A. Copy all surfaces that aren’t stInternal / stInternalSolid into keep_surfaces (eg top solid infill)
+                            for (const Surface &s : next_region->fill_surfaces.surfaces) {
+                                if (s.surface_type != stInternal && s.surface_type != stInternalSolid) {
+                                    keep_surfaces.push_back(s);
+                                }
+                            }
+                            
+                            // 2B. Convert any overlapping stInternal / stInternalSolid surfaces to bridging
+                            ExPolygons bridging_union = union_ex(bridging_current_layer);
+                            for (const Surface *s : next_internals) {
+                                ExPolygons overlap = intersection_ex(s->expolygon, bridging_union);
+                                if (!overlap.empty()) {
+                                    // Create bridging surface
+                                    Surface tmp{*s, {}};
+                                    tmp.surface_type = stInternalBridge;
+                                    // Use the 90 degree angle against the layer below
+                                    tmp.bridge_angle = bridging_angle_second;
+                                    // Insert bridging polygons
+                                    for (const ExPolygon &ep : overlap) {
+                                        next_new_surfaces.emplace_back(tmp, ep);
+                                    }
+                                    // Keep the difference for normal infill:
+                                    ExPolygons leftover = diff_ex(s->expolygon, bridging_union);
+                                    for (const ExPolygon &ep : leftover) {
+                                        // Keep original type for leftover polygons
+                                        Surface leftover_surf{*s, {}};
+                                        leftover_surf.surface_type = s->surface_type;
+                                        leftover_surf.bridge_angle = s->bridge_angle;
+                                        next_new_surfaces.emplace_back(leftover_surf, ep);
+                                    }
+                                } else {
+                                    // No overlap, so keep the surface as-is.
+                                    keep_surfaces.push_back(*s);
+                                }
+                            }
+                            
+                            // 2C. Rebuild next_region->fill_surfaces with keep_surfaces + next_new_surfaces
+                            next_region->fill_surfaces.surfaces.clear();
+                            next_region->fill_surfaces.append(keep_surfaces);
+                            next_region->fill_surfaces.append(next_new_surfaces);
+                        }
+                    }
+                }
+                // =======================================================================================
+                // === ORCA: End of create a SECOND bridge layer above the first bridge layer segment. ===
+                // =======================================================================================
+                
 #ifdef DEBUG_BRIDGE_OVER_INFILL
                 debug_draw("Aensuring_" + std::to_string(reinterpret_cast<uint64_t>(&region)), to_polylines(additional_ensuring),
                            to_polylines(near_perimeters), to_polylines(to_polygons(internal_infills)),
