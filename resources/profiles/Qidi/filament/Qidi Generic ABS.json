@@ -6,9 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
-    "activate_chamber_temp_control": [
-        "0"
-    ],
     "filament_flow_ratio": [
         "0.95"
     ],
@@ -47,6 +44,9 @@
     ],
     "nozzle_temperature": [
         "260"
+    ],
+    "filament_vendor": [
+        "Generic"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",
