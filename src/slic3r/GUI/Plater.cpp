@@ -10434,7 +10434,7 @@ private:
     wxColour          m_def_color = wxColour(255, 255, 255);
     RadioSelectorList m_radio_group;
     int               m_action{1};
-    bool              m_show_again;
+    bool              m_remember_choice{false};
 
 public:
     ProjectDropDialog(const std::string &filename);
@@ -10457,7 +10457,7 @@ public:
     int       get_action() const { return m_action; }
     void      set_action(int index) { m_action = index; }
 
-    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+    wxBoxSizer *create_remember_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     wxBoxSizer *create_item_radiobox(wxString title, wxWindow *parent, int select_id, int groupid);
 
 protected:
@@ -10551,14 +10551,12 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
-    // hide the "Don't show again" checkbox
-    //wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
 
-    //auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "show_drop_project_dialog");
-    //m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
+    auto dont_show_again = create_remember_checkbox(_L("Remember my choice."), this, _L("This option can be changed later in preferences, under 'Load Behaviour'."));
+    m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
 
-    //m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
-
+    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
     wxBoxSizer *m_sizer_right  = new wxBoxSizer(wxHORIZONTAL);
@@ -10647,13 +10645,14 @@ wxBoxSizer *ProjectDropDialog ::create_item_radiobox(wxString title, wxWindow *p
 
     return sizer;
 }
-wxBoxSizer *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
+wxBoxSizer *ProjectDropDialog::create_remember_checkbox(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
-
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 5);
 
     auto checkbox = new ::CheckBox(parent);
+    checkbox->SetValue(m_remember_choice);
+    checkbox->SetToolTip(tooltip);
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
 
@@ -10661,13 +10660,11 @@ wxBoxSizer *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox_title->SetForegroundColour(wxColour(144,144,144));
     checkbox_title->SetFont(::Label::Body_13);
     checkbox_title->Wrap(-1);
+    checkbox_title->SetToolTip(tooltip);
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-     m_show_again = wxGetApp().app_config->get(param) == "true" ? true : false;
-    checkbox->SetValue(m_show_again);
-
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
-        m_show_again = m_show_again ? false : true;
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox](wxCommandEvent &e) {
+        m_remember_choice = checkbox->GetValue();
         e.Skip();
     });
 
@@ -10733,7 +10730,19 @@ void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
 
 void ProjectDropDialog::on_select_ok(wxMouseEvent &event)
 {
-    wxGetApp().app_config->set_bool("show_drop_project_dialog", m_show_again);
+    if (m_remember_choice) {
+        LoadType load_type = static_cast<LoadType>(get_action());
+        switch (load_type)
+        {
+            case LoadType::OpenProject:
+                wxGetApp().app_config->set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL);
+                break;
+            case LoadType::LoadGeometry:
+                wxGetApp().app_config->set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY);
+                break;
+        }
+    }
+
     EndModal(wxID_OK);
 }
 

@@ -114,11 +114,6 @@ void AppConfig::set_defaults()
             set_bool("background_processing", false);
 #endif
 
-#ifdef SUPPORT_SHOW_DROP_PROJECT
-        if (get("show_drop_project_dialog").empty())
-            set_bool("show_drop_project_dialog", true);
-#endif
-
         if (get("drop_project_action").empty())
             set_bool("drop_project_action", true);
 
