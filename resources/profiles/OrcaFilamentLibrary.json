@@ -81,10 +81,6 @@
             "sub_path": "filament/fdm_filament_tpu.json"
         },
         {
-            "name": "Generic ABS @System",
-            "sub_path": "filament/Generic ABS @System.json"
-        },
-        {
             "name": "Bambu ABS @base",
             "sub_path": "filament/Bambu base/Bambu ABS @base.json"
         },
@@ -97,16 +93,16 @@
             "sub_path": "filament/Bambu base/Bambu Support for ABS @base.json"
         },
         {
+            "name": "Generic ABS @System",
+            "sub_path": "filament/Generic ABS @System.json"
+        },
+        {
             "name": "Generic ABS @base",
             "sub_path": "filament/Generic base/Generic ABS @base.json"
         },
         {
             "name": "PolyLite ABS @base",
             "sub_path": "filament/Polymaker base/PolyLite ABS @base.json"
-        },
-        {
-            "name": "Generic ASA @System",
-            "sub_path": "filament/Generic ASA @System.json"
         },
         {
             "name": "Bambu ASA @base",
@@ -119,6 +115,10 @@
         {
             "name": "Bambu ASA-CF @base",
             "sub_path": "filament/Bambu base/Bambu ASA-CF @base.json"
+        },
+        {
+            "name": "Generic ASA @System",
+            "sub_path": "filament/Generic ASA @System.json"
         },
         {
             "name": "Generic ASA @base",
@@ -139,14 +139,6 @@
         {
             "name": "Generic HIPS @base",
             "sub_path": "filament/Generic base/Generic HIPS @base.json"
-        },
-        {
-            "name": "Generic PA @System",
-            "sub_path": "filament/Generic PA @System.json"
-        },
-        {
-            "name": "Generic PA-CF @System",
-            "sub_path": "filament/Generic PA-CF @System.json"
         },
         {
             "name": "Bambu PA-CF @base",
@@ -189,8 +181,12 @@
             "sub_path": "filament/Fiberon base/Fiberon PA612-CF @base.json"
         },
         {
-            "name": "Generic PC @System",
-            "sub_path": "filament/Generic PC @System.json"
+            "name": "Generic PA @System",
+            "sub_path": "filament/Generic PA @System.json"
+        },
+        {
+            "name": "Generic PA-CF @System",
+            "sub_path": "filament/Generic PA-CF @System.json"
         },
         {
             "name": "Bambu PC @base",
@@ -199,6 +195,10 @@
         {
             "name": "Bambu PC FR @base",
             "sub_path": "filament/Bambu base/Bambu PC FR @base.json"
+        },
+        {
+            "name": "Generic PC @System",
+            "sub_path": "filament/Generic PC @System.json"
         },
         {
             "name": "Generic PC @base",
@@ -215,10 +215,6 @@
         {
             "name": "Generic PE-CF @base",
             "sub_path": "filament/Generic base/Generic PE-CF @base.json"
-        },
-        {
-            "name": "Generic PETG @System",
-            "sub_path": "filament/Generic PETG @System.json"
         },
         {
             "name": "Bambu PET-CF @base",
@@ -253,6 +249,10 @@
             "sub_path": "filament/Fiberon base/Fiberon PETG-rCF @base.json"
         },
         {
+            "name": "Generic PETG @System",
+            "sub_path": "filament/Generic PETG @System.json"
+        },
+        {
             "name": "Generic PETG @base",
             "sub_path": "filament/Generic base/Generic PETG @base.json"
         },
@@ -275,14 +275,6 @@
         {
             "name": "Generic PHA @base",
             "sub_path": "filament/Generic base/Generic PHA @base.json"
-        },
-        {
-            "name": "Generic PLA @System",
-            "sub_path": "filament/Generic PLA @System.json"
-        },
-        {
-            "name": "Generic PLA-CF @System",
-            "sub_path": "filament/Generic PLA-CF @System.json"
         },
         {
             "name": "Bambu PLA Aero @base",
@@ -357,8 +349,8 @@
             "sub_path": "filament/Bambu base/Bambu Support W @base.json"
         },
         {
-            "name": "eSUN PLA+ @base",
-            "sub_path": "filament/eSUN base/eSUN PLA+ @base.json"
+            "name": "Generic PLA @System",
+            "sub_path": "filament/Generic PLA @System.json"
         },
         {
             "name": "Generic PLA @base",
@@ -371,6 +363,10 @@
         {
             "name": "Generic PLA Silk @base",
             "sub_path": "filament/Generic base/Generic PLA Silk @base.json"
+        },
+        {
+            "name": "Generic PLA-CF @System",
+            "sub_path": "filament/Generic PLA-CF @System.json"
         },
         {
             "name": "Generic PLA-CF @base",
@@ -417,6 +413,10 @@
             "sub_path": "filament/SUNLU base/SUNLU Wood PLA @base.json"
         },
         {
+            "name": "eSUN PLA+ @base",
+            "sub_path": "filament/eSUN base/eSUN PLA+ @base.json"
+        },
+        {
             "name": "Generic PP @base",
             "sub_path": "filament/Generic base/Generic PP @base.json"
         },
@@ -453,12 +453,12 @@
             "sub_path": "filament/Generic base/Generic PPS-CF @base.json"
         },
         {
-            "name": "Generic PVA @System",
-            "sub_path": "filament/Generic PVA @System.json"
-        },
-        {
             "name": "Bambu PVA @base",
             "sub_path": "filament/Bambu base/Bambu PVA @base.json"
+        },
+        {
+            "name": "Generic PVA @System",
+            "sub_path": "filament/Generic PVA @System.json"
         },
         {
             "name": "Generic PVA @base",
@@ -467,10 +467,6 @@
         {
             "name": "Generic SBS @base",
             "sub_path": "filament/Generic base/Generic SBS @base.json"
-        },
-        {
-            "name": "Generic TPU @System",
-            "sub_path": "filament/Generic TPU @System.json"
         },
         {
             "name": "Bambu TPU 95A @base",
@@ -483,6 +479,10 @@
         {
             "name": "Bambu TPU for AMS @base",
             "sub_path": "filament/Bambu base/Bambu TPU for AMS @base.json"
+        },
+        {
+            "name": "Generic TPU @System",
+            "sub_path": "filament/Generic TPU @System.json"
         },
         {
             "name": "Generic TPU for AMS @base",

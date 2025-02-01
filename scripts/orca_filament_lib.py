@@ -25,8 +25,8 @@ def topological_sort(filaments):
                 processed_files.add(child)
                 processed_files.add(parent)
 
-    # Initialize queue with nodes having no dependencies
-    queue = [name for name, degree in in_degree.items() if degree == 0]
+    # Initialize queue with nodes having no dependencies (now sorted)
+    queue = sorted([name for name, degree in in_degree.items() if degree == 0])
     result = []
 
     # Process the queue
@@ -35,14 +35,15 @@ def topological_sort(filaments):
         result.append(name_to_filament[current])
         processed_files.add(current)
         
-        # Process children
-        for child in graph[current]:
+        # Process children (now sorted)
+        children = sorted(graph[current])
+        for child in children:
             in_degree[child] -= 1
             if in_degree[child] == 0:
                 queue.append(child)
 
-    # Add remaining files that weren't part of inheritance tree
-    remaining = all_names - processed_files
+    # Add remaining files that weren't part of inheritance tree (now sorted)
+    remaining = sorted(all_names - processed_files)
     for name in remaining:
         result.append(name_to_filament[name])
 
@@ -55,8 +56,9 @@ def update_filament_library(vendor="OrcaFilamentLibrary"):
     # Collect current filament entries
     current_filaments = []
     base_dir = vendor
+    filament_dir = os.path.join(base_dir, 'filament')
     
-    for root, dirs, files in os.walk(base_dir):
+    for root, dirs, files in os.walk(filament_dir):
         for file in files:
             if file.lower().endswith('.json'):
                 full_path = os.path.join(root, file)

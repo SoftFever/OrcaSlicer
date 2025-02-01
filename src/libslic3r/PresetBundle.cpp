@@ -1209,7 +1209,7 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
 
     for (auto &vendor_name : vendor_names)
     {
-        if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate)
+        if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate && vendor_name != ORCA_FILAMENT_LIBRARY)
             continue;
 
         try {
