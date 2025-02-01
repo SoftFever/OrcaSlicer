@@ -2984,6 +2984,8 @@ void PrintObject::bridge_over_infill()
                                 if (!overlap.empty()) {
                                     // Create bridging surface
                                     Surface tmp{*s, {}};
+                                    // TODO: Here a new surface type can be assigned.
+                                    // For now assigning it as internal bridge and rotating it 90 degrees to the bridge underneath it
                                     tmp.surface_type = stInternalBridge;
                                     // Use the 90 degree angle against the layer below
                                     tmp.bridge_angle = bridging_angle_second;
