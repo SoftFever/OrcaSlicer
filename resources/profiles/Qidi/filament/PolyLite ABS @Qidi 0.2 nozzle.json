@@ -1,19 +1,16 @@
 {
     "type": "filament",
-	"filament_id": "GFL99",
-    "setting_id": "GFSL99",
-    "name": "HATCHBOX PLA @0.2 nozzle",
+    "filament_id": "GFB99",
+    "setting_id": "GFSA04",
+    "name": "PolyLite ABS @Qidi 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "HATCHBOX PLA",
-	"filament_flow_ratio": [
-        "0.98"
-    ],
-    "slow_down_layer_time": [
-        "8"
-    ],
+    "inherits": "PolyLite ABS @Qidi",
     "enable_pressure_advance": [
         "1"
+    ],
+    "pressure_advance": [
+        "0.052"
     ],
     "filament_max_volumetric_speed": [
         "2"

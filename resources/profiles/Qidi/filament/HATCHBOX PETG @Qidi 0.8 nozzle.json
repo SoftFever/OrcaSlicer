@@ -5,7 +5,7 @@
     "name": "HATCHBOX PETG @0.8 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "HATCHBOX PETG",
+    "inherits": "HATCHBOX PETG @Qidi",
 	"reduce_fan_stop_start_freq": [
         "1"
     ],

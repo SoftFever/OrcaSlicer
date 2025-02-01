@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "PolyLite PLA",
+    "name": "Overture PLA @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -25,7 +25,7 @@
         "100"
     ],
     "filament_vendor": [
-        "Polymaker"
+        "Overture"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

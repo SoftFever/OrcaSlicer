@@ -2,21 +2,30 @@
     "type": "filament",
     "filament_id": "GFB99",
     "setting_id": "GFSA04",
-    "name": "HATCHBOX ABS",
+    "name": "Overture ABS @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
     "filament_flow_ratio": [
-        "0.95"
+        "0.96"
     ],
     "filament_max_volumetric_speed": [
-        "22"
+        "17"
     ],
     "enable_pressure_advance": [
         "1"
     ],
+    "nozzle_temperature_initial_layer": [
+        "260"
+    ],
+    "nozzle_temperature": [
+        "265"
+    ],
+    "slow_down_layer_time": [
+        "6"
+    ],
     "pressure_advance": [
-        "0.021"
+        "0.025"
     ],
     "fan_max_speed":[
         "80"
@@ -31,7 +40,7 @@
         "1.05"
     ],
     "chamber_temperature": [
-        "55"
+        "60"
     ],
     "fan_cooling_layer_time": [
         "60"
@@ -40,7 +49,7 @@
         "20"
     ],
     "filament_vendor": [
-        "HATCHBOX"
+        "Overture"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

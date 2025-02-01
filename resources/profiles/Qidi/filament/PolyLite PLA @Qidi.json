@@ -2,30 +2,30 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "HATCHBOX PLA",
+    "name": "PolyLite PLA @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
 	"filament_flow_ratio": [
-        "0.98"
+        "0.99"
     ],
     "filament_max_volumetric_speed": [
-        "20"
+        "11"
     ],
     "slow_down_layer_time": [
-        "8"
+        "10"
     ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.031"
+        "0.036"
     ],
     "additional_cooling_fan_speed": [
         "100"
     ],
     "filament_vendor": [
-        "HATCHBOX"
+        "Polymaker"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

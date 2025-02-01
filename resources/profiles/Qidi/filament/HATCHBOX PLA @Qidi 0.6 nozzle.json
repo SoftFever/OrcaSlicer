@@ -2,15 +2,24 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "Overture PLA @0.6 nozzle",
+    "name": "HATCHBOX PLA @0.6 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Overture PLA",
+    "inherits": "HATCHBOX PLA @Qidi",
+	"filament_flow_ratio": [
+        "0.98"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.017"
+        "0.016"
+    ],
+    "filament_max_volumetric_speed": [
+        "20"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.6 nozzle",

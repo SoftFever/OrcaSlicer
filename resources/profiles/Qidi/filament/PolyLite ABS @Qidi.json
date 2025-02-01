@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFB99",
     "setting_id": "GFSA04",
-    "name": "Overture ABS",
+    "name": "PolyLite ABS @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
@@ -49,7 +49,7 @@
         "20"
     ],
     "filament_vendor": [
-        "Overture"
+        "Polymaker"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

@@ -2,30 +2,30 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "Overture PLA",
+    "name": "HATCHBOX PLA @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
 	"filament_flow_ratio": [
-        "0.99"
+        "0.98"
     ],
     "filament_max_volumetric_speed": [
-        "11"
+        "20"
     ],
     "slow_down_layer_time": [
-        "10"
+        "8"
     ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.036"
+        "0.031"
     ],
     "additional_cooling_fan_speed": [
         "100"
     ],
     "filament_vendor": [
-        "Overture"
+        "HATCHBOX"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

@@ -1,28 +1,16 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
-    "setting_id": "GFSA04",
-    "name": "HATCHBOX ABS @0.8 nozzle",
+	"filament_id": "GFL99",
+    "setting_id": "GFSL99",
+    "name": "Overture PLA @Qidi 0.8 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "HATCHBOX ABS",
-    "filament_flow_ratio": [
-        "0.95"
-    ],
+    "inherits": "Overture PLA @Qidi",
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.011"
-    ],
-    "filament_max_volumetric_speed": [
-        "22"
-    ],
-    "nozzle_temperature": [
-        "260"
-    ],
-    "slow_down_min_speed": [
-        "10"
+        "0.009"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.8 nozzle",

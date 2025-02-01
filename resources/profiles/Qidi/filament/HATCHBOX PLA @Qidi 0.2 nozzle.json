@@ -2,12 +2,15 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "PolyLite PLA @0.2 nozzle",
+    "name": "HATCHBOX PLA @0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "PolyLite PLA",
-    "pressure_advance": [
-        "0.057"
+    "inherits": "HATCHBOX PLA @Qidi",
+	"filament_flow_ratio": [
+        "0.98"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ],
     "enable_pressure_advance": [
         "1"
