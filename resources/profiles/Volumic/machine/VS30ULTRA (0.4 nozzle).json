@@ -7,8 +7,6 @@
 	"inherits": "fdm_volumic_common",
 	"printer_model": "VS30ULTRA",
 	"default_print_profile": "Normal speed - 0.15mm",
-	"host_type": "",
-	"print_host": "",
 	"nozzle_diameter": ["0.4"],
 	"printable_area": ["0x0","290x0","290x200","0x200"],
 	"printable_height": "300",
