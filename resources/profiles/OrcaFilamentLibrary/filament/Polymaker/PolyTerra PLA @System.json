@@ -1,0 +1,11 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "true",
+  "name": "PolyTerra PLA @System",
+  "renamed_from": "PolyTerra PLA",
+  "setting_id": "3016316214",
+  "inherits": "PolyTerra PLA @base",
+  "compatible_printers": [
+  ]
+}

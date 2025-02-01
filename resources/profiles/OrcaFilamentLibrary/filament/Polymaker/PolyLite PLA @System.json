@@ -1,0 +1,11 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "true",
+  "name": "PolyLite PLA @System",
+  "renamed_from": "PolyLite PLA",
+  "setting_id": "599651858",
+  "inherits": "PolyLite PLA @base",
+  "compatible_printers": [
+  ]
+}
