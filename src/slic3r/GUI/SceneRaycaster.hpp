@@ -21,6 +21,9 @@ class SceneRaycasterItem
     Transform3d m_trafo;
 
 public:
+    SceneRaycasterItem(int id, const MeshRaycaster& raycaster)
+        : m_id(id), m_raycaster(&raycaster), m_trafo(Transform3d::Identity()), m_use_back_faces(false)
+    {}
     SceneRaycasterItem(int id, const MeshRaycaster& raycaster, const Transform3d& trafo, bool use_back_faces = false)
         : m_id(id), m_raycaster(&raycaster), m_trafo(trafo), m_use_back_faces(use_back_faces)
     {}
@@ -49,7 +52,7 @@ public:
     enum class EIdBase
     {
         Bed    = 0,
-        Volume = 1000,
+        Volume = 1000, // Must be smaller than PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT
         Gizmo  = 1000000,
         FallbackGizmo = 2000000
     };

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 23:05+0800\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1259,9 +1259,6 @@ msgstr "Center of edge"
 msgid "Center of circle"
 msgstr "Center of circle"
 
-msgid "ShiftLeft mouse button"
-msgstr ""
-
 msgid "Select feature"
 msgstr "Select feature"
 
@@ -1277,18 +1274,25 @@ msgstr "Restart selection"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
+msgid "Cancel a feature until exit"
 msgstr ""
 
 msgid "Measure"
 msgstr "Measure"
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
+
 msgid "Edit to scale"
 msgstr "Edit to scale"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "Skala"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "Ingen"
@@ -1301,6 +1305,42 @@ msgstr "Längd"
 
 msgid "Selection"
 msgstr "Selection"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Kopiera till urklipp"
@@ -1316,6 +1356,27 @@ msgstr "Direct distance"
 
 msgid "Distance XYZ"
 msgstr "Distance XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl +"
@@ -2717,7 +2778,7 @@ msgstr ""
 msgid "About %s"
 msgstr "Om %s"
 
-msgid "Orca Slicer "
+msgid "Orca Slicer"
 msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
@@ -3533,9 +3594,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Current chamber temperature is higher than the material's safe temperature; "
 "this may result in material softening and nozzle clogs.The maximum safe "
@@ -4310,7 +4371,7 @@ msgstr "Volym:"
 msgid "Size:"
 msgstr "Storlek:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -7143,8 +7204,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per objekt"
-"\"."
+"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per "
+"objekt\"."
 
 msgid "Errors"
 msgstr "Fel"
@@ -7516,8 +7577,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
 "till ett \"Timelapse Wipe Tower\".\n"
@@ -7676,8 +7737,16 @@ msgstr "Nozzel"
 msgid "Nozzle temperature when printing"
 msgstr "Nozzel temperatur vid utskrift"
 
-msgid "Cool plate"
-msgstr "Kall platta"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr "Cool Plate"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7748,9 +7817,10 @@ msgid ""
 "maximum fan speed according to layer printing time"
 msgstr ""
 "Del kylfläktens hastigheten kommer att börja gå med min hastighet när den "
-"beräknade lagringstiden inte är längre än lagringstiden i inställningarna."
-"När lager tiden är kortare än gräns värdet, ställer fläkthastigheten sig "
-"mellan lägsta och högsta fläkthastighet enligt lagrets utskriftstid"
+"beräknade lagringstiden inte är längre än lagringstiden i "
+"inställningarna.När lager tiden är kortare än gräns värdet, ställer "
+"fläkthastigheten sig mellan lägsta och högsta fläkthastighet enligt lagrets "
+"utskriftstid"
 
 msgid "Max fan speed threshold"
 msgstr "Max fläkt hastighets gräns"
@@ -7896,7 +7966,7 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "Lagerhöjds begränsning"
 
-msgid "Lift Z Enforcement"
+msgid "Z-Hop"
 msgstr ""
 
 msgid "Retraction when switching material"
@@ -9501,6 +9571,11 @@ msgstr "Byggplattans första lager temperatur"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
 "Detta är byggplattans temperatur för första lager. Värdet 0 betyder att "
@@ -10002,9 +10077,9 @@ msgid ""
 "quality for needle and small details"
 msgstr ""
 "Aktivera detta val för att sänka utskifts hastigheten för att göra den sista "
-"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets tröskel"
-"\", detta så att lager kan kylas under en längre tid. Detta kan förbättra "
-"kylnings kvaliteten för små detaljer"
+"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets "
+"tröskel\", detta så att lager kan kylas under en längre tid. Detta kan "
+"förbättra kylnings kvaliteten för små detaljer"
 
 msgid "Normal printing"
 msgstr "Normal utskrift"
@@ -10995,8 +11070,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Acceleration av gles utfyllnad. Om värdet uttrycks som en procentsats (t.ex. "
 "100%) kommer det att beräknas baserat på standard accelerationen."
@@ -11096,10 +11171,10 @@ msgstr "Full fläkthastighet vid lager"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "layer"
@@ -12085,6 +12160,14 @@ msgstr "Retraktera vid lager byte"
 msgid "Force a retraction when changes layer"
 msgstr "Tvinga retraktion vid lager byte"
 
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
+
 msgid "Retraction Length"
 msgstr "Retraktions längd"
 
@@ -12119,8 +12202,8 @@ msgstr ""
 "Experimental feature. Retraction length before cutting off during filament "
 "change"
 
-msgid "Z hop when retract"
-msgstr "Z hopp vid retraktion"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12151,6 +12234,9 @@ msgid ""
 msgstr ""
 "Om detta värde är positivt kommer Z hop endast att träda i kraft när Z är "
 "över parametern: \"Z hop nedre gräns\" och är under detta värde"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr ""
@@ -13082,8 +13168,8 @@ msgstr ""
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the \"machine_start_gcode"
-"\"\n"
+"activates the emitting of an M191 command before the "
+"\"machine_start_gcode\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -13346,9 +13432,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -14938,8 +15024,8 @@ msgstr ""
 "Vill du skriva om det?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -16182,8 +16268,94 @@ msgstr ""
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
 
-#~ msgid "Cool Plate"
-#~ msgstr "Cool Plate"
+#: src/slic3r/GUI/Tab.cpp: 
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "This is a default preset."
+msgstr ""
+
+msgid "This is a system preset."
+msgstr ""
+
+msgid "Current preset is inherited from the default preset."
+msgstr ""
+
+msgid "Current preset is inherited from"
+msgstr ""
+
+msgid "It can't be deleted or modified."
+msgstr ""
+
+msgid "Any modifications should be saved as a new preset inherited from this one."
+msgstr ""
+
+msgid "To do that please specify a new name for the preset."
+msgstr ""
+
+msgid "Additional information:"
+msgstr ""
+
+msgid "vendor"
+msgstr ""
+
+msgid ", ver: "
+msgstr ""
+
+msgid "printer model"
+msgstr ""
+
+msgid "default print profile"
+msgstr ""
+
+msgid "default filament profile"
+msgstr ""
+
+msgid "default SLA material profile"
+msgstr ""
+
+msgid "default SLA print profile"
+msgstr ""
+
+msgid "full profile name"
+msgstr ""
+
+msgid "symbolic profile name"
+msgstr ""
+
+msgid ""
+"A copy of the current system preset will be created, which will be detached from the system preset."
+msgstr ""
+
+msgid ""
+"The current custom preset will be detached from the parent system preset."
+msgstr ""
+
+msgid ""
+"Modifications to the current profile will be saved."
+msgstr ""
+
+msgid ""
+"This action is not revertible.\nDo you want to proceed?"
+msgstr ""
+
+msgid ""
+"Detach preset"
+msgstr ""
+
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "Skala"
+
+#~ msgid "Cool plate"
+#~ msgstr "Kall platta"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "Z hopp vid retraktion"
 
 #~ msgid ""
 #~ "While printing by Object, the extruder may collide skirt.\n"
@@ -16786,11 +16958,11 @@ msgstr ""
 #~ msgstr "Felsökningsnivå"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, 5:"
-#~ "spåra\n"
+#~ "Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, "
+#~ "5:spåra\n"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"

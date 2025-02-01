@@ -41,6 +41,14 @@ enum class FuzzySkinType {
     AllWalls,
 };
 
+enum class NoiseType {
+    Classic,
+    Perlin,
+    Billow,
+    RidgedMulti,
+    Voronoi,
+};
+
 enum PrintHostType {
     htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint
 };
@@ -52,7 +60,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch,
+    ipLightning, ipCrossHatch, ipQuarterCubic,
     ipCount,
 };
 
@@ -254,6 +262,7 @@ enum OverhangFanThreshold {
 // BBS
 enum BedType {
     btDefault = 0,
+    btSuperTack,
     btPC,
     btEP,
     btPEI,
@@ -265,7 +274,7 @@ enum BedType {
 // BBS
 enum LayerSeq {
     flsAuto, 
-    flsCutomize
+    flsCustomize
 };
 
 // BBS
@@ -322,6 +331,9 @@ static std::string bed_type_to_gcode_string(const BedType type)
     std::string type_str;
 
     switch (type) {
+    case btSuperTack:
+        type_str = "supertack_plate";
+        break;
     case btPC:
         type_str = "cool_plate";
         break;
@@ -347,6 +359,9 @@ static std::string bed_type_to_gcode_string(const BedType type)
 
 static std::string get_bed_temp_key(const BedType type)
 {
+    if (type == btSuperTack)
+        return "supertack_plate_temp";
+
     if (type == btPC)
         return "cool_plate_temp";
 
@@ -367,6 +382,9 @@ static std::string get_bed_temp_key(const BedType type)
 
 static std::string get_bed_temp_1st_layer_key(const BedType type)
 {
+    if (type == btSuperTack)
+        return "supertack_plate_temp_initial_layer";
+
     if (type == btPC)
         return "cool_plate_temp_initial_layer";
 
@@ -392,6 +410,7 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrinterTechnology)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeFlavor)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NoiseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
@@ -810,6 +829,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
+    ((ConfigOptionFloatOrPercent,      support_threshold_overlap))
     ((ConfigOptionFloat,               support_object_xy_distance))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
@@ -906,6 +926,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionBool,                 fuzzy_skin_first_layer))
+    ((ConfigOptionEnum<NoiseType>,      fuzzy_skin_noise_type))
+    ((ConfigOptionFloat,                fuzzy_skin_scale))
+    ((ConfigOptionInt,                  fuzzy_skin_octaves))
+    ((ConfigOptionFloat,                fuzzy_skin_persistence))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
@@ -921,6 +945,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
     ((ConfigOptionPercent, ironing_flow))
     ((ConfigOptionFloat, ironing_spacing))
+    ((ConfigOptionFloat, ironing_inset))
     ((ConfigOptionFloat, ironing_direction))
     ((ConfigOptionFloat, ironing_speed))
     ((ConfigOptionFloat, ironing_angle))
@@ -1081,7 +1106,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              time_lapse_gcode))
 
     ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope))
-    ((ConfigOptionInt,               max_volumetric_extrusion_rate_slope_segment_length))
+    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_segment_length))
+    ((ConfigOptionBool,               extrusion_rate_smoothing_external_perimeter_only))
+
     
     ((ConfigOptionPercents,            retract_before_wipe))
     ((ConfigOptionFloats,              retraction_length))
@@ -1183,9 +1210,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               cool_plate_temp))
     ((ConfigOptionInts,               textured_cool_plate_temp))
+    ((ConfigOptionInts,               supertack_plate_temp))
     ((ConfigOptionInts,               eng_plate_temp))
     ((ConfigOptionInts,               hot_plate_temp)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp))
+    ((ConfigOptionInts,               supertack_plate_temp_initial_layer))
     ((ConfigOptionInts,               cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               textured_cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               eng_plate_temp_initial_layer))
@@ -1239,6 +1268,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloats,             retraction_minimum_travel))
     ((ConfigOptionBools,              retract_when_changing_layer))
+    ((ConfigOptionBools,              retract_on_top_layer))
     ((ConfigOptionFloat,              skirt_distance))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))

@@ -198,7 +198,6 @@ private:
     int picking_id_component(int idx) const;
 
 public:
-    static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
     static const unsigned int PLATE_NAME_HOVER_ID = 6;
     static const unsigned int GRABBER_COUNT = 8;
 
@@ -691,11 +690,6 @@ public:
     void set_height_limits_mode(PartPlate::HeightLimitMode mode)
     {
         m_height_limit_mode = mode;
-    }
-
-    // SoftFever
-    const std::string& get_logo_texture_filename() const { 
-        return m_logo_texture_filename;
     }
 
     int get_curr_plate_index() const { return m_current_plate; }
