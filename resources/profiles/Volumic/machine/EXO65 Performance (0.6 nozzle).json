@@ -7,7 +7,7 @@
 	"inherits": "fdm_volumic_common",
 	"printer_model": "EXO65 Performance",
 	"default_print_profile": "Performance 150 - 0.15mm",
-	"host_type": "octo/klipper",
+	"host_type": "octoprint",
 	"print_host": "192.168.0.60",
 	"nozzle_diameter": ["0.6"],
 	"printable_area": ["0x0","650x0","650x650","0x650"],
