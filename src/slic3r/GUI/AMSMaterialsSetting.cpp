@@ -258,7 +258,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Fit();
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly = new Label(parent, _L("Setting AMS slot information while printing is not supported"));
+    m_tip_readonly = new Label(parent, _L(""));
     m_tip_readonly->SetForegroundColour(*wxBLACK);
     m_tip_readonly->SetBackgroundColour(*wxWHITE);
     m_tip_readonly->SetMinSize(wxSize(FromDIP(380), -1));
@@ -413,20 +413,27 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    m_button_confirm->Show(en);
+    m_tip_readonly->SetLabelText(wxEmptyString);
+
+    if (!en) {
+        m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
+    }
+    else {
+        m_button_confirm->Show(en);
+    }
+
     if (!m_is_third) {
         m_tip_readonly->Hide(); 
     }
     else {
-        //m_comboBox_filament->Show(en);
-        //m_readonly_filament->Show(!en);
+        if (!obj->is_support_filament_setting_inprinting) {
+            if (!is_virtual_tray()) {
+                m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
+            } else {
+                m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
+            }
+        }
 
-        if ( !is_virtual_tray() ) {
-            m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
-        }
-        else {
-            m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
-        }
         m_tip_readonly->Wrap(FromDIP(380));
         m_tip_readonly->Show(!en);
     }
@@ -705,9 +712,14 @@ void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 
 void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event) 
 {
-    if(!m_is_third || obj->is_in_printing() || obj->can_resume())
+    if(!m_is_third)
         return;
 
+    if (obj->is_in_printing() || obj->can_resume()) {
+        if (!obj->is_support_filament_setting_inprinting) {
+            return;
+        }
+    }
 
     std::vector<wxColour> ams_colors;
     for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ++ams_it) {
@@ -922,8 +934,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
 
         m_button_reset->Show();
-        m_button_confirm->Show(); 
-    } 
+        //m_button_confirm->Show(); 
+    }
 
     m_comboBox_filament->Set(filament_items);
     m_comboBox_filament->SetSelection(selection_idx);
