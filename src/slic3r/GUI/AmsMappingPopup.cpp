@@ -907,7 +907,7 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 
     close_img = ScalableBitmap(this, "hum_popup_close", 24);
 
-    m_staticText = new Label(this, _L("Current Cabin humidity"));
+    m_staticText = new Label(this, _L("Current AMS humidity"));
     m_staticText->SetFont(::Label::Head_24);
 
     humidity_level_list = new AmsHumidityLevelList(this);
