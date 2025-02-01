@@ -675,12 +675,13 @@ std::vector<int> GLVolumeCollection::load_object(
     int                      obj_idx,
     const std::vector<int>  &instance_idxs,
     const std::string       &color_by,
-    bool 					 opengl_initialized)
+    bool 					 opengl_initialized,
+    bool                    need_raycaster)
 {
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized));
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized, false, false, need_raycaster));
     return volumes_idx;
 }
 
@@ -693,7 +694,8 @@ int GLVolumeCollection::load_object_volume(
     const std::string   &color_by,
     bool 				 opengl_initialized,
     bool                 in_assemble_view,
-    bool                 use_loaded_id)
+    bool                 use_loaded_id,
+    bool                 need_raycaster)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
@@ -711,7 +713,7 @@ int GLVolumeCollection::load_object_volume(
     v.model.init_from(mesh, true);
 #else
     v.model.init_from(*mesh);
-    v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(mesh);
+    if (need_raycaster) { v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(mesh); }
 #endif // ENABLE_SMOOTH_NORMALS
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
 

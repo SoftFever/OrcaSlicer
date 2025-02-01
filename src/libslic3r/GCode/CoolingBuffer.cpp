@@ -151,6 +151,7 @@ struct PerExtruderAdjustments
             }
             time_total += line.time;
         }
+        this->time_total = time_total;
         return time_total;
     }
     // Slow down each adjustable G-code line proportionally by a factor.
@@ -166,6 +167,7 @@ struct PerExtruderAdjustments
             }
             time_total += line.time;
         }
+        this->time_total = time_total;
         return time_total;
     }
 
@@ -204,6 +206,7 @@ struct PerExtruderAdjustments
     // Used by non-proportional slow down.
     void slow_down_to_feedrate(float min_feedrate) {
         assert(this->slow_down_min_speed < min_feedrate + EPSILON);
+        float time_total = 0.f;
         for (size_t i = 0; i < n_lines_adjustable; ++ i) {
             CoolingLine &line = lines[i];
             if (line.feedrate > min_feedrate) {
@@ -211,7 +214,9 @@ struct PerExtruderAdjustments
                 line.feedrate = min_feedrate;
                 line.slowdown = true;
             }
+            time_total += line.time;
         }
+        this->time_total = time_total;
     }
 
     // Extruder, for which the G-code will be adjusted.
@@ -346,6 +351,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
     // for a sequence of extrusion moves.
     size_t            active_speed_modifier = size_t(-1);
 
+    // Orca: Whether we had our first extrusion in this layer.
+    // Time of any other movements before the first extrusion will be excluded from the layer time.
+    bool layer_had_extrusion = false;
+
     for (; *line_start != 0; line_start = line_end) 
     {
         while (*line_end != '\n' && *line_end != 0)
@@ -404,6 +413,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 line.type |= CoolingLine::TYPE_EXTERNAL_PERIMETER;
             if (wipe)
                 line.type |= CoolingLine::TYPE_WIPE;
+
+            // Orca: only slow down movements since the first extrusion
+            if (boost::contains(sline, ";_EXTRUDE_SET_SPEED"))
+                layer_had_extrusion = true;
             
             // ORCA: Dont slowdown external perimeters for layer time feature
             // use the adjustment pointer to ensure the value for the current extruder (filament) is used.
@@ -514,6 +527,13 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
         } else if (boost::starts_with(sline, ";_FORCE_RESUME_FAN_SPEED")) {
             line.type = CoolingLine::TYPE_FORCE_RESUME_FAN;
         }
+
+        // Orca: For any movements before this layer's first ever extrusion, we exclude them from the layer time calculation.
+        if (!layer_had_extrusion) {
+            assert((line.type & CoolingLine::TYPE_ADJUSTABLE) == 0);
+            line.time = line.time_max = 0;
+        }
+
         if (line.type != 0)
             adjustment->lines.emplace_back(std::move(line));
     }
@@ -535,8 +555,7 @@ static inline void extruder_range_slow_down_non_proportional(
     for (PerExtruderAdjustments *adj : by_min_print_speed) {
         adj->idx_line_begin = 0;
         adj->idx_line_end   = 0;
-        assert(adj->idx_line_begin < adj->n_lines_adjustable);
-        if (adj->lines[adj->idx_line_begin].feedrate > feedrate)
+        if (adj->idx_line_begin < adj->n_lines_adjustable && adj->lines[adj->idx_line_begin].feedrate> feedrate)
             feedrate = adj->lines[adj->idx_line_begin].feedrate;
     }
     assert(feedrate > 0.f);
@@ -623,6 +642,7 @@ float CoolingBuffer::calculate_layer_slowdown(std::vector<PerExtruderAdjustments
         } else
             elapsed_time_total0 += adj.elapsed_time_total();
     }
+
     std::sort(by_slowdown_time.begin(), by_slowdown_time.end(),
         [](const PerExtruderAdjustments *adj1, const PerExtruderAdjustments *adj2)
             { return adj1->slow_down_layer_time < adj2->slow_down_layer_time; });

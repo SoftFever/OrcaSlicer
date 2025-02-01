@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-27 23:05+0800\n"
+"POT-Creation-Date: 2025-01-04 17:35+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1274,9 +1274,6 @@ msgstr "Midden van rand"
 msgid "Center of circle"
 msgstr "Middelpunt van cirkel"
 
-msgid "ShiftLeft mouse button"
-msgstr ""
-
 msgid "Select feature"
 msgstr "Functie selecteren"
 
@@ -1292,18 +1289,25 @@ msgstr "Selectie herstarten"
 msgid "Esc"
 msgstr "Esc"
 
-msgid "Unselect"
+msgid "Cancel a feature until exit"
 msgstr ""
 
 msgid "Measure"
 msgstr "Maatregel"
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
+msgid "Please select at least one object."
+msgstr ""
+
 msgid "Edit to scale"
 msgstr "Op schaal bewerken"
 
 msgctxt "Verb"
-msgid "Scale"
-msgstr "Schalen"
+msgid "Scale all"
+msgstr ""
 
 msgid "None"
 msgstr "Geen"
@@ -1316,6 +1320,42 @@ msgstr "Lengte"
 
 msgid "Selection"
 msgstr "Selectie"
+
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Kopieer naar klembord"
@@ -1331,6 +1371,27 @@ msgstr "Direct distance"
 
 msgid "Distance XYZ"
 msgstr "Distance XYZ"
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel distance:"
+msgstr ""
+
+msgid "Flip by Face 2"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2760,7 +2821,7 @@ msgstr ""
 msgid "About %s"
 msgstr "Over %s"
 
-msgid "Orca Slicer "
+msgid "Orca Slicer"
 msgstr ""
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
@@ -3597,9 +3658,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "De huidige kamertemperatuur is hoger dan de veilige temperatuur van het "
 "materiaal; dit kan leiden tot verzachting van het materiaal en verstoppingen "
@@ -4379,7 +4440,7 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Maat:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -7675,8 +7736,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Bij het opnemen van timelapse zonder toolhead is het aan te raden om een "
 "„Timelapse Wipe Tower” toe te voegen \n"
@@ -7836,8 +7897,16 @@ msgstr "Mondstuk"
 msgid "Nozzle temperature when printing"
 msgstr "Mondstuk temperatuur tijdens printen"
 
-msgid "Cool plate"
-msgstr "Koudeplaat"
+msgid "Cool Plate (SuperTack)"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr "Cool (koud) printbed"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8059,7 +8128,7 @@ msgstr ""
 msgid "Layer height limits"
 msgstr "Limieten voor laaghoogte"
 
-msgid "Lift Z Enforcement"
+msgid "Z-Hop"
 msgstr ""
 
 msgid "Retraction when switching material"
@@ -9729,6 +9798,11 @@ msgstr "Printbed temperatuur voor de eerste laag"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
 "Dit is de bedtemperatuur van de beginlaag. Een waarde van 0 betekent dat het "
@@ -11253,8 +11327,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Versnelling van de schaarse invulling. Als de waarde wordt uitgedrukt als "
 "een percentage (bijvoorbeeld 100%), wordt deze berekend op basis van de "
@@ -11358,10 +11432,10 @@ msgstr "Volledige snelheid op laag"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "layer"
@@ -12377,6 +12451,14 @@ msgstr ""
 "Dit forceert retraction (terugtrekken van filament) als er gewisseld wordt "
 "van laag"
 
+msgid "Retract on top layer"
+msgstr ""
+
+msgid ""
+"Force a retraction on top layer. Disabling could prevent clog on very slow "
+"patterns with small movements, like Hilbert curve"
+msgstr ""
+
 msgid "Retraction Length"
 msgstr "Terugtrek (retraction) lengte"
 
@@ -12412,8 +12494,8 @@ msgstr ""
 "Experimental feature. Retraction length before cutting off during filament "
 "change"
 
-msgid "Z hop when retract"
-msgstr "Z hop tijdens terugtrekken (retraction)"
+msgid "Z-hop height"
+msgstr ""
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12444,6 +12526,9 @@ msgid ""
 msgstr ""
 "Als deze waarde positief is, treedt Z hop alleen in werking als Z boven de "
 "parameter ligt: \"Z hop ondergrens\" en onder deze waarde ligt"
+
+msgid "Z-hop type"
+msgstr ""
 
 msgid "Z hop type"
 msgstr ""
@@ -13404,8 +13489,8 @@ msgstr "Temperatuurregeling activeren"
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the \"machine_start_gcode"
-"\"\n"
+"activates the emitting of an M191 command before the "
+"\"machine_start_gcode\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -13675,9 +13760,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -13762,10 +13847,11 @@ msgid ""
 "Wipe tower is only compatible with relative mode. It is recommended on most "
 "printers. Default is checked"
 msgstr ""
-"Relatieve extrusie wordt aanbevolen bij gebruik van de optie \"label_objects"
-"\". Sommige extruders werken beter als deze optie niet is aangevinkt "
-"(absolute extrusiemodus). Wipe tower is alleen compatibel met relatieve "
-"modus. Het wordt aanbevolen op de meeste printers. Standaard is aangevinkt"
+"Relatieve extrusie wordt aanbevolen bij gebruik van de optie "
+"\"label_objects\". Sommige extruders werken beter als deze optie niet is "
+"aangevinkt (absolute extrusiemodus). Wipe tower is alleen compatibel met "
+"relatieve modus. Het wordt aanbevolen op de meeste printers. Standaard is "
+"aangevinkt"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -15290,8 +15376,8 @@ msgstr ""
 "Wil je het herschrijven?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -16591,8 +16677,94 @@ msgstr ""
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
 
-#~ msgid "Cool Plate"
-#~ msgstr "Cool (koud) printbed"
+#: src/slic3r/GUI/Tab.cpp: 
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
+
+msgid "This is a default preset."
+msgstr ""
+
+msgid "This is a system preset."
+msgstr ""
+
+msgid "Current preset is inherited from the default preset."
+msgstr ""
+
+msgid "Current preset is inherited from"
+msgstr ""
+
+msgid "It can't be deleted or modified."
+msgstr ""
+
+msgid "Any modifications should be saved as a new preset inherited from this one."
+msgstr ""
+
+msgid "To do that please specify a new name for the preset."
+msgstr ""
+
+msgid "Additional information:"
+msgstr ""
+
+msgid "vendor"
+msgstr ""
+
+msgid ", ver: "
+msgstr ""
+
+msgid "printer model"
+msgstr ""
+
+msgid "default print profile"
+msgstr ""
+
+msgid "default filament profile"
+msgstr ""
+
+msgid "default SLA material profile"
+msgstr ""
+
+msgid "default SLA print profile"
+msgstr ""
+
+msgid "full profile name"
+msgstr ""
+
+msgid "symbolic profile name"
+msgstr ""
+
+msgid ""
+"A copy of the current system preset will be created, which will be detached from the system preset."
+msgstr ""
+
+msgid ""
+"The current custom preset will be detached from the parent system preset."
+msgstr ""
+
+msgid ""
+"Modifications to the current profile will be saved."
+msgstr ""
+
+msgid ""
+"This action is not revertible.\nDo you want to proceed?"
+msgstr ""
+
+msgid ""
+"Detach preset"
+msgstr ""
+
+
+#~ msgctxt "Verb"
+#~ msgid "Scale"
+#~ msgstr "Schalen"
+
+#~ msgid "Cool plate"
+#~ msgstr "Koudeplaat"
+
+#~ msgid "Z hop when retract"
+#~ msgstr "Z hop tijdens terugtrekken (retraction)"
 
 #~ msgid "Reverse on odd"
 #~ msgstr "Overhang omkering"
@@ -17254,11 +17426,11 @@ msgstr ""
 #~ msgstr "Debuggen level"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "Sets debug logging level. 0:fataal, 1:error, 2:waarschuwing, 3:info, 4:"
-#~ "debug, 5:trace\n"
+#~ "Sets debug logging level. 0:fataal, 1:error, 2:waarschuwing, 3:info, "
+#~ "4:debug, 5:trace\n"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"
