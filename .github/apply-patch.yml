@@ -1,0 +1,23 @@
+name: Apply OrcaSlicer Patch
+
+on:
+  push:
+    branches:
+      - main  # Change this if you're using a different branch!
+
+jobs:
+  apply_patch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Apply Patch
+        run: |
+          git apply --check final_orca_slicer_patch.patch || (echo "⚠️ Patch conflict detected! Aborting." && exit 1)
+          git apply final_orca_slicer_patch.patch
+          git add .
+          git commit -m "✅ Applied OrcaSlicer patch automatically via GitHub Actions"
+          git push origin main
+        shell: bash
