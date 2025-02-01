@@ -3019,7 +3019,7 @@ void PerimeterGenerator::process_arachne()
                 // Get final top ExPolygons.
                 top_expolygons = intersection_ex(top_expolygons, infill_contour);
 
-                const Polygons not_top_polygons = to_polygons(not_top_expolygons);
+                const Polygons not_top_polygons = to_polygons(offset_ex(not_top_expolygons,wall_0_inset));
                 Arachne::WallToolPaths inner_wall_tool_paths(not_top_polygons, perimeter_spacing, perimeter_spacing, coord_t(inner_loop_number + 1), 0, layer_height, input_params_tmp);
                 std::vector<Arachne::VariableWidthLines> inner_perimeters = inner_wall_tool_paths.getToolPaths();
 
