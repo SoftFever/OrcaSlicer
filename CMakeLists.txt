@@ -761,7 +761,7 @@ endif()
 
 if (NOT WIN32 AND NOT APPLE)
     set(SLIC3R_APP_CMD "orca-slicer")
-    configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh @ONLY)
+    configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh USE_SOURCE_PERMISSIONS @ONLY)
 endif()
 
 option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
