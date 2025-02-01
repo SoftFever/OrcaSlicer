@@ -410,6 +410,25 @@ private:
     wxStaticText *m_msg_text   = nullptr;
 };
 
+
+class NetworkErrorDialog : public DPIDialog
+{
+public:
+    NetworkErrorDialog(wxWindow* parent);
+    ~NetworkErrorDialog() {};
+    virtual void on_dpi_changed(const wxRect& suggested_rect) {};
+
+private:
+    Label* m_text_basic;
+    wxHyperlinkCtrl* m_link_server_state;
+    Label* m_text_proposal;
+    wxHyperlinkCtrl* m_text_wiki;
+    Button *         m_button_confirm;
+
+public:
+    bool m_show_again{false};
+};
+
 }
 }
 
