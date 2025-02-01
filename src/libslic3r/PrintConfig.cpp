@@ -957,7 +957,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("bridge_density", coPercent);
-    def->label = L("Bridge density");
+    def->label = L("External bridge density");
     def->category = L("Strength");
     def->tooltip = L("Controls the density (spacing) of external bridge lines. 100% means solid bridge. Default is 100%.\n\n"
                      "Lower density external bridges can help improve reliability as there is more space for air to circulate "
