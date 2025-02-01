@@ -103,9 +103,9 @@ jobs:
         run: |
             mkdir -p ${{ github.workspace }}/deps/build
             mkdir -p ${{ github.workspace }}/deps/build/destdir
-            sudo ./BuildLinux.sh -ur
+            sudo ./build_linux.sh -ur
             sudo chown $USER -R ./
-            ./BuildLinux.sh -dr
+            ./build_linux.sh -dr
             cd deps/build
             tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
