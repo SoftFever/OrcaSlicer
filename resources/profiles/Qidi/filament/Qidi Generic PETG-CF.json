@@ -42,9 +42,6 @@
     "required_nozzle_HRC": [
         "40"
     ],
-    "filament_vendor": [
-        "Other brand"
-    ],
     "filament_type": [
         "PETG-CF"
     ],
@@ -89,6 +86,9 @@
     ],
     "pressure_advance": [
         "0.05"
+    ],
+    "filament_vendor": [
+        "Generic"
     ],
     "compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",
