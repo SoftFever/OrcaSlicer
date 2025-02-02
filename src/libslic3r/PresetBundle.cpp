@@ -2877,7 +2877,16 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             }
             preset_name = key_values[BBL_JSON_KEY_NAME];
             description     = key_values[BBL_JSON_KEY_DESCRIPTION];
+            if(key_values.find(BBL_JSON_KEY_INSTANTIATION) == key_values.end())
+            {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Missing instantiation attribute for " << preset_name;
+                ++m_errors;
+            }
             instantiation   = key_values[BBL_JSON_KEY_INSTANTIATION];
+            if(instantiation != "false" && instantiation != "true"){
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Missing instantiation attribute for " << preset_name;
+                ++m_errors;
+            }
             auto setting_it = key_values.find(BBL_JSON_KEY_SETTING_ID);
             if (setting_it != key_values.end())
                 setting_id = setting_it->second;
