@@ -385,6 +385,206 @@
             "sub_path": "filament/Generic TPU @System.json"
         },
         {
+            "name": "Bambu ABS @System",
+            "sub_path": "filament/Bambu/Bambu ABS @System.json"
+        },
+        {
+            "name": "Bambu ABS-GF @System",
+            "sub_path": "filament/Bambu/Bambu ABS-GF @System.json"
+        },
+        {
+            "name": "Bambu Support for ABS @System",
+            "sub_path": "filament/Bambu/Bambu Support for ABS @System.json"
+        },
+        {
+            "name": "PolyLite ABS @System",
+            "sub_path": "filament/Polymaker/PolyLite ABS @System.json"
+        },
+        {
+            "name": "Bambu ASA @System",
+            "sub_path": "filament/Bambu/Bambu ASA @System.json"
+        },
+        {
+            "name": "Bambu ASA-Aero @System",
+            "sub_path": "filament/Bambu/Bambu ASA-Aero @System.json"
+        },
+        {
+            "name": "Bambu ASA-CF @System",
+            "sub_path": "filament/Bambu/Bambu ASA-CF @System.json"
+        },
+        {
+            "name": "PolyLite ASA @System",
+            "sub_path": "filament/Polymaker/PolyLite ASA @System.json"
+        },
+        {
+            "name": "Bambu PA-CF @System",
+            "sub_path": "filament/Bambu/Bambu PA-CF @System.json"
+        },
+        {
+            "name": "Bambu PA6-CF @System",
+            "sub_path": "filament/Bambu/Bambu PA6-CF @System.json"
+        },
+        {
+            "name": "Bambu PA6-GF @System",
+            "sub_path": "filament/Bambu/Bambu PA6-GF @System.json"
+        },
+        {
+            "name": "Bambu PAHT-CF @System",
+            "sub_path": "filament/Bambu/Bambu PAHT-CF @System.json"
+        },
+        {
+            "name": "Bambu Support For PA/PET @System",
+            "sub_path": "filament/Bambu/Bambu Support For PA PET @System.json"
+        },
+        {
+            "name": "Bambu Support G @System",
+            "sub_path": "filament/Bambu/Bambu Support G @System.json"
+        },
+        {
+            "name": "Fiberon PA12-CF @System",
+            "sub_path": "filament/Fiberon/Fiberon PA12-CF @System.json"
+        },
+        {
+            "name": "Fiberon PA6-CF @System",
+            "sub_path": "filament/Fiberon/Fiberon PA6-CF @System.json"
+        },
+        {
+            "name": "Fiberon PA6-GF @System",
+            "sub_path": "filament/Fiberon/Fiberon PA6-GF @System.json"
+        },
+        {
+            "name": "Fiberon PA612-CF @System",
+            "sub_path": "filament/Fiberon/Fiberon PA612-CF @System.json"
+        },
+        {
+            "name": "Bambu PC @System",
+            "sub_path": "filament/Bambu/Bambu PC @System.json"
+        },
+        {
+            "name": "Bambu PC FR @System",
+            "sub_path": "filament/Bambu/Bambu PC FR @System.json"
+        },
+        {
+            "name": "Bambu PET-CF @System",
+            "sub_path": "filament/Bambu/Bambu PET-CF @System.json"
+        },
+        {
+            "name": "Bambu PETG Basic @System",
+            "sub_path": "filament/Bambu/Bambu PETG Basic @System.json"
+        },
+        {
+            "name": "Bambu PETG HF @System",
+            "sub_path": "filament/Bambu/Bambu PETG HF @System.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @System",
+            "sub_path": "filament/Bambu/Bambu PETG Translucent @System.json"
+        },
+        {
+            "name": "Bambu PETG-CF @System",
+            "sub_path": "filament/Bambu/Bambu PETG-CF @System.json"
+        },
+        {
+            "name": "Fiberon PET-CF @System",
+            "sub_path": "filament/Fiberon/Fiberon PET-CF @System.json"
+        },
+        {
+            "name": "Fiberon PETG-ESD @System",
+            "sub_path": "filament/Fiberon/Fiberon PETG-ESD @System.json"
+        },
+        {
+            "name": "Fiberon PETG-rCF @System",
+            "sub_path": "filament/Fiberon/Fiberon PETG-rCF @System.json"
+        },
+        {
+            "name": "PolyLite PETG @System",
+            "sub_path": "filament/Polymaker/PolyLite PETG @System.json"
+        },
+        {
+            "name": "SUNLU PETG @System",
+            "sub_path": "filament/SUNLU/SUNLU PETG @System.json"
+        },
+        {
+            "name": "Bambu PLA Aero @System",
+            "sub_path": "filament/Bambu/Bambu PLA Aero @System.json"
+        },
+        {
+            "name": "Bambu PLA Basic @System",
+            "sub_path": "filament/Bambu/Bambu PLA Basic @System.json"
+        },
+        {
+            "name": "Bambu PLA Dynamic @System",
+            "sub_path": "filament/Bambu/Bambu PLA Dynamic @System.json"
+        },
+        {
+            "name": "Bambu PLA Galaxy @System",
+            "sub_path": "filament/Bambu/Bambu PLA Galaxy @System.json"
+        },
+        {
+            "name": "Bambu PLA Glow @System",
+            "sub_path": "filament/Bambu/Bambu PLA Glow @System.json"
+        },
+        {
+            "name": "Bambu PLA Impact @System",
+            "sub_path": "filament/Bambu/Bambu PLA Impact @System.json"
+        },
+        {
+            "name": "Bambu PLA Marble @System",
+            "sub_path": "filament/Bambu/Bambu PLA Marble @System.json"
+        },
+        {
+            "name": "Bambu PLA Matte @System",
+            "sub_path": "filament/Bambu/Bambu PLA Matte @System.json"
+        },
+        {
+            "name": "Bambu PLA Metal @System",
+            "sub_path": "filament/Bambu/Bambu PLA Metal @System.json"
+        },
+        {
+            "name": "Bambu PLA Silk @System",
+            "sub_path": "filament/Bambu/Bambu PLA Silk @System.json"
+        },
+        {
+            "name": "Bambu PLA Silk+ @System",
+            "sub_path": "filament/Bambu/Bambu PLA Silk+ @System.json"
+        },
+        {
+            "name": "Bambu PLA Sparkle @System",
+            "sub_path": "filament/Bambu/Bambu PLA Sparkle @System.json"
+        },
+        {
+            "name": "Bambu PLA Tough @System",
+            "sub_path": "filament/Bambu/Bambu PLA Tough @System.json"
+        },
+        {
+            "name": "Bambu PLA Wood @System",
+            "sub_path": "filament/Bambu/Bambu PLA Wood @System.json"
+        },
+        {
+            "name": "Bambu PLA-CF @System",
+            "sub_path": "filament/Bambu/Bambu PLA-CF @System.json"
+        },
+        {
+            "name": "Bambu Support For PLA @System",
+            "sub_path": "filament/Bambu/Bambu Support For PLA @System.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @System",
+            "sub_path": "filament/Bambu/Bambu Support For PLA-PETG @System.json"
+        },
+        {
+            "name": "Bambu Support W @System",
+            "sub_path": "filament/Bambu/Bambu Support W @System.json"
+        },
+        {
+            "name": "Overture Matte PLA @System",
+            "sub_path": "filament/Overture/Overture Matte PLA @System.json"
+        },
+        {
+            "name": "Overture PLA @System",
+            "sub_path": "filament/Overture/Overture PLA @System.json"
+        },
+        {
             "name": "PolyLite Dual PLA @System",
             "sub_path": "filament/Polymaker/PolyLite Dual PLA @System.json"
         },
@@ -401,8 +601,112 @@
             "sub_path": "filament/Polymaker/PolyTerra PLA @System.json"
         },
         {
+            "name": "SUNLU PLA Marble @System",
+            "sub_path": "filament/SUNLU/SUNLU Marble PLA @System.json"
+        },
+        {
+            "name": "SUNLU PLA Matte @System",
+            "sub_path": "filament/SUNLU/SUNLU PLA Matte @System.json"
+        },
+        {
+            "name": "SUNLU PLA+ 2.0 @System",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @System.json"
+        },
+        {
+            "name": "SUNLU PLA+ @System",
+            "sub_path": "filament/SUNLU/SUNLU PLA+ @System.json"
+        },
+        {
+            "name": "SUNLU Silk PLA+ @System",
+            "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @System.json"
+        },
+        {
+            "name": "SUNLU Wood PLA @System",
+            "sub_path": "filament/SUNLU/SUNLU Wood PLA @System.json"
+        },
+        {
+            "name": "eSUN PLA+ @System",
+            "sub_path": "filament/eSUN/eSUN PLA+ @System.json"
+        },
+        {
             "name": "Generic PLA Silk @System",
             "sub_path": "filament/Generic PLA Silk @System.json"
+        },
+        {
+            "name": "Bambu PPA-CF @System",
+            "sub_path": "filament/Bambu/Bambu PPA-CF @System.json"
+        },
+        {
+            "name": "Bambu PVA @System",
+            "sub_path": "filament/Bambu/Bambu PVA @System.json"
+        },
+        {
+            "name": "Bambu TPU 95A @System",
+            "sub_path": "filament/Bambu/Bambu TPU 95A @System.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @System",
+            "sub_path": "filament/Bambu/Bambu TPU 95A HF @System.json"
+        },
+        {
+            "name": "Generic BVOH @System",
+            "sub_path": "filament/Generic BVOH @System.json"
+        },
+        {
+            "name": "Generic EVA @System",
+            "sub_path": "filament/Generic EVA @System.json"
+        },
+        {
+            "name": "Generic HIPS @System",
+            "sub_path": "filament/Generic HIPS @System.json"
+        },
+        {
+            "name": "Generic PCTG @System",
+            "sub_path": "filament/Generic PCTG @System.json"
+        },
+        {
+            "name": "Generic PE @System",
+            "sub_path": "filament/Generic PE @System.json"
+        },
+        {
+            "name": "Generic PE-CF @System",
+            "sub_path": "filament/Generic PE-CF @System.json"
+        },
+        {
+            "name": "Generic PETG HF @System",
+            "sub_path": "filament/Generic PETG HF @System.json"
+        },
+        {
+            "name": "Generic PETG-CF @System",
+            "sub_path": "filament/Generic PETG-CF @System.json"
+        },
+        {
+            "name": "Generic PHA @System",
+            "sub_path": "filament/Generic PHA @System.json"
+        },
+        {
+            "name": "Generic PLA High Speed @System",
+            "sub_path": "filament/Generic PLA High Speed @System.json"
+        },
+        {
+            "name": "Generic PP @System",
+            "sub_path": "filament/Generic PP @System.json"
+        },
+        {
+            "name": "Generic PP-CF @System",
+            "sub_path": "filament/Generic PP-CF @System.json"
+        },
+        {
+            "name": "Generic PP-GF @System",
+            "sub_path": "filament/Generic PP-GF @System.json"
+        },
+        {
+            "name": "Generic PPA-CF @System",
+            "sub_path": "filament/Generic PPA-CF @System.json"
+        },
+        {
+            "name": "Generic PPA-GF @System",
+            "sub_path": "filament/Generic PPA-GF @System.json"
         }
     ]
 }

@@ -2,6 +2,7 @@
     "type": "filament",
     "name": "fdm_filament_pc",
     "inherits": "fdm_filament_common",
+    "filament_id": "GFC99",
     "from": "system",
     "instantiation": "false",
     "supertack_plate_temp": [

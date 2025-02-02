@@ -108,10 +108,59 @@ def update_filament_library(vendor="OrcaFilamentLibrary"):
     except Exception as e:
         print(f"Error updating library file: {str(e)}")
 
+
+# For each JSON file, it will:
+#    - Replace "BBL X1C" with "System" in the name field
+#    - Empty the compatible_printers array
+#    - Ensure setting_id starts with 'O'
+def rename_filament_system(vendor="OrcaFilamentLibrary"):
+    # change current working directory to the relative path
+    os.chdir(os.path.join(os.path.dirname(__file__), '..', 'resources', 'profiles'))
+    
+    base_dir = vendor
+    filament_dir = os.path.join(base_dir, 'filament')
+    
+    for root, dirs, files in os.walk(filament_dir):
+        for file in files:
+            if file.lower().endswith('.json'):
+                full_path = os.path.join(root, file)
+                try:
+                    with open(full_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        modified = False
+                        
+                        # Update name if it contains "BBL X1C"
+                        if 'name' in data and "BBL X1C" in data['name']:
+                            data['name'] = data['name'].replace("BBL X1C", "System")
+                            modified = True
+                            
+                        # Empty compatible_printers if exists
+                        if 'compatible_printers' in data:
+                            data['compatible_printers'] = []
+                            modified = True
+                            
+                        # Update setting_id if needed
+                        if 'setting_id' in data and not data['setting_id'].startswith('O'):
+                            data['setting_id'] = 'O' + data['setting_id']
+                            modified = True
+                        
+                        if modified:
+                            with open(full_path, 'w', encoding='utf-8') as f:
+                                json.dump(data, f, indent=4, ensure_ascii=False)
+                            print(f"Updated {full_path}")
+                            
+                except Exception as e:
+                    print(f"Error processing {full_path}: {str(e)}")
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Update filament library for specified vendor')
     parser.add_argument('-v', '--vendor', type=str, default="OrcaFilamentLibrary",
                       help='Vendor name (default: OrcaFilamentLibrary)')
+    parser.add_argument('-m', '--mode', type=str, choices=['update', 'rename'],
+                      default='update', help='Operation mode (default: update)')
     args = parser.parse_args()
     
-    update_filament_library(args.vendor)
+    if args.mode == 'update':
+        update_filament_library(args.vendor)
+    else:
+        rename_filament_system(args.vendor)

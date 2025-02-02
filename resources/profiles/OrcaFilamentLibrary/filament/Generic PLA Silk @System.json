@@ -11,6 +11,5 @@
     "filament_retraction_length": [
         "0.5"
     ],
-    "compatible_printers": [
-    ]
+    "compatible_printers": []
 }
