@@ -2540,23 +2540,23 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
         first_visible_if_not_found ? &this->first_visible() : nullptr;
 }
 
-Preset* PresetCollection::find_preset2(const std::string& name)
+Preset* PresetCollection::find_preset2(const std::string& name, bool auto_match)
 {
     auto preset = find_preset(name,false,true);
     if (preset == nullptr) {
         auto _name = get_preset_name_renamed(name);
         if (_name != nullptr)
             preset = find_preset(*_name,false,true);
-        if (preset == nullptr) {
+        if (auto_match && preset == nullptr) {
             //Orca: one more try, find the most likely preset in OrcaFilamentLibrary
             if (name.find("Generic") != std::string::npos) {
                 // The regex pattern matches an optional prefix ending in '_' then "Generic" followed by the material name.
-                std::regex re(R"(^(?:.*?\b(?:\w+_)?)(Generic)\b\s+(\S+).*$)");
+                std::regex re(R"(^(?:.*?\b(?:\w+_)?)(Generic)\b\s+([^@]+?)\s*(?:@.*)?$)");
                 auto       alter_name = std::regex_replace(name, re, "Generic $2 @System");
-                preset                = find_preset(alter_name, false, true, true);
+                preset                = find_preset2(alter_name, false);
                 // print preset file name
                 if (preset != nullptr) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << "Failed to find: " << name
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << "Failed to find: " << name
                                                << ". fallback to library preset: " << preset->file;
                 }
             }

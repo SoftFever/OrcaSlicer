@@ -75,7 +75,16 @@
             "sub_path": "process/0.28mm Extra Draft @SK1.json"
         }
     ],
-    "filament_list": [],
+    "filament_list": [
+        {
+            "name": "TwoTrees Generic 95A TPU @SK1",
+            "sub_path": "filament/TwoTrees Generic 95A TPU @SK1.json"
+        },
+        {
+            "name": "TwoTrees Generic HS PLA @SK1",
+            "sub_path": "filament/TwoTrees Generic HS PLA @SK1.json"
+        }
+    ],
     "machine_list": [
         {
             "name": "fdm_machine_common",

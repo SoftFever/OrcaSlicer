@@ -341,6 +341,10 @@
             "sub_path": "filament/Generic PLA High Speed @System.json"
         },
         {
+            "name": "Generic PLA Matte @System",
+            "sub_path": "filament/Generic PLA Matte @System.json"
+        },
+        {
             "name": "Generic PLA-CF @System",
             "sub_path": "filament/Generic PLA-CF @System.json"
         },

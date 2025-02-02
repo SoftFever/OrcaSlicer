@@ -609,7 +609,7 @@ public:
     }
     // Orca: find preset, if not found, keep searching in the renamed history. This is function should only be used when find
     // system(parent) presets for custom preset.
-    Preset* find_preset2(const std::string& name);
+    Preset* find_preset2(const std::string& name, bool auto_match = true);
 
     size_t first_visible_idx() const;
     // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
