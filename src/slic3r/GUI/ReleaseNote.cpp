@@ -1923,7 +1923,9 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     std::string str_ip = m_input_ip->GetTextCtrl()->GetValue().ToStdString();
     std::string str_access_code = m_input_access_code->GetTextCtrl()->GetValue().ToStdString();
     std::string str_name = m_input_printer_name->GetTextCtrl()->GetValue().Strip(wxString::both).ToStdString();
-    std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().ToStdString();
+    // Serial number should not contain lower case letters, and bambu_network plugin crashes
+    // if user entered the wrong serial number, so we call `Upper()` here.
+    std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().Strip(wxString::both).Upper().ToStdString();
     std::string str_model_id = "";
 
     auto it = m_models_map.right.find(m_input_modelID->GetStringSelection().ToStdString());
@@ -2085,7 +2087,7 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
     auto str_ip              = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code     = m_input_access_code->GetTextCtrl()->GetValue();
     auto str_name            = m_input_printer_name->GetTextCtrl()->GetValue().Strip(wxString::both);
-    auto str_sn              = m_input_sn->GetTextCtrl()->GetValue();
+    auto str_sn              = m_input_sn->GetTextCtrl()->GetValue().Strip(wxString::both);
     bool invalid_access_code = true;
 
     for (char c : str_access_code) {
