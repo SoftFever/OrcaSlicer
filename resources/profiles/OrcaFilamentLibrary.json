@@ -121,6 +121,18 @@
             "sub_path": "filament/Polymaker/PolyLite ASA @base.json"
         },
         {
+            "name": "Generic BVOH @System",
+            "sub_path": "filament/Generic BVOH @System.json"
+        },
+        {
+            "name": "Generic EVA @System",
+            "sub_path": "filament/Generic EVA @System.json"
+        },
+        {
+            "name": "Generic HIPS @System",
+            "sub_path": "filament/Generic HIPS @System.json"
+        },
+        {
             "name": "Bambu PA-CF @base",
             "sub_path": "filament/Bambu/Bambu PA-CF @base.json"
         },
@@ -146,19 +158,19 @@
         },
         {
             "name": "Fiberon PA12-CF @base",
-            "sub_path": "filament/Fiberon/Fiberon PA12-CF @base.json"
+            "sub_path": "filament/Polymaker/Fiberon PA12-CF @base.json"
         },
         {
             "name": "Fiberon PA6-CF @base",
-            "sub_path": "filament/Fiberon/Fiberon PA6-CF @base.json"
+            "sub_path": "filament/Polymaker/Fiberon PA6-CF @base.json"
         },
         {
             "name": "Fiberon PA6-GF @base",
-            "sub_path": "filament/Fiberon/Fiberon PA6-GF @base.json"
+            "sub_path": "filament/Polymaker/Fiberon PA6-GF @base.json"
         },
         {
             "name": "Fiberon PA612-CF @base",
-            "sub_path": "filament/Fiberon/Fiberon PA612-CF @base.json"
+            "sub_path": "filament/Polymaker/Fiberon PA612-CF @base.json"
         },
         {
             "name": "Generic PA @System",
@@ -179,6 +191,18 @@
         {
             "name": "Generic PC @System",
             "sub_path": "filament/Generic PC @System.json"
+        },
+        {
+            "name": "Generic PCTG @System",
+            "sub_path": "filament/Generic PCTG @System.json"
+        },
+        {
+            "name": "Generic PE @System",
+            "sub_path": "filament/Generic PE @System.json"
+        },
+        {
+            "name": "Generic PE-CF @System",
+            "sub_path": "filament/Generic PE-CF @System.json"
         },
         {
             "name": "Bambu PET-CF @base",
@@ -202,19 +226,27 @@
         },
         {
             "name": "Fiberon PET-CF @base",
-            "sub_path": "filament/Fiberon/Fiberon PET-CF @base.json"
+            "sub_path": "filament/Polymaker/Fiberon PET-CF @base.json"
         },
         {
             "name": "Fiberon PETG-ESD @base",
-            "sub_path": "filament/Fiberon/Fiberon PETG-ESD @base.json"
+            "sub_path": "filament/Polymaker/Fiberon PETG-ESD @base.json"
         },
         {
             "name": "Fiberon PETG-rCF @base",
-            "sub_path": "filament/Fiberon/Fiberon PETG-rCF @base.json"
+            "sub_path": "filament/Polymaker/Fiberon PETG-rCF @base.json"
         },
         {
             "name": "Generic PETG @System",
             "sub_path": "filament/Generic PETG @System.json"
+        },
+        {
+            "name": "Generic PETG HF @System",
+            "sub_path": "filament/Generic PETG HF @System.json"
+        },
+        {
+            "name": "Generic PETG-CF @System",
+            "sub_path": "filament/Generic PETG-CF @System.json"
         },
         {
             "name": "PolyLite PETG @base",
@@ -223,6 +255,10 @@
         {
             "name": "SUNLU PETG @base",
             "sub_path": "filament/SUNLU/SUNLU PETG @base.json"
+        },
+        {
+            "name": "Generic PHA @System",
+            "sub_path": "filament/Generic PHA @System.json"
         },
         {
             "name": "Bambu PLA Aero @base",
@@ -301,6 +337,10 @@
             "sub_path": "filament/Generic PLA @System.json"
         },
         {
+            "name": "Generic PLA High Speed @System",
+            "sub_path": "filament/Generic PLA High Speed @System.json"
+        },
+        {
             "name": "Generic PLA-CF @System",
             "sub_path": "filament/Generic PLA-CF @System.json"
         },
@@ -353,8 +393,28 @@
             "sub_path": "filament/base/fdm_filament_pla_silk.json"
         },
         {
+            "name": "Generic PP @System",
+            "sub_path": "filament/Generic PP @System.json"
+        },
+        {
+            "name": "Generic PP-CF @System",
+            "sub_path": "filament/Generic PP-CF @System.json"
+        },
+        {
+            "name": "Generic PP-GF @System",
+            "sub_path": "filament/Generic PP-GF @System.json"
+        },
+        {
             "name": "Bambu PPA-CF @base",
             "sub_path": "filament/Bambu/Bambu PPA-CF @base.json"
+        },
+        {
+            "name": "Generic PPA-CF @System",
+            "sub_path": "filament/Generic PPA-CF @System.json"
+        },
+        {
+            "name": "Generic PPA-GF @System",
+            "sub_path": "filament/Generic PPA-GF @System.json"
         },
         {
             "name": "Bambu PPS-CF @base",
@@ -442,19 +502,19 @@
         },
         {
             "name": "Fiberon PA12-CF @System",
-            "sub_path": "filament/Fiberon/Fiberon PA12-CF @System.json"
+            "sub_path": "filament/Polymaker/Fiberon PA12-CF @System.json"
         },
         {
             "name": "Fiberon PA6-CF @System",
-            "sub_path": "filament/Fiberon/Fiberon PA6-CF @System.json"
+            "sub_path": "filament/Polymaker/Fiberon PA6-CF @System.json"
         },
         {
             "name": "Fiberon PA6-GF @System",
-            "sub_path": "filament/Fiberon/Fiberon PA6-GF @System.json"
+            "sub_path": "filament/Polymaker/Fiberon PA6-GF @System.json"
         },
         {
             "name": "Fiberon PA612-CF @System",
-            "sub_path": "filament/Fiberon/Fiberon PA612-CF @System.json"
+            "sub_path": "filament/Polymaker/Fiberon PA612-CF @System.json"
         },
         {
             "name": "Bambu PC @System",
@@ -486,15 +546,15 @@
         },
         {
             "name": "Fiberon PET-CF @System",
-            "sub_path": "filament/Fiberon/Fiberon PET-CF @System.json"
+            "sub_path": "filament/Polymaker/Fiberon PET-CF @System.json"
         },
         {
             "name": "Fiberon PETG-ESD @System",
-            "sub_path": "filament/Fiberon/Fiberon PETG-ESD @System.json"
+            "sub_path": "filament/Polymaker/Fiberon PETG-ESD @System.json"
         },
         {
             "name": "Fiberon PETG-rCF @System",
-            "sub_path": "filament/Fiberon/Fiberon PETG-rCF @System.json"
+            "sub_path": "filament/Polymaker/Fiberon PETG-rCF @System.json"
         },
         {
             "name": "PolyLite PETG @System",
@@ -647,66 +707,6 @@
         {
             "name": "Bambu TPU 95A HF @System",
             "sub_path": "filament/Bambu/Bambu TPU 95A HF @System.json"
-        },
-        {
-            "name": "Generic BVOH @System",
-            "sub_path": "filament/Generic BVOH @System.json"
-        },
-        {
-            "name": "Generic EVA @System",
-            "sub_path": "filament/Generic EVA @System.json"
-        },
-        {
-            "name": "Generic HIPS @System",
-            "sub_path": "filament/Generic HIPS @System.json"
-        },
-        {
-            "name": "Generic PCTG @System",
-            "sub_path": "filament/Generic PCTG @System.json"
-        },
-        {
-            "name": "Generic PE @System",
-            "sub_path": "filament/Generic PE @System.json"
-        },
-        {
-            "name": "Generic PE-CF @System",
-            "sub_path": "filament/Generic PE-CF @System.json"
-        },
-        {
-            "name": "Generic PETG HF @System",
-            "sub_path": "filament/Generic PETG HF @System.json"
-        },
-        {
-            "name": "Generic PETG-CF @System",
-            "sub_path": "filament/Generic PETG-CF @System.json"
-        },
-        {
-            "name": "Generic PHA @System",
-            "sub_path": "filament/Generic PHA @System.json"
-        },
-        {
-            "name": "Generic PLA High Speed @System",
-            "sub_path": "filament/Generic PLA High Speed @System.json"
-        },
-        {
-            "name": "Generic PP @System",
-            "sub_path": "filament/Generic PP @System.json"
-        },
-        {
-            "name": "Generic PP-CF @System",
-            "sub_path": "filament/Generic PP-CF @System.json"
-        },
-        {
-            "name": "Generic PP-GF @System",
-            "sub_path": "filament/Generic PP-GF @System.json"
-        },
-        {
-            "name": "Generic PPA-CF @System",
-            "sub_path": "filament/Generic PPA-CF @System.json"
-        },
-        {
-            "name": "Generic PPA-GF @System",
-            "sub_path": "filament/Generic PPA-GF @System.json"
         }
     ]
 }

@@ -596,14 +596,12 @@ public:
 //        update_saved_preset_from_current_preset();
     }
 
+    // Orca:
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
-    // If a preset is not found by its name, null is returned.
-    // BBS return real pointer if set real = true
+    // If a preset is not found by its name, keep searching in the renamed history.
     Preset*         find_preset(const std::string &name, bool first_visible_if_not_found = false, bool real = false);
     const Preset*   find_preset(const std::string &name, bool first_visible_if_not_found = false) const
         { return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found); }
-    // Orca: find preset, if not found, keep searching in the renamed history
-    const Preset*   find_preset2(const std::string &name) const;
 
     size_t          first_visible_idx() const;
     // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.

@@ -53,7 +53,7 @@
         "90"
     ],
     "nozzle_temperature": [
-        "270"
+        "260"
     ],
     "nozzle_temperature_initial_layer": [
         "260"
@@ -84,5 +84,8 @@
     ],
     "textured_plate_temp_initial_layer": [
         "90"
+    ],
+    "filament_flow_ratio": [
+        "0.926"
     ]
 }

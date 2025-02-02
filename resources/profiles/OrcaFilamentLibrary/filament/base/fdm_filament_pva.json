@@ -80,7 +80,7 @@
         "4"
     ],
     "slow_down_min_speed": [
-        "50"
+        "10"
     ],
     "temperature_vitrification": [
         "45"
@@ -90,5 +90,8 @@
     ],
     "textured_plate_temp_initial_layer": [
         "55"
+    ],
+    "filament_flow_ratio": [
+        "0.95"
     ]
 }

@@ -38,9 +38,6 @@
     "filament_density": [
         "1.04"
     ],
-    "filament_max_volumetric_speed": [
-        "18"
-    ],
     "filament_type": [
         "PC"
     ],
@@ -85,5 +82,11 @@
     ],
     "textured_plate_temp_initial_layer": [
         "110"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "filament_flow_ratio": [
+        "0.94"
     ]
 }
