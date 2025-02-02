@@ -87,7 +87,11 @@ int main(int argc, char* argv[])
     po::options_description desc("Orca Profile Validator\nUsage");
     // clang-format off
     desc.add_options()("help,h", "help")
+#ifdef __APPLE__
+    ("path,p", po::value<std::string>()->default_value("../../../../../../resources/profiles"), "profile folder")
+#else
     ("path,p", po::value<std::string>()->default_value("../../../resources/profiles"), "profile folder")
+#endif
     ("vendor,v", po::value<std::string>()->default_value(""), "Vendor name. Optional, all profiles present in the folder will be validated if not specified")
     ("generate_presets,g", po::value<bool>()->default_value(false), "Generate user presets for mock test")
     ("log_level,l", po::value<int>()->default_value(2), "Log level. Optional, default is 2 (warning). Higher values produce more detailed logs.");
