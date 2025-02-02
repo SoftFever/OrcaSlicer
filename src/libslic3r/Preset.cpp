@@ -1163,7 +1163,8 @@ void PresetCollection::load_presets(
                     if (inherits_config) {
                         ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
                         std::string inherits_value = option_str->value;
-                        inherit_preset = this->find_preset(inherits_value, false, true);
+                        // Orca: try to find if the parent preset has been renamed
+                        inherit_preset = this->find_preset2(inherits_value);
 
                     } else {
                         ;
@@ -2528,38 +2529,40 @@ const std::string& PresetCollection::get_suffix_modified() {
     return g_suffix_modified;
 }
 
-Preset* PresetCollection::find_preset(const std::string& name, bool first_visible_if_not_found, bool real)
+// Return a preset by its name. If the preset is active, a temporary copy is returned.
+// If a preset is not found by its name, null is returned.
+Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found, bool real, bool only_from_library)
 {
-    auto _find_preset_internal = [&, this](const std::string& name) {
-        Preset key(m_type, name, false);
-        auto   it = this->find_preset_internal(name);
-        // Ensure that a temporary copy is returned if the preset found is currently selected.
-        return (it != m_presets.end() && it->name == key.name) ? &this->preset(it - m_presets.begin(), real) :
-               first_visible_if_not_found                      ? &this->first_visible() :
-                                                                 nullptr;
-    };
+    Preset key(m_type, name, false);
+    auto it = this->find_preset_internal(name, only_from_library);
+    // Ensure that a temporary copy is returned if the preset found is currently selected.
+    return (it != m_presets.end() && it->name == key.name) ? &this->preset(it - m_presets.begin(), real) :
+        first_visible_if_not_found ? &this->first_visible() : nullptr;
+}
 
-    auto preset = _find_preset_internal(name);
+Preset* PresetCollection::find_preset2(const std::string& name)
+{
+    auto preset = find_preset(name,false,true);
     if (preset == nullptr) {
         auto _name = get_preset_name_renamed(name);
         if (_name != nullptr)
-            preset = _find_preset_internal(*_name);
+            preset = find_preset(*_name,false,true);
         if (preset == nullptr) {
-            // use string_view to avoid unnecessary copy of 'name'
-            std::string_view name_sv(name);
-            size_t           pos = name_sv.find(' ');
-            if (pos != std::string_view::npos) {
-                name_sv.remove_prefix(pos + 1);
-                constexpr std::string_view generic_prefix = "Generic ";
-                if (name_sv.substr(0, generic_prefix.size()) == generic_prefix) {
-                    preset = _find_preset_internal(std::string(name_sv));
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                                            << boost::format(": try to find preset %1% from global filament library for %2%") % name_sv %
-                                                   name;
+            //Orca: one more try, find the most likely preset in OrcaFilamentLibrary
+            if (name.find("Generic") != std::string::npos) {
+                // The regex pattern matches an optional prefix ending in '_' then "Generic" followed by the material name.
+                std::regex re(R"(^(?:.*?\b(?:\w+_)?)(Generic)\b\s+(\S+).*$)");
+                auto       alter_name = std::regex_replace(name, re, "Generic $2 @System");
+                preset                = find_preset(alter_name, false, true, true);
+                // print preset file name
+                if (preset != nullptr) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << "Failed to find: " << name
+                                               << ". fallback to library preset: " << preset->file;
                 }
             }
         }
     }
+
     return preset;
 }
 

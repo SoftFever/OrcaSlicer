@@ -2852,7 +2852,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         std::map<std::string, DynamicPrintConfig>& config_maps,
         std::map<std::string, std::string>& filament_id_maps,
         PresetCollection* presets_collection,
-        size_t& count) -> std::string {
+        size_t& count, bool is_from_lib = false) -> std::string {
 
         std::string subfile = path + "/" + vendor_name + "/" + subfile_iter.second;
         // Load the print, filament or printer preset.
@@ -3028,6 +3028,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.description = description;
             loaded.setting_id = setting_id;
             loaded.filament_id = filament_id;
+            loaded.m_from_orca_filament_lib = is_from_lib;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << loaded.name << " load filament_id: " << filament_id;
             if (presets_collection->type() == Preset::TYPE_FILAMENT) {
                 if (filament_id.empty() && "Template" != vendor_name) {
@@ -3094,9 +3095,11 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     presets = &this->filaments;
     configs.clear();
     filament_id_maps.clear();
+    const auto is_orca_lib = vendor_name == ORCA_FILAMENT_LIBRARY;
     for (auto& subfile : filament_subfiles)
     {
-        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets, presets_loaded);
+        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets,
+                                           presets_loaded, is_orca_lib);
         if (!reason.empty()) {
             ++m_errors;
             //parse error
@@ -3105,7 +3108,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
     }
-    if (vendor_name == ORCA_FILAMENT_LIBRARY) {
+    if (is_orca_lib) {
         m_config_maps      = configs;
         m_filament_id_maps = filament_id_maps;
     }
