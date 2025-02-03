@@ -18,7 +18,7 @@
     "hot_plate_temp_initial_layer": [
         "80"
     ],
-    "inherits": "HATCHBOX PETG",
+    "inherits": "HATCHBOX PETG @Qidi",
     "is_custom_defined": "0",
     "name": "HATCHBOX PETG @Qidi X-Plus 4 0.4 nozzle",
     "overhang_fan_speed": [
