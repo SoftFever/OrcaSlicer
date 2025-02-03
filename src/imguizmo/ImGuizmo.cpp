@@ -678,16 +678,19 @@ namespace IMGUIZMO_NAMESPACE
 
    struct Context
    {
+#if 0
       Context() : mbUsing(false), mbEnable(true), mbUsingBounds(false)
       {
       }
-
+#endif
       ImDrawList* mDrawList;
       Style mStyle;
-
+#if 0
       MODE mMode;
+#endif
       matrix_t mViewMat;
       matrix_t mProjectionMat;
+#if 0
       matrix_t mModel;
       matrix_t mModelLocal; // orthonormalized model
       matrix_t mModelInverse;
@@ -702,9 +705,10 @@ namespace IMGUIZMO_NAMESPACE
       vec_t mCameraRight;
       vec_t mCameraDir;
       vec_t mCameraUp;
+#endif
       vec_t mRayOrigin;
       vec_t mRayVector;
-
+#if 0
       float  mRadiusSquareCenter;
       ImVec2 mScreenSquareCenter;
       ImVec2 mScreenSquareMin;
@@ -715,9 +719,10 @@ namespace IMGUIZMO_NAMESPACE
 
       bool mbUsing;
       bool mbEnable;
+#endif
       bool mbMouseOver;
       bool mReversed; // reversed projection matrix
-
+#if 0
       // translation
       vec_t mTranslationPlan;
       vec_t mTranslationPlanOrigin;
@@ -773,11 +778,13 @@ namespace IMGUIZMO_NAMESPACE
 
       bool mAllowAxisFlip = true;
       float mGizmoSizeClipSpace = 0.1f;
+#endif
    };
 
    static Context gContext;
 
    static const vec_t directionUnary[3] = { makeVect(1.f, 0.f, 0.f), makeVect(0.f, 1.f, 0.f), makeVect(0.f, 0.f, 1.f) };
+#if 0
    static const char* translationInfoMask[] = { "X : %5.3f", "Y : %5.3f", "Z : %5.3f",
       "Y : %5.3f Z : %5.3f", "X : %5.3f Z : %5.3f", "X : %5.3f Y : %5.3f",
       "X : %5.3f Y : %5.3f Z : %5.3f" };
@@ -795,7 +802,7 @@ namespace IMGUIZMO_NAMESPACE
    static int GetMoveType(OPERATION op, vec_t* gizmoHitProportion);
    static int GetRotateType(OPERATION op);
    static int GetScaleType(OPERATION op);
-
+#endif
    Style& GetStyle()
    {
       return gContext.mStyle;
@@ -807,7 +814,7 @@ namespace IMGUIZMO_NAMESPACE
       return ImGui::ColorConvertFloat4ToU32(gContext.mStyle.Colors[idx]);
    }
 
-   static ImVec2 worldToPos(const vec_t& worldPos, const matrix_t& mat, ImVec2 position = ImVec2(gContext.mX, gContext.mY), ImVec2 size = ImVec2(gContext.mWidth, gContext.mHeight))
+   static ImVec2 worldToPos(const vec_t& worldPos, const matrix_t& mat, ImVec2 position = ImVec2(0, 0), ImVec2 size = ImVec2(0, 0))
    {
       vec_t trans;
       trans.TransformPoint(worldPos, mat);
@@ -821,7 +828,7 @@ namespace IMGUIZMO_NAMESPACE
       return ImVec2(trans.x, trans.y);
    }
 
-   static void ComputeCameraRay(vec_t& rayOrigin, vec_t& rayDir, ImVec2 position = ImVec2(gContext.mX, gContext.mY), ImVec2 size = ImVec2(gContext.mWidth, gContext.mHeight))
+   static void ComputeCameraRay(vec_t& rayOrigin, vec_t& rayDir, ImVec2 position = ImVec2(0, 0), ImVec2 size = ImVec2(0, 0))
    {
       ImGuiIO& io = ImGui::GetIO();
 
@@ -841,7 +848,7 @@ namespace IMGUIZMO_NAMESPACE
       rayEnd *= 1.f / rayEnd.w;
       rayDir = Normalized(rayEnd - rayOrigin);
    }
-
+#if 0
    static float GetSegmentLengthClipSpace(const vec_t& start, const vec_t& end, const bool localCoordinates = false)
    {
       vec_t startOfSegment = start;
@@ -911,7 +918,7 @@ namespace IMGUIZMO_NAMESPACE
 
       return vertPos1 + V * t;
    }
-
+#endif
    static float IntersectRayPlane(const vec_t& rOrigin, const vec_t& rVector, const vec_t& plan)
    {
       const float numer = plan.Dot3(rOrigin) - plan.w;
@@ -924,7 +931,7 @@ namespace IMGUIZMO_NAMESPACE
 
       return -(numer / denom);
    }
-
+#if 0
    static float DistanceToPlane(const vec_t& point, const vec_t& plan)
    {
       return plan.Dot3(point) + plan.w;
@@ -934,7 +941,7 @@ namespace IMGUIZMO_NAMESPACE
    {
       return IsWithin(p.x, gContext.mX, gContext.mXMax) && IsWithin(p.y, gContext.mY, gContext.mYMax);
    }
-
+#endif
    static bool IsHoveringWindow()
    {
       ImGuiContext& g = *ImGui::GetCurrentContext();
@@ -947,7 +954,7 @@ namespace IMGUIZMO_NAMESPACE
          return true;
       return false;
    }
-
+#if 0
    void SetRect(float x, float y, float width, float height)
    {
       gContext.mX = x;
@@ -973,7 +980,7 @@ namespace IMGUIZMO_NAMESPACE
    {
       ImGui::SetCurrentContext(ctx);
    }
-
+#endif
    void BeginFrame()
    {
       const ImU32 flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -997,7 +1004,7 @@ namespace IMGUIZMO_NAMESPACE
       ImGui::PopStyleVar();
       ImGui::PopStyleColor(2);
    }
-
+#if 0
    bool IsUsing()
    {
       return (gContext.mbUsing && (gContext.mActualID == -1 || gContext.mActualID == gContext.mEditingID)) || gContext.mbUsingBounds;
@@ -1045,14 +1052,16 @@ namespace IMGUIZMO_NAMESPACE
          gContext.mbUsingBounds = false;
       }
    }
-
+#endif
    static void ComputeContext(const float* view, const float* projection, float* matrix, MODE mode)
    {
+#if 0
       gContext.mMode = mode;
+#endif
       gContext.mViewMat = *(matrix_t*)view;
       gContext.mProjectionMat = *(matrix_t*)projection;
       gContext.mbMouseOver = IsHoveringWindow();
-
+#if 0
       gContext.mModelLocal = *(matrix_t*)matrix;
       gContext.mModelLocal.OrthoNormalize();
 
@@ -1079,14 +1088,14 @@ namespace IMGUIZMO_NAMESPACE
       gContext.mCameraEye = viewInverse.v.position;
       gContext.mCameraRight = viewInverse.v.right;
       gContext.mCameraUp = viewInverse.v.up;
-
+#endif
       // projection reverse
        vec_t nearPos, farPos;
        nearPos.Transform(makeVect(0, 0, 1.f, 1.f), gContext.mProjectionMat);
        farPos.Transform(makeVect(0, 0, 2.f, 1.f), gContext.mProjectionMat);
 
        gContext.mReversed = (nearPos.z/nearPos.w) > (farPos.z / farPos.w);
-
+#if 0
       // compute scale from the size of camera right vector projected on screen at the matrix position
       vec_t pointRight = viewInverse.v.right;
       pointRight.TransformPoint(gContext.mViewProjection);
@@ -1101,10 +1110,10 @@ namespace IMGUIZMO_NAMESPACE
       gContext.mScreenSquareCenter = centerSSpace;
       gContext.mScreenSquareMin = ImVec2(centerSSpace.x - 10.f, centerSSpace.y - 10.f);
       gContext.mScreenSquareMax = ImVec2(centerSSpace.x + 10.f, centerSSpace.y + 10.f);
-
+#endif
       ComputeCameraRay(gContext.mRayOrigin, gContext.mRayVector);
    }
-
+#if 0
    static void ComputeColors(ImU32* colors, int type, OPERATION operation)
    {
       if (gContext.mbEnable)
@@ -2775,7 +2784,7 @@ namespace IMGUIZMO_NAMESPACE
          }
       }
    }
-
+#endif
    bool ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       // Scale is always local or matrix will be skewed when applying world scale or oriented matrix
@@ -3141,7 +3150,7 @@ namespace IMGUIZMO_NAMESPACE
       }
 
       // restore view/projection because it was used to compute ray
-      ComputeContext(svgView.m16, svgProjection.m16, gContext.mModelSource.m16, gContext.mMode);
+      ComputeContext(svgView.m16, svgProjection.m16, nullptr/*gContext.mModelSource.m16*/, WORLD/*gContext.mMode*/);
 
       return viewUpdated;
    }

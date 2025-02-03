@@ -5675,7 +5675,6 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     return settings_changed;
 }
 
-static float       identityMatrix[16]   = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
 static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
 
 void GLCanvas3D::_render_3d_navigator()
@@ -5685,7 +5684,6 @@ void GLCanvas3D::_render_3d_navigator()
     }
 
     ImGuizmo::BeginFrame();
-    ImGuizmo::AllowAxisFlip(false);
 
     auto& style                                = ImGuizmo::GetStyle();
     style.Colors[ImGuizmo::COLOR::DIRECTION_X] = ImGuiWrapper::to_ImVec4(ColorRGBA::Y());
@@ -5713,7 +5711,6 @@ void GLCanvas3D::_render_3d_navigator()
     const float viewManipulateLeft = 0;
     const float viewManipulateTop  = io.DisplaySize.y;
     const float camDistance        = 8.f;
-    ImGuizmo::SetID(0);
 
     Camera&     camera           = wxGetApp().plater()->get_camera();
     Transform3d m                = Transform3d::Identity();
@@ -5730,7 +5727,7 @@ void GLCanvas3D::_render_3d_navigator()
 
     const float size  = 128 * sc;
     const bool dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD,
-                                                identityMatrix, camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size),
+                                                nullptr, camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size),
                                                 ImVec2(size, size), 0x00101010);
 
     if (dirty) {
