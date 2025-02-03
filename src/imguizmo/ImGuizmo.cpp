@@ -3095,18 +3095,7 @@ namespace IMGUIZMO_NAMESPACE
 
             if (fabsf(Dot(interpolationDir, referenceUp)) > 1.0f - 0.01f)
             {
-               vec_t right = viewInverse.v.right;
-               if (fabsf(right.x) > fabsf(right.z))
-               {
-                  right.z = 0.f;
-               }
-               else
-               {
-                  right.x = 0.f;
-               }
-               right.Normalize();
-               interpolationUp = Cross(interpolationDir, right);
-               interpolationUp.Normalize();
+               interpolationUp = overBox == 10 ? makeVect(1.f, 0.f, 0.f) : makeVect(-1.f, 0.f, 0.f);
             }
             else
             {
