@@ -31,6 +31,10 @@
 #include <imgui/imgui_internal.h>
 #include "ImGuizmo.h"
 
+#include <algorithm>
+#include <math.h>
+#include <cmath>
+
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <malloc.h>
 #endif
@@ -2942,6 +2946,7 @@ namespace IMGUIZMO_NAMESPACE
                         overBox = boxCoordInt;
                         isClicking = true;
                         isDraging  = true;
+                        interpolationFrames = 0;
                      }
                   }
                }
@@ -3108,6 +3113,7 @@ namespace IMGUIZMO_NAMESPACE
                interpolationUp = referenceUp;
             }
             interpolationFrames = 40;
+            viewUpdated = true;
 
          }
          isClicking = false;
@@ -3115,32 +3121,43 @@ namespace IMGUIZMO_NAMESPACE
       }
 
 
-      if (isDraging)
+      if (isDraging && (fabsf(io.MouseDelta[0]) || fabsf(io.MouseDelta[1])))
       {
-         matrix_t rx, ry, roll;
+         auto delta_x = io.MouseDelta.y * 0.01f;
+         auto delta_y = io.MouseDelta.x * 0.01f;
 
-         rx.RotationAxis(referenceUp, -io.MouseDelta.x * 0.01f);
-         ry.RotationAxis(viewInverse.v.right, -io.MouseDelta.y * 0.01f);
+         matrix_t vvv = *(matrix_t*)view;
+         // Calculate the rotation along x-axis
+         auto rot_x_deg = std::acos(std::clamp(Dot(vvv.v.up, referenceUp), -1.0f, 1.0f));
+         if (vvv.v.up.z < 0) rot_x_deg *= -1;
+
+         const vec_t referenceRight = makeVect(1.f, 0.f, 0.f);
+         const vec_t referenceForward = makeVect(0.f, 0.f, 1.f);
+         matrix_t rx2;
+         rx2.RotationAxis(referenceRight, rot_x_deg);
+         vec_t f2;
+         f2.TransformVector(referenceForward, rx2);
+
+         // Then calculate the rotation along y-axis
+         auto rot_y_deg = std::acos(std::clamp(Dot(vvv.v.dir, f2), -1.0f, 1.0f));
+         if (vvv.v.dir.x < 0) rot_y_deg *= -1;
+
+         // Apply deltas
+         rot_x_deg += delta_x;
+         rot_y_deg += delta_y;
+         // Clamp
+         if (rot_x_deg > 0.5 * M_PI) rot_x_deg = 0.5 * M_PI;
+         else if (rot_x_deg < -0.5 * M_PI) rot_x_deg = -0.5 * M_PI;
+
+         matrix_t rx, ry, roll;
+         // Calculate new rotation matrix
+         rx.RotationAxis(referenceRight, rot_x_deg);
+         f2.TransformVector(referenceUp, rx);
+         ry.RotationAxis(f2, rot_y_deg);
 
          roll = rx * ry;
 
-         vec_t newDir = viewInverse.v.dir;
-         newDir.TransformVector(roll);
-         newDir.Normalize();
-
-         // clamp
-         vec_t planDir = Cross(viewInverse.v.right, referenceUp);
-         planDir.y = 0.f;
-         planDir.Normalize();
-         float dt = Dot(planDir, newDir);
-         if (dt < 0.0f)
-         {
-            newDir += planDir * dt;
-            newDir.Normalize();
-         }
-
-         vec_t newEye = camTarget + newDir * length;
-         LookAt(&newEye.x, &camTarget.x, &referenceUp.x, view);
+         *(matrix_t*)view = roll;
 #if IMGUI_VERSION_NUM >= 18723
          ImGui::SetNextFrameWantCaptureMouse(true);
 #else
