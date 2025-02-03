@@ -2676,10 +2676,12 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().app_config->set_bool("use_perspective_camera", false);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
-        if (wxGetApp().app_config->get("use_perspective_camera").compare("true") == 0)
-            viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
-        else
-            viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
+        this->Bind(wxEVT_UPDATE_UI, [viewMenu, camera_id_base](wxUpdateUIEvent& evt) {
+                if (wxGetApp().app_config->get("use_perspective_camera").compare("true") == 0)
+                    viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
+                else
+                    viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
+            }, wxID_ANY);
 
         viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Preview scene"),

@@ -2789,7 +2789,7 @@ namespace IMGUIZMO_NAMESPACE
       }
    }
 #endif
-   bool ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
+   ViewManipulateResult ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       // Scale is always local or matrix will be skewed when applying world scale or oriented matrix
       ComputeContext(view, projection, matrix, (operation & SCALE) ? LOCAL : mode);
@@ -2816,7 +2816,7 @@ namespace IMGUIZMO_NAMESPACE
        m16[15] = 1.0f;
    }
 
-   bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
+   ViewManipulateResult ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       static bool isDraging = false;
       static bool isClicking = false;
@@ -3053,7 +3053,7 @@ namespace IMGUIZMO_NAMESPACE
          }
       }
 
-      bool viewUpdated = false;
+      ViewManipulateResult result;
       if (interpolationFrames)
       {
          interpolationFrames--;
@@ -3067,7 +3067,7 @@ namespace IMGUIZMO_NAMESPACE
          newUp = interpolationUp;
          vec_t newEye = camTarget + newDir * length;
          LookAt(&newEye.x, &camTarget.x, &newUp.x, view);
-         viewUpdated = true;
+         result.changed = true;
       }
       isInside = gContext.mbMouseOver && ImRect(position, position + size).Contains(io.MousePos);
 
@@ -3102,8 +3102,8 @@ namespace IMGUIZMO_NAMESPACE
                interpolationUp = referenceUp;
             }
             interpolationFrames = 40;
-            viewUpdated = true;
-
+            result.changed = true;
+            result.clicked_box = overBox;
          }
          isClicking = false;
          isDraging = false;
@@ -3152,12 +3152,13 @@ namespace IMGUIZMO_NAMESPACE
 #else
          ImGui::CaptureMouseFromApp();
 #endif
-         viewUpdated = true;
+         result.changed = true;
+         result.dragging = true;
       }
 
       // restore view/projection because it was used to compute ray
       ComputeContext(svgView.m16, svgProjection.m16, nullptr/*gContext.mModelSource.m16*/, WORLD/*gContext.mMode*/);
 
-      return viewUpdated;
+      return result;
    }
 };
