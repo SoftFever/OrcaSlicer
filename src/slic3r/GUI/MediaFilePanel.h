@@ -8,9 +8,11 @@
 #ifndef MediaFilePanel_h
 #define MediaFilePanel_h
 
+#include <set>
+
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
-#include <set>
+
 #include <wx/frame.h>
 
 class Button;
@@ -83,8 +85,8 @@ private:
     std::string m_dev_ver;
     bool        m_lan_mode      = false;
     bool        m_sdcard_exist  = false;
-    bool        m_local_support = false;
-    bool        m_remote_support = false;
+    int         m_local_proto = false;
+    int         m_remote_proto = false;
     bool        m_model_download_support = false;
     bool        m_device_busy  = false;
     bool        m_waiting_enable = false;
