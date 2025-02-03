@@ -33,7 +33,7 @@
     "hot_plate_temp_initial_layer": [
         "60"
     ],
-    "inherits": "Overture PLA",
+    "inherits": "Overture PLA @Qidi",
     "is_custom_defined": "0",
     "name": "Overture PLA @Qidi Q1 Pro 0.2 nozzle",
     "nozzle_temperature": [
