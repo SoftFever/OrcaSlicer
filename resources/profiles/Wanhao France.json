@@ -125,8 +125,12 @@
             "sub_path": "filament/Yumi Generic PLA.json"
         },
         {
-            "name": "YUMI PLA",
-            "sub_path": "filament/YUMI PLA.json"
+            "name": "YUMI PLA Direct Drive",
+            "sub_path": "filament/YUMI PLA Direct Drive.json"
+        },
+        {
+            "name": "YUMI PLA Bowden",
+            "sub_path": "filament/YUMI PLA Bowden.json"
         },
         {
             "name": "YUMI PETG",

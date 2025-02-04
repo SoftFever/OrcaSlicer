@@ -8,7 +8,7 @@
     "printer_model": "Wanhao D12 230 PRO M2 MONO DUAL",
     "default_print_profile": "0.20mm Standard @Wanhao D12-230",
     "default_filament_profile": [
-		"YUMI PLA"
+		"YUMI PLA Bowden"
 	],
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0",
     "change_filament_gcode": "M600",
@@ -43,6 +43,7 @@
     "deretraction_speed": [
       "25"
     ],
+    "enable_filament_ramming": "0",
     "gcode_flavor": "marlin2",
     "machine_max_acceleration_e": [
         "6000"
