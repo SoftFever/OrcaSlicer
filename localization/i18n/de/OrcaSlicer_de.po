@@ -17870,82 +17870,86 @@ msgstr ""
 
 #: src/slic3r/GUI/Tab.cpp: 
 msgid "Dependencies"
-msgstr ""
+msgstr "Abhängigkeiten"
 
 msgid "Profile dependencies"
-msgstr ""
+msgstr "Profilabhängigkeiten"
 
 msgid "This is a default preset."
-msgstr ""
+msgstr "Das ist ein Standardvorgabe."
 
 msgid "This is a system preset."
-msgstr ""
+msgstr "Das ist eine Systemvorgabe."
 
 msgid "Current preset is inherited from the default preset."
-msgstr ""
+msgstr "Aktuelle Vorgabe ist von der Standardvorgabe abgeleitet." 
 
 msgid "Current preset is inherited from"
-msgstr ""
+msgstr "Aktuelle Vorgabe ist abgeleitet von"
 
 msgid "It can't be deleted or modified."
-msgstr ""
+msgstr "Es kann nicht gelöscht oder geändert werden."
 
 msgid "Any modifications should be saved as a new preset inherited from this one."
-msgstr ""
+msgstr "Alle Änderungen sollten als neue Vorgabe gespeichert werden, die von dieser abgeleitet ist."
 
 msgid "To do that please specify a new name for the preset."
-msgstr ""
+msgstr "Bitte geben Sie einen neuen Namen für die Vorgabe an."
 
 msgid "Additional information:"
-msgstr ""
+msgstr "Zusätzliche Informationen:"
 
 msgid "vendor"
-msgstr ""
+msgstr "Hersteller"
 
 msgid ", ver: "
-msgstr ""
+msgstr ", Ver: "
 
 msgid "printer model"
-msgstr ""
+msgstr "Druckermodell"
 
 msgid "default print profile"
-msgstr ""
+msgstr "Standard-Druckprofil"
 
 msgid "default filament profile"
-msgstr ""
+msgstr "Standard-Filamentprofil"
 
 msgid "default SLA material profile"
-msgstr ""
+msgstr "Standard-SLA-Materialprofil"
 
 msgid "default SLA print profile"
-msgstr ""
+msgstr "Standard-SLA-Druckprofil"
 
 msgid "full profile name"
-msgstr ""
+msgstr "vollständiger Profilname"
 
 msgid "symbolic profile name"
-msgstr ""
+msgstr "symbolischer Profilname"
 
 msgid ""
 "A copy of the current system preset will be created, which will be detached from the system preset."
 msgstr ""
+"Es wird eine Kopie der aktuellen Systemvorgabe erstellt, die von der Systemvorgabe abgekoppelt wird."
 
 msgid ""
 "The current custom preset will be detached from the parent system preset."
 msgstr ""
+"Die aktuelle benutzerdefinierte Vorgabe wird von der übergeordneten Systemvorgabe abgekoppelt."
 
 msgid ""
 "Modifications to the current profile will be saved."
 msgstr ""
+"Änderungen am aktuellen Profil werden gespeichert."
 
 msgid ""
 "This action is not revertible.\nDo you want to proceed?"
 msgstr ""
+""
 
 msgid ""
 "Detach preset"
 msgstr ""
-
+"Vorgabe entkoppeln"
 
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Umschalttaste + Linksklick"
