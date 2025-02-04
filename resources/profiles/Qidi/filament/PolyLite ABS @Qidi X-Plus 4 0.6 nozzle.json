@@ -19,7 +19,7 @@
     "hot_plate_temp_initial_layer": [
         "90"
     ],
-    "inherits": "PolyLite ABS",
+    "inherits": "PolyLite ABS @Qidi",
     "is_custom_defined": "0",
     "name": "PolyLite ABS @Qidi X-Plus 4 0.6 nozzle",
     "nozzle_temperature": [
