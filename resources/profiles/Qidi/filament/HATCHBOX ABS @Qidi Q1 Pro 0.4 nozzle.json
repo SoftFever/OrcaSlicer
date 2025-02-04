@@ -31,7 +31,7 @@
     "hot_plate_temp_initial_layer": [
         "90"
     ],
-    "inherits": "HATCHBOX ABS",
+    "inherits": "HATCHBOX ABS @Qidi",
     "is_custom_defined": "0",
     "name": "HATCHBOX ABS @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
