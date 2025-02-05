@@ -137,60 +137,8 @@
     ],
     "filament_list": [
         {
-            "name": "fdm_filament_common",
-            "sub_path": "filament/fdm_filament_common.json"
-        },
-        {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
-        },
-        {
-            "name": "fdm_filament_pet",
-            "sub_path": "filament/fdm_filament_pet.json"
-        },
-        {
-            "name": "fdm_filament_abs",
-            "sub_path": "filament/fdm_filament_abs.json"
-        },  
-        {
-            "name": "fdm_filament_tpu",
-            "sub_path": "filament/fdm_filament_tpu.json"
-        },   
-        {
-            "name": "fdm_filament_pc",
-            "sub_path": "filament/fdm_filament_pc.json"
-        },  
-        {
-            "name": "fdm_filament_pa",
-            "sub_path": "filament/fdm_filament_pa.json"
-        },
-        {
             "name": "fdm_filament_peek",
             "sub_path": "filament/fdm_filament_peek.json"
-        },       
-        {
-            "name": "MM Generic PLA",
-            "sub_path": "filament/MM Generic PLA.json"
-        },
-        {
-            "name": "MM Generic PETG",
-            "sub_path": "filament/MM Generic PETG.json"
-        },
-        {
-            "name": "MM Generic ABS",
-            "sub_path": "filament/MM Generic ABS.json"
-        },
-        {
-            "name": "MM Generic TPU",
-            "sub_path": "filament/MM Generic TPU.json"
-        },
-        {
-            "name": "MM Generic PC",
-            "sub_path": "filament/MM Generic PC.json"
-        },
-        {
-            "name": "MM Generic PA",
-            "sub_path": "filament/MM Generic PA.json"
         },
         {
             "name": "MM Generic PEEK",
