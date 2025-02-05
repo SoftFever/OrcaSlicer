@@ -106,6 +106,10 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
             }
         });
         Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+            auto x    = e.GetX();
+            auto y    = e.GetY();
+            auto size = this->GetClientSize();
+            if (x >= 0 && y >= 0 && x <= size.x && y <= size.y) { return; }
             if (m_enter_window_valid) {
                 m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
             }

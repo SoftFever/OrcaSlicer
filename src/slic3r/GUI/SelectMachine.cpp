@@ -4058,6 +4058,8 @@ void SelectMachineDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, T
         change_default_normal(-1, wxColour());
         final_deal_edge_pixels_data(m_preview_thumbnail_data);
         set_default_normal(m_preview_thumbnail_data);
+    } else {
+        set_default_normal(input_data);
     }
 }
 

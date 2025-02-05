@@ -3161,7 +3161,8 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
             const Vec3d z_offset = slicing_parameters.object_print_z_min * Vec3d::UnitZ();
             for (size_t i = current_volumes_count; i < m_shells.volumes.volumes.size(); ++i) {
                 GLVolume* v = m_shells.volumes.volumes[i];
-                v->set_volume_offset(v->get_volume_offset() + z_offset);
+                auto offset  = v->get_instance_transformation().get_matrix_no_offset().inverse() * z_offset;
+                v->set_volume_offset(v->get_volume_offset() + offset);
             }
         }
 
@@ -4406,7 +4407,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
         // click behavior
         if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) { 
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                 Plater *plater = wxGetApp().plater();
                 wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
                 evt.SetEventObject(plater);

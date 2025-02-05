@@ -48,7 +48,7 @@ protected:
     DisappearanceMode m_timed_disappearance_mode;
     float             m_timer_count = 0;
     wxTimer *         m_refresh_timer{nullptr};
-    int               m_disappearance_second  = 1500; // unit ms: mean 5s
+    int               m_disappearance_second  = 2500; //ANIMATION_REFRESH_INTERVAL 20  unit ms: m_disappearance_second * ANIMATION_REFRESH_INTERVAL
     bool              m_move_to_target_gradual_disappearance = false;
     wxPoint           m_target_pos;
 

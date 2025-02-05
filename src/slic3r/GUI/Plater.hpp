@@ -542,6 +542,8 @@ public:
     enum class PrinterWarningType {
         NOT_CONNECTED,
         INCONSISTENT,
+        UNINSTALL_FILAMENT,
+        EMPTY_FILAMENT
     };
     void pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title);
     bool check_printer_initialized(MachineObject *obj, bool only_warning = false);

@@ -405,8 +405,10 @@ void     SyncAmsInfoDialog::update_map_when_change_map_mode()
                 m_cur_colors_in_thumbnail[i] = result;
             }
             else {
-                //todo:give warning
-                m_cur_colors_in_thumbnail[i] = m_cur_colors_in_thumbnail[0];
+                if (!m_cur_colors_in_thumbnail.empty()) {
+                    // todo:give warning
+                    m_cur_colors_in_thumbnail[i] = m_cur_colors_in_thumbnail[0];
+                }
             }
         }
     }
@@ -4292,6 +4294,9 @@ void SyncAmsInfoDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, Thu
         change_default_normal(-1, wxColour());
         final_deal_edge_pixels_data(m_preview_thumbnail_data);
         set_default_normal(m_preview_thumbnail_data);
+    }
+    else {
+        set_default_normal(input_data);
     }
 }
 
