@@ -48,13 +48,11 @@ bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, 
     state_handler.attach({&text_color});
     state_handler.update_binds();
     //BBS set default font
-    //SetFont(Label::Body_14);
-    this->SetStyle("Default",Label::Body_14);
+    SetFont(Label::Body_14);
     wxWindow::SetLabel(text);
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
         this->active_icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
-        this->SetContentAlignment("L");      // ORCA set button alignment to left if button has icon
     }
     messureSize();
     return true;
@@ -157,20 +155,20 @@ void Button::SetContentAlignment(const wxString& side /* "L" / "R"  Center is de
 }
 
 // Button Colors           bg-Disabled bg-Pressed bg-Hovered bg-Normal  bg-Enabled fg-Disabled fg-Normal
-wxString btn_default[7]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30"};
+wxString btn_regular[7]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30"};
 wxString btn_confirm[7]  = {"#00897B", "#00897B", "#26A69A", "#009688", "#009688", "#6B6A6A", "#FEFEFE"};
 wxString btn_alert[7]    = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#CD1F00"};
 wxString btn_disabled[7] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#6B6A6A"};
 
-void Button::SetStyle(const wxString& style /* Default/Confirm/Alert/Disabled */, const wxFont& font /* Label::Body_14 */)
+void Button::SetStyle(  const wxString style, const wxFont font, const wxString& size)
 {
     this->SetFont(font);
     this->SetCornerRadius(this->FromDIP(4));
-    auto clr_arr = style == "Default"  ? btn_default :
+    auto clr_arr = style == "Regular"  ? btn_regular :
                    style == "Confirm"  ? btn_confirm :
                    style == "Alert"    ? btn_alert :
                    style == "Disabled" ? btn_disabled :
-                                         btn_default;
+                                         btn_regular;
     StateColor clr_bg = StateColor( std::pair<wxColour, int>(wxColour(clr_arr[0]), StateColor::Disabled),
                                     std::pair<wxColour, int>(wxColour(clr_arr[1]), StateColor::Pressed),
                                     std::pair<wxColour, int>(wxColour(clr_arr[2]), StateColor::Hovered),
@@ -183,6 +181,13 @@ void Button::SetStyle(const wxString& style /* Default/Confirm/Alert/Disabled */
                                     std::pair<wxColour, int>(wxColour(clr_arr[6]), StateColor::Normal)
     );
     this->Button::SetTextColor(clr_fg);
+
+    if (size == "Compact"){
+        this->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+        this->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    } else if (size == "Wide") {
+        this->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+    }
 }
 
 void Button::Rescale()

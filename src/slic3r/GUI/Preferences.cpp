@@ -760,9 +760,7 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     m_staticTextPath->SetToolTip(tooltip);
 
     auto m_button_download = new Button(parent, title2);
-    m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
+    m_button_download->SetStyle("Regular", Label::Body_12, "Compact");
     m_button_download->SetToolTip(tooltip2);
 
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
@@ -793,9 +791,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     m_staticTextPath->Wrap(-1);
 
     auto m_button_download = new Button(item_panel, _L("Browse"));
-    m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
+    m_button_download->SetStyle("Regular", Label::Body_12, "Compact");
 
     m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, item_panel](auto& e) {
         wxString defaultPath = wxT("/");
@@ -1359,10 +1355,7 @@ wxWindow* PreferencesDialog::create_debug_page()
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
     Button* debug_button = new Button(page, _L("debug save button"));
-    debug_button->SetBackgroundColor(btn_bg_white);
-    debug_button->SetBorderColor(btn_bd_white);
-    debug_button->SetFont(Label::Body_13);
-
+    debug_button->SetStyle("Regular", Label::Body_12, "Compact");
 
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box

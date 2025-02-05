@@ -45,7 +45,9 @@ public:
 
     void SetContentAlignment(const wxString& side);
 
-    void SetStyle(const wxString& style, const wxFont& font);
+    void SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */,
+                  const wxFont   font /* Label::Body_14 */,
+                  const wxString& size = "" /* Compact/Wide */);
 
     void SetTextColor(StateColor const &color);
 

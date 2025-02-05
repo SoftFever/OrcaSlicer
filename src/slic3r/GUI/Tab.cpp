@@ -3509,7 +3509,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
             Button* ramming_dialog_btn = new Button(parent, _(L("Set")) + " " + dots); // Use regular button to match style
-            ramming_dialog_btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+            ramming_dialog_btn->SetStyle("Regular", Label::Body_14, "Wide");
 
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(ramming_dialog_btn);
@@ -5841,10 +5841,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
-    deps.btn = new ScalableButton(parent, wxID_ANY, "printer", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
-                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-    deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    deps.btn->SetSize(deps.btn->GetBestSize());
+
+    deps.btn = new Button(parent, _(L("Set")) + " " + dots);
+    deps.btn->SetStyle("Regular", Label::Body_14, "Wide");
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -5917,7 +5916,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
     Button* btn = new Button(parent, _(L("Set")) + " " + dots); // Use regular button to match style
-    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+    btn->SetStyle("Regular", Label::Body_14, "Wide");
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);

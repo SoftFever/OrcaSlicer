@@ -137,13 +137,11 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     m_optgroup->append_single_option_line("host_type");
 
     auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
-        //*btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
-        //(*btn)->SetFont(wxGetApp().normal_font());
-
-        // ORCA: Match Button Style
         *btn = new Button(parent, label, icon_name, 0, parent->FromDIP(16));
-        (*btn)->SetMinSize(wxSize(parent->FromDIP(80), parent->FromDIP(26)));
+        (*btn)->SetStyle("Regular", Label::Body_14, "Wide");
+        (*btn)->SetContentAlignment("L");
         (*btn)->SetPaddingSize(wxSize(5, 5));
+        //(*btn)->SetMinSize(wxSize(parent->FromDIP(80), parent->FromDIP(26))); // ????
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(*btn);
@@ -239,10 +237,9 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     auto print_host_printers = [this, create_sizer_with_btn](wxWindow* parent) {
-        //add_scaled_button(parent, &m_printhost_port_browse_btn, "browse", _(L("Refresh Printers")), wxBU_LEFT | wxBU_EXACTFIT);
         auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _(L("Refresh Printers")));
         Button* btn = m_printhost_port_browse_btn; // ORCA
-        //btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        btn->SetStyle("Regular", Label::Body_14);
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
         return sizer;
     };

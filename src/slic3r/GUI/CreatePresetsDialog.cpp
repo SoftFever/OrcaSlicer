@@ -968,9 +968,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_button_create = new Button(this, _L("Create"));
-    m_button_create->SetStyle("Confirm",Label::Body_12);
-    m_button_create->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_create->SetStyle("Confirm", Label::Body_12, "Compact");
     bSizer_button->Add(m_button_create, 0, wxRIGHT, FromDIP(10));
 
     m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
@@ -1131,16 +1129,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         EndModal(wxID_OK); 
         });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetStyle("Regular", Label::Body_12, "Compact");
     bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
@@ -1883,21 +1873,11 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_stl_item(wxWindow *parent)
 
     wxBoxSizer *hot_bed_stl_sizer = new wxBoxSizer(wxVERTICAL);
 
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
     m_button_bed_stl = new Button(parent, _L("Load stl"));
-    m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_model_stl(); }));
-    m_button_bed_stl->SetFont(Label::Body_10);
+    m_button_bed_stl->SetStyle("Regular", Label::Body_12);
+    m_button_bed_stl->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8))); // ????
+    m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) { load_model_stl(); }));
 
-    m_button_bed_stl->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8)));
-    m_button_bed_stl->SetFont(Label::Body_13);
-    m_button_bed_stl->SetCornerRadius(FromDIP(8));
-    m_button_bed_stl->SetBackgroundColor(flush_bg_col);
-    m_button_bed_stl->SetBorderColor(flush_bd_col);
     hot_bed_stl_sizer->Add(m_button_bed_stl, 0, wxEXPAND | wxALL, 0);
 
     horizontal_sizer->Add(hot_bed_stl_sizer, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -1927,14 +1907,10 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_svg_item(wxWindow *parent)
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
 
     m_button_bed_svg = new Button(parent, _L("Load svg"));
-    m_button_bed_svg->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_texture(); }));
-    m_button_bed_svg->SetFont(Label::Body_10);
-
+    m_button_bed_svg->SetStyle("Regular", Label::Body_12);
     m_button_bed_svg->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8)));
-    m_button_bed_svg->SetFont(Label::Body_13);
-    m_button_bed_svg->SetCornerRadius(FromDIP(8));
-    m_button_bed_svg->SetBackgroundColor(flush_bg_col);
-    m_button_bed_svg->SetBorderColor(flush_bd_col);
+    m_button_bed_svg->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_texture(); }));
+
     hot_bed_stl_sizer->Add(m_button_bed_svg, 0, wxEXPAND | wxALL, 0);
 
     horizontal_sizer->Add(hot_bed_stl_sizer, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -1970,17 +1946,8 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
     m_button_OK = new Button(parent, _L("OK"));
-    m_button_OK->SetBackgroundColor(btn_bg_green);
-    m_button_OK->SetBorderColor(*wxWHITE);
-    m_button_OK->SetTextColor(wxColour(0xFFFFFE));
-    m_button_OK->SetFont(Label::Body_12);
-    m_button_OK->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_OK->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_OK->SetCornerRadius(FromDIP(12));
+    m_button_OK->SetStyle("Confirm", Label::Body_12, "Compact");
     bSizer_button->Add(m_button_OK, 0, wxRIGHT, FromDIP(10));
 
     m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -1989,16 +1956,8 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
         show_page2();
         });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     m_button_page1_cancel = new Button(parent, _L("Cancel"));
-    m_button_page1_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_page1_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_page1_cancel->SetFont(Label::Body_12);
-    m_button_page1_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page1_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page1_cancel->SetCornerRadius(FromDIP(12));
+    m_button_page1_cancel->SetStyle("Regular", Label::Body_12, "Compact");
     bSizer_button->Add(m_button_page1_cancel, 0, wxRIGHT, FromDIP(10));
 
     m_button_page1_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
@@ -3280,18 +3239,8 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     case FILAMENT: m_button_ok = sync_user_preset_need_enabled ? new Button(this, _L("Sync user presets")) : new Button(this, _L("OK"));
         break;
     }
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(wxColour(*wxWHITE));
-    m_button_ok->SetTextColor(wxColour(*wxWHITE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_ok->SetStyle("Confirm", Label::Body_12, "Compact");
     btn_sizer->Add(m_button_ok, 0, wxRIGHT, FromDIP(10));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this, sync_user_preset_need_enabled](wxMouseEvent &e) {
@@ -3304,13 +3253,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     
     if (PRINTER == create_success_type || sync_user_preset_need_enabled) {
         m_button_cancel = new Button(this, _L("Cancel"));
-        m_button_cancel->SetBackgroundColor(btn_bg_white);
-        m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-        m_button_cancel->SetTextColor(wxColour(38, 46, 48));
-        m_button_cancel->SetFont(Label::Body_12);
-        m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_button_cancel->SetCornerRadius(FromDIP(12));
+        m_button_cancel->SetStyle("Regular", Label::Body_12, "Compact");
         btn_sizer->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
         m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
     }
@@ -3327,12 +3270,10 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
 CreatePresetSuccessfulDialog::~CreatePresetSuccessfulDialog() {}
 
 void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24))); // ???? Rescale
+    m_button_ok->SetMaxSize(wxSize(FromDIP(58), FromDIP(24))); // ???? Rescale
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24))); // ???? Rescale
+    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24))); // ???? Rescale
     Layout();
 }
 
@@ -4068,17 +4009,8 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
     m_button_ok = new Button(this, _L("OK"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_ok->SetStyle("Confirm", Label::Body_12, "Compact");
     bSizer_button->Add(m_button_ok, 0, wxRIGHT, FromDIP(10));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -4118,16 +4050,8 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
         EndModal(wxID_OK);
         });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetStyle("Regular", Label::Body_12, "Compact");
     bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
@@ -4567,7 +4491,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
 wxBoxSizer *EditFilamentPresetDialog::create_add_filament_btn()
 {
     wxBoxSizer *add_filament_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_add_filament_btn                 = new Button(this, _L("+ Add Preset"));
+    m_add_filament_btn                 = new Button(this, _L("+ Add Preset")); // ????
     m_add_filament_btn->SetFont(Label::Body_10);
     m_add_filament_btn->SetPaddingSize(wxSize(FromDIP(8), FromDIP(3)));
     m_add_filament_btn->SetCornerRadius(FromDIP(8));
@@ -4626,32 +4550,17 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
 
     m_del_filament_btn = new Button(this, _L("Delete Filament"));
-    m_del_filament_btn->SetBackgroundColor(*wxRED);
-    m_del_filament_btn->SetBorderColor(*wxWHITE);
-    m_del_filament_btn->SetTextColor(wxColour(0xFFFFFE));
-    m_del_filament_btn->SetFont(Label::Body_12);
-    m_del_filament_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_filament_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_filament_btn->SetCornerRadius(FromDIP(12));
+    m_del_filament_btn->SetStyle("Alert", Label::Body_12, "Compact");
+
     bSizer_button->Add(m_del_filament_btn, 0, wxLEFT | wxBOTTOM, FromDIP(10));
 
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
     m_ok_btn = new Button(this, _L("OK"));
-    m_ok_btn->SetBackgroundColor(btn_bg_green);
-    m_ok_btn->SetBorderColor(*wxWHITE);
-    m_ok_btn->SetTextColor(wxColour(0xFFFFFE));
-    m_ok_btn->SetFont(Label::Body_12);
-    m_ok_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetCornerRadius(FromDIP(12));
+    m_ok_btn->SetStyle("Confirm", Label::Body_12, "Compact");
+
     bSizer_button->Add(m_ok_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
     m_del_filament_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
         WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
@@ -4736,12 +4645,12 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
 CreatePresetForPrinterDialog::~CreatePresetForPrinterDialog() {}
 
 void CreatePresetForPrinterDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetCornerRadius(FromDIP(12));
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
+    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24))); // ???? resize
+    m_ok_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24))); // ???? resize
+    m_ok_btn->SetCornerRadius(FromDIP(12)); // ???? resize
+    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24))); // ???? resize
+    m_cancel_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24))); // ???? resize
+    m_cancel_btn->SetCornerRadius(FromDIP(12)); // ???? resize
     Layout();
 }
 
@@ -4837,29 +4746,12 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
 
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
     m_ok_btn = new Button(this, _L("OK"));
-    m_ok_btn->SetBackgroundColor(btn_bg_green);
-    m_ok_btn->SetBorderColor(*wxWHITE);
-    m_ok_btn->SetTextColor(wxColour(0xFFFFFE));
-    m_ok_btn->SetFont(Label::Body_12);
-    m_ok_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetCornerRadius(FromDIP(12));
+    m_ok_btn->SetStyle("Confirm", Label::Body_12, "Compact");
     bSizer_button->Add(m_ok_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetBackgroundColor(btn_bg_white);
-    m_cancel_btn->SetBorderColor(wxColour(38, 46, 48));
-    m_cancel_btn->SetFont(Label::Body_12);
-    m_cancel_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
+    m_cancel_btn->SetStyle("Regular", Label::Body_12, "Compact");
     bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
     m_ok_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
