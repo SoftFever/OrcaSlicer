@@ -2902,7 +2902,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         }
     }
     auto badge_combox_filament = [](PlaterPresetComboBox *c) {
-        auto tip     = _L("\nMaterial and color information have been synchronized, but slot information is not included.");
+        auto tip     = _L("Filament type and color information have been synchronized, but slot information is not included.");
         c->SetToolTip(tip);
         c->ShowBadge(true);
     };
