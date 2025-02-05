@@ -476,7 +476,7 @@ public:
     void update_ams_status_msg(wxString msg, bool can_send_print);
     void update_priner_status_msg(wxString msg, bool can_send_print);
     void update_printer_status_msg_tips(const wxString& msg_tips);
-    void update_print_status_msg(wxString msg, bool is_printer, bool can_send_print, bool can_refresh);
+    void update_print_status_msg(wxString msg, bool is_printer, bool can_send_print, bool can_refresh, const wxString& printer_msg_tips = wxEmptyString);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state, bool show_tips = true);
     bool has_timelapse_warning();

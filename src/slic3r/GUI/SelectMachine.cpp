@@ -1677,7 +1677,7 @@ void SelectMachineDialog::update_printer_status_msg_tips(const wxString& msg_tip
     }
 }
 
-void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_printer_msg, bool can_send_print, bool can_refresh)
+void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_printer_msg, bool can_send_print, bool can_refresh, const wxString& printer_msg_tips /*=wxEmptyString*/)
 {
     if (is_printer_msg) {
         update_ams_status_msg(wxEmptyString, can_send_print);
@@ -1686,6 +1686,8 @@ void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_printer_
         update_ams_status_msg(msg, can_send_print);
         update_priner_status_msg(wxEmptyString, can_send_print);
     }
+
+    update_printer_status_msg_tips(printer_msg_tips);
 
     Enable_Send_Button(can_send_print);
     Enable_Refresh_Button(can_refresh);
@@ -1778,10 +1780,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusNozzleDataInvalid) {
         wxString msg_text = _L("Invalid nozzle information, please refresh or manually set nozzle information.");
         update_print_status_msg(msg_text, true, false, true);
-    } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid && !params.empty()) {
-        update_print_status_msg(params[0], true, false, true);
-    } else if (status == PrintStatusNozzleDiameterMismatch && !params.empty()) {
-        update_print_status_msg(params[0], true, false, true);
+    } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid && (params.size() > 1)) {
+        update_print_status_msg(params[0], true, false, true, params[1]);
+    } else if (status == PrintStatusNozzleDiameterMismatch && (params.size() > 1)) {
+        update_print_status_msg(params[0], true, false, true, params[1]);
     } else if (status == PrintStatusNozzleTypeMismatch && !params.empty()) {
         update_print_status_msg(params[0], true, false, true);
     }
@@ -3265,8 +3267,8 @@ void SelectMachineDialog::update_show_status()
         if (!is_nozzle_type_match(obj_->m_extder_data, error_message))
         {
             std::vector<wxString> params { error_message };
+            params.emplace_back(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
             show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid, params);
-            update_printer_status_msg_tips(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
             return;
         }
     }
@@ -3277,26 +3279,26 @@ void SelectMachineDialog::update_show_status()
         float nozzle_diameter = 0;
         if (!is_same_nozzle_diameters(nozzle_diameter))
         {
-            std::vector<wxString> error_msg;
+            std::vector<wxString> msg_params;
             if (obj_->m_extder_data.total_extder_count == 2)
             {
                 const wxString& nozzle_config = wxString::Format(_L("The current nozzle diameter (Left: %.1fmm  Right: %.1fmm) doesn't match with the slicing file (%.1fmm). "
                                                                      "Please make sure the nozzle installed matches with settings in printer, then set the "
                                                                      "corresponding printer preset when slicing."), obj_->m_extder_data.extders[1].current_nozzle_diameter,
                                                                      obj_->m_extder_data.extders[0].current_nozzle_diameter, nozzle_diameter);
-                error_msg.emplace_back(nozzle_config);
+                msg_params.emplace_back(nozzle_config);
             }
             else
             {
                 const wxString& nozzle_config = wxString::Format(_L("The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). "
                                                                      "Please make sure the nozzle installed matches with settings in printer, then set the "
                                                                      "corresponding printer preset when slicing."), obj_->m_extder_data.extders[0].current_nozzle_diameter,
-                                                                     nozzle_diameter);
-                error_msg.emplace_back(nozzle_config);
+                                                                      nozzle_diameter);
+                msg_params.emplace_back(nozzle_config);
             }
 
-            update_printer_status_msg_tips(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
-            return show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, error_msg);
+            msg_params.emplace_back(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
+            return show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, msg_params);
         }
 
         for (const auto& extder : obj_->m_extder_data.extders)
