@@ -19,7 +19,7 @@ class Button : public StaticBox
     bool canFocus  = true;
     bool isCenter = true;
 
-	int alignment = 1;
+    int alignment = 1;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -43,12 +43,9 @@ public:
     
     void SetPaddingSize(const wxSize& size);
 
-	void SetContentAlignment(const wxString& side);
+    void SetContentAlignment(const wxString& side);
 
-	void SetStyleDefault(const wxFont& font);
-    void SetStyleConfirm(const wxFont& font);
-    void SetStyleDisabled(const wxFont& font);
-    void SetStyleAlert(const wxFont& font);
+    void SetStyle(const wxString& style, const wxFont& font);
 
     void SetTextColor(StateColor const &color);
 

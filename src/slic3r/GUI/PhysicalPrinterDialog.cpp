@@ -143,8 +143,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         // ORCA: Match Button Style
         *btn = new Button(parent, label, icon_name, 0, parent->FromDIP(16));
         (*btn)->SetMinSize(wxSize(parent->FromDIP(80), parent->FromDIP(26)));
-        (*btn)->SetContentAlignment("L");
-        (*btn)->SetStyleDefault(Label::Body_14);
         (*btn)->SetPaddingSize(wxSize(5, 5));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);

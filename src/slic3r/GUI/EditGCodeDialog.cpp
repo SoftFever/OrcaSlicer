@@ -420,11 +420,9 @@ void EditGCodeDialog::on_dpi_changed(const wxRect&suggested_rect)
     {
         if (button_item.first == wxOK) {
             button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
         }
         if (button_item.first == wxCANCEL) {
             button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
         }
     }
 
@@ -446,56 +444,11 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     btn_sizer->AddStretchSpacer();
 
-    StateColor ok_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bg(
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bd_(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_text(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
 
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
+        ok_btn->SetStyle("Confirm", Label::Body_14);
         ok_btn->SetMinSize(BTN_SIZE);
-        ok_btn->SetCornerRadius(FromDIP(12));
-        ok_btn->SetBackgroundColor(ok_btn_bg);
-        ok_btn->SetBorderColor(ok_btn_bd);
-        ok_btn->SetTextColor(ok_btn_text);
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
@@ -504,10 +457,6 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
         cancel_btn->SetMinSize(BTN_SIZE);
-        cancel_btn->SetCornerRadius(FromDIP(12));
-        cancel_btn->SetBackgroundColor(cancel_btn_bg);
-        cancel_btn->SetBorderColor(cancel_btn_bd_);
-        cancel_btn->SetTextColor(cancel_btn_text);
         cancel_btn->SetId(wxID_CANCEL);
         btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP / 2);
         m_button_list[wxCANCEL] = cancel_btn;

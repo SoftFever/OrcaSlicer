@@ -48,11 +48,13 @@ bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, 
     state_handler.attach({&text_color});
     state_handler.update_binds();
     //BBS set default font
-    SetFont(Label::Body_14);
+    //SetFont(Label::Body_14);
+    this->SetStyle("Default",Label::Body_14);
     wxWindow::SetLabel(text);
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
         this->active_icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
+        this->SetContentAlignment("L");      // ORCA set button alignment to left if button has icon
     }
     messureSize();
     return true;
@@ -154,72 +156,32 @@ void Button::SetContentAlignment(const wxString& side /* "L" / "R"  Center is de
     alignment = (side == "L") ? 0 : (side == "R") ? 1 : 0;
 }
 
-// ORCA: Use style management for easier styling with less code repeats
-void Button::SetStyleDefault(const wxFont& font /* Label::Body_14 */)
-{
-    this->SetFont(font);
-    this->SetCornerRadius(this->FromDIP(4));
-    StateColor clr_bg = StateColor(std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Pressed),
-                                   std::pair<wxColour, int>(wxColour("#D4D4D4"), StateColor::Hovered),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Normal),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Enabled));
-    this->SetBackgroundColor(clr_bg);
-    this->SetBorderColor(clr_bg);
-    StateColor clr_fg = StateColor(std::pair<wxColour, int>(wxColour("#6B6A6A"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Normal));
-    this->Button::SetTextColor(clr_fg);
-}
+// Button Colors           bg-Disabled bg-Pressed bg-Hovered bg-Normal  bg-Enabled fg-Disabled fg-Normal
+wxString btn_default[7]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30"};
+wxString btn_confirm[7]  = {"#00897B", "#00897B", "#26A69A", "#009688", "#009688", "#6B6A6A", "#FEFEFE"};
+wxString btn_alert[7]    = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#CD1F00"};
+wxString btn_disabled[7] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#6B6A6A"};
 
-// ORCA: Use style management
-void Button::SetStyleConfirm(const wxFont& font /* Label::Body_14 */)
+void Button::SetStyle(const wxString& style /* Default/Confirm/Alert/Disabled */, const wxFont& font /* Label::Body_14 */)
 {
     this->SetFont(font);
     this->SetCornerRadius(this->FromDIP(4));
-    StateColor clr_bg = StateColor(std::pair<wxColour, int>(wxColour("#00897B"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#00897B"), StateColor::Pressed),
-                                   std::pair<wxColour, int>(wxColour("#26A69A"), StateColor::Hovered),
-                                   std::pair<wxColour, int>(wxColour("#009688"), StateColor::Normal),
-                                   std::pair<wxColour, int>(wxColour("#009688"), StateColor::Enabled));
-    this->SetBackgroundColor(clr_bg);
-    this->SetBorderColor(clr_bg);
-    StateColor clr_fg = StateColor(std::pair<wxColour, int>(wxColour("#6B6A6A"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#FEFEFE"), StateColor::Normal) // Always use with white text color
+    auto clr_arr = style == "Default"  ? btn_default :
+                   style == "Confirm"  ? btn_confirm :
+                   style == "Alert"    ? btn_alert :
+                   style == "Disabled" ? btn_disabled :
+                                         btn_default;
+    StateColor clr_bg = StateColor( std::pair<wxColour, int>(wxColour(clr_arr[0]), StateColor::Disabled),
+                                    std::pair<wxColour, int>(wxColour(clr_arr[1]), StateColor::Pressed),
+                                    std::pair<wxColour, int>(wxColour(clr_arr[2]), StateColor::Hovered),
+                                    std::pair<wxColour, int>(wxColour(clr_arr[3]), StateColor::Normal),
+                                    std::pair<wxColour, int>(wxColour(clr_arr[4]), StateColor::Enabled)
     );
-    this->Button::SetTextColor(clr_fg);
-}
-
-// ORCA: Use style management
-void Button::SetStyleAlert(const wxFont& font /* Label::Body_14 */)
-{
-    this->SetFont(font);
-    this->SetCornerRadius(this->FromDIP(4));
-    StateColor clr_bg = StateColor(std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Pressed),
-                                   std::pair<wxColour, int>(wxColour("#D4D4D4"), StateColor::Hovered),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Normal),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Enabled));
     this->SetBackgroundColor(clr_bg);
     this->SetBorderColor(clr_bg);
-    StateColor clr_fg = StateColor(std::pair<wxColour, int>(wxColour("#6B6A6A"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#CD1F00"), StateColor::Normal));
-    this->Button::SetTextColor(clr_fg);
-}
-
-// ORCA: Use style management
-void Button::SetStyleDisabled(const wxFont& font /* Label::Body_14 */)
-{
-    this->SetFont(font);
-    this->SetCornerRadius(this->FromDIP(4));
-    StateColor clr_bg = StateColor(std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Pressed),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Hovered),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Normal),
-                                   std::pair<wxColour, int>(wxColour("#DFDFDF"), StateColor::Enabled));
-    this->SetBackgroundColor(clr_bg);
-    this->SetBorderColor(clr_bg);
-    StateColor clr_fg = StateColor(std::pair<wxColour, int>(wxColour("#6B6A6A"), StateColor::Disabled),
-                                   std::pair<wxColour, int>(wxColour("#6B6A6A"), StateColor::Normal));
+    StateColor clr_fg = StateColor( std::pair<wxColour, int>(wxColour(clr_arr[5]), StateColor::Disabled),
+                                    std::pair<wxColour, int>(wxColour(clr_arr[6]), StateColor::Normal)
+    );
     this->Button::SetTextColor(clr_fg);
 }
 
@@ -278,7 +240,7 @@ void Button::render(wxDC& dc)
         }
     }
 
-	// ORCA Align content. Button content centered as default until use of SetContentAlignment("L")
+    // ORCA Align content. Button content centered as default until use of SetContentAlignment("L")
     wxRect rcContent = {{0, 0}, size};
     wxSize offset    = (size - szContent) / 2;
     if (offset.x < 0)

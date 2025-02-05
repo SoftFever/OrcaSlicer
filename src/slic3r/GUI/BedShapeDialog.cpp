@@ -204,7 +204,6 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std:
 	line.full_width = 1;
 	line.widget = [this](wxWindow* parent) {
         Button* shape_btn = new Button(parent, _L("Load shape from STL..."));
-        shape_btn->SetStyleDefault(Label::Body_14);
         wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
         shape_sizer->Add(shape_btn, 1, wxEXPAND);
 
@@ -287,7 +286,6 @@ wxPanel* BedShapePanel::init_texture_panel()
     line.widget = [this](wxWindow* parent) {
 
         Button* load_btn = new Button(parent, _L("Load..."));
-        load_btn->SetStyleDefault(Label::Body_14);
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
@@ -297,7 +295,6 @@ wxPanel* BedShapePanel::init_texture_panel()
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         Button* remove_btn = new Button(parent, _L("Remove"));
-        remove_btn->SetStyleDefault(Label::Body_14);
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
 
@@ -367,7 +364,6 @@ wxPanel* BedShapePanel::init_model_panel()
     line.widget = [this](wxWindow* parent) {
 
         Button* load_btn = new Button(parent, _L("Load..."));
-        load_btn->SetStyleDefault(Label::Body_14);
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
@@ -376,7 +372,6 @@ wxPanel* BedShapePanel::init_model_panel()
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         Button* remove_btn = new Button(parent, _L("Remove"));
-        remove_btn->SetStyleDefault(Label::Body_14);
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
 
