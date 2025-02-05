@@ -335,7 +335,6 @@ protected:
     wxBoxSizer*                         m_sizer_options_other{ nullptr };
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
 
-    wxBoxSizer*                         m_sizer_main{ nullptr };
     wxBoxSizer*                         m_basicl_sizer{ nullptr };
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
