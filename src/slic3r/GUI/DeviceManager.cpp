@@ -431,7 +431,7 @@ std::string MachineObject::get_ftp_folder()
     return DeviceManager::get_ftp_folder(printer_type);
 }
 
-std::string MachineObject::get_access_code()
+std::string MachineObject::get_access_code() const
 {
     if (get_user_access_code().empty())
         return access_code;
@@ -445,6 +445,7 @@ void MachineObject::set_access_code(std::string code, bool only_refresh)
         AppConfig* config = GUI::wxGetApp().app_config;
         if (config && !code.empty()) {
             GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
+            DeviceManager::update_local_machine(*this);
         }
     }
 }
@@ -466,11 +467,12 @@ void MachineObject::set_user_access_code(std::string code, bool only_refresh)
         AppConfig* config = GUI::wxGetApp().app_config;
         if (config && !code.empty()) {
             GUI::wxGetApp().app_config->set_str("user_access_code", dev_id, code);
+            DeviceManager::update_local_machine(*this);
         }
     }
 }
 
-std::string MachineObject::get_user_access_code()
+std::string MachineObject::get_user_access_code() const
 {
     AppConfig* config = GUI::wxGetApp().app_config;
     if (config) {
@@ -479,7 +481,7 @@ std::string MachineObject::get_user_access_code()
     return "";
 }
 
-bool MachineObject::is_lan_mode_printer()
+bool MachineObject::is_lan_mode_printer() const
 {
     bool result = false;
     if (!dev_connection_type.empty() && dev_connection_type == "lan")
@@ -4822,6 +4824,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
     if (diff.count() > 10.0f) {
         BOOST_LOG_TRIVIAL(trace) << "parse_json timeout = " << diff.count();
     }
+    DeviceManager::update_local_machine(*this);
     return 0;
 }
 
@@ -5263,6 +5266,49 @@ bool DeviceManager::key_field_only = false;
 DeviceManager::DeviceManager(NetworkAgent* agent)
 {
     m_agent = agent;
+
+    // Load saved local machines
+    if (agent) {
+        AppConfig*  config         = GUI::wxGetApp().app_config;
+        const auto local_machines = config->get_local_machines();
+        for (auto& it : local_machines) {
+            const auto&    m         = it.second;
+            MachineObject* obj       = new MachineObject(m_agent, m.dev_name, m.dev_id, m.dev_ip);
+            obj->printer_type        = m.printer_type;
+            obj->dev_connection_type = "lan";
+            obj->bind_state          = "free";
+            obj->bind_sec_link       = "secure";
+            obj->m_is_online         = true;
+            obj->last_alive          = Slic3r::Utils::get_current_time_utc();
+            obj->set_access_code(config->get("access_code", m.dev_id), false);
+            obj->set_user_access_code(config->get("user_access_code", m.dev_id), false);
+            if (obj->has_access_right()) {
+                localMachineList.insert(std::make_pair(m.dev_id, obj));
+            } else {
+                config->erase_local_machine(m.dev_id);
+                delete obj;
+            }
+        }
+    }
+}
+
+void DeviceManager::update_local_machine(const MachineObject& m)
+{
+    AppConfig* config = GUI::wxGetApp().app_config;
+    if (config) {
+        if (m.is_lan_mode_printer()) {
+            if (m.has_access_right()) {
+                BBLocalMachine local_machine;
+                local_machine.dev_id       = m.dev_id;
+                local_machine.dev_name     = m.dev_name;
+                local_machine.dev_ip       = m.dev_ip;
+                local_machine.printer_type = m.printer_type;
+                config->update_local_machine(local_machine);
+            }
+        } else {
+            config->erase_local_machine(m.dev_id);
+        }
+    }
 }
 
 DeviceManager::~DeviceManager()
@@ -5443,24 +5489,35 @@ void DeviceManager::on_machine_alive(std::string json_str)
 
             BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
         }
+        update_local_machine(*obj);
     }
     catch (...) {
         ;
     }
 }
 
-MachineObject* DeviceManager::insert_local_device(std::string dev_name, std::string dev_id, std::string dev_ip, std::string connection_type, std::string bind_state, std::string version, std::string access_code)
+MachineObject* DeviceManager::insert_local_device(const BBLocalMachine& machine, std::string connection_type, std::string bind_state, std::string version, std::string access_code)
 {
     MachineObject* obj;
-    obj = new MachineObject(m_agent, dev_name, dev_id, dev_ip);
-    obj->printer_type = MachineObject::parse_printer_type("C11");
+    auto           it = localMachineList.find(machine.dev_id);
+    if (it != localMachineList.end()) {
+        obj = it->second;
+    } else {
+        obj = new MachineObject(m_agent, machine.dev_name, machine.dev_id, machine.dev_ip);
+        localMachineList.insert(std::make_pair(machine.dev_id, obj));
+    }
+    obj->printer_type = MachineObject::parse_printer_type(machine.printer_type);
     obj->dev_connection_type = connection_type;
     obj->bind_state = bind_state;
     obj->bind_sec_link = "secure";
     obj->bind_ssdp_version = version;
     obj->m_is_online = true;
+    obj->last_alive = Slic3r::Utils::get_current_time_utc();
     obj->set_access_code(access_code, false);
     obj->set_user_access_code(access_code, false);
+
+    update_local_machine(*obj);
+
     return obj;
 }
 
@@ -5887,8 +5944,13 @@ std::map<std::string ,MachineObject*> DeviceManager::get_local_machine_list()
 
 void DeviceManager::load_last_machine()
 {
-    if (userMachineList.empty()) return;
-
+    if (userMachineList.empty()) {
+        // Orca: connect LAN printers instead
+        const auto local_machine = std::find_if(localMachineList.begin(), localMachineList.end(), [](const std::pair<std::string, MachineObject*>& it) -> bool { return it.second->has_access_right();});
+        if (local_machine != localMachineList.end()) {
+            this->set_selected_machine(local_machine->second->dev_id);
+        }
+    }
     else if (userMachineList.size() == 1) {
         this->set_selected_machine(userMachineList.begin()->second->dev_id);
     } else {
