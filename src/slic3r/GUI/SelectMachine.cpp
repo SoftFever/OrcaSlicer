@@ -1578,9 +1578,9 @@ void SelectMachineDialog::prepare(int print_plate_idx)
     m_print_plate_idx = print_plate_idx;
 }
 
-void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
+void SelectMachineDialog::update_ams_status_msg(wxString msg, bool can_send_print)
 {
-    auto colour = is_warning ? wxColour(0xFF, 0x6F, 0x00):wxColour(0x6B, 0x6B, 0x6B);
+    auto colour = can_send_print ? wxColour(0xFF, 0x6F, 0x00) : wxColour("#D01B1B");
     m_statictext_ams_msg->SetForegroundColour(colour);
 
     if (msg.empty()) {
@@ -1609,9 +1609,9 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
     }
 }
 
-void SelectMachineDialog::update_priner_status_msg(wxString msg, bool is_warning)
+void SelectMachineDialog::update_priner_status_msg(wxString msg, bool can_send_print)
 {
-    auto colour = is_warning ? wxColour(0xFF, 0x6F, 0x00) : wxColour(0x6B, 0x6B, 0x6B);
+    auto colour = can_send_print ? wxColour(0xFF, 0x6F, 0x00) : wxColour("#D01B1B");
     m_text_printer_msg->SetForegroundColour(colour);
 
     if (msg.empty()) {
@@ -1677,15 +1677,18 @@ void SelectMachineDialog::update_printer_status_msg_tips(const wxString& msg_tip
     }
 }
 
-void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_warning, bool is_printer_msg)
+void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_printer_msg, bool can_send_print, bool can_refresh)
 {
     if (is_printer_msg) {
-        update_ams_status_msg(wxEmptyString, false);
-        update_priner_status_msg(msg, is_warning);
+        update_ams_status_msg(wxEmptyString, can_send_print);
+        update_priner_status_msg(msg, can_send_print);
     } else {
-        update_ams_status_msg(msg, is_warning);
-        update_priner_status_msg(wxEmptyString, false);
+        update_ams_status_msg(msg, can_send_print);
+        update_priner_status_msg(wxEmptyString, can_send_print);
     }
+
+    Enable_Send_Button(can_send_print);
+    Enable_Refresh_Button(can_refresh);
 }
 
 void SelectMachineDialog::update_print_error_info(int code, std::string msg, std::string extra)
@@ -1726,101 +1729,61 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
-        update_print_status_msg(wxEmptyString, false, false);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(wxEmptyString, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusNoUserLogin) {
         wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
-        update_print_status_msg(msg_text, false, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     }else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
-        update_print_status_msg(wxEmptyString, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(wxEmptyString, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
         wxString msg_text = _L("Connecting to server");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusReading) {
         wxString msg_text = _L("Synchronizing device information");
-        update_print_status_msg(msg_text, false, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusReadingFinished) {
-        update_print_status_msg(wxEmptyString, false, true);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(wxEmptyString, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
         wxString msg_text = _L("Synchronizing device information time out");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
         wxString msg_text = _L("Cannot send the print job when the printer is updating firmware");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusInSystemPrinting) {
         wxString msg_text = _L("The printer is executing instructions. Please restart printing after it ends");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
         wxString msg_text = _L("The printer is busy on other print job");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsOnSettingup) {
-        update_print_status_msg(_L("AMS is setting up. Please try again later."), true, false);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(_L("AMS is setting up. Please try again later."), false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
-        update_print_status_msg(wxEmptyString, false, false);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(wxEmptyString, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text;
         if (params.size() > 0)
             msg_text = wxString::Format(_L("Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."), params[0]);
         else
             msg_text = _L("Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
-        update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, false, false, true);
     }  else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
-        update_print_status_msg(msg_text, false, false);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
-        update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with AMS");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusNozzleDataInvalid) {
         wxString msg_text = _L("Invalid nozzle information, please refresh or manually set nozzle information.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid && !params.empty()) {
-        update_print_status_msg(params[0], true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(params[0], true, false, true);
     } else if (status == PrintStatusNozzleDiameterMismatch && !params.empty()) {
-        update_print_status_msg(params[0], true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(params[0], true, false, true);
     } else if (status == PrintStatusNozzleTypeMismatch && !params.empty()) {
-        update_print_status_msg(params[0], true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(params[0], true, false, true);
     }
     else if (status == PrintDialogStatus::PrintStatusAmsMappingU0Invalid) {
         wxString msg_text;
@@ -1828,49 +1791,31 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             msg_text = wxString::Format(_L("Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."), params[0], params[1]);
         else
             msg_text = _L("Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
-        update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
-        update_print_status_msg(msg_text, false, false);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
-        update_print_status_msg(wxEmptyString, false, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(false);
+        update_print_status_msg(wxEmptyString, true, false, false);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(false);
+        update_print_status_msg(wxEmptyString, true, false, false);
     } else if (status == PrintDialogStatus::PrintStatusSendingCanceled) {
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(wxEmptyString, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
         wxString msg_text = _L("Storage is not available or is in read-only mode.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
         wxString msg_text = _L("External storage is not available or is in read-only mode.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
         wxString msg_text = _L("The printer firmware only supports sequential mapping of filament => AMS slot.");
-        update_print_status_msg(msg_text, false, false);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     }else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
         wxString msg_text;
         try
@@ -1900,37 +1845,27 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
             msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."), sourcet_print_name, target_print_name);
 
-            update_print_status_msg(msg_text, true, true);
+            update_print_status_msg(msg_text, true, false, true);
         }
-        catch (...){}
-        
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        catch (...)
+        {
+            update_print_status_msg(wxEmptyString, true, false, true);
+        }
     } else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted to record timelapse.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusNeedForceUpgrading) {
         wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusNeedConsistencyUpgrading) {
         wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusBlankPlate) {
         wxString msg_text = _L("Cannot send the print job for empty plate");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
         wxString msg_text = _L("This printer does not support printing all plates");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(false);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusTimelapseWarning) {
         wxString   msg_text;
         PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
@@ -1944,15 +1879,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
                 }
             }
         }
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, true, true, true);
     }
     else if (status == PrintStatusMixAmsAndVtSlotWarning) {
         wxString msg_text = _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
-        update_print_status_msg(msg_text, true, false);
-        Enable_Send_Button(true);
-        Enable_Refresh_Button(true);
+        update_print_status_msg(msg_text, false, true, true);
     }
 
     // m_panel_warn m_simplebook

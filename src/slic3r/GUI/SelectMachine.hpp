@@ -473,10 +473,10 @@ public:
     void update_user_machine_list();
     void update_lan_machine_list();
     void stripWhiteSpace(std::string& str);
-    void update_ams_status_msg(wxString msg, bool is_warning = false);
-    void update_priner_status_msg(wxString msg, bool is_warning = false);
+    void update_ams_status_msg(wxString msg, bool can_send_print);
+    void update_priner_status_msg(wxString msg, bool can_send_print);
     void update_printer_status_msg_tips(const wxString& msg_tips);
-    void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
+    void update_print_status_msg(wxString msg, bool is_printer, bool can_send_print, bool can_refresh);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state, bool show_tips = true);
     bool has_timelapse_warning();
