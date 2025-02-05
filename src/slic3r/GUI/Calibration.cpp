@@ -14,6 +14,8 @@
 static wxColour FG_COLOR = wxColour(0x32, 0x3A, 0x3D);
 static wxColour BG_COLOR = wxColour(0xF8, 0xF8, 0xF8);
 
+#define CALI_FLOW_CONTENT_WIDTH  FromDIP(200)
+
 namespace Slic3r { namespace GUI {
 
 CalibrationDialog::CalibrationDialog(Plater *plater)
@@ -126,23 +128,14 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
 
     auto staticline = new ::StaticLine(cali_right_panel);
     staticline->SetLineColour(AMS_CONTROL_BRAND_COLOUR);
-    auto calibration_panel = new wxPanel(cali_right_panel);
-    calibration_panel->SetBackgroundColour(BG_COLOR);
     auto calibration_sizer = new wxBoxSizer(wxVERTICAL);
-    calibration_panel->SetMinSize(wxSize(FromDIP(170), FromDIP(160)));
-    calibration_panel->SetSize(wxSize(FromDIP(170), FromDIP(160)));
 
-    m_calibration_flow = new StepIndicator(calibration_panel, wxID_ANY);
+    m_calibration_flow = new StepIndicator(cali_right_panel, wxID_ANY);
     StateColor bg_color(std::pair<wxColour, int>(BG_COLOR, StateColor::Normal));
     m_calibration_flow->SetBackgroundColor(bg_color);
     m_calibration_flow->SetFont(Label::Body_12);
-
-    m_calibration_flow->SetMinSize(wxSize(FromDIP(170), FromDIP(160)));
-    m_calibration_flow->SetSize(wxSize(FromDIP(170), FromDIP(160)));
-
-    calibration_panel->SetSizer(calibration_sizer);
-    calibration_panel->Layout();
-    calibration_sizer->Add(m_calibration_flow, 0, wxEXPAND, 0);
+    m_calibration_flow->SetMinSize(wxSize(CALI_FLOW_CONTENT_WIDTH, FromDIP(160)));
+    m_calibration_flow->SetSize(wxSize(CALI_FLOW_CONTENT_WIDTH, FromDIP(160)));
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
@@ -159,7 +152,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     cali_right_sizer_v->Add(0, 0, 0, wxTOP, FromDIP(7));
     cali_right_sizer_v->Add(staticline, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
     cali_right_sizer_v->Add(0, 0, 0, wxTOP, FromDIP(3));
-    cali_right_sizer_v->Add(calibration_panel, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(6));
+    cali_right_sizer_v->Add(m_calibration_flow, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(6));
     cali_right_sizer_v->Add(0, 0, 1, wxEXPAND, 5);
     cali_right_sizer_v->Add(m_calibration_btn, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -268,11 +261,13 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_btn->Disable();
             m_calibration_btn->SetLabel(_L("Calibrating"));
         }
-        auto size = wxSize(-1, obj->stage_list_info.size() * FromDIP(44));
+        auto size = wxSize(CALI_FLOW_CONTENT_WIDTH, obj->stage_list_info.size() * FromDIP(44));
         if (m_calibration_flow->GetSize().y != size.y) {
             m_calibration_flow->SetSize(size);
             m_calibration_flow->SetMinSize(size);
             m_calibration_flow->SetMaxSize(size);
+            m_calibration_flow->Refresh();
+
             Layout();
         }
         if (is_stage_list_info_changed(obj)) {
