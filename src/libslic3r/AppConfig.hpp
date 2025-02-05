@@ -24,6 +24,22 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+
+// Connected LAN mode BambuLab printer
+struct BBLocalMachine
+{
+    std::string dev_name;
+    std::string dev_ip;
+    std::string dev_id; /* serial number */
+    std::string printer_type; /* model_id */
+
+    bool operator==(const BBLocalMachine& other) const
+    {
+        return dev_name == other.dev_name && dev_ip == other.dev_ip && dev_id == other.dev_id && printer_type == other.printer_type;
+    }
+    bool operator!=(const BBLocalMachine& other) const { return !operator==(other); }
+};
+
 class AppConfig
 {
 public:
@@ -152,7 +168,8 @@ public:
 	{
 		auto it = m_storage.find(section);
 		if (it != m_storage.end()) {
-			it->second.erase(key);
+            it->second.erase(key);
+            m_dirty = true;
 		}
 	}
 
@@ -194,11 +211,34 @@ public:
             return "";
         return m_printer_settings[printer][name];
     }
-    std::string set_printer_setting(std::string printer, std::string name, std::string value) {
-        return m_printer_settings[printer][name] = value;
-        m_dirty                = true;
+    void set_printer_setting(std::string printer, std::string name, std::string value) {
+        m_printer_settings[printer][name] = value;
+        m_dirty = true;
     }
 
+	const std::map<std::string, BBLocalMachine>& get_local_machines() const { return m_local_machines; }
+	void erase_local_machine(std::string dev_id)
+    {
+        auto it = m_local_machines.find(dev_id);
+        if (it != m_local_machines.end()) {
+            m_local_machines.erase(it);
+            m_dirty = true;
+        }
+    }
+    void update_local_machine(const BBLocalMachine& machine)
+    {
+        auto it = m_local_machines.find(machine.dev_id);
+        if (it != m_local_machines.end()) {
+            const auto& current = it->second;
+            if (machine != current) {
+                m_local_machines[machine.dev_id] = machine;
+                m_dirty = true;
+            }
+        } else {
+            m_local_machines[machine.dev_id] = machine;
+            m_dirty = true;
+        }
+    }
 
     const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
     void set_filament_presets(const std::vector<std::string> &filament_presets){
@@ -335,6 +375,8 @@ private:
     std::vector<std::string>									m_filament_colors;
 
 	std::vector<PrinterCaliInfo>								m_printer_cali_infos;
+
+	std::map<std::string, BBLocalMachine>						m_local_machines;
 };
 
 } // namespace Slic3r
