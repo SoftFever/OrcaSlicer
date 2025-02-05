@@ -1593,8 +1593,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     if (opt_key == "print_sequence" && m_config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject) {
         auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-        if ((printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3)
-            || m_preset_bundle->get_printer_extruder_count() == 2) {
+        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
             wxString msg_text = _(L("The current printer does not support timelapse in Traditional Mode when printing By-Object."));
             msg_text += "\n\n" + _(L("Still print by object?"));
 

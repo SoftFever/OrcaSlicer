@@ -91,11 +91,6 @@ static const float g_purge_volume_one_time = 135.f;
 static const int g_max_flush_count = 4;
 // static const size_t g_max_label_object = 64;
 
-static const std::string lift_gcode_after_printing_object = "{if toolchange_count > 1 && (z_hop_types[current_extruder] == 0 || z_hop_types[current_extruder] == 3)}\n"
-                                                            "G17\n"
-                                                            "G2 Z{z_after_toolchange + 0.4} I0.86 J0.86 P1 F10000 ; spiral lift a little from second lift\n"
-                                                            "{endif}\n";
-
 Vec2d travel_point_1;
 Vec2d travel_point_2;
 Vec2d travel_point_3;
@@ -713,8 +708,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         std::string toolchange_gcode_str;
 
+        ZHopType z_hope_type = ZHopType(gcodegen.config().z_hop_types.get_at(gcodegen.writer().filament()->id()));
+        LiftType auto_lift_type = LiftType::NormalLift;
+        if (z_hope_type == ZHopType::zhtAuto || z_hope_type == ZHopType::zhtSpiral || z_hope_type == ZHopType::zhtSlope)
+            auto_lift_type = LiftType::SpiralLift;
+
         // BBS: should be placed before toolchange parsing
-        std::string toolchange_retract_str = gcodegen.retract(true, false);
+        std::string toolchange_retract_str = gcodegen.retract(false, false, auto_lift_type);
         check_add_eol(toolchange_retract_str);
 
         // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
@@ -724,7 +724,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         bool is_used_travel_avoid_perimeter = gcodegen.m_config.prime_tower_skip_points.value;
 
         // add nozzle change gcode into change filament gcode
-        std::string prefix_gcode = lift_gcode_after_printing_object;
         std::string nozzle_change_gcode_trans;
         if (!tcr.nozzle_change_result.gcode.empty() && (gcodegen.config().nozzle_diameter.size() > 1)) {
             // move to start_pos before nozzle change
@@ -739,10 +738,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             gcodegen.m_wipe.reset_path();
             for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            nozzle_change_gcode_trans += gcodegen.retract(true, false);
-            prefix_gcode = nozzle_change_gcode_trans;
+            nozzle_change_gcode_trans += gcodegen.retract(false, false, auto_lift_type);
+            change_filament_gcode = nozzle_change_gcode_trans + change_filament_gcode;
         }
-        change_filament_gcode = prefix_gcode + change_filament_gcode;
 
         if (! change_filament_gcode.empty()) {
             DynamicConfig config;
@@ -1809,8 +1807,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     if (m_config.printer_structure.value == PrinterStructure::psI3 && m_spiral_vase) {
         m_timelapse_warning_code += 1;
     }
-    if ((m_config.printer_structure.value == PrinterStructure::psI3 || m_config.nozzle_diameter.size() == 2)
-        && print->config().print_sequence == PrintSequence::ByObject) {
+    if (m_config.printer_structure.value == PrinterStructure::psI3 && print->config().print_sequence == PrintSequence::ByObject) {
         m_timelapse_warning_code += (1 << 1);
     }
     if (m_config.timelapse_type.value == TimelapseType::tlSmooth && !m_config.enable_prime_tower.value) {
@@ -4048,17 +4045,34 @@ LayerResult GCode::process_layer(
 
     int physical_extruder_id = print.config().physical_extruder_map.get_at(most_used_extruder);
 
+    ZHopType z_hope_type = ZHopType(FILAMENT_CONFIG(z_hop_types));
+    LiftType auto_lift_type = LiftType::NormalLift;
+    if (z_hope_type == ZHopType::zhtAuto || z_hope_type == ZHopType::zhtSpiral || z_hope_type == ZHopType::zhtSlope)
+        auto_lift_type = LiftType::SpiralLift;
+
     auto insert_timelapse_gcode = [this, print_z, &print, &physical_extruder_id]() -> std::string {
-        std::string gcode_res;
+        std::string timepals_gcode;
         if (!m_config.time_lapse_gcode.value.empty()) {
             DynamicConfig config;
             config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(physical_extruder_id));
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
             config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-            gcode_res = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
+            timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
         }
-        return gcode_res;
+
+        if(!timepals_gcode.empty()){
+        m_writer.set_current_position_clear(false);
+        // BBS: check whether custom gcode changes the z position. Update if changed
+        double temp_z_after_timepals_gcode;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2)    = temp_z_after_timepals_gcode;
+            m_writer.set_position(pos);
+        }
+        }
+
+        return timepals_gcode;
     };
 
     // BBS: don't use lazy_raise when enable spiral vase
@@ -4069,18 +4083,8 @@ LayerResult GCode::process_layer(
         if ((printer_structure == PrinterStructure::psI3 || m_config.nozzle_diameter.values.size() == 2)
             && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase
             && print.config().print_sequence == PrintSequence::ByLayer) {
-            std::string timepals_gcode = insert_timelapse_gcode();
-            if(!timepals_gcode.empty()){
-            gcode += timepals_gcode;
-            m_writer.set_current_position_clear(false);
-            //BBS: check whether custom gcode changes the z position. Update if changed
-            double temp_z_after_timepals_gcode;
-            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                Vec3d pos = m_writer.get_position();
-                pos(2) = temp_z_after_timepals_gcode;
-                m_writer.set_position(pos);
-            }
-            }
+            gcode += this->retract(false, false, auto_lift_type);
+            gcode += insert_timelapse_gcode();
         }
     } else {
         if (!m_config.time_lapse_gcode.value.empty()) {
@@ -4490,27 +4494,23 @@ LayerResult GCode::process_layer(
                     }
 
                     if (should_insert) {
-                        gcode += this->retract(false, false, LiftType::NormalLift);
+                        gcode += this->retract(false, false, auto_lift_type);
                         m_writer.add_object_change_labels(gcode);
 
-                        std::string timepals_gcode = insert_timelapse_gcode();
-                        if(!timepals_gcode.empty()){
-                        gcode += timepals_gcode;
-                        m_writer.set_current_position_clear(false);
-                        // BBS: check whether custom gcode changes the z position. Update if changed
-                        double temp_z_after_timepals_gcode;
-                        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                            Vec3d pos = m_writer.get_position();
-                            pos(2)    = temp_z_after_timepals_gcode;
-                            m_writer.set_position(pos);
-                        }
-                        }
+                        gcode += insert_timelapse_gcode();
                         has_insert_timelapse_gcode = true;
                     }
                 }
                 gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
         } else {
+            if (m_config.nozzle_diameter.values.size() == 2 && writer().filament() && (get_extruder_id(writer().filament()->id()) == most_used_extruder)) {
+                gcode += this->retract(false, false, auto_lift_type);
+                m_writer.add_object_change_labels(gcode);
+
+                gcode += insert_timelapse_gcode();
+                has_insert_timelapse_gcode = true;
+            }
             gcode_toolchange = this->set_extruder(extruder_id, print_z);
         }
         if (!gcode_toolchange.empty()) {
@@ -4740,20 +4740,9 @@ LayerResult GCode::process_layer(
                         gcode += this->extrude_perimeters(print, by_region_specific, first_layer, false);
                         if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && printer_structure == PrinterStructure::psI3
                             && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
-                            gcode += this->retract(false, false, LiftType::NormalLift);
+                            gcode += this->retract(false, false, auto_lift_type);
 
-                            std::string timepals_gcode = insert_timelapse_gcode();
-                            if(!timepals_gcode.empty()){
-                            gcode += timepals_gcode;
-                            m_writer.set_current_position_clear(false);
-                            //BBS: check whether custom gcode changes the z position. Update if changed
-                            double temp_z_after_timepals_gcode;
-                            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                                Vec3d pos = m_writer.get_position();
-                                pos(2) = temp_z_after_timepals_gcode;
-                                m_writer.set_position(pos);
-                            }
-                            }
+                            gcode += insert_timelapse_gcode();
                             has_insert_timelapse_gcode = true;
                         }
                         // Then print infill
@@ -4835,22 +4824,10 @@ LayerResult GCode::process_layer(
             && (writer().filament() && get_extruder_id(writer().filament()->id()) != most_used_extruder)) {
             m_support_traditional_timelapse = false;
         }
-
-        gcode += this->retract(false, false, LiftType::SpiralLift);
+        gcode += this->retract(false, false, auto_lift_type);
         m_writer.add_object_change_labels(gcode);
 
-        std::string timepals_gcode = insert_timelapse_gcode();
-        if(!timepals_gcode.empty()){
-        gcode += timepals_gcode;
-        m_writer.set_current_position_clear(true);
-        //BBS: check whether custom gcode changes the z position. Update if changed
-        double temp_z_after_timepals_gcode;
-        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-            Vec3d pos = m_writer.get_position();
-            pos(2) = temp_z_after_timepals_gcode;
-            m_writer.set_position(pos);
-        }
-        }
+        gcode += insert_timelapse_gcode();
     }
 
     result.gcode = std::move(gcode);
@@ -6939,7 +6916,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     std::string change_filament_gcode = m_config.change_filament_gcode.value;
 
     // Move the lift gcode here which is in the change_filament_gcode originally
-    change_filament_gcode = lift_gcode_after_printing_object + change_filament_gcode;
+    change_filament_gcode = this->retract(false, false, LiftType::SpiralLift) + change_filament_gcode;
 
     std::string toolchange_gcode_parsed;
     //Orca: Ignore change_filament_gcode if is the first call for a tool change and manual_filament_change is enabled
