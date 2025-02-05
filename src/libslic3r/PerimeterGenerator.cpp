@@ -1291,6 +1291,29 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             extrusion_paths_append(paths, *extrusion, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
         }
 
+        auto check_and_stagger_path = [perimeter_generator](ExtrusionPath& cur_path) { 
+            bool was_staggered = false;
+            if (perimeter_generator.layer_id == 1 && perimeter_generator.number_of_layers >= 4) // i.e. layer after the first one
+            {
+                cur_path.extrusion_multiplier = 1.5;
+                was_staggered                 = true;
+            } else if (perimeter_generator.layer_id == perimeter_generator.number_of_layers - 2 &&
+                       perimeter_generator.number_of_layers >= 4) // i.e. last layer before the last one
+            {
+                cur_path.extrusion_multiplier = 0.5;
+                was_staggered                 = true;
+            }
+
+			if (perimeter_generator.layer_id != perimeter_generator.number_of_layers - 2 &&
+			perimeter_generator.number_of_layers >= 4) // i.e. last layer
+            {
+                cur_path.z_offset = 0.5;
+                was_staggered     = true;
+            }
+
+			return was_staggered;
+		};
+
         // Append paths to collection.
         if (!paths.empty()) {
             if (extrusion->is_closed) {
@@ -1309,13 +1332,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 if (extrusion->inset_idx % 2 == 1 && perimeter_generator.config->staggered_perimeters) {
                     for (size_t path_idx = 0; path_idx < extrusion_loop.paths.size(); path_idx++) {
                         ExtrusionPath& cur_path = extrusion_loop.paths[path_idx];
-                        if (perimeter_generator.layer_id == 0) //i.e. first layer
-							cur_path.extrusion_multiplier = 1.5;
-                        else if (perimeter_generator.layer_id == perimeter_generator.number_of_layers - 1) //i.e. last layer
-							cur_path.extrusion_multiplier = 0.5;
-
-                        if (perimeter_generator.layer_id != perimeter_generator.number_of_layers - 1) //i.e. last layer
-							cur_path.z_offset             = 0.5;
+                        check_and_stagger_path(cur_path);
                     }
                 }
                 extrusion_coll.append(std::move(extrusion_loop));
@@ -1344,13 +1361,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 if (extrusion->inset_idx % 2 == 1 && perimeter_generator.config->staggered_perimeters) {
                     for (size_t path_idx = 0; path_idx < multi_path.paths.size(); path_idx++) {
                         ExtrusionPath& cur_path = multi_path.paths[path_idx];
-                        if (perimeter_generator.layer_id == 0)
-							cur_path.extrusion_multiplier = 1.5;
-                        else if (perimeter_generator.layer_id == perimeter_generator.number_of_layers - 1) //i.e. last layer
-							cur_path.extrusion_multiplier = 0.5;
-
-                        if (perimeter_generator.layer_id != perimeter_generator.number_of_layers - 1) //i.e. last layer
-							cur_path.z_offset             = 0.5;
+                        check_and_stagger_path(cur_path);
                     }
                 }
 
