@@ -45,6 +45,7 @@
     "min_feature_size": "20%",
     "minimum_sparse_infill_area": "8",
     "name": "0.20mm Standard @Creality Sermoon V1",
+    "instantiation": "true",
     "only_one_wall_first_layer": "1",
     "only_one_wall_top": "1",
     "outer_wall_acceleration": "4000",
@@ -102,10 +103,10 @@
     "tree_support_adaptive_layer_height": "0",
     "version": "2.0.0.0",
     "wall_infill_order": "infill/inner wall/outer wall",
-    "xy_hole_compensation": "0.05",	
+    "xy_hole_compensation": "0.05",
     "xy_contour_compensation": "-0.05",
     "independent_support_layer_height": "0",
     "compatible_printers": [
-    	"Creality Sermoon V1 0.4 nozzle"
+        "Creality Sermoon V1 0.4 nozzle"
     ]
 }
