@@ -530,6 +530,7 @@ int WebViewPanel::get_model_mall_detail_url(std::string *url, std::string id)
 
 void WebViewPanel::update_mode()
 {
+    m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode"));
     GetSizer()->Show(size_t(0), wxGetApp().app_config->get("internal_developer_mode") == "true");
     GetSizer()->Layout();
 }
