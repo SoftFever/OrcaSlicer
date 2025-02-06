@@ -1917,7 +1917,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
         int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
 
         update_objects_list_filament_column(std::max(1, extruder_count - 1));
-        on_filaments_change(extruder_count);
+        on_filament_count_change(extruder_count);
         wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
         wxGetApp().preset_bundle->update_multi_material_filament_presets();
     });
@@ -2461,8 +2461,8 @@ void Sidebar::jump_to_option(size_t selected)
 //    wxGetApp().mainframe->select_tab();
 }
 
-// BBS. Move logic from Plater::on_extruders_change() to Sidebar::on_filaments_change().
-void Sidebar::on_filaments_change(size_t num_filaments)
+// BBS. Move logic from Plater::on_extruders_change() to Sidebar::on_filament_count_change().
+void Sidebar::on_filament_count_change(size_t num_filaments)
 {
     auto& choices = combos_filament();
 
@@ -2625,7 +2625,7 @@ void Sidebar::add_custom_filament(wxColour new_col) {
     std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
     wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
     wxGetApp().plater()->get_partplate_list().on_filament_added(filament_count);
-    wxGetApp().plater()->on_filaments_change(filament_count);
+    wxGetApp().plater()->on_filament_count_change(filament_count);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     auto_calc_flushing_volumes(filament_count - 1);
@@ -2874,7 +2874,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
     }
-    wxGetApp().plater()->on_filaments_change(n);
+    wxGetApp().plater()->on_filament_count_change(n);
     for (auto& c : p->combos_filament)
         c->update();
     /*wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0]);
@@ -5005,7 +5005,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             wxColour    new_col        = Plater::get_next_color_for_filament();
                             std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
                             wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
-                            wxGetApp().plater()->on_filaments_change(filament_count);
+                            wxGetApp().plater()->on_filament_count_change(filament_count);
                             ++filament_size;
                         }
                         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
@@ -5350,7 +5350,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // Update filament colors for the MM-printer profile in the full config
                             // to avoid black (default) colors for Extruders in the ObjectList,
                             // when for extruder colors are used filament colors
-                            q->on_filaments_change(preset_bundle->filament_presets.size());
+                            q->on_filament_count_change(preset_bundle->filament_presets.size());
                             is_project_file = true;
 
                             DynamicConfig& proj_cfg = preset_bundle->project_config;
@@ -7960,6 +7960,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         }
         auto select_flag = combo->GetFlag(selection);
         combo->ShowBadge(select_flag == (int)PresetComboBox::FilamentAMSType::FROM_AMS);
+        q->on_filament_change(idx);
     }
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?
@@ -14629,12 +14630,42 @@ bool Plater::search_string_getter(int idx, const char** label, const char** tool
     return false;
 }
 
+void Plater::on_filament_change(size_t filament_idx)
+{
+    auto& filament_presets = wxGetApp().preset_bundle->filament_presets;
+    if (filament_idx >= filament_presets.size())
+        return;
+    Slic3r::Preset* filament = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[filament_idx]);
+    if (filament == nullptr)
+        return;
+    std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
+    if (filament_type == "PVA") {
+        auto& process_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
+        auto support_type = process_preset.config.opt_enum<SupportType>("support_type");
+        if (support_type == stNormalAuto || support_type == stNormal)
+            return;
+
+        wxString msg_text = _(L("For PVA filaments, it is strongly recommended to use normal support to avoid print failures."));
+        msg_text += "\n" + _(L("Change these settings automatically? \n"));
+        MessageDialog dialog(this, msg_text, "",
+            wxICON_WARNING | wxYES | wxNO);
+        if (dialog.ShowModal() == wxID_YES) {
+            SupportType target_type = support_type == SupportType::stTree ? SupportType::stNormal : SupportType::stNormalAuto;
+            process_preset.config.option("support_type")->set(new ConfigOptionEnum<SupportType>(target_type));
+            auto print_tab = wxGetApp().get_tab(Preset::Type::TYPE_PRINT);
+            print_tab->on_value_change("support_type", target_type);
+            print_tab->reload_config();
+            print_tab->update_dirty();
+        }
+    }
+}
+
 // BBS.
-void Plater::on_filaments_change(size_t num_filaments)
+void Plater::on_filament_count_change(size_t num_filaments)
 {
     // only update elements in plater
     update_filament_colors_in_full_config();
-    sidebar().on_filaments_change(num_filaments);
+    sidebar().on_filament_count_change(num_filaments);
     sidebar().obj_list()->update_objects_list_filament_column(num_filaments);
 
     Slic3r::GUI::PartPlateList &plate_list = get_partplate_list();

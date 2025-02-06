@@ -8,6 +8,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "MsgDialog.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "Plater.hpp"
 
 #include <wx/msgdlg.h>
 
@@ -979,7 +980,7 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
             "Yes - Change these settings and enable spiral mode automatically\n"
             "No  - Give up using spiral mode this time"));
 
-    MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+    MessageDialog dialog(wxGetApp().plater(), msg_text, "",
         wxICON_WARNING | (!is_object_config ? wxYES | wxNO : wxOK));
     is_msg_dlg_already_exist = true;
     auto answer = dialog.ShowModal();
