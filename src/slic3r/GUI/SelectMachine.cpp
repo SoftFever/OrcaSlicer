@@ -321,13 +321,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_comboBox_printer->SetMaxSize(wxSize(FromDIP(250), FromDIP(60)));
     m_comboBox_printer->SetBackgroundColor(*wxWHITE);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
-    m_comboBox_printer->Bind(wxEVT_LEFT_DOWN, [=](auto& e) {
-        if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
-    });
-    m_comboBox_printer->Bind(wxEVT_LEFT_UP, [=](auto &e) {
-        if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
-    });
-
+    //m_comboBox_printer->Bind(wxEVT_LEFT_DOWN, [=](auto& e) {
+    //    if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
+    //});
+    //m_comboBox_printer->Bind(wxEVT_LEFT_UP, [=](auto &e) {
+    //    if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
+    //});
     m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
                                std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
@@ -1036,8 +1035,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
 
 void SelectMachineDialog::prepare_mode(bool refresh_button)
 {
-    // disable combobox
-    m_comboBox_printer->Enable();
     Enable_Auto_Refill(true);
     show_print_failed_info(false);
 
@@ -1728,10 +1725,15 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     m_print_status = status;
 
     // m_comboBox_printer
-    if (status == PrintDialogStatus::PrintStatusRefreshingMachineList)
+    if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         m_comboBox_printer->Disable();
-    else
-        m_comboBox_printer->Enable();
+    }
+    else {
+        if (status == PrintDialogStatus::PrintStatusRefreshingMachineList)
+            m_comboBox_printer->Disable();
+        else
+            m_comboBox_printer->Enable();
+    }
 
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
