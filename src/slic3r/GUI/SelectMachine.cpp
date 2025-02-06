@@ -2116,6 +2116,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
 
+    bool has_show_traditional_timelapse_waring = false;
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
             if ((obj_->get_printer_is_enclosed())){
@@ -2124,8 +2125,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
         else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
-            if (obj_->get_printer_arch() == PrinterArch::ARCH_I3 && (m_checkbox_list["timelapse"]->getValue() == "on")) {
+            if (!has_show_traditional_timelapse_waring && obj_->get_printer_arch() == PrinterArch::ARCH_I3 && (m_checkbox_list["timelapse"]->getValue() == "on")) {
                 confirm_text.push_back(ConfirmBeforeSendInfo(Plater::get_slice_warning_string(warning)));
+                has_show_traditional_timelapse_waring = true;
                 has_slice_warnings = true;
             }
         }
