@@ -2121,6 +2121,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 has_slice_warnings = true;
             }
         }
+        else if (warning.msg == SMOOTH_TIMELAPSE_WITHOUT_PRIME_TOWER) {
+            if (m_checkbox_list["timelapse"]->getValue() == "on") {
+                confirm_text.push_back(ConfirmBeforeSendInfo(Plater::get_slice_warning_string(warning)));
+                has_slice_warnings = true;
+            }
+        }
         else if (warning.msg == NOT_GENERATE_TIMELAPSE) {
             continue;
         }
