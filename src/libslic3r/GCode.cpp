@@ -4063,18 +4063,9 @@ LayerResult GCode::process_layer(
             config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
             timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
         }
-
         if(!timepals_gcode.empty()){
         m_writer.set_current_position_clear(false);
-        // BBS: check whether custom gcode changes the z position. Update if changed
-        double temp_z_after_timepals_gcode;
-        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-            Vec3d pos = m_writer.get_position();
-            pos(2)    = temp_z_after_timepals_gcode;
-            m_writer.set_position(pos);
         }
-        }
-
         return timepals_gcode;
     };
 
@@ -4083,9 +4074,10 @@ LayerResult GCode::process_layer(
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if(is_BBL_Printer()){
-        if (!need_insert_timelapse_gcode_for_traditional) {
-            // Equivalent to the timelapse gcode placed in layer_change_gcode
-            gcode += this->retract(false, false, auto_lift_type);
+        if (!need_insert_timelapse_gcode_for_traditional) { // Equivalent to the timelapse gcode placed in layer_change_gcode
+            if (FILAMENT_CONFIG(retract_when_changing_layer)) {
+                gcode += this->retract(false, false, auto_lift_type);
+            }
             gcode += insert_timelapse_gcode();
         }
     } else {
@@ -4506,7 +4498,9 @@ LayerResult GCode::process_layer(
                 gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
         } else {
-            if (m_config.nozzle_diameter.values.size() == 2 && writer().filament() && (get_extruder_id(writer().filament()->id()) == most_used_extruder)) {
+            if (m_writer.need_toolchange(extruder_id) &&
+                m_config.nozzle_diameter.values.size() == 2 && writer().filament() &&
+                (get_extruder_id(writer().filament()->id()) == most_used_extruder)) {
                 gcode += this->retract(false, false, auto_lift_type);
                 m_writer.add_object_change_labels(gcode);
 
@@ -4826,7 +4820,9 @@ LayerResult GCode::process_layer(
             && (writer().filament() && get_extruder_id(writer().filament()->id()) != most_used_extruder)) {
             m_support_traditional_timelapse = false;
         }
+        if (FILAMENT_CONFIG(retract_when_changing_layer)) {
         gcode += this->retract(false, false, auto_lift_type);
+        }
         m_writer.add_object_change_labels(gcode);
 
         gcode += insert_timelapse_gcode();
