@@ -3036,11 +3036,6 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
 
 void SelectMachineDialog::update_filament_change_count()
 {
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    MachineObject *obj = dev->get_selected_machine();
-    if (!obj) return;
-
     /*check filament change times*/
     PartPlate *  part_plate   = m_plater->get_partplate_list().get_curr_plate();
     PrintBase *  print        = nullptr;
@@ -3051,13 +3046,11 @@ void SelectMachineDialog::update_filament_change_count()
     m_mapping_sugs_sizer->Show(false);
     m_link_edit_nozzle->Show(false);
 
-    //part_plate->get_print(&print, &gcode_result, NULL);
-    //if (gcode_result && gcode_result->filament_change_count_map.size() > 0 && m_ams_mapping_result.size() > 0) {
-
-    //    if (m_ams_mapping_result.size() == filament_ids.size()) {
-    //        return;
-    //    }
-    //}
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    MachineObject *obj = dev->get_selected_machine();
+    if (!obj) return;
+    if (m_print_type == FROM_SDCARD_VIEW) return;
 
     std::vector<int> filament_ids;
     for (auto mr : m_ams_mapping_result) {
