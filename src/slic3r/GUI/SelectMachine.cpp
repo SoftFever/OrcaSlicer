@@ -1176,7 +1176,11 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-    m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
+
+    if (m_print_type == FROM_NORMAL) {
+        m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
+    }
+
     int filament_result = 0;
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
@@ -4159,10 +4163,15 @@ void SelectMachineDialog::set_default_from_sdcard()
     }
 
     auto opt_nozzle_diameters = m_required_data_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    auto diameters_count      = opt_nozzle_diameters->size();
-    std::vector<int> filament_map;
+    auto diameters_count = 1;
+    if (opt_nozzle_diameters) {
+        diameters_count = opt_nozzle_diameters->size();
+    }
+
+    //std::vector<int> filament_map;
+    m_filaments_map.clear();
     if (m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionInts>("filament_map")){
-        filament_map = m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionInts>("filament_map")->values;
+        m_filaments_map = m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionInts>("filament_map")->values;
     }
 
     // ams mapping area
@@ -4213,8 +4222,8 @@ void SelectMachineDialog::set_default_from_sdcard()
         MaterialItem* item = nullptr;
 
         if (diameters_count > 1) {
-            if (fo.id < filament_map.size()) {
-                auto nozzle_id = filament_map[fo.id];
+            if (fo.id < m_filaments_map.size()) {
+                auto nozzle_id = m_filaments_map[fo.id];
 
                 if (nozzle_id == 1) {
                     item = new MaterialItem(m_filament_left_panel, wxColour(fo.color), fo.type);
@@ -4230,7 +4239,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         }
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent& e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, obj_, item, materials, diameters_count, filament_map, fo](wxMouseEvent& e) {
+        item->Bind(wxEVT_LEFT_DOWN, [this, obj_, item, materials, diameters_count, fo](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id = iter->first;
@@ -4259,9 +4268,9 @@ void SelectMachineDialog::set_default_from_sdcard()
                 if (diameters_count > 1) {
                     if (obj_ && can_hybrid_mapping(obj_->m_extder_data)) {
                         m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
-                    } else if (filament_map[m_current_filament_id] == 1) {
+                    } else if (m_filaments_map[m_current_filament_id] == 1) {
                         m_mapping_popup.set_show_type(ShowType::LEFT);
-                    } else if (filament_map[m_current_filament_id] == 2) {
+                    } else if (m_filaments_map[m_current_filament_id] == 2) {
                         m_mapping_popup.set_show_type(ShowType::RIGHT);
                     }
                 }
