@@ -464,6 +464,9 @@ void SideTools::update_status(MachineObject* obj)
     if (!obj->is_connected() || obj->is_connecting()) {
         m_side_tools->set_current_printer_signal(WifiSignal::NONE);
     }
+    else if (!obj->is_lan_mode_printer() && !obj->is_online()) {
+        m_side_tools->set_current_printer_signal(WifiSignal::NONE);/*STUDIO-10185*/
+    }
     else {
         if (obj->network_wired) {
             m_side_tools->set_current_printer_signal(WifiSignal::WIRED);
