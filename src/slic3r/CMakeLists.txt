@@ -185,6 +185,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/IMToolbar.cpp
     GUI/GCodeViewer.hpp
     GUI/GCodeViewer.cpp
+    GUI/ImageDPIFrame.cpp
+    GUI/ImageDPIFrame.hpp
     GUI/Preferences.cpp
     GUI/Preferences.hpp
     GUI/AMSSetting.cpp

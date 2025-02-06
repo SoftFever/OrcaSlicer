@@ -125,6 +125,7 @@
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
 #include "ParamsDialog.hpp"
+#include "ImageDPIFrame.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/RadioGroup.hpp"
@@ -413,6 +414,8 @@ struct Sidebar::priv
     StaticBox *     panel_printer_bed = nullptr;
     wxStaticBitmap *image_printer_bed = nullptr;
     ComboBox *      combo_printer_bed = nullptr;
+
+    ImageDPIFrame *big_bed_image_popup = nullptr;
     // Printer - sync
     Button *btn_sync_printer;
     std::shared_ptr<int> counter_sync_printer = std::make_shared<int>();
@@ -1517,6 +1520,7 @@ Sidebar::Sidebar(Plater *parent)
         wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
             wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
         });
+        p->big_bed_image_popup = new ImageDPIFrame();
 
         ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
         p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, wxDefaultSize, 0);
@@ -1533,8 +1537,19 @@ Sidebar::Sidebar(Plater *parent)
             auto select_bed_type = get_cur_select_bed_type();
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, isDual ? 48 : 32));
+            p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + bed_type_thumbnails[select_bed_type], p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
             e.Skip(); // fix bug:Event spreads to sidebar
         });
+
+        p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &evt) {
+            auto    pos  = p->image_printer_bed->GetScreenPosition();
+            auto    rect = p->image_printer_bed->GetRect();
+            wxPoint temp_pos(pos.x + rect.GetWidth(), pos.y);
+            p->big_bed_image_popup->SetCanFocus(false);
+            p->big_bed_image_popup->SetPosition(temp_pos);
+            p->big_bed_image_popup->on_show();
+        });
+        p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) { p->big_bed_image_popup->on_hide(); });
 
         wxBoxSizer *bed_type_sizer = new wxBoxSizer(wxVERTICAL);
         bed_type_sizer->AddStretchSpacer(1);
