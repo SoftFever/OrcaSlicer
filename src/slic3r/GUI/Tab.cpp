@@ -4730,9 +4730,14 @@ if (is_marlin_flavor)
 }
     // BBS. No extra extruder page for single physical extruder machine
     // # remove extra pages
-    if (m_extruders_count < m_extruders_count_old)
+    if (m_extruders_count < m_extruders_count_old) {
         m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count,
                         m_pages.begin() + n_before_extruders + m_extruders_count_old);
+        if (m_extruders_count == 1)
+            const_cast<wxString&>(m_pages[n_before_extruders]->title()) = wxString::Format("Extruder");
+    } else if (m_extruders_count_old == 1) {
+        const_cast<wxString &>(m_pages[n_before_extruders]->title()) = wxString::Format("Extruder %d", 1);
+    }
 
     Thaw();
 
