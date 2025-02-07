@@ -61,10 +61,14 @@ class PerimeterGenerator {
 public:
     // Inputs:
     const SurfaceCollection     *slices;
+    const SubSliceCollection    *sub_slices;
+    const SubSliceCollection    *lsub_slices;
     const LayerRegionPtrs       *compatible_regions;
     const ExPolygons            *upper_slices;
     const SurfaceCollection     *upper_slices_same_region;
     const ExPolygons            *lower_slices;
+    const SubSliceCollection    *lower_sub_slices;
+    const SubSliceCollection    *upper_sub_slices;
     double                       layer_height;
     int                          layer_id;
     coordf_t                     slice_z;
@@ -72,6 +76,7 @@ public:
     Flow                         ext_perimeter_flow;
     Flow                         overhang_flow;
     Flow                         solid_infill_flow;
+    Flow                         sub_slice_flow;
     const PrintRegionConfig     *config;
     const PrintObjectConfig     *object_config;
     const PrintConfig           *print_config;
@@ -81,7 +86,7 @@ public:
     SurfaceCollection           *fill_surfaces;
     //BBS
     ExPolygons                  *fill_no_overlap;
-
+    
     //BBS
     Flow                        smaller_ext_perimeter_flow;
     std::vector<Polygons>       m_lower_polygons_series;
@@ -91,6 +96,9 @@ public:
     std::pair<double, double>   m_external_overhang_dist_boundary;
     std::pair<double, double>   m_smaller_external_overhang_dist_boundary;
 
+    std::map<int, std::vector<Polygons>> m_lower_sub_polygons_series;
+    std::map<int, Polygons> m_lower_sub_polygons;
+
     bool                                            has_fuzzy_skin = false;
     bool                                            has_fuzzy_hole = false;
     std::unordered_map<FuzzySkinConfig, ExPolygons> regions_by_fuzzify;
@@ -98,6 +106,8 @@ public:
     PerimeterGenerator(
         // Input:
         const SurfaceCollection*    slices,
+        const SubSliceCollection*   sub_slices,
+        const SubSliceCollection*   lsub_slices,
         const LayerRegionPtrs       *compatible_regions,
         double                      layer_height,
         coordf_t                    slice_z,
@@ -115,7 +125,8 @@ public:
         SurfaceCollection*          fill_surfaces,
         //BBS
         ExPolygons*                 fill_no_overlap)
-        : slices(slices), compatible_regions(compatible_regions), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
+        : slices(slices), sub_slices(sub_slices), lsub_slices(lsub_slices), compatible_regions(compatible_regions), upper_slices(nullptr), lower_slices(nullptr),
+            lower_sub_slices(nullptr), upper_sub_slices(nullptr), layer_height(layer_height),
             slice_z(slice_z), layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
@@ -133,13 +144,15 @@ public:
     double      ext_mm3_per_mm()        const { return m_ext_mm3_per_mm; }
     double      mm3_per_mm()            const { return m_mm3_per_mm; }
     double      mm3_per_mm_overhang()   const { return m_mm3_per_mm_overhang; }
+    double      sub_slice_mm3_per_mm()  const { return m_mm3_per_mm_sub_slice; }
     //BBS
     double      smaller_width_ext_mm3_per_mm()   const { return m_ext_mm3_per_mm_smaller_width; }
     Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
 
 private:
+    std::vector<Polygons>     generate_polygons_series(const ExPolygons& slices, float width);
     std::vector<Polygons>     generate_lower_polygons_series(float width);
-    void split_top_surfaces(const ExPolygons &orig_polygons, ExPolygons &top_fills, ExPolygons &non_top_polygons, ExPolygons &fill_clip) const;
+    void split_top_surfaces(const ExPolygons &orig_polygons, ExPolygons &top_fills, ExPolygons &non_top_polygons, ExPolygons &fill_clip, const ExPolygons *lower_slices, const ExPolygons *upper_slices) const;
     void apply_extra_perimeters(ExPolygons& infill_area);
     void process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width);
     std::pair<double, double> dist_boundary(double width);
@@ -150,6 +163,7 @@ private:
     double      m_ext_mm3_per_mm;
     double      m_mm3_per_mm;
     double      m_mm3_per_mm_overhang;
+    double      m_mm3_per_mm_sub_slice;
     //BBS
     double      m_ext_mm3_per_mm_smaller_width;
     Polygons    m_lower_slices_polygons;

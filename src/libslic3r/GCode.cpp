@@ -4008,7 +4008,9 @@ LayerResult GCode::process_layer(
                 // The process is almost the same for perimeters and infills - we will do it in a cycle that repeats twice:
                 std::vector<unsigned int> printing_extruders;
                 for (const ObjectByExtruder::Island::Region::Type entity_type : { ObjectByExtruder::Island::Region::INFILL, ObjectByExtruder::Island::Region::PERIMETERS }) {
-                    for (const ExtrusionEntity *ee : (entity_type == ObjectByExtruder::Island::Region::INFILL) ? layerm->fills.entities : layerm->perimeters.entities) {
+                    ExtrusionEntitiesPtr entities = entity_type == ObjectByExtruder::Island::Region::INFILL ? layerm->fills.entities : layerm->perimeters.entities;
+                    for (size_t entity_idx = 0; entity_idx < entities.size(); entity_idx++) {
+                        const ExtrusionEntity *ee = entities[entity_idx];
                         // extrusions represents infill or perimeter extrusions of a single island.
                         assert(dynamic_cast<const ExtrusionEntityCollection*>(ee) != nullptr);
                         const auto *extrusions = static_cast<const ExtrusionEntityCollection*>(ee);
@@ -4042,7 +4044,16 @@ LayerResult GCode::process_layer(
                             }
                         } else
                             printing_extruders.emplace_back(correct_extruder_id);
-
+                        
+                        // For the perimeters of the upper sub slices we skip the overlapping test and put all extrusions into the last island
+                        // This is to keep the extrusion order from the perimeter generator.
+                        bool skip_test = false;
+                        if (entity_type == ObjectByExtruder::Island::Region::PERIMETERS) {
+                            const int perimeter_divider = config().outer_perimeter_layer_divider;
+                            if (perimeter_divider > 1 && entity_idx >= (entities.size() - perimeter_divider + 1)) {
+                                skip_test = true;
+                            }
+                        }
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : printing_extruders)
                         {
@@ -4052,7 +4063,7 @@ LayerResult GCode::process_layer(
                                 &layer_to_print - layers.data(),
                                 layers.size(), n_slices+1);
                             for (size_t i = 0; i <= n_slices; ++ i) {
-                                bool   last = i == n_slices;
+                                bool   last = i == n_slices || skip_test;
                                 size_t island_idx = last ? n_slices : slices_test_order[i];
                                 if (// extrusions->first_point does not fit inside any slice
                                     last ||
@@ -5131,7 +5142,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     const auto get_sloped_z = [&sloped, this](double z_ratio) {
         const auto height = sloped->height;
-        return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
+        const auto z_offset = sloped->z_offset;
+        return lerp(m_nominal_z + z_offset - height, m_nominal_z + z_offset, z_ratio);
     };
 
     // go to first point of extrusion path
@@ -5142,7 +5154,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             path.first_point(),
             path.role(),
             "move to first " + description + " point",
-            sloped == nullptr ? DBL_MAX : get_sloped_z(sloped->slope_begin.z_ratio)
+            sloped == nullptr ? m_nominal_z + path.z_offset : get_sloped_z(sloped->slope_begin.z_ratio)
         );
         m_need_change_layer_lift_z = false;
     }
