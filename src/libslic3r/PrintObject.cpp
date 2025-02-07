@@ -2996,7 +2996,7 @@ void PrintObject::bridge_over_infill()
                             // 2B. Convert any overlapping stInternal / stInternalSolid surfaces to bridging
                             ExPolygons bridging_union = union_ex(bridging_current_layer);
                             for (const Surface *s : next_internals) {
-                                ExPolygons overlap = intersection_ex(s->expolygon, bridging_union);
+                                ExPolygons overlap = intersection_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
                                 if (!overlap.empty()) {
                                     // Create bridging surface
                                     Surface tmp{*s, {}};
@@ -3010,7 +3010,7 @@ void PrintObject::bridge_over_infill()
                                         next_new_surfaces.emplace_back(tmp, ep);
                                     }
                                     // Keep the difference for normal infill:
-                                    ExPolygons leftover = diff_ex(s->expolygon, bridging_union);
+                                    ExPolygons leftover = diff_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
                                     for (const ExPolygon &ep : leftover) {
                                         // Keep original type for leftover polygons
                                         Surface leftover_surf{*s, {}};
