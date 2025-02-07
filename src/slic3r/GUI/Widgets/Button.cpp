@@ -160,10 +160,14 @@ wxString btn_confirm[7]  = {"#00897B", "#00897B", "#26A69A", "#009688", "#009688
 wxString btn_alert[7]    = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#CD1F00"};
 wxString btn_disabled[7] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#6B6A6A"};
 
-void Button::SetStyle(  const wxString style, const wxFont font, const wxString& size)
+void Button::SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type /* Choice/Window/Parameter/Compact */)
 {
-    this->SetFont(font);
-    this->SetCornerRadius(this->FromDIP(4));
+    if (type == "Compact") {
+        this->SetFont(Label::Body_10);
+    } else {
+        this->SetFont(Label::Body_14);
+    }
+
     auto clr_arr = style == "Regular"  ? btn_regular :
                    style == "Confirm"  ? btn_confirm :
                    style == "Alert"    ? btn_alert :
@@ -182,12 +186,25 @@ void Button::SetStyle(  const wxString style, const wxFont font, const wxString&
     );
     this->Button::SetTextColor(clr_fg);
 
-    if (size == "Compact"){
+    this->Button::SetType(type);
+
+}
+
+void Button::SetType(const wxString type)
+{
+    if (type == "Choice" || type == "Window") {
         this->SetSize(wxSize(FromDIP(58), FromDIP(24)));
         this->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    } else if (size == "Wide") {
+    } else if (type == "Parameter") {
         this->SetSize(wxSize(FromDIP(120), FromDIP(26)));
     }
+    if (type == "Compact") {
+        this->SetCornerRadius(this->FromDIP(8));
+        this->SetPaddingSize(wxSize(8, 3));
+    } else {
+        this->SetCornerRadius(this->FromDIP(4));
+    }
+    
 }
 
 void Button::Rescale()

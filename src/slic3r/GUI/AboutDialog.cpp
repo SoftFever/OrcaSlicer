@@ -355,7 +355,7 @@ AboutDialog::AboutDialog()
       }
     //Add "Portions copyright" button
     Button* button_portions = new Button(this,_L("Portions copyright"));
-    button_portions->SetStyle("Regular", Label::Body_14, "Wide");
+    button_portions->SetStyle("Regular", "Window");
 
     wxBoxSizer *copyright_button_ver = new wxBoxSizer(wxVERTICAL);
     copyright_button_ver->Add( 0, 0, 0, wxTOP, FromDIP(10));

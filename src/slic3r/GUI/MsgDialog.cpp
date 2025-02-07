@@ -155,11 +155,11 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     }
 
     if (btn_id == wxID_OK || btn_id == wxID_YES) {
-        btn->SetStyle("Confirm",Label::Body_14);
+        btn->SetStyle("Confirm", "Choice");
     }
 
     if (btn_id == wxID_CANCEL || btn_id == wxID_NO) {
-        btn->SetStyle("Regular", Label::Body_14);
+        btn->SetStyle("Regular", "Choice");
     }
 
     if (set_focus)
@@ -470,11 +470,11 @@ DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetStyle("Regular", Label::Body_12, "Compact");
+    m_cancel_btn->SetStyle("Regular", "Choice");
     bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
     m_del_btn = new Button(this, _L("Delete"));
-    m_del_btn->SetStyle("Alert", Label::Body_12, "Compact");
+    m_del_btn->SetStyle("Alert", "Choice");
     bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
     m_main_sizer->Add(bSizer_button, 0, wxEXPAND, 0);
@@ -568,7 +568,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
     bool       file_version_newer = (*m_file_version) > (*m_cloud_version);
     if (!file_version_newer) {
         m_update_btn = new Button(this, _L("Update"));
-        m_update_btn->SetStyle("Regular", Label::Body_12, "Compact");
+        m_update_btn->SetStyle("Regular", "Choice");
         horizontal_sizer->Add(m_update_btn, 0, wxRIGHT, FromDIP(10));
 
         m_update_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -585,10 +585,10 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
 
     if (!file_version_newer) {
         m_later_btn = new Button(this, _L("Not for now"));
-        m_later_btn->SetStyle("Regular", Label::Body_12, "Compact");
+        m_later_btn->SetStyle("Regular", "Choice");
     } else {
         m_later_btn = new Button(this, _L("OK"));
-        m_later_btn->SetStyle("Confirm", Label::Body_12, "Compact");
+        m_later_btn->SetStyle("Confirm", "Choice");
     }
     horizontal_sizer->Add(m_later_btn, 0, wxRIGHT, FromDIP(10));
     m_later_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -667,7 +667,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     });
 
     m_button_confirm = new Button(this, _L("Confirm"));
-    m_button_confirm->SetStyle("Confirm", Label::Body_12, "Compact");
+    m_button_confirm->SetStyle("Confirm", "Choice");
     m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {EndModal(wxCLOSE);});
 
     sizer_button->Add(checkbox, 0, wxALL, 5);

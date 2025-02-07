@@ -447,7 +447,7 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
 
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
-        ok_btn->SetStyle("Confirm", Label::Body_14, "Compact");
+        ok_btn->SetStyle("Confirm", "Choice");
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
@@ -455,7 +455,7 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
     }
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
-        cancel_btn->SetStyle("Regular", Label::Body_14, "Compact");
+        cancel_btn->SetStyle("Regular", "Choice");
         cancel_btn->SetId(wxID_CANCEL);
         btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP / 2);
         m_button_list[wxCANCEL] = cancel_btn;

@@ -138,7 +138,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
         *btn = new Button(parent, label, icon_name, 0, parent->FromDIP(16));
-        (*btn)->SetStyle("Regular", Label::Body_14, "Wide");
+        (*btn)->SetStyle("Regular", "Window");
         (*btn)->SetContentAlignment("L");
         (*btn)->SetPaddingSize(wxSize(5, 5));
         //(*btn)->SetMinSize(wxSize(parent->FromDIP(80), parent->FromDIP(26))); // ????
@@ -239,7 +239,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     auto print_host_printers = [this, create_sizer_with_btn](wxWindow* parent) {
         auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _(L("Refresh Printers")));
         Button* btn = m_printhost_port_browse_btn; // ORCA
-        btn->SetStyle("Regular", Label::Body_14);
+        btn->SetStyle("Regular", "Window");
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
         return sizer;
     };
