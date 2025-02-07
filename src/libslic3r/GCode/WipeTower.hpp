@@ -21,6 +21,7 @@ enum GCodeFlavor : unsigned char;
 class WipeTower
 {
 public:
+    friend class WipeTowerWriter;
     static const std::string never_skip_tag() { return "_GCODE_WIPE_TOWER_NEVER_SKIP_TAG"; }
 
 	// WipeTower height to minimum depth map

@@ -854,7 +854,35 @@ public:
         } while (i != index_of_closest);
         return (*this);
     }
+    WipeTowerWriter &line(const WipeTower *wipe_tower, Vec2f p0, Vec2f p1,const float f = 0.f)
+    {
+        bool need_change_flow = wipe_tower->need_thick_bridge_flow(p0.y());
+        if (need_change_flow) set_extrusion_flow(wipe_tower->extrusion_flow(0.2));
+        if (abs(x() - p0.x()) > abs(x() - p1.x())) std::swap(p0, p1);
+        travel(p0.x(), y());
+        travel(x(), p0.y());
+        extrude(p1, f);
+        set_extrusion_flow(wipe_tower->get_extrusion_flow());
+        return (*this);
+    }
 
+    WipeTowerWriter &rectangle_fill_box(const WipeTower *wipe_tower, const WipeTower::box_coordinates &fill_box, std::vector<Vec2f> &finish_rect_wipe_path, const float f = 0.f)
+    {
+        float width  = fill_box.rd.x() - fill_box.ld.x();
+        float height = fill_box.ru.y() - fill_box.rd.y();
+        if (height > wipe_tower->m_perimeter_width - wipe_tower->WT_EPSILON) {
+            rectangle_fill_box(wipe_tower, fill_box.ld, width, height, f);
+            Vec2f target = (pos() == fill_box.ld ? fill_box.rd : (pos() == fill_box.rd ? fill_box.ru : (pos() == fill_box.ru ? fill_box.lu : fill_box.ld)));
+            finish_rect_wipe_path.emplace_back(pos());
+            finish_rect_wipe_path.emplace_back(target);
+        } else if (height > wipe_tower->WT_EPSILON) {
+            line(wipe_tower, fill_box.ld, fill_box.rd);
+            Vec2f target = (pos() == fill_box.ld ? fill_box.rd : fill_box.ld);
+            finish_rect_wipe_path.emplace_back(pos());
+            finish_rect_wipe_path.emplace_back(target);
+        }
+        return (*this);
+    }
     WipeTowerWriter& rectangle(const WipeTower::box_coordinates& box, const float f = 0.f)
     {
         rectangle(Vec2f(box.ld.x(), box.ld.y()),
@@ -2852,14 +2880,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     std::vector<Vec2f> finish_rect_wipe_path;
     if (extrude_fill_wall) {
         // inner perimeter of the sparse section, if there is space for it:
-        if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON) {
-            writer.rectangle_fill_box(this, fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
-            Vec2f target = (writer.pos() == fill_box.ld ? fill_box.rd :
-                           (writer.pos() == fill_box.rd ? fill_box.ru :
-                           (writer.pos() == fill_box.ru ? fill_box.lu :
-                           fill_box.ld)));
-            finish_rect_wipe_path.emplace_back(writer.pos());
-            finish_rect_wipe_path.emplace_back(target);
+        if (fill_box.ru.y() - fill_box.rd.y() > WT_EPSILON) {
+            writer.rectangle_fill_box(this, fill_box, finish_rect_wipe_path, feedrate);
         }
     }
 
@@ -3027,13 +3049,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
 
     std::vector<Vec2f> finish_rect_wipe_path;
     // inner perimeter of the sparse section, if there is space for it:
-    if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON) {
-        writer.rectangle_fill_box(this, fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
-        Vec2f target = (writer.pos() == fill_box.ld ? fill_box.rd :
-                       (writer.pos() == fill_box.rd ? fill_box.ru :
-                       (writer.pos() == fill_box.ru ? fill_box.lu : fill_box.ld)));
-        finish_rect_wipe_path.emplace_back(writer.pos());
-        finish_rect_wipe_path.emplace_back(target);
+    if (fill_box.ru.y() - fill_box.rd.y() > WT_EPSILON) {
+        writer.rectangle_fill_box(this, fill_box, finish_rect_wipe_path, feedrate);
     }
 
     // Extrude infill to support the material to be printed above.
@@ -3741,7 +3758,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             }
 
             for (WipeTowerBlock& block : m_wipe_tower_blocks) {
-                if (block.cur_depth + EPSILON >= block.start_depth + block.layer_depths[m_cur_layer_id]) {
+                if (block.cur_depth + EPSILON >= block.start_depth + block.layer_depths[m_cur_layer_id]-m_perimeter_width) {
                     continue;
                 }
 
