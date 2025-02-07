@@ -403,6 +403,13 @@ public:
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
 
     std::function<void()> throw_on_cancel;
+    const PrintConfig* m_print_config;
+    /*!
+     * \brief Polygons representing the limits of the printable area of the
+     * machine
+     */
+    ExPolygon m_machine_border;
+
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
@@ -429,11 +436,6 @@ private:
     bool  with_infill                        = false;
 
 
-    /*!
-     * \brief Polygons representing the limits of the printable area of the
-     * machine
-     */
-    ExPolygon m_machine_border;
 
     /*!
      * \brief Draws circles around each node of the tree into the final support.
