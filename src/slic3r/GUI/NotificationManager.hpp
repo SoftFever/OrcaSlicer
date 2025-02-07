@@ -158,6 +158,7 @@ enum class NotificationType
     BBLSliceLimitError,
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
+    BBLMixUsePLAAndPETG,
     NotificationTypeCount
 
 };
@@ -242,7 +243,7 @@ public:
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
 	// GCode exceeds the printing range of the extruder
-    void push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text);
+    void push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void close_slicing_customize_error_notification(NotificationType type, NotificationLevel level);
 
 	// Object warning with ObjectID, closes when object is deleted. ID used is of object not print like in slicing warning.

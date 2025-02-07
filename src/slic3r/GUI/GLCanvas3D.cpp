@@ -10133,10 +10133,27 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     switch (error)
     {
     case PLATER_WARNING:
-        if (state)
-            notification_manager.push_plater_warning_notification(text);
-        else
-            notification_manager.close_plater_warning_notification(text);
+        if (warning == EWarning::MixUsePLAAndPETG) {
+            if (state) {
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel, text, _u8L("Click Wiki for help."),
+                    [](wxEvtHandler*) {
+                        std::string language = wxGetApp().app_config->get("language");
+                        wxString    region = L"en";
+                        if (language.find("zh") == 0)
+                        	region = L"zh";
+                        wxGetApp().open_browser_with_warning_dialog(wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-pla-and-petg-mutual-support", region));
+                        return false;
+                    });
+            }
+            else
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel);
+        }
+        else {
+            if (state)
+                notification_manager.push_plater_warning_notification(text);
+            else
+                notification_manager.close_plater_warning_notification(text);
+        }
         break;
     case PLATER_ERROR:
         if (warning == EWarning::LeftExtruderPrintableError) {
@@ -10191,7 +10208,15 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         }
         if (warning == EWarning::FilamentPrintableError) {
             if (state)
-                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text);
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel, text,  _u8L("Click Wiki for help."),
+                    [](wxEvtHandler*) {
+                        std::string language = wxGetApp().app_config->get("language");
+                        wxString    region = L"en";
+                        if (language.find("zh") == 0)
+                        	region = L"zh";
+                        wxGetApp().open_browser_with_warning_dialog(wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit", region));
+                        return false;
+                    });
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel);
         }

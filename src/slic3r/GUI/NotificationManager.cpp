@@ -1957,10 +1957,11 @@ void NotificationManager::close_general_error_notification(const std::string& te
 	}
 }
 
-void NotificationManager::push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text)
+void NotificationManager::push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
 {
     set_all_slicing_errors_gray(false);
-    push_notification_data({type, level, 0, _u8L("Error:") + "\n" + text}, 0);
+    std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
+    push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
     set_slicing_progress_hidden();
 }
 
