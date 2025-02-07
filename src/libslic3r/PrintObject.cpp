@@ -1458,23 +1458,39 @@ void PrintObject::detect_surfaces_type()
                 for (size_t i = range.begin(); i < range.end(); ++i) {
                     m_print->throw_if_canceled();
                     
+                    // Step 1: Find bridge polygons
                     // Current layer (i): Search for stBottomBridge polygons.
                     const Surfaces &bot_surfs = m_layers[i]->m_regions[region_id]->slices.surfaces;
                     // Next layer (i+1): The layer where stInternal polygons may be re-classified.
                     Surfaces &top_surfs = m_layers[i + 1]->m_regions[region_id]->slices.surfaces;
                     
-                    // Collect polygons where layer i is stBottomBridge.
+                    // Step 2: Collect the bridge polygons in the current layer region
                     Polygons polygons_bridge;
                     for (const Surface &sbot : bot_surfs) {
                         if (sbot.surface_type == stBottomBridge) {
                             polygons_append(polygons_bridge, to_polygons(sbot));
                         }
                     }
+                    
+                    // Step 3: Filter out small bridges by contracting and expanding the bridge surface by the width of the external perimeter
+                    // This filters out bridges that are too narrow (less than 1 perimeter wide)
+                    LayerRegion *layerm = m_layers[i]->m_regions[region_id];
+                    float        offset_distance = layerm->flow(frExternalPerimeter).scaled_width();
+                    // Convert to ExPolygons once for offsetting
+                    ExPolygons ex_bridge = to_expolygons(polygons_bridge);
+                    // Shrink (negative offset) …
+                    ExPolygons shrunk = offset_ex(ex_bridge, -offset_distance);
+                    // … then expand (positive offset)
+                    ExPolygons expanded = offset_ex(shrunk, offset_distance);
+                    // Convert back to Polygons for further intersection
+                    polygons_bridge = to_polygons(expanded);
+                    
+                    // Step 4: Early termination of loop if no meaningfull bridge found
                     // No bridge polygons found, continue to the next layer
                     if (polygons_bridge.empty())
                         continue;
                     
-                    // Bottom bridge polygons found.
+                    // Step 5: Bottom bridge polygons found - create layer+1 bridge polygons
                     // For each surface in layer i+1, split it into overlaping polygons with the bottom bridge polygons vs remainder.
                     Surfaces new_surfaces;
                     new_surfaces.reserve(top_surfs.size());
@@ -1488,8 +1504,8 @@ void PrintObject::detect_surfaces_type()
                         }
                         // Check stInternal polygons for overlap with the bottom bridging polygons on the layer underneath.
                         Polygons p_up = to_polygons(s_up);
-                        ExPolygons overlap   = intersection_ex(p_up, polygons_bridge);
-                        ExPolygons remainder = diff_ex(p_up, polygons_bridge);
+                        ExPolygons overlap   = intersection_ex(p_up, polygons_bridge , ApplySafetyOffset::Yes);
+                        ExPolygons remainder = diff_ex(p_up, polygons_bridge, ApplySafetyOffset::Yes);
                         
                         // Remainder stays stInternal
                         for (auto &ex_remainder : remainder) {
