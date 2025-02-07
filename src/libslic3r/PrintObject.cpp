@@ -3011,6 +3011,7 @@ void PrintObject::bridge_over_infill()
                                     }
                                     // Keep the difference for normal infill:
                                     ExPolygons leftover = diff_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
+                                    // TODO: Does it make sense to apply further polygon filtering here by contracting/expanding, after the safety offset is applied?
                                     for (const ExPolygon &ep : leftover) {
                                         // Keep original type for leftover polygons
                                         Surface leftover_surf{*s, {}};
