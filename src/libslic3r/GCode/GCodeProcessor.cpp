@@ -1160,6 +1160,7 @@ void GCodeProcessor::reset()
     for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {
         m_extruder_temps[i] = 0.0f;
     }
+    m_thermal_index    = ThermalIndex(0.0, 0.0, 0.0);
     m_highest_bed_temp = 0;
 
     m_extruded_last_z = 0.0f;
@@ -1750,6 +1751,25 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
             // with a comment and continue with a tag without any whitespace separator.
             process_tags(comment.substr(1), producers_enabled);
     }
+}
+
+//Processes the gcode comments added by the helio processing server and stores them 
+void GCodeProcessor::process_helioadditive_comment(const GCodeReader::GCodeLine& line)
+{
+    const std::string& comment = line.raw();
+    if (boost::algorithm::contains(comment, ";helioadditive=")) {
+        std::regex  regexPattern(R"(\bti\.max=(-?[0-9]*\.?[0-9]+),ti\.min=(-?[0-9]*\.?[0-9]+),ti\.mean=(-?[0-9]*\.?[0-9]+)\b)");
+        std::smatch match;
+        if (std::regex_search(comment, match, regexPattern)) {
+            float maxVal  = std::stof(match[1].str()) * 100.0;
+            float minVal  = std::stof(match[2].str()) * 100.0;
+            float meanVal = std::stof(match[3].str()) * 100.0;
+
+            m_thermal_index = GCodeProcessor::ThermalIndex(minVal, maxVal, meanVal);
+        } else {
+            std::cerr << "Error: Unable to parse thermal index values from comment." << std::endl;
+        }
+    };
 }
 
 #if __has_include(<charconv>)
@@ -2580,6 +2600,8 @@ void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::optional<unsigned int>& remaining_internal_g1_lines)
 {
+    process_helioadditive_comment(line);
+
     float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
@@ -4780,6 +4802,9 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_mm3_per_mm,
         m_fan_speed,
         m_extruder_temps[m_extruder_id],
+        m_thermal_index.min,
+        m_thermal_index.max,
+        m_thermal_index.mean,
         static_cast<float>(m_result.moves.size()),
         static_cast<float>(m_layer_id), //layer_duration: set later
         //BBS: add arc move related data

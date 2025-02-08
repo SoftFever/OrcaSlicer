@@ -164,6 +164,9 @@ class Print;
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
+            float thermal_index_min{0.0f};
+            float thermal_index_max{0.0f};
+            float thermal_index_mean{0.0f};
             float time{ 0.0f }; // s
             float layer_duration{ 0.0f }; // s (layer id before finalize)
 
@@ -319,6 +322,17 @@ class Print;
         using AxisCoords = std::array<double, 4>;
         using ExtruderColors = std::vector<unsigned char>;
         using ExtruderTemps = std::vector<float>;
+
+        struct ThermalIndex
+        {
+            float max;
+            float min;
+            float mean;
+
+            ThermalIndex() : max(0.0f), min(0.0f), mean(0.0f) {}
+
+            ThermalIndex(float maxVal, float minVal, float meanVal) : max(maxVal), min(minVal), mean(meanVal) {}
+        };
 
         enum class EUnits : unsigned char
         {
@@ -713,6 +727,7 @@ class Print;
         ExtruderTemps m_extruder_temps;
         ExtruderTemps m_extruder_temps_config;
         ExtruderTemps m_extruder_temps_first_layer_config;
+        ThermalIndex            m_thermal_index;
         bool  m_is_XL_printer = false;
         int m_highest_bed_temp;
         float m_extruded_last_z;
@@ -748,6 +763,7 @@ class Print;
             ideaMaker,
             KissSlicer
         };
+
 
         static const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> Producers;
         EProducer m_producer;
@@ -812,6 +828,7 @@ class Print;
         void apply_config_simplify3d(const std::string& filename);
         void apply_config_superslicer(const std::string& filename);
         void process_gcode_line(const GCodeReader::GCodeLine& line, bool producers_enabled);
+        void process_helioadditive_comment(const GCodeReader::GCodeLine& line);
 
         // Process tags embedded into comments
         void process_tags(const std::string_view comment, bool producers_enabled);
