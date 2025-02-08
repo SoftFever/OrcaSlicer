@@ -419,10 +419,10 @@ void EditGCodeDialog::on_dpi_changed(const wxRect&suggested_rect)
     for (auto button_item : m_button_list)
     {
         if (button_item.first == wxOK) {
-            button_item.second->SetType("Choice"); //????? rescale
+            button_item.second->SetType("Choice"); // Rescale Button
         }
         if (button_item.first == wxCANCEL) {
-            button_item.second->SetType("Choice"); //????? rescale
+            button_item.second->SetType("Choice"); // Rescale Button
         }
     }
 

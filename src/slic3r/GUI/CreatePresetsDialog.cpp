@@ -668,8 +668,8 @@ CreateFilamentPresetDialog::~CreateFilamentPresetDialog()
 
 void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
     
-    m_button_create->SetType("Choice");
-    m_button_cancel->SetType("Choice");
+    m_button_create->SetType("Choice"); // Rescale Button
+    m_button_cancel->SetType("Choice"); // Rescale Button
 
     Layout();
 }
@@ -1512,11 +1512,11 @@ CreatePrinterPresetDialog::~CreatePrinterPresetDialog()
 }
 
 void CreatePrinterPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_OK->SetType("Choice");
-    m_button_create->SetType("Choice");
-    m_button_page1_cancel->SetType("Choice");
-    m_button_page2_cancel->SetType("Choice");
-    m_button_page2_back->SetType("Choice");
+    m_button_OK->SetType("Choice");             // Rescale Button
+    m_button_create->SetType("Choice");         // Rescale Button
+    m_button_page1_cancel->SetType("Choice");   // Rescale Button
+    m_button_page2_cancel->SetType("Choice");   // Rescale Button
+    m_button_page2_back->SetType("Choice");     // Rescale Button
     Layout();
 }
 
@@ -4802,13 +4802,13 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     Button *edit_preset_btn = new Button(panel, _L("Edit Preset")); 
-    edit_preset_btn->SetStyle("Regular", "Compact"); // ???? Small Button
+    edit_preset_btn->SetStyle("Regular", "Compact");
     //edit_preset_btn->Hide();
     sizer->Add(edit_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     sizer->Add(0, 0, 0, wxLEFT, 5);
 
     Button *del_preset_btn = new Button(panel, _L("Delete Preset"));
-    del_preset_btn->SetStyle("Regular", "Compact"); // ???? Small Button
+    del_preset_btn->SetStyle("Regular", "Compact");
     if (base_id_error) {
         del_preset_btn->SetStyle("Confirm", "Compact"); // ????
     } else {

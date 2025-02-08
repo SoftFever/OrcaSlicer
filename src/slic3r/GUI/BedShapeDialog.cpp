@@ -177,8 +177,8 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
     for (auto og : m_panel->m_optgroups)
         og->msw_rescale();
 
-    m_button_list[wxOK]     ->SetType("Dialog");
-    m_button_list[wxCANCEL] ->SetType("Dialog");
+    m_button_list[wxOK]     ->SetType("Choice"); // Rescale Button
+    m_button_list[wxCANCEL] ->SetType("Choice"); // Rescale Button
 
     const wxSize& size = wxSize(50 * em, -1);
 

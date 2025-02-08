@@ -1703,8 +1703,7 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
     for (auto btn : {m_transfer_btn, m_discard_btn, m_save_btn})
-        if (btn) btn->SetType("Choice");
-        //if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        if (btn) btn->SetType("Choice"); // Rescale Button
 
     //m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
     const wxSize& size = wxSize(70 * em, 30 * em);
@@ -2263,8 +2262,7 @@ void DiffPresetDialog::on_dpi_changed(const wxRect&)
 
     msw_buttons_rescale(this, em, {wxID_CANCEL});
     for (auto btn : {m_transfer_btn, m_cancel_btn})
-        if (btn) btn->SetType("Choice");
-        //if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        if (btn) btn->SetType("Choice"); // Rescale Button
 
     const wxSize& size = wxSize(80 * em, 30 * em);
     SetMinSize(size);

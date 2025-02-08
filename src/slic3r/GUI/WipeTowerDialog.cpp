@@ -255,13 +255,13 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
     {
         if (button_item.first == wxRESET) 
         {
-            button_item.second->SetType("Choice");
+            button_item.second->SetType("Choice"); // Rescale Button
         }
         if (button_item.first == wxOK) {
-            button_item.second->SetType("Choice");
+            button_item.second->SetType("Choice"); // Rescale Button
         }
         if (button_item.first == wxCANCEL) {
-            button_item.second->SetType("Choice");
+            button_item.second->SetType("Choice"); // Rescale Button
         }
     }
     m_panel_wiping->msw_rescale();
