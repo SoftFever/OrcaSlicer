@@ -161,11 +161,6 @@ using namespace nlohmann;
 
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 512, 512 };
 
-int SidebarProps::TitlebarMargin() { return 8; }
-int SidebarProps::ContentMargin()  { return 12; }
-int SidebarProps::IconSpacing()    { return 10; }
-int SidebarProps::ElementSpacing() { return 5; }
-
 namespace Slic3r {
 namespace GUI {
 
@@ -317,6 +312,11 @@ enum class ActionButtonType : int {
     abExport,
     abSendGCode
 };
+
+int SidebarProps::TitlebarMargin() { return 8; }  // Use as side margins on titlebar. Has less margin on sides to create separation with its content
+int SidebarProps::ContentMargin()  { return 12; } // Use as side margins contents of title
+int SidebarProps::IconSpacing()    { return 10; } // Use on main elements
+int SidebarProps::ElementSpacing() { return 5; }
 
 struct Sidebar::priv
 {

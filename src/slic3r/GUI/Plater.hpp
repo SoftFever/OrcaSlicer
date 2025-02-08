@@ -107,6 +107,15 @@ using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
+class SidebarProps
+{
+public:
+    static int TitlebarMargin();
+    static int ContentMargin();
+    static int IconSpacing();
+    static int ElementSpacing();
+};
+
 class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
@@ -834,12 +843,3 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
 } // namespace Slic3r
 
 #endif
-
-class SidebarProps
-{
-public:
-    static int TitlebarMargin();
-    static int ContentMargin();
-    static int IconSpacing();
-    static int ElementSpacing();
-};
