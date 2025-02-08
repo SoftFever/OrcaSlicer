@@ -187,7 +187,7 @@ void AppConfig::set_defaults()
      if (get("enable_append_color_by_sync_ams").empty())
         set_bool("enable_append_color_by_sync_ams", false);
     if (get("enable_merge_color_by_sync_ams").empty())
-        set_bool("enable_merge_color_by_sync_ams", false);
+        set_bool("enable_merge_color_by_sync_ams", true);
 
     if (get("camera_orbit_mult").empty())
         set("camera_orbit_mult", "1.0");
