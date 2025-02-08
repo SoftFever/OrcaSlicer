@@ -14,6 +14,9 @@
 
 namespace Slic3r
 {
+bool                    flat_ironing                   = true; // Whether to enable flat ironing for the wipe tower
+static constexpr float  flat_iron_area                 = 4.f;
+constexpr float         flat_iron_speed                = 10.f * 60.f;
 static const double wipe_tower_wall_infill_overlap = 0.0;
 static constexpr double WIPE_TOWER_RESOLUTION = 0.0375;
 #define SCALED_WIPE_TOWER_RESOLUTION (WIPE_TOWER_RESOLUTION / SCALING_FACTOR)
@@ -1148,7 +1151,23 @@ public:
             segments[i].is_arc ? extrude_arc(segments[i].arcsegment, feedrate) : extrude(segments[i].end, feedrate);
         } while (1);
     }
+    void spiral_flat_ironing(const Vec2f &center, float area, float step_length, float feedrate)
+    {
+        float edge_length = std::sqrt(area);
+        Vec2f box_max     = center + Vec2f{step_length, step_length};
+        Vec2f box_min     = center - Vec2f{step_length, step_length};
+        int   n           = std::ceil(edge_length / step_length / 2.f);
+        assert(n > 0);
+        while (n--) {
+            travel(box_max.x(), m_current_pos.y(), feedrate);
+            travel(m_current_pos.x(), box_max.y(), feedrate);
+            travel(box_min.x(), m_current_pos.y(), feedrate);
+            travel(m_current_pos.x(), box_min.y(), feedrate);
 
+            box_max += Vec2f{step_length, step_length};
+            box_min -= Vec2f{step_length, step_length};
+        }
+    }
 
 private:
 	Vec2f         m_start_pos;
@@ -1385,6 +1404,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_bed_bottom_left = m_bed_shape == RectangularBed
                   ? Vec2f(bed_points.front().x(), bed_points.front().y())
                   : Vec2f::Zero();
+    flat_ironing      = config.nozzle_diameter.values.size() > 1;//Only used for dual extrusion
 }
 
 
@@ -3205,7 +3225,13 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
                 writer.extrude(writer.x() + ironing_length, writer.y(), wipe_speed);
                 writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 600.);
-                writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 240.);
+                if (flat_ironing) {
+                    writer.travel(writer.x() + 0.5f * ironing_length, writer.y(), 240.);
+                    Vec2f pos{writer.x() + 1.f * ironing_length, writer.y()};
+                    writer.spiral_flat_ironing(writer.pos(), flat_iron_area, m_perimeter_width, flat_iron_speed);
+                    writer.travel(pos, wipe_speed);
+                } else
+                    writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 240.);
                 writer.retract(-retract_length, retract_speed);
                 writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
             } else {
@@ -3214,7 +3240,13 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
                 writer.extrude(writer.x() - ironing_length, writer.y(), wipe_speed);
                 writer.retract(retract_length, retract_speed);
                 writer.travel(writer.x() + 1.5 * ironing_length, writer.y(), 600.);
-                writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 240.);
+                if (flat_ironing) {
+                    writer.travel(writer.x() - 0.5f * ironing_length, writer.y(), 240.);
+                    Vec2f pos{writer.x() - 1.0f * ironing_length, writer.y()};
+                    writer.spiral_flat_ironing(writer.pos(), flat_iron_area, m_perimeter_width, flat_iron_speed);
+                    writer.travel(pos, wipe_speed);
+                }else
+                    writer.travel(writer.x() - 1.5 * ironing_length, writer.y(), 240.);
                 writer.retract(-retract_length, retract_speed);
                 writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), wipe_speed);
             }

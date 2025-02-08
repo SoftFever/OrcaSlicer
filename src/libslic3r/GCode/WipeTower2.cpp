@@ -24,7 +24,7 @@
 namespace Slic3r
 {
 
-    float                   flat_iron_area                 = 4.f;
+static constexpr float      flat_iron_area                 = 4.f;
 constexpr float         flat_iron_speed                = 10.f * 60.f;
 static const double     wipe_tower_wall_infill_overlap = 0.0;
 static constexpr double WIPE_TOWER_RESOLUTION          = 0.1;
