@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "filament_id": "GFB99",
+    "setting_id": "OGFSA04",
+    "name": "Generic ABS @System",
+    "from": "system",
+    "instantiation": "true",
+    "renamed_from": "My Generic ABS",
+    "inherits": "fdm_filament_abs",
+    "compatible_printers": []
+}

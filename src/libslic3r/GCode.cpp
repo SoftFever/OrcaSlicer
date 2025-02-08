@@ -741,6 +741,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                                  gcodegen.config().filament_multitool_ramming.get_at(tcr.initial_tool));
         const bool should_travel_to_tower = !tcr.priming && (tcr.force_travel     // wipe tower says so
                                                              || !needs_toolchange // this is just finishing the tower with no toolchange
+                                                             || will_go_down // Make sure to move to prime tower before moving down
                                                              || is_ramming);
 
         if (should_travel_to_tower || gcodegen.m_need_change_layer_lift_z) {
