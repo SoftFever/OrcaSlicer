@@ -1,11 +1,95 @@
 {
     "result": 0,
-    "t": 1737102428,
-    "ver": 202502042359,
+    "t": 1738858019,
+    "ver": 202503250207,
     "data": {
         "device_error": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "pt-PT": [
+                {
+                    "ecode": "10018003",
+                    "intro": "O modo time-lapse está definido como Tradicional no arquivo de fatiamento. Isso pode causar defeitos na superfície. Gostaria de ativá-lo?"
+                },
+                {
+                    "ecode": "10018004",
+                    "intro": "A Prime Tower não está ativada e o modo time-lapse está definido como Suave no arquivo de fatiamento. Isso pode causar defeitos na superfície. Gostaria de ativá-lo?"
+                },
+                {
+                    "ecode": "0300404D",
+                    "intro": "A temperatura atual do hotend, da mesa aquecida ou da câmara está demasiado alta. Por favor, aguarde que arrefeça até à temperatura ambiente antes de reiniciar a tarefa."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Falhou ao puxar o filamento do extrusor esquerdo. Por favor, verifique se o filamento está preso dentro do extrusor."
+                },
+                {
+                    "ecode": "03008041",
+                    "intro": "Tempo limite de deteção da plataforma: por favor, reinicie a impressora."
+                },
+                {
+                    "ecode": "03004067",
+                    "intro": "O resultado da calibração está acima do limite."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Falhou ao puxar o filamento do extrusor direito. Por favor, verifique se o filamento está preso dentro do extrusor."
+                },
+                {
+                    "ecode": "18008011",
+                    "intro": "O filamento AMS-HT acabou. Por favor, insira um novo filamento no mesmo slot do AMS-HT."
+                },
+                {
+                    "ecode": "18078011",
+                    "intro": "O filamento AMS-HT acabou. Por favor, insira um novo filamento no mesmo slot do AMS-HT."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Falhou ao puxar o filamento do extrusor esquerdo. Por favor, verifique se o filamento está preso dentro do extrusor."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Falhou ao retirar o filamento do extrusor direito. Por favor, verifique se o filamento está preso dentro do extrusor."
+                },
+                {
+                    "ecode": "18038011",
+                    "intro": "O filamento AMS-HT esgotou-se. Por favor, insira um novo filamento no mesmo slot AMS-HT."
+                },
+                {
+                    "ecode": "18018011",
+                    "intro": "O filamento AMS-HT esgotou-se. Por favor, insira um novo filamento no mesmo slot AMS-HT."
+                },
+                {
+                    "ecode": "18058011",
+                    "intro": "O filamento AMS-HT esgotou-se. Por favor, insira um novo filamento no mesmo slot AMS-HT."
+                },
+                {
+                    "ecode": "18068011",
+                    "intro": "O filamento AMS-HT esgotou-se. Por favor, insira um novo filamento no mesmo slot AMS-HT."
+                },
+                {
+                    "ecode": "18048011",
+                    "intro": "O filamento AMS-HT esgotou-se. Por favor, insira um novo filamento no mesmo slot AMS-HT."
+                },
+                {
+                    "ecode": "03004011",
+                    "intro": "A calibração da dinâmica de fluxo falhou; por favor, reinicie a impressão ou a calibração."
+                },
+                {
+                    "ecode": "18028011",
+                    "intro": "O filamento AMS-HT esgotou-se. Por favor, insira um novo filamento no mesmo slot AMS-HT."
+                },
+                {
+                    "ecode": "05008072",
+                    "intro": "A câmara de visualização ao vivo está bloqueada."
+                },
+                {
+                    "ecode": "05008083",
+                    "intro": "O material não é permitido na calibração de montagem. Por favor, remova o material da plataforma."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "A calibração da câmara do Toolhead falhou. Por favor, assegure-se de que o Marcador de Calibração no leito aquecido ou o Marcador de Calibração de Altura na área de homing está limpo e sem danos, e depois repita o processo de calibração."
+                },
                 {
                     "ecode": "1800C06A",
                     "intro": "AMS-HT A está a ler RFID. Incapaz de iniciar a secagem. Por favor, tente novamente mais tarde."
@@ -29,10 +113,6 @@
                 {
                     "ecode": "10014002",
                     "intro": "Timelapse não é suportado pois a sequência de Impressão está definida como \"Por objeto\"."
-                },
-                {
-                    "ecode": "10018003",
-                    "intro": "Ativar timelapse tradicional pode levar a defeitos. Por favor, ative-o conforme necessário?"
                 },
                 {
                     "ecode": "1800C06D",
@@ -75,16 +155,8 @@
                     "intro": "O motor do AMS-HT A está a realizar um auto-teste. Impossível iniciar a secagem. Por favor, tente novamente mais tarde."
                 },
                 {
-                    "ecode": "10018004",
-                    "intro": "A Torre de Limpeza não está ativada e o modo de lapso de tempo está definido para Suave neste trabalho de impressão. Isso pode causar defeitos na superfície. Deseja continuar?"
-                },
-                {
                     "ecode": "1805C069",
                     "intro": "Ocorreu um erro durante a secagem do AMS-HT F. Por favor, vá para o Assistente para mais detalhes."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "A calibração da câmara do cabeçote de ferramentas falhou. Por favor, certifique-se de que o Marcador da Área de Referência a Laser ou o Marcador de Calibração Aquecido estão limpos e sem danos, e depois repita o processo de calibração."
                 },
                 {
                     "ecode": "1807C06D",
@@ -735,10 +807,6 @@
                     "intro": "Falha ao extrudir o filamento. Por favor, verifique se a extrusora está entupida."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Falha ao retrair o filamento da extrusora direita. Por favor, verifique se o filamento está preso dentro da extrusora esquerda."
-                },
-                {
                     "ecode": "07058012",
                     "intro": "Falha ao obter a tabela de mapeamento AMS; por favor clique em \"Retomar\" para tentar novamente."
                 },
@@ -831,10 +899,6 @@
                     "intro": "Falha ao obter a tabela de mapeamento AMS; por favor clique em \"Retomar\" para tentar novamente."
                 },
                 {
-                    "ecode": "07FE8004",
-                    "intro": "Falha ao retrair o filamento do extrusor esquerdo. Por favor verifique se o filamento está preso dentro do extrusor esquerdo."
-                },
-                {
                     "ecode": "07FE8013",
                     "intro": "Tempo esgotado ao purgar o filamento antigo do extrusor esquerdo: por favor verifique se o filamento está preso ou se o extrusor está entupido."
                 },
@@ -857,10 +921,6 @@
                 {
                     "ecode": "07FE8001",
                     "intro": "Falha ao cortar o filamento do extrusor esquerdo. Por favor, verifique a cortadora."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Falha ao retirar o filamento do extrusor da direita. Por favor, verifique se o filamento está preso dentro do extrusor da esquerda."
                 },
                 {
                     "ecode": "07FF8002",
@@ -921,10 +981,6 @@
                 {
                     "ecode": "07058013",
                     "intro": "Tempo limite ao purgar o filamento antigo: Por favor, verifique se o filamento está preso ou se o extrusor está entupido."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Falha ao puxar o filamento do extrusor esquerdo. Por favor, verifique se o filamento está preso dentro do extrusor esquerdo."
                 },
                 {
                     "ecode": "18FE8012",
@@ -1219,10 +1275,6 @@
                     "intro": "A configuração do AMS falhou; por favor consulte o assistente."
                 },
                 {
-                    "ecode": "05008072",
-                    "intro": "A câmara de visualização ao vivo está bloqueada."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT falhou ao recuar o filamento. Isso pode ser devido a um carretel preso ou ao final do filamento preso no caminho."
                 },
@@ -1233,10 +1285,6 @@
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D está em processo de secagem. Por favor pare o processo de secagem antes de carregar/descarregar o material."
-                },
-                {
-                    "ecode": "18048011",
-                    "intro": "Filamento AMS-HT terminou. Por favor, insira um novo filamento no mesmo slot AMS."
                 },
                 {
                     "ecode": "18018003",
@@ -1319,10 +1367,6 @@
                     "intro": "O AMS-HT falhou em recuar o filamento. Isso pode ser devido a uma bobina presa ou o final do filamento preso no caminho."
                 },
                 {
-                    "ecode": "18068011",
-                    "intro": "Acabou o filamento AMS-HT. Por favor, insira um novo filamento no mesmo compartimento AMS."
-                },
-                {
                     "ecode": "07078006",
                     "intro": "Não é possível introduzir o filamento no extrusor. Isto pode ser devido a um filamento emaranhado ou a um carretel preso. Se não for o caso, verifique se o tubo AMS PTFE está conectado."
                 },
@@ -1357,10 +1401,6 @@
                 {
                     "ecode": "07048006",
                     "intro": "Não é possível alimentar o filamento no extrusor. Isso pode ser devido a filamento emaranhado ou um carretel preso. Caso contrário, confirme se o tubo PTFE AMS está conectado."
-                },
-                {
-                    "ecode": "18058011",
-                    "intro": "O filamento AMS-HT acabou. Por favor, insira um novo filamento no mesmo slot AMS."
                 },
                 {
                     "ecode": "18058003",
@@ -1419,10 +1459,6 @@
                     "intro": "Por favor, retire o filamento no suporte de carretel do extrusor direito. Se esta mensagem persistir, verifique se há filamento quebrado no extrusor. (Conecte um tubo PTFE se você estiver prestes a usar um AMS)."
                 },
                 {
-                    "ecode": "18018011",
-                    "intro": "O filamento do AMS-HT acabou. Por favor, insira um novo filamento no mesmo slot do AMS."
-                },
-                {
                     "ecode": "07058006",
                     "intro": "Não é possível alimentar o filamento no extrusor. Isso poderia ser devido a filamento emaranhado ou um carretel preso. Se não, por favor, verifique se o tubo PTFE do AMS está conectado."
                 },
@@ -1445,10 +1481,6 @@
                 {
                     "ecode": "18FFC009",
                     "intro": "Por favor, introduza o filamento no tubo de PTFE do extrusor direito até que ele não possa ser empurrado mais para dentro."
-                },
-                {
-                    "ecode": "18038011",
-                    "intro": "O filamento do AMS-HT acabou. Por favor, insira um novo filamento no mesmo slot do AMS."
                 },
                 {
                     "ecode": "18078005",
@@ -1515,10 +1547,6 @@
                     "intro": "O motor assistente AMS está sobrecarregado. Isto pode dever-se a um filamento emaranhado ou a uma bobine presa."
                 },
                 {
-                    "ecode": "18078011",
-                    "intro": "O filamento AMS-HT acabou. Por favor, insira um novo filamento no mesmo espaço AMS."
-                },
-                {
                     "ecode": "07058004",
                     "intro": "AMS falhou ao puxar o filamento de volta. Isto pode dever-se a uma bobine presa ou à extremidade do filamento presa no trajeto."
                 },
@@ -1579,14 +1607,6 @@
                     "intro": "O AMS-HT falhou ao enviar filamento. Você pode cortar a ponta do seu filamento e reinserir. Se esta mensagem persistir, por favor verifique se há sinais de desgaste nos tubos PTFE no AMS."
                 },
                 {
-                    "ecode": "18008011",
-                    "intro": "O filamento do AMS-HT acabou. Por favor, insira um novo filamento no mesmo slot do AMS."
-                },
-                {
-                    "ecode": "18028011",
-                    "intro": "O filamento do AMS-HT acabou. Por favor, insira um novo filamento no mesmo slot do AMS."
-                },
-                {
                     "ecode": "0C008015",
                     "intro": "Objetos detetados na plataforma; por favor, limpe-os de forma atempada."
                 },
@@ -1633,10 +1653,6 @@
                 {
                     "ecode": "0500805E",
                     "intro": "Erro de Número de Série do Módulo de Corte: impossível calibrar ou criar projeto."
-                },
-                {
-                    "ecode": "03004067",
-                    "intro": "O resultado da calibração ultrapassa o limite."
                 },
                 {
                     "ecode": "05004040",
@@ -1793,10 +1809,6 @@
                 {
                     "ecode": "05014018",
                     "intro": "A análise da informação de configuração de ligação falhou; por favor tente novamente."
-                },
-                {
-                    "ecode": "03008041",
-                    "intro": "Tempo limite de deteção da Plataforma Laser."
                 },
                 {
                     "ecode": "0C008002",
@@ -1969,10 +1981,6 @@
                 {
                     "ecode": "03004068",
                     "intro": "Ocorreu perda de passos durante o processo de melhoria da precisão de movimento. Por favor, tente novamente."
-                },
-                {
-                    "ecode": "03004011",
-                    "intro": "A calibração de compensação de fluxo dinâmico falhou."
                 },
                 {
                     "ecode": "05004041",
@@ -2433,8 +2441,1340 @@
             ]
         },
         "device_hms": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "pt-PT": [
+                {
+                    "ecode": "0300A40000010002",
+                    "intro": "A temperatura do hotend está demasiado alta. Por favor, aguarde que arrefeça até à temperatura ambiente antes de reiniciar a tarefa."
+                },
+                {
+                    "ecode": "0300A40000010004",
+                    "intro": "A temperatura da câmara está demasiado alta. Por favor, aguarde que arrefeça até à temperatura ambiente antes de reiniciar a tarefa."
+                },
+                {
+                    "ecode": "0300A40000010003",
+                    "intro": "A temperatura do hotend esquerdo está demasiado alta. Por favor, aguarde que arrefeça até à temperatura ambiente antes de reiniciar a tarefa."
+                },
+                {
+                    "ecode": "0300A40000010001",
+                    "intro": "A temperatura do heatbed está demasiado alta. Por favor, aguarde que arrefeça até à temperatura ambiente antes de reiniciar a tarefa."
+                },
+                {
+                    "ecode": "0C00010000020019",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "A calibração do offset do bico de alta precisão falhou; por favor, recalcule."
+                },
+                {
+                    "ecode": "0C0001000002001A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700010000010005",
+                    "intro": "AMS A O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0702010000010005",
+                    "intro": "AMS C O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0701010000010005",
+                    "intro": "AMS B O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0703010000010005",
+                    "intro": "AMS D O sensor atual do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0C00040000030018",
+                    "intro": "A calibração da câmara da cabeça de ferramenta falhou, provavelmente porque o objeto não estava bem aderido. Os parâmetros padrão serão utilizados para este corte."
+                },
+                {
+                    "ecode": "1800010000010005",
+                    "intro": "AMS-HT A O sensor atual do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "1803010000010005",
+                    "intro": "O sensor atual do motor de assistência pode estar com defeito."
+                },
+                {
+                    "ecode": "1805010000010005",
+                    "intro": "AMS-HT F O sensor atual do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "1802010000010005",
+                    "intro": "AMS-HT C O sensor atual do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0705010000010005",
+                    "intro": "O sensor atual do motor de assistência pode estar com defeito."
+                },
+                {
+                    "ecode": "1801010000010005",
+                    "intro": "AMS-HT B O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0706010000010005",
+                    "intro": "AMS G O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "1806010000010005",
+                    "intro": "AMS-HT G O sensor atual do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0707010000010005",
+                    "intro": "AMS H O sensor atual do motor de assistência pode estar defeituoso."
+                },
+                {
+                    "ecode": "1800240000020009",
+                    "intro": "AMS-HT A capa frontal está aberta. Isto pode afetar o desempenho de secagem ou fazer com que o filamento absorva humidade."
+                },
+                {
+                    "ecode": "1807240000020009",
+                    "intro": "AMS-HT A tampa da frente está aberta. Isso pode afetar o desempenho de secagem ou fazer com que o filament absorva humidade."
+                },
+                {
+                    "ecode": "1801240000020009",
+                    "intro": "AMS-HT A tampa da frente está aberta. Isso pode afetar o desempenho de secagem ou fazer com que o filament absorva humidade."
+                },
+                {
+                    "ecode": "1806240000020009",
+                    "intro": "AMS-HT A tampa da frente está aberta. Isso pode afetar o desempenho de secagem ou fazer com que o filament absorva humidade."
+                },
+                {
+                    "ecode": "1802240000020009",
+                    "intro": "AMS-HT A capa frontal está aberta. Isto pode afetar o desempenho de secagem ou fazer com que o filamento absorva humidade."
+                },
+                {
+                    "ecode": "1805240000020009",
+                    "intro": "AMS-HT A tampa da frente está aberta. Isso pode afetar o desempenho de secagem ou fazer com que o filament absorva humidade."
+                },
+                {
+                    "ecode": "1804240000020009",
+                    "intro": "AMS-HT A tampa da frente está aberta. Isso pode afetar o desempenho de secagem ou fazer com que o filament absorva humidade."
+                },
+                {
+                    "ecode": "1803240000020009",
+                    "intro": "AMS-HT A capa frontal está aberta. Isto pode afetar o desempenho de secagem ou fazer com que o filamento absorva humidade."
+                },
+                {
+                    "ecode": "0707730000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 4 do AMS H do Toolhead. Causa possível: filamento ou bobina stuck."
+                },
+                {
+                    "ecode": "0703710000020005",
+                    "intro": "Falhou ao alimentar o filamento do AMS D Slot 2. Por favor, corte a extremidade do filamento e verifique se o rolo está preso."
+                },
+                {
+                    "ecode": "0706700000020005",
+                    "intro": "Falhou ao alimentar o filamento do AMS G Slot 1. Por favor, corte a extremidade do filamento e verifique se o rolo está preso."
+                },
+                {
+                    "ecode": "0701710000020002",
+                    "intro": "Falhou ao alimentar o filamento do AMS B Slot 2 na Toolhead. Causa possível: filamento ou rolo preso."
+                },
+                {
+                    "ecode": "0704700000020004",
+                    "intro": "Falhou ao retrair o filamento do AMS E Slot 1 da Toolhead. Causa possível: filamento ou rolo preso."
+                },
+                {
+                    "ecode": "1804720000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS-HT E do Toolhead. Causa possível: filamento ou bobina stuck."
+                },
+                {
+                    "ecode": "0704720000020005",
+                    "intro": "Falhou ao alimentar o filamento do AMS E Slot 3. Por favor, corte a extremidade do filamento e verifique se o rolo está preso."
+                },
+                {
+                    "ecode": "0702710000020002",
+                    "intro": "Falhou ao alimentar o filamento do AMS C Slot 2 na Toolhead. Causa possível: filamento ou rolo preso."
+                },
+                {
+                    "ecode": "0703710000020001",
+                    "intro": "Falhou ao retirar o filamento do AMS D Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1805710000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 2 do AMS-HT F. Por favor, corte a ponta do filamento e verifique se a bobina está stuck."
+                },
+                {
+                    "ecode": "1803720000020002",
+                    "intro": "Falhou ao alimentar o filamento do AMS-HT D Slot 3 na Toolhead. Causa possível: filamento ou rolo preso."
+                },
+                {
+                    "ecode": "0704710000020001",
+                    "intro": "Falha ao retirar o filamento do slot 2 do AMS do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1805730000020001",
+                    "intro": "Falha ao retirar o filamento do slot 4 do AMS-HT do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1806710000020005",
+                    "intro": "Falha ao alimentar o filamento do slot 2 do AMS-HT. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0704730000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 4 do AMS E do Toolhead. Causa possível: filamento ou bobina stuck."
+                },
+                {
+                    "ecode": "1805730000020004",
+                    "intro": "Falha ao recuar o filamento do slot 4 do AMS-HT do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0702720000020005",
+                    "intro": "Falha ao alimentar o filamento do slot 3 do AMS C. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1800720000020001",
+                    "intro": "Falha ao retirar o filamento do slot 3 do AMS-HT do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0702720000020001",
+                    "intro": "Falha ao retirar o filamento do slot 3 do AMS C do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1805710000020002",
+                    "intro": "Falha ao alimentar o filamento do slot 2 do AMS-HT no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1804700000020004",
+                    "intro": "Falha ao recuar o filamento do slot 1 do AMS-HT do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1803730000020001",
+                    "intro": "Falha ao extrair o filamento do AMS-HT D Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1804720000020001",
+                    "intro": "Falha ao extrair o filamento do AMS-HT E Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1802710000020004",
+                    "intro": "Falha ao recuar o filamento do AMS-HT C Slot 2 da Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1801710000020002",
+                    "intro": "Falha ao alimentar o filamento do Slot 2 do AMS-HT B no Toolhead. Causa possível: filamento ou bobina stuck."
+                },
+                {
+                    "ecode": "0703700000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 1 do AMS D do cabeçote de impressão. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1800710000020001",
+                    "intro": "Falha ao extrair o filamento do AMS-HT A Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1800720000020004",
+                    "intro": "Falha ao recuar o filamento do AMS-HT A Slot 3 da Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1800730000020002",
+                    "intro": "Falha ao alimentar o filamento do Slot 4 do AMS-HT A no Toolhead. Causa possível: filamento ou bobina stuck."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Falha ao introduzir o filamento do AMS-HT E Slot 1 na Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0705730000020005",
+                    "intro": "Falha ao alimentar o filamento AMS F Slot 4. Por favor, corte a extremidade do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1807720000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT H Slot 3. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "0701700000020001",
+                    "intro": "Falha ao retirar o filamento AMS B Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1807700000020004",
+                    "intro": "Falha ao recolher o filamento AMS-HT H Slot 1 do Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0702720000020004",
+                    "intro": "Falha ao recolher o filamento AMS C Slot 3 do Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0705730000020002",
+                    "intro": "Falha ao alimentar o filamento AMS F Slot 4 no Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT G Slot 1 no Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1806710000020004",
+                    "intro": "Falha ao retrair o filamento AMS-HT G Slot 2 da cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1803730000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT D Slot 4 na cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0704720000020001",
+                    "intro": "Falha ao retirar o filamento AMS E Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1802730000020004",
+                    "intro": "Falha ao recolher o filamento AMS-HT C Slot 4 do Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Falha ao alimentar o filamento AMS H Slot 1 no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "1802720000020004",
+                    "intro": "Falha ao retrair o filamento AMS-HT C Slot 3 do Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0700700000020004",
+                    "intro": "Falha ao retrair o filamento AMS A Slot 1 do Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0702710000020005",
+                    "intro": "Falha ao alimentar o filamento AMS C Slot 2. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0704720000020002",
+                    "intro": "Falha ao alimentar o filamento AMS E Slot 3 no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Falha ao alimentar o filamento AMS D Slot 1 no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0703700000020005",
+                    "intro": "Falha ao alimentar o filamento AMS D Slot 1. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1801730000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT B Slot 4. Por favor, corte a extremidade do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1805700000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT F Slot 1. Por favor, corte a extremidade do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1800730000020001",
+                    "intro": "Falha ao remover o filamento AMS-HT A Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1801700000020004",
+                    "intro": "Falha ao retirar o filamento AMS-HT B Slot 1 da Toolhead. Causa possível: filamento ou bobina enroscados."
+                },
+                {
+                    "ecode": "1805730000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT F Slot 4 na Toolhead. Causa possível: filamento ou bobina enroscados."
+                },
+                {
+                    "ecode": "0706700000020004",
+                    "intro": "Falha ao retirar o filamento AMS G Slot 1 da Toolhead. Causa possível: filamento ou bobina enroscados."
+                },
+                {
+                    "ecode": "1802730000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT C Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está enroscada."
+                },
+                {
+                    "ecode": "1807710000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT H Slot 2. Por favor, corte a extremidade do filamento e verifique se a bobina está enroscada."
+                },
+                {
+                    "ecode": "0700720000020002",
+                    "intro": "Falha ao alimentar o filamento AMS A Slot 3 na cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1800700000020001",
+                    "intro": "Falha ao retirar o filamento AMS-HT A Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0705700000020004",
+                    "intro": "Falha ao retirar o filamento AMS F Slot 1 da Toolhead. Causa possível: filamento ou bobina enroscados."
+                },
+                {
+                    "ecode": "1800710000020004",
+                    "intro": "Falha ao retirar o filamento AMS-HT A Slot 2 da Toolhead. Causa possível: filamento ou bobina enroscados."
+                },
+                {
+                    "ecode": "0702730000020002",
+                    "intro": "Falha ao alimentar o filamento do Slot 4 do AMS C no cabeçote de impressão. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0702710000020001",
+                    "intro": "Falha ao retirar o filamento AMS C Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1804710000020004",
+                    "intro": "Falha ao retrair o filamento AMS-HT E Slot 2 da cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1806730000020004",
+                    "intro": "Falha ao retrair o filamento AMS-HT G Slot 4 da cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1805720000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT F Slot 3. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT H Slot 1 na Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0701720000020004",
+                    "intro": "Falha ao retrair o filamento AMS B Slot 3 do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0705720000020005",
+                    "intro": "Falha ao alimentar o filamento AMS F Slot 3. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1807720000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT H Slot 3 no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1800700000020004",
+                    "intro": "Falha ao retirar o filamento do AMS-HT A Slot 1 da Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1802730000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT C Slot 4 no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1801720000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT B Slot 3 na cabeça de impressão. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1802730000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT C Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0700710000020001",
+                    "intro": "Falha ao retirar o filamento do AMS A Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1801700000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT B Slot 1. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0704700000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS E Slot 1. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0700710000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS A Slot 2 na cabeça de impressão. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0701700000020004",
+                    "intro": "Falha ao retirar o filamento do AMS B Slot 1 da Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1806730000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT G Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1801710000020004",
+                    "intro": "Falha ao retirar o filamento do AMS-HT B Slot 2 da Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0707710000020004",
+                    "intro": "Falha ao retroceder o filamento do AMS H Slot 2 da cabeça de impressão. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1803730000020004",
+                    "intro": "Falha ao puxar o filamento do AMS-HT D Slot 4 do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1801730000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT B Slot 4 no Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0700730000020004",
+                    "intro": "Falha ao retirar o filamento do AMS A Slot 4 da Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1806720000020004",
+                    "intro": "Falha ao puxar o filamento do AMS-HT G Slot 3 do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0701720000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS B Slot 3. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0705710000020004",
+                    "intro": "Falha ao retirar o filamento do AMS F Slot 2 da Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1807710000020004",
+                    "intro": "Falha ao puxar o filamento do AMS-HT H Slot 2 do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1803700000020004",
+                    "intro": "Falha ao puxar o filamento do AMS-HT D Slot 1 do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0705710000020001",
+                    "intro": "Falha ao retirar o filamento do AMS F Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0707720000020004",
+                    "intro": "Falha ao puxar o filamento do AMS H Slot 3 do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0702710000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 2 da AMS C do Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0704730000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 4 da AMS E. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1801700000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT B Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1805720000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 3 da AMS-HT F do Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0702730000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 4 da AMS C. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Falha ao alimentar o filamento do Slot 1 da AMS E no Toolhead. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0701700000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 1 da AMS B. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 1 do AMS-HT no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "1801730000020001",
+                    "intro": "Falha ao retirar o filamento do Slot 4 da AMS-HT B do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1803720000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 3 da AMS-HT D. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1807730000020004",
+                    "intro": "Falhou ao retirar o filamento AMS-HT H Slot 4 da Toolhead. Possível causa: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1800700000020005",
+                    "intro": "Falha ao alimentar o filamento Slot 1 do AMS-HT A. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0705700000020001",
+                    "intro": "Falhou ao retirar o filamento AMS F Slot 1 do extrusor. Possível causa: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1802710000020005",
+                    "intro": "Falhou ao alimentar o filamento AMS-HT C Slot 2. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1807730000020001",
+                    "intro": "Falha ao retirar o filamento Slot 4 do AMS-HT H do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0706710000020004",
+                    "intro": "Falhou ao retirar o filamento AMS G Slot 2 da Toolhead. Possível causa: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1804730000020002",
+                    "intro": "Falhou ao alimentar o filamento AMS-HT E Slot 4 na Toolhead. Possível causa: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 1 do AMS-HT D no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "1802720000020005",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS-HT C. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0706730000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 4 do AMS G no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0707700000020004",
+                    "intro": "Falha ao retirar o filamento AMS H Slot 1 da Toolhead. Causa possível: filamento ou carrete preso."
+                },
+                {
+                    "ecode": "1805700000020004",
+                    "intro": "Falha ao retirar o filamento AMS-HT F Slot 1 da Toolhead. Causa possível: filamento ou carrete preso."
+                },
+                {
+                    "ecode": "1805700000020001",
+                    "intro": "Falha ao retirar o filamento Slot 1 do AMS-HT F do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0707720000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS H no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0701720000020001",
+                    "intro": "Falha ao retirar o filamento AMS B Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0700720000020004",
+                    "intro": "Falha ao retirar o filamento AMS A Slot 3 da Toolhead. Causa possível: filamento ou carrete preso."
+                },
+                {
+                    "ecode": "1804710000020001",
+                    "intro": "Falha ao retirar o filamento AMS-HT E Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1801710000020001",
+                    "intro": "Falha ao retirar o filamento AMS-HT B Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1806730000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT G Slot 4 na Toolhead. Causa possível: filamento ou carrete preso."
+                },
+                {
+                    "ecode": "0703710000020002",
+                    "intro": "Falha ao alimentar o filamento AMS D Slot 2 na Toolhead. Causa possível: filamento ou carrete preso."
+                },
+                {
+                    "ecode": "0703720000020001",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0706720000020001",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS G do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1801730000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 4 do AMS-HT B do cabeçote de impressão. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0704710000020002",
+                    "intro": "Falha ao introduzir o filamento do Slot 2 do AMS E no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1800710000020002",
+                    "intro": "Falha ao introduzir o filamento do Slot 2 do AMS-HT A no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1802710000020002",
+                    "intro": "Falha ao introduzir o filamento do Slot 2 do AMS-HT C no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1805720000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS-HT F no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0703730000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 4 do AMS D do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1806720000020005",
+                    "intro": "Falha ao introduzir o filamento do Slot 3 do AMS-HT G. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0706720000020002",
+                    "intro": "Falha ao introduzir o filamento do Slot 3 do AMS G no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0704730000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS E Slot 4 no cabeçote. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1807720000020001",
+                    "intro": "Falha ao extrair o filamento do AMS-HT H Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1803710000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT D Slot 2. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1807710000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT H Slot 2 no cabeçote. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0705720000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS F Slot 3 na Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0700720000020001",
+                    "intro": "Falha ao extrair o filamento do AMS A Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0706720000020004",
+                    "intro": "Falha ao recuar o filamento do AMS G Slot 3 do cabeçote. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1804700000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT E Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1803710000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT D Slot 2 no cabeçote. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0707710000020001",
+                    "intro": "Falha ao extrair o filamento do AMS H Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1803720000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS-HT do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1805730000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 4 do AMS-HT. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1803710000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT D Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1803700000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 1 do AMS-HT. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT F Slot 1 na Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0701710000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 2 do AMS B. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0707730000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 4 do AMS H. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1807720000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS-HT H do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0701720000020002",
+                    "intro": "Falha ao alimentar o filamento do Slot 3 do AMS B no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0705700000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 1 do AMS F. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1801720000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT B Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0707730000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS H Slot 4 na Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1804720000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT E Slot 3 no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0704730000020001",
+                    "intro": "Falha ao retirar o filamento do AMS E Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1801720000020004",
+                    "intro": "Falha ao retrair o filamento do AMS-HT B Slot 3 da Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1802700000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT C Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0703710000020004",
+                    "intro": "Falha ao retornar o filamento do AMS D Slot 2 do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0706730000020001",
+                    "intro": "Falha ao retirar o filamento do AMS G Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1806700000020004",
+                    "intro": "Falha ao retornar o filamento do AMS-HT G Slot 1 do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0700700000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS A Slot 1. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1800720000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS-HT no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "1800720000020005",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS-HT. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1806720000020001",
+                    "intro": "Falha ao retirar o filamento Slot 3 do AMS-HT G do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0706700000020001",
+                    "intro": "Falha ao retirar o filamento Slot 1 do AMS G do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 1 do AMS-HT A no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0700720000020005",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS A. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0707720000020001",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS H do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1802710000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT C Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0706720000020005",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS G. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0702720000020002",
+                    "intro": "Falha ao alimentar o filamento Slot 3 do AMS C no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0704710000020005",
+                    "intro": "Falha ao alimentar o filamento AMS E Slot 2. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1806720000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT G Slot 3 no Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1807700000020001",
+                    "intro": "Falha ao extrair o filamento AMS-HT H Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1804730000020004",
+                    "intro": "Falha ao retrair o filamento AMS-HT E Slot 4 da cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0707710000020005",
+                    "intro": "Falha ao alimentar o filamento AMS H Slot 2. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1807730000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT H Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0705730000020001",
+                    "intro": "Falha ao extrair o filamento AMS F Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0704720000020004",
+                    "intro": "Falha ao puxar o filamento AMS E Slot 3 do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0701730000020005",
+                    "intro": "Falha ao alimentar o filamento AMS B Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0704710000020004",
+                    "intro": "Falha ao puxar o filamento AMS E Slot 2 do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1803700000020001",
+                    "intro": "Falha ao retirar o filamento AMS-HT D Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0706710000020005",
+                    "intro": "Falha ao alimentar o filamento AMS G Slot 2. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0707700000020001",
+                    "intro": "Falha ao retirar o filamento AMS H Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1807700000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT H Slot 1. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "0706730000020005",
+                    "intro": "Falha ao alimentar o filamento AMS G Slot 4. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1805720000020001",
+                    "intro": "Falha ao retirar o filamento AMS-HT F Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0701730000020001",
+                    "intro": "Falha ao extrair o filamento AMS B Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0700710000020005",
+                    "intro": "Falha ao alimentar o filamento AMS A Slot 2. Por favor, corte a ponta do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1803730000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT D Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1804700000020005",
+                    "intro": "Falha ao alimentar o filamento AMS-HT E Slot 1. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0703700000020001",
+                    "intro": "Falha ao retirar o filament AMS D Slot 1 do extrusor. Causa possível: extrusor entupido ou filament partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0701710000020001",
+                    "intro": "Falha ao retirar o filament AMS B Slot 2 do extrusor. Causa possível: extrusor entupido ou filament partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT C Slot 1 na cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Falha ao alimentar o filamento do Slot 1 do AMS G no cabeçote de impressão. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Falha ao alimentar o filamento AMS F Slot 1 na cabeça de impressão. Causa possível: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1806700000020005",
+                    "intro": "Falha ao alimentar o filament AMS-HT G Slot 1. Por favor, corte a ponta do filament e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0703720000020005",
+                    "intro": "Falha ao alimentar o filament AMS D Slot 3. Por favor, corte a ponta do filament e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1804010000010005",
+                    "intro": "O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "1807010000010005",
+                    "intro": "O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0704010000010005",
+                    "intro": "O sensor de corrente do motor de assistência pode estar avariado."
+                },
+                {
+                    "ecode": "0701710000020004",
+                    "intro": "Falha ao retirar o filamento do AMS B Slot 2 da cabeça de impressão. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0706710000020001",
+                    "intro": "Falha ao retirar o filamento do AMS G Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0707700000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS H Slot 1. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0701730000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 4 do AMS B do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0703730000020001",
+                    "intro": "Falha ao retirar o filamento do AMS D Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0707720000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS H Slot 3. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1802700000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 1 do AMS-HT C. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0703720000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS D do Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1801720000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 3 do AMS-HT B. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1804710000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT E Slot 2 na cabeça de impressão. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0700730000020005",
+                    "intro": "Falha ao alimentar o filamento da AMS A Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1804730000020005",
+                    "intro": "Falha ao alimentar o filamento da AMS-HT E Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1800730000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 4 do AMS-HT A. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0705720000020001",
+                    "intro": "Falha ao retirar o filamento AMS F Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1804730000020001",
+                    "intro": "Falha ao retirar o filamento do Slot 4 do AMS-HT E do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0700730000020001",
+                    "intro": "Falha ao retirar o filamento AMS A Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1802720000020001",
+                    "intro": "Falha ao retirar o filamento do Slot 3 do AMS-HT C do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1806710000020001",
+                    "intro": "Falha ao retirar o filamento AMS-HT G Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0703730000020005",
+                    "intro": "Falha ao alimentar o filamento da AMS D Slot 4. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "1803710000020004",
+                    "intro": "Falha ao retirar o filamento AMS-HT D Slot 2 do Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0703730000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS D Slot 4 na Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1803720000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT D Slot 3 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0700700000020001",
+                    "intro": "Falha ao retirar o filamento AMS A Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1802700000020004",
+                    "intro": "Falha ao retirar o filamento AMS-HT C Slot 1 do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0706710000020002",
+                    "intro": "Falha ao alimentar o filamento AMS G Slot 2 no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1804710000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT E Slot 2. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0705730000020004",
+                    "intro": "Falha ao recuar o filamento do AMS F Slot 4 da Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0700710000020004",
+                    "intro": "Falha ao recuar o filamento do AMS A Slot 2 da Toolhead. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "1805710000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT F Slot 2 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1807730000020002",
+                    "intro": "Falha ao alimentar o filamento AMS-HT H Slot 4 no Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "1804720000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT E Slot 3. Por favor, corte a extremidade do filamento e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "1805710000020004",
+                    "intro": "Falha ao retirar o filamento AMS-HT F Slot 2 do Toolhead. Causa possível: filamento ou bobina presa."
+                },
+                {
+                    "ecode": "0707710000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS H Slot 2 no Toolhead. Possível causa: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0705720000020004",
+                    "intro": "Falha ao puxar o filamento do AMS F Slot 3 do Toolhead. Possível causa: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0702700000020005",
+                    "intro": "Falha ao alimentar o filamento do Slot 1 do AMS C. Por favor, corte a extremidade do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0700730000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS A Slot 4 no Toolhead. Possível causa: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1800730000020004",
+                    "intro": "Falha ao puxar o filamento do AMS-HT A Slot 4 do Toolhead. Possível causa: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0702730000020004",
+                    "intro": "Falha ao retirar o filamento do Slot 4 do AMS C do cabeçote de impressão. Causa possível: filamento ou bobina preso."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS B Slot 1 no Toolhead. Possível causa: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS C Slot 1 no Toolhead. Possível causa: filamento ou carretel preso."
+                },
+                {
+                    "ecode": "1806730000020001",
+                    "intro": "Falha ao retirar o filamento AMS-HT G Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0702700000020001",
+                    "intro": "Falha ao retirar o filamento AMS C Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1800710000020005",
+                    "intro": "Falha ao alimentar o AMS-HT A Slot 2 filament. Por favor, corte a extremidade do filament e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "0702700000020004",
+                    "intro": "Falha ao retrair o AMS C Slot 1 filament do Toolhead. Causa possível: filament ou carretel preso."
+                },
+                {
+                    "ecode": "0701730000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS B Slot 4 no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "0705710000020005",
+                    "intro": "Falha ao alimentar o AMS F Slot 2 filament. Por favor, corte a extremidade do filament e verifique se o carretel está preso."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS A Slot 1 no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "1806710000020002",
+                    "intro": "Falha ao alimentar o AMS-HT G Slot 2 filament no Toolhead. Causa possível: filament ou carretel preso."
+                },
+                {
+                    "ecode": "1801710000020005",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT B Slot 2. Por favor, corte a ponta do filamento e verifique se a bobina está presa."
+                },
+                {
+                    "ecode": "0706730000020004",
+                    "intro": "Falha ao retrair o AMS G Slot 4 filament do Toolhead. Causa possível: filament ou carretel preso."
+                },
+                {
+                    "ecode": "0703720000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS D Slot 3 na Toolhead. Possível causa: filamento ou rolo preso."
+                },
+                {
+                    "ecode": "1802720000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS-HT C Slot 3 na Toolhead. Possível causa: filamento ou rolo preso."
+                },
+                {
+                    "ecode": "0702730000020001",
+                    "intro": "Falha ao retirar o filamento do AMS C Slot 4 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0705710000020002",
+                    "intro": "Falha ao alimentar o filamento do AMS F Slot 2 no Toolhead. Causa possível: filamento ou bobina presos."
+                },
+                {
+                    "ecode": "1806700000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT G Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0707730000020001",
+                    "intro": "Falha ao retirar o filamento do AMS H Slot 4 do extrusor. Possível causa: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "1807710000020001",
+                    "intro": "Falha ao retirar o filamento do AMS-HT H Slot 2 do extrusor. Possível causa: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0704700000020001",
+                    "intro": "Falha ao retirar o filamento do AMS E Slot 1 do extrusor. Causa possível: extrusor entupido ou filamento partido dentro do extrusor."
+                },
+                {
+                    "ecode": "0500030000010021",
+                    "intro": "Hardware incompatível; por favor, verifique a Câmera do Toolhead."
+                },
+                {
+                    "ecode": "0C00010000010001",
+                    "intro": "A Câmera do Toolhead está offline. Por favor, verifique a ligação do hardware."
+                },
+                {
+                    "ecode": "0C00010000010003",
+                    "intro": "A sincronização entre a Câmara do Toolhead e o MC está anormal. Por favor, reinicie a sua impressora."
+                },
+                {
+                    "ecode": "0C00010000010004",
+                    "intro": "A lente da Câmera do Toolhead parece estar suja. Por favor, limpe a lente."
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "O parâmetro da câmara Toolhead está anormal. Por favor, contacte o serviço pós-venda."
+                },
+                {
+                    "ecode": "0C00010000010009",
+                    "intro": "A lente da câmara de Visualização Live parece estar suja. Por favor, limpe a lente."
+                },
+                {
+                    "ecode": "0C00010000020006",
+                    "intro": "O parâmetro da câmara Toolhead está anormal. Por favor, ative a calibração da taxa de fluxo na próxima impressão."
+                },
+                {
+                    "ecode": "0C00010000020008",
+                    "intro": "Falha ao obter imagem da Câmara de Visualização ao Vivo. A deteção de pilha de espaguete e resíduos não está disponível neste momento."
+                },
+                {
+                    "ecode": "0500060000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000010012",
+                    "intro": "O link de dados da câmara de Visualização Live está anormal."
+                },
+                {
+                    "ecode": "0300950000010001",
+                    "intro": "O sensor de temperatura do Módulo a Laser pode ter um curto-circuito."
+                },
+                {
+                    "ecode": "0500060000020001",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000020003",
+                    "intro": "A Plataforma de Laser não está corretamente alinhada. Por favor, assegure-se de que os quatro cantos estão alinhados com a superfície de aquecimento."
+                },
+                {
+                    "ecode": "0300950000010005",
+                    "intro": "A comunicação do Módulo de Laser está anormal; por favor, verifique o conetor."
+                },
+                {
+                    "ecode": "0500060000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020004",
+                    "intro": "A câmara de Visualização Live não está no lugar; por favor, verifique a ligação do hardware."
+                },
+                {
+                    "ecode": "0C00040000020002",
+                    "intro": "Plataforma de Corte não detectada. Por favor, coloque o tapete necessário para a tarefa e continue."
+                },
+                {
+                    "ecode": "0300950000010003",
+                    "intro": "Módulo de Laser a sobreaquecer"
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "Falha ao ligar a Câmera do Bico. Por favor, verifique o hardware e as ligações de cabo."
+                },
+                {
+                    "ecode": "0500060000020022",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "O módulo a laser não foi detectado. O módulo pode ter caído ou a alavanca de libertação rápida pode não estar fixada."
+                },
+                {
+                    "ecode": "0300950000010004",
+                    "intro": "A velocidade do ventilador de refrigeração do módulo a laser está demasiado baixa ou parou. Pode estar preso ou o conector pode não estar corretamente ligado."
+                },
+                {
+                    "ecode": "0500060000020033",
+                    "intro": "A câmara BirdEye não está ligada. Por favor, verifique as ligações do hardware e do cabo."
+                },
+                {
+                    "ecode": "0500060000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010002",
+                    "intro": "O sensor de temperatura do Módulo Laser pode ter um circuito aberto."
+                },
+                {
+                    "ecode": "0C0001000003000C",
+                    "intro": "A temperatura da Câmera de Bico está demasiado alta, fazendo com que a funcionalidade de deteção de IA pause. A funcionalidade irá retomar automaticamente assim que a temperatura voltar ao normal."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "É recomendado calibrar a câmara de Visualização ao Vivo para melhorar a precisão da deteção de objetos estranhos. Toque em \"Configurações > Calibração\" no ecrã da impressora. Se um módulo a laser ou de corte estiver instalado, por favor, remova-o antes da calibração."
+                },
+                {
+                    "ecode": "0C00030000020016",
+                    "intro": "A deteção de objetos estranhos não está a funcionar e o número de série da câmara de Visualização ao Vivo não pode ser lido. Por favor, contacte a equipa de suporte ao cliente."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "A Câmera de Bico está a apresentar problemas. Se este problema ocorrer várias vezes durante a impressão, por favor, contacte o serviço de apoio ao cliente."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "A câmara BirdEye não está certificada. Por favor, use acessórios da Bambu Lab."
+                },
+                {
+                    "ecode": "0C00010000010018",
+                    "intro": "A câmara BirdEye não está certificada e as funções relacionadas com a câmara são inválidas."
+                },
+                {
+                    "ecode": "050001000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010008",
+                    "intro": "A comunicação do Módulo Laser está anormal; por favor, verifique o conector."
+                },
+                {
+                    "ecode": "0503050000010010",
+                    "intro": "AMS D não certificado detectado ou firmware do AMS D não atualizado. Incapaz de operar com esta impressora."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "A deteção de objetos estranhos não está a funcionar. A câmara de visualização ao vivo precisa de calibração. Por favor, toque em \"Definições > Calibração\" no ecrã da impressora. Se um módulo a laser ou de corte estiver instalado, por favor remova-o antes da calibração."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "AMS A não certificado detectado ou firmware do AMS A não atualizado. Incapaz de operar com esta impressora."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "O material não pode ser detectado porque é muito pequeno e está posicionado muito à esquerda ou muito perto da porta. Por favor, mova-o para a área central."
+                },
+                {
+                    "ecode": "0505050000010010",
+                    "intro": "AMS F não certificado detetado ou firmware AMS F não atualizado. Incapaz de operar com esta impressora."
+                },
+                {
+                    "ecode": "0501050000010010",
+                    "intro": "AMS B não certificado detetado ou firmware AMS B não atualizado. Incapaz de operar com esta impressora."
+                },
+                {
+                    "ecode": "0506050000010010",
+                    "intro": "AMS G não certificado detectado ou firmware do AMS G não atualizado. Incapaz de operar com esta impressora."
+                },
+                {
+                    "ecode": "0504050000010010",
+                    "intro": "AMS E não certificado detectado ou firmware AMS E não atualizado. Incapaz de operar com esta impressora."
+                },
+                {
+                    "ecode": "0507050000010010",
+                    "intro": "AMS H não certificado detectado ou firmware do AMS H não atualizado. Incapaz de operar com esta impressora."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "Antes de usar um Módulo de Laser/Corte, a posição da Câmera BirdsEye precisa ser determinada. Por favor, complete a configuração para calibrar a câmera."
+                },
+                {
+                    "ecode": "0502050000010010",
+                    "intro": "AMS C não certificado detetado ou firmware AMS C não atualizado. Incapaz de operar com esta impressora."
+                },
                 {
                     "ecode": "07FF800000020002",
                     "intro": "A posição do hotend esquerdo está anormal durante a impressão. Por favor, verifique se o bloqueador de fluxo risca o modelo impresso."
@@ -2450,14 +3790,6 @@
                 {
                     "ecode": "1800200000020007",
                     "intro": "O sensor Hall de saída do A Slot 1 da AMS-HT está desconectado. O conector pode ter mau contacto."
-                },
-                {
-                    "ecode": "0C00010000010018",
-                    "intro": "A câmara BirdsEye não está certificada e as funções relacionadas com a câmara são inválidas."
-                },
-                {
-                    "ecode": "050001000001000A",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020007",
@@ -2594,10 +3926,6 @@
                 {
                     "ecode": "0701230000020007",
                     "intro": "O sensor Hall de alimentação do Slot 4 do AMS B está desligado. O conetor pode ter mau contacto."
-                },
-                {
-                    "ecode": "0C00040000030018",
-                    "intro": "A calibração da câmara da cabeça de ferramenta falhou, provavelmente porque o material não estava bem aderido. Os parâmetros de default serão utilizados para este corte."
                 },
                 {
                     "ecode": "0300970000010004",
@@ -2836,14 +4164,6 @@
                     "intro": "A aquecimento da câmara falhou. O aquecedor da câmara pode não estar a circular ar quente."
                 },
                 {
-                    "ecode": "0C00030000020014",
-                    "intro": "A deteção de objetos estranhos não está a funcionar. É recomendado desinstalar o módulo laser ou de corte, se estiver instalado, e aceder a \"Definições>Calibração\" no ecrã da impressora para recalibrar a Câmera Live View."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "A deteção de objetos estranhos não está a funcionar. É recomendado desinstalar o módulo laser ou de corte, se estiver instalado, e aceder a \"Definições>Calibração\" no ecrã da impressora para recalibrar a Câmera Live View."
-                },
-                {
                     "ecode": "0C00030000020015",
                     "intro": "A deteção de objetos estranhos não está a funcionar. Foi detectado que a Câmera Live View foi substituída. Se um módulo laser ou de corte estiver instalado, por favor, desinstale o módulo, aceda a \"Definições>Calibração\" no ecrã da impressora e recalibre a Câmera Live View."
                 },
@@ -2864,84 +4184,12 @@
                     "intro": "Módulo de corte instalado. Detectado desajuste no tipo de plataforma. Por favor, coloque a plataforma de corte para calibração de corte."
                 },
                 {
-                    "ecode": "0700700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina preso."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina preso."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina preso."
-                },
-                {
-                    "ecode": "0705700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina preso."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina preso."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "1801700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "1803700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "1805700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Falha ao alimentar o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "O material é demasiado pequeno e está colocado muito à esquerda para ser detectado. Por favor, mova-o para o centro ou para o lado direito."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Falha ao introduzir o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "0707700000020002",
-                    "intro": "Falha ao introduzir o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Falha ao introduzir o filamento na cabeça de impressão. Causa possível: filamento ou bobina presos."
-                },
-                {
                     "ecode": "0701200000020006",
                     "intro": "Deteção de desconexão do tubo PTFE durante o carregamento do filamento. Por favor, verifique se o tubo PTFE do AMS B ao extrusor está corretamente ligado."
                 },
                 {
                     "ecode": "0702200000020006",
                     "intro": "Deteção de desconexão do tubo PTFE durante o carregamento do filamento. Por favor, verifique se o tubo PTFE do AMS C ao extrusor está corretamente ligado."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "Foi detectada uma nova câmera BirdsEye ou uma alteração no ângulo da câmera. Por favor, complete a configuração antes de usar."
                 },
                 {
                     "ecode": "1801200000020006",
@@ -3180,16 +4428,8 @@
                     "intro": "A homing do eixo Z falhou no modo de corte. Por favor, verifique se há objetos estranhos no deslizador do eixo Z e na polia sincrona do eixo Z."
                 },
                 {
-                    "ecode": "0500050000010010",
-                    "intro": "AMS não certificado detetado. Incapaz de operar com esta impressora."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "O carretel externo ligado ao extrusor direito pode estar enredado ou bloqueado."
-                },
-                {
-                    "ecode": "050005000001000D",
-                    "intro": "A câmara BirdEye não está certificada. Por favor, use acessórios da Bambu Lab."
                 },
                 {
                     "ecode": "050005000001000E",
@@ -3206,38 +4446,6 @@
                 {
                     "ecode": "0300280000010007",
                     "intro": "Falha de comunicação entre o módulo de corte e o módulo da cabeça de ferramenta. Verifique se o cabo de sinal do módulo de corte está solto ou partido. Também pode ser devido a uma bobina do sensor de força partida."
-                },
-                {
-                    "ecode": "1800240000020009",
-                    "intro": "A capa frontal do AMS HT A está aberta. Isto pode afetar o desempenho de secagem ou causar a absorção de humidade pelo filamento."
-                },
-                {
-                    "ecode": "1807240000020009",
-                    "intro": "A capa frontal do AMS HT H está aberta. Isto pode afetar o desempenho de secagem ou causar a absorção de humidade pelo filamento."
-                },
-                {
-                    "ecode": "1801240000020009",
-                    "intro": "A capa frontal do AMS HT B está aberta. Isto pode afetar o desempenho de secagem ou causar a absorção de humidade pelo filamento."
-                },
-                {
-                    "ecode": "1806240000020009",
-                    "intro": "A capa frontal do AMS HT G está aberta. Isto pode afetar o desempenho de secagem ou causar a absorção de humidade pelo filamento."
-                },
-                {
-                    "ecode": "1802240000020009",
-                    "intro": "A capa frontal do AMS HT C está aberta. Isto pode afetar o desempenho de secagem ou causar a absorção de humidade pelo filamento."
-                },
-                {
-                    "ecode": "1805240000020009",
-                    "intro": "A capa frontal do AMS HT F está aberta. Isto pode afetar o desempenho de secagem ou causar a absorção de humidade pelo filamento."
-                },
-                {
-                    "ecode": "1804240000020009",
-                    "intro": "A capa frontal do AMS HT E está aberta. Isso pode afetar o desempenho da secagem ou fazer com que o filamento absorva humidade."
-                },
-                {
-                    "ecode": "1803240000020009",
-                    "intro": "A capa frontal do AMS HT D está aberta. Isso pode afetar o desempenho da secagem ou fazer com que o filamento absorva humidade."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -3372,10 +4580,6 @@
                     "intro": "A temperatura da câmara está demasiado alta. Por favor, abra a tampa superior e a porta da frente para arrefecer, ou diminua a temperatura ambiente."
                 },
                 {
-                    "ecode": "0C00040000010012",
-                    "intro": "O link de dados da câmara Liveview está anormal."
-                },
-                {
                     "ecode": "0500050000010009",
                     "intro": ""
                 },
@@ -3422,10 +4626,6 @@
                 {
                     "ecode": "0500060000020034",
                     "intro": "A câmara Live View não está conectada. Por favor, verifique as conexões de hardware e de cabo."
-                },
-                {
-                    "ecode": "0500060000020033",
-                    "intro": "A câmara BirdsEye não está conectada. Por favor, verifique as conexões de hardware e de cabo."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3478,10 +4678,6 @@
                 {
                     "ecode": "180422000002000A",
                     "intro": "Falha ao ajustar a posição do filamento de AMS-HT E Slot 3. O filamento ou o buffer podem estar presos."
-                },
-                {
-                    "ecode": "070822000002000A",
-                    "intro": "Falha ao ajustar a posição do filamento de AMS Slot 3 indefinido. O filamento ou o buffer podem estar presos."
                 },
                 {
                     "ecode": "07FF800000020001",
@@ -3644,10 +4840,6 @@
                     "intro": "Não foi possível ajustar a posição do filamento do Slot 1 de AMS-HT B. O filamento ou o buffer podem estar presos."
                 },
                 {
-                    "ecode": "070820000002000A",
-                    "intro": "Não foi possível ajustar a posição do filamento do Slot 1 de AMS indefinido. O filamento ou o buffer podem estar presos."
-                },
-                {
                     "ecode": "180322000002000A",
                     "intro": "Não foi possível ajustar a posição do filamento do Slot 3 de AMS-HT D. O filamento ou o buffer podem estar presos."
                 },
@@ -3658,10 +4850,6 @@
                 {
                     "ecode": "180720000002000A",
                     "intro": "Não foi possível ajustar a posição do filamento do Slot 1 de AMS-HT H. O filamento ou o buffer podem estar presos."
-                },
-                {
-                    "ecode": "0C00010000020014",
-                    "intro": "A câmera da bico não está a funcionar corretamente. Se este problema ocorrer várias vezes durante a impressão, por favor contacte o serviço de assistência ao cliente."
                 },
                 {
                     "ecode": "070122000002000A",
@@ -3720,10 +4908,6 @@
                     "intro": "Falha ao ajustar a posição do filamento da ranhura 2 do AMS H. O filamento ou o buffer pode estar preso."
                 },
                 {
-                    "ecode": "070823000002000A",
-                    "intro": "Falha ao ajustar a posição do filamento da ranhura 4 do AMS indefinido. O filamento ou o buffer pode estar preso."
-                },
-                {
                     "ecode": "070523000002000A",
                     "intro": "Falha ao ajustar a posição do filamento da ranhura 4 do AMS F. O filamento ou o buffer pode estar preso."
                 },
@@ -3742,14 +4926,6 @@
                 {
                     "ecode": "180323000002000A",
                     "intro": "Falha ao ajustar a posição do filamento da ranhura 4 do AMS-HT D. O filamento ou o buffer pode estar preso."
-                },
-                {
-                    "ecode": "180821000002000A",
-                    "intro": "Falha ao ajustar a posição do filamento da ranhura 2 do AMS-HT indefinido. O filamento ou o buffer pode estar preso."
-                },
-                {
-                    "ecode": "180822000002000A",
-                    "intro": "Falha ao ajustar a posição do filamento da ranhura 3 do AMS-HT indefinido. O filamento ou o buffer pode estar preso."
                 },
                 {
                     "ecode": "070322000002000A",
@@ -3776,10 +4952,6 @@
                     "intro": "Falha ao ajustar a posição do filamento de AMS-HT F Slot 1. O filamento ou o buffer podem estar presos."
                 },
                 {
-                    "ecode": "180823000002000A",
-                    "intro": "Falha ao ajustar a posição do filamento de AMS-HT Slot 4 indefinido. O filamento ou o buffer podem estar presos."
-                },
-                {
                     "ecode": "070120000002000A",
                     "intro": "Falha ao ajustar a posição do filamento de AMS B Slot 1. O filamento ou o buffer podem estar presos."
                 },
@@ -3794,10 +4966,6 @@
                 {
                     "ecode": "180223000002000A",
                     "intro": "Falha ao ajustar a posição do filamento do AMS-HT C Slot 4. O filamento ou buffer podem estar presos."
-                },
-                {
-                    "ecode": "180820000002000A",
-                    "intro": "Falha ao ajustar a posição do filamento do AMS-HT Slot 1 indefinido. O filamento ou buffer podem estar presos."
                 },
                 {
                     "ecode": "070520000002000A",
@@ -3838,10 +5006,6 @@
                 {
                     "ecode": "180021000002000A",
                     "intro": "Não foi possível ajustar a posição do filamento da Slot 2 de AMS-HT A. O filamento ou o buffer podem ter ficado presos."
-                },
-                {
-                    "ecode": "070821000002000A",
-                    "intro": "Não foi possível ajustar a posição do filamento da Slot 2 de AMS indefinido. O filamento ou o buffer podem ter ficado presos."
                 },
                 {
                     "ecode": "070423000002000A",
@@ -3930,10 +5094,6 @@
                 {
                     "ecode": "1805700000020003",
                     "intro": "Falha ao extrudar o filamento. Possível causa: obstrução do extrusor ou bico. Por favor consulte o Assistente para mais detalhes."
-                },
-                {
-                    "ecode": "1804700000020005",
-                    "intro": "Falha ao alimentar o filamento fora da AMS-HT. Por favor, corte a extremidade do filamento bem plana e verifique se a bobina está presa. Por favor consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -4176,10 +5336,6 @@
                     "intro": "Falha no chip de criptografia."
                 },
                 {
-                    "ecode": "1805700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS-HT. Por favor, corte o fim do filamento de forma plana e verifique se o rolo está bloqueado. Por favor, consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "18FF200000020004",
                     "intro": "Por favor, puxe o filamento externo do extrusor direito."
                 },
@@ -4200,10 +5356,6 @@
                     "intro": "O sensor de temperatura e umidade apresenta um erro. O chip pode estar com defeito."
                 },
                 {
-                    "ecode": "1806700000020001",
-                    "intro": "Falha ao retirar o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento partido. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "1805700000020013",
                     "intro": "Alimentação de filamento para a roda de extrusão do motor assistente AMS-HT F falhou. Isso pode ser devido a um sinal perdido da roda do odómetro. Verifique a conexão do plugue da roda do odómetro."
                 },
@@ -4220,24 +5372,12 @@
                     "intro": "A captura de filamento do extrusor assistente AMS F falhou, possivelmente devido a uma resistência excessiva do buffer. Verifique se o buffer está preso, se o carretel do filamento está inclinado e se o tubo de filamento está claro."
                 },
                 {
-                    "ecode": "0707700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS. Corte a ponta do filamento plana e verifique se o carretel está preso. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "1805700000020050",
                     "intro": "Falha no carregamento do filamento no buffer AMS-HT F; isso pode ser devido a uma resistência excessiva no buffer. Verifique se o buffer está preso, se o carretel do filamento está inclinado ou se o tubo de filamento está bloqueado."
                 },
                 {
-                    "ecode": "1807700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS-HT. Corte a ponta do filamento plana e verifique se o carretel está preso. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0705700000020032",
                     "intro": "Alimentação de filamento para o extrusor da cabeça da ferramenta AMS F falhou; isso pode ser devido a uma resistência excessiva do filamento. Verifique se o carretel do filamento está inclinado ou se o tubo de filamento está obstruído."
-                },
-                {
-                    "ecode": "0704700000020004",
-                    "intro": "Não foi possível puxar o filamento do extrusor de volta para o AMS. Possível causa: filamento ou suporte preso. Consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "0706700000020006",
@@ -4410,10 +5550,6 @@
                 {
                     "ecode": "0707200000020008",
                     "intro": "O sensor Hall de entrada do slot H 1 do AMS está desconectado, o que pode ser devido a um mau contacto do conector."
-                },
-                {
-                    "ecode": "0705700000020004",
-                    "intro": "Falha na remoção do filamento da cabeça da ferramenta para AMS. Possível causa: filamento ou carretel presos. Consultar o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1807700000020045",
@@ -4668,16 +5804,8 @@
                     "intro": "O sinal do buffer do filamento está anormal; a mola pode estar presa ou o filamento pode estar enrolado."
                 },
                 {
-                    "ecode": "1805700000020004",
-                    "intro": "Falhou ao retirar o filamento da cabeça da ferramenta para a AMS-HT. Possível causa: o filamento ou o carretel pode estar bloqueado. Por favor, consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Falha na extrusão do filamento AMS E Slot 1; o extrusor pode estar obstruído ou o filamento pode ser demasiado fino, fazendo com que o extrusor deslize."
-                },
-                {
-                    "ecode": "1802700000020005",
-                    "intro": "Falhou ao alimentar o filamento fora da AMS-HT. Por favor, corte a extremidade do filamento de forma plana e verifique se o carretel está bloqueado. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1802700000020061",
@@ -4722,10 +5850,6 @@
                 {
                     "ecode": "0707700000020022",
                     "intro": "AMS H Falha ao alimentar o filamento para o buffer; isto pode dever-se ao filamento desgastado, fazendo com que o motor auxiliar escorregue. Por favor corte a secção gasta do filamento."
-                },
-                {
-                    "ecode": "1801700000020004",
-                    "intro": "Não foi possível recuar o filamento da cabeça da ferramenta para AMS-HT. Possível causa: filamento ou carretel bloqueado. Por favor, consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -5030,10 +6154,6 @@
                 {
                     "ecode": "1803700000020061",
                     "intro": "AMS-HT D Falha na assistência da extrusora em agarrar o filamento, possivelmente devido a excesso de resistência do buffer. Por favor, verifique se o buffer está preso, se o carretel de filamento está inclinado e se o tubo de filamento está desobstruído."
-                },
-                {
-                    "ecode": "0706700000020004",
-                    "intro": "Falha ao puxar o filamento da cabeça da ferramenta para o AMS. Possível causa: filamento ou carretel preso. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1801700000020011",
@@ -5476,10 +6596,6 @@
                     "intro": "A remoção do filamento do AMS-HT E falhou; isto pode ser devido a uma resistência excessiva no motor DC. Por favor, verifique se a bobina do filamento está inclinada ou deformada ou se o tubo do filamento está bloqueado."
                 },
                 {
-                    "ecode": "0704700000020001",
-                    "intro": "Falha na remoção do filamento do extrusor. Possíveis causas: extrusor entupido ou filamento partido. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "1805700000020032",
                     "intro": "A alimentação do filamento para o extrusor da cabeça da ferramenta do AMS-HT F falhou; isto pode ser devido a uma resistência excessiva do filamento. Por favor, verifique se a bobina do filamento está inclinada ou se o tubo do filamento está obstruído."
                 },
@@ -5502,10 +6618,6 @@
                 {
                     "ecode": "1803700000020021",
                     "intro": "AMS-HT D : A falha de alimentação de filamento no buffer ocorreu devido a excesso de resistência no filamento. Por favor, verifique se o spool do filamento está inclinado ou se o tubo de PTFE está bloqueado."
-                },
-                {
-                    "ecode": "1806700000020005",
-                    "intro": "Falhou a alimentação do filamento fora do AMS-HT. Por favor, cortar o final do filamento e verifique se o spool está preso. Consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "1800450000020001",
@@ -5554,10 +6666,6 @@
                 {
                     "ecode": "1804700000020033",
                     "intro": "A alimentação do filamento AMS-HT E para o extrusor da ferramenta falhou; isso pode dever-se ao filamento ter saído. Verifique se o tubo de filamento está desconectado ou se o tubo foi desgastado."
-                },
-                {
-                    "ecode": "1802700000020004",
-                    "intro": "Falha ao puxar o filamento da ferramenta para AMS-HT. Possível causa: filamento ou bobina presos. Consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1804700000020023",
@@ -5820,10 +6928,6 @@
                     "intro": "Falha no chip de criptografia."
                 },
                 {
-                    "ecode": "0705700000020001",
-                    "intro": "Falhou ao retirar o filamento do extrusor. Possíveis causas: extrusor obstruído ou filamento quebrado. Consulte o Assistente para obter detalhes."
-                },
-                {
                     "ecode": "1807700000020032",
                     "intro": "AMS-HT H A introdução do filamento no extrusor da cabeça da ferramenta falhou; isso pode ser devido a resistência excessiva do filamento. Por favor, verifique se o carretel de filamento está inclinado ou se o tubo de filamento está obstruído."
                 },
@@ -6032,20 +7136,12 @@
                     "intro": "AMS E A remoção do filamento falhou; isso pode ser devido ao filamento ter acabado ou ter sido puxado para fora."
                 },
                 {
-                    "ecode": "1807700000020001",
-                    "intro": "Falha ao extrair o filamento do extrusor. Possíveis causas: extrusor obstruído ou filamento quebrado. Consulte o assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "1801700000020061",
                     "intro": "AMS-HT B Falha na assistência da extrusora ao agarrar o filamento, possivelmente devido a uma resistência excessiva do buffer. Por favor, verifique se o buffer está preso, se a bobine do filamento está inclinada e se o tubo do filamento está livre."
                 },
                 {
                     "ecode": "1800700000020050",
                     "intro": "AMS-HT A Falha ao carregar o filamento no buffer, possivelmente devido a uma resistência excessiva no buffer. Por favor verifique se o buffer está bloqueado, se a bobine do filamento está inclinada ou se o tubo do filamento está bloqueado."
-                },
-                {
-                    "ecode": "0706700000020001",
-                    "intro": "Falha ao retirar o filamento da extrusora. Possíveis causas: entupimento da extrusora ou filamento quebrado. Consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1804700000020012",
@@ -6062,14 +7158,6 @@
                 {
                     "ecode": "0705700000020010",
                     "intro": "AMS F Falha ao alimentar o filamento para a roda de extrusão do motor de assistência. Isto pode ser devido a um bloqueio no tubo de alimentação. Por favor, verifique se o tubo de alimentação e o centro do filamento estão desobstruídos."
-                },
-                {
-                    "ecode": "1804700000020004",
-                    "intro": "Falha ao puxar o filamento da cabeça da ferramenta para o AMS-HT. Possível causa: filamento ou bobine presos. Por favor, consulte o Assistente para mais detalhes."
-                },
-                {
-                    "ecode": "0705700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS. Por favor, corte a extremidade do filamento reta e verifique se a bobine está presa. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1803700000020011",
@@ -6266,10 +7354,6 @@
                 {
                     "ecode": "1804700000020046",
                     "intro": "A extracção de filamento AMS-HT E falhou. Isso pode dever-se a uma resistência excessiva no motor de assistência. Por favor, verifique se a bobina de filamento está inclinada ou deformada e se o tubo do filamento está limpo."
-                },
-                {
-                    "ecode": "0706700000020005",
-                    "intro": "Falha na alimentação do filamento fora do AMS. Por favor, corte a extremidade do filamento para ficar a direito e verifique se a bobina está presa. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1802700000020012",
@@ -6528,10 +7612,6 @@
                     "intro": "O carregamento do filamento no buffer da AMS E falhou; isso pode ser devido a uma resistência excessiva no buffer. Por favor, verifique se o buffer está obstruído, se o carretel do filamento está inclinado ou se o tubo do filamento está bloqueado."
                 },
                 {
-                    "ecode": "1805700000020001",
-                    "intro": "Falha ao remover o filamento do extrusor. Possíveis causas: extrusor obstruído ou filamento quebrado. Consulte o Assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "1806700000020041",
                     "intro": "A remoção do filamento da AMS-HT G falhou; isso pode ser devido ao filamento se soltar do carretel. Por favor, substitua o carretel por um novo."
                 },
@@ -6572,20 +7652,12 @@
                     "intro": "AMS-HT G A alimentação do filamento para o buffer falhou; isso pode ser devido ao buffer bloqueando o filamento. Por favor, verifique o plugue do tubo PTFE do buffer."
                 },
                 {
-                    "ecode": "1807700000020004",
-                    "intro": "Falha ao puxar o filamento da cabeça ferramenta para AMS-HT. Possível causa: filamento ou carretel preso. Por favor, consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "1801700000020003",
                     "intro": "Falha ao extrudar o filamento. Possível causa: obstrução no extrusor ou bico. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1800300000010004",
                     "intro": "Falha no chip de criptografia."
-                },
-                {
-                    "ecode": "1801700000020001",
-                    "intro": "Falha ao remover o filamento do extrusor. Possíveis causas: extrusor obstruído ou filamento quebrado. Consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "1802700000020031",
@@ -6820,20 +7892,12 @@
                     "intro": "AMS E - Falha ao remover o filamento; isso pode ser devido a uma resistência excessiva no motor de assistência. Verifique se o carretel de filamento está inclinado ou deformado e se o tubo de filamento está desobstruído."
                 },
                 {
-                    "ecode": "1803700000020001",
-                    "intro": "Falha ao remover o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento quebrado. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "Não foi possível ler a RFID devido a um erro de hardware ou estrutural."
                 },
                 {
                     "ecode": "1806700000020042",
                     "intro": "AMS-HT G A remoção do filamento falhou; isso pode ser devido à perda de conexão do motor DC. Por favor, verifique se o plugue do motor DC está conectado corretamente."
-                },
-                {
-                    "ecode": "0707700000020004",
-                    "intro": "Falha ao puxar o filamento da cabeça da ferramenta de volta para AMS. Possível causa: filamento ou carretel emperrado. Por favor, consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -7108,10 +8172,6 @@
                     "intro": "A pega do cortador de filamento não foi liberada. A pega ou a lâmina podem estar bloqueadas, ou pode haver um problema de conexão do sensor de filamento."
                 },
                 {
-                    "ecode": "1804700000020001",
-                    "intro": "Falha ao retirar o filamento do extrusor. Possíveis causas: extrusor obstruído ou filamento partido. Consulte o Assistente para obter detalhes."
-                },
-                {
                     "ecode": "1806700000020050",
                     "intro": "AMS-HT G O carregamento do filamento na memória intermédia falhou; isso pode ser devido a uma resistência excessiva na memória intermédia. Verifique se a memória intermédia está bloqueada, se o carretel de filamento está inclinado ou se o tubo de filamento está bloqueado."
                 },
@@ -7350,10 +8410,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C A alimentação do filamento para o extrusor da ferramenta falhou; isto pode ser devido ao filamento ter resvalado. Por favor, verifique se o tubo do filamento está desconectado ou se o tubo está desgastado."
-                },
-                {
-                    "ecode": "0704700000020005",
-                    "intro": "A alimentação do filamento fora da AMS falhou. Por favor, corte a ponta do filamento plana e verifique se o carretel está preso. Por favor, consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "1800700000020006",
@@ -7628,10 +8684,6 @@
                     "intro": "A distância de corte do cortador de filamento é muito grande. O motor XY pode perder passos."
                 },
                 {
-                    "ecode": "1803700000020004",
-                    "intro": "Falha em puxar o filamento da cabeça da ferramenta para o AMS-HT. Possível causa: filamento ou carretel preso. Por favor, consulte o Assistente para obter detalhes."
-                },
-                {
                     "ecode": "1804700000020032",
                     "intro": "A alimentação do filamento AMS-HT E para o extrusor da cabeça da ferramenta falhou; isto pode dever-se a uma resistência excessiva do filamento. Por favor, verifique se o carretel do filamento está inclinado ou se o tubo do filamento está obstruído."
                 },
@@ -7808,10 +8860,6 @@
                     "intro": "Falha ao obter a tabela de mapeamento do AMS; por favor clique em \"Retomar\" para tentar novamente."
                 },
                 {
-                    "ecode": "1802700000020001",
-                    "intro": "Falha em retirar o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento partido. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "A tentativa do extrusor assistente de AMS-HT H para agarrar o filamento falhou; isto pode dever-se ao motor auxiliar a deslizar. Por favor corte a seção desgastada do filamento."
                 },
@@ -7834,10 +8882,6 @@
                 {
                     "ecode": "1801700000020021",
                     "intro": "AMS-HT B A alimentação do filamento para o buffer falhou; isto pode dever-se a um excesso de resistência no filamento. Por favor, verifique se a bobina de filamento está inclinada ou se o tubo de PTFE está bloqueado."
-                },
-                {
-                    "ecode": "1800700000020001",
-                    "intro": "Falha ao puxar o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento quebrado. Consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "0706310000010004",
@@ -7878,10 +8922,6 @@
                 {
                     "ecode": "1803700000020046",
                     "intro": "Falha na remoção do filamento AMS-HT D; isto pode ser devido a resistência excessiva no motor de assistência. Verifique se a bobina de filamento está inclinada ou deformada, e se o tubo de filamento está desobstruído."
-                },
-                {
-                    "ecode": "1800700000020004",
-                    "intro": "Não foi possível puxar de volta o filamento do extrusor para o AMS-HT. Possível causa: filamento ou bobina bloqueados. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -8110,10 +9150,6 @@
                 {
                     "ecode": "1801700000020032",
                     "intro": "AMS-HT B A alimentação do filamento ao extrusor da ferramenta falhou; isto pode ser devido a uma resistência excessiva do filamento. Por favor, verifique se a bobina do filamento está inclinada ou se o tubo do filamento está obstruído."
-                },
-                {
-                    "ecode": "1800700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS-HT. Por favor, apare a ponta do filamento e verifique se a bobina está presa. Por favor, consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "0705700000020033",
@@ -8370,10 +9406,6 @@
                 {
                     "ecode": "0704700000020023",
                     "intro": "AMS E Falha ao alimentar o filamento no buffer; isso pode ser devido ao filamento ter se soltado. Por favor, verifique se o tubo do filamento está conectado incorretamente ou se o tubo foi desgastado."
-                },
-                {
-                    "ecode": "1806700000020004",
-                    "intro": "Falha ao puxar o filamento da cabeça de impressão para o AMS-HT. Possível causa: filamento ou suporte presos. Por favor, consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "1804300000010004",
@@ -8652,10 +9684,6 @@
                     "intro": "AMS-HT G A alimentação do filamento para o extrusor da cabeça da ferramenta falhou; isso pode ser devido a uma resistência excessiva do filamento. Por favor, verifique se o carretel do filamento está inclinado ou se o tubo do filamento está obstruído."
                 },
                 {
-                    "ecode": "0707700000020001",
-                    "intro": "Não foi possível remover o filamento do extrusor. Possíveis causas: extrusor obstruído ou filamento quebrado. Consulte o Assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "0707700000020010",
                     "intro": "AMS H Falha na alimentação do filamento para a roda de extrusão do motor auxiliar. Isso pode ser devido a um bloqueio no tubo de alimentação. Por favor, verifique se o tubo de alimentação e o hub do filamento estão limpos."
                 },
@@ -8896,16 +9924,8 @@
                     "intro": "Por favor, remova o filamento externo do extrusor esquerdo."
                 },
                 {
-                    "ecode": "1803700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS-HT. Por favor, corte a extremidade do filamento plana e verifique se o carretel está preso. Por favor, consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "1801700000020010",
                     "intro": "A alimentação do filamento AMS-HT B para a roda de extrusão do motor auxiliar falhou. Isso pode ser devido a um bloqueio no tubo de alimentação. Por favor, verifique se o tubo de alimentação e o prato do filamento estão limpos."
-                },
-                {
-                    "ecode": "1801700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS-HT. Por favor, corte a extremidade do filamento plana e verifique se o carretel está preso. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "0300C00000010002",
@@ -8958,10 +9978,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "A deteção de objetos estranhos não está a funcionar. Por favor, reinicie o dispositivo ou atualize o firmware."
-                },
-                {
-                    "ecode": "0C00030000020016",
-                    "intro": "A deteção de objetos estranhos não está a funcionar e o número de série da câmara Liveview não pode ser lido. Por favor, contate a equipa de suporte ao cliente."
                 },
                 {
                     "ecode": "03009C0000010002",
@@ -9556,10 +10572,6 @@
                     "intro": "A impressão com alta temperatura na mesa aquecida será realizada pela primeira vez. A fim de obter uma melhor qualidade de impressão na primeira camada, a calibração automática da mesa aquecida com temperatura elevada está sendo realizada."
                 },
                 {
-                    "ecode": "0C00030000020011",
-                    "intro": "A calibração do desvio da bica de alta precisão falhou; por favor recalibre."
-                },
-                {
                     "ecode": "0703550000010002",
                     "intro": "O tubo PTFE está incorretamente conectado entre a cabeça da ferramenta e o buffer. Por favor, conecte a parte superior do buffer ao extrusor direito e a parte inferior ao extrusor esquerdo."
                 },
@@ -9768,10 +10780,6 @@
                     "intro": "A etiqueta RFID no AMS A Slot2 está danificada ou o seu conteúdo não pode ser identificado."
                 },
                 {
-                    "ecode": "0701700000020004",
-                    "intro": "Falha ao puxar de volta o filamento da cabeça de impressão para a AMS. Possível causa: filamento ou carretel preso. Por favor, consulte o assistente para obter detalhes."
-                },
-                {
                     "ecode": "0703300000020002",
                     "intro": "A etiqueta RFID no AMS D Slot1 está danificada ou o seu conteúdo não pode ser identificado."
                 },
@@ -9872,10 +10880,6 @@
                     "intro": "Falha ao extrudar o filamento. Possível causa: entupimento na extrusora ou bico. Consulte o Assistente para mais detalhes."
                 },
                 {
-                    "ecode": "0703700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS. Por favor, corte a ponta do filamento e verifique se a bobina está presa. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0703700000020006",
                     "intro": "Tempo limite para purgar o filamento antigo. Possível causa: filamento preso ou entupimento na extrusora/bico. Consulte o Assistente para mais detalhes."
                 },
@@ -9886,10 +10890,6 @@
                 {
                     "ecode": "12FF200000020004",
                     "intro": "Por favor, remova o filamento do suporte da bobina puxando-o para fora da extrusora."
-                },
-                {
-                    "ecode": "0500060000020002",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300960000010003",
@@ -9908,20 +10908,8 @@
                     "intro": "AMS D A válvula de escape 2 não está conectada, o que pode dever-se a um mau contacto do conector."
                 },
                 {
-                    "ecode": "0500060000020012",
-                    "intro": ""
-                },
-                {
                     "ecode": "0702810000010003",
                     "intro": "AMS C O aquecedor 2 está em curto-circuito, o que pode dever-se a um curto-circuito de fiação ou danos no aquecedor."
-                },
-                {
-                    "ecode": "0500060000020006",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020004",
-                    "intro": "A câmara AI Live View não está no lugar; por favor, verifique a conexão do hardware."
                 },
                 {
                     "ecode": "0702350000010002",
@@ -9930,10 +10918,6 @@
                 {
                     "ecode": "0701010000020007",
                     "intro": "AMS B Os fios do codificador do motor de assistência não estão conectados. O conector do motor de assistência pode ter má conexão."
-                },
-                {
-                    "ecode": "0300950000010003",
-                    "intro": "Módulo laser sobreaquecido."
                 },
                 {
                     "ecode": "0300980000010003",
@@ -9960,10 +10944,6 @@
                     "intro": "A temperatura do módulo MC está demasiado alta, possivelmente devido à elevada temperatura da câmara da impressora. Pode tentar baixar a temperatura ambiente antes de usar."
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "O módulo laser não foi detetado. Pode ser que tenha caído, ou a alavanca de libertação rápida pode não estar trancada."
-                },
-                {
                     "ecode": "0300C00000010001",
                     "intro": "Malfuncionamento do exaustor da câmara ativa: pode estar preso."
                 },
@@ -9974,10 +10954,6 @@
                 {
                     "ecode": "0C00040000010013",
                     "intro": "Os parâmetros de exposição da câmara BirdsEye não estão eficazes; por favor, tente novamente."
-                },
-                {
-                    "ecode": "0300950000010002",
-                    "intro": "O sensor de temperatura do módulo laser pode ter um circuito aberto."
                 },
                 {
                     "ecode": "1804910000010003",
@@ -10144,10 +11120,6 @@
                     "intro": "Falha na conexão à internet; por favor, verifique a conexão de rede."
                 },
                 {
-                    "ecode": "0500030000010021",
-                    "intro": "Hardware incompatível; por favor, verifique o laser."
-                },
-                {
                     "ecode": "0500040000010003",
                     "intro": "O conteúdo do ficheiro de impressão é ilegível; por favor, reenvie o trabalho de impressão."
                 },
@@ -10158,10 +11130,6 @@
                 {
                     "ecode": "0700330000020002",
                     "intro": "A etiqueta RFID na ranhura AMS A Slot4 está danificada ou o seu conteúdo não pode ser identificado."
-                },
-                {
-                    "ecode": "0700700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS. Por favor, corte a ponta do filamento plana e verifique se a bobina está presa. Por favor, consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -10180,10 +11148,6 @@
                     "intro": "Falha na extrusão do filamento. Possível causa: entupimento do extrusor ou bico. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
-                    "ecode": "0701700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS. Por favor, corte a ponta do filamento e verifique se a bobina está presa. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0702300000010004",
                     "intro": "Falha no chip de encriptação."
                 },
@@ -10198,10 +11162,6 @@
                 {
                     "ecode": "0702330000020002",
                     "intro": "A etiqueta RFID na ranhura C4 de AMS está danificada ou o seu conteúdo não pode ser identificado."
-                },
-                {
-                    "ecode": "0702700000020005",
-                    "intro": "Falha ao alimentar o filamento fora do AMS. Por favor, corte a ponta do filamento e verifique se a bobina está presa. Consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "0703310000020002",
@@ -10464,10 +11424,6 @@
                     "intro": "Falha do chip de criptografia."
                 },
                 {
-                    "ecode": "0702700000020004",
-                    "intro": "Falha ao puxar o filamento do extrusor para a AMS. Possível causa: filamento ou bobina presos. Consulte o Assistente para mais informações."
-                },
-                {
                     "ecode": "0703300000010004",
                     "intro": "Falha no chip de encriptação."
                 },
@@ -10560,10 +11516,6 @@
                     "intro": "A resistência de extrusão é anormal. O extrusor pode estar obstruído ou pode haver filamento preso na cabeça da ferramenta."
                 },
                 {
-                    "ecode": "0300950000010004",
-                    "intro": "A velocidade do ventilador de refrigeração do módulo laser está muito baixa ou parou. Pode estar preso ou o conector pode não estar bem conectado."
-                },
-                {
                     "ecode": "0500060000020014",
                     "intro": ""
                 },
@@ -10582,10 +11534,6 @@
                 {
                     "ecode": "0300310000010001",
                     "intro": "A velocidade do ventilador de refrigeração de peças está demasiado lenta ou parou. Pode estar preso ou o conector pode não estar encaixado corretamente."
-                },
-                {
-                    "ecode": "0500060000020003",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300320000010001",
@@ -10808,10 +11756,6 @@
                     "intro": "A etiqueta RFID na Slot4 do AMS D está danificada ou o seu conteúdo não pode ser identificado."
                 },
                 {
-                    "ecode": "0703700000020004",
-                    "intro": "Falha ao puxar de volta o filamento da cabeça da ferramenta para o AMS. Possível causa: filamento ou carretel preso. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0C00010000020007",
                     "intro": "Os parâmetros do laser Micro Lidar mudaram. Por favor, recalibre a sua impressora."
                 },
@@ -10850,10 +11794,6 @@
                 {
                     "ecode": "0700950000010001",
                     "intro": "AMS A O sensor de temperatura do aquecedor 2 está com mau funcionamento, o que pode ser devido a um mau contato do conector."
-                },
-                {
-                    "ecode": "0300950000010005",
-                    "intro": "A comunicação do módulo laser está anormal; por favor verifique o conetor."
                 },
                 {
                     "ecode": "0300350000010001",
@@ -11068,10 +12008,6 @@
                     "intro": "A comunicação do Hub AMS está anormal; o cabo pode não estar bem conectado."
                 },
                 {
-                    "ecode": "0700700000020004",
-                    "intro": "Falha ao remover o filamento da cabeça da ferramenta para o AMS. Possível causa: filamento ou bobina presos. Por favor, consulte o assistente para mais detalhes."
-                },
-                {
                     "ecode": "0701300000020002",
                     "intro": "A etiqueta RFID na ranhura 1 do AMS B está danificada ou o seu conteúdo não pode ser identificado."
                 },
@@ -11092,20 +12028,12 @@
                     "intro": "O laser vertical não está aceso. Por favor, verifique se está coberto ou se há um problema na conexão de hardware."
                 },
                 {
-                    "ecode": "0300950000010001",
-                    "intro": "O sensor de temperatura do módulo laser pode ter um curto-circuito."
-                },
-                {
                     "ecode": "0702910000010003",
                     "intro": "AMS C: A válvula de escape 2 não está conectada, o que pode ser devido a um mau contato do conector."
                 },
                 {
                     "ecode": "0300980000030001",
                     "intro": "A janela do lado esquerdo parece estar aberta."
-                },
-                {
-                    "ecode": "0500060000020001",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -11272,16 +12200,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020022",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020021",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C0001000003000C",
-                    "intro": "A temperatura da câmara da bico está demasiado alta, o que faz com que o recurso de deteção de IA pare. O recurso retomará automaticamente assim que a temperatura voltar ao normal."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -11372,10 +12292,6 @@
                     "intro": "AMS G O motor escovado 3 não tem sinal, o que pode ser devido a uma conexão fraca no conector do motor ou a uma falha no motor."
                 },
                 {
-                    "ecode": "1806010000010005",
-                    "intro": "AMS-HT O sensor de corrente do motor de assistência pode estar com falha."
-                },
-                {
                     "ecode": "1803910000010002",
                     "intro": "AMS-HT A bobina da válvula de escape 2 está em curto-circuito, o que pode ser devido a uma fiação anormal ou a danos."
                 },
@@ -11432,10 +12348,6 @@
                     "intro": "A operação da válvula de exaustão 2 do AMS-HT B está anormal, o que pode ser devido a uma resistência excessiva."
                 },
                 {
-                    "ecode": "0707010000010005",
-                    "intro": "O sensor de corrente do motor de assistência do AMS H pode estar com defeito."
-                },
-                {
                     "ecode": "1803020000020002",
                     "intro": "AMS-HT D O odómetro não tem sinal. O conector do odómetro pode ter mau contacto."
                 },
@@ -11452,16 +12364,8 @@
                     "intro": "O sensor atual do aquecedor 2 do AMS-HT A está anormal."
                 },
                 {
-                    "ecode": "0706010000010005",
-                    "intro": "O sensor atual do motor auxiliar do AMS G pode estar com defeito."
-                },
-                {
                     "ecode": "1801100000020004",
                     "intro": "O motor escovado 1 do AMS-HT B não tem sinal, o que pode ser devido a um mau contato no conector do motor ou uma falha do motor."
-                },
-                {
-                    "ecode": "0704010000010005",
-                    "intro": "O sensor atual do motor auxiliar do AMS E pode estar com defeito."
                 },
                 {
                     "ecode": "0706130000020004",
@@ -11736,10 +12640,6 @@
                     "intro": "AMS E Erro de velocidade e comprimento do filamento: pode haver uma falha no sistema de odometria do filamento."
                 },
                 {
-                    "ecode": "1801010000010005",
-                    "intro": "AMS-HT B O sensor de corrente do motor de assistência pode estar defeituoso."
-                },
-                {
                     "ecode": "1802310000010001",
                     "intro": "A placa AMS-HT C RFID 2 tem um erro."
                 },
@@ -11884,10 +12784,6 @@
                     "intro": "AMS-HT G Erro na velocidade e comprimento do filamento: O odômetro do filamento pode estar com defeito."
                 },
                 {
-                    "ecode": "0705010000010005",
-                    "intro": "AMS F O sensor atual do motor de assistência pode estar com defeito."
-                },
-                {
                     "ecode": "1803010000010001",
                     "intro": "O motor de assistência do AMS-HT D escapou. A roda de extrusão pode estar desgastada ou o filamento pode ser muito fino."
                 },
@@ -12024,10 +12920,6 @@
                     "intro": "A placa AMS C RFID 1 apresenta um erro."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "A lente da câmera liveview parece estar suja. Por favor, limpe a lente."
-                },
-                {
                     "ecode": "1807020000020002",
                     "intro": "AMS-HT H O hodômetro não tem sinal. O conector do hodômetro pode ter um mau contato."
                 },
@@ -12042,10 +12934,6 @@
                 {
                     "ecode": "1805810000010004",
                     "intro": "AMS-HT F O aquecedor 2 está aquecendo anormalmente."
-                },
-                {
-                    "ecode": "1802010000010005",
-                    "intro": "AMS-HT C O sensorde corrente do motor de assistência pode estar defeituoso."
                 },
                 {
                     "ecode": "0705920000010001",
@@ -12074,10 +12962,6 @@
                 {
                     "ecode": "1804810000010004",
                     "intro": "O aquecedor 2 na ranhura E do AMS-HT está a aquecer anormalmente."
-                },
-                {
-                    "ecode": "1807010000010005",
-                    "intro": "O sensor de corrente do motor de assistência na ranhura H do AMS-HT pode estar com defeito."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -12146,10 +13030,6 @@
                 {
                     "ecode": "0706910000020001",
                     "intro": "AMS G A operação da válvula de escape 2 está anormal, o que pode ser devido a uma resistência excessiva."
-                },
-                {
-                    "ecode": "1805010000010005",
-                    "intro": "AMS-HT F O sensor de corrente do motor de assistência pode estar com falha."
                 },
                 {
                     "ecode": "0707960000010001",
@@ -12448,10 +13328,6 @@
                     "intro": "AMS F Erro no parâmetro de calibração do motor de assistência. Por favor remova o filamento do hub e reinicie o AMS."
                 },
                 {
-                    "ecode": "1803010000010005",
-                    "intro": "AMS-HT D O sensor de corrente do motor de assistência pode estar com defeito."
-                },
-                {
                     "ecode": "1807010000010004",
                     "intro": "O controle de velocidade do motor de assistência do AMS-HT H está com mau funcionamento. O sensor de velocidade pode estar com defeito."
                 },
@@ -12470,10 +13346,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H O motor escovado 1 não tem sinal, o que pode dever-se a um mau contato no conector do motor ou uma falha do motor."
-                },
-                {
-                    "ecode": "0C00010000020008",
-                    "intro": "Não foi possível obter a imagem da câmera LiveView. A detecção de engarrafamentos de macarrão e de descarte de resíduos não está disponível neste momento."
                 },
                 {
                     "ecode": "0C00040000020007",
@@ -12578,10 +13450,6 @@
                 {
                     "ecode": "1807920000010001",
                     "intro": "AMS-HT H O ventilador de refrigeração do aquecedor 1 está bloqueado, o que pode ser devido a estar preso."
-                },
-                {
-                    "ecode": "1800010000010005",
-                    "intro": "AMS-HT A O sensor de corrente do motor de assistência pode estar com defeito."
                 },
                 {
                     "ecode": "1804910000020001",
@@ -12852,10 +13720,6 @@
                     "intro": "AMS-HT E O ventilador de refrigeração do aquecedor 2 está bloqueado, o que pode ser devido ao ventilador estar preso."
                 },
                 {
-                    "ecode": "1804010000010005",
-                    "intro": "AMS-HT E O sensor de corrente do motor de assistência pode estar com defeito."
-                },
-                {
                     "ecode": "1801910000010002",
                     "intro": "AMS-HT B A bobina da válvula de exaustão 2 está em curto-circuito, o que pode ser devido a problemas de fiação ou danos."
                 },
@@ -12956,26 +13820,6 @@
                     "intro": "A busca do eixo Y está anormal: por favor, verifique se a ferramenta está presa ou se o carrinho do eixo Y está com muita resistência."
                 },
                 {
-                    "ecode": "0C00010000010001",
-                    "intro": "A câmera da ferramenta está offline. Por favor, verifique a conexão de hardware."
-                },
-                {
-                    "ecode": "0C00010000010003",
-                    "intro": "A sincronização entre a câmera da ferramenta e o MC está anormal. Por favor, reinicie sua impressora."
-                },
-                {
-                    "ecode": "0C00010000010004",
-                    "intro": "A lente da câmara na ferramenta parece estar suja. Por favor, limpe a lente."
-                },
-                {
-                    "ecode": "0C00010000010005",
-                    "intro": "O parâmetro da câmara na ferramenta está anormal. Por favor, entre em contacto com o departamento pós-venda."
-                },
-                {
-                    "ecode": "0C00010000020006",
-                    "intro": "O parâmetro da câmara na ferramenta está anormal. Por favor, habilite a calibração da taxa de fluxo na próxima impressão."
-                },
-                {
                     "ecode": "0500030000010007",
                     "intro": "O módulo de expansão na ferramenta está com mau funcionamento. Por favor, desligue o dispositivo, verifique a conexão e reinicie-o."
                 },
@@ -13010,10 +13854,6 @@
                 {
                     "ecode": "07FF810000010002",
                     "intro": "O sensor hall de posição do motor de mudança do extrusor está anormal. Por favor, verifique se o cabo de conexão está solto."
-                },
-                {
-                    "ecode": "0500060000020032",
-                    "intro": "Falhou a ligação da câmara da ponta. Por favor, verifique o hardware e as conexões do cabo."
                 },
                 {
                     "ecode": "07FF810000020001",
@@ -13150,10 +13990,6 @@
                 {
                     "ecode": "1203300000010001",
                     "intro": "A bobina RFID do slot 1 do AMS D está quebrada ou o circuito do hardware de RF tem um erro."
-                },
-                {
-                    "ecode": "0703010000010005",
-                    "intro": "O sensor de corrente do motor auxiliar do AMS D pode não estar funcionando corretamente."
                 },
                 {
                     "ecode": "0703800000010001",
@@ -13940,16 +14776,8 @@
                     "intro": "AMS C. O sensor de corrente do aquecedor 1 está anormal."
                 },
                 {
-                    "ecode": "0702010000010005",
-                    "intro": "AMS C. O sensor de corrente do motor de assistência pode estar com defeito."
-                },
-                {
                     "ecode": "0703960000010001",
                     "intro": "AMS D. O processo de secagem pode apresentar \"thermal runaway\". Desligue o fornecimento de energia AMS."
-                },
-                {
-                    "ecode": "0701010000010005",
-                    "intro": "AMS B. O sensor de corrente do motor de assistência pode estar com defeito."
                 },
                 {
                     "ecode": "0700010000010003",
@@ -14154,10 +14982,6 @@
                 {
                     "ecode": "0703100000020004",
                     "intro": "AMS D O motor escovado 1 não tem sinal, o que pode ser devido a mau contato no conector do motor ou falha no motor."
-                },
-                {
-                    "ecode": "0C00040000020002",
-                    "intro": "Tapete de corte não detetado. Por favor, coloque o tapete necessário para a tarefa e continue."
                 },
                 {
                     "ecode": "0C00040000020008",
@@ -14404,10 +15228,6 @@
                     "intro": "A comunicação do AMS D está anormal; por favor, verifique o cabo de conexão."
                 },
                 {
-                    "ecode": "0C00040000020003",
-                    "intro": "A base de trabalho do laser não está adequadamente alinhada. Por favor, certifique-se de que todos os quatro cantos estejam alinhados com a cama de aquecimento."
-                },
-                {
                     "ecode": "0702010000020009",
                     "intro": "O motor de assistência do AMS C tem uma resistência desequilibrada de três fases. O motor de assistência pode estar com defeito."
                 },
@@ -14618,10 +15438,6 @@
                 {
                     "ecode": "0702100000020004",
                     "intro": "AMS C O motor escovado 1 não tem sinal, o que pode ser devido a um mau contato no conector do motor ou a uma falha no motor."
-                },
-                {
-                    "ecode": "0700010000010005",
-                    "intro": "AMS A O sensor de corrente do motor de assistência pode estar com defeito."
                 },
                 {
                     "ecode": "0702900000020001",
@@ -14864,10 +15680,6 @@
                     "intro": "A sua impressora parece estar a imprimir sem extrusão."
                 },
                 {
-                    "ecode": "0703700000020001",
-                    "intro": "Falha ao puxar o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento partido. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Não foi possível obter a tabela de mapeamento AMS; por favor, clique em \"Continuar\" para tentar novamente."
                 },
@@ -14896,16 +15708,8 @@
                     "intro": "O sensor de temperatura e humidade apresenta um erro. O chip pode estar defeituoso."
                 },
                 {
-                    "ecode": "0702700000020001",
-                    "intro": "Não foi possível remover o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento partido. Consulte o Assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Não foi possível obter a tabela de mapeamento AMS; clique em \"Retomar\" para tentar novamente."
-                },
-                {
-                    "ecode": "0701700000020001",
-                    "intro": "Não foi possível remover o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento partido. Consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14958,10 +15762,6 @@
                 {
                     "ecode": "0700510000030001",
                     "intro": "O AMS está desativado; por favor coloque o filamento a partir do suporte da bobina."
-                },
-                {
-                    "ecode": "0700700000020001",
-                    "intro": "Falha ao retirar o filamento do extrusor. Possíveis causas: extrusor entupido ou filamento partido. Consulte o assistente para mais detalhes."
                 },
                 {
                     "ecode": "0700700000020008",

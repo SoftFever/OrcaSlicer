@@ -1,11 +1,95 @@
 {
     "result": 0,
-    "t": 1737102428,
-    "ver": 202502042359,
+    "t": 1738858019,
+    "ver": 202503250207,
     "data": {
         "device_error": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "sv": [
+                {
+                    "ecode": "10018003",
+                    "intro": "Tidsfördröjningsläget är inställt på Traditionell i skivfilen. Detta kan orsaka ytfel. Vill du aktivera det?"
+                },
+                {
+                    "ecode": "10018004",
+                    "intro": "Prime Tower är inte aktiverat och tidsfördröjningsläget är inställt på Slät i skivfilen. Detta kan orsaka ytfel. Vill du aktivera det?"
+                },
+                {
+                    "ecode": "0300404D",
+                    "intro": "Den aktuella temperaturen för hotend, värmebädd eller kammare är för hög. Vänligen vänta på att den ska svalna till rumstemperatur innan du startar om uppgiften."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den vänstra extrudern. Vänligen kontrollera om filamentet sitter fast inne i extrudern."
+                },
+                {
+                    "ecode": "03008041",
+                    "intro": "Plattformdetekteringstimeout: vänligen starta om skrivaren."
+                },
+                {
+                    "ecode": "03004067",
+                    "intro": "Kalibreringsresultatet är över gränsen."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den högra extrudern. Vänligen kontrollera om filamentet sitter fast inne i extrudern."
+                },
+                {
+                    "ecode": "18008011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "18078011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den vänstra extrudern. Vänligen kontrollera om filamentet sitter fast inne i extrudern."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Misslyckades med att dra tillbaka filamentet från den högra extrudern. Vänligen kontrollera om filamentet sitter fast inne i extrudern."
+                },
+                {
+                    "ecode": "18038011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "18018011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "18058011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "18068011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "18048011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "03004011",
+                    "intro": "Flödesdynamik kalibreringen misslyckades; vänligen initiera utskrift eller kalibrering igen."
+                },
+                {
+                    "ecode": "18028011",
+                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-HT-fack."
+                },
+                {
+                    "ecode": "05008072",
+                    "intro": "Live View-kameran är blockera."
+                },
+                {
+                    "ecode": "05008083",
+                    "intro": "Material är inte tillåtet vid monteringskalibrering. Vänligen ta bort materialet från plattformen."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Kamerakalibrering av verktygshuvudet misslyckades. Vänligen säkerställ att kalibreringsmärket på värmebotten eller höjdkalibreringsmärket i homingsområdet är rent och oskadat, och kör sedan kalibreringsprocessen igen."
+                },
                 {
                     "ecode": "1800C06A",
                     "intro": "AMS-HT A läser RFID. Kan inte starta torkning. Vänligen försök igen senare."
@@ -29,10 +113,6 @@
                 {
                     "ecode": "10014002",
                     "intro": "Timelapse stöds inte eftersom utskriftssekvensen är inställd på \"Efter objekt\"."
-                },
-                {
-                    "ecode": "10018003",
-                    "intro": "Att aktivera traditionell timelapse kan leda till defekter. Vänligen aktivera det vid behov?"
                 },
                 {
                     "ecode": "1800C06D",
@@ -75,16 +155,8 @@
                     "intro": "AMS-HT A-motorn genomför självtest. Kan inte starta torkningen. Var vänlig försök igen senare."
                 },
                 {
-                    "ecode": "10018004",
-                    "intro": "Torktornet är inte aktiverat och tidsfördröjningsläget är inställt på Smooth i detta utskriftsjobb. Detta kan orsaka ytfel. Vill du fortsätta?"
-                },
-                {
                     "ecode": "1805C069",
                     "intro": "Ett fel inträffade under torkningen av AMS-HT F. Var vänlig gå till Assistenten för mer information."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Kalibrering av verktygshuvudets kamera misslyckades. Var vänlig se till att Laser Hemlingsområdesmarkören eller den uppvärmda kalibreringsmarkören är rena och oskadda, och kör sedan kalibreringsprocessen igen."
                 },
                 {
                     "ecode": "1807C06D",
@@ -735,10 +807,6 @@
                     "intro": "Misslyckades med att extrudera filamentet. Vänligen kontrollera om extrudern är igensatt."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från den högra extrudern. Vänligen kontrollera om filamentet fastnat inne i den vänstra extrudern."
-                },
-                {
                     "ecode": "07058012",
                     "intro": "Misslyckades med att hämta AMS-kartläggningstabellen; var vänlig klicka på \"Fortsätt\" för att försöka igen."
                 },
@@ -831,10 +899,6 @@
                     "intro": "Misslyckades med att hämta AMS mappningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
                 },
                 {
-                    "ecode": "07FE8004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från den vänstra extrudern. Vänligen kontrollera om filamentet sitter fast inne i den vänstra extrudern."
-                },
-                {
                     "ecode": "07FE8013",
                     "intro": "Timeout vid rengöring av gammalt filament från den vänstra extrudern: Vänligen kontrollera om filamentet sitter fast eller om extrudern är blockerad."
                 },
@@ -857,10 +921,6 @@
                 {
                     "ecode": "07FE8001",
                     "intro": "Misslyckades med att skära filamentet från den vänstra extrudern. Vänligen kontrollera snittverktyget."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från den högra extrudern. Vänligen kontrollera om filamentet fastnat i den vänstra extrudern."
                 },
                 {
                     "ecode": "07FF8002",
@@ -921,10 +981,6 @@
                 {
                     "ecode": "07058013",
                     "intro": "Timeout rensar gammal filament: Vänligen kontrollera om filamentet sitter fast eller om extrudern är igensatt."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från den vänstra extrudern. Vänligen kontrollera om filamentet sitter fast inne i den vänstra extrudern."
                 },
                 {
                     "ecode": "18FE8012",
@@ -1219,10 +1275,6 @@
                     "intro": "AMS-installationen misslyckades. Vänligen kontakta assistenten."
                 },
                 {
-                    "ecode": "05008072",
-                    "intro": "Liveview-kameran är blockerad."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT kunde inte dra tillbaka filamentet. Detta kan bero på en fastnat spole eller att filamentets ände sitter fast i vägen."
                 },
@@ -1233,10 +1285,6 @@
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D torkar. Vänligen stoppa torkningsprocessen innan du laddar/lossar material."
-                },
-                {
-                    "ecode": "18048011",
-                    "intro": "AMS-HT-filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-plats."
                 },
                 {
                     "ecode": "18018003",
@@ -1319,10 +1367,6 @@
                     "intro": "AMS-HT misslyckades med att dra tillbaka filament. Detta kan bero på en fastnat rulle eller att filamentet är fast i vägen."
                 },
                 {
-                    "ecode": "18068011",
-                    "intro": "AMS-HT filament har tagit slut. Vänligen sätt in en ny filament i samma AMS-plats."
-                },
-                {
                     "ecode": "07078006",
                     "intro": "Kan inte mata in filament i extrudern. Detta kan bero på att filamentet är trasslat eller spolen sitter fast. Om det inte är fallet, var vänlig kontrollera att AMS PTFE-röret är anslutet."
                 },
@@ -1357,10 +1401,6 @@
                 {
                     "ecode": "07048006",
                     "intro": "Det går inte att mata in filament i extrudern. Det kan bero på att filamentet är trasslat eller att rullen sitter fast. Om inte, vänligen kontrollera om AMS PTFE-röret är anslutet."
-                },
-                {
-                    "ecode": "18058011",
-                    "intro": "AMS-HT-tråden tog slut. Sätt in en ny tråd i samma AMS-fack."
                 },
                 {
                     "ecode": "18058003",
@@ -1419,10 +1459,6 @@
                     "intro": "Vänligen dra ut filamentet på spolehållaren för högra extrudern. Om detta meddelande fortsätter, kontrollera om det finns brutet filament i extrudern. (Anslut en PTFE-slang om du ska använda en AMS.)"
                 },
                 {
-                    "ecode": "18018011",
-                    "intro": "AMS-HT-filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-plats."
-                },
-                {
                     "ecode": "07058006",
                     "intro": "Det går inte att mata in filament i extrudern. Detta kan bero på trasslat filament eller fastnat spole. Om inte, kontrollera om AMS PTFE-slangen är ansluten."
                 },
@@ -1445,10 +1481,6 @@
                 {
                     "ecode": "18FFC009",
                     "intro": "Vänligen mata filamentet in i PTFE-röret på höger extruder tills det inte längre går att trycka in."
-                },
-                {
-                    "ecode": "18038011",
-                    "intro": "AMS-HT filamentet tog slut. Vänligen sätt in ett nytt filament i samma AMS-plats."
                 },
                 {
                     "ecode": "18078005",
@@ -1515,10 +1547,6 @@
                     "intro": "AMS-assistmotorn är överbelastad. Detta kan bero på trassligt filament eller att spolen är fast i maskinen."
                 },
                 {
-                    "ecode": "18078011",
-                    "intro": "AMS-HT filamentet är slut. Vänligen sätt in en ny filament i samma AMS-fack."
-                },
-                {
                     "ecode": "07058004",
                     "intro": "AMS misslyckades med att dra tillbaka filamentet. Detta kan bero på en fastnat spole eller att änden av filamentet sitter fast i maskinen."
                 },
@@ -1579,14 +1607,6 @@
                     "intro": "AMS-HT misslyckades att mata ut filamentet. Du kan klippa av änden på filamentet plant och sätta tillbaka det. Om detta meddelande kvarstår, vänligen kontrollera PTFE-rören i AMS för eventuella tecken på slitage."
                 },
                 {
-                    "ecode": "18008011",
-                    "intro": "AMS-HT-filamentet tog slut. Vänligen sätt in en ny filament i samma AMS-plats."
-                },
-                {
-                    "ecode": "18028011",
-                    "intro": "AMS-HT-filamentet tog slut. Vänligen sätt in en ny filament i samma AMS-plats."
-                },
-                {
                     "ecode": "0C008015",
                     "intro": "Föremål upptäckta på plattformen, vänligen rensa upp dem i tid."
                 },
@@ -1633,10 +1653,6 @@
                 {
                     "ecode": "0500805E",
                     "intro": "Felaktigt serienummer för avskärningsmodulen: kan inte kalibrera eller starta projekt."
-                },
-                {
-                    "ecode": "03004067",
-                    "intro": "Kalibreringsresultatet är över tröskelvärdet."
                 },
                 {
                     "ecode": "05004040",
@@ -1793,10 +1809,6 @@
                 {
                     "ecode": "05014018",
                     "intro": "Parsing av bindningskonfigurationsinformationen misslyckades; vänligen försök igen."
-                },
-                {
-                    "ecode": "03008041",
-                    "intro": "Tidsgräns för detektering av laserplattform överskriden."
                 },
                 {
                     "ecode": "0C008002",
@@ -1969,10 +1981,6 @@
                 {
                     "ecode": "03004068",
                     "intro": "Stegförlust uppstod under förbättringen av rörelseprecisionen, vänligen försök igen."
-                },
-                {
-                    "ecode": "03004011",
-                    "intro": "Kalibrering av dynamisk flödeskompensation misslyckades."
                 },
                 {
                     "ecode": "05004041",
@@ -2433,8 +2441,1340 @@
             ]
         },
         "device_hms": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "sv": [
+                {
+                    "ecode": "0300A40000010002",
+                    "intro": "Den rätta hotend-temperaturen är för hög. Vänligen vänta tills den har svalnat till rumstemperatur innan du startar om uppgiften."
+                },
+                {
+                    "ecode": "0300A40000010004",
+                    "intro": "Kammartemperaturen är för hög. Vänligen vänta tills den har svalnat till rumstemperatur innan du startar om uppgiften."
+                },
+                {
+                    "ecode": "0300A40000010003",
+                    "intro": "Den vänstra hotend-temperaturen är för hög. Vänligen vänta tills den har svalnat till rumstemperatur innan du startar om uppgiften."
+                },
+                {
+                    "ecode": "0300A40000010001",
+                    "intro": "Temperaturen på värmebordet är för hög. Vänligen vänta tills det svalnar till rumstemperatur innan du startar om uppgiften."
+                },
+                {
+                    "ecode": "0C00010000020019",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "Kalibreringen av högnoggrannhetens munstycksavstånd misslyckades; vänligen kalibrera om."
+                },
+                {
+                    "ecode": "0C0001000002001A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700010000010005",
+                    "intro": "AMS A Den nuvarande sensorn för assistansmotorn kan vara defekt."
+                },
+                {
+                    "ecode": "0702010000010005",
+                    "intro": "AMS C Den aktuella sensorn för assistmotor kan vara defekt."
+                },
+                {
+                    "ecode": "0701010000010005",
+                    "intro": "AMS B Den aktuella sensorn för assistmotor kan vara defekt."
+                },
+                {
+                    "ecode": "0703010000010005",
+                    "intro": "AMS D Den aktuella sensorn för assistmotor kan vara defekt."
+                },
+                {
+                    "ecode": "0C00040000030018",
+                    "intro": "Kalibreringen av verktygshuvudets kamera misslyckades, troligen för att objektet inte var ordentligt fäst. Standardparametrarna kommer att användas för denna skärning."
+                },
+                {
+                    "ecode": "1800010000010005",
+                    "intro": "AMS-HT A Den nuvarande sensorn för assistansmotorn kan vara felaktig."
+                },
+                {
+                    "ecode": "1803010000010005",
+                    "intro": "AMS-HT D Den nuvarande sensorn för assistansmotorn kan vara felaktig."
+                },
+                {
+                    "ecode": "1805010000010005",
+                    "intro": "AMS-HT F Den aktuella sensorn för assistmotor kan vara defekt."
+                },
+                {
+                    "ecode": "1802010000010005",
+                    "intro": "AMS-HT C Den nuvarande sensorn för assistansmotorn kan vara felaktig."
+                },
+                {
+                    "ecode": "0705010000010005",
+                    "intro": "AMS F Den nuvarande sensorn för assistansmotorn kan vara felaktig."
+                },
+                {
+                    "ecode": "1801010000010005",
+                    "intro": "AMS-HT B Den nuvarande sensorn för assistansmotorn kan vara felaktig."
+                },
+                {
+                    "ecode": "0706010000010005",
+                    "intro": "AMS G Den nuvarande sensorn för assistansmotorn kan vara felaktig."
+                },
+                {
+                    "ecode": "1806010000010005",
+                    "intro": "AMS-HT G Den nuvarande sensorn för assistansmotorn kan vara felaktig."
+                },
+                {
+                    "ecode": "0707010000010005",
+                    "intro": "AMS H Aktuellt sensor för hjälpmotorn kan vara defekt."
+                },
+                {
+                    "ecode": "1800240000020009",
+                    "intro": "AMS-HT A Framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "1807240000020009",
+                    "intro": "AMS-HT H framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "1801240000020009",
+                    "intro": "AMS-HT B framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "1806240000020009",
+                    "intro": "AMS-HT G framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "1802240000020009",
+                    "intro": "AMS-HT C framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "1805240000020009",
+                    "intro": "AMS-HT F framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "1804240000020009",
+                    "intro": "AMS-HT E framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "1803240000020009",
+                    "intro": "AMS-HT D framskyddet är öppet. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
+                },
+                {
+                    "ecode": "0707730000020004",
+                    "intro": "Det gick inte att dra tillbaka AMS H Slot 4-filamentet från verktygssetet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0703710000020005",
+                    "intro": "Misslyckades med att mata AMS D Slot 2-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "0706700000020005",
+                    "intro": "Det gick inte att mata in AMS G Slot 1-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "0701710000020002",
+                    "intro": "Misslyckades med att mata AMS B Slot 2-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0704700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS E Slot 1-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1804720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT E Slot 3-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0704720000020005",
+                    "intro": "Misslyckades med att mata AMS E Slot 3-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "0702710000020002",
+                    "intro": "Misslyckades med att mata AMS C Slot 2-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0703710000020001",
+                    "intro": "Det gick inte att dra ut AMS D Slot 2-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1805710000020005",
+                    "intro": "Misslyckades med att mata AMS-HT F Slot 2 filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1803720000020002",
+                    "intro": "Misslyckades med att mata AMS-HT D Slot 3-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0704710000020001",
+                    "intro": "Misslyckades med att dra ut AMS E Slot 2-filamentet från extrudern. Möjlig orsak: blockerad extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "1805730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT F Slot 4-filamentet från extrudern. Möjlig orsak: blockerad extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "1806710000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT G Slot 2-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0704730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS E Slot 4-filamentet från verktyghuvudet. Möjlig orsak: filament eller spole är fast."
+                },
+                {
+                    "ecode": "1805730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT F Slot 4-filamentet från verktyghuvudet. Möjlig orsak: filament eller spole är fast."
+                },
+                {
+                    "ecode": "0702720000020005",
+                    "intro": "Misslyckades med att mata in AMS C Slot 3-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1800720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT A Slot 3 filamentet från extrudern. Möjlig orsak: igensatt extruder eller avbrutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0702720000020001",
+                    "intro": "Misslyckades med att dra ut AMS C Slot 3 filamentet från extrudern. Möjlig orsak: igensatt extruder eller avbrutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1805710000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT F Slot 2 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1804700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT E Slot 1-filamentet från verktyghuvudet. Möjlig orsak: filament eller spole är fast."
+                },
+                {
+                    "ecode": "1803730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT D Slot 4 filamentet från extrudern. Möjlig orsak: igensatt extruder eller avbrutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1804720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT E Slot 3 filamentet från extrudern. Möjlig orsak: igenkorkad extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1802710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT C Slot 2 filamentet från verktyghuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1801710000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 2 filamentet i verktyghuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS D Slot 1 filamentet från verktyghuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT A Slot 2 filamentet från extrudern. Möjlig orsak: igenkorkad extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1800720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT A Slot 3 filamentet från verktyghuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT A Slot 4 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT E Slot 1 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0705730000020005",
+                    "intro": "Misslyckades med att mata in AMS F Slot 4 filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1807720000020005",
+                    "intro": "Misslyckades med att mata AMS-HT H Slot 3-filamentet. Vänligen klipp änden på filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "0701700000020001",
+                    "intro": "Misslyckades med att dra ut AMS B Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1807700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT H Slot 1 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0702720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS C Slot 3-filamentet från Toolhead. Möjlig orsak: filament eller spole fastnad."
+                },
+                {
+                    "ecode": "0705730000020002",
+                    "intro": "Misslyckades med att mata in AMS F Slot 4 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Misslyckades med att mata AMS-HT G Slot 1-filamentet i Toolhead. Möjlig orsak: filament eller spole fastnad."
+                },
+                {
+                    "ecode": "1806710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT G Slot 2 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1803730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT D Slot 4 filament i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0704720000020001",
+                    "intro": "Misslyckades med att dra ut AMS E Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1802730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT C Slot 4-filamentet från Toolhead. Möjlig orsak: filament eller spole fastnad."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Misslyckades med att mata in AMS H Slot 1-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1802720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT C Slot 3-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0700700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS A Slot 1-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0702710000020005",
+                    "intro": "Misslyckades med att mata in AMS C Slot 2-filamentet. Vänligen klipp av änden på filamentet och kontrollera om spolen är fastnat."
+                },
+                {
+                    "ecode": "0704720000020002",
+                    "intro": "Misslyckades med att mata in AMS E Slot 3 filament i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Misslyckades med att mata in AMS D Slot 1-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0703700000020005",
+                    "intro": "Misslyckades med att mata in AMS D Slot 1 filament. Vänligen trimma änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1801730000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 4-filamentet. Vänligen klipp av änden på filamentet och kontrollera om spolen är fastnat."
+                },
+                {
+                    "ecode": "1805700000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT F Slot 1-filamentet. Vänligen klipp av änden på filamentet och kontrollera om spolen är fastnat."
+                },
+                {
+                    "ecode": "1800730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT A Slot 4-filamentet från extrudern. Möjlig orsak: tilltäppt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1801700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT B Slot 1-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1805730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT F Slot 4-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0706700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS G Slot 1 filament från Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1802730000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT C Slot 4-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1807710000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT H Slot 2-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0700720000020002",
+                    "intro": "Misslyckades med att mata in AMS A Slot 3 filament i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT A Slot 1 filament från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0705700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS F Slot 1 filament från Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT A Slot 2-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0702730000020002",
+                    "intro": "Misslyckades med att mata in AMS C Slot 4-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0702710000020001",
+                    "intro": "Misslyckades med att dra ut AMS C Slot 2-filamentet från extrudern. Möjlig orsak: blockerad extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1804710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT E Slot 2-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1806730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT G Slot 4 filament från Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1805720000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT F Slot 3-filamentet. Vänligen klipp i änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT H Slot 1 filament i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS B Slot 3-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0705720000020005",
+                    "intro": "Misslyckades med att mata in AMS F Slot 3-filamentet. Vänligen klipp i änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "1807720000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT H Slot 3-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1800700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT A Slot 1-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1802730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT C Slot 4-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1801720000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 3 filament i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1802730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT C Slot 4 filament från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0700710000020001",
+                    "intro": "Misslyckades med att dra ut AMS A Slot 2-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1801700000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 1 filament. Vänligen klipp av änden på filamentet och kontrollera om spolen är fastnat."
+                },
+                {
+                    "ecode": "0704700000020005",
+                    "intro": "Misslyckades med att mata in AMS E Slot 1 filament. Vänligen klipp av änden på filamentet och kontrollera om spolen är fastnat."
+                },
+                {
+                    "ecode": "0700710000020002",
+                    "intro": "Misslyckades med att mata in AMS A Slot 2 filament i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0701700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS B Slot 1 filament från verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1806730000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT G Slot 4 filament. Vänligen klipp av änden på filamentet och kontrollera om spolen är fastnat."
+                },
+                {
+                    "ecode": "1801710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT B Slot 2 filament från verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0707710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS H Slot 2 filament från verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1803730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT D Slot 4 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "1801730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 4 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "0700730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS A Slot 4 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "1806720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT G Slot 3-filamentet från Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701720000020005",
+                    "intro": "Misslyckades med att mata in AMS B Slot 3 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen fastnar."
+                },
+                {
+                    "ecode": "0705710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS F Slot 2 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "1807710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT H Slot 2 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "1803700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT D Slot 1 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "0705710000020001",
+                    "intro": "Misslyckades med att dra ut AMS F Slot 2 filamentet från extrudern. Möjlig orsak: tilltäppt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0707720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS H Slot 3 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
+                },
+                {
+                    "ecode": "0702710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS C Slot 2 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0704730000020005",
+                    "intro": "Misslyckades med att mata in AMS E Slot 4 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen har fastnat."
+                },
+                {
+                    "ecode": "1801700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT B Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1805720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT F Slot 3 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0702730000020005",
+                    "intro": "Misslyckades med att mata in AMS C Slot 4-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Misslyckades med att mata in AMS E Slot 1 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0701700000020005",
+                    "intro": "Misslyckades med att mata in AMS B Slot 1 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen har fastnat."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 1-filamentet i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1801730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT B Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1803720000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT D Slot 3-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "1807730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT H Slot 4 filamentet från verktygs­huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800700000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT A Slot 1 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "0705700000020001",
+                    "intro": "Misslyckades med att dra ut AMS F Slot 1 filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1802710000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT C Slot 2 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "1807730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT H Slot 4 filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0706710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS G Slot 2-filamentet från Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1804730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT E Slot 4 filamentet i verktygs­huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT D Slot 1-filamentet i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1802720000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT C Slot 3 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "0706730000020002",
+                    "intro": "Misslyckades med att mata in AMS G Slot 4 filamentet i verktygs­huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0707700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS H Slot 1-filamentet från verktyghuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1805700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT F Slot 1-filamentet från verktyghuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1805700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT F Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inne i extrudern."
+                },
+                {
+                    "ecode": "0707720000020002",
+                    "intro": "Misslyckades med att mata in AMS H Slot 3-filamentet i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701720000020001",
+                    "intro": "Misslyckades med att dra ut AMS B Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inne i extrudern."
+                },
+                {
+                    "ecode": "0700720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS A Slot 3-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1804710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT E Slot 2-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inne i extrudern."
+                },
+                {
+                    "ecode": "1801710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT B Slot 2-filamentet från extrudern. Möjlig orsak: tillstoppad extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1806730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT G Slot 4-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703710000020002",
+                    "intro": "Misslyckades med att mata in AMS D Slot 2-filamentet i verktyghuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0703720000020001",
+                    "intro": "Misslyckades med att dra ut AMS D Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0706720000020001",
+                    "intro": "Misslyckades med att dra ut AMS G Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1801730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT B Slot 4-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0704710000020002",
+                    "intro": "Misslyckades med att mata in AMS E Slot 2-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800710000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT A Slot 2-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1802710000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT C Slot 2-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1805720000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT F Slot 3-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS D Slot 4-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1806720000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT G Slot 3-filamentet. Vänligen trimma änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0706720000020002",
+                    "intro": "Misslyckades med att mata in AMS G Slot 3-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0704730000020002",
+                    "intro": "Misslyckades med att mata AMS E Slot 4-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1807720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT H Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1803710000020005",
+                    "intro": "Misslyckades med att mata AMS-HT D Slot 2-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "1807710000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT H Slot 2-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0705720000020002",
+                    "intro": "Misslyckades med att mata AMS F Slot 3-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0700720000020001",
+                    "intro": "Misslyckades med att dra ut AMS A Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0706720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS G Slot 3-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "1804700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT E Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1803710000020002",
+                    "intro": "Misslyckades med att mata AMS-HT D Slot 2-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0707710000020001",
+                    "intro": "Misslyckades med att dra ut AMS H Slot 2-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1803720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT D Slot 3 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1805730000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT F Slot 4 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1803710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT D Slot 2 filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1803700000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT D Slot 1 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT F Slot 1-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701710000020005",
+                    "intro": "Misslyckades med att mata in AMS B Slot 2 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0707730000020005",
+                    "intro": "Misslyckades med att mata in AMS H Slot 4 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1807720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT H Slot 3-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701720000020002",
+                    "intro": "Misslyckades med att mata in AMS B Slot 3 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0705700000020005",
+                    "intro": "Misslyckades med att mata in AMS F Slot 1-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1801720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT B Slot 3 filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0707730000020002",
+                    "intro": "Misslyckades med att mata in AMS H Slot 4 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1804720000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT E Slot 3 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0704730000020001",
+                    "intro": "Misslyckades med att dra ut AMS E Slot 4 filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1801720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT B Slot 3-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1802700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT C Slot 1 filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0703710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS D Slot 2 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0706730000020001",
+                    "intro": "Misslyckades med att dra ut AMS G Slot 4-filamentet från extrudern. Möjlig orsak: blockerad extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "1806700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT G Slot 1-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
+                },
+                {
+                    "ecode": "0700700000020005",
+                    "intro": "Misslyckades med att mata in AMS A Slot 1-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "1800720000020002",
+                    "intro": "Misslyckades med att mata AMS-HT A Slot 3-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800720000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT A Slot 3-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "1806720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT G Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0706700000020001",
+                    "intro": "Misslyckades med att dra ut AMS G Slot 1-filamentet från extrudern. Möjlig orsak: blockerad extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Misslyckades med att mata AMS-HT A Slot 1-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0700720000020005",
+                    "intro": "Misslyckades med att mata in AMS A Slot 3-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "0707720000020001",
+                    "intro": "Misslyckades med att dra ut AMS H Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1802710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT C Slot 2-filamentet från extrudern. Möjlig orsak: blockerad extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "0706720000020005",
+                    "intro": "Misslyckades med att mata AMS G Slot 3-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0702720000020002",
+                    "intro": "Misslyckades med att mata AMS C Slot 3-filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0704710000020005",
+                    "intro": "Misslyckades med att mata AMS E Slot 2-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1806720000020002",
+                    "intro": "Misslyckades med att mata AMS-HT G Slot 3-filamentet till verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1807700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT H Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inne i extrudern."
+                },
+                {
+                    "ecode": "1804730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT E Slot 4-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0707710000020005",
+                    "intro": "Misslyckades med att mata in AMS H Slot 2-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "1807730000020005",
+                    "intro": "Misslyckades med att mata AMS-HT H Slot 4-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0705730000020001",
+                    "intro": "Misslyckades med att dra ut AMS F Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inne i extrudern."
+                },
+                {
+                    "ecode": "0704720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS E Slot 3-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701730000020005",
+                    "intro": "Misslyckades med att mata in AMS B Slot 4-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "0704710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS E Slot 2-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1803700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT D Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "0706710000020005",
+                    "intro": "Misslyckades med att mata in AMS G Slot 2-filamentet. Vänligen trimma änden av filamentet och kontrollera om spolen fastnat."
+                },
+                {
+                    "ecode": "0707700000020001",
+                    "intro": "Misslyckades med att dra ut AMS H Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "1807700000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT H Slot 1-filamentet. Vänligen skär av änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0706730000020005",
+                    "intro": "Misslyckades med att mata in AMS G Slot 4-filamentet. Vänligen skär av änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1805720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT F Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "0701730000020001",
+                    "intro": "Misslyckades med att dra ut AMS B Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "0700710000020005",
+                    "intro": "Misslyckades med att mata in AMS A Slot 2-filamentet. Vänligen skär av änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1803730000020005",
+                    "intro": "Misslyckades med att mata AMS-HT D Slot 4 filamentet. Vänligen klipp änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1804700000020005",
+                    "intro": "Misslyckades med att mata AMS-HT E Slot 1 filamentet. Vänligen klipp änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0703700000020001",
+                    "intro": "Misslyckades med att dra ut AMS D Slot 1-filamentet från extrudern. Möjlig orsak: blockering i extrudern eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0701710000020001",
+                    "intro": "Misslyckades med att dra ut AMS B Slot 2 filamentet från extrudern. Möjlig orsak: tilltäppt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT C Slot 1-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Misslyckades med att mata in AMS G Slot 1-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Misslyckades med att mata in AMS F Slot 1 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1806700000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT G Slot 1-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0703720000020005",
+                    "intro": "Misslyckades med att mata in AMS D Slot 3-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1804010000010005",
+                    "intro": "AMS-HT E Den aktuella sensorn för assistentmotorn kan vara defekt."
+                },
+                {
+                    "ecode": "1807010000010005",
+                    "intro": "AMS-HT H Den aktuella sensorn för assistentmotorn kan vara defekt."
+                },
+                {
+                    "ecode": "0704010000010005",
+                    "intro": "AMS E Den aktuella sensorn för assistentmotorn kan vara defekt."
+                },
+                {
+                    "ecode": "0701710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS B Slot 2 filamentet från verktyget. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0706710000020001",
+                    "intro": "Misslyckades med att dra ut AMS G Slot 2 filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0707700000020005",
+                    "intro": "Misslyckades med att mata in AMS H Slot 1 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "0701730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS B Slot 4 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703730000020001",
+                    "intro": "Misslyckades med att dra ut AMS D Slot 4 filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0707720000020005",
+                    "intro": "Misslyckades med att mata in AMS H Slot 3 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "1802700000020005",
+                    "intro": "Misslyckades med att mata AMS-HT C Slot 1 filamentet. Vänligen klipp änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0703720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS D Slot 3 filamentet från verktyget. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1801720000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 3 filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen sitter fast."
+                },
+                {
+                    "ecode": "1804710000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT E Slot 2 filamentet i verktyget. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "0700730000020005",
+                    "intro": "Misslyckades med att mata AMS A Slot 4-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1804730000020005",
+                    "intro": "Misslyckades med att mata AMS-HT E Slot 4 filamentet. Vänligen klipp änden på filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1800730000020005",
+                    "intro": "Misslyckades med att mata AMS-HT A Slot 4-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0705720000020001",
+                    "intro": "Misslyckades med att dra ut AMS F Slot 3 filamentet från extrudern. Möjlig orsak: tilltäppt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1804730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT E Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0700730000020001",
+                    "intro": "Misslyckades med att dra ut AMS A Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1802720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT C Slot 3-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "1806710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT G Slot 2-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0703730000020005",
+                    "intro": "Misslyckades med att mata AMS D Slot 4-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1803710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT D Slot 2-filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703730000020002",
+                    "intro": "Misslyckades med att mata in AMS D Slot 4-filamentet i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1803720000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT D Slot 3-filamentet från extrudern. Möjlig orsak: tilltäppt extruder eller trasigt filament inne i extrudern."
+                },
+                {
+                    "ecode": "0700700000020001",
+                    "intro": "Misslyckades med att dra ut AMS A Slot 1 filamentet från extrudern. Möjlig orsak: tilltäppt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1802700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT C Slot 1 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0706710000020002",
+                    "intro": "Misslyckades med att mata in AMS G Slot 2-filamentet i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1804710000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT E Slot 2-filamentet. Vänligen klipp änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0705730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS F Slot 4-filamentet från Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0700710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS A Slot 2-filamentet från Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1805710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT F Slot 2 filamentet från extrudern. Möjlig orsak: igensatt extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "1807730000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT H Slot 4-filamentet i Toolhead. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1804720000020005",
+                    "intro": "Misslyckades med att mata AMS-HT E Slot 3-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "1805710000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT F Slot 2-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0707710000020002",
+                    "intro": "Misslyckades med att mata in AMS H Slot 2 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0705720000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS F Slot 3-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0702700000020005",
+                    "intro": "Misslyckades med att mata AMS C Slot 1-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0700730000020002",
+                    "intro": "Misslyckades med att mata AMS A Slot 4-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1800730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS-HT A Slot 4-filamentet från verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0702730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS C Slot 4 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Misslyckades med att mata in AMS B Slot 1 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Misslyckades med att mata AMS C Slot 1-filamentet i verktygs huvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1806730000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT G Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller trasigt filament inuti extrudern."
+                },
+                {
+                    "ecode": "0702700000020001",
+                    "intro": "Misslyckades med att dra ut AMS C Slot 1 filamentet från extrudern. Möjlig orsak: igensatt extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "1800710000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT A Slot 2-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0702700000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS C Slot 1-filamentet från verktyghuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0701730000020002",
+                    "intro": "Misslyckades med att mata in AMS B Slot 4-filamentet i verktyghuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0705710000020005",
+                    "intro": "Misslyckades med att mata in AMS F Slot 2-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Misslyckades med att mata in AMS A Slot 1-filamentet i verktyghuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1806710000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT G Slot 2 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "1801710000020005",
+                    "intro": "Misslyckades med att mata in AMS-HT B Slot 2-filamentet. Vänligen klipp av änden av filamentet och kontrollera om spolen är fast."
+                },
+                {
+                    "ecode": "0706730000020004",
+                    "intro": "Misslyckades med att dra tillbaka AMS G Slot 4 filamentet från verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0703720000020002",
+                    "intro": "Misslyckades med att mata in AMS D Slot 3-filamentet i verktyghuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1802720000020002",
+                    "intro": "Misslyckades med att mata in AMS-HT C Slot 3 filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fast."
+                },
+                {
+                    "ecode": "0702730000020001",
+                    "intro": "Misslyckades med att dra ut AMS C Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0705710000020002",
+                    "intro": "Misslyckades med att mata in AMS F Slot 2-filamentet i verktyghuvudet. Möjlig orsak: filament eller spole sitter fast."
+                },
+                {
+                    "ecode": "1806700000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT G Slot 1 filamentet från extrudern. Möjlig orsak: igensatt extruder eller bruten filament inuti extrudern."
+                },
+                {
+                    "ecode": "0707730000020001",
+                    "intro": "Misslyckades med att dra ut AMS H Slot 4-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "1807710000020001",
+                    "intro": "Misslyckades med att dra ut AMS-HT H Slot 2-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0704700000020001",
+                    "intro": "Misslyckades med att dra ut AMS E Slot 1-filamentet från extrudern. Möjlig orsak: igensatt extruder eller brutet filament inuti extrudern."
+                },
+                {
+                    "ecode": "0500030000010021",
+                    "intro": "Hårdvara inkompatibel; vänligen kontrollera verktygshuvudets kamera."
+                },
+                {
+                    "ecode": "0C00010000010001",
+                    "intro": "Toolhead Camera är offline. Vänligen kontrollera hårdvaruanslutningen."
+                },
+                {
+                    "ecode": "0C00010000010003",
+                    "intro": "Synchronisering mellan Toolhead-kameran och MC är onormal. Vänligen starta om din skrivare."
+                },
+                {
+                    "ecode": "0C00010000010004",
+                    "intro": "Toolhead-kamerans linse verkar vara smutsig. Vänligen rengör linsen."
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "Toolhead-kamerans parameter är onormal. Vänligen kontakta eftermarknaden."
+                },
+                {
+                    "ecode": "0C00010000010009",
+                    "intro": "Live View Camera-linsen verkar vara smutsig. Vänligen rengör linsen."
+                },
+                {
+                    "ecode": "0C00010000020006",
+                    "intro": "Toolhead-kamerans parameter är onormal. Vänligen aktivera flödeskalibrering i nästa utskrift."
+                },
+                {
+                    "ecode": "0C00010000020008",
+                    "intro": "Misslyckades med att hämta bild från Live View-kameran. Spaghetti- och avfallsränna-påkörning upptäckte inte tillgängligt just nu."
+                },
+                {
+                    "ecode": "0500060000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000010012",
+                    "intro": "Live View-kamerans datalänk är onormal."
+                },
+                {
+                    "ecode": "0300950000010001",
+                    "intro": "Temperatursensorn för Laser-modulen kan ha en kortslutning."
+                },
+                {
+                    "ecode": "0500060000020001",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000020003",
+                    "intro": "Laserplattformen är inte korrekt justerad. Vänligen se till att alla fyra hörn är i linje med värmebedet."
+                },
+                {
+                    "ecode": "0300950000010005",
+                    "intro": "Laser Module-kommunikationen är onormal; vänligen kontrollera kontakten."
+                },
+                {
+                    "ecode": "0500060000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020004",
+                    "intro": "Live View-kameran är inte på plats; vänligen kontrollera hårdvaruanslutningen."
+                },
+                {
+                    "ecode": "0C00040000020002",
+                    "intro": "Skärplattformen upptäcktes inte. Vänligen placera den nödvändiga matta för uppgiften och fortsätt."
+                },
+                {
+                    "ecode": "0300950000010003",
+                    "intro": "Laser Module överhettning"
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "Nozzle Camera-bindning misslyckades. Vänligen kontrollera hårdvaran och kabelanslutningarna."
+                },
+                {
+                    "ecode": "0500060000020022",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "Laser-modulen upptäcktes inte. Modulen kan ha fallit av, eller så kanske snabbfrigöringsspaken inte är låst."
+                },
+                {
+                    "ecode": "0300950000010004",
+                    "intro": "Hastigheten på kylarfläkten för Laser Module är för låg eller har stannat. Den kan vara fastsatt eller kontakten kanske inte är ansluten ordentligt."
+                },
+                {
+                    "ecode": "0500060000020033",
+                    "intro": "BirdsEye Camera är inte ansluten. Vänligen kontrollera hårdvaran och kabelanslutningarna."
+                },
+                {
+                    "ecode": "0500060000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010002",
+                    "intro": "Temperatursensorn för Laser Module kan ha en öppen krets."
+                },
+                {
+                    "ecode": "0C0001000003000C",
+                    "intro": "Nozzle Camera's temperatur är för hög, vilket orsakar att AI-detekteringsfunktionen pausas. Funktionen kommer automatiskt att återupptas när temperaturen återgår till normal."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Det rekommenderas att kalibrera Live View Camera för att förbättra noggrannheten vid detektering av främmande föremål. Tryck på \"Inställningar > Kalibrering\" på skrivarskärmen. Om en laser- eller skärmodul är installerad, vänligen ta bort den innan kalibreringen."
+                },
+                {
+                    "ecode": "0C00030000020016",
+                    "intro": "Detektion av främmande objekt fungerar inte och serienumret för Live View-kameran kan inte läsas. Vänligen kontakta kundsupportteamet."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "Nozzle Camera fungerar inte korrekt. Om detta problem uppstår flera gånger under utskrift, vänligen kontakta kundtjänst."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "BirdsEye Camera är inte certifierad. Vänligen använd Bambu Lab-tillbehör."
+                },
+                {
+                    "ecode": "0C00010000010018",
+                    "intro": "BirdsEye Camera är inte certifierad, och kamerarelaterade funktioner är ogiltiga."
+                },
+                {
+                    "ecode": "050001000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010008",
+                    "intro": "Kommunikationen med Laser Modulen är onormal; vänligen kontrollera kontakten."
+                },
+                {
+                    "ecode": "0503050000010010",
+                    "intro": "Okontrollerad AMS D upptäcktes eller AMS D-firmware är inte uppgraderad. Kan inte använda denna skrivare."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Detektering av främmande föremål fungerar inte. Live View-kameran behöver kalibrering. Vänligen tryck på \"Inställningar > Kalibrering\" på skrivarskärmen. Om en laser- eller skärmodul är installerad, vänligen ta bort den innan kalibreringen."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "Okontrollerad AMS A upptäcktes eller AMS A-firmware är inte uppgraderad. Kan inte använda denna skrivare."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Materialet kan inte detekteras eftersom det är för litet och placerat för långt till vänster eller för nära dörren. Vänligen flytta det till mittenområdet."
+                },
+                {
+                    "ecode": "0505050000010010",
+                    "intro": "Okänt AMS F upptäckt eller AMS F-firmware ej uppgraderad. Kan inte användas med denna skrivare."
+                },
+                {
+                    "ecode": "0501050000010010",
+                    "intro": "Okänt AMS B upptäckte eller AMS B-firmware har inte uppdaterats. Kan inte använda denna skrivare."
+                },
+                {
+                    "ecode": "0506050000010010",
+                    "intro": "Okänt AMS G upptäckte eller AMS G-firmware har inte uppdaterats. Kan inte använda denna skrivare."
+                },
+                {
+                    "ecode": "0504050000010010",
+                    "intro": "Ocertifierad AMS E upptäcktes eller AMS E-firmware har inte uppdaterats. Kan inte användas med den här skrivaren."
+                },
+                {
+                    "ecode": "0507050000010010",
+                    "intro": "Ocertifierad AMS H upptäckt eller AMS H-firmware inte uppgraderad. Kan inte fungera med denna skrivare."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "Innan du använder en Laser/Cutting Module behöver kamerans läge för BirdsEye Camera bestämmas. Vänligen slutför installationen för att kalibrera kameran."
+                },
+                {
+                    "ecode": "0502050000010010",
+                    "intro": "Ocertifierad AMS C upptäckt eller AMS C firmware inte uppgraderad. Kan inte använda denna skrivare."
+                },
                 {
                     "ecode": "07FF800000020002",
                     "intro": "Positionen för vänster hotend är onormal under utskrift. Kontrollera om flödesblockeraren skrapar på den utskrivna modellen."
@@ -2450,14 +3790,6 @@
                 {
                     "ecode": "1800200000020007",
                     "intro": "AMS-HT A Slot 1 matningssensor är frånkopplad. Kontakten kan ha dålig kontakt."
-                },
-                {
-                    "ecode": "0C00010000010018",
-                    "intro": "BirdsEye-kamera är inte certifierad och kamerarelaterade funktioner är ogiltiga."
-                },
-                {
-                    "ecode": "050001000001000A",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020007",
@@ -2594,10 +3926,6 @@
                 {
                     "ecode": "0701230000020007",
                     "intro": "AMS B Slot 4 matningssensor är frånkopplad. Kontakten kan ha dålig kontakt."
-                },
-                {
-                    "ecode": "0C00040000030018",
-                    "intro": "Kalibreringen av verktygshuvudets kamera misslyckades, troligen för att materialet inte var ordentligt fäst. Standardparametrarna kommer att användas för denna skärning."
                 },
                 {
                     "ecode": "0300970000010004",
@@ -2836,14 +4164,6 @@
                     "intro": "Kammartemperaturen misslyckades. Kammarvärmaren kanske inte fungerar för att blåsa varm luft."
                 },
                 {
-                    "ecode": "0C00030000020014",
-                    "intro": "Detektion av främmande föremål fungerar inte. Det rekommenderas att avinstallera lasern eller skärmodulen om den var installerad, och sedan gå till \"Inställningar>Kalibrering\" på skrivarskärmen och rekalibrera Live View-kameran."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "Detektion av främmande föremål fungerar inte. Det rekommenderas att avinstallera lasern eller skärmodulen om den var installerad, och gå till \"Inställningar>Kalibrering\" på skrivarskärmen och rekalibrera Live View-kameran."
-                },
-                {
                     "ecode": "0C00030000020015",
                     "intro": "Detektion av främmande föremål fungerar inte. Detekterat att Live View-kameran har bytts ut. Om en laser- eller skärmodul är installerad, vänligen avinstallera modulen, gå till \"Inställningar>Kalibrering\" på skrivarskärmen och rekalibrera Live View-kameran."
                 },
@@ -2864,84 +4184,12 @@
                     "intro": "Skärmodul är installerad. Plattformstyp mismatch upptäckt. Vänligen placera skärplattformen för skär kalibrering."
                 },
                 {
-                    "ecode": "0700700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
-                },
-                {
-                    "ecode": "0705700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygsdelen. Möjlig orsak: filament eller spole fast."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "1801700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "1803700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "1805700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Misslyckades med att mata filamentet till verktyghuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "Materialet är för litet och placerat för långt till vänster för att kunna upptäckas. Vänligen flytta det till mitten eller högra sidan."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
-                },
-                {
-                    "ecode": "0707700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnar."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Misslyckades med att mata in filamentet i verktygshuvudet. Möjlig orsak: filament eller spole fastnat."
-                },
-                {
                     "ecode": "0701200000020006",
                     "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS B till extrudern är korrekt anslutet."
                 },
                 {
                     "ecode": "0702200000020006",
                     "intro": "PTFE-röravbrott upptäcktes under filamentinladdning. Vänligen kontrollera om PTFE-röret från AMS C till extrudern är korrekt anslutet."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "En ny BirdsEye-kamera eller en kameravinkeländring upptäcktes. Vänligen slutför installationen innan användning."
                 },
                 {
                     "ecode": "1801200000020006",
@@ -3180,16 +4428,8 @@
                     "intro": "Z-axelns hemning misslyckades i skärläge. Vänligen kontrollera om det finns några främmande föremål i Z-axels glidare och Z-axelns synkronpulley."
                 },
                 {
-                    "ecode": "0500050000010010",
-                    "intro": "Ej certifierad AMS upptäcktes. Kan inte använda denna skrivare."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "Extern spole ansluten till höger extruder kan vara trasslad eller blockerad."
-                },
-                {
-                    "ecode": "050005000001000D",
-                    "intro": "BirdEye-kamera är inte certifierad. Vänligen använd Bambu Lab-tillbehör."
                 },
                 {
                     "ecode": "050005000001000E",
@@ -3206,38 +4446,6 @@
                 {
                     "ecode": "0300280000010007",
                     "intro": "Kommunikationsfel mellan skärmodulen och verktygshuvudmodulen. Vänligen kontrollera om signal kabeln till skärmodulen är lös eller trasig. Det kan också bero på en trasig kraftsensorkoila."
-                },
-                {
-                    "ecode": "1800240000020009",
-                    "intro": "AMS HT A framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
-                },
-                {
-                    "ecode": "1807240000020009",
-                    "intro": "AMS HT H framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
-                },
-                {
-                    "ecode": "1801240000020009",
-                    "intro": "AMS HT B framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
-                },
-                {
-                    "ecode": "1806240000020009",
-                    "intro": "AMS HT G framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
-                },
-                {
-                    "ecode": "1802240000020009",
-                    "intro": "AMS HT C framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
-                },
-                {
-                    "ecode": "1805240000020009",
-                    "intro": "AMS HT F framkåpan är öppen. Detta kan påverka torkprestandan eller orsaka att filamentet absorberar fukt."
-                },
-                {
-                    "ecode": "1804240000020009",
-                    "intro": "AMS HT E framsidan är öppen. Detta kan påverka torkprestandan eller få filamentet att absorbera fukt."
-                },
-                {
-                    "ecode": "1803240000020009",
-                    "intro": "AMS HT D framsidan är öppen. Detta kan påverka torkprestandan eller få filamentet att absorbera fukt."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -3372,10 +4580,6 @@
                     "intro": "Kammartemperaturen är för hög. Vänligen öppna det övre locket och frontdörren för att kyla ner, eller sänk omgivningstemperaturen."
                 },
                 {
-                    "ecode": "0C00040000010012",
-                    "intro": "Liveview-kameradata länk är onormal."
-                },
-                {
                     "ecode": "0500050000010009",
                     "intro": ""
                 },
@@ -3422,10 +4626,6 @@
                 {
                     "ecode": "0500060000020034",
                     "intro": "Live View-kameran är inte ansluten. Var vänlig kontrollera hårdvaran och kabelanslutningarna."
-                },
-                {
-                    "ecode": "0500060000020033",
-                    "intro": "BirdsEye-kameran är inte ansluten. Var vänlig kontrollera hårdvaran och kabelanslutningarna."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3478,10 +4678,6 @@
                 {
                     "ecode": "180422000002000A",
                     "intro": "Misslyckades att justera filamentets position för AMS-HT E-kortplats 3. Filamentet eller bufferten kan vara fastnat."
-                },
-                {
-                    "ecode": "070822000002000A",
-                    "intro": "Misslyckades att justera filamentets position för AMS odefinierad kortplats 3. Filamentet eller bufferten kan vara fastnat."
                 },
                 {
                     "ecode": "07FF800000020001",
@@ -3644,10 +4840,6 @@
                     "intro": "Kunde inte justera filamentpositionen för AMS-HT B-kortplats 1. Filamentet eller bufferten kan vara fast."
                 },
                 {
-                    "ecode": "070820000002000A",
-                    "intro": "Misslyckades att justera filamentpositionen för AMS odefinierad kortplats 1. Filamentet eller bufferten kan vara fast."
-                },
-                {
                     "ecode": "180322000002000A",
                     "intro": "Kunde inte justera filamentpositionen för AMS-HT D-kortplats 3. Filamentet eller bufferten kan vara fast."
                 },
@@ -3658,10 +4850,6 @@
                 {
                     "ecode": "180720000002000A",
                     "intro": "Kunde inte justera filamentpositionen för AMS-HT H-kortplats 1. Filamentet eller bufferten kan vara fast."
-                },
-                {
-                    "ecode": "0C00010000020014",
-                    "intro": "Dysfunktion hos dysskameran. Om detta problem uppstår flera gånger under utskrift, kontakta kundtjänst."
                 },
                 {
                     "ecode": "070122000002000A",
@@ -3720,10 +4908,6 @@
                     "intro": "Misslyckades att justera AMS H-kortplats 2:s filamentposition. Filamentet eller bufferten kanske är fast."
                 },
                 {
-                    "ecode": "070823000002000A",
-                    "intro": "Misslyckades att justera AMS kortplats 4:s filamentposition. Filamentet eller bufferten kanske är fast."
-                },
-                {
                     "ecode": "070523000002000A",
                     "intro": "Misslyckades att justera AMS F-kortplats 4:s filamentposition. Filamentet eller bufferten kanske är fast."
                 },
@@ -3742,14 +4926,6 @@
                 {
                     "ecode": "180323000002000A",
                     "intro": "Misslyckades att justera AMS-HT D-kortplats 4:s filamentposition. Filamentet eller bufferten kanske är fast."
-                },
-                {
-                    "ecode": "180821000002000A",
-                    "intro": "Misslyckades att justera AMS-HT-kortplats 2:s filamentposition. Filamentet eller bufferten kanske är fast."
-                },
-                {
-                    "ecode": "180822000002000A",
-                    "intro": "Misslyckades att justera AMS-HT-kortplats 3:s filamentposition. Filamentet eller bufferten kanske är fast."
                 },
                 {
                     "ecode": "070322000002000A",
@@ -3776,10 +4952,6 @@
                     "intro": "Misslyckades att justera AMS-HT F Slits 1 filamentposition. Filamentet eller bufferten kan vara fastnat."
                 },
                 {
-                    "ecode": "180823000002000A",
-                    "intro": "Misslyckades att justera AMS-HT odefinierad Slits 4 filamentposition. Filamentet eller bufferten kan vara fastnat."
-                },
-                {
                     "ecode": "070120000002000A",
                     "intro": "Misslyckades att justera AMS B Slits 1 filamentposition. Filamentet eller bufferten kan vara fastnat."
                 },
@@ -3794,10 +4966,6 @@
                 {
                     "ecode": "180223000002000A",
                     "intro": "Misslyckades med att justera filamentpositionen för AMS-HT C Slot 4. Filamentet eller bufferten kan vara fastnat."
-                },
-                {
-                    "ecode": "180820000002000A",
-                    "intro": "Misslyckades med att justera filamentpositionen för AMS-HT odefinierad Slot 1. Filamentet eller bufferten kan vara fastnat."
                 },
                 {
                     "ecode": "070520000002000A",
@@ -3838,10 +5006,6 @@
                 {
                     "ecode": "180021000002000A",
                     "intro": "Misslyckades att justera filamentpositionen för AMS-HT A Spår 2. Filamentet eller bufferten kan vara fastnat."
-                },
-                {
-                    "ecode": "070821000002000A",
-                    "intro": "Misslyckades att justera filamentpositionen för AMS Spår 2. Filamentet eller bufferten kan vara fastnat."
                 },
                 {
                     "ecode": "070423000002000A",
@@ -3930,10 +5094,6 @@
                 {
                     "ecode": "1805700000020003",
                     "intro": "Misslyckades med att extrudera filamentet. Möjlig orsak: Klump i extrudern eller munstycket. Se till assistenten för detaljer."
-                },
-                {
-                    "ecode": "1804700000020005",
-                    "intro": "Misslyckades med att mata ut filamentet utanför AMS-HT. Klipp av änden på filamentet platt och kontrollera om rullen sitter fast. Se till assistenten för detaljer."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -4176,10 +5336,6 @@
                     "intro": "Fel på krypteringschipet"
                 },
                 {
-                    "ecode": "1805700000020005",
-                    "intro": "Det gick inte att mata ut filamentet utanför AMS-HT. Klipp av slutet av filamentet plant och kontrollera om rullen sitter fast. Hänvisa till Assistenten för detaljer."
-                },
-                {
                     "ecode": "18FF200000020004",
                     "intro": "Dra ut det externa filamentet från högra extrudern."
                 },
@@ -4200,10 +5356,6 @@
                     "intro": "Temperaturen och fuktighetssensorn har ett fel. Kretsen kan vara defekt."
                 },
                 {
-                    "ecode": "1806700000020001",
-                    "intro": "Misslyckades att dra ut filamenten från extrudern. Möjliga orsaker: igensatt extruder eller trasig filament. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "1805700000020013",
                     "intro": "Matning av filament till hjälp motorn för extrudern har misslyckats på grund av en förlorad signal från odometerväxeln. Kontrollera anslutningen för odometerväxelkontakten."
                 },
@@ -4220,24 +5372,12 @@
                     "intro": "Det misslyckades att mata filament till hjälpextrudern i AMS F, möjligtvis på grund av överdriven resistans från bufferten. Kontrollera om bufferten är fast, om filamentrullen är sned och om filamentröret är klart."
                 },
                 {
-                    "ecode": "0707700000020005",
-                    "intro": "Misslyckades att mata ut filamentet utanför AMS. Klipp av änden på filamentet platt och kontrollera om rullen är fast. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "1805700000020050",
                     "intro": "Laddning av filament till bufferten misslyckades i AMS-HT F; detta kan bero på överdriven resistans i bufferten. Kontrollera om bufferten är fast, om filamentrullen är sned eller om filamentröret är blockerat."
                 },
                 {
-                    "ecode": "1807700000020005",
-                    "intro": "Misslyckades att mata ut filamentet utanför AMS-HT. Klipp av änden på filamentet platt och kontrollera om rullen är fast. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "0705700000020032",
                     "intro": "Matning av filament till verktygshuvudets extruder misslyckades i AMS F; detta kan bero på överdriven resistans från filamentet. Kontrollera om filamentrullen är sned eller om filamentröret är blockerat."
-                },
-                {
-                    "ecode": "0704700000020004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: filament eller spole fastnat. Se hjälpredan för detaljer."
                 },
                 {
                     "ecode": "0706700000020006",
@@ -4410,10 +5550,6 @@
                 {
                     "ecode": "0707200000020008",
                     "intro": "AMS H Slot 1 matningssensor är frånkopplad, vilket kan bero på dålig kontakt i kontakten."
-                },
-                {
-                    "ecode": "0705700000020004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: filament eller rulle fastnat. Vänligen se Assistans för mer information."
                 },
                 {
                     "ecode": "1807700000020045",
@@ -4668,16 +5804,8 @@
                     "intro": "Signalen för trådbufferten är onormal; fjädern kan vara fast, eller tråden kan vara trasslad."
                 },
                 {
-                    "ecode": "1805700000020004",
-                    "intro": "Misslyckades att dra tillbaka tråden från verktygshuvudet till AMS-HT. Möjlig orsak: tråden eller rullen sitter fast. Vänligen se Assistant för detaljer."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Misslyckades att extrudera AMS E Spår 1-tråd; extrudern kan vara igensatt eller tråden kan vara för tunn, vilket får extrudern att glida."
-                },
-                {
-                    "ecode": "1802700000020005",
-                    "intro": "Misslyckades att mata ut tråden från AMS-HT. Klipp av änden på tråden platt och kontrollera om rullen sitter fast. Vänligen se Assistant för detaljer."
                 },
                 {
                     "ecode": "1802700000020061",
@@ -4722,10 +5850,6 @@
                 {
                     "ecode": "0707700000020022",
                     "intro": "AMS H misslyckades med att mata fram filament till bufferten. Detta kan bero på att filamentet har slitits ut och får assistmotorn att halka. Vänligen trimma bort det slitna avsnittet av filamentet."
-                },
-                {
-                    "ecode": "1801700000020004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från verktygshuvudet till AMS-HT. Möjlig orsak: filamentet eller spolen fastnat. Vänligen rådfråga assistenten för detaljer."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -5030,10 +6154,6 @@
                 {
                     "ecode": "1803700000020061",
                     "intro": "AMS-HT D Assisterande extruder misslyckades med att ta tag i filamentet, möjligen på grund av för högt motstånd från bufferten. Kontrollera om bufferten är fast, om filamentspolen är sned och om filamentröret är tomt."
-                },
-                {
-                    "ecode": "0706700000020004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: Filament eller spole fastnat. Se Assistenten för detaljer."
                 },
                 {
                     "ecode": "1801700000020011",
@@ -5476,10 +6596,6 @@
                     "intro": "AMS-HT E Utdragning av filament har misslyckats; detta kan bero på överdriven motstånd i DC-motorn. Vänligen kontrollera om filamentspolen är sned eller deformerad, eller om filamentslangen är blockerad."
                 },
                 {
-                    "ecode": "0704700000020001",
-                    "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller trasigt filament. Se Assistenten för detaljer."
-                },
-                {
                     "ecode": "1805700000020032",
                     "intro": "AMS-HT F Matning av filament till verktygshuvudet extrudern har misslyckats; detta kan bero på överdrivet motstånd från filamentet. Vänligen kontrollera om filamentspolen är sned eller om filamentslangen är blockerad."
                 },
@@ -5502,10 +6618,6 @@
                 {
                     "ecode": "1803700000020021",
                     "intro": "AMS-HT D Filamentmatare har misslyckats; detta kan bero på överdriven motstånd vid filamentsmatningen till bufferten. Kontrollera om filamentrullen är lutad eller om PTFE-röret är blockerat, tack."
-                },
-                {
-                    "ecode": "1806700000020005",
-                    "intro": "Misslyckades att mata filamente utanför AMS-HT. Klipp av slutet av filamentet plant och kontrollera om rullen sitter fast. Se Assistenten för detaljer, tack."
                 },
                 {
                     "ecode": "1800450000020001",
@@ -5554,10 +6666,6 @@
                 {
                     "ecode": "1804700000020033",
                     "intro": "AMS-HT E Matning av filament till verktygshuvuds extruder har misslyckats; det kan bero på att filamentet har glidit ut. Kontrollera om trådröret är frånkopplat eller om röret har slitits sönder."
-                },
-                {
-                    "ecode": "1802700000020004",
-                    "intro": "Kunde inte dra tillbaka filamentet från verktygshuvudet till AMS-HT. Möjlig orsak: filament eller rulle fastnat. Vänligen hänvisa till assistenten för detaljer."
                 },
                 {
                     "ecode": "1804700000020023",
@@ -5820,10 +6928,6 @@
                     "intro": "Krypteringschipfel."
                 },
                 {
-                    "ecode": "0705700000020001",
-                    "intro": "Misslyckades att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller brutet filament. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "1807700000020032",
                     "intro": "AMS-HT H: Matning av filament till verktygshuvudets extruder misslyckades; detta kan bero på överdriven resistans från filamentet. Kontrollera om filamentrullen är lutad eller om filametröret är hinder."
                 },
@@ -6032,20 +7136,12 @@
                     "intro": "AMS E Utdragning av tråd misslyckades; detta kan bero på att tråden tog slut eller drogs ut."
                 },
                 {
-                    "ecode": "1807700000020001",
-                    "intro": "Misslyckades med att dra ut tråden från extrudern. Möjliga orsaker: igensatt extruder eller trasig tråd. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "1801700000020061",
                     "intro": "AMS-HT B Assisterande extruder misslyckades i att greppa tråd, möjligtvis på grund av överdriven resistans från bufferten. Kontrollera om bufferten är fast, om trådrullen är lutad och om trådröret är fritt från hinder."
                 },
                 {
                     "ecode": "1800700000020050",
                     "intro": "AMS-HT A Fel vid laddning av tråd i bufferten; detta kan bero på överdriven resistans i bufferten. Kontrollera om bufferten är fastnat, om trådrullen är lutad eller om trådröret är blockerat."
-                },
-                {
-                    "ecode": "0706700000020001",
-                    "intro": "Misslyckades att dra ut tråden från extrudern. Möjliga orsaker: täppt extruder eller avbruten tråd. Se assistenten för detaljer."
                 },
                 {
                     "ecode": "1804700000020012",
@@ -6062,14 +7158,6 @@
                 {
                     "ecode": "0705700000020010",
                     "intro": "AMS F Matning av tråd till hjulet för assistmotorutmatning har misslyckats. Detta kan bero på ett hinder i matningsröret. Kontrollera om matningsröret och trådhuben är fria från hinder."
-                },
-                {
-                    "ecode": "1804700000020004",
-                    "intro": "Misslyckades att dra tillbaka tråden från verktygshuvudet till AMS-HT. Möjliga orsaker: fastnade tråd eller spole. Se assistenten för detaljer."
-                },
-                {
-                    "ecode": "0705700000020005",
-                    "intro": "Misslyckades att mata ut tråden utanför AMS. Klipp av änden på tråden platt och kontrollera om spolen är fastnat. Se assistenten för detaljer."
                 },
                 {
                     "ecode": "1803700000020011",
@@ -6266,10 +7354,6 @@
                 {
                     "ecode": "1804700000020046",
                     "intro": "AMS-HT E Utdragning av filament har misslyckats. Detta kan bero på överdriven resistans i hjälpmotorn. Kontrollera om filamentrullen är sned eller deformerad och om filamentröret är klart."
-                },
-                {
-                    "ecode": "0706700000020005",
-                    "intro": "Misslyckades att mata ut filamentet utanför AMS. Klipp av änden på filamentet platt och kontrollera om rullen sitter fast. Se assistenten för detaljer."
                 },
                 {
                     "ecode": "1802700000020012",
@@ -6528,10 +7612,6 @@
                     "intro": "AMS E: Det gick inte att ladda in filamentet i bufferten; detta kan bero på överdrivet motstånd i bufferten. Vänligen kontrollera om bufferten är fastnat, filamentspolen är lutad eller filamentröret är blockerat."
                 },
                 {
-                    "ecode": "1805700000020001",
-                    "intro": "Det gick inte att dra ut filamentet från extrudern. Möjliga orsaker kan vara en tilltäppt extruder eller ett brutet filament. Se Assistenten för detaljer."
-                },
-                {
                     "ecode": "1806700000020041",
                     "intro": "AMS-HT G: Det gick inte att dra ut filamentet; detta kan bero på att filamentet har lossnat från spolen. Vänligen byt ut spolen mot en ny."
                 },
@@ -6572,20 +7652,12 @@
                     "intro": "AMS-HT G matning av filament till bufferten har misslyckats; detta kan bero på att bufferten blockerar filamentet. Kontrollera buffertens PTFE-rörplugg."
                 },
                 {
-                    "ecode": "1807700000020004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från verktygshuvudet till AMS-HT. Möjlig orsak: Filament eller rulle fastnat. Vänligen kontakta Assistant för detaljer."
-                },
-                {
                     "ecode": "1801700000020003",
                     "intro": "Misslyckades med att extrudera filamentet. Möjlig orsak: Extruder eller munstyckstoppning. Vänligen kontakta Assistant för detaljer."
                 },
                 {
                     "ecode": "1800300000010004",
                     "intro": "Fel på krypteringschip."
-                },
-                {
-                    "ecode": "1801700000020001",
-                    "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: Tilltäppt extruder eller trasigt filament. Se Assistant för detaljer."
                 },
                 {
                     "ecode": "1802700000020031",
@@ -6820,20 +7892,12 @@
                     "intro": "AMS E Utdragning av filament har misslyckats; detta kan bero på ökad resistans i assist-motorn. Vänligen kontrollera om filament-rullen är sned eller deformerad, och om filament-tuben är klar."
                 },
                 {
-                    "ecode": "1803700000020001",
-                    "intro": "Det gick inte att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller brutet filament. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "RFID kan inte läsas på grund av en hårdvaru- eller strukturfel."
                 },
                 {
                     "ecode": "1806700000020042",
                     "intro": "AMS-HT G Dragningsmekanism för filament har misslyckats; det kan bero på att DC-motorn tappat anslutningen. Kontrollera att kontakten till DC-motorn är rätt ansluten."
-                },
-                {
-                    "ecode": "0707700000020004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: Filamentet eller spolen sitter fast. Se Assistenten för mer detaljer."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -7108,10 +8172,6 @@
                     "intro": "Filterskärarens handtag har inte släppts. Handtaget eller bladet kan vara fastnat, eller det kan vara ett problem med anslutningen för filament sensorn."
                 },
                 {
-                    "ecode": "1804700000020001",
-                    "intro": "Det gick inte att dra ut filamentet från extrudern. Möjliga orsaker: tilltäppt extruder eller trasigt filament. Se assistanten för mer detaljer."
-                },
-                {
                     "ecode": "1806700000020050",
                     "intro": "AMS-HT G Det misslyckades att mata in filament i bufferten, detta kan bero på för mycket motstånd i bufferten. Kontrollera om bufferten är fastnat, om filamentrullen är vinklad eller om filamentröret är blockerat."
                 },
@@ -7350,10 +8410,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C Matningsfilament till verktygshuvudextrudern har misslyckats; detta kan bero på att filamentet har glidit ut. Kontrollera om filamentröret är frånkopplat eller om röret har slitits igenom."
-                },
-                {
-                    "ecode": "0704700000020005",
-                    "intro": "Misslyckades med att mata ut filamentet utanför AMS. Klipp av slutet på filamentet platt och kontrollera om rullen är fast. Se mer detaljer i Assistant."
                 },
                 {
                     "ecode": "1800700000020006",
@@ -7628,10 +8684,6 @@
                     "intro": "Skäravståndet för filamentavskäraren är för stort. XY-motorn kan förlora steg."
                 },
                 {
-                    "ecode": "1803700000020004",
-                    "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet till AMS-HT. Möjlig orsak: filament eller spole fastnat. Vänligen hänvisa till Assistant för detaljer."
-                },
-                {
                     "ecode": "1804700000020032",
                     "intro": "Det har misslyckats att mata AMS-HT E filament till verktygshuvudets extruder. Det kan bero på överdrivet motstånd från filamentet. Vänligen kontrollera om filamentrullen är lutad eller om filamentröret är blockerat."
                 },
@@ -7808,10 +8860,6 @@
                     "intro": "Det gick inte att hämta AMS-mappningstabell; vänligen klicka på \"Fortsätt\" för att försöka igen."
                 },
                 {
-                    "ecode": "1802700000020001",
-                    "intro": "Det gick inte att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller trasigt filament. Se hjälpfunktionen för mer information."
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "AMS-HT H Assisterande extrudern misslyckades med att gripa filamentet, detta kan bero på att hjälp motorn tappar greppet. Vänligen klipp bort den slitna delen av filamentet."
                 },
@@ -7834,10 +8882,6 @@
                 {
                     "ecode": "1801700000020021",
                     "intro": "AMS-HT BMatning av filament till bufferten har misslyckats; detta kan bero på för högt filamentmotstånd. Kontrollera om filamentrullen är sned eller om PTFE-röret är blockerat."
-                },
-                {
-                    "ecode": "1800700000020001",
-                    "intro": "Misslyckades att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller brutet filament. Se assistenten för detaljer."
                 },
                 {
                     "ecode": "0706310000010004",
@@ -7878,10 +8922,6 @@
                 {
                     "ecode": "1803700000020046",
                     "intro": "Det gick inte att dra ut filamentet från AMS-HT D; Detta kan bero på överdrivet motstånd i assistmotorn. Vänligen kontrollera om filamentrullen är lutad eller deformerad samt om filamentröret är klart."
-                },
-                {
-                    "ecode": "1800700000020004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från verktygshuvudet till AMS-HT. Möjlig orsak: Filament eller spole fastnat. Vänligen se Assistanten för detaljer."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -8110,10 +9150,6 @@
                 {
                     "ecode": "1801700000020032",
                     "intro": "AMS-HT B Tillförsel av filament till verktygshuvudets extruder har misslyckats; detta kan bero på för högt motstånd från filamentet. Vänligen kontrollera om filamentrullen är sned eller om filamenttuben är blockerad."
-                },
-                {
-                    "ecode": "1800700000020005",
-                    "intro": "Misslyckades att mata ut filamentet utanför AMS-HT. Vänligen klipp av filamentets slut rakt och kontrollera om rullen är fastnad. Se assistenten för mer information."
                 },
                 {
                     "ecode": "0705700000020033",
@@ -8370,10 +9406,6 @@
                 {
                     "ecode": "0704700000020023",
                     "intro": "AMS E Matning av filament till bufferten har misslyckats; detta kan bero på att filamentet har lossnat. Vänligen kontrollera om filamentröret är felaktigt anslutet eller om röret har slitits igenom."
-                },
-                {
-                    "ecode": "1806700000020004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från verktygshuvudet till AMS-HT. Möjlig orsak: filament eller spole fastnat. Vänligen hänvisa till assistenten för detaljer."
                 },
                 {
                     "ecode": "1804300000010004",
@@ -8652,10 +9684,6 @@
                     "intro": "AMS-HT G Matning av filament till verktygshuvudet extrudern har misslyckats; detta kan bero på överdrivet motstånd från filamentet. Var god kontrollera om filamentspolen är sned eller om filamentröret är blockerat."
                 },
                 {
-                    "ecode": "0707700000020001",
-                    "intro": "Det gick inte att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller brutet filament. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "0707700000020010",
                     "intro": "AMS H Matning av filament till assistmotor utmatningshjulet har misslyckats. Detta kan bero på en blockering i matningsslangen. Var god kontrollera om matningsslangen och filamentnavet är rena."
                 },
@@ -8896,16 +9924,8 @@
                     "intro": "Vänligen dra ut den externa filamentet från vänster extruder."
                 },
                 {
-                    "ecode": "1803700000020005",
-                    "intro": "Det gick inte att mata ut filamentet utanför AMS-HT. Klipp av slutet på filamentet platt och kontrollera om rullen är fast. Se Assistenten för detaljer."
-                },
-                {
                     "ecode": "1801700000020010",
                     "intro": "AMS-HT B Det gick inte att mata ut filament till hjälp-motorns extruderhjul. Detta kan bero på en blockering i matröret. Kontrollera om mataktivatorns röret och filamentnavet är klara."
-                },
-                {
-                    "ecode": "1801700000020005",
-                    "intro": "Det gick inte att mata ut filamentet utanför AMS-HT. Klipp av slutet på filamentet platt och kontrollera om rullen är fast. Se Assistenten för detaljer."
                 },
                 {
                     "ecode": "0300C00000010002",
@@ -8958,10 +9978,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "Detektering av främmande föremål fungerar inte. Vänligen starta enheterna på nytt eller uppdatera firmware."
-                },
-                {
-                    "ecode": "0C00030000020016",
-                    "intro": "Detektering av främmande föremål fungerar inte och Liveview-kamerans serienummer kan inte läsas. Kontakta kundsupport-teamet."
                 },
                 {
                     "ecode": "03009C0000010002",
@@ -9556,10 +10572,6 @@
                     "intro": "Utskrift med hög temperatur på uppvärmd säng görs för första gången. För att få bättre kvalitet på första lagrets utskrift görs en automatisk kalibrering av hög temperatur på uppvärmd säng."
                 },
                 {
-                    "ecode": "0C00030000020011",
-                    "intro": "Kalibrering av högprecision dysavstånd misslyckades, kalibrera på nytt."
-                },
-                {
                     "ecode": "0703550000010002",
                     "intro": "PTFE-röret är felaktigt anslutet mellan verktygshuvudet och bufferten. Anslut buffertens topp till höger extruder och botten till vänster extruder."
                 },
@@ -9768,10 +10780,6 @@
                     "intro": "RFID-taggen på AMS A Slot2 är skadad eller dess innehåll kan inte identifieras."
                 },
                 {
-                    "ecode": "0701700000020004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: filament eller spole fastnat. Se Assistant för detaljer."
-                },
-                {
                     "ecode": "0703300000020002",
                     "intro": "RFID-taggen på AMS D Slot1 är skadad eller dess innehåll kan inte identifieras."
                 },
@@ -9872,10 +10880,6 @@
                     "intro": "Misslyckades med att extrudera filamentet. Möjlig orsak: förträngningar i extrudern eller munstycket. Se assistenten för mer information."
                 },
                 {
-                    "ecode": "0703700000020005",
-                    "intro": "Misslyckades med att mata ut filamentet utanför AMS. Klipp av änden på filamentet plant och kontrollera om spolen har fastnat. Se assistenten för mer information."
-                },
-                {
                     "ecode": "0703700000020006",
                     "intro": "Timeout vid rensning av gammalt filament. Möjlig orsak: Filament fastnat eller förträngningar i extrudern/munstycket. Se assistenten för mer information."
                 },
@@ -9886,10 +10890,6 @@
                 {
                     "ecode": "12FF200000020004",
                     "intro": "Vänligen dra ut filamentet från filamenthållaren från extrudern."
-                },
-                {
-                    "ecode": "0500060000020002",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300960000010003",
@@ -9908,20 +10908,8 @@
                     "intro": "AMS D Avgasventilen 2 är inte ansluten, vilket kan bero på dålig kontakt med kontakten."
                 },
                 {
-                    "ecode": "0500060000020012",
-                    "intro": ""
-                },
-                {
                     "ecode": "0702810000010003",
                     "intro": "AMS C Värmaren 2 är kortsluten, vilket kan bero på en ledningskortslutning eller skada på värmaren."
-                },
-                {
-                    "ecode": "0500060000020006",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020004",
-                    "intro": "AI Live View-kameran sitter inte på plats; kontrollera hårdvaruanslutningen."
                 },
                 {
                     "ecode": "0702350000010002",
@@ -9930,10 +10918,6 @@
                 {
                     "ecode": "0701010000020007",
                     "intro": "AMS B Motorstödsgivarens kablar är inte anslutna. Motorstödskontakten kan ha dålig kontakt."
-                },
-                {
-                    "ecode": "0300950000010003",
-                    "intro": "Överhettning av lasermodulen."
                 },
                 {
                     "ecode": "0300980000010003",
@@ -9960,10 +10944,6 @@
                     "intro": "Temperaturavläsningen för MC-modulen är för hög, förmodligen på grund av hög kamertemperatur för skrivaren. Försök sänka omgivningstemperaturen innan du använder skrivaren."
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "Lasermodulen upptäcks inte. Modulen kan ha lossnat eller så är snabblåsspaken inte låst."
-                },
-                {
                     "ecode": "0300C00000010001",
                     "intro": "Fel på aktiv kammarluftsutblåsning: den kan vara fast."
                 },
@@ -9974,10 +10954,6 @@
                 {
                     "ecode": "0C00040000010013",
                     "intro": "Exponeringsparametrarna för BirdsEye-kameran fungerar inte, försök igen."
-                },
-                {
-                    "ecode": "0300950000010002",
-                    "intro": "Temperatursensorn i lasermodulen kan ha en öppen krets."
                 },
                 {
                     "ecode": "1804910000010003",
@@ -10144,10 +11120,6 @@
                     "intro": "Misslyckades med att ansluta till internetet; vänligen kontrollera nätverksanslutningen."
                 },
                 {
-                    "ecode": "0500030000010021",
-                    "intro": "Inkompatibel hårdvara; vänligen kontrollera lasern."
-                },
-                {
                     "ecode": "0500040000010003",
                     "intro": "Innehållet i utskriftsfilen går inte att läsa; vänligen skicka utskriftsjobbet igen."
                 },
@@ -10158,10 +11130,6 @@
                 {
                     "ecode": "0700330000020002",
                     "intro": "RFID-taggen på AMS A Slot4 är skadad, eller dess innehåll kan inte identifieras."
-                },
-                {
-                    "ecode": "0700700000020005",
-                    "intro": "Misslyckades att mata ut filamentet utanför AMS-enheten. Vänligen klipp till änden av filamentet platt och kontrollera om rullen sitter fast. Vänligen se Assistenten för detaljer."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -10180,10 +11148,6 @@
                     "intro": "Det gick inte att extrudera filamentet. Möjlig orsak: stopp i extruder eller munstycke. Om ytterligare detaljer behövs, se Assistant."
                 },
                 {
-                    "ecode": "0701700000020005",
-                    "intro": "Det gick inte att mata fram filamentet utanför AMS. Klipp av slutet på filamentet plant och kontrollera om rullen sitter fast. För ytterligare detaljer, se Assistant."
-                },
-                {
                     "ecode": "0702300000010004",
                     "intro": "Fel på krypteringschip."
                 },
@@ -10198,10 +11162,6 @@
                 {
                     "ecode": "0702330000020002",
                     "intro": "RFID-taggen på AMS C Slot4 är skadad, eller dess innehåll kan inte identifieras."
-                },
-                {
-                    "ecode": "0702700000020005",
-                    "intro": "Det gick inte att mata fram filamentet utanför AMS. Klipp av slutet på filamentet plant och kontrollera om rullen sitter fast. För ytterligare detaljer, se Assistant."
                 },
                 {
                     "ecode": "0703310000020002",
@@ -10464,10 +11424,6 @@
                     "intro": "Fel på krypteringschip."
                 },
                 {
-                    "ecode": "0702700000020004",
-                    "intro": "Kunde inte dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: filamentet eller rullen fastnade. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "0703300000010004",
                     "intro": "Fel på krypteringschippet."
                 },
@@ -10560,10 +11516,6 @@
                     "intro": "Motståndet i utmatningen är onormalt. Det kan finnas en propp i extrudern eller filamentet kan fastna i verktygshuvudet."
                 },
                 {
-                    "ecode": "0300950000010004",
-                    "intro": "Fart på fläkten för att kyla lasermodulet är för låg eller har stoppat. Det kan fastna eller kontakten kan inte vara ordentligt ansluten."
-                },
-                {
                     "ecode": "0500060000020014",
                     "intro": ""
                 },
@@ -10582,10 +11534,6 @@
                 {
                     "ecode": "0300310000010001",
                     "intro": "Part Kylfläktens hastighet är för långsam eller stoppad. Den kan vara fast eller vara dåligt inkopplad."
-                },
-                {
-                    "ecode": "0500060000020003",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300320000010001",
@@ -10808,10 +11756,6 @@
                     "intro": "RFID-taggen på AMS D Spår4 är skadad eller så går det inte att identifiera dess innehåll."
                 },
                 {
-                    "ecode": "0703700000020004",
-                    "intro": "Misslyckades med att dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: filament eller rulle fastnat. Se assistenten för mer information."
-                },
-                {
                     "ecode": "0C00010000020007",
                     "intro": "Parametrarna för Micro Lidar-laser har förskjutits. Vänligen kalibrera om din skrivare."
                 },
@@ -10850,10 +11794,6 @@
                 {
                     "ecode": "0700950000010001",
                     "intro": "AMS A: Temperatursensorn för värmare 2 fungerar inte korrekt, vilket kan bero på dålig kontakt i anslutningen."
-                },
-                {
-                    "ecode": "0300950000010005",
-                    "intro": "Kommunikationen med lasermodulen är onormal, vänligen kontrollera anslutningen."
                 },
                 {
                     "ecode": "0300350000010001",
@@ -11068,10 +12008,6 @@
                     "intro": "Kommunikationen med AMS-hubben är onormal; kabeln kanske inte är välansluten."
                 },
                 {
-                    "ecode": "0700700000020004",
-                    "intro": "Misslyckades att dra tillbaka filamentet från verktygshuvudet till AMS. Möjlig orsak: Filamentet eller spolen fastnar. Se assistenten för detaljer."
-                },
-                {
                     "ecode": "0701300000020002",
                     "intro": "RFID-taggen på AMS B Fack 1 är skadad eller dess innehåll kan inte identifieras."
                 },
@@ -11092,20 +12028,12 @@
                     "intro": "Den vertikala lasern är inte tänd. Kontrollera om den är täckt eller om det finns ett problem med hårdvarukopplingen."
                 },
                 {
-                    "ecode": "0300950000010001",
-                    "intro": "Temperatursensorn för lasermodulen kan ha en kortslutning."
-                },
-                {
                     "ecode": "0702910000010003",
                     "intro": "AMS C Avgasventilen 2 är inte ansluten, vilket kan bero på dålig kontakt med kontaktorn."
                 },
                 {
                     "ecode": "0300980000030001",
                     "intro": "Det vänstra sidofönstret verkar vara öppet."
-                },
-                {
-                    "ecode": "0500060000020001",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -11272,16 +12200,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020022",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020021",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C0001000003000C",
-                    "intro": "Temperaturmätaren på munstyckets kamera är för hög vilket orsakar att AI-detektionsfunktionen pausar. Funktionen kommer automatiskt att återupptas när temperaturen återgår till normal."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -11372,10 +12292,6 @@
                     "intro": "AMS G Den borstade motorn 3 har ingen signal, vilket kan bero på dålig kontakt i motorkontakten eller fel på motorn."
                 },
                 {
-                    "ecode": "1806010000010005",
-                    "intro": "AMS-HT G Strömsensorn för assistmotor kan vara trasig."
-                },
-                {
                     "ecode": "1803910000010002",
                     "intro": "AMS-HT D Spolen på avgasventil 2 är kortsluten, vilket kan bero på onormal ledningsdragning eller skada."
                 },
@@ -11432,10 +12348,6 @@
                     "intro": "AMS-HT B-avgasventil 2 fungerar onormalt, vilket kan bero på för hög resistans."
                 },
                 {
-                    "ecode": "0707010000010005",
-                    "intro": "AMS H Strömsensorn för assistance motorn kan vara felaktig."
-                },
-                {
                     "ecode": "1803020000020002",
                     "intro": "AMS-HT D hastighetsmätaren har inget signal. Kontakten till hastighetsmätaren kan ha dålig kontakt."
                 },
@@ -11452,16 +12364,8 @@
                     "intro": "AMS-HT A Strömsensorn för värmare 2 är onormal."
                 },
                 {
-                    "ecode": "0706010000010005",
-                    "intro": "AMS G Strömsensorn för assistmotor kan vara felaktig."
-                },
-                {
                     "ecode": "1801100000020004",
                     "intro": "AMS-HT B Den borstade motorn 1 har ingen signal, vilket kan bero på dålig kontakt i motoranslutningen eller en motorfel."
-                },
-                {
-                    "ecode": "0704010000010005",
-                    "intro": "AMS E Strömsensorn för assistmotor kan vara felaktig."
                 },
                 {
                     "ecode": "0706130000020004",
@@ -11736,10 +12640,6 @@
                     "intro": "AMS E Fel på filamenthastighet och längd: Filamentets odometer kan vara felaktig."
                 },
                 {
-                    "ecode": "1801010000010005",
-                    "intro": "AMS-HT B Strömsensorn för hjälp motorn kan vara felaktig."
-                },
-                {
                     "ecode": "1802310000010001",
                     "intro": "AMS-HT C RFID 2-kortet har ett fel."
                 },
@@ -11884,10 +12784,6 @@
                     "intro": "Fel i hastighet och längd för filament på AMS-HT G: odometern till filamentet kan vara felaktig."
                 },
                 {
-                    "ecode": "0705010000010005",
-                    "intro": "AMS F Strömsensorn för hjälp motorn kan vara defekt."
-                },
-                {
                     "ecode": "1803010000010001",
                     "intro": "AMS-HT D Hjälp motorn har glidit. Extruderhjulet kan vara nedslitet eller filamentet kan vara för tunt."
                 },
@@ -12024,10 +12920,6 @@
                     "intro": "AMS C-RFID 1-kortet har ett fel."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "Objektivet på liveview-kameran verkar vara smutsigt. Vänligen rengör objektivet."
-                },
-                {
                     "ecode": "1807020000020002",
                     "intro": "AMS-HT H hastighetsmätaren har inget signal. Anslutningen till hastighetsmätaren kan ha dålig kontakt."
                 },
@@ -12042,10 +12934,6 @@
                 {
                     "ecode": "1805810000010004",
                     "intro": "AMS-HT F Uppvärmningen av värmeelement 2 fungerar onormalt."
-                },
-                {
-                    "ecode": "1802010000010005",
-                    "intro": "AMS-HT C Strömsensorn för hjälpkretsen kan vara defekt."
                 },
                 {
                     "ecode": "0705920000010001",
@@ -12074,10 +12962,6 @@
                 {
                     "ecode": "1804810000010004",
                     "intro": "AMS-HT E Värmare 2 värmer onormalt."
-                },
-                {
-                    "ecode": "1807010000010005",
-                    "intro": "AMS-HT H Strömsensorn på assistmotor kan vara felaktig."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -12146,10 +13030,6 @@
                 {
                     "ecode": "0706910000020001",
                     "intro": "AMS G Driften av avgasventilen 2 är onormal, vilket kan bero på överdriven resistans."
-                },
-                {
-                    "ecode": "1805010000010005",
-                    "intro": "AMS-HT F Strömsensorn för assistmotorn kan vara felaktig."
                 },
                 {
                     "ecode": "0707960000010001",
@@ -12448,10 +13328,6 @@
                     "intro": "AMS F: kalibreringsparameterfel för hjälpmotorn. Vänligen dra ut filamentet från filamentnavet och starta sedan om AMS."
                 },
                 {
-                    "ecode": "1803010000010005",
-                    "intro": "AMS-HT D: strömsensorn för hjälpmotorn kan vara felaktig."
-                },
-                {
                     "ecode": "1807010000010004",
                     "intro": "AMS-HT H: hastighetskontrollen för hjälpmotorn fungerar inte som den ska. Hastighetssensorn kan vara felaktig."
                 },
@@ -12470,10 +13346,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Borstmotorn 1 har ingen signal, vilket kan bero på dålig kontakt i motoranslutningen eller fel på motorn."
-                },
-                {
-                    "ecode": "0C00010000020008",
-                    "intro": "Det gick inte att hämta bild från liveview-kameran. Det går för närvarande inte att detektera stopp i spaghetti och sopnedkast."
                 },
                 {
                     "ecode": "0C00040000020007",
@@ -12578,10 +13450,6 @@
                 {
                     "ecode": "1807920000010001",
                     "intro": "AMS-HT H Kylfläkten för värmare 1 är blockerad, vilket kan bero på att fläkten sitter fast."
-                },
-                {
-                    "ecode": "1800010000010005",
-                    "intro": "AMS-HT A Strömsensorn av assistmotor kan vara felaktig."
                 },
                 {
                     "ecode": "1804910000020001",
@@ -12852,10 +13720,6 @@
                     "intro": "AMS-HT E Kylfläkten till värmare 2 är blockerad, vilket kan bero på att fläkten är fast."
                 },
                 {
-                    "ecode": "1804010000010005",
-                    "intro": "AMS-HT E Strömavkännaren för assistmotorn kan vara felaktig."
-                },
-                {
                     "ecode": "1801910000010002",
                     "intro": "AMS-HT B Spolen på avgasventilen 2 är kortsluten, vilket kan bero på onormal kabeldragning eller skada."
                 },
@@ -12956,26 +13820,6 @@
                     "intro": "Y-axeln hemma onormalt: vänligen kontrollera om verktygshuvudet är fast eller om Y-vagnen har för mycket resistans."
                 },
                 {
-                    "ecode": "0C00010000010001",
-                    "intro": "Verktygskameran är offline. Vänligen kontrollera hårdvaruanslutningen."
-                },
-                {
-                    "ecode": "0C00010000010003",
-                    "intro": "Synkroniseringen mellan verktygskameran och MC är onormal. Vänligen starta om din skrivare."
-                },
-                {
-                    "ecode": "0C00010000010004",
-                    "intro": "Verktygskamerans lins verkar vara smutsig. Vänligen rengör linsen."
-                },
-                {
-                    "ecode": "0C00010000010005",
-                    "intro": "Parametern för verktygskameran är onormal. Vänligen kontakta efterförsäljningen."
-                },
-                {
-                    "ecode": "0C00010000020006",
-                    "intro": "Parametern för verktygskameran är onormal. Vänligen aktivera flödeskalibrering vid nästa utskrift."
-                },
-                {
                     "ecode": "0500030000010007",
                     "intro": "Modulen för utökning av verktygshuvudet fungerar inte. Vänligen stäng av enheten, kontrollera anslutningen och starta sedan om den."
                 },
@@ -13010,10 +13854,6 @@
                 {
                     "ecode": "07FF810000010002",
                     "intro": "Positionshallgivaren för växlingsmotorn för extrudern är onormal. Vänligen kontrollera om anslutningskabeln är löst."
-                },
-                {
-                    "ecode": "0500060000020032",
-                    "intro": "Bindning av munstyckeskamera misslyckades. Vänligen kontrollera hårdvaran och kabelanslutningarna."
                 },
                 {
                     "ecode": "07FF810000020001",
@@ -13150,10 +13990,6 @@
                 {
                     "ecode": "1203300000010001",
                     "intro": "AMS D fack 1 RFID-spolen är trasig eller RF-hårdvarukretsen har ett fel."
-                },
-                {
-                    "ecode": "0703010000010005",
-                    "intro": "AMS D Strömsensorn på hjälp-motorn kan vara trasig."
                 },
                 {
                     "ecode": "0703800000010001",
@@ -13940,16 +14776,8 @@
                     "intro": "AMS C Strömsensorn för värmare 1 är onormal."
                 },
                 {
-                    "ecode": "0702010000010005",
-                    "intro": "AMS C Strömsensorn för assistmotor kan vara felaktig."
-                },
-                {
                     "ecode": "0703960000010001",
                     "intro": "AMS D Torkprocessen kan uppleva termisk runaway. Vänligen stäng av AMS strömförsörjning."
-                },
-                {
-                    "ecode": "0701010000010005",
-                    "intro": "AMS B Strömsensorn för assistmotor kan vara felaktig."
                 },
                 {
                     "ecode": "0700010000010003",
@@ -14154,10 +14982,6 @@
                 {
                     "ecode": "0703100000020004",
                     "intro": "AMS D Den borstade motorn 1 har ingen signal, vilket kan bero på dålig kontakt i motoranslutningen eller fel på motorn."
-                },
-                {
-                    "ecode": "0C00040000020002",
-                    "intro": "Skärplattan hittades inte. Vänligen placera den krävda plattan för uppgiften och fortsätt."
                 },
                 {
                     "ecode": "0C00040000020008",
@@ -14404,10 +15228,6 @@
                     "intro": "Kommunikationen med AMS D är onormal; vänligen kontrollera anslutningskabeln."
                 },
                 {
-                    "ecode": "0C00040000020003",
-                    "intro": "Lasers arbetsbas är inte rätt justerad. Vänligen se till att alla fyra hörn är justerade med uppvärmningsplattan."
-                },
-                {
                     "ecode": "0702010000020009",
                     "intro": "AMS C Assisterande motor har obalanserat trefas motstånd. Assisterande motorn kan vara trasig."
                 },
@@ -14618,10 +15438,6 @@
                 {
                     "ecode": "0702100000020004",
                     "intro": "AMS C Den borstade motorn 1 har ingen signal, vilket kan bero på dålig kontakt i motoranslutningen eller en felaktig motor."
-                },
-                {
-                    "ecode": "0700010000010005",
-                    "intro": "AMS A Strömsensorn till hjälp motorn kan vara trasig."
                 },
                 {
                     "ecode": "0702900000020001",
@@ -14864,10 +15680,6 @@
                     "intro": "Din skrivare verkar skriva ut utan att extrudera."
                 },
                 {
-                    "ecode": "0703700000020001",
-                    "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: stoppad extruder eller brutet filament. Hänvisa till Assistanten för detaljer."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Misslyckades med att hämta AMS-mappningsbordet; klicka på \"Återuppta\" för att försöka igen."
                 },
@@ -14896,16 +15708,8 @@
                     "intro": "Temperatur- och fuktighetssensorn har ett fel. Kretsen kan vara trasig."
                 },
                 {
-                    "ecode": "0702700000020001",
-                    "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruderare eller trasigt filament. Hänvisa till assistenten för detaljer."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Kunde inte hämta AMS kartläggningstabell; klicka på \"Återuppta\" för att försöka igen."
-                },
-                {
-                    "ecode": "0701700000020001",
-                    "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruderare eller trasigt filament. Hänvisa till assistenten för detaljer."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14958,10 +15762,6 @@
                 {
                     "ecode": "0700510000030001",
                     "intro": "AMS är avstängd; var god ladda filament från trådrullehållaren."
-                },
-                {
-                    "ecode": "0700700000020001",
-                    "intro": "Misslyckades med att dra ut filamentet från extrudern. Möjliga orsaker: igensatt extruder eller trasigt filament. Se hjälpfunktionen för mer information."
                 },
                 {
                     "ecode": "0700700000020008",

@@ -1,11 +1,95 @@
 {
     "result": 0,
-    "t": 1737102427,
-    "ver": 202502042359,
+    "t": 1738858019,
+    "ver": 202503250207,
     "data": {
         "device_error": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "en": [
+                {
+                    "ecode": "10018003",
+                    "intro": "The time-lapse mode is set to Tranditional in the slicing file. This may cause surface defects. Would you like to enable it?"
+                },
+                {
+                    "ecode": "10018004",
+                    "intro": "Prime Tower is not enabled and time-lapse mode is set to Smooth in slicing file. This may cause surface defects. Would you like to enable it?"
+                },
+                {
+                    "ecode": "0300404D",
+                    "intro": "The current temperature of the hotend, heatbed, or chamber is too high. Please wait for it to cool down to room temperature before restarting the task."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the extruder."
+                },
+                {
+                    "ecode": "03008041",
+                    "intro": "Platform detection timeout: please restart the printer."
+                },
+                {
+                    "ecode": "03004067",
+                    "intro": "Calibration result is over the threshold."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the extruder."
+                },
+                {
+                    "ecode": "18008011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "18078011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the extruder."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the extruder."
+                },
+                {
+                    "ecode": "18038011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "18018011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "18058011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "18068011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "18048011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "03004011",
+                    "intro": "Flow Dynamics Calibration failed; please reinitiate printing or calibration."
+                },
+                {
+                    "ecode": "18028011",
+                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS-HT slot."
+                },
+                {
+                    "ecode": "05008072",
+                    "intro": "Live View camera is blocked"
+                },
+                {
+                    "ecode": "05008083",
+                    "intro": "Material is not allowed in Mounting Calibration. Please remove the material from the platform."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Toolhead camera calibration failed. Please ensure the Calibration Marker on the heatbed or Height Calibration Marker on the homing area is clean and undamaged, then re-run the calibration process."
+                },
                 {
                     "ecode": "1800C06A",
                     "intro": "AMS-HT A is reading RFID. Unable to start drying. Please try again later."
@@ -29,10 +113,6 @@
                 {
                     "ecode": "10014002",
                     "intro": "Timelapse is not supported as the Print sequence is set to \"By object\"."
-                },
-                {
-                    "ecode": "10018003",
-                    "intro": "Enabling traditional timelapse might lead to defects. Please enable it as needed?"
                 },
                 {
                     "ecode": "1800C06D",
@@ -75,16 +155,8 @@
                     "intro": "AMS-HT A motor is performing self-test. Unable to start drying. Please try again later."
                 },
                 {
-                    "ecode": "10018004",
-                    "intro": "Wiper Tower is not enabled and time-lapse mode is set to Smooth in this printing job. This may cause surface defects. Do you want to continue?"
-                },
-                {
                     "ecode": "1805C069",
                     "intro": "An error occurred during AMS-HT F drying. Please go to Assistant for more details."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Toolhead camera calibration failed. Please ensure the Laser Homing Area Marker or the Heated Calibration Marker are clean and undamaged, then re-run the calibration process."
                 },
                 {
                     "ecode": "1807C06D",
@@ -735,10 +807,6 @@
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the left extruder."
-                },
-                {
                     "ecode": "07058012",
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
@@ -831,10 +899,6 @@
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
-                    "ecode": "07FE8004",
-                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the left extruder."
-                },
-                {
                     "ecode": "07FE8013",
                     "intro": "Timeout purging old filament of the left extruder: Please check if the filament is stuck or the extruder is clogged."
                 },
@@ -857,10 +921,6 @@
                 {
                     "ecode": "07FE8001",
                     "intro": "Failed to cut the filament of the left extruder. Please check the cutter."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Failed to pull back the filament from the right extruder. Please check whether the filament is stuck inside the left extruder."
                 },
                 {
                     "ecode": "07FF8002",
@@ -921,10 +981,6 @@
                 {
                     "ecode": "07058013",
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Failed to pull back the filament from the left extruder. Please check whether the filament is stuck inside the left extruder."
                 },
                 {
                     "ecode": "18FE8012",
@@ -1219,10 +1275,6 @@
                     "intro": "AMS setup failed; please refer to the assistant."
                 },
                 {
-                    "ecode": "05008072",
-                    "intro": "Liveview camera is blocked"
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
@@ -1233,10 +1285,6 @@
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D is drying. Please stop drying process before loading/unloading material."
-                },
-                {
-                    "ecode": "18048011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
                     "ecode": "18018003",
@@ -1319,10 +1367,6 @@
                     "intro": "AMS-HT failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "18068011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
                     "ecode": "07078006",
                     "intro": "Unable to feed filament into the extruder. This could be due to entangled filament or a stuck spool. If not, please check if the AMS PTFE tube is connected."
                 },
@@ -1357,10 +1401,6 @@
                 {
                     "ecode": "07048006",
                     "intro": "Unable to feed filament into the extruder. This could be due to entangled filament or a stuck spool. If not, please check if the AMS PTFE tube is connected."
-                },
-                {
-                    "ecode": "18058011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
                     "ecode": "18058003",
@@ -1419,10 +1459,6 @@
                     "intro": "Please pull out the filament on the spool holder  of the right extruder. If this message persists, please check to see if there is filament broken in the extruder. (Connect a PTFE tube if you are about to use an AMS.)"
                 },
                 {
-                    "ecode": "18018011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
                     "ecode": "07058006",
                     "intro": "Unable to feed filament into the extruder. This could be due to entangled filament or a stuck spool. If not, please check if the AMS PTFE tube is connected."
                 },
@@ -1445,10 +1481,6 @@
                 {
                     "ecode": "18FFC009",
                     "intro": "Please feed filament into the PTFE tube of the right extruder until it can not be pushed any farther."
-                },
-                {
-                    "ecode": "18038011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
                 },
                 {
                     "ecode": "18078005",
@@ -1515,10 +1547,6 @@
                     "intro": "The AMS assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "18078011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
                     "ecode": "07058004",
                     "intro": "AMS failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
@@ -1579,14 +1607,6 @@
                     "intro": "The AMS-HT failed to send out filament. You can clip the end of your filament flat, and reinsert. If this message persists, please check the PTFE tubes in AMS for any signs of wear and tear."
                 },
                 {
-                    "ecode": "18008011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
-                    "ecode": "18028011",
-                    "intro": "AMS-HT filament ran out. Please insert a new filament into the same AMS slot."
-                },
-                {
                     "ecode": "0C008015",
                     "intro": "Objects detected on the platform; please clean them up in a timely manner."
                 },
@@ -1633,10 +1653,6 @@
                 {
                     "ecode": "0500805E",
                     "intro": "Cutting module Serial Number error: unable to calibrate or make project."
-                },
-                {
-                    "ecode": "03004067",
-                    "intro": "Calibration result is over the threhold."
                 },
                 {
                     "ecode": "05004040",
@@ -1793,10 +1809,6 @@
                 {
                     "ecode": "05014018",
                     "intro": "Binding configuration information parsing failed; please try again."
-                },
-                {
-                    "ecode": "03008041",
-                    "intro": "Laser Platform detection timeout"
                 },
                 {
                     "ecode": "0C008002",
@@ -1969,10 +1981,6 @@
                 {
                     "ecode": "03004068",
                     "intro": "Step loss occurred during the motion accuracy enhancement process. Please try again."
-                },
-                {
-                    "ecode": "03004011",
-                    "intro": "Calibration of dynamic flux compensation failed."
                 },
                 {
                     "ecode": "05004041",
@@ -2433,8 +2441,1340 @@
             ]
         },
         "device_hms": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "en": [
+                {
+                    "ecode": "0300A40000010002",
+                    "intro": "The right hotend temperature is too high. Please wait for it to cool down to room temperature before restarting the task."
+                },
+                {
+                    "ecode": "0300A40000010004",
+                    "intro": "Chamber temperature is too high. Please wait for it to cool down to room temperature before restarting the task."
+                },
+                {
+                    "ecode": "0300A40000010003",
+                    "intro": "The left hotend temperature is too high. Please wait for it to cool down to room temperature before restarting the task."
+                },
+                {
+                    "ecode": "0300A40000010001",
+                    "intro": "Heatbed temperature is too high. Please wait for it to cool down to room temperature before restarting the task."
+                },
+                {
+                    "ecode": "0C00010000020019",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "The high-precision nozzle offset calibration failed; please recalibrate."
+                },
+                {
+                    "ecode": "0C0001000002001A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700010000010005",
+                    "intro": "AMS A The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0702010000010005",
+                    "intro": "AMS C The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0701010000010005",
+                    "intro": "AMS B The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0703010000010005",
+                    "intro": "AMS D The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0C00040000030018",
+                    "intro": "The toolhead camera calibration failed, probably because the object was not tightly adhered. The default parameters will be used for this cutting."
+                },
+                {
+                    "ecode": "1800010000010005",
+                    "intro": "AMS-HT A The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "1803010000010005",
+                    "intro": "AMS-HT D The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "1805010000010005",
+                    "intro": "AMS-HT F The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "1802010000010005",
+                    "intro": "AMS-HT C The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0705010000010005",
+                    "intro": "AMS F The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "1801010000010005",
+                    "intro": "AMS-HT B The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0706010000010005",
+                    "intro": "AMS G The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "1806010000010005",
+                    "intro": "AMS-HT G The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0707010000010005",
+                    "intro": "AMS H The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "1800240000020009",
+                    "intro": "AMS-HT A front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "1807240000020009",
+                    "intro": "AMS-HT H front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "1801240000020009",
+                    "intro": "AMS-HT B front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "1806240000020009",
+                    "intro": "AMS-HT G front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "1802240000020009",
+                    "intro": "AMS-HT C front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "1805240000020009",
+                    "intro": "AMS-HT F front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "1804240000020009",
+                    "intro": "AMS-HT E front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "1803240000020009",
+                    "intro": "AMS-HT D front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
+                },
+                {
+                    "ecode": "0707730000020004",
+                    "intro": "Failed to pull back the AMS H Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703710000020005",
+                    "intro": "Failed to feed the AMS D Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0706700000020005",
+                    "intro": "Failed to feed the AMS G Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0701710000020002",
+                    "intro": "Failed to feed the AMS B Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704700000020004",
+                    "intro": "Failed to pull back the AMS E Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804720000020004",
+                    "intro": "Failed to pull back the AMS-HT E Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704720000020005",
+                    "intro": "Failed to feed the AMS E Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0702710000020002",
+                    "intro": "Failed to feed the AMS C Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703710000020001",
+                    "intro": "Failed to pull out the AMS D Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1805710000020005",
+                    "intro": "Failed to feed the AMS-HT F Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1803720000020002",
+                    "intro": "Failed to feed the AMS-HT D Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704710000020001",
+                    "intro": "Failed to pull out the AMS E Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1805730000020001",
+                    "intro": "Failed to pull out the AMS-HT F Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1806710000020005",
+                    "intro": "Failed to feed the AMS-HT G Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0704730000020004",
+                    "intro": "Failed to pull back the AMS E Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805730000020004",
+                    "intro": "Failed to pull back the AMS-HT F Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702720000020005",
+                    "intro": "Failed to feed the AMS C Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1800720000020001",
+                    "intro": "Failed to pull out the AMS-HT A Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0702720000020001",
+                    "intro": "Failed to pull out the AMS C Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1805710000020002",
+                    "intro": "Failed to feed the AMS-HT F Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804700000020004",
+                    "intro": "Failed to pull back the AMS-HT E Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803730000020001",
+                    "intro": "Failed to pull out the AMS-HT D Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1804720000020001",
+                    "intro": "Failed to pull out the AMS-HT E Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1802710000020004",
+                    "intro": "Failed to pull back the AMS-HT C Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1801710000020002",
+                    "intro": "Failed to feed the AMS-HT B Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703700000020004",
+                    "intro": "Failed to pull back the AMS D Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800710000020001",
+                    "intro": "Failed to pull out the AMS-HT A Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1800720000020004",
+                    "intro": "Failed to pull back the AMS-HT A Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800730000020002",
+                    "intro": "Failed to feed the AMS-HT A Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Failed to feed the AMS-HT E Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705730000020005",
+                    "intro": "Failed to feed the AMS F Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807720000020005",
+                    "intro": "Failed to feed the AMS-HT H Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0701700000020001",
+                    "intro": "Failed to pull out the AMS B Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1807700000020004",
+                    "intro": "Failed to pull back the AMS-HT H Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702720000020004",
+                    "intro": "Failed to pull back the AMS C Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705730000020002",
+                    "intro": "Failed to feed the AMS F Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Failed to feed the AMS-HT G Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806710000020004",
+                    "intro": "Failed to pull back the AMS-HT G Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803730000020002",
+                    "intro": "Failed to feed the AMS-HT D Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704720000020001",
+                    "intro": "Failed to pull out the AMS E Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1802730000020004",
+                    "intro": "Failed to pull back the AMS-HT C Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Failed to feed the AMS H Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802720000020004",
+                    "intro": "Failed to pull back the AMS-HT C Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0700700000020004",
+                    "intro": "Failed to pull back the AMS A Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702710000020005",
+                    "intro": "Failed to feed the AMS C Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0704720000020002",
+                    "intro": "Failed to feed the AMS E Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Failed to feed the AMS D Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703700000020005",
+                    "intro": "Failed to feed the AMS D Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1801730000020005",
+                    "intro": "Failed to feed the AMS-HT B Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1805700000020005",
+                    "intro": "Failed to feed the AMS-HT F Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1800730000020001",
+                    "intro": "Failed to pull out the AMS-HT A Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1801700000020004",
+                    "intro": "Failed to pull back the AMS-HT B Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805730000020002",
+                    "intro": "Failed to feed the AMS-HT F Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0706700000020004",
+                    "intro": "Failed to pull back the AMS G Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802730000020005",
+                    "intro": "Failed to feed the AMS-HT C Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807710000020005",
+                    "intro": "Failed to feed the AMS-HT H Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0700720000020002",
+                    "intro": "Failed to feed the AMS A Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800700000020001",
+                    "intro": "Failed to pull out the AMS-HT A Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0705700000020004",
+                    "intro": "Failed to pull back the AMS F Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800710000020004",
+                    "intro": "Failed to pull back the AMS-HT A Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702730000020002",
+                    "intro": "Failed to feed the AMS C Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702710000020001",
+                    "intro": "Failed to pull out the AMS C Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1804710000020004",
+                    "intro": "Failed to pull back the AMS-HT E Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806730000020004",
+                    "intro": "Failed to pull back the AMS-HT G Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805720000020005",
+                    "intro": "Failed to feed the AMS-HT F Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Failed to feed the AMS-HT H Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701720000020004",
+                    "intro": "Failed to pull back the AMS B Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705720000020005",
+                    "intro": "Failed to feed the AMS F Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807720000020002",
+                    "intro": "Failed to feed the AMS-HT H Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800700000020004",
+                    "intro": "Failed to pull back the AMS-HT A Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802730000020002",
+                    "intro": "Failed to feed the AMS-HT C Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1801720000020002",
+                    "intro": "Failed to feed the AMS-HT B Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802730000020001",
+                    "intro": "Failed to pull out the AMS-HT C Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0700710000020001",
+                    "intro": "Failed to pull out the AMS A Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1801700000020005",
+                    "intro": "Failed to feed the AMS-HT B Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0704700000020005",
+                    "intro": "Failed to feed the AMS E Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0700710000020002",
+                    "intro": "Failed to feed the AMS A Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701700000020004",
+                    "intro": "Failed to pull back the AMS B Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806730000020005",
+                    "intro": "Failed to feed the AMS-HT G Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1801710000020004",
+                    "intro": "Failed to pull back the AMS-HT B Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0707710000020004",
+                    "intro": "Failed to pull back the AMS H Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803730000020004",
+                    "intro": "Failed to pull back the AMS-HT D Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1801730000020002",
+                    "intro": "Failed to feed the AMS-HT B Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0700730000020004",
+                    "intro": "Failed to pull back the AMS A Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806720000020004",
+                    "intro": "Failed to pull back the AMS-HT G Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701720000020005",
+                    "intro": "Failed to feed the AMS B Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0705710000020004",
+                    "intro": "Failed to pull back the AMS F Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1807710000020004",
+                    "intro": "Failed to pull back the AMS-HT H Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803700000020004",
+                    "intro": "Failed to pull back the AMS-HT D Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705710000020001",
+                    "intro": "Failed to pull out the AMS F Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0707720000020004",
+                    "intro": "Failed to pull back the AMS H Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702710000020004",
+                    "intro": "Failed to pull back the AMS C Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704730000020005",
+                    "intro": "Failed to feed the AMS E Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1801700000020001",
+                    "intro": "Failed to pull out the AMS-HT B Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1805720000020004",
+                    "intro": "Failed to pull back the AMS-HT F Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702730000020005",
+                    "intro": "Failed to feed the AMS C Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Failed to feed the AMS E Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701700000020005",
+                    "intro": "Failed to feed the AMS B Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Failed to feed the AMS-HT B Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1801730000020001",
+                    "intro": "Failed to pull out the AMS-HT B Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1803720000020005",
+                    "intro": "Failed to feed the AMS-HT D Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807730000020004",
+                    "intro": "Failed to pull back the AMS-HT H Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800700000020005",
+                    "intro": "Failed to feed the AMS-HT A Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0705700000020001",
+                    "intro": "Failed to pull out the AMS F Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1802710000020005",
+                    "intro": "Failed to feed the AMS-HT C Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807730000020001",
+                    "intro": "Failed to pull out the AMS-HT H Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0706710000020004",
+                    "intro": "Failed to pull back the AMS G Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804730000020002",
+                    "intro": "Failed to feed the AMS-HT E Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Failed to feed the AMS-HT D Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802720000020005",
+                    "intro": "Failed to feed the AMS-HT C Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0706730000020002",
+                    "intro": "Failed to feed the AMS G Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0707700000020004",
+                    "intro": "Failed to pull back the AMS H Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805700000020004",
+                    "intro": "Failed to pull back the AMS-HT F Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805700000020001",
+                    "intro": "Failed to pull out the AMS-HT F Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0707720000020002",
+                    "intro": "Failed to feed the AMS H Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701720000020001",
+                    "intro": "Failed to pull out the AMS B Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0700720000020004",
+                    "intro": "Failed to pull back the AMS A Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804710000020001",
+                    "intro": "Failed to pull out the AMS-HT E Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1801710000020001",
+                    "intro": "Failed to pull out the AMS-HT B Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1806730000020002",
+                    "intro": "Failed to feed the AMS-HT G Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703710000020002",
+                    "intro": "Failed to feed the AMS D Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703720000020001",
+                    "intro": "Failed to pull out the AMS D Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0706720000020001",
+                    "intro": "Failed to pull out the AMS G Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1801730000020004",
+                    "intro": "Failed to pull back the AMS-HT B Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704710000020002",
+                    "intro": "Failed to feed the AMS E Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800710000020002",
+                    "intro": "Failed to feed the AMS-HT A Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802710000020002",
+                    "intro": "Failed to feed the AMS-HT C Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805720000020002",
+                    "intro": "Failed to feed the AMS-HT F Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703730000020004",
+                    "intro": "Failed to pull back the AMS D Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806720000020005",
+                    "intro": "Failed to feed the AMS-HT G Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0706720000020002",
+                    "intro": "Failed to feed the AMS G Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704730000020002",
+                    "intro": "Failed to feed the AMS E Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1807720000020001",
+                    "intro": "Failed to pull out the AMS-HT H Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1803710000020005",
+                    "intro": "Failed to feed the AMS-HT D Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807710000020002",
+                    "intro": "Failed to feed the AMS-HT H Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705720000020002",
+                    "intro": "Failed to feed the AMS F Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0700720000020001",
+                    "intro": "Failed to pull out the AMS A Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0706720000020004",
+                    "intro": "Failed to pull back the AMS G Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804700000020001",
+                    "intro": "Failed to pull out the AMS-HT E Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1803710000020002",
+                    "intro": "Failed to feed the AMS-HT D Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0707710000020001",
+                    "intro": "Failed to pull out the AMS H Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1803720000020004",
+                    "intro": "Failed to pull back the AMS-HT D Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805730000020005",
+                    "intro": "Failed to feed the AMS-HT F Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1803710000020001",
+                    "intro": "Failed to pull out the AMS-HT D Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1803700000020005",
+                    "intro": "Failed to feed the AMS-HT D Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Failed to feed the AMS-HT F Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701710000020005",
+                    "intro": "Failed to feed the AMS B Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0707730000020005",
+                    "intro": "Failed to feed the AMS H Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807720000020004",
+                    "intro": "Failed to pull back the AMS-HT H Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701720000020002",
+                    "intro": "Failed to feed the AMS B Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705700000020005",
+                    "intro": "Failed to feed the AMS F Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1801720000020001",
+                    "intro": "Failed to pull out the AMS-HT B Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0707730000020002",
+                    "intro": "Failed to feed the AMS H Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804720000020002",
+                    "intro": "Failed to feed the AMS-HT E Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704730000020001",
+                    "intro": "Failed to pull out the AMS E Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1801720000020004",
+                    "intro": "Failed to pull back the AMS-HT B Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802700000020001",
+                    "intro": "Failed to pull out the AMS-HT C Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0703710000020004",
+                    "intro": "Failed to pull back the AMS D Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0706730000020001",
+                    "intro": "Failed to pull out the AMS G Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1806700000020004",
+                    "intro": "Failed to pull back the AMS-HT G Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0700700000020005",
+                    "intro": "Failed to feed the AMS A Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1800720000020002",
+                    "intro": "Failed to feed the AMS-HT A Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800720000020005",
+                    "intro": "Failed to feed the AMS-HT A Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1806720000020001",
+                    "intro": "Failed to pull out the AMS-HT G Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0706700000020001",
+                    "intro": "Failed to pull out the AMS G Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Failed to feed the AMS-HT A Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0700720000020005",
+                    "intro": "Failed to feed the AMS A Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0707720000020001",
+                    "intro": "Failed to pull out the AMS H Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1802710000020001",
+                    "intro": "Failed to pull out the AMS-HT C Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0706720000020005",
+                    "intro": "Failed to feed the AMS G Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0702720000020002",
+                    "intro": "Failed to feed the AMS C Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0704710000020005",
+                    "intro": "Failed to feed the AMS E Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1806720000020002",
+                    "intro": "Failed to feed the AMS-HT G Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1807700000020001",
+                    "intro": "Failed to pull out the AMS-HT H Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1804730000020004",
+                    "intro": "Failed to pull back the AMS-HT E Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0707710000020005",
+                    "intro": "Failed to feed the AMS H Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1807730000020005",
+                    "intro": "Failed to feed the AMS-HT H Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0705730000020001",
+                    "intro": "Failed to pull out the AMS F Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0704720000020004",
+                    "intro": "Failed to pull back the AMS E Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701730000020005",
+                    "intro": "Failed to feed the AMS B Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0704710000020004",
+                    "intro": "Failed to pull back the AMS E Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803700000020001",
+                    "intro": "Failed to pull out the AMS-HT D Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0706710000020005",
+                    "intro": "Failed to feed the AMS G Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0707700000020001",
+                    "intro": "Failed to pull out the AMS H Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1807700000020005",
+                    "intro": "Failed to feed the AMS-HT H Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0706730000020005",
+                    "intro": "Failed to feed the AMS G Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1805720000020001",
+                    "intro": "Failed to pull out the AMS-HT F Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0701730000020001",
+                    "intro": "Failed to pull out the AMS B Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0700710000020005",
+                    "intro": "Failed to feed the AMS A Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1803730000020005",
+                    "intro": "Failed to feed the AMS-HT D Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1804700000020005",
+                    "intro": "Failed to feed the AMS-HT E Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0703700000020001",
+                    "intro": "Failed to pull out the AMS D Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0701710000020001",
+                    "intro": "Failed to pull out the AMS B Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Failed to feed the AMS-HT C Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Failed to feed the AMS G Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Failed to feed the AMS F Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806700000020005",
+                    "intro": "Failed to feed the AMS-HT G Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0703720000020005",
+                    "intro": "Failed to feed the AMS D Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1804010000010005",
+                    "intro": "AMS-HT E The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "1807010000010005",
+                    "intro": "AMS-HT H The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0704010000010005",
+                    "intro": "AMS E The current sensor of assist motor may be faulty."
+                },
+                {
+                    "ecode": "0701710000020004",
+                    "intro": "Failed to pull back the AMS B Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0706710000020001",
+                    "intro": "Failed to pull out the AMS G Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0707700000020005",
+                    "intro": "Failed to feed the AMS H Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0701730000020004",
+                    "intro": "Failed to pull back the AMS B Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703730000020001",
+                    "intro": "Failed to pull out the AMS D Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0707720000020005",
+                    "intro": "Failed to feed the AMS H Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1802700000020005",
+                    "intro": "Failed to feed the AMS-HT C Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0703720000020004",
+                    "intro": "Failed to pull back the AMS D Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1801720000020005",
+                    "intro": "Failed to feed the AMS-HT B Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1804710000020002",
+                    "intro": "Failed to feed the AMS-HT E Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0700730000020005",
+                    "intro": "Failed to feed the AMS A Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1804730000020005",
+                    "intro": "Failed to feed the AMS-HT E Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1800730000020005",
+                    "intro": "Failed to feed the AMS-HT A Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0705720000020001",
+                    "intro": "Failed to pull out the AMS F Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1804730000020001",
+                    "intro": "Failed to pull out the AMS-HT E Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0700730000020001",
+                    "intro": "Failed to pull out the AMS A Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1802720000020001",
+                    "intro": "Failed to pull out the AMS-HT C Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1806710000020001",
+                    "intro": "Failed to pull out the AMS-HT G Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0703730000020005",
+                    "intro": "Failed to feed the AMS D Slot 4 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1803710000020004",
+                    "intro": "Failed to pull back the AMS-HT D Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703730000020002",
+                    "intro": "Failed to feed the AMS D Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1803720000020001",
+                    "intro": "Failed to pull out the AMS-HT D Slot 3 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0700700000020001",
+                    "intro": "Failed to pull out the AMS A Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1802700000020004",
+                    "intro": "Failed to pull back the AMS-HT C Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0706710000020002",
+                    "intro": "Failed to feed the AMS G Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804710000020005",
+                    "intro": "Failed to feed the AMS-HT E Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0705730000020004",
+                    "intro": "Failed to pull back the AMS F Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0700710000020004",
+                    "intro": "Failed to pull back the AMS A Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1805710000020001",
+                    "intro": "Failed to pull out the AMS-HT F Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1807730000020002",
+                    "intro": "Failed to feed the AMS-HT H Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1804720000020005",
+                    "intro": "Failed to feed the AMS-HT E Slot 3 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "1805710000020004",
+                    "intro": "Failed to pull back the AMS-HT F Slot 2 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0707710000020002",
+                    "intro": "Failed to feed the AMS H Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705720000020004",
+                    "intro": "Failed to pull back the AMS F Slot 3 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702700000020005",
+                    "intro": "Failed to feed the AMS C Slot 1 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0700730000020002",
+                    "intro": "Failed to feed the AMS A Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1800730000020004",
+                    "intro": "Failed to pull back the AMS-HT A Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702730000020004",
+                    "intro": "Failed to pull back the AMS C Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Failed to feed the AMS B Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Failed to feed the AMS C Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806730000020001",
+                    "intro": "Failed to pull out the AMS-HT G Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0702700000020001",
+                    "intro": "Failed to pull out the AMS C Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1800710000020005",
+                    "intro": "Failed to feed the AMS-HT A Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0702700000020004",
+                    "intro": "Failed to pull back the AMS C Slot 1 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0701730000020002",
+                    "intro": "Failed to feed the AMS B Slot 4 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0705710000020005",
+                    "intro": "Failed to feed the AMS F Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Failed to feed the AMS A Slot 1 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806710000020002",
+                    "intro": "Failed to feed the AMS-HT G Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1801710000020005",
+                    "intro": "Failed to feed the AMS-HT B Slot 2 filament. Please trim the end of the filament and check if the spool is stuck."
+                },
+                {
+                    "ecode": "0706730000020004",
+                    "intro": "Failed to pull back the AMS G Slot 4 filament from the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0703720000020002",
+                    "intro": "Failed to feed the AMS D Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1802720000020002",
+                    "intro": "Failed to feed the AMS-HT C Slot 3 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "0702730000020001",
+                    "intro": "Failed to pull out the AMS C Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0705710000020002",
+                    "intro": "Failed to feed the AMS F Slot 2 filament into the Toolhead. Possible cause: filament or spool stuck."
+                },
+                {
+                    "ecode": "1806700000020001",
+                    "intro": "Failed to pull out the AMS-HT G Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0707730000020001",
+                    "intro": "Failed to pull out the AMS H Slot 4 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "1807710000020001",
+                    "intro": "Failed to pull out the AMS-HT H Slot 2 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0704700000020001",
+                    "intro": "Failed to pull out the AMS E Slot 1 filament from the extruder. Possible cause: clogged extruder or broken filament inside the extruder."
+                },
+                {
+                    "ecode": "0500030000010021",
+                    "intro": "Hardware incompatible; please check the Toolhead Camera."
+                },
+                {
+                    "ecode": "0C00010000010001",
+                    "intro": "Toolhead Camera is offline. Please check the hardware connection."
+                },
+                {
+                    "ecode": "0C00010000010003",
+                    "intro": "Synchronization between the Toolhead Camera and MC is abnormal. Please restart your printer."
+                },
+                {
+                    "ecode": "0C00010000010004",
+                    "intro": "Toolhead Camera lens seems to be dirty. Please clean the lens."
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "Toolhead Camera parameter is abnormal. Please contact after-sales."
+                },
+                {
+                    "ecode": "0C00010000010009",
+                    "intro": "The Live View Camera lens seems to be dirty. Please clean the lens."
+                },
+                {
+                    "ecode": "0C00010000020006",
+                    "intro": "Toolhead Camera parameter is abnormal. Please enable flowrate calibration in the next print."
+                },
+                {
+                    "ecode": "0C00010000020008",
+                    "intro": "Failed to get image from Live View Camera. Spaghetti and waste chute pileup detection is not available at this time."
+                },
+                {
+                    "ecode": "0500060000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000010012",
+                    "intro": "Live View Camera data link is abnormal."
+                },
+                {
+                    "ecode": "0300950000010001",
+                    "intro": "The temperature sensor of the Laser Module may have a short circuit."
+                },
+                {
+                    "ecode": "0500060000020001",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000020003",
+                    "intro": "The Laser Platform is not properly aligned. Please ensure all four corners are aligned with the heatbed."
+                },
+                {
+                    "ecode": "0300950000010005",
+                    "intro": "The Laser Module communication is abnormal; please check the connector."
+                },
+                {
+                    "ecode": "0500060000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020004",
+                    "intro": "The Live View camera is not in place; please check the hardware connection."
+                },
+                {
+                    "ecode": "0C00040000020002",
+                    "intro": "Cutting Platform not detected. Please place the required mat for the task and continue."
+                },
+                {
+                    "ecode": "0300950000010003",
+                    "intro": "Laser Module overheating"
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "Nozzle Camera binding failed. Please check the hardware and cable connections."
+                },
+                {
+                    "ecode": "0500060000020022",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "The Laser Module not detected. The module may have fallen off, or the quick-release lever may not be locked."
+                },
+                {
+                    "ecode": "0300950000010004",
+                    "intro": "The speed of the Laser Module cooling fan is too low or stopped. It may be stuck or the connector may not be plugged in properly."
+                },
+                {
+                    "ecode": "0500060000020033",
+                    "intro": "BirdsEye Camera is not connected. Please check the hardware and cable connections."
+                },
+                {
+                    "ecode": "0500060000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010002",
+                    "intro": "The temperature sensor of the Laser Module may have an open circuit."
+                },
+                {
+                    "ecode": "0C0001000003000C",
+                    "intro": "Nozzle Camera's temperature is too high, causing the AI detection feature to pause. The feature will automatically resume once the temperature returns to normal."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "It's recommended to calibrate the Live View Camera to improve the accuracy of foreign object detection. Tap \"Settings > Calibration\" on the printer screen. If a laser or cutting module is installed, please remove it before calibration."
+                },
+                {
+                    "ecode": "0C00030000020016",
+                    "intro": "Foreign object detection is not working and the Live View camera serial number cannot be read. Please contact the customer support team."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "Nozzle Camera is malfunctioning. If this issue occurs multiple times during printing, please contact customer service."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "BirdsEye Camera is not certified. Please use Bambu Lab accessories."
+                },
+                {
+                    "ecode": "0C00010000010018",
+                    "intro": "BirdsEye Camera is not certified, and camera-related functions are invalid."
+                },
+                {
+                    "ecode": "050001000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010008",
+                    "intro": "The Laser Module communication is abnormal; please check the connector."
+                },
+                {
+                    "ecode": "0503050000010010",
+                    "intro": "Uncertified AMS D detected or AMS D firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Foreign object detection is not working. The Live View Camera needs calibration. Please tap \"Settings > Calibration\" on the printer screen. If a laser or cutting module is installed, please remove it before calibration."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "Uncertified AMS A detected or AMS A firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "The material can't be detected because it's too small and positioned too far to the left or too close to the door. Please move it to the center area."
+                },
+                {
+                    "ecode": "0505050000010010",
+                    "intro": "Uncertified AMS F detected or AMS F firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0501050000010010",
+                    "intro": "Uncertified AMS B detected or AMS B firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0506050000010010",
+                    "intro": "Uncertified AMS G detected or AMS G firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0504050000010010",
+                    "intro": "Uncertified AMS E detected or AMS E firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0507050000010010",
+                    "intro": "Uncertified AMS H detected or AMS H firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "Before using a Laser/Cutting Module, the pose of the BirdsEye Camera needs to be determined. Please complete the setup to calibrate the camera."
+                },
+                {
+                    "ecode": "0502050000010010",
+                    "intro": "Uncertified AMS C detected or AMS C firmware not upgraded. Unable to operate with this printer."
+                },
                 {
                     "ecode": "07FF800000020002",
                     "intro": "The position of left hotend is abnormal during printing. Please check whether the flow blocker scratches the printed model."
@@ -2450,14 +3790,6 @@
                 {
                     "ecode": "1800200000020007",
                     "intro": "AMS-HT A Slot 1 feed-out Hall sensor is disconnected. The connector may have poor contact."
-                },
-                {
-                    "ecode": "0C00010000010018",
-                    "intro": "BirdsEye camera is not certified, and camera-related functions are invalid."
-                },
-                {
-                    "ecode": "050001000001000A",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020007",
@@ -2594,10 +3926,6 @@
                 {
                     "ecode": "0701230000020007",
                     "intro": "AMS B Slot 4 feed-out Hall sensor is disconnected. The connector may have poor contact."
-                },
-                {
-                    "ecode": "0C00040000030018",
-                    "intro": "The toolhead camera calibration failed, probably because the material was not tightly adhered. The default parameters will be used for this cutting."
                 },
                 {
                     "ecode": "0300970000010004",
@@ -2836,14 +4164,6 @@
                     "intro": "Chamber heating failed. The chamber heater may fail to blow hot air."
                 },
                 {
-                    "ecode": "0C00030000020014",
-                    "intro": "Foreign object detection is not working. It's recommended to uninstall the laser or cutting module if it was installed, and tab \"Settings>Calibration\" on printer screen and re-calibrate the Live View Camera."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "Foreign object detection is not working. It's recommended to uninstall the laser or cutting module if it was installed, and tab \"Settings>Calibration\" on printer screen and re-calibrate the Live View Camera."
-                },
-                {
                     "ecode": "0C00030000020015",
                     "intro": "Foreign object detection is not working. Detected the Live View Camera has been replaced. If a laser or cutting module is installed, please uninstall the module, tab \"Settings>Calibration\" on printer screen and re-calibrate the Live View Camera."
                 },
@@ -2864,84 +4184,12 @@
                     "intro": "Cutting module is installed. Platform type mismatch detected. Please place the cutting platform for cutting calibration."
                 },
                 {
-                    "ecode": "0700700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "0705700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1801700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1803700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1805700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "Material is too small and placed too far left for detection. Please move it to the center or right side."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "0707700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Failed to feed the filament into the toolhead. Possible cause: filament or spool stuck."
-                },
-                {
                     "ecode": "0701200000020006",
                     "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS B to the extruder is properly connected."
                 },
                 {
                     "ecode": "0702200000020006",
                     "intro": "PTFE tube disconnection detected during filament loading. Please check if the PTFE tube from AMS C to the extruder is properly connected."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "A new BirdsEye Camera or a camera angle shift was detected. Please complete the setup before use."
                 },
                 {
                     "ecode": "1801200000020006",
@@ -3180,16 +4428,8 @@
                     "intro": "Z-axis homing failed in cutting mode. Please check if there are any foreign objects in the Z-axis slider and Z-axis synchronous pulley."
                 },
                 {
-                    "ecode": "0500050000010010",
-                    "intro": "Uncertified AMS detected. Unable to operate with this printer."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "External spool connected to right extruder may be tangled or jammed."
-                },
-                {
-                    "ecode": "050005000001000D",
-                    "intro": "BirdEye camera is not certified. Please use Bambu Lab accessories."
                 },
                 {
                     "ecode": "050005000001000E",
@@ -3206,38 +4446,6 @@
                 {
                     "ecode": "0300280000010007",
                     "intro": "Communication failure between cutting module and toolhead module. Please check if the cutting module signal cable is loose or broken. It could also be due to a broken force sensor coil."
-                },
-                {
-                    "ecode": "1800240000020009",
-                    "intro": "AMS HT A front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
-                },
-                {
-                    "ecode": "1807240000020009",
-                    "intro": "AMS HT H front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
-                },
-                {
-                    "ecode": "1801240000020009",
-                    "intro": "AMS HT B front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
-                },
-                {
-                    "ecode": "1806240000020009",
-                    "intro": "AMS HT G front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
-                },
-                {
-                    "ecode": "1802240000020009",
-                    "intro": "AMS HT C front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
-                },
-                {
-                    "ecode": "1805240000020009",
-                    "intro": "AMS HT F front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
-                },
-                {
-                    "ecode": "1804240000020009",
-                    "intro": "AMS HT E front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
-                },
-                {
-                    "ecode": "1803240000020009",
-                    "intro": "AMS HT D front cover is open. This may affect the drying performance or cause the filament to absorb moisture."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -3372,10 +4580,6 @@
                     "intro": "Chamber temperature is too high. Please open the top cover and front door to cool down, or lower the ambient temperature."
                 },
                 {
-                    "ecode": "0C00040000010012",
-                    "intro": "Liveview Camera data link is abnormal."
-                },
-                {
                     "ecode": "0500050000010009",
                     "intro": ""
                 },
@@ -3422,10 +4626,6 @@
                 {
                     "ecode": "0500060000020034",
                     "intro": "Live View camera is not connected. Please check the hardware and cable connections."
-                },
-                {
-                    "ecode": "0500060000020033",
-                    "intro": "BirdsEye camera is not connected. Please check the hardware and cable connections."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3478,10 +4678,6 @@
                 {
                     "ecode": "180422000002000A",
                     "intro": "Failed to adjust the filament position of AMS-HT E Slot 3. The filament or buffer may be stuck."
-                },
-                {
-                    "ecode": "070822000002000A",
-                    "intro": "Failed to adjust the filament position of AMS undefined Slot 3. The filament or buffer may be stuck."
                 },
                 {
                     "ecode": "07FF800000020001",
@@ -3644,10 +4840,6 @@
                     "intro": "Failed to adjust the filament position of AMS-HT B Slot 1. The filament or buffer may be stuck."
                 },
                 {
-                    "ecode": "070820000002000A",
-                    "intro": "Failed to adjust the filament position of AMS undefined Slot 1. The filament or buffer may be stuck."
-                },
-                {
                     "ecode": "180322000002000A",
                     "intro": "Failed to adjust the filament position of AMS-HT D Slot 3. The filament or buffer may be stuck."
                 },
@@ -3658,10 +4850,6 @@
                 {
                     "ecode": "180720000002000A",
                     "intro": "Failed to adjust the filament position of AMS-HT H Slot 1. The filament or buffer may be stuck."
-                },
-                {
-                    "ecode": "0C00010000020014",
-                    "intro": "Nozzle camera is malfunctioning. If this issue occurs multiple times during printing, please contact customer service."
                 },
                 {
                     "ecode": "070122000002000A",
@@ -3720,10 +4908,6 @@
                     "intro": "Failed to adjust the filament position of AMS H Slot 2. The filament or buffer may be stuck."
                 },
                 {
-                    "ecode": "070823000002000A",
-                    "intro": "Failed to adjust the filament position of AMS undefined Slot 4. The filament or buffer may be stuck."
-                },
-                {
                     "ecode": "070523000002000A",
                     "intro": "Failed to adjust the filament position of AMS F Slot 4. The filament or buffer may be stuck."
                 },
@@ -3742,14 +4926,6 @@
                 {
                     "ecode": "180323000002000A",
                     "intro": "Failed to adjust the filament position of AMS-HT D Slot 4. The filament or buffer may be stuck."
-                },
-                {
-                    "ecode": "180821000002000A",
-                    "intro": "Failed to adjust the filament position of AMS-HT undefined Slot 2. The filament or buffer may be stuck."
-                },
-                {
-                    "ecode": "180822000002000A",
-                    "intro": "Failed to adjust the filament position of AMS-HT undefined Slot 3. The filament or buffer may be stuck."
                 },
                 {
                     "ecode": "070322000002000A",
@@ -3776,10 +4952,6 @@
                     "intro": "Failed to adjust the filament position of AMS-HT F Slot 1. The filament or buffer may be stuck."
                 },
                 {
-                    "ecode": "180823000002000A",
-                    "intro": "Failed to adjust the filament position of AMS-HT undefined Slot 4. The filament or buffer may be stuck."
-                },
-                {
                     "ecode": "070120000002000A",
                     "intro": "Failed to adjust the filament position of AMS B Slot 1. The filament or buffer may be stuck."
                 },
@@ -3794,10 +4966,6 @@
                 {
                     "ecode": "180223000002000A",
                     "intro": "Failed to adjust the filament position of AMS-HT C Slot 4. The filament or buffer may be stuck."
-                },
-                {
-                    "ecode": "180820000002000A",
-                    "intro": "Failed to adjust the filament position of AMS-HT undefined Slot 1. The filament or buffer may be stuck."
                 },
                 {
                     "ecode": "070520000002000A",
@@ -3838,10 +5006,6 @@
                 {
                     "ecode": "180021000002000A",
                     "intro": "Failed to adjust the filament position of AMS-HT A Slot 2. The filament or buffer may be stuck."
-                },
-                {
-                    "ecode": "070821000002000A",
-                    "intro": "Failed to adjust the filament position of AMS undefined Slot 2. The filament or buffer may be stuck."
                 },
                 {
                     "ecode": "070423000002000A",
@@ -3930,10 +5094,6 @@
                 {
                     "ecode": "1805700000020003",
                     "intro": "Failed to extrude the filament. Possible cause: extruder or nozzle clog. Please refer to Assistant for details."
-                },
-                {
-                    "ecode": "1804700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -4176,10 +5336,6 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "1805700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "18FF200000020004",
                     "intro": "Please pull the external filament from the right extruder."
                 },
@@ -4200,10 +5356,6 @@
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
                 {
-                    "ecode": "1806700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1805700000020013",
                     "intro": "AMS-HT F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
                 },
@@ -4220,24 +5372,12 @@
                     "intro": "AMS F Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
                 {
-                    "ecode": "0707700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "1805700000020050",
                     "intro": "AMS-HT F Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
                 },
                 {
-                    "ecode": "1807700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0705700000020032",
                     "intro": "AMS F Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0704700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0706700000020006",
@@ -4410,10 +5550,6 @@
                 {
                     "ecode": "0707200000020008",
                     "intro": "AMS H Slot 1 feed-in Hall sensor is disconnected, which may be due to poor connector contact."
-                },
-                {
-                    "ecode": "0705700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1807700000020045",
@@ -4668,16 +5804,8 @@
                     "intro": "The filament buffer signal is abnormal; the spring may be stuck, or the filament may be tangled."
                 },
                 {
-                    "ecode": "1805700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Failed to extrude AMS E Slot 1 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
-                },
-                {
-                    "ecode": "1802700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1802700000020061",
@@ -4722,10 +5850,6 @@
                 {
                     "ecode": "0707700000020022",
                     "intro": "AMS H Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1801700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -5030,10 +6154,6 @@
                 {
                     "ecode": "1803700000020061",
                     "intro": "AMS-HT D Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "0706700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1801700000020011",
@@ -5476,10 +6596,6 @@
                     "intro": "AMS-HT E Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
                 },
                 {
-                    "ecode": "0704700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1805700000020032",
                     "intro": "AMS-HT F Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
                 },
@@ -5502,10 +6618,6 @@
                 {
                     "ecode": "1803700000020021",
                     "intro": "AMS-HT D Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "1806700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1800450000020001",
@@ -5554,10 +6666,6 @@
                 {
                     "ecode": "1804700000020033",
                     "intro": "AMS-HT E Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1802700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1804700000020023",
@@ -5820,10 +6928,6 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "0705700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1807700000020032",
                     "intro": "AMS-HT H Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
                 },
@@ -6032,20 +7136,12 @@
                     "intro": "AMS E Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
                 {
-                    "ecode": "1807700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1801700000020061",
                     "intro": "AMS-HT B Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
                 {
                     "ecode": "1800700000020050",
                     "intro": "AMS-HT A Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0706700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
                 },
                 {
                     "ecode": "1804700000020012",
@@ -6062,14 +7158,6 @@
                 {
                     "ecode": "0705700000020010",
                     "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1804700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
-                    "ecode": "0705700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1803700000020011",
@@ -6266,10 +7354,6 @@
                 {
                     "ecode": "1804700000020046",
                     "intro": "AMS-HT E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "0706700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1802700000020012",
@@ -6528,10 +7612,6 @@
                     "intro": "AMS E Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
                 },
                 {
-                    "ecode": "1805700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1806700000020041",
                     "intro": "AMS-HT G Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
                 },
@@ -6572,20 +7652,12 @@
                     "intro": "AMS-HT G filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
                 },
                 {
-                    "ecode": "1807700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "1801700000020003",
                     "intro": "Failed to extrude the filament. Possible cause: extruder or nozzle clog. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1800300000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1801700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
                 },
                 {
                     "ecode": "1802700000020031",
@@ -6820,20 +7892,12 @@
                     "intro": "AMS E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
                 },
                 {
-                    "ecode": "1803700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
                     "ecode": "1806700000020042",
                     "intro": "AMS-HT G Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "0707700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -7108,10 +8172,6 @@
                     "intro": "The filament cutter handle has not been released. The handle or blade may be jammed, or there could be an issue with the filament sensor connection."
                 },
                 {
-                    "ecode": "1804700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1806700000020050",
                     "intro": "AMS-HT G Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
                 },
@@ -7350,10 +8410,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0704700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1800700000020006",
@@ -7628,10 +8684,6 @@
                     "intro": "The filament cutter's cutting distance is too large. The XY motor may lose steps."
                 },
                 {
-                    "ecode": "1803700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "1804700000020032",
                     "intro": "AMS-HT E Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
                 },
@@ -7808,10 +8860,6 @@
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
-                    "ecode": "1802700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "AMS-HT H Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
@@ -7834,10 +8882,6 @@
                 {
                     "ecode": "1801700000020021",
                     "intro": "AMS-HT B Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "1800700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
                 },
                 {
                     "ecode": "0706310000010004",
@@ -7878,10 +8922,6 @@
                 {
                     "ecode": "1803700000020046",
                     "intro": "AMS-HT D Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1800700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -8110,10 +9150,6 @@
                 {
                     "ecode": "1801700000020032",
                     "intro": "AMS-HT B Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "1800700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0705700000020033",
@@ -8370,10 +9406,6 @@
                 {
                     "ecode": "0704700000020023",
                     "intro": "AMS E Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1806700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS-HT. Possible cause: filament or spool stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "1804300000010004",
@@ -8652,10 +9684,6 @@
                     "intro": "AMS-HT G Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
                 },
                 {
-                    "ecode": "0707700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "0707700000020010",
                     "intro": "AMS H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
                 },
@@ -8896,16 +9924,8 @@
                     "intro": "Please pull the external filament from the left extruder."
                 },
                 {
-                    "ecode": "1803700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "1801700000020010",
                     "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1801700000020005",
-                    "intro": "Failed to feed the filament outside the AMS-HT. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0300C00000010002",
@@ -8958,10 +9978,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "Foreign object detection is not working. Please restart the devices or update the firmware."
-                },
-                {
-                    "ecode": "0C00030000020016",
-                    "intro": "Foreign object detection is not working and the Liveview camera serial number cannot be read. Please contact the customer support team."
                 },
                 {
                     "ecode": "03009C0000010002",
@@ -9556,10 +10572,6 @@
                     "intro": "High heatbed temperature printing is performed for the first time. In order to obtain better first layer printing quality, high temperature heatbed calibration is being automatically performed."
                 },
                 {
-                    "ecode": "0C00030000020011",
-                    "intro": "The high-precision nozzle offset calibration failed; please recalibrate."
-                },
-                {
                     "ecode": "0703550000010002",
                     "intro": "The PTFE tube is incorrectly connected between the toolhead and the buffer. Please connect the buffer's top to the right extruder and the bottom to the left extruder."
                 },
@@ -9768,10 +10780,6 @@
                     "intro": "The RFID-tag on AMS A Slot2 is damaged, or its content cannot be identified."
                 },
                 {
-                    "ecode": "0701700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0703300000020002",
                     "intro": "The RFID-tag on AMS D Slot1 is damaged, or its content cannot be identified."
                 },
@@ -9872,10 +10880,6 @@
                     "intro": "Failed to extrude the filament. Possible cause: extruder or nozzle clog. Please refer to Assistant for details."
                 },
                 {
-                    "ecode": "0703700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0703700000020006",
                     "intro": "Timeout purging old filament. Possible cause: filament stuck or the extruder/nozzle clog. Please refer to Assistant for details."
                 },
@@ -9886,10 +10890,6 @@
                 {
                     "ecode": "12FF200000020004",
                     "intro": "Please pull the filament on the spool holder out from the extruder."
-                },
-                {
-                    "ecode": "0500060000020002",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300960000010003",
@@ -9908,20 +10908,8 @@
                     "intro": "AMS D The exhaust valve 2 is not connected, which may be due to poor connector contact."
                 },
                 {
-                    "ecode": "0500060000020012",
-                    "intro": ""
-                },
-                {
                     "ecode": "0702810000010003",
                     "intro": "AMS C The heater 2 is short-circuited, which may be due to a wiring short or heater damage."
-                },
-                {
-                    "ecode": "0500060000020006",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020004",
-                    "intro": "The AI Live View camera is not in place; please check the hardware connection."
                 },
                 {
                     "ecode": "0702350000010002",
@@ -9930,10 +10918,6 @@
                 {
                     "ecode": "0701010000020007",
                     "intro": "AMS B The assist motor encoder wires are not connected. The assist motor connector may have poor contact."
-                },
-                {
-                    "ecode": "0300950000010003",
-                    "intro": "Laser module overheating"
                 },
                 {
                     "ecode": "0300980000010003",
@@ -9960,10 +10944,6 @@
                     "intro": "MC module temperature is too high, possibly because of high chamber temperature of the printer. You can try lowering the environmental temperature before use."
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "The laser module not detected. The module may have fallen off, or the quick-release lever may not be locked."
-                },
-                {
                     "ecode": "0300C00000010001",
                     "intro": "Active Chamber Exhaust malfunction: it may be stuck."
                 },
@@ -9974,10 +10954,6 @@
                 {
                     "ecode": "0C00040000010013",
                     "intro": "The exposure parameters of the BirdsEye Camera are not effective; please try again."
-                },
-                {
-                    "ecode": "0300950000010002",
-                    "intro": "The temperature sensor of laser module may have an open circuit."
                 },
                 {
                     "ecode": "1804910000010003",
@@ -10144,10 +11120,6 @@
                     "intro": "Failed to connect to the internet; please check the network connection."
                 },
                 {
-                    "ecode": "0500030000010021",
-                    "intro": "Hardware incompatible; please check the laser."
-                },
-                {
                     "ecode": "0500040000010003",
                     "intro": "The content of print file is unreadable; please resend the print job."
                 },
@@ -10158,10 +11130,6 @@
                 {
                     "ecode": "0700330000020002",
                     "intro": "The RFID-tag on AMS A Slot4 is damaged, or its content cannot be identified."
-                },
-                {
-                    "ecode": "0700700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -10180,10 +11148,6 @@
                     "intro": "Failed to extrude the filament. Possible cause: extruder or nozzle clog. Please refer to Assistant for details."
                 },
                 {
-                    "ecode": "0701700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0702300000010004",
                     "intro": "Encryption chip failure"
                 },
@@ -10198,10 +11162,6 @@
                 {
                     "ecode": "0702330000020002",
                     "intro": "The RFID-tag on AMS C Slot4 is damaged, or its content cannot be identified."
-                },
-                {
-                    "ecode": "0702700000020005",
-                    "intro": "Failed to feed the filament outside the AMS. Please clip the end of the filament flat and check to see if the spool is stuck. Please refer to Assistant for details."
                 },
                 {
                     "ecode": "0703310000020002",
@@ -10464,10 +11424,6 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "0702700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0703300000010004",
                     "intro": "Encryption chip failure"
                 },
@@ -10560,10 +11516,6 @@
                     "intro": "The extrusion resistance is abnormal. The extruder may be clogged or there may be filament stuck in the toolhead."
                 },
                 {
-                    "ecode": "0300950000010004",
-                    "intro": "The speed of the laser module cooling fan is too low or stopped. It may be stuck or the connector may not be plugged in properly."
-                },
-                {
                     "ecode": "0500060000020014",
                     "intro": ""
                 },
@@ -10582,10 +11534,6 @@
                 {
                     "ecode": "0300310000010001",
                     "intro": "The Part Cooling Fan speed is too slow or stopped. It may be stuck, or the connector may not be plugged in properly."
-                },
-                {
-                    "ecode": "0500060000020003",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300320000010001",
@@ -10808,10 +11756,6 @@
                     "intro": "The RFID-tag on AMS D Slot4 is damaged, or its content cannot be identified."
                 },
                 {
-                    "ecode": "0703700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0C00010000020007",
                     "intro": "Micro Lidar laser parameters have drifted. Please re-calibrate your printer."
                 },
@@ -10850,10 +11794,6 @@
                 {
                     "ecode": "0700950000010001",
                     "intro": "AMS A The temperature sensor of heater 2 is malfunctioning, which may be due to poor connector contact."
-                },
-                {
-                    "ecode": "0300950000010005",
-                    "intro": "The laser module communication is abnormal; please check the connector."
                 },
                 {
                     "ecode": "0300350000010001",
@@ -11068,10 +12008,6 @@
                     "intro": "The AMS Hub communication is abnormal; the cable may be not well connected."
                 },
                 {
-                    "ecode": "0700700000020004",
-                    "intro": "Failed to pull back the filament from the toolhead to AMS. Possible cause: filament or spool stuck. Please refer to Assistant for details."
-                },
-                {
                     "ecode": "0701300000020002",
                     "intro": "The RFID-tag on AMS B Slot1 is damaged, or its content cannot be identified."
                 },
@@ -11092,20 +12028,12 @@
                     "intro": "The vertical laser is not lit. Please check if it's covered or hardware connection has a problem."
                 },
                 {
-                    "ecode": "0300950000010001",
-                    "intro": "The temperature sensor of laser module may have a short circuit."
-                },
-                {
                     "ecode": "0702910000010003",
                     "intro": "AMS C The exhaust valve 2 is not connected, which may be due to poor connector contact."
                 },
                 {
                     "ecode": "0300980000030001",
                     "intro": "The left side window seems to be open."
-                },
-                {
-                    "ecode": "0500060000020001",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -11272,16 +12200,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020022",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020021",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C0001000003000C",
-                    "intro": "The nozzle camera's temperature is too high, causing the AI detection feature to pause. The feature will automatically resume once the temperature returns to normal."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -11372,10 +12292,6 @@
                     "intro": "AMS G The brushed motor 3 has no signal, which may be due to poor contact in the motor connector or a motor fault."
                 },
                 {
-                    "ecode": "1806010000010005",
-                    "intro": "AMS-HT G The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "1803910000010002",
                     "intro": "AMS-HT D The coil of exhaust valve 2 is short-circuited, which may be due to abnormal wiring or damage."
                 },
@@ -11432,10 +12348,6 @@
                     "intro": "AMS-HT B The operation of the exhaust valve 2 is abnormal, which may be due to excessive resistance."
                 },
                 {
-                    "ecode": "0707010000010005",
-                    "intro": "AMS H The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "1803020000020002",
                     "intro": "AMS-HT D The odometer has no signal. The odometer connector may have poor contact."
                 },
@@ -11452,16 +12364,8 @@
                     "intro": "AMS-HT A The current sensor of heater 2 is abnormal."
                 },
                 {
-                    "ecode": "0706010000010005",
-                    "intro": "AMS G The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "1801100000020004",
                     "intro": "AMS-HT B The brushed motor 1 has no signal, which may be due to poor contact in the motor connector or a motor fault."
-                },
-                {
-                    "ecode": "0704010000010005",
-                    "intro": "AMS E The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "0706130000020004",
@@ -11736,10 +12640,6 @@
                     "intro": "AMS E Filament speed and length error: The filament odometry may be faulty."
                 },
                 {
-                    "ecode": "1801010000010005",
-                    "intro": "AMS-HT B The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "1802310000010001",
                     "intro": "The AMS-HT C RFID 2 board has an error."
                 },
@@ -11884,10 +12784,6 @@
                     "intro": "AMS-HT G Filament speed and length error: The filament odometry may be faulty."
                 },
                 {
-                    "ecode": "0705010000010005",
-                    "intro": "AMS F The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "1803010000010001",
                     "intro": "The AMS-HT D assist motor has slipped. The extrusion wheel may be worn down, or the filament may be too thin."
                 },
@@ -12024,10 +12920,6 @@
                     "intro": "The AMS C RFID 1 board has an error."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "The liveview camera lens seems to be dirty. Please clean the lens."
-                },
-                {
                     "ecode": "1807020000020002",
                     "intro": "AMS-HT H The odometer has no signal. The odometer connector may have poor contact."
                 },
@@ -12042,10 +12934,6 @@
                 {
                     "ecode": "1805810000010004",
                     "intro": "AMS-HT F The heater 2 heating abnormally."
-                },
-                {
-                    "ecode": "1802010000010005",
-                    "intro": "AMS-HT C The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "0705920000010001",
@@ -12074,10 +12962,6 @@
                 {
                     "ecode": "1804810000010004",
                     "intro": "AMS-HT E The heater 2 heating abnormally."
-                },
-                {
-                    "ecode": "1807010000010005",
-                    "intro": "AMS-HT H The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -12146,10 +13030,6 @@
                 {
                     "ecode": "0706910000020001",
                     "intro": "AMS G The operation of the exhaust valve 2 is abnormal, which may be due to excessive resistance."
-                },
-                {
-                    "ecode": "1805010000010005",
-                    "intro": "AMS-HT F The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "0707960000010001",
@@ -12448,10 +13328,6 @@
                     "intro": "AMS F The assist motor calibration parameter error. Please pull out the filament from the filament hub and then restart the AMS."
                 },
                 {
-                    "ecode": "1803010000010005",
-                    "intro": "AMS-HT D The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "1807010000010004",
                     "intro": "The AMS-HT H assist motor speed control is malfunctioning. The speed sensor may be faulty."
                 },
@@ -12470,10 +13346,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H The brushed motor 1 has no signal, which may be due to poor contact in the motor connector or a motor fault."
-                },
-                {
-                    "ecode": "0C00010000020008",
-                    "intro": "Failed to get image from liveview camera. Spaghetti and waste chute pileup detection is not available at this time."
                 },
                 {
                     "ecode": "0C00040000020007",
@@ -12578,10 +13450,6 @@
                 {
                     "ecode": "1807920000010001",
                     "intro": "AMS-HT H The cooling fan of heater 1 is blocked, which may be due to the fan being stuck."
-                },
-                {
-                    "ecode": "1800010000010005",
-                    "intro": "AMS-HT A The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "1804910000020001",
@@ -12852,10 +13720,6 @@
                     "intro": "AMS-HT E The cooling fan of heater 2 is blocked, which may be due to the fan being stuck."
                 },
                 {
-                    "ecode": "1804010000010005",
-                    "intro": "AMS-HT E The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "1801910000010002",
                     "intro": "AMS-HT B The coil of exhaust valve 2 is short-circuited, which may be due to abnormal wiring or damage."
                 },
@@ -12956,26 +13820,6 @@
                     "intro": "Y-axis homing abnormal: please check if the toolhead is stuck or the Y carriage has too much resistance."
                 },
                 {
-                    "ecode": "0C00010000010001",
-                    "intro": "Toolhead camera is offline. Please check the hardware connection."
-                },
-                {
-                    "ecode": "0C00010000010003",
-                    "intro": "Synchronization between the Toolhead camera and MC is abnormal. Please restart your printer."
-                },
-                {
-                    "ecode": "0C00010000010004",
-                    "intro": "Toolhead camera lens seems to be dirty. Please clean the lens."
-                },
-                {
-                    "ecode": "0C00010000010005",
-                    "intro": "Toolhead camera parameter is abnormal. Please contact after-sales."
-                },
-                {
-                    "ecode": "0C00010000020006",
-                    "intro": "Toolhead camera parameter is abnormal. Please enable flowrate calibration in the next print."
-                },
-                {
                     "ecode": "0500030000010007",
                     "intro": "The Toolhead expansion module is malfunctioning. Please power off, check the connection, and restart the device."
                 },
@@ -13010,10 +13854,6 @@
                 {
                     "ecode": "07FF810000010002",
                     "intro": "The position hall sensor of the extruder switching motor is abnormal. Please check whether the connecting cable is loose."
-                },
-                {
-                    "ecode": "0500060000020032",
-                    "intro": "Nozzle camera binding failed. Please check the hardware and cable connections."
                 },
                 {
                     "ecode": "07FF810000020001",
@@ -13150,10 +13990,6 @@
                 {
                     "ecode": "1203300000010001",
                     "intro": "AMS D Slot 1 RFID coil is broken or the RF hardware circuit has an error."
-                },
-                {
-                    "ecode": "0703010000010005",
-                    "intro": "AMS D The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "0703800000010001",
@@ -13940,16 +14776,8 @@
                     "intro": "AMS C The current sensor of heater 1 is abnormal."
                 },
                 {
-                    "ecode": "0702010000010005",
-                    "intro": "AMS C The currentsensor of assist motor may be faulty."
-                },
-                {
                     "ecode": "0703960000010001",
                     "intro": "AMS D The drying process may experience thermal runaway. Please turn off the AMS power supply."
-                },
-                {
-                    "ecode": "0701010000010005",
-                    "intro": "AMS B The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "0700010000010003",
@@ -14154,10 +14982,6 @@
                 {
                     "ecode": "0703100000020004",
                     "intro": "AMS D The brushed motor 1 has no signal, which may be due to poor contact in the motor connector or a motor fault."
-                },
-                {
-                    "ecode": "0C00040000020002",
-                    "intro": "Cutting mat not detected. Please place the required mat for the task and continue."
                 },
                 {
                     "ecode": "0C00040000020008",
@@ -14404,10 +15228,6 @@
                     "intro": "AMS D communication is abnormal; please check the connection cable."
                 },
                 {
-                    "ecode": "0C00040000020003",
-                    "intro": "The laser work base is not properly aligned. Please ensure all four corners are aligned with the heatbed."
-                },
-                {
                     "ecode": "0702010000020009",
                     "intro": "AMS C The assist motor has unbalanced tree-phase resistaance. The assist motor may be faulty."
                 },
@@ -14618,10 +15438,6 @@
                 {
                     "ecode": "0702100000020004",
                     "intro": "AMS C The brushed motor 1 has no signal, which may be due to poor contact in the motor connector or a motor fault."
-                },
-                {
-                    "ecode": "0700010000010005",
-                    "intro": "AMS A The currentsensor of assist motor may be faulty."
                 },
                 {
                     "ecode": "0702900000020001",
@@ -14864,10 +15680,6 @@
                     "intro": "Your printer seems to be printing without extruding."
                 },
                 {
-                    "ecode": "0703700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
@@ -14896,16 +15708,8 @@
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
                 {
-                    "ecode": "0702700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
-                    "ecode": "0701700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14958,10 +15762,6 @@
                 {
                     "ecode": "0700510000030001",
                     "intro": "The AMS is disabled; please load filament from spool holder."
-                },
-                {
-                    "ecode": "0700700000020001",
-                    "intro": "Failed to pull out the filament from the extruder. Possible causes: clogged extruder or broken filament. Refer to the Assistant for details."
                 },
                 {
                     "ecode": "0700700000020008",

@@ -1,11 +1,95 @@
 {
     "result": 0,
-    "t": 1737102428,
-    "ver": 202502042359,
+    "t": 1738858019,
+    "ver": 202503250207,
     "data": {
         "device_error": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "de": [
+                {
+                    "ecode": "10018003",
+                    "intro": "Der Zeitraffer-Modus ist im Slicing-Datei auf Traditionell eingestellt. Dies kann Oberflächenfehler verursachen. Möchten Sie ihn aktivieren?"
+                },
+                {
+                    "ecode": "10018004",
+                    "intro": "Der Prime Tower ist nicht aktiviert und der Zeitraffer-Modus ist im Slicing-Datei auf Sanft eingestellt. Dies kann Oberflächenfehler verursachen. Möchten Sie ihn aktivieren?"
+                },
+                {
+                    "ecode": "0300404D",
+                    "intro": "Die aktuelle Temperatur des Hotends, des Heizbetts oder der Kammer ist zu hoch. Bitte warten Sie, bis sie auf Raumtemperatur abgekühlt ist, bevor Sie die Aufgabe neu starten."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Das Filament konnte nicht vom linken Extruder zurückgezogen werden. Bitte überprüfen Sie, ob das Filament im Extruder stecken geblieben ist."
+                },
+                {
+                    "ecode": "03008041",
+                    "intro": "Timeout bei der Plattformerkennung: Bitte starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "03004067",
+                    "intro": "Das Kalibrierungsergebnis liegt über dem Schwellenwert."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Das Filament konnte nicht vom rechten Extruder zurückgezogen werden. Bitte überprüfen Sie, ob das Filament im Extruder stecken geblieben ist."
+                },
+                {
+                    "ecode": "18008011",
+                    "intro": "AMS-HT Filament ist ausgegangen. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "18078011",
+                    "intro": "AMS-HT Filament ist ausgegangen. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Das Filament konnte nicht vom linken Extruder zurückgezogen werden. Bitte überprüfen Sie, ob das Filament im Extruder stecken geblieben ist."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Fehler beim Zurückziehen des Filaments aus dem rechten Extruder. Bitte überprüfen Sie, ob das Filament im Extruder feststeckt."
+                },
+                {
+                    "ecode": "18038011",
+                    "intro": "AMS-HT Filament ist alle. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "18018011",
+                    "intro": "AMS-HT Filament ist alle. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "18058011",
+                    "intro": "AMS-HT Filament ist alle. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "18068011",
+                    "intro": "AMS-HT Filament ist alle. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "18048011",
+                    "intro": "AMS-HT Filament ist alle. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "03004011",
+                    "intro": "Kalibrierung der Flussdynamik fehlgeschlagen; bitte starten Sie den Druck oder die Kalibrierung erneut."
+                },
+                {
+                    "ecode": "18028011",
+                    "intro": "AMS-HT Filament ist alle. Bitte setzen Sie ein neues Filament in denselben AMS-HT Slot ein."
+                },
+                {
+                    "ecode": "05008072",
+                    "intro": "Live View Kamera ist blockiert."
+                },
+                {
+                    "ecode": "05008083",
+                    "intro": "Material ist bei der Montagekalibrierung nicht erlaubt. Bitte entfernen Sie das Material von der Plattform."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "Die Kalibrierung der Toolhead-Kamera ist fehlgeschlagen. Bitte stellen Sie sicher, dass der Kalibrierungsmarker auf dem Heizbett oder der Höhenkalibrierungsmarker im Home-Bereich sauber und unbeschädigt ist, und führen Sie den Kalibrierungsprozess erneut durch."
+                },
                 {
                     "ecode": "1800C06A",
                     "intro": "AMS-HT A liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
@@ -29,10 +113,6 @@
                 {
                     "ecode": "10014002",
                     "intro": "Timelapse wird nicht unterstützt, da die Drucksequenz auf \"Nach Objekt\" eingestellt ist."
-                },
-                {
-                    "ecode": "10018003",
-                    "intro": "Die Aktivierung des traditionellen Timelapses kann zu Defekten führen. Bitte aktivieren Sie es nach Bedarf."
                 },
                 {
                     "ecode": "1800C06D",
@@ -75,16 +155,8 @@
                     "intro": "Der Motor von AMS-HT A führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
                 },
                 {
-                    "ecode": "10018004",
-                    "intro": "Der Wiper Tower ist nicht aktiviert und der Zeitraffer-Modus ist in diesem Druckjob auf Smooth eingestellt. Dies kann zu Oberflächenfehlern führen. Möchten Sie fortfahren?"
-                },
-                {
                     "ecode": "1805C069",
                     "intro": "Während des Trocknens von AMS-HT F ist ein Fehler aufgetreten. Bitte gehen Sie zum Assistenten für weitere Details."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "Die Kalibrierung der Toolhead-Kamera ist fehlgeschlagen. Bitte stellen Sie sicher, dass der Laser-Homing-Bereichsmarker oder der beheizte Kalibrierungsmarker sauber und unbeschädigt sind, und führen Sie dann den Kalibrierungsprozess erneut durch."
                 },
                 {
                     "ecode": "1807C06D",
@@ -735,10 +807,6 @@
                     "intro": "Das Filament konnte nicht extrudiert werden. Bitte überprüfen Sie, ob der Extruder verstopft."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Das Filament konnte nicht von dem rechten Extruder zurückgezogen werden. Bitte überprüfen Sie, ob das Filament im linken Extruder feststeckt."
-                },
-                {
                     "ecode": "07058012",
                     "intro": "Fehler beim Abrufen der AMS-Zuordnungstabelle; bitte klicken Sie auf \"Fortfahren\", um es erneut zu versuchen."
                 },
@@ -831,10 +899,6 @@
                     "intro": "Fehler beim Abrufen der AMS-Mapping-Tabelle; bitte klicken Sie auf \"Fortsetzen\", um es erneut zu versuchen."
                 },
                 {
-                    "ecode": "07FE8004",
-                    "intro": "Fehler beim Zurückziehen des Filaments aus dem linken Extruder. Bitte prüfen Sie, ob das Filament im linken Extruder feststeckt."
-                },
-                {
                     "ecode": "07FE8013",
                     "intro": "Zeitüberschreitung beim Spülen des alten Filaments des linken Extruders: Bitte prüfen Sie, ob das Filament feststeckt oder der Extruder verstopft ist."
                 },
@@ -857,10 +921,6 @@
                 {
                     "ecode": "07FE8001",
                     "intro": "Fehler beim Schneiden des Filaments des linken Extruders. Bitte prüfen Sie den Schneider."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Filament konnte nicht vom rechten Extruder zurückgezogen werden. Bitte überprüfen Sie, ob das Filament im linken Extruder feststeckt."
                 },
                 {
                     "ecode": "07FF8002",
@@ -921,10 +981,6 @@
                 {
                     "ecode": "07058013",
                     "intro": "Timeout beim Entfernen alter Filamente: Bitte überprüfen Sie, ob das Filament feststeckt oder der Extruder verstopft ist."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Fehler beim Zurückziehen des Filaments aus dem linken Extruder. Bitte überprüfen Sie, ob das Filament im linken Extruder feststeckt."
                 },
                 {
                     "ecode": "18FE8012",
@@ -1219,10 +1275,6 @@
                     "intro": "AMS-Setup fehlgeschlagen; bitte wenden Sie sich an den Assistenten."
                 },
                 {
-                    "ecode": "05008072",
-                    "intro": "Die Live-Ansicht-Kamera ist blockiert."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT konnte das Filament nicht zurückziehen. Dies kann auf eine blockierte Spule oder das Ende des Filaments im Pfad zurückzuführen sein."
                 },
@@ -1233,10 +1285,6 @@
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D wird getrocknet. Bitte die Trocknung stoppen, bevor das Material geladen/entladen wird."
-                },
-                {
-                    "ecode": "18048011",
-                    "intro": "Der AMS-HT-Faden ist ausgegangen. Bitte legen Sie einen neuen Faden in denselben AMS-Schlitz ein."
                 },
                 {
                     "ecode": "18018003",
@@ -1319,10 +1367,6 @@
                     "intro": "Das AMS-HT konnte das Filament nicht zurückziehen. Dies kann auf eine blockierte Spule oder das festsitzende Ende des Filaments im Pfad zurückzuführen sein."
                 },
                 {
-                    "ecode": "18068011",
-                    "intro": "AMS-HT Filament ist leer. Bitte legen Sie ein neues Filament in denselben AMS-Schlitz ein."
-                },
-                {
                     "ecode": "07078006",
                     "intro": "Filament kann nicht in den Extruder eingeführt werden. Dies kann auf ein verheddertes Filament oder eine blockierte Spule zurückzuführen sein. Prüfen Sie andernfalls, ob das AMS PTFE-Rohr angeschlossen ist."
                 },
@@ -1357,10 +1401,6 @@
                 {
                     "ecode": "07048006",
                     "intro": "Filament kann nicht in den Extruder geführt werden. Dies könnte auf Filamentverwicklungen oder eine blockierte Spule zurückzuführen sein. Wenn nicht, überprüfen Sie bitte, ob das AMS-PTFE-Rohr angeschlossen ist."
-                },
-                {
-                    "ecode": "18058011",
-                    "intro": "AMS-HT Filament ist ausgegangen. Bitte setzen Sie einen neuen Filament in denselben AMS-Slot ein."
                 },
                 {
                     "ecode": "18058003",
@@ -1419,10 +1459,6 @@
                     "intro": "Bitte ziehen Sie den Faden vom Spulenhalter des rechten Extruders heraus. Wenn diese Meldung weiterhin besteht, überprüfen Sie bitte, ob sich ein gebrochener Faden im Extruder befindet. (Schließen Sie ein PTFE-Rohr an, wenn Sie einen AMS verwenden möchten.)"
                 },
                 {
-                    "ecode": "18018011",
-                    "intro": "AMS-HT-Faden ist zu Ende gegangen. Bitte legen Sie einen neuen Faden in denselben AMS-Schlitz ein."
-                },
-                {
                     "ecode": "07058006",
                     "intro": "Es ist nicht möglich, den Faden in den Extruder zu führen. Dies kann durch verwickelte Fäden oder eine festsitzende Spule verursacht werden. Falls nicht, überprüfen Sie bitte, ob das PTFE-Rohr des AMS angeschlossen ist."
                 },
@@ -1445,10 +1481,6 @@
                 {
                     "ecode": "18FFC009",
                     "intro": "Bitte führen Sie Filament in das PTFE-Rohr des rechten Extruders ein, bis es nicht weitergeschoben werden kann."
-                },
-                {
-                    "ecode": "18038011",
-                    "intro": "AMS-HT Filament ist leer. Bitte legen Sie ein neues Filament in denselben AMS-Steckplatz ein."
                 },
                 {
                     "ecode": "18078005",
@@ -1515,10 +1547,6 @@
                     "intro": "Der AMS Assist Motor ist überlastet. Das kann an verheddertem Filament oder einer blockierten Spule liegen."
                 },
                 {
-                    "ecode": "18078011",
-                    "intro": "AMS-HT Filament ist leer. Bitte legen Sie ein neues Filament in denselben AMS-Steckplatz ein."
-                },
-                {
                     "ecode": "07058004",
                     "intro": "AMS konnte das Filament nicht zurückziehen. Das kann an einer blockierten Spule oder an einem verhakten Filamentende in der Bahn liegen."
                 },
@@ -1579,14 +1607,6 @@
                     "intro": "Die AMS-HT konnte das Filament nicht auswerfen. Sie können das Ende Ihres Filaments flach abschneiden und erneut einfügen. Wenn diese Meldung weiterhin angezeigt wird, prüfen Sie bitte die PTFE-Schläuche in der AMS auf Anzeichen von Abnutzung."
                 },
                 {
-                    "ecode": "18008011",
-                    "intro": "AMS-HT Filament leer. Bitte legen Sie ein neues Filament in denselben AMS-Steckplatz ein."
-                },
-                {
-                    "ecode": "18028011",
-                    "intro": "AMS-HT Filament leer. Bitte legen Sie ein neues Filament in denselben AMS-Steckplatz ein."
-                },
-                {
                     "ecode": "0C008015",
                     "intro": "Objekte auf der Plattform erkannt; bitte rechtzeitig entfernen."
                 },
@@ -1633,10 +1653,6 @@
                 {
                     "ecode": "0500805E",
                     "intro": "Schneidmodul Seriennummerfehler: Kalibrierung oder Projektierung nicht möglich."
-                },
-                {
-                    "ecode": "03004067",
-                    "intro": "Kalibrierungsergebnis liegt über der Schwelle."
                 },
                 {
                     "ecode": "05004040",
@@ -1793,10 +1809,6 @@
                 {
                     "ecode": "05014018",
                     "intro": "Konfigurations-Informationen konnten nicht analysiert werden; bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "03008041",
-                    "intro": "Timeout bei der Laserplattformerkennung."
                 },
                 {
                     "ecode": "0C008002",
@@ -1969,10 +1981,6 @@
                 {
                     "ecode": "03004068",
                     "intro": "Es ist ein Schrittausfall während des Bewegungsgenauigkeitsverbesserungsprozesses aufgetreten. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "03004011",
-                    "intro": "Die Kalibrierung der dynamischen Flusskompensation ist fehlgeschlagen."
                 },
                 {
                     "ecode": "05004041",
@@ -2433,8 +2441,1340 @@
             ]
         },
         "device_hms": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "de": [
+                {
+                    "ecode": "0300A40000010002",
+                    "intro": "Die richtige Hotend-Temperatur ist zu hoch. Bitte warten Sie, bis sie auf Raumtemperatur abgekühlt ist, bevor Sie die Aufgabe neu starten."
+                },
+                {
+                    "ecode": "0300A40000010004",
+                    "intro": "Die Kammertemperatur ist zu hoch. Bitte warten Sie, bis sie auf Raumtemperatur abgekühlt ist, bevor Sie die Aufgabe neu starten."
+                },
+                {
+                    "ecode": "0300A40000010003",
+                    "intro": "Die linke Hotend-Temperatur ist zu hoch. Bitte warten Sie, bis sie auf Raumtemperatur abgekühlt ist, bevor Sie die Aufgabe neu starten."
+                },
+                {
+                    "ecode": "0300A40000010001",
+                    "intro": "Die Heizbettemperatur ist zu hoch. Bitte warten Sie, bis sie auf Raumtemperatur abgekühlt ist, bevor Sie die Aufgabe neu starten."
+                },
+                {
+                    "ecode": "0C00010000020019",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "Die Kalibrierung des hochpräzisen Düsenversatzes ist fehlgeschlagen; bitte kalibrieren Sie neu."
+                },
+                {
+                    "ecode": "0C0001000002001A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700010000010005",
+                    "intro": "AMS A Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "0702010000010005",
+                    "intro": "AMS C Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "0701010000010005",
+                    "intro": "AMS B Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "0703010000010005",
+                    "intro": "AMS D Der aktuelle Sensor des Unterstützungsmotors könnte fehlerhaft sein."
+                },
+                {
+                    "ecode": "0C00040000030018",
+                    "intro": "Die Kalibrierung der Werkzeugkopf-Kamera ist fehlgeschlagen, wahrscheinlich weil das Objekt nicht fest haftete. Die Standardparameter werden für diesen Schnitt verwendet."
+                },
+                {
+                    "ecode": "1800010000010005",
+                    "intro": "AMS-HT A Der aktuelle Sensor des Unterstützungsmotors könnte fehlerhaft sein."
+                },
+                {
+                    "ecode": "1803010000010005",
+                    "intro": "AMS-HT D Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "1805010000010005",
+                    "intro": "AMS-HT F Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "1802010000010005",
+                    "intro": "AMS-HT C Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "0705010000010005",
+                    "intro": "AMS F Der aktuelle Sensor des Unterstützungsmotors könnte fehlerhaft sein."
+                },
+                {
+                    "ecode": "1801010000010005",
+                    "intro": "AMS-HT B Der aktuelle Sensor des Unterstützungsmotors könnte fehlerhaft sein."
+                },
+                {
+                    "ecode": "0706010000010005",
+                    "intro": "AMS G Der aktuelle Sensor des Unterstützungsmotors könnte fehlerhaft sein."
+                },
+                {
+                    "ecode": "1806010000010005",
+                    "intro": "AMS-HT G Der aktuelle Sensor des Unterstützungsmotors könnte fehlerhaft sein."
+                },
+                {
+                    "ecode": "0707010000010005",
+                    "intro": "AMS H Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "1800240000020009",
+                    "intro": "AMS-HT Eine Vorderseite ist geöffnet. Dies kann die Trocknungsleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "1807240000020009",
+                    "intro": "AMS-HT H Die Vorderseite ist geöffnet. Dies kann die Trocknungsleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "1801240000020009",
+                    "intro": "AMS-HT B Die Vorderabdeckung ist offen. Dies kann die Trockenleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "1806240000020009",
+                    "intro": "AMS-HT G Die Vorderabdeckung ist offen. Dies kann die Trockenleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "1802240000020009",
+                    "intro": "AMS-HT C Die Vorderabdeckung ist offen. Dies kann die Trockenleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "1805240000020009",
+                    "intro": "AMS-HT F Die Vorderseite ist geöffnet. Dies kann die Trocknungsleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "1804240000020009",
+                    "intro": "AMS-HT E Die Vorderseite ist geöffnet. Dies kann die Trocknungsleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "1803240000020009",
+                    "intro": "AMS-HT D Die Vorderseite ist geöffnet. Dies kann die Trocknungsleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
+                },
+                {
+                    "ecode": "0707730000020004",
+                    "intro": "Das Zurückziehen des AMS H Slot 4 Filaments aus dem Werkzeugkopf ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule eingeklemmt."
+                },
+                {
+                    "ecode": "0703710000020005",
+                    "intro": "Fehler beim Zuführen des AMS D Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0706700000020005",
+                    "intro": "Fehler beim Zuführen des AMS G Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0701710000020002",
+                    "intro": "Fehler beim Zuführen des Filaments Slot 2 von AMS B in den Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0704700000020004",
+                    "intro": "Fehler beim Zurückziehen des Filaments Slot 1 von AMS E aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1804720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT E Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0704720000020005",
+                    "intro": "Fehler beim Zuführen des AMS E Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0702710000020002",
+                    "intro": "Fehler beim Zuführen des AMS C Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0703710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS D Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1805710000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT F Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "1803720000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT D Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0704710000020001",
+                    "intro": "Konnte das AMS E Slot 2 Filament nicht aus dem Extruder ziehen. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1805730000020001",
+                    "intro": "Konnte das AMS-HT F Slot 4 Filament nicht aus dem Extruder ziehen. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1806710000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT G Slot 2 Filaments. Bitte trimmen Sie das Ende des Filaments und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0704730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS E Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1805730000020004",
+                    "intro": "Konnte das AMS-HT F Slot 4 Filament nicht vom Toolhead zurückziehen. Mögliche Ursachen: Filament oder Spule fest."
+                },
+                {
+                    "ecode": "0702720000020005",
+                    "intro": "Konnte das AMS C Slot 3 Filament nicht zuführen. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule fest sitzt."
+                },
+                {
+                    "ecode": "1800720000020001",
+                    "intro": "Konnte das AMS-HT A Slot 3 Filament nicht aus dem Extruder ziehen. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0702720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS C Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1805710000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT F Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1804700000020004",
+                    "intro": "Konnte das AMS-HT E Slot 1 Filament nicht vom Toolhead zurückziehen. Mögliche Ursachen: Filament oder Spule fest."
+                },
+                {
+                    "ecode": "1803730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT D Slot 4 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1804720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT E Slot 3 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1802710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT C Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1801710000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT B Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0703700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS D Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1800710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT A Slot 2 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1800720000020004",
+                    "intro": "Fehler beim Herausziehen des AMS-HT A Slot 3 Filaments aus dem Toolhead. Mögliche Ursachen: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1800730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT A Slot 4 Filaments in den Toolhead. Mögliche Ursachen: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 1 Filaments in den Toolhead. Mögliche Ursachen: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0705730000020005",
+                    "intro": "Fehler beim Zuführen des AMS F Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklebt ist."
+                },
+                {
+                    "ecode": "1807720000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT H Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0701700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS B Slot 1 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1807700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT H Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0702720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS C Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0705730000020002",
+                    "intro": "Fehler beim Zuführen des AMS F Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT G Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1806710000020004",
+                    "intro": "Fehler beim Herausziehen des AMS-HT G Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1803730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT D Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0704720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS E Slot 3 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1802730000020004",
+                    "intro": "Fehler beim Herausziehen des AMS-HT C Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Fehler beim Zuführen des AMS H Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "1802720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT C Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "0700700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS A Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "0702710000020005",
+                    "intro": "Fehler beim Zuführen des AMS C Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "0704720000020002",
+                    "intro": "Fehler beim Zuführen des AMS E Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Fehler beim Einfädeln des AMS D Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0703700000020005",
+                    "intro": "Fehler beim Zuführen des AMS D Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "1801730000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT B Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "1805700000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT F Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "1800730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT A Slot 4 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1801700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT B Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1805730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT F Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0706700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS G Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1802730000020005",
+                    "intro": "Fehler beim Einfädeln des AMS-HT C Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "1807710000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT H Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und prüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "0700720000020002",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1800700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT A Slot 1 Filaments aus dem Extruder. Mögliche Ursache: Verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0705700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS F Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1800710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT A Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0702730000020002",
+                    "intro": "Fehler beim Zuführen des AMS C Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0702710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS C Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1804710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT E Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgehängt."
+                },
+                {
+                    "ecode": "1806730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT G Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1805720000020005",
+                    "intro": "Fehler beim Einfädeln des AMS-HT F Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Fehler beim Einfädeln des AMS-HT H Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0701720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS B Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgehängt."
+                },
+                {
+                    "ecode": "0705720000020005",
+                    "intro": "Fehler beim Zuführen des AMS F Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgehängt ist."
+                },
+                {
+                    "ecode": "1807720000020002",
+                    "intro": "Fehler beim Einfädeln des AMS-HT H Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1800700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT A Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgehängt."
+                },
+                {
+                    "ecode": "1802730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT C Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgehängt."
+                },
+                {
+                    "ecode": "1801720000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT B Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1802730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT C Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0700710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS A Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1801700000020005",
+                    "intro": "Fehler beim Einfädeln des AMS-HT B Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "0704700000020005",
+                    "intro": "Fehler beim Einfädeln des AMS E Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "0700710000020002",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0701700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS B Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1806730000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT G Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "1801710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT B Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0707710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS H Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1803730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT D Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1801730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT B Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0700730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS A Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1806720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT G Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0701720000020005",
+                    "intro": "Fehler beim Zuführen des AMS B Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "0705710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS F Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1807710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT H Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1803700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT D Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0705710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS F Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0707720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS H Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0702710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS C Slot 2 Filaments vom Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0704730000020005",
+                    "intro": "Fehler beim Zuführen des AMS E Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklebt ist."
+                },
+                {
+                    "ecode": "1801700000020001",
+                    "intro": "Das AMS-HT B Slot 1 Filament konnte nicht aus dem Extruder gezogen werden. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1805720000020004",
+                    "intro": "Das AMS-HT F Slot 3 Filament konnte nicht vom Werkzeugkopf zurückgezogen werden. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "0702730000020005",
+                    "intro": "Fehler beim Zuführen des AMS C Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklebt ist."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Fehler beim Zuführen des AMS E Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0701700000020005",
+                    "intro": "Fehler beim Zuführen des AMS B Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklebt ist."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT B Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1801730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT B Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1803720000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT D Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklebt ist."
+                },
+                {
+                    "ecode": "1807730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT H Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "1800700000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT A Slot 1 Filaments. Bitte das Ende des Filaments kürzen und überprüfen, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "0705700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS F Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1802710000020005",
+                    "intro": "Das AMS-HT C Slot 2 Filament konnte nicht zugeführt werden. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklemmt ist."
+                },
+                {
+                    "ecode": "1807730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT H Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0706710000020004",
+                    "intro": "Das AMS G Slot 2 Filament konnte nicht vom Werkzeugkopf zurückgezogen werden. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "1804730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT D Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "1802720000020005",
+                    "intro": "Das AMS-HT C Slot 3 Filament konnte nicht zugeführt werden. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklemmt ist."
+                },
+                {
+                    "ecode": "0706730000020002",
+                    "intro": "Fehler beim Zuführen des AMS G Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "0707700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS H Slot 1 Filaments vom Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1805700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT F Slot 1 Filaments vom Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1805700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT F Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0707720000020002",
+                    "intro": "Das AMS H Slot 3 Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "0701720000020001",
+                    "intro": "Das AMS B Slot 3 Filament konnte nicht aus dem Extruder gezogen werden. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0700720000020004",
+                    "intro": "Das AMS A Slot 3 Filament konnte nicht vom Werkzeugkopf zurückgezogen werden. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "1804710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT E Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1801710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT B Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1806730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT G Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0703710000020002",
+                    "intro": "Fehler beim Zuführen des AMS D Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0703720000020001",
+                    "intro": "Konnte das AMS D Slot 3 Filament nicht aus dem Extruder ziehen. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0706720000020001",
+                    "intro": "Konnte das AMS G Slot 3 Filament nicht aus dem Extruder ziehen. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1801730000020004",
+                    "intro": "Das AMS-HT B Slot 4 Filament konnte nicht vom Werkzeugkopf zurückgezogen werden. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "0704710000020002",
+                    "intro": "Das AMS E Slot 2 Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "1800710000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT A Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "1802710000020002",
+                    "intro": "Konnte das AMS-HT C Slot 2 Filament nicht in den Toolhead zuführen. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "1805720000020002",
+                    "intro": "Konnte das AMS-HT F Slot 3 Filament nicht in den Toolhead zuführen. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0703730000020004",
+                    "intro": "Konnte das AMS D Slot 4 Filament nicht aus dem Toolhead zurückziehen. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "1806720000020005",
+                    "intro": "Konnte das AMS-HT G Slot 3 Filament nicht zuführen. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "0706720000020002",
+                    "intro": "Konnte das AMS G Slot 3 Filament nicht in den Toolhead zuführen. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0704730000020002",
+                    "intro": "Fehler beim Einführen des AMS E Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule stecken."
+                },
+                {
+                    "ecode": "1807720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT H Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1803710000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT D Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklemmt ist."
+                },
+                {
+                    "ecode": "1807710000020002",
+                    "intro": "Fehler beim Einführen des AMS-HT H Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule stecken."
+                },
+                {
+                    "ecode": "0705720000020002",
+                    "intro": "Fehler beim Einführen des AMS F Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule stecken."
+                },
+                {
+                    "ecode": "0700720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS A Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0706720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS G Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule stecken."
+                },
+                {
+                    "ecode": "1804700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT E Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1803710000020002",
+                    "intro": "Fehler beim Einführen des AMS-HT D Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule stecken."
+                },
+                {
+                    "ecode": "0707710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS H Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1803720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT D Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "1805730000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT F Slot 4 Filaments. Bitte das Ende des Filaments kürzen und überprüfen, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "1803710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT D Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1803700000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT D Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklemmt ist."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT F Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "0701710000020005",
+                    "intro": "Fehler beim Zuführen des AMS B Slot 2 Filaments. Bitte das Ende des Filaments kürzen und überprüfen, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "0707730000020005",
+                    "intro": "Fehler beim Zuführen des AMS H Slot 4 Filaments. Bitte das Ende des Filaments kürzen und überprüfen, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "1807720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT H Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "0701720000020002",
+                    "intro": "Fehler beim Zuführen des AMS B Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0705700000020005",
+                    "intro": "Fehler beim Zuführen des AMS F Slot 1 Filaments. Bitte das Ende des Filaments kürzen und überprüfen, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "1801720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT B Slot 3 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0707730000020002",
+                    "intro": "Fehler beim Zuführen des AMS H Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "1804720000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0704730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS E Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1801720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT B Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "1802700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT C Slot 1 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0703710000020004",
+                    "intro": "Fehler beim Herausziehen des AMS D Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0706730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS G Slot 4 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1806700000020004",
+                    "intro": "Fehler beim Herausziehen des AMS-HT G Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0700700000020005",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "1800720000020002",
+                    "intro": "Fehler beim zuführen des AMS-HT A Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1800720000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT A Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "1806720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT G Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0706700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS G Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT A Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklemmt."
+                },
+                {
+                    "ecode": "0700720000020005",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "0707720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS H Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1802710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT C Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0706720000020005",
+                    "intro": "Fehler beim Zuführen des AMS G Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festklebt."
+                },
+                {
+                    "ecode": "0702720000020002",
+                    "intro": "Fehler beim Zuführen des AMS C Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0704710000020005",
+                    "intro": "Fehler beim Zuführen des AMS E Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festsitzt."
+                },
+                {
+                    "ecode": "1806720000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT G Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festsitzt."
+                },
+                {
+                    "ecode": "1807700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT H Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1804730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT E Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0707710000020005",
+                    "intro": "Fehler beim Zuführen des AMS H Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "1807730000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT H Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "0705730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS F Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0704720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS E Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festsitzt."
+                },
+                {
+                    "ecode": "0701730000020005",
+                    "intro": "Fehler beim Zuführen des AMS B Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "0704710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS E Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festsitzt."
+                },
+                {
+                    "ecode": "1803700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT D Slot 1 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0706710000020005",
+                    "intro": "Fehler beim Zuführen des AMS G Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0707700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS H Slot 1 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1807700000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT H Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "0706730000020005",
+                    "intro": "Fehler beim Zuführen des AMS G Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "1805720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT F Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0701730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS B Slot 4 Filaments aus dem Extruder. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0700710000020005",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "1803730000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT D Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "1804700000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0703700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS D Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0701710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS B Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT C Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Fehler beim Zuführen des AMS G Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Fehler beim Zuführen des AMS F Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1806700000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT G Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "0703720000020005",
+                    "intro": "Fehler beim Zuführen des AMS D Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "1804010000010005",
+                    "intro": "AMS-HT E Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "1807010000010005",
+                    "intro": "Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "0704010000010005",
+                    "intro": "AMS E Der aktuelle Sensor des Hilfsmotors könnte defekt sein."
+                },
+                {
+                    "ecode": "0701710000020004",
+                    "intro": "Fehler beim Rückziehen des AMS B Slot 2 Filaments vom Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "0706710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS G Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0707700000020005",
+                    "intro": "Fehler beim Zuführen des AMS H Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und prüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "0701730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS B Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0703730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS D Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0707720000020005",
+                    "intro": "Fehler beim Zuführen des AMS H Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und prüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "1802700000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT C Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und prüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "0703720000020004",
+                    "intro": "Fehler beim Rückziehen des AMS D Slot 3 Filaments vom Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "1801720000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT B Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und prüfen Sie, ob die Spule klemmt."
+                },
+                {
+                    "ecode": "1804710000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule klemmt."
+                },
+                {
+                    "ecode": "0700730000020005",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "1804730000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "1800730000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT A Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "0705720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS F Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1804730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT E Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0700730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS A Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1802720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT C Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1806710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT G Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0703730000020005",
+                    "intro": "Fehler beim Zuführen des AMS D Slot 4 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "1803710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT D Slot 2 Filaments vom Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0703730000020002",
+                    "intro": "Fehler beim Zuführen des AMS D Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1803720000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT D Slot 3 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0700700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS A Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1802700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT C Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0706710000020002",
+                    "intro": "Fehler beim Zuführen des AMS G Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1804710000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgeklebt ist."
+                },
+                {
+                    "ecode": "0705730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS F Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "0700710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS A Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1805710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT F Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1807730000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT H Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgeklebt."
+                },
+                {
+                    "ecode": "1804720000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT E Slot 3 Filaments. Bitte schneiden Sie das Ende des Filaments ab und prüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "1805710000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT F Slot 2 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0707710000020002",
+                    "intro": "Fehler beim Zuführen des AMS H Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0705720000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS F Slot 3 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0702700000020005",
+                    "intro": "Fehler beim Zuführen des AMS C Slot 1 Filaments. Bitte schneiden Sie das Ende des Filaments ab und prüfen Sie, ob die Spule blockiert ist."
+                },
+                {
+                    "ecode": "0700730000020002",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "1800730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS-HT A Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0702730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS C Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Fehler beim Zuführen des AMS B Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Fehler beim Zuführen des AMS C Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule blockiert."
+                },
+                {
+                    "ecode": "1806730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT G Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0702700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS C Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1800710000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT A Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule festgefahren ist."
+                },
+                {
+                    "ecode": "0702700000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS C Slot 1 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0701730000020002",
+                    "intro": "Fehler beim Zuführen des AMS B Slot 4 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0705710000020005",
+                    "intro": "Fehler beim Zuführen des AMS F Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Fehler beim Zuführen des AMS A Slot 1 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1806710000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT G Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "1801710000020005",
+                    "intro": "Fehler beim Zuführen des AMS-HT B Slot 2 Filaments. Bitte schneiden Sie das Ende des Filaments ab und überprüfen Sie, ob die Spule feststeckt."
+                },
+                {
+                    "ecode": "0706730000020004",
+                    "intro": "Fehler beim Zurückziehen des AMS G Slot 4 Filaments aus dem Toolhead. Mögliche Ursache: Filament oder Spule steckt fest."
+                },
+                {
+                    "ecode": "0703720000020002",
+                    "intro": "Fehler beim Zuführen des AMS D Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "1802720000020002",
+                    "intro": "Fehler beim Zuführen des AMS-HT C Slot 3 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "0702730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS C Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0705710000020002",
+                    "intro": "Fehler beim Zuführen des AMS F Slot 2 Filaments in den Toolhead. Mögliche Ursache: Filament oder Spule festgefahren."
+                },
+                {
+                    "ecode": "1806700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT G Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0707730000020001",
+                    "intro": "Fehler beim Herausziehen des AMS H Slot 4 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "1807710000020001",
+                    "intro": "Fehler beim Herausziehen des AMS-HT H Slot 2 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0704700000020001",
+                    "intro": "Fehler beim Herausziehen des AMS E Slot 1 Filaments aus dem Extruder. Mögliche Ursache: verstopfter Extruder oder gebrochenes Filament im Extruder."
+                },
+                {
+                    "ecode": "0500030000010021",
+                    "intro": "Hardware inkompatibel; bitte überprüfen Sie die Toolhead-Kamera."
+                },
+                {
+                    "ecode": "0C00010000010001",
+                    "intro": "Toolhead-Kamera ist offline. Bitte überprüfen Sie die Hardwareverbindung."
+                },
+                {
+                    "ecode": "0C00010000010003",
+                    "intro": "Die Synchronisation zwischen der Toolhead-Kamera und dem MC ist abnormal. Bitte starten Sie Ihren Drucker neu."
+                },
+                {
+                    "ecode": "0C00010000010004",
+                    "intro": "Das Objektiv der Toolhead-Kamera scheint schmutzig zu sein. Bitte reinigen Sie das Objektiv."
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "Toolhead-Kamera-Parameter ist abnormal. Bitte kontaktieren Sie den Kundendienst."
+                },
+                {
+                    "ecode": "0C00010000010009",
+                    "intro": "Das Objektiv der Live View Kamera scheint schmutzig zu sein. Bitte reinigen Sie das Objektiv."
+                },
+                {
+                    "ecode": "0C00010000020006",
+                    "intro": "Der Parameter der Toolhead-Kamera ist abnormal. Bitte aktivieren Sie die Durchflusskalibrierung beim nächsten Druck."
+                },
+                {
+                    "ecode": "0C00010000020008",
+                    "intro": "Das Bild von der Live View-Kamera konnte nicht abgerufen werden. Die Erkennung von Spaghetti- und Abfallauslaufansammlungen ist derzeit nicht verfügbar."
+                },
+                {
+                    "ecode": "0500060000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000010012",
+                    "intro": "Die Datenverbindung der Live View-Kamera ist abnormal."
+                },
+                {
+                    "ecode": "0300950000010001",
+                    "intro": "Der Temperatursensor des Laser Moduls könnte einen Kurzschluss haben."
+                },
+                {
+                    "ecode": "0500060000020001",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000020003",
+                    "intro": "Die Laserplattform ist nicht richtig ausgerichtet. Bitte stellen Sie sicher, dass alle vier Ecken mit dem Heizbett ausgerichtet sind."
+                },
+                {
+                    "ecode": "0300950000010005",
+                    "intro": "Die Kommunikation des Laser-Moduls ist abnormal; bitte überprüfen Sie den Anschluss."
+                },
+                {
+                    "ecode": "0500060000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020004",
+                    "intro": "Die Live View Kamera ist nicht an ihrem Platz; bitte überprüfen Sie die Hardwareverbindung."
+                },
+                {
+                    "ecode": "0C00040000020002",
+                    "intro": "Schneidplattform nicht erkannt. Bitte legen Sie die benötigte Matte für die Aufgabe und fahren Sie fort."
+                },
+                {
+                    "ecode": "0300950000010003",
+                    "intro": "Laser-Modul überhitzt."
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "Die Bindung der Düse-Kamera ist fehlgeschlagen. Bitte überprüfen Sie die Hardware und die Kabelverbindungen."
+                },
+                {
+                    "ecode": "0500060000020022",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "Der Laser-Modul nicht erkannt. Das Modul könnte heruntergefallen sein, oder der Schnellverschlusshebel ist möglicherweise nicht verriegelt."
+                },
+                {
+                    "ecode": "0300950000010004",
+                    "intro": "Die Geschwindigkeit des Kühlgebläses des Laser-Moduls ist zu niedrig oder gestoppt. Es könnte blockiert sein oder der Stecker ist vielleicht nicht richtig eingesteckt."
+                },
+                {
+                    "ecode": "0500060000020033",
+                    "intro": "Die BirdsEye-Kamera ist nicht verbunden. Bitte überprüfen Sie die Hardware- und Kabelverbindungen."
+                },
+                {
+                    "ecode": "0500060000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010002",
+                    "intro": "Der Temperatursensor des Laser-Moduls könnte einen offenen Stromkreis haben."
+                },
+                {
+                    "ecode": "0C0001000003000C",
+                    "intro": "Die Temperatur der Nozzle-Kamera ist zu hoch, was dazu führt, dass die AI-Erkennungsfunktion pausiert. Die Funktion wird automatisch fortgesetzt, sobald die Temperatur wieder normal ist."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Es wird empfohlen, die Live-Ansichtskamera zu kalibrieren, um die Genauigkeit der Fremdkörpererkennung zu verbessern. Tippen Sie auf „Einstellungen > Kalibrierung“ auf dem Druckerbildschirm. Wenn ein Laser- oder Schneidemodul installiert ist, entfernen Sie es bitte vor der Kalibrierung."
+                },
+                {
+                    "ecode": "0C00030000020016",
+                    "intro": "Die Erkennung von Fremdkörpern funktioniert nicht und die Seriennummer der Live View-Kamera kann nicht gelesen werden. Bitte kontaktieren Sie das Kundenserviceteam."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "Die Nozzle-Kamera funktioniert nicht richtig. Wenn dieses Problem mehrfach während des Druckens auftritt, kontaktieren Sie bitte den Kundenservice."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "Die BirdsEye-Kamera ist nicht zertifiziert. Bitte verwenden Sie Zubehör von Bambu Lab."
+                },
+                {
+                    "ecode": "0C00010000010018",
+                    "intro": "Die BirdsEye-Kamera ist nicht zertifiziert, und kamerabezogene Funktionen sind ungültig."
+                },
+                {
+                    "ecode": "050001000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010008",
+                    "intro": "Die Kommunikation des Laser-Moduls ist abnormal; bitte überprüfen Sie den Stecker."
+                },
+                {
+                    "ecode": "0503050000010010",
+                    "intro": "Unzertifiziertes AMS D erkannt oder AMS D Firmware nicht aktualisiert. Kann mit diesem Drucker nicht betrieben werden."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "Die Erkennung von Fremdkörpern funktioniert nicht. Die Live View Kamera muss kalibriert werden. Bitte tippen Sie auf \"Einstellungen > Kalibrierung\" auf dem Druckerbildschirm. Wenn ein Laser- oder Schneidemodul installiert ist, entfernen Sie es bitte vor der Kalibrierung."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "Nicht zertifizierter AMS A erkannt oder AMS A Firmware nicht aktualisiert. Kann mit diesem Drucker nicht betrieben werden."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Das Material kann nicht erkannt werden, da es zu klein und zu weit links oder zu nah an der Tür positioniert ist. Bitte verschieben Sie es in den mittleren Bereich."
+                },
+                {
+                    "ecode": "0505050000010010",
+                    "intro": "Unzertifiziertes AMS F erkannt oder AMS F Firmware nicht aktualisiert. Kann mit diesem Drucker nicht betrieben werden."
+                },
+                {
+                    "ecode": "0501050000010010",
+                    "intro": "Nicht zertifizierter AMS B erkannt oder AMS B Firmware nicht aktualisiert. Kann mit diesem Drucker nicht betrieben werden."
+                },
+                {
+                    "ecode": "0506050000010010",
+                    "intro": "Nicht zertifiziertes AMS G entdeckt oder AMS G Firmware nicht aktualisiert. Kann mit diesem Drucker nicht betrieben werden."
+                },
+                {
+                    "ecode": "0504050000010010",
+                    "intro": "Unzertifizierter AMS E erkannt oder AMS E Firmware nicht aktualisiert. Kann mit diesem Drucker nicht betrieben werden."
+                },
+                {
+                    "ecode": "0507050000010010",
+                    "intro": "Nicht zertifiziertes AMS H erkannt oder AMS H Firmware nicht aktualisiert. Kann mit diesem Drucker nicht betrieben werden."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "Vor der Verwendung eines Laser-/Schneidemoduls muss die Position der BirdsEye-Kamera bestimmt werden. Bitte schließen Sie die Einrichtung ab, um die Kamera zu kalibrieren."
+                },
+                {
+                    "ecode": "0502050000010010",
+                    "intro": "Unzertifiziertes AMS C erkannt oder AMS C Firmware nicht aktualisiert. Kann nicht mit diesem Drucker betrieben werden."
+                },
                 {
                     "ecode": "07FF800000020002",
                     "intro": "Die Position des linken Hotends ist während des Drucks abnormal. Bitte überprüfen Sie, ob der Flussblocker das gedruckte Modell zerkratzt."
@@ -2450,14 +3790,6 @@
                 {
                     "ecode": "1800200000020007",
                     "intro": "Der Hall-Sensor für das AMS-HT A Slot 1 Feed-Out ist getrennt. Der Stecker könnte schlechten Kontakt haben."
-                },
-                {
-                    "ecode": "0C00010000010018",
-                    "intro": "Die BirdsEye-Kamera ist nicht zertifiziert, und kamerabezogene Funktionen sind ungültig."
-                },
-                {
-                    "ecode": "050001000001000A",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020007",
@@ -2594,10 +3926,6 @@
                 {
                     "ecode": "0701230000020007",
                     "intro": "AMS B Slot 4 Abfühler-Hall-Sensor ist getrennt. Der Stecker könnte schlechten Kontakt haben."
-                },
-                {
-                    "ecode": "0C00040000030018",
-                    "intro": "Die Kalibrierung der Werkzeugkopf-Kamera ist fehlgeschlagen, wahrscheinlich weil das Material nicht fest haften blieb. Die Standardparameter werden für diesen Schnitt verwendet."
                 },
                 {
                     "ecode": "0300970000010004",
@@ -2836,14 +4164,6 @@
                     "intro": "Die Kammerheizung ist ausgefallen. Der Kammerheizer könnte heißluftmäßig ausfallen."
                 },
                 {
-                    "ecode": "0C00030000020014",
-                    "intro": "Die Fremdkörpererkennung funktioniert nicht. Es wird empfohlen, das Laser- oder Schneidemodul zu deinstallieren, falls es installiert war, und dann im Druckermenü auf \"Einstellungen>Kalibrierung\" zu tippen und die Live-View-Kamera neu zu kalibrieren."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "Die Fremdkörpererkennung funktioniert nicht. Es wird empfohlen, das Laser- oder Schneidemodul zu deinstallieren, falls es installiert war, und im Druckermenü auf \"Einstellungen>Kalibrierung\" zu tippen und die Live-View-Kamera neu zu kalibrieren."
-                },
-                {
                     "ecode": "0C00030000020015",
                     "intro": "Die Fremdkörpererkennung funktioniert nicht. Es wurde festgestellt, dass die Live-View-Kamera ersetzt wurde. Falls ein Laser- oder Schneidemodul installiert ist, bitte das Modul deinstallieren, im Druckermenü auf \"Einstellungen>Kalibrierung\" tippen und die Live-View-Kamera neu kalibrieren."
                 },
@@ -2864,84 +4184,12 @@
                     "intro": "Schneidemodul ist installiert. Plattformtyp stimmt nicht überein. Bitte legen Sie die Schneideplattform zur Schneidekalibrierung auf."
                 },
                 {
-                    "ecode": "0700700000020002",
-                    "intro": "Es konnte kein Filament in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule klemmt."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Es konnte kein Filament in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule klemmt."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Es konnte kein Filament in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule klemmt."
-                },
-                {
-                    "ecode": "0705700000020002",
-                    "intro": "Es konnte kein Filament in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule klemmt."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Es konnte kein Filament in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule klemmt."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule sind blockiert."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule blockiert."
-                },
-                {
-                    "ecode": "1801700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule festgeklebt."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule klemmt."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule steckt fest."
-                },
-                {
-                    "ecode": "1803700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule steckt."
-                },
-                {
-                    "ecode": "1805700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule ist blockiert."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule klemmt."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "Das Material ist zu klein und steht zu weit links für die Erkennung. Bitte verschieben Sie es in die Mitte oder auf die rechte Seite."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule verklemmt."
-                },
-                {
-                    "ecode": "0707700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule verklemmt."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Filament konnte nicht in den Werkzeugkopf eingeführt werden. Mögliche Ursache: Filament oder Spule verklemmt."
-                },
-                {
                     "ecode": "0701200000020006",
                     "intro": "PTFE-Rohrtrennung während der Filamentladung erkannt. Bitte überprüfen Sie, ob das PTFE-Rohr von AMS B zum Extruder ordnungsgemäß verbunden ist."
                 },
                 {
                     "ecode": "0702200000020006",
                     "intro": "PTFE-Rohrtrennung während der Filamentladung erkannt. Bitte überprüfen Sie, ob das PTFE-Rohr von AMS C zum Extruder ordnungsgemäß verbunden ist."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "Eine neue BirdsEye-Kamera oder eine Änderung des Kamerawinkels wurde erkannt. Bitte die Einrichtung abschließen, bevor sie verwendet wird."
                 },
                 {
                     "ecode": "1801200000020006",
@@ -3180,16 +4428,8 @@
                     "intro": "Z-Achsen-Homing im Schneidmodus fehlgeschlagen. Bitte überprüfen Sie, ob sich Fremdkörper im Z-Achsen-Schlitten und in der Z-Achsen-Synchronriemenscheibe befinden."
                 },
                 {
-                    "ecode": "0500050000010010",
-                    "intro": "Unzertifiziertes AMS erkannt. Kann mit diesem Drucker nicht betrieben werden."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "Externer Spulenanschluss am rechten Extruder kann verheddert oder blockiert sein."
-                },
-                {
-                    "ecode": "050005000001000D",
-                    "intro": "BirdEye-Kamera ist nicht zertifiziert. Bitte verwenden Sie Bambu Lab-Zubehör."
                 },
                 {
                     "ecode": "050005000001000E",
@@ -3206,38 +4446,6 @@
                 {
                     "ecode": "0300280000010007",
                     "intro": "Kommunikationsfehler zwischen Schneidemodul und Werkzeugkopfmodul. Bitte überprüfen Sie, ob das Signalkabel des Schneidemoduls locker oder defekt ist. Es könnte auch an einer defekten Kraftsensorspule liegen."
-                },
-                {
-                    "ecode": "1800240000020009",
-                    "intro": "AMS HT A Frontabdeckung ist geöffnet. Dies könnte die Trocknungsleistung beeinträchtigen oder dazu führen, dass das Filament Feuchtigkeit aufnimmt."
-                },
-                {
-                    "ecode": "1807240000020009",
-                    "intro": "AMS HT H Frontabdeckung ist geöffnet. Dies könnte die Trocknungsleistung beeinträchtigen oder dazu führen, dass das Filament Feuchtigkeit aufnimmt."
-                },
-                {
-                    "ecode": "1801240000020009",
-                    "intro": "AMS HT B Frontabdeckung ist geöffnet. Dies könnte die Trocknungsleistung beeinträchtigen oder dazu führen, dass das Filament Feuchtigkeit aufnimmt."
-                },
-                {
-                    "ecode": "1806240000020009",
-                    "intro": "AMS HT G Frontabdeckung ist geöffnet. Dies könnte die Trocknungsleistung beeinträchtigen oder dazu führen, dass das Filament Feuchtigkeit aufnimmt."
-                },
-                {
-                    "ecode": "1802240000020009",
-                    "intro": "Die Frontabdeckung des AMS HT C ist offen. Dies könnte die Trocknungsleistung beeinträchtigen oder dazu führen, dass das Filament Feuchtigkeit aufnimmt."
-                },
-                {
-                    "ecode": "1805240000020009",
-                    "intro": "AMS HT F Frontabdeckung ist geöffnet. Dies könnte die Trocknungsleistung beeinträchtigen oder dazu führen, dass das Filament Feuchtigkeit aufnimmt."
-                },
-                {
-                    "ecode": "1804240000020009",
-                    "intro": "Das Frontcover der AMS HT E ist offen. Dies kann die Trocknungsleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
-                },
-                {
-                    "ecode": "1803240000020009",
-                    "intro": "Das Frontcover der AMS HT D ist offen. Dies kann die Trocknungsleistung beeinträchtigen oder dazu führen, dass der Filament Feuchtigkeit aufnimmt."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -3372,10 +4580,6 @@
                     "intro": "Die Kammertemperatur ist zu hoch. Bitte öffnen Sie die obere Abdeckung und die Fronttür, um abzukühlen, oder senken Sie die Umgebungstemperatur."
                 },
                 {
-                    "ecode": "0C00040000010012",
-                    "intro": "Der Datenlink der Liveview-Kamera ist abnormal."
-                },
-                {
                     "ecode": "0500050000010009",
                     "intro": ""
                 },
@@ -3422,10 +4626,6 @@
                 {
                     "ecode": "0500060000020034",
                     "intro": "Die Live-View-Kamera ist nicht angeschlossen. Bitte überprüfen Sie die Hardware- und Kabelverbindungen."
-                },
-                {
-                    "ecode": "0500060000020033",
-                    "intro": "Die BirdsEye-Kamera ist nicht angeschlossen. Bitte überprüfen Sie die Hardware- und Kabelverbindungen."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3478,10 +4678,6 @@
                 {
                     "ecode": "180422000002000A",
                     "intro": "Die Einstellung der Filamentposition von AMS-HT E-Slot 3 ist fehlgeschlagen. Das Filament oder der Puffer könnte feststecken."
-                },
-                {
-                    "ecode": "070822000002000A",
-                    "intro": "Die Einstellung der Filamentposition von AMS undefinierter Slot 3 ist fehlgeschlagen. Das Filament oder der Puffer könnte feststecken."
                 },
                 {
                     "ecode": "07FF800000020001",
@@ -3644,10 +4840,6 @@
                     "intro": "Fehler beim Einstellen der Filamentposition von AMS-HT B Slot 1. Das Filament oder der Puffer ist möglicherweise blockiert."
                 },
                 {
-                    "ecode": "070820000002000A",
-                    "intro": "Fehler beim Einstellen der Filamentposition von AMS undefiniert Slot 1. Das Filament oder der Puffer ist möglicherweise blockiert."
-                },
-                {
                     "ecode": "180322000002000A",
                     "intro": "Fehler beim Einstellen der Filamentposition von AMS-HT D Slot 3. Das Filament oder der Puffer ist möglicherweise blockiert."
                 },
@@ -3658,10 +4850,6 @@
                 {
                     "ecode": "180720000002000A",
                     "intro": "Fehler beim Einstellen der Filamentposition von AMS-HT H Slot 1. Das Filament oder der Puffer ist möglicherweise blockiert."
-                },
-                {
-                    "ecode": "0C00010000020014",
-                    "intro": "Die Düsenkamera funktioniert nicht richtig. Wenn dieses Problem während des Druckens mehrmals auftritt, wenden Sie sich bitte an den Kundenservice."
                 },
                 {
                     "ecode": "070122000002000A",
@@ -3720,10 +4908,6 @@
                     "intro": "Die Filamentposition von AMS H Slot 2 konnte nicht angepasst werden. Das Filament oder der Puffer könnte feststecken."
                 },
                 {
-                    "ecode": "070823000002000A",
-                    "intro": "Die Filamentposition von AMS Slot 4 konnte nicht angepasst werden. Das Filament oder der Puffer könnte feststecken."
-                },
-                {
                     "ecode": "070523000002000A",
                     "intro": "Die Filamentposition von AMS F Slot 4 konnte nicht angepasst werden. Das Filament oder der Puffer könnte feststecken."
                 },
@@ -3742,14 +4926,6 @@
                 {
                     "ecode": "180323000002000A",
                     "intro": "Die Filamentposition von AMS-HT D Slot 4 konnte nicht angepasst werden. Das Filament oder der Puffer könnte feststecken."
-                },
-                {
-                    "ecode": "180821000002000A",
-                    "intro": "Die Filamentposition von AMS-HT Slot 2 konnte nicht angepasst werden. Das Filament oder der Puffer könnte feststecken."
-                },
-                {
-                    "ecode": "180822000002000A",
-                    "intro": "Die Filamentposition von AMS-HT Slot 3 konnte nicht angepasst werden. Das Filament oder der Puffer könnte feststecken."
                 },
                 {
                     "ecode": "070322000002000A",
@@ -3776,10 +4952,6 @@
                     "intro": "Fehler bei der Anpassung der Filamentposition von AMS-HT F Slot 1 aufgetreten. Das Filament oder der Puffer könnte feststecken."
                 },
                 {
-                    "ecode": "180823000002000A",
-                    "intro": "Fehler bei der Anpassung der Filamentposition von AMS-HT undefined Slot 4 aufgetreten. Das Filament oder der Puffer könnte feststecken."
-                },
-                {
                     "ecode": "070120000002000A",
                     "intro": "Fehler bei der Anpassung der Filamentposition von AMS B Slot 1 aufgetreten. Das Filament oder der Puffer könnte feststecken."
                 },
@@ -3794,10 +4966,6 @@
                 {
                     "ecode": "180223000002000A",
                     "intro": "Die offizielle Umstellung der Filamentposition von AMS-HT C Slot 4 ist fehlgeschlagen. Das Filament oder der Puffer steckt eventuell fest."
-                },
-                {
-                    "ecode": "180820000002000A",
-                    "intro": "Die offizielle Einstellung der Filamentposition von AMS-HT unbestimmter Slot 1 ist fehlgeschlagen. Das Filament oder der Puffer steckt eventuell fest."
                 },
                 {
                     "ecode": "070520000002000A",
@@ -3838,10 +5006,6 @@
                 {
                     "ecode": "180021000002000A",
                     "intro": "Fehler beim Justieren der Filamentposition von AMS-HT A Slot 2. Der Filament- oder Puffer könnte feststecken."
-                },
-                {
-                    "ecode": "070821000002000A",
-                    "intro": "Fehler beim Justieren der Filamentposition von AMS undefinierter Slot 2. Der Filament- oder Puffer könnte feststecken."
                 },
                 {
                     "ecode": "070423000002000A",
@@ -3930,10 +5094,6 @@
                 {
                     "ecode": "1805700000020003",
                     "intro": "Filamentextrusion fehlgeschlagen. Mögliche Ursachen: Verstopfung des Extruders oder Düse. Bitte wenden Sie sich an den Assistenten für weitere Informationen."
-                },
-                {
-                    "ecode": "1804700000020005",
-                    "intro": "Filamentzufuhr außerhalb des AMS-HT fehlgeschlagen. Bitte schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob die Spule stecken geblieben ist. Bitte wenden Sie sich an den Assistenten für weitere Informationen."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -4176,10 +5336,6 @@
                     "intro": "Verschlüsselungs-Chipfehler"
                 },
                 {
-                    "ecode": "1805700000020005",
-                    "intro": "Filamentzuführung außerhalb des AMS-HT ist gescheitert. Bitte schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob die Spule feststeckt. Nähere Einzelheiten entnehmen Sie bitte dem Assistenten."
-                },
-                {
                     "ecode": "18FF200000020004",
                     "intro": "Bitte ziehen Sie das externe Filament vom rechten Extruder heraus."
                 },
@@ -4200,10 +5356,6 @@
                     "intro": "Der Temperatur- und Feuchtigkeitssensor hat einen Fehler. Der Chip könnte defekt sein."
                 },
                 {
-                    "ecode": "1806700000020001",
-                    "intro": "Das Filament konnte nicht aus dem Extruder herausgezogen werden. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Siehe Details im Assistenten."
-                },
-                {
                     "ecode": "1805700000020013",
                     "intro": "AMS-HT F Das Zuführen des Filaments zum Hilfsmotor-Extrusionsrad ist fehlgeschlagen. Dies kann auf ein verlorenes Signal vom Kilometerzähler zurückzuführen sein. Überprüfen Sie bitte die Verbindung des Kilometerzählersteckers."
                 },
@@ -4220,24 +5372,12 @@
                     "intro": "AMS Das Greifen des Assistentextruders am Filament ist fehlgeschlagen, möglicherweise aufgrund von zu viel Widerstand im Speicher. Bitte überprüfen Sie, ob der Speicher stecken geblieben ist, ob die Filamentspule geneigt ist und ob das Filamentrohr frei ist."
                 },
                 {
-                    "ecode": "0707700000020005",
-                    "intro": "Das Zuführen des Filaments außerhalb des AMS ist fehlgeschlagen. Bitte schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob sich die Spule festgefahren hat. Weitere Details finden Sie im Assistenten."
-                },
-                {
                     "ecode": "1805700000020050",
                     "intro": "AMS-HT F Das Laden des Filaments in den Speicher ist fehlgeschlagen. Dies könnte auf zu viel Widerstand im Speicher zurückzuführen sein. Bitte überprüfen Sie, ob der Speicher blockiert ist, ob die Filamentspule geneigt ist oder ob das Filamentrohr blockiert ist."
                 },
                 {
-                    "ecode": "1807700000020005",
-                    "intro": "Das Zuführen des Filaments außerhalb des AMS-HT ist fehlgeschlagen. Bitte schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob sich die Spule festgefahren hat. Weitere Details finden Sie im Assistenten."
-                },
-                {
                     "ecode": "0705700000020032",
                     "intro": "AMS Das Zuführen des Filaments zum Extruder des Werkzeugkopfes ist fehlgeschlagen. Dies könnte auf zu viel Widerstand im Filament zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentspule geneigt ist oder ob das Filamentrohr blockiert ist."
-                },
-                {
-                    "ecode": "0704700000020004",
-                    "intro": "Konnte Filament nicht vom Werkzeugkopf zum AMS zurückziehen. Mögliche Ursache: Filament oder Spule stecken fest. Bitte Beachten Sie die Anweisungen des Assistenten."
                 },
                 {
                     "ecode": "0706700000020006",
@@ -4410,10 +5550,6 @@
                 {
                     "ecode": "0707200000020008",
                     "intro": "AMS H Slot 1 Einspeise-Hallsensor ist getrennt, was möglicherweise auf schlechten Steckverbinderkontakt zurückzuführen ist."
-                },
-                {
-                    "ecode": "0705700000020004",
-                    "intro": "Fehler beim Zurückziehen des Filaments vom Werkzeugkopf zum AMS. Mögliche Ursache: Filament oder Spule steckt fest. Bitte sehen Sie im Assistenten nach Details."
                 },
                 {
                     "ecode": "1807700000020045",
@@ -4668,16 +5804,8 @@
                     "intro": "Das Faserspeicher-Signal ist abnormal; die Feder kann stecken oder das Filament kann verheddert sein."
                 },
                 {
-                    "ecode": "1805700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zu AMS-HT ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule stecken fest. Bitte lesen Sie die Details im Assistant."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Das Extrudieren des AMS E-Slot-1-Filaments ist fehlgeschlagen; der Extruder kann verstopft sein oder das Filament ist möglicherweise zu dünn, wodurch der Extruder ins Rutschen gerät."
-                },
-                {
-                    "ecode": "1802700000020005",
-                    "intro": "Das Zuführen des Filaments außerhalb der AMS-HT ist fehlgeschlagen. Schneiden Sie bitte das Filamentende flach ab und prüfen Sie, ob die Spule stecken geblieben ist. Bitte lesen Sie die Details im Assistant."
                 },
                 {
                     "ecode": "1802700000020061",
@@ -4722,10 +5850,6 @@
                 {
                     "ecode": "0707700000020022",
                     "intro": "AMS H: Die Zuführung des Filaments zum Puffer ist fehlgeschlagen; dies könnte daran liegen, dass das abgenutzte Filament dazu führt, dass der Assist-Motor abrutscht. Bitte schneiden Sie den abgenutzten Abschnitt des Filaments ab."
-                },
-                {
-                    "ecode": "1801700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Druckkopf zu AMS-HT ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule blockiert. Bitte wenden Sie sich für weitere Details an den Assistenten."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -5030,10 +6154,6 @@
                 {
                     "ecode": "1803700000020061",
                     "intro": "AMS-HT D: Unterstützung beim Greifen des Filaments durch den Extruder fehlgeschlagen, möglicherweise aufgrund erhöhtem Widerstandes aus dem Buffer. Bitte prüfen Sie, ob der Buffer blockiert ist, die Filamentrolle geneigt ist und das Filamentrohr frei ist."
-                },
-                {
-                    "ecode": "0706700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zum AMS ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule stecken fest. Bitte beachten Sie die Informationen des Assistenten."
                 },
                 {
                     "ecode": "1801700000020011",
@@ -5476,10 +6596,6 @@
                     "intro": "Das Herausziehen des Filaments beim AMS-HT E ist fehlgeschlagen, was auf einen zu hohen Widerstand des Gleichstrommotors zurückzuführen sein könnte. Bitte überprüfen Sie, ob die Filamentspule geneigt oder deformiert ist oder ob der Filament-Schlauch blockiert ist."
                 },
                 {
-                    "ecode": "0704700000020001",
-                    "intro": "Das herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Bitte wenden Sie sich an den Assistenten für Details."
-                },
-                {
                     "ecode": "1805700000020032",
                     "intro": "Die Filamentzufuhr zum Werkzeugkopf-Extruder des AMS-HT F ist fehlgeschlagen, was auf einen zu hohen Widerstand des Filaments zurückzuführen sein könnte. Bitte prüfen Sie, ob die Filamentspule geneigt ist oder ob der Filament-Schlauch blockiert ist."
                 },
@@ -5502,10 +6618,6 @@
                 {
                     "ecode": "1803700000020021",
                     "intro": "AMS-HT D Die Zuführung von Filament zum Puffer ist fehlgeschlagen, dies kann auf übermäßigen Widerstand im Filament zurückzuführen sein. Bitte prüfen Sie, ob die Filamentspule geneigt ist oder ob das PTFE-Rohr blockiert ist."
-                },
-                {
-                    "ecode": "1806700000020005",
-                    "intro": "Das Zuführen des Filaments außerhalb des AMS-HT ist fehlgeschlagen. Schneiden Sie bitte das Ende des Filaments flach ab und überprüfen Sie, ob die Spule blockiert ist. Details finden Sie im Assistenten."
                 },
                 {
                     "ecode": "1800450000020001",
@@ -5554,10 +6666,6 @@
                 {
                     "ecode": "1804700000020033",
                     "intro": "AMS-HT E Das Zuführen des Filaments zum Extruder des Werkzeugkopfes ist fehlgeschlagen; dies könnte daran liegen, dass sich das Filament nicht hält. Bitte überprüfen Sie, ob das Filamentrohr nicht angeschlossen ist oder ob das Rohr durch Abnutzung beschädigt ist."
-                },
-                {
-                    "ecode": "1802700000020004",
-                    "intro": "Es ist fehlgeschlagen, das Filament vom Werkzeugkopf zu AMS-HT zurückzuziehen. Mögliche Ursache: Das Filament oder die Spule ist stecken geblieben. Bitte wenden Sie sich an den Assistant für weitere Details."
                 },
                 {
                     "ecode": "1804700000020023",
@@ -5820,10 +6928,6 @@
                     "intro": "Der Verschlüsselungs-Chip ist ausgefallen."
                 },
                 {
-                    "ecode": "0705700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Gründe: verstopfter Extruder oder gebrochenes Filament. Bitte wenden Sie sich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "1807700000020032",
                     "intro": "AMS-HT H: Das Zuführen des Filaments in den Werkzeugkopf-Extruder ist fehlgeschlagen; dies kann daran liegen, dass das Filament zu starken Widerstand bietet. Bitte prüfen Sie, ob die Filamentspule geneigt ist oder das Filamentrohr blockiert ist."
                 },
@@ -6032,20 +7136,12 @@
                     "intro": "AMS E Das Ausziehen des Filaments ist fehlgeschlagen; dies könnte daran liegen, dass das Filament ausgegangen ist oder herausgezogen wurde."
                 },
                 {
-                    "ecode": "1807700000020001",
-                    "intro": "Das Ausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Weitere Details finden Sie im Assistenten."
-                },
-                {
                     "ecode": "1801700000020061",
                     "intro": "AMS-HT B Die Unterstützung des Extruder beim Greifen des Filaments ist fehlgeschlagen, möglicherweise aufgrund erhöhter Widerstände durch den Puffer. Bitte prüfen Sie, ob der Puffer feststeckt, ob die Filamentspule schief steht und ob das Filamentrohr frei ist."
                 },
                 {
                     "ecode": "1800700000020050",
                     "intro": "AMS-HT A Das Laden des Filaments in den Puffer ist fehlgeschlagen. Dies könnte an erhöhtem Widerstand im Puffer liegen. Bitte prüfen Sie, ob der Puffer blockiert ist, ob die Filamentspule schief steht oder ob das Filamentrohr blockiert ist."
-                },
-                {
-                    "ecode": "0706700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Details finden Sie im Assistenten."
                 },
                 {
                     "ecode": "1804700000020012",
@@ -6062,14 +7158,6 @@
                 {
                     "ecode": "0705700000020010",
                     "intro": "AMS F Das Zuführen von Filament zum Extrusionsrad des Assistenzmotors ist fehlgeschlagen. Dies könnte an einer Blockade im Zuführschlauch liegen. Bitte prüfen Sie, ob der Zuführschlauch und die Filamentnabe frei sind."
-                },
-                {
-                    "ecode": "1804700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf auf AMS-HT ist fehlgeschlagen. Mögliche Ursache: Verhaktes Filament oder blockierte Spule. Details finden Sie im Assistenten."
-                },
-                {
-                    "ecode": "0705700000020005",
-                    "intro": "Das Zuführen des Filaments außerhalb des AMS ist fehlgeschlagen. Bitte schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob die Spule blockiert ist. Details finden Sie im Assistenten."
                 },
                 {
                     "ecode": "1803700000020011",
@@ -6266,10 +7354,6 @@
                 {
                     "ecode": "1804700000020046",
                     "intro": "AMS-HT E Das Herausziehen des Filaments ist fehlgeschlagen. Dies könnte auf einen übermäßigen Widerstand im Assistmotor zurückzuführen sein. Bitte prüfen Sie, ob die Filamentspule geneigt oder verformt ist und ob das Filamentrohr frei ist."
-                },
-                {
-                    "ecode": "0706700000020005",
-                    "intro": "Das Zuführen des Filaments außerhalb des AMS ist fehlgeschlagen. Bitte schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob die Spule blockiert ist. Bitte lesen Sie die Details im Assistenten nach."
                 },
                 {
                     "ecode": "1802700000020012",
@@ -6528,10 +7612,6 @@
                     "intro": "AMS E Laden des Filaments in den Puffer ist fehlgeschlagen. Dies könnte auf einen übermäßigen Widerstand im Puffer zurückzuführen sein. Bitte prüfen Sie, ob der Puffer verstopft ist, die Filamentspule geneigt ist oder das Filamentrohr blockiert ist."
                 },
                 {
-                    "ecode": "1805700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament. Weitere Details finden Sie im Assistant."
-                },
-                {
                     "ecode": "1806700000020041",
                     "intro": "AMS-HT G Herausziehen des Filaments ist fehlgeschlagen. Dies könnte darauf zurückzuführen sein, dass sich das Filament von der Spule gelöst hat. Bitte ersetzen Sie die Spule durch eine neue."
                 },
@@ -6572,20 +7652,12 @@
                     "intro": "AMS-HT G Die Zuführung des Filaments in den Puffer ist fehlgeschlagen; dies kann daran liegen, dass der Puffer das Filament blockiert. Bitte überprüfen Sie den PTFE-Rohrverschluss des Puffers."
                 },
                 {
-                    "ecode": "1807700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zum AMS-HT ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule stecken fest. Bitte wenden Sie sich an die Assistenz für weitere Details."
-                },
-                {
                     "ecode": "1801700000020003",
                     "intro": "Das Extrudieren des Filaments ist fehlgeschlagen. Mögliche Ursache: Extruder oder Düsenverstopfung. Bitte wenden Sie sich an die Assistenz für weitere Details."
                 },
                 {
                     "ecode": "1800300000010004",
                     "intro": "Verschlüsselungs-Chipfehler."
-                },
-                {
-                    "ecode": "1801700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Bitte wenden Sie sich an die Assistenz für weitere Details."
                 },
                 {
                     "ecode": "1802700000020031",
@@ -6820,20 +7892,12 @@
                     "intro": "AMS E Entfernen des Filaments ist fehlgeschlagen. Dies könnte auf einen übermäßigen Widerstand im Assistenzmotor zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentspule geneigt oder deformiert ist und ob das Filamentrohr frei ist."
                 },
                 {
-                    "ecode": "1803700000020001",
-                    "intro": "Entfernen des Filaments aus dem Extruder fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder defektes Filament. Weitere Details finden Sie im Assistenten."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "RFID kann aufgrund eines Hardware- oder Strukturfehlers nicht gelesen werden."
                 },
                 {
                     "ecode": "1806700000020042",
                     "intro": "AMS-HT G Das Herausziehen des Filaments ist fehlgeschlagen; dies könnte daran liegen, dass der Gleichstrommotor keine Verbindung mehr hat. Bitte überprüfen Sie den Stecker des Gleichstrommotors, um sicherzustellen, dass er ordnungsgemäß angeschlossen ist."
-                },
-                {
-                    "ecode": "0707700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zu AMS ist fehlgeschlagen. Mögliche Ursachen sind, dass das Filament oder die Spule stecken geblieben sind. Bitte wenden Sie sich an den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -7108,10 +8172,6 @@
                     "intro": "Der Griff des Filamentschneiders wurde nicht freigegeben. Der Griff oder die Klinge könnte blockiert sein oder es könnte ein Problem mit der Verbindung des Filamentsensors vorliegen."
                 },
                 {
-                    "ecode": "1804700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament. Bitte wenden Sie sich an den Assistenten für weitere Informationen."
-                },
-                {
                     "ecode": "1806700000020050",
                     "intro": "AMS-HT G Das Laden des Filaments in den Puffer ist fehlgeschlagen; dies könnte auf einen erhöhten Widerstand im Puffer zurückzuführen sein. Überprüfen Sie bitte, ob der Puffer blockiert ist, ob die Filamentspule geneigt ist oder ob das Filamentrohr blockiert ist."
                 },
@@ -7350,10 +8410,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C Die Zuführung von Filament zum Extruder des Werkzeugkopfes ist fehlgeschlagen; dies könnte daran liegen, dass das Filament herausgerutscht ist. Bitte prüfen Sie, ob das Filament-Rohr getrennt ist oder ob das Rohr durchgescheuert ist."
-                },
-                {
-                    "ecode": "0704700000020005",
-                    "intro": "Das Filament konnte nicht außerhalb des AMS zugeführt werden. Schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob sich die Spule festgefahren hat. Weitere Details finden Sie im Assistant."
                 },
                 {
                     "ecode": "1800700000020006",
@@ -7628,10 +8684,6 @@
                     "intro": "Die Schnittentfernung des Filamentschneiders ist zu groß. Der XY-Motor könnte Schritte verlieren."
                 },
                 {
-                    "ecode": "1803700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zu AMS-HT ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule steckt fest. Bitte wenden Sie sich an Assistant für Details."
-                },
-                {
                     "ecode": "1804700000020032",
                     "intro": "Das Einführen des AMS-HT E-Filaments in den Werkzeugkopf-Extruder ist fehlgeschlagen; dies könnte auf übermäßigen Widerstand durch das Filament zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentspule gekippt ist oder das Filamentrohr blockiert ist."
                 },
@@ -7808,10 +8860,6 @@
                     "intro": "Abrufen der AMS-Zuordnungstabelle fehlgeschlagen. Klicken Sie auf \"Fortsetzen\", um es erneut zu versuchen."
                 },
                 {
-                    "ecode": "1802700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: verstopfter Extruder oder gebrochenes Filament. Lesen Sie die Details im Assistenten nach."
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "AMS-HT H Unterstützungs-Extruder kann Filament nicht greifen; dies könnte daran liegen, dass der Stützmotor abrutscht. Bitte schneiden Sie den abgenutzten Abschnitt des Filaments ab."
                 },
@@ -7834,10 +8882,6 @@
                 {
                     "ecode": "1801700000020021",
                     "intro": "AMS-HT B Das Zuführen von Filament zum Puffer ist fehlgeschlagen. Dies kann auf übermäßigen Widerstand im Filament zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentspule gekippt ist oder ob das PTFE-Rohr blockiert ist."
-                },
-                {
-                    "ecode": "1800700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Bitte wenden Sie sich an den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0706310000010004",
@@ -7878,10 +8922,6 @@
                 {
                     "ecode": "1803700000020046",
                     "intro": "Herausziehen des Filaments AMS-HT D ist fehlgeschlagen. Dies kann auf übermäßigen Widerstand im Assist Motor zurückzuführen sein. Bitte prüfen Sie, ob die Filamentspule geneigt oder deformiert ist und ob der Filamentschlauch frei von Hindernissen ist."
-                },
-                {
-                    "ecode": "1800700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zum AMS-HT ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule steckt fest. Bitte lesen Sie die Details im Assistenten nach."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -8110,10 +9150,6 @@
                 {
                     "ecode": "1801700000020032",
                     "intro": "AMS-HT B Die Zuführung des Filaments zum Werkzeugkopf-Extruder ist fehlgeschlagen. Dies könnte auf einen übermäßigen Widerstand des Filaments zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentspule geneigt ist oder ob das Filamentrohr blockiert ist."
-                },
-                {
-                    "ecode": "1800700000020005",
-                    "intro": "Die Zuführung des Filaments außerhalb des AMS-HT ist fehlgeschlagen. Bitte schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob die Spule feststeckt. Bitte konsultieren Sie für weitere Einzelheiten den Assistenten."
                 },
                 {
                     "ecode": "0705700000020033",
@@ -8370,10 +9406,6 @@
                 {
                     "ecode": "0704700000020023",
                     "intro": "AMS E Das Zuführen des Filaments zum Puffer ist fehlgeschlagen; dies könnte daran liegen, dass das Filament abgelöst wird. Bitte prüfen Sie, ob das Filamentrohr falsch angeschlossen ist oder ob das Rohr durchgescheuert ist."
-                },
-                {
-                    "ecode": "1806700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zum AMS-HT ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule sind blockiert. Bitte wenden Sie sich an den Assistenten für Details."
                 },
                 {
                     "ecode": "1804300000010004",
@@ -8652,10 +9684,6 @@
                     "intro": "AMS-HT G Die Zuführung des Filaments zum Werkzeugkopf-Extruder ist fehlgeschlagen; dies könnte auf einen zu hohen Widerstand im Filament zurückzuführen sein. Bitte prüfen Sie, ob die Filamentspule geneigt ist oder ob das Filamentrohr blockiert ist."
                 },
                 {
-                    "ecode": "0707700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Details entnehmen Sie bitte dem Assistenten."
-                },
-                {
                     "ecode": "0707700000020010",
                     "intro": "AMS H Die Zuführung des Filaments zum Unterstützungsmotor-Extrusionsrad ist fehlgeschlagen. Dies könnte auf eine Blockade im Zufuhrrohr zurückzuführen sein. Bitte prüfen Sie, ob das Zufuhrrohr und die Filamentnabe frei sind."
                 },
@@ -8896,16 +9924,8 @@
                     "intro": "Bitte das externe Filament aus dem linken Extruder ziehen."
                 },
                 {
-                    "ecode": "1803700000020005",
-                    "intro": "Die Zuführung des Filaments außerhalb des AMS-HT ist fehlgeschlagen. Bitte das Ende des Filaments flach abschneiden und überprüfen, ob die Spule steckt. Bitte wenden Sie sich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "1801700000020010",
                     "intro": "AMS-HT B Das Zuführen des Filaments zum Assist-Motor-Extrusionsrad ist fehlgeschlagen. Dies könnte auf eine Blockade im Zufuhrschlauch zurückzuführen sein. Bitte prüfen Sie, ob der Zufuhrschlauch und die Filamentspule frei sind."
-                },
-                {
-                    "ecode": "1801700000020005",
-                    "intro": "Die Zuführung des Filaments außerhalb des AMS-HT ist fehlgeschlagen. Bitte das Ende des Filaments flach abschneiden und überprüfen, ob die Spule steckt. Bitte wenden Sie sich an den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0300C00000010002",
@@ -8958,10 +9978,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "Die Fremdkörpererkennung funktioniert nicht. Bitte starten Sie das Gerät neu oder aktualisieren Sie die Firmware."
-                },
-                {
-                    "ecode": "0C00030000020016",
-                    "intro": "Die Fremdkörpererkennung funktioniert nicht und die Seriennummer der Liveview-Kamera kann nicht gelesen werden. Bitte wenden Sie sich an den Kundensupport."
                 },
                 {
                     "ecode": "03009C0000010002",
@@ -9556,10 +10572,6 @@
                     "intro": "Der Druck mit hoher Heizbetttemperatur wird zum ersten Mal durchgeführt. Um eine bessere Druckqualität der ersten Schicht zu erhalten, wird die Kalibrierung des Heizbetts bei hoher Temperatur automatisch durchgeführt."
                 },
                 {
-                    "ecode": "0C00030000020011",
-                    "intro": "Die hochpräzise Düsenoffset-Kalibrierung ist fehlgeschlagen. Bitte führen Sie eine erneute Kalibrierung durch."
-                },
-                {
                     "ecode": "0703550000010002",
                     "intro": "Das PTFE-Rohr ist falsch zwischen dem Druckkopf und dem Puffer angeschlossen. Bitte verbinden Sie das obere Ende des Puffers mit dem rechten Extruder und das untere Ende mit dem linken Extruder."
                 },
@@ -9768,10 +10780,6 @@
                     "intro": "Das RFID-Tag auf AMS A Slot2 ist beschädigt oder dessen Inhalt kann nicht identifiziert werden."
                 },
                 {
-                    "ecode": "0701700000020004",
-                    "intro": "Das Zurückziehen des Filaments aus dem Werkzeugkopf zu AMS ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule blockiert. Bitte siehe Assistant für Details."
-                },
-                {
                     "ecode": "0703300000020002",
                     "intro": "Das RFID-Tag auf AMS D Slot1 ist beschädigt oder dessen Inhalt kann nicht identifiziert werden."
                 },
@@ -9872,10 +10880,6 @@
                     "intro": "Es konnte kein Filament extrudiert werden. Mögliche Ursache: Extruder oder Düse verstopft. Bitte beziehen Sie sich auf den Assistenten für weitere Details."
                 },
                 {
-                    "ecode": "0703700000020005",
-                    "intro": "Es konnte kein Filament außerhalb des AMS zugeführt werden. Schneiden Sie das Ende des Filaments flach ab und prüfen Sie, ob die Spule blockiert ist. Bitte beziehen Sie sich auf den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0703700000020006",
                     "intro": "Time-Out beim Entfernen von altem Filament. Mögliche Ursache: Filament blockiert oder Extruder-/Düsenverstopfung. Bitte beziehen Sie sich auf den Assistenten für weitere Details."
                 },
@@ -9886,10 +10890,6 @@
                 {
                     "ecode": "12FF200000020004",
                     "intro": "Bitte ziehen Sie das Filament auf dem Spulenhalter aus dem Extruder heraus."
-                },
-                {
-                    "ecode": "0500060000020002",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300960000010003",
@@ -9908,20 +10908,8 @@
                     "intro": "AMS D Das Auslassventil 2 ist nicht angeschlossen, was möglicherweise auf eine schlechte Steckverbindung zurückzuführen ist."
                 },
                 {
-                    "ecode": "0500060000020012",
-                    "intro": ""
-                },
-                {
                     "ecode": "0702810000010003",
                     "intro": "AMS C Heizung 2 ist kurzgeschlossen, was auf einen Kurzschluss oder Schäden an der Heizung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0500060000020006",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020004",
-                    "intro": "Die AI Live View Kamera ist nicht an ihrem Platz. Bitte überprüfen Sie die Hardwareverbindung."
                 },
                 {
                     "ecode": "0702350000010002",
@@ -9930,10 +10918,6 @@
                 {
                     "ecode": "0701010000020007",
                     "intro": "AMS B: Die Kabel des Unterstützungsmotorencoders sind nicht angeschlossen. Der Stecker des Unterstützungsmotors hat möglicherweise eine schlechte Verbindung."
-                },
-                {
-                    "ecode": "0300950000010003",
-                    "intro": "Überhitzung des Lasermoduls."
                 },
                 {
                     "ecode": "0300980000010003",
@@ -9960,10 +10944,6 @@
                     "intro": "Die MC-Modultemperatur ist zu hoch, möglicherweise aufgrund hoher Kammertemperaturen des Druckers. Sie können versuchen, die Umgebungstemperatur vor der Verwendung zu senken."
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "Das Lasermodul wird nicht erkannt. Das Modul könnte abgefallen sein oder der Schnellverschlusshebel ist nicht verriegelt."
-                },
-                {
                     "ecode": "0300C00000010001",
                     "intro": "Fehlerhafte Abgasleitung der aktiven Kammer: möglicherweise blockiert."
                 },
@@ -9974,10 +10954,6 @@
                 {
                     "ecode": "0C00040000010013",
                     "intro": "Die Belichtungsparameter der BirdsEye-Kamera sind nicht effektiv. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "0300950000010002",
-                    "intro": "Der Temperatursensor des Lasermoduls könnte einen offenen Kreis haben."
                 },
                 {
                     "ecode": "1804910000010003",
@@ -10144,10 +11120,6 @@
                     "intro": "Verbindung zum Internet fehlgeschlagen. Bitte überprüfen Sie die Netzwerkverbindung."
                 },
                 {
-                    "ecode": "0500030000010021",
-                    "intro": "Hardware nicht kompatibel; bitte überprüfen Sie den Laser."
-                },
-                {
                     "ecode": "0500040000010003",
                     "intro": "Der Inhalt der Druckdatei ist unlesbar; bitte senden Sie den Druckauftrag erneut."
                 },
@@ -10158,10 +11130,6 @@
                 {
                     "ecode": "0700330000020002",
                     "intro": "Der RFID-Tag auf AMS A Slot4 ist beschädigt oder dessen Inhalt kann nicht identifiziert werden."
-                },
-                {
-                    "ecode": "0700700000020005",
-                    "intro": "Es ist nicht möglich, den Filament außerhalb des AMS zu fördern. Bitte schneiden Sie das Ende des Filaments flach ab und überprüfen Sie, ob die Spule blockiert ist. Details finden Sie im Assistenten."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -10180,10 +11148,6 @@
                     "intro": "Die Filamentextrusion ist fehlgeschlagen. Mögliche Ursachen: Verstopfung des Extruders oder der Düse. Bitte wenden Sie sich an den Assistenten für weitere Informationen."
                 },
                 {
-                    "ecode": "0701700000020005",
-                    "intro": "Das Filament konnte nicht außerhalb des AMS zugeführt werden. Bitte schneiden Sie das Filamentende flach ab und prüfen Sie, ob die Spule blockiert ist. Bitte wenden Sie sich an den Assistenten für weitere Informationen."
-                },
-                {
                     "ecode": "0702300000010004",
                     "intro": "Versagens des Verschlüsselungschips"
                 },
@@ -10198,10 +11162,6 @@
                 {
                     "ecode": "0702330000020002",
                     "intro": "Der RFID-Tag am AMS C Slot4 ist beschädigt oder sein Inhalt kann nicht identifiziert werden."
-                },
-                {
-                    "ecode": "0702700000020005",
-                    "intro": "Das Filament konnte nicht außerhalb des AMS zugeführt werden. Bitte schneiden Sie das Filamentende flach ab und prüfen Sie, ob die Spule blockiert ist. Weitere Informationen finden Sie im Assistenten."
                 },
                 {
                     "ecode": "0703310000020002",
@@ -10464,10 +11424,6 @@
                     "intro": "Ausfall des Verschlüsselungschips."
                 },
                 {
-                    "ecode": "0702700000020004",
-                    "intro": "Das Zurückziehen des Filaments vom Werkzeugkopf zum AMS ist fehlgeschlagen. Mögliche Ursache: Filament oder Spule stecken fest. Bitte lesen Sie die Details im Assistenten nach."
-                },
-                {
                     "ecode": "0703300000010004",
                     "intro": "Verschlüsselungs-Chipfehler."
                 },
@@ -10560,10 +11516,6 @@
                     "intro": "Der Extrusionswiderstand ist abnormal. Der Extruder kann verstopft sein oder es kann Filament im Werkzeugkopf stecken."
                 },
                 {
-                    "ecode": "0300950000010004",
-                    "intro": "Die Geschwindigkeit des Lüfters für die Lasermodulkühlung ist zu niedrig oder steht still. Es kann blockiert sein oder der Steckverbinder ist nicht ordnungsgemäß angeschlossen."
-                },
-                {
                     "ecode": "0500060000020014",
                     "intro": ""
                 },
@@ -10582,10 +11534,6 @@
                 {
                     "ecode": "0300310000010001",
                     "intro": "Die Lüfterdrehzahl des Teil-Kühlventilators ist zu langsam oder steht still. Möglicherweise ist er blockiert oder der Anschluss ist nicht korrekt eingesteckt."
-                },
-                {
-                    "ecode": "0500060000020003",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300320000010001",
@@ -10808,10 +11756,6 @@
                     "intro": "Der RFID-Tag auf AMS D Slot4 ist beschädigt oder sein Inhalt kann nicht identifiziert werden."
                 },
                 {
-                    "ecode": "0703700000020004",
-                    "intro": "Das Zurückziehen des Filaments von der Werkzeugspitze zu AMS ist fehlgeschlagen. Mögliche Ursachen: Das Filament oder der Spule ist blockiert. Bitte konsultieren Sie den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0C00010000020007",
                     "intro": "Die Parameter des Micro Lidar-Lasers haben sich verschoben. Bitte kalibrieren Sie Ihren Drucker erneut."
                 },
@@ -10850,10 +11794,6 @@
                 {
                     "ecode": "0700950000010001",
                     "intro": "AMS A: Der Temperatursensor des Heizers 2 funktioniert nicht ordnungsgemäß, möglicherweise aufgrund einer schlechten Steckverbindung."
-                },
-                {
-                    "ecode": "0300950000010005",
-                    "intro": "Die Kommunikation des Lasermoduls ist abnormal; Bitte prüfen Sie den Anschluss."
                 },
                 {
                     "ecode": "0300350000010001",
@@ -11068,10 +12008,6 @@
                     "intro": "Die AMS-Hub-Kommunikation ist abnorm, das Kabel ist möglicherweise nicht gut verbunden."
                 },
                 {
-                    "ecode": "0700700000020004",
-                    "intro": "Rückzug des Filaments vom Werkzeugkopf zu AMS fehlgeschlagen. Mögliche Ursache: Filament oder Spule steckt. Bitte wende dich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0701300000020002",
                     "intro": "Der RFID-Tag am AMS B Slot1 ist beschädigt oder der Inhalt kann nicht identifiziert werden."
                 },
@@ -11092,20 +12028,12 @@
                     "intro": "Der vertikale Laser leuchtet nicht. Bitte prüfen Sie, ob er bedeckt ist oder ob ein Hardware-Problem vorliegt."
                 },
                 {
-                    "ecode": "0300950000010001",
-                    "intro": "Der Temperatursensor des Lasermoduls kann einen Kurzschluss haben."
-                },
-                {
                     "ecode": "0702910000010003",
                     "intro": "AMS C: Das Auslassventil 2 ist nicht verbunden, was auf eine schlechte Verbindung des Steckers zurückzuführen sein kann."
                 },
                 {
                     "ecode": "0300980000030001",
                     "intro": "Das linke Fenster scheint geöffnet zu sein."
-                },
-                {
-                    "ecode": "0500060000020001",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -11272,16 +12200,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020022",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020021",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C0001000003000C",
-                    "intro": "Die Temperatur der Düsenkamera ist zu hoch, wodurch die KI-Erkennungsfunktion pausiert wird. Die Funktion wird automatisch fortgesetzt, sobald die Temperatur wieder normal ist."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -11372,10 +12292,6 @@
                     "intro": "AMS G Der gebürstete Motor 3 hat kein Signal, was auf eine schlechte Verbindung im Motorstecker oder auf einen Motorfehler zurückzuführen sein kann."
                 },
                 {
-                    "ecode": "1806010000010005",
-                    "intro": "AMS-HT G Der Stromsensor des Hilfsmotors kann defekt sein."
-                },
-                {
                     "ecode": "1803910000010002",
                     "intro": "AMS-HT D Die Spule des Abgasventils 2 ist kurzgeschlossen, was auf eine abnormale Verdrahtung oder Schäden zurückzuführen sein kann."
                 },
@@ -11432,10 +12348,6 @@
                     "intro": "AMS-HT B: Die Betriebsweise des Abgasventils 2 ist abnormal, möglicherweise aufgrund eines übermäßigen Widerstands."
                 },
                 {
-                    "ecode": "0707010000010005",
-                    "intro": "AMS H: Der Stromsensor des Unterstützungsmotors könnte defekt sein."
-                },
-                {
                     "ecode": "1803020000020002",
                     "intro": "AMS-HT D: Das Kilometerzählwerk hat kein Signal. Der Stecker des Kilometerzählwerks hat möglicherweise schlechten Kontakt."
                 },
@@ -11452,16 +12364,8 @@
                     "intro": "AMS-HT A Der Stromsensor des Heizers 2 ist abnormal."
                 },
                 {
-                    "ecode": "0706010000010005",
-                    "intro": "AMS G Der Stromsensor des Assistenzmotors ist möglicherweise fehlerhaft."
-                },
-                {
                     "ecode": "1801100000020004",
                     "intro": "AMS-HT B Der Bürstenmotor 1 hat kein Signal, was auf eine schlechte Verbindung im Motorstecker oder auf einen Motorfehler zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0704010000010005",
-                    "intro": "AMS E Der Stromsensor des Assistenzmotors ist möglicherweise defekt."
                 },
                 {
                     "ecode": "0706130000020004",
@@ -11736,10 +12640,6 @@
                     "intro": "AMS E Fehlerhafte Filament-Geschwindigkeit und Länge: Die Filament-Odometerfunktion könnte defekt sein."
                 },
                 {
-                    "ecode": "1801010000010005",
-                    "intro": "AMS-HT B Der Stromsensor des Assistenzmotors könnte defekt sein."
-                },
-                {
                     "ecode": "1802310000010001",
                     "intro": "Das AMS-HT C RFID 2-Board hat einen Fehler."
                 },
@@ -11884,10 +12784,6 @@
                     "intro": "AMS-HT G Fehlerhafte Geschwindigkeit und Länge des Filaments: Die Filament-Odometrie kann defekt sein."
                 },
                 {
-                    "ecode": "0705010000010005",
-                    "intro": "AMS F Der Stromsensor des Hilfsmotors kann defekt sein."
-                },
-                {
                     "ecode": "1803010000010001",
                     "intro": "AMS-HT D Der Hilfsmotor hat gerutscht. Das Extrusionsrad kann abgenutzt sein, oder das Filament kann zu dünn sein."
                 },
@@ -12024,10 +12920,6 @@
                     "intro": "Die AMS-C-RFID-1-Platine hat einen Fehler."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "Die Linse der Live-View-Kamera scheint verschmutzt zu sein. Bitte reinigen Sie die Linse."
-                },
-                {
                     "ecode": "1807020000020002",
                     "intro": "AMS-HT H Der Kilometerzähler hat kein Signal. Der Kilometerzähleranschluss hat möglicherweise einen schlechten Kontakt."
                 },
@@ -12042,10 +12934,6 @@
                 {
                     "ecode": "1805810000010004",
                     "intro": "AMS-HT F Der Heizer 2 heizt abnormal."
-                },
-                {
-                    "ecode": "1802010000010005",
-                    "intro": "AMS-HT C Der Stromsensor des Assistenz-Motors kann defekt sein."
                 },
                 {
                     "ecode": "0705920000010001",
@@ -12074,10 +12962,6 @@
                 {
                     "ecode": "1804810000010004",
                     "intro": "AMS-HT E Der Heizer 2 erwärmt sich abnorm."
-                },
-                {
-                    "ecode": "1807010000010005",
-                    "intro": "AMS-HT H Der Stromsensor des Hilfsmotors kann defekt sein."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -12146,10 +13030,6 @@
                 {
                     "ecode": "0706910000020001",
                     "intro": "AMS G Der Betrieb des Auslassventils 2 ist abnormal, was auf einen übermäßigen Widerstand zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "1805010000010005",
-                    "intro": "AMS-HT F Der Stromsensor des Hilfsmotors könnte defekt sein."
                 },
                 {
                     "ecode": "0707960000010001",
@@ -12448,10 +13328,6 @@
                     "intro": "AMS F: Der Assist-Motor-Kalibrierungsparameter weist einen Fehler auf. Bitte ziehen Sie das Filament aus dem Filament-Hub und starten Sie dann AMS neu."
                 },
                 {
-                    "ecode": "1803010000010005",
-                    "intro": "AMS-HT D: Der Stromsensor des Assist-Motors könnte defekt sein."
-                },
-                {
                     "ecode": "1807010000010004",
                     "intro": "AMS-HT H: Die Geschwindigkeitsregelung des Assist-Motors funktioniert nicht richtig. Der Geschwindigkeitssensor könnte defekt sein."
                 },
@@ -12470,10 +13346,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Der Bürstenmotor 1 hat kein Signal, was auf schlechten Kontakt im Motorkonnektor oder eine Motorstörung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0C00010000020008",
-                    "intro": "Das Abrufen des Bildes von der Live-View-Kamera ist fehlgeschlagen. Die Detektion von Spaghettiverstopfung und Abfallstaus ist derzeit nicht verfügbar."
                 },
                 {
                     "ecode": "0C00040000020007",
@@ -12578,10 +13450,6 @@
                 {
                     "ecode": "1807920000010001",
                     "intro": "AMS-HT H Der Kühllüfter von Heizung 1 ist blockiert, was auf einen fest sitzenden Lüfter zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "1800010000010005",
-                    "intro": "AMS-HT A Der Stromsensor des Unterstützungsmotors kann fehlerhaft sein."
                 },
                 {
                     "ecode": "1804910000020001",
@@ -12852,10 +13720,6 @@
                     "intro": "AMS-HT E Der Kühllüfter von Heater 2 ist blockiert, möglicherweise aufgrund des blockierten Lüfters."
                 },
                 {
-                    "ecode": "1804010000010005",
-                    "intro": "AMS-HT E Der Stromsensor des Assistenzmotors ist möglicherweise defekt."
-                },
-                {
                     "ecode": "1801910000010002",
                     "intro": "AMS-HT B Die Spule des Auslassventils 2 ist kurzgeschlossen, möglicherweise aufgrund einer abnormen Verkabelung oder Beschädigung."
                 },
@@ -12956,26 +13820,6 @@
                     "intro": "Y-Achshoming abnorm: Bitte überprüfen Sie, ob der Werkzeugkopf steckt oder der Y-Träger zu viel Widerstand hat."
                 },
                 {
-                    "ecode": "0C00010000010001",
-                    "intro": "Die Werkzeugkopfkamera ist offline. Bitte überprüfen Sie die Hardwareverbindung."
-                },
-                {
-                    "ecode": "0C00010000010003",
-                    "intro": "Die Synchronisation zwischen der Werkzeugkopfkamera und MC ist abnormal. Bitte starten Sie Ihren Drucker neu."
-                },
-                {
-                    "ecode": "0C00010000010004",
-                    "intro": "Das Objektiv der Werkzeugkopfkamera scheint verschmutzt zu sein. Bitte reinigen Sie das Objektiv."
-                },
-                {
-                    "ecode": "0C00010000010005",
-                    "intro": "Der Parameter der Werkzeugkopfkamera ist abnormal. Bitte wenden Sie sich an den Kundendienst."
-                },
-                {
-                    "ecode": "0C00010000020006",
-                    "intro": "Der Parameter der Werkzeugkopfkamera ist abnormal. Bitte führen Sie bei Ihrem nächsten Druck eine Durchflussmesserkalibrierung durch."
-                },
-                {
                     "ecode": "0500030000010007",
                     "intro": "Das Modul zur Erweiterung des Werkzeugkopfs funktioniert nicht einwandfrei. Bitte schalten Sie das Gerät aus, überprüfen Sie die Verbindung und starten Sie es neu."
                 },
@@ -13010,10 +13854,6 @@
                 {
                     "ecode": "07FF810000010002",
                     "intro": "Der Hallsensor der Positions des Extruderumschalters ist abnormal. Bitte überprüfen Sie, ob das Verbindungskabel locker ist."
-                },
-                {
-                    "ecode": "0500060000020032",
-                    "intro": "Die Bindung der Düsenkamera ist fehlgeschlagen. Bitte überprüfen Sie die Hardware- und Kabelverbindungen."
                 },
                 {
                     "ecode": "07FF810000020001",
@@ -13150,10 +13990,6 @@
                 {
                     "ecode": "1203300000010001",
                     "intro": "Die RFID-Spule am AMS D Slot 1 ist defekt oder der RF-Hardwarekreis hat einen Fehler."
-                },
-                {
-                    "ecode": "0703010000010005",
-                    "intro": "Der Stromsensor des Unterstützungsmotors am AMS D könnte fehlerhaft sein."
                 },
                 {
                     "ecode": "0703800000010001",
@@ -13940,16 +14776,8 @@
                     "intro": "AMS C Der Stromsensor von Heizer 1 ist abnormal."
                 },
                 {
-                    "ecode": "0702010000010005",
-                    "intro": "AMS C Der Stromsensor des Assistenzmotors könnte defekt sein."
-                },
-                {
                     "ecode": "0703960000010001",
                     "intro": "AMS D Der Trockenprozess könnte eine thermische Selbstregelung erfahren. Bitte schalten Sie die AMS-Stromversorgung aus."
-                },
-                {
-                    "ecode": "0701010000010005",
-                    "intro": "AMS B Der Stromsensor des Assistenzmotors könnte defekt sein."
                 },
                 {
                     "ecode": "0700010000010003",
@@ -14154,10 +14982,6 @@
                 {
                     "ecode": "0703100000020004",
                     "intro": "AMS D Der gebürstete Motor 1 hat kein Signal, was auf eine schlechte Verbindung im Motorstecker oder einen Motorfehler zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0C00040000020002",
-                    "intro": "Schneidematte nicht erkannt. Bitte legen Sie die benötigte Matte für die Aufgabe ein und fahren Sie fort."
                 },
                 {
                     "ecode": "0C00040000020008",
@@ -14404,10 +15228,6 @@
                     "intro": "Die AMS D-Kommunikation ist abnormal. Bitte überprüfen Sie das Verbindungskabel."
                 },
                 {
-                    "ecode": "0C00040000020003",
-                    "intro": "Die Laserarbetsbasis ist nicht richtig ausgerichtet. Bitte stellen Sie sicher, dass alle vier Ecken mit dem Heizbett ausgerichtet sind."
-                },
-                {
                     "ecode": "0702010000020009",
                     "intro": "AMS C Der Assist-Motor hat einen unbalancierten Widerstand in drei Phasen. Der Assist-Motor kann fehlerhaft sein."
                 },
@@ -14618,10 +15438,6 @@
                 {
                     "ecode": "0702100000020004",
                     "intro": "AMS C Der Bürstenmotor 1 hat kein Signal, möglicherweise aufgrund einer schlechten Verbindung im Motorstecker oder einem Motorfehler."
-                },
-                {
-                    "ecode": "0700010000010005",
-                    "intro": "AMS A Der Stromsensor des Unterstützungsmotors kann fehlerhaft sein."
                 },
                 {
                     "ecode": "0702900000020001",
@@ -14864,10 +15680,6 @@
                     "intro": "Ihr Drucker scheint ohne Extrusion zu drucken."
                 },
                 {
-                    "ecode": "0703700000020001",
-                    "intro": "Das Filament konnte nicht aus dem Extruder herausgezogen werden. Mögliche Ursachen hierfür sind ein verstopfter Extruder oder ein gebrochenes Filament. Bitte wenden Sie sich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Die AMS-Mapping-Tabelle konnte nicht abgerufen werden. Bitte klicken Sie auf \"Fortsetzen\", um es erneut zu versuchen."
                 },
@@ -14896,16 +15708,8 @@
                     "intro": "Der Temperatur- und Feuchtigkeitssensor weist einen Fehler auf. Der Chip könnte fehlerhaft sein."
                 },
                 {
-                    "ecode": "0702700000020001",
-                    "intro": "Es ist fehlgeschlagen, den Filament aus dem Extruder zu ziehen. Mögliche Ursachen: Verstopfter Extruder oder gebrochener Filament. Siehe Details im Assistenten."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Fehler beim Abrufen der AMS-Mapping-Tabelle. Klicken Sie auf \"Fortsetzen\", um es erneut zu versuchen."
-                },
-                {
-                    "ecode": "0701700000020001",
-                    "intro": "Es ist fehlgeschlagen, den Filament aus dem Extruder zu ziehen. Mögliche Ursachen: verstopfter Extruder oder gebrochener Filament. Siehe Details im Assistenten."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14958,10 +15762,6 @@
                 {
                     "ecode": "0700510000030001",
                     "intro": "AMS ist deaktiviert; bitte laden Sie das Filament vom Spulenhalter."
-                },
-                {
-                    "ecode": "0700700000020001",
-                    "intro": "Das Herausziehen des Filaments aus dem Extruder ist fehlgeschlagen. Mögliche Ursachen: Verstopfter Extruder oder gebrochenes Filament. Konsultieren Sie den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0700700000020008",

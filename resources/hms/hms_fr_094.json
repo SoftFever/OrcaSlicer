@@ -1,11 +1,95 @@
 {
     "result": 0,
-    "t": 1737102427,
-    "ver": 202502042359,
+    "t": 1738858019,
+    "ver": 202503250207,
     "data": {
         "device_error": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "fr": [
+                {
+                    "ecode": "10018003",
+                    "intro": "Le mode timelapse est réglé sur Traditionnel dans le fichier de tranchage. Cela peut causer des défauts de surface. Voulez-vous l'activer ?"
+                },
+                {
+                    "ecode": "10018004",
+                    "intro": "La Prime Tower n'est pas activée et le mode timelapse est réglé sur Fluides dans le fichier de tranchage. Cela peut causer des défauts de surface. Voulez-vous l'activer ?"
+                },
+                {
+                    "ecode": "0300404D",
+                    "intro": "La température actuelle de la buse, du plateau chauffant ou de la chambre est trop élevée. Veuillez attendre qu'elle refroidisse à température ambiante avant de redémarrer la tâche."
+                },
+                {
+                    "ecode": "07FE8004",
+                    "intro": "Échec du retrait du filament de l'extrudeuse gauche. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "03008041",
+                    "intro": "Délai d'attente de détection de la plateforme : veuillez redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "03004067",
+                    "intro": "Le résultat de la calibration dépasse le seuil."
+                },
+                {
+                    "ecode": "07FF8004",
+                    "intro": "Échec du retrait du filament de l'extrudeuse droite. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "18008011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "18078011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "18FE8004",
+                    "intro": "Échec du retrait du filament de l'extrudeuse gauche. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "18FF8004",
+                    "intro": "Échec du retrait du filament de l'extrudeuse droite. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "18038011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "18018011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "18058011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "18068011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "18048011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "03004011",
+                    "intro": "Échec de la calibration de la dynamique d'écoulement ; veuillez relancer l'impression ou la calibration."
+                },
+                {
+                    "ecode": "18028011",
+                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS-HT."
+                },
+                {
+                    "ecode": "05008072",
+                    "intro": "La caméra de vue en direct est bloquée."
+                },
+                {
+                    "ecode": "05008083",
+                    "intro": "Le matériau n'est pas autorisé lors de la calibration de montage. Veuillez retirer le matériau de la plateforme."
+                },
+                {
+                    "ecode": "0C004041",
+                    "intro": "La calibration de la caméra Toolhead a échoué. Veuillez vous assurer que le Calibration Marker sur le plateau chauffant ou le Height Calibration Marker dans la zone de homing est propre et non endommagé, puis relancez le processus de calibration."
+                },
                 {
                     "ecode": "1800C06A",
                     "intro": "AMS-HT A lit une RFID. Impossible de commencer le séchage. Veuillez réessayer plus tard."
@@ -29,10 +113,6 @@
                 {
                     "ecode": "10014002",
                     "intro": "Le timelapse n'est pas supporté car la séquence d'impression est réglée sur \"Par objet\"."
-                },
-                {
-                    "ecode": "10018003",
-                    "intro": "Activer le timelapse traditionnel pourrait entraîner des défauts. Veuillez l'activer si nécessaire ?"
                 },
                 {
                     "ecode": "1800C06D",
@@ -75,16 +155,8 @@
                     "intro": "Le moteur AMS-HT A effectue un auto-test. Impossible de commencer le séchage. Veuillez réessayer plus tard."
                 },
                 {
-                    "ecode": "10018004",
-                    "intro": "La tour de raclette n'est pas activée et le mode time-lapse est réglé sur Fluide pour ce travail d'impression. Cela peut causer des défauts de surface. Voulez-vous continuer ?"
-                },
-                {
                     "ecode": "1805C069",
                     "intro": "Une erreur s'est produite lors du séchage AMS-HT F. Veuillez vous rendre chez l'assistant pour plus de détails."
-                },
-                {
-                    "ecode": "0C004041",
-                    "intro": "La calibration de la caméra de la tête d'outil a échoué. Veuillez vous assurer que le marqueur de zone de positionnement laser ou le marqueur de calibration chauffé sont propres et intactes, puis relancez le processus de calibration."
                 },
                 {
                     "ecode": "1807C06D",
@@ -735,10 +807,6 @@
                     "intro": "Échec d'extrusion du filament. Veuillez vérifier si l'extrudeuse est obstruée."
                 },
                 {
-                    "ecode": "18FF8004",
-                    "intro": "Échec du retrait du filament de l'extrudeuse droite. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse gauche."
-                },
-                {
                     "ecode": "07058012",
                     "intro": "Échec de l'obtention de la table de correspondance AMS ; veuillez cliquer sur \"Reprendre\" pour réessayer."
                 },
@@ -831,10 +899,6 @@
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez cliquer sur \"Reprendre\" pour réessayer."
                 },
                 {
-                    "ecode": "07FE8004",
-                    "intro": "Échec du retrait du filament de l'extrudeuse gauche. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse gauche."
-                },
-                {
                     "ecode": "07FE8013",
                     "intro": "Délai d'attente écoulé pour le nettoyage de l'ancien filament de l'extrudeuse gauche : Veuillez vérifier si le filament est coincé ou si l'extrudeuse est bouchée."
                 },
@@ -857,10 +921,6 @@
                 {
                     "ecode": "07FE8001",
                     "intro": "Échec de la coupe du filament de l'extrudeuse gauche. Veuillez vérifier le coupeur."
-                },
-                {
-                    "ecode": "07FF8004",
-                    "intro": "Échec du retrait du filament de l'extrudeuse droite. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse gauche."
                 },
                 {
                     "ecode": "07FF8002",
@@ -921,10 +981,6 @@
                 {
                     "ecode": "07058013",
                     "intro": "Délai d'expiration du nettoyage du vieux filament : Veuillez vérifier si le filament est coincé ou si l'extrudeuse est obstruée."
-                },
-                {
-                    "ecode": "18FE8004",
-                    "intro": "Échec du retrait du filament de l'extrudeuse gauche. Veuillez vérifier si le filament est coincé à l'intérieur de l'extrudeuse gauche."
                 },
                 {
                     "ecode": "18FE8012",
@@ -1219,10 +1275,6 @@
                     "intro": "La configuration AMS a échoué; veuillez vous référer à l'assistant."
                 },
                 {
-                    "ecode": "05008072",
-                    "intro": "La caméra Liveview est bloquée."
-                },
-                {
                     "ecode": "18048004",
                     "intro": "AMS-HT n'a pas réussi à retirer le filament. Cela peut être dû à une bobine bloquée ou à une extrémité de filament coincée dans le chemin."
                 },
@@ -1233,10 +1285,6 @@
                 {
                     "ecode": "18038017",
                     "intro": "AMS-HT D est en train de sécher. Veuillez arrêter le processus de séchage avant de charger/décharger le matériau."
-                },
-                {
-                    "ecode": "18048011",
-                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS."
                 },
                 {
                     "ecode": "18018003",
@@ -1319,10 +1367,6 @@
                     "intro": "AMS-HT n'a pas réussi à retirer le filament. Cela peut être dû à une bobine coincée ou à la fin du filament coincée sur le chemin."
                 },
                 {
-                    "ecode": "18068011",
-                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS."
-                },
-                {
                     "ecode": "07078006",
                     "intro": "Impossible d'alimenter le filament dans l'extrudeuse. Cela peut être dû à un filament emmêlé ou à une bobine bloquée. Sinon, veuillez vérifier si le tube PTFE AMS est connecté."
                 },
@@ -1357,10 +1401,6 @@
                 {
                     "ecode": "07048006",
                     "intro": "Impossible d'alimenter le filament dans l'extrudeur. Cela peut être dû à un filament emmêlé ou une bobine coincée. Si ce n'est pas le cas, veuillez vérifier si le tube PTFE AMS est connecté."
-                },
-                {
-                    "ecode": "18058011",
-                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS."
                 },
                 {
                     "ecode": "18058003",
@@ -1419,10 +1459,6 @@
                     "intro": "Veuillez retirer le filament du porte-bobine de l'extrudeur droit. Si ce message persiste, veuillez vérifier s'il y a du filament cassé dans l'extrudeur. (Connectez un tuyau PTFE si vous êtes sur le point d'utiliser un AMS.)"
                 },
                 {
-                    "ecode": "18018011",
-                    "intro": "Le filament de l'AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement de l'AMS."
-                },
-                {
                     "ecode": "07058006",
                     "intro": "Impossible d'alimenter le filament dans l'extrudeur. Cela peut être dû à un filament emmêlé ou à une bobine coincée. Sinon, veuillez vérifier si le tuyau PTFE de l'AMS est connecté."
                 },
@@ -1445,10 +1481,6 @@
                 {
                     "ecode": "18FFC009",
                     "intro": "Veuillez insérer le filament dans le tube PTFE de l'extrudeur droit jusqu'à ce qu'il ne puisse plus être poussé plus loin."
-                },
-                {
-                    "ecode": "18038011",
-                    "intro": "Le filament de l'AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement de l'AMS."
                 },
                 {
                     "ecode": "18078005",
@@ -1515,10 +1547,6 @@
                     "intro": "Le moteur d'assistance AMS est surchargé. Cela peut être dû à un filament emmêlé ou à une bobine bloquée."
                 },
                 {
-                    "ecode": "18078011",
-                    "intro": "Le filament AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement AMS."
-                },
-                {
                     "ecode": "07058004",
                     "intro": "AMS n'a pas réussi à retirer le filament. Cela peut être dû à une bobine bloquée ou à l'extrémité du filament qui est coincée dans le chemin."
                 },
@@ -1579,14 +1607,6 @@
                     "intro": "AMS-HT n'a pas réussi à envoyer le filament. Vous pouvez couper l'extrémité de votre filament, le rendre plat, puis le réinsérer. Si ce message persiste, veuillez vérifier les tuyaux PTFE dans AMS pour toute trace d'usure."
                 },
                 {
-                    "ecode": "18008011",
-                    "intro": "Le filament de AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement d'AMS."
-                },
-                {
-                    "ecode": "18028011",
-                    "intro": "Le filament de AMS-HT est épuisé. Veuillez insérer un nouveau filament dans le même emplacement d'AMS."
-                },
-                {
                     "ecode": "0C008015",
                     "intro": "Des objets ont été détectés sur la plateforme, veuillez les nettoyer dans les meilleurs délais."
                 },
@@ -1633,10 +1653,6 @@
                 {
                     "ecode": "0500805E",
                     "intro": "Erreur de numéro de série du module de découpe: impossible de calibrer ou de réaliser le projet."
-                },
-                {
-                    "ecode": "03004067",
-                    "intro": "Le résultat de la calibration dépasse le seuil."
                 },
                 {
                     "ecode": "05004040",
@@ -1793,10 +1809,6 @@
                 {
                     "ecode": "05014018",
                     "intro": "L'analyse de l'information de configuration de liaison a échoué ; veuillez réessayer."
-                },
-                {
-                    "ecode": "03008041",
-                    "intro": "Délai de détection de la plateforme laser dépassé."
                 },
                 {
                     "ecode": "0C008002",
@@ -1969,10 +1981,6 @@
                 {
                     "ecode": "03004068",
                     "intro": "Une perte d'étape s'est produite pendant le processus d'amélioration de la précision de mouvement. Veuillez réessayer."
-                },
-                {
-                    "ecode": "03004011",
-                    "intro": "L'étalonnage de la compensation dynamique de flux a échoué."
                 },
                 {
                     "ecode": "05004041",
@@ -2433,8 +2441,1340 @@
             ]
         },
         "device_hms": {
-            "ver": 202502042359,
+            "ver": 202503250207,
             "fr": [
+                {
+                    "ecode": "0300A40000010002",
+                    "intro": "La température de la buse est trop élevée. Veuillez attendre qu'elle refroidisse à température ambiante avant de redémarrer la tâche."
+                },
+                {
+                    "ecode": "0300A40000010004",
+                    "intro": "La température de la chambre est trop élevée. Veuillez attendre qu'elle refroidisse à température ambiante avant de redémarrer la tâche."
+                },
+                {
+                    "ecode": "0300A40000010003",
+                    "intro": "La température de la buse gauche est trop élevée. Veuillez attendre qu'elle refroidisse à température ambiante avant de redémarrer la tâche."
+                },
+                {
+                    "ecode": "0300A40000010001",
+                    "intro": "La température du plateau chauffant est trop élevée. Veuillez attendre qu'elle refroidisse à température ambiante avant de redémarrer la tâche."
+                },
+                {
+                    "ecode": "0C00010000020019",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "La calibration du décalage de la buse haute précision a échoué ; veuillez recalibrer."
+                },
+                {
+                    "ecode": "0C0001000002001A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700010000010005",
+                    "intro": "AMS A Le capteur de courant du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0702010000010005",
+                    "intro": "AMS C Le capteur de courant du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0701010000010005",
+                    "intro": "AMS B Le capteur de courant du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0703010000010005",
+                    "intro": "AMS D Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0C00040000030018",
+                    "intro": "La calibration de la caméra de l'outil a échoué, probablement parce que l'objet n'était pas bien adhéré. Les paramètres par défaut seront utilisés pour cette coupe."
+                },
+                {
+                    "ecode": "1800010000010005",
+                    "intro": "AMS-HT A Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "1803010000010005",
+                    "intro": "AMS-HT D Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "1805010000010005",
+                    "intro": "Le capteur actuel du moteur d'assistance de l'AMS-HT F peut être défectueux."
+                },
+                {
+                    "ecode": "1802010000010005",
+                    "intro": "AMS-HT C Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0705010000010005",
+                    "intro": "AMS F Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "1801010000010005",
+                    "intro": "AMS-HT B Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0706010000010005",
+                    "intro": "AMS G Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "1806010000010005",
+                    "intro": "Le capteur actuel du moteur d'assistance de l'AMS-HT G peut être défectueux."
+                },
+                {
+                    "ecode": "0707010000010005",
+                    "intro": "AMS H Le capteur actuel du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "1800240000020009",
+                    "intro": "AMS-HT Un couvercle avant est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "1807240000020009",
+                    "intro": "Le couvercle avant de l'AMS-HT H est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "1801240000020009",
+                    "intro": "Le couvercle avant de l'AMS-HT B est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "1806240000020009",
+                    "intro": "AMS-HT Le couvercle avant est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "1802240000020009",
+                    "intro": "AMS-HT Le couvercle avant est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "1805240000020009",
+                    "intro": "AMS-HT Le couvercle avant est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "1804240000020009",
+                    "intro": "AMS-HT Le couvercle avant est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "1803240000020009",
+                    "intro": "Le couvercle avant de l'AMS-HT D est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
+                },
+                {
+                    "ecode": "0707730000020004",
+                    "intro": "Échec du retrait du filament Slot 4 de l'AMS H depuis la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0703710000020005",
+                    "intro": "Échec d'alimentation du filament AMS D Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0706700000020005",
+                    "intro": "Échec de l'alimentation du filament Slot 1 de l'AMS G. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0701710000020002",
+                    "intro": "Échec d'alimentation du filament AMS B Slot 2 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0704700000020004",
+                    "intro": "Échec de retrait du filament AMS E Slot 1 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1804720000020004",
+                    "intro": "Échec de retrait du filament AMS-HT E Slot 3 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0704720000020005",
+                    "intro": "Échec d'alimentation du filament AMS E Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0702710000020002",
+                    "intro": "Échec d'alimentation du filament AMS C Slot 2 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0703710000020001",
+                    "intro": "Échec du retrait du filament Slot 2 de l'AMS D de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1805710000020005",
+                    "intro": "Échec de l'alimentation du filament F Slot 2 de l'AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1803720000020002",
+                    "intro": "Échec d'alimentation du filament AMS-HT D Slot 3 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0704710000020001",
+                    "intro": "Échec lors du retrait du filament AMS E Slot 2 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1805730000020001",
+                    "intro": "Échec lors du retrait du filament AMS-HT F Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1806710000020005",
+                    "intro": "Échec de l'alimentation du filament G Slot 2 de l'AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0704730000020004",
+                    "intro": "Échec du retrait du filament E Slot 4 de l'AMS depuis la tête d'outils. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1805730000020004",
+                    "intro": "Échec du retrait du filament F Slot 4 de l'AMS-HT depuis la tête d'outils. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "0702720000020005",
+                    "intro": "Échec lors de l'alimentation du filament AMS C Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1800720000020001",
+                    "intro": "Échec lors du retrait du filament AMS-HT A Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0702720000020001",
+                    "intro": "Échec lors du retrait du filament AMS C Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1805710000020002",
+                    "intro": "Échec lors de l'alimentation du filament AMS-HT F Slot 2 dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1804700000020004",
+                    "intro": "Échec lors du retrait du filament AMS-HT E Slot 1 du Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1803730000020001",
+                    "intro": "Échec de l'extraction du filament du slot 4 AMS-HT de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1804720000020001",
+                    "intro": "Échec du retrait du filament E Slot 3 de l'AMS-HT depuis l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1802710000020004",
+                    "intro": "Échec du retrait du filament C Slot 2 de l'AMS-HT depuis la tête d'outils. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1801710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT B Slot 2 dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0703700000020004",
+                    "intro": "Échec de l'extraction du filament AMS D Slot 1 du Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1800710000020001",
+                    "intro": "Échec de l'extraction du filament AMS-HT A Slot 2 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1800720000020004",
+                    "intro": "Échec de l'extraction du filament AMS-HT A Slot 3 du Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1800730000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT A Slot 4 dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1804700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT E Slot 1 dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0705730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS F Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1807720000020005",
+                    "intro": "Échec de l'alimentation du filament H Slot 3 de l'AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0701700000020001",
+                    "intro": "Échec du retrait du filament B Slot 1 de l'AMS de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1807700000020004",
+                    "intro": "Échec du retrait du filament H Slot 1 de l'AMS-HT depuis la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0702720000020004",
+                    "intro": "Échec du retrait du filament C Slot 3 de l'AMS depuis la tête d'outils. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "0705730000020002",
+                    "intro": "Échec de l'alimentation du filament F Slot 4 de l'AMS dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1806700000020002",
+                    "intro": "Échec de l'alimentation du filament G Slot 1 de l'AMS-HT dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1806710000020004",
+                    "intro": "Échec du retrait du filament G Slot 2 de l'AMS-HT depuis la tête d'outils. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1803730000020002",
+                    "intro": "Échec de l'alimentation du filament D Slot 4 de l'AMS-HT dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0704720000020001",
+                    "intro": "Échec du retrait du filament E Slot 3 de l'AMS de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1802730000020004",
+                    "intro": "Échec du retrait du filament C Slot 4 de l'AMS-HT depuis la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0707700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS H Slot 1 dans la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1802720000020004",
+                    "intro": "Échec du retrait du filament AMS-HT C Slot 3 de la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0700700000020004",
+                    "intro": "Échec du retrait du filament AMS A Slot 1 de la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0702710000020005",
+                    "intro": "Échec de l'alimentation du filament AMS C Slot 2.Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0704720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS E Slot 3 dans la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0703700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS D Slot 1 dans la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0703700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS D Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1801730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT B Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1805700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT F Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1800730000020001",
+                    "intro": "Échec du retrait du filament A Slot 4 de l'AMS-HT depuis l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1801700000020004",
+                    "intro": "Échec du retrait du filament AMS-HT B Slot 1 de la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1805730000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT F Slot 4 dans la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0706700000020004",
+                    "intro": "Échec du retrait du filament G Slot 1 de l'AMS depuis la tête d'outils. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1802730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT C Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1807710000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT H Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0700720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS A Slot 3 dans la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1800700000020001",
+                    "intro": "Échec du retrait du filament AMS-HT A Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0705700000020004",
+                    "intro": "Échec du retrait du filament AMS F Slot 1 de la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1800710000020004",
+                    "intro": "Échec du retrait du filament AMS-HT A Slot 2 de la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0702730000020002",
+                    "intro": "Échec de l'alimentation du filament AMS C Slot 4 dans la Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0702710000020001",
+                    "intro": "Échec du retrait du filament AMS C Slot 2 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1804710000020004",
+                    "intro": "Échec du retrait du filament AMS-HT E Slot 2 de la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1806730000020004",
+                    "intro": "Échec du retrait du filament AMS-HT G Slot 4 de la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1805720000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT F Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1807700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT H Slot 1 dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0701720000020004",
+                    "intro": "Échec du retrait du filament AMS B Slot 3 de la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0705720000020005",
+                    "intro": "Échec de l'alimentation du filament AMS F Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1807720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT H Slot 3 dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1800700000020004",
+                    "intro": "Échec du retrait du filament AMS-HT A Slot 1 de la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1802730000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT C Slot 4 dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1801720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT B Slot 3 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1802730000020001",
+                    "intro": "Échec du retrait du filament AMS-HT C Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0700710000020001",
+                    "intro": "Échec du retrait du filament AMS A Slot 2 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1801700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT B Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0704700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS E Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0700710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS A Slot 2 dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0701700000020004",
+                    "intro": "Échec du retrait du filament AMS B Slot 1 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1806730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT G Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1801710000020004",
+                    "intro": "Échec du retrait du filament AMS-HT B Slot 2 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0707710000020004",
+                    "intro": "Échec du retrait du filament AMS H Slot 2 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1803730000020004",
+                    "intro": "Échec de la récupération du filament D Slot 4 AMS-HT de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1801730000020002",
+                    "intro": "Échec de l'alimentation du filament B Slot 4 AMS-HT dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0700730000020004",
+                    "intro": "Échec de la récupération du filament A Slot 4 AMS de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1806720000020004",
+                    "intro": "Échec du retrait du filament AMS-HT G Slot 3 du Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0701720000020005",
+                    "intro": "Échec de l'alimentation du filament B Slot 3 AMS. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0705710000020004",
+                    "intro": "Échec de la récupération du filament F Slot 2 AMS de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1807710000020004",
+                    "intro": "Échec de la récupération du filament H Slot 2 AMS-HT de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1803700000020004",
+                    "intro": "Échec du retrait du filament AMS-HT D Slot 1 du Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0705710000020001",
+                    "intro": "Échec de l'extraction du filament F Slot 2 AMS de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0707720000020004",
+                    "intro": "Échec de la récupération du filament H Slot 3 AMS de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0702710000020004",
+                    "intro": "Échec du retrait du filament AMS C Slot 2 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0704730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS E Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1801700000020001",
+                    "intro": "Échec du retrait du filament AMS-HT B Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1805720000020004",
+                    "intro": "Échec du retrait du filament AMS-HT F Slot 3 du Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0702730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS C Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0704700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS E Slot 1 dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0701700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS B Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1801700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT B Slot 1 dans la tête d'outil. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1801730000020001",
+                    "intro": "Échec du retrait du filament AMS-HT B Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé dans l'extrudeuse."
+                },
+                {
+                    "ecode": "1803720000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT D Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1807730000020004",
+                    "intro": "Échec du retrait du filament H Slot 4 AMS-HT de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1800700000020005",
+                    "intro": "Échec de l'alimentation du filament A Slot 1 AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0705700000020001",
+                    "intro": "Échec du retrait du filament F Slot 1 AMS de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1802710000020005",
+                    "intro": "Échec de l'alimentation du filament C Slot 2 AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1807730000020001",
+                    "intro": "Échec de l'extraction du filament AMS-HT H Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0706710000020004",
+                    "intro": "Échec du retrait du filament G Slot 2 AMS de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1804730000020002",
+                    "intro": "Échec de l'alimentation du filament E Slot 4 AMS-HT dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1803700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT D Slot 1 dans la tête d'outil. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1802720000020005",
+                    "intro": "Échec de l'alimentation du filament C Slot 3 AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0706730000020002",
+                    "intro": "Échec de l'alimentation du filament G Slot 4 AMS dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0707700000020004",
+                    "intro": "Échec de retirer le filament AMS H Slot 1 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1805700000020004",
+                    "intro": "Échec de retirer le filament AMS-HT F Slot 1 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1805700000020001",
+                    "intro": "Échec de retirer le filament AMS-HT F Slot 1 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0707720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS H Slot 3 dans la tête d'outil. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "0701720000020001",
+                    "intro": "Échec de retirer le filament AMS B Slot 3 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0700720000020004",
+                    "intro": "Échec de retirer le filament AMS A Slot 3 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1804710000020001",
+                    "intro": "Échec de retirer le filament AMS-HT E Slot 2 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1801710000020001",
+                    "intro": "Échec de retirer le filament AMS-HT B Slot 2 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1806730000020002",
+                    "intro": "Échec de nourrir le filament AMS-HT G Slot 4 dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0703710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS D Slot 2 dans la tête d'outil. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "0703720000020001",
+                    "intro": "Échec de l'extraction du filament AMS D Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0706720000020001",
+                    "intro": "Échec de l'extraction du filament AMS G Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1801730000020004",
+                    "intro": "Échec du retrait du filament AMS-HT B Slot 4 de la tête d'outil. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "0704710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS E Slot 2 dans la tête d'outil. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1800710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT A Slot 2 dans la tête d'outil. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1802710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT C Slot 2 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1805720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT F Slot 3 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0703730000020004",
+                    "intro": "Échec de l'extraction du filament AMS D Slot 4 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1806720000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT G Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0706720000020002",
+                    "intro": "Échec du chargement du filament AMS G Slot 3 dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0704730000020002",
+                    "intro": "Échec de l'alimentation du filament AMS E Slot 4 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1807720000020001",
+                    "intro": "Échec du retrait du filament AMS-HT H Slot 3 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1803710000020005",
+                    "intro": "Échec du chargement du filament AMS-HT D Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1807710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT H Slot 2 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0705720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS F Slot 3 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0700720000020001",
+                    "intro": "Échec du retrait du filament AMS A Slot 3 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0706720000020004",
+                    "intro": "Échec du retrait du filament AMS G Slot 3 de la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1804700000020001",
+                    "intro": "Échec du retrait du filament AMS-HT E Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1803710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT D Slot 2 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0707710000020001",
+                    "intro": "Échec du retrait du filament AMS H Slot 2 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1803720000020004",
+                    "intro": "Échec de la rétraction du filament AMS-HT D Slot 3 depuis la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1805730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT F Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1803710000020001",
+                    "intro": "Échec de l'extraction du filament AMS-HT D Slot 2 depuis l'extrudeur. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeur."
+                },
+                {
+                    "ecode": "1803700000020005",
+                    "intro": "Échec du chargement du filament AMS-HT D Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1805700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT F Slot 1 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0701710000020005",
+                    "intro": "Échec de l'alimentation du filament AMS B Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0707730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS H Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1807720000020004",
+                    "intro": "Échec du retrait du filament AMS-HT H Slot 3 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0701720000020002",
+                    "intro": "Échec du chargement du filament AMS B Slot 3 dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0705700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS F Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1801720000020001",
+                    "intro": "Échec à extraire le filament B Slot 3 AMS-HT de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0707730000020002",
+                    "intro": "Échec d'alimenter le filament AMS H Slot 4 dans la tête d'outils. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1804720000020002",
+                    "intro": "Échec d'alimenter le filament AMS-HT E Slot 3 dans la tête d'outils. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0704730000020001",
+                    "intro": "Échec du retrait du filament AMS E Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1801720000020004",
+                    "intro": "Échec du retrait du filament AMS-HT B Slot 3 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1802700000020001",
+                    "intro": "Échec à extraire le filament AMS-HT C Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0703710000020004",
+                    "intro": "Échec à retirer le filament AMS D Slot 2 de la tête d'outils. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0706730000020001",
+                    "intro": "Échec à extraire le filament AMS G Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1806700000020004",
+                    "intro": "Échec du retrait du filament AMS-HT G Slot 1 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0700700000020005",
+                    "intro": "Échec d'alimenter le filament AMS A Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1800720000020002",
+                    "intro": "Échec de l'alimentation du filament A Slot 3 dans l'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1800720000020005",
+                    "intro": "Échec de l'alimentation du filament A Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1806720000020001",
+                    "intro": "Échec du retrait du filament G Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0706700000020001",
+                    "intro": "Échec du retrait du filament G Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1800700000020002",
+                    "intro": "Échec de l'alimentation du filament A Slot 1 dans l'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0700720000020005",
+                    "intro": "Échec de l'alimentation du filament A Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0707720000020001",
+                    "intro": "Échec du retrait du filament H Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1802710000020001",
+                    "intro": "Échec du retrait du filament AMS-HT C Slot 2 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0706720000020005",
+                    "intro": "Échec de l'alimentation du filament G Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0702720000020002",
+                    "intro": "Échec de l'alimentation du filament C Slot 3 dans l'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0704710000020005",
+                    "intro": "Échec de l'alimentation du filament AMS E Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1806720000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT G Slot 3 dans le Toolhead. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1807700000020001",
+                    "intro": "Échec du retrait du filament AMS-HT H Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1804730000020004",
+                    "intro": "Échec de la rétraction du filament AMS-HT E Slot 4 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0707710000020005",
+                    "intro": "Échec de l'alimentation du filament AMS H Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1807730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT H Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0705730000020001",
+                    "intro": "Échec de la rétraction du filament AMS F Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0704720000020004",
+                    "intro": "Échec de la rétraction du filament AMS E Slot 3 du Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0701730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS B Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0704710000020004",
+                    "intro": "Échec du retrait du filament AMS E Slot 2 du Toolhead. Cause possible : filament ou bobine bloquée."
+                },
+                {
+                    "ecode": "1803700000020001",
+                    "intro": "Échec de l'extraction du filament AMS-HT D Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0706710000020005",
+                    "intro": "Échec de l'alimentation du filament AMS G Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0707700000020001",
+                    "intro": "Échec de la rétraction du filament AMS H Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1807700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT H Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0706730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS G Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1805720000020001",
+                    "intro": "Échec de l'extraction du filament AMS-HT F Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0701730000020001",
+                    "intro": "Échec de la rétraction du filament AMS B Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0700710000020005",
+                    "intro": "Échec de l'alimentation du filament AMS A Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1803730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT D Slot 4. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1804700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT E Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0703700000020001",
+                    "intro": "Échec de l'extraction du filament AMS D Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0701710000020001",
+                    "intro": "Échec de l'extraction du filament AMS B Slot 2 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1802700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT C Slot 1 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0706700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS G Slot 1 dans le Toolhead. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0705700000020002",
+                    "intro": "Échec de l'alimentation du filament AMS F Slot 1 dans la tête d'outil. Cause possible : filament ou spool bloqué."
+                },
+                {
+                    "ecode": "1806700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT G Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0703720000020005",
+                    "intro": "Échec de l'alimentation du filament AMS D Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1804010000010005",
+                    "intro": "AMS-HT E Le capteur de courant du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "1807010000010005",
+                    "intro": "AMS-HT H Le capteur de courant du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0704010000010005",
+                    "intro": "AMS E Le capteur de courant du moteur d'assistance peut être défectueux."
+                },
+                {
+                    "ecode": "0701710000020004",
+                    "intro": "Échec de l'extraction du filament AMS B Slot 2 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0706710000020001",
+                    "intro": "Échec de l'extraction du filament AMS G Slot 2 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0707700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS H Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0701730000020004",
+                    "intro": "Échec du retrait du filament AMS B Slot 4 de la tête d'outil. Cause possible : filament ou spool bloqué."
+                },
+                {
+                    "ecode": "0703730000020001",
+                    "intro": "Échec du retrait du filament AMS D Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0707720000020005",
+                    "intro": "Échec de l'alimentation du filament AMS H Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1802700000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT C Slot 1. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0703720000020004",
+                    "intro": "Échec de l'extraction du filament AMS D Slot 3 de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1801720000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT B Slot 3. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "1804710000020002",
+                    "intro": "Échec de l'alimentation du filament AMS-HT E Slot 2 dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0700730000020005",
+                    "intro": "Échec de l'alimentation du filament A Slot 4 de l'AMS. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1804730000020005",
+                    "intro": "Échec de l'alimentation du filament E Slot 4 de l'AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1800730000020005",
+                    "intro": "Échec de l'alimentation du filament AMS-HT A Slot 4. Veuillez couper l'extrémité du filament et vérifier si le spool est bloqué."
+                },
+                {
+                    "ecode": "0705720000020001",
+                    "intro": "Échec de l'extraction du filament F Slot 3 de l'AMS à partir de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1804730000020001",
+                    "intro": "Échec de l'extraction du filament E Slot 4 de l'AMS-HT à partir de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0700730000020001",
+                    "intro": "Échec du retrait du filament AMS A Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1802720000020001",
+                    "intro": "Échec du retrait du filament AMS-HT C Slot 3 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1806710000020001",
+                    "intro": "Échec de l'extraction du filament G Slot 2 de l'AMS-HT à partir de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0703730000020005",
+                    "intro": "Échec de l'alimentation du filament D Slot 4 de l'AMS. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1803710000020004",
+                    "intro": "Échec du recul du filament D Slot 2 de l'AMS-HT depuis la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0703730000020002",
+                    "intro": "Échec de l'alimentation du filament D Slot 4 de l'AMS dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1803720000020001",
+                    "intro": "Échec du retrait du filament D Slot 3 de l'AMS-HT de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0700700000020001",
+                    "intro": "Échec du retrait du filament AMS A Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1802700000020004",
+                    "intro": "Échec du retrait du filament AMS-HT C Slot 1 de la tête d'outil. Cause possible : filament ou spool bloqué."
+                },
+                {
+                    "ecode": "0706710000020002",
+                    "intro": "Échec de l'alimentation du filament G Slot 2 de l'AMS dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1804710000020005",
+                    "intro": "Échec de l'alimentation du filament E Slot 2 de l'AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0705730000020004",
+                    "intro": "Échec du retrait du filament F Slot 4 de l'AMS de la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "0700710000020004",
+                    "intro": "Échec du retrait du filament AMS A Slot 2 de la tête d'outil. Cause possible : filament ou spool bloqué."
+                },
+                {
+                    "ecode": "1805710000020001",
+                    "intro": "Échec du retrait du filament F Slot 2 de l'AMS-HT de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1807730000020002",
+                    "intro": "Échec de l'alimentation du filament H Slot 4 de l'AMS-HT dans la tête d'outil. Cause possible : filament ou bobine coincé."
+                },
+                {
+                    "ecode": "1804720000020005",
+                    "intro": "Échec de l'alimentation du filament E Slot 3 de l'AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "1805710000020004",
+                    "intro": "Échec du retrait du filament F Slot 2 de l'AMS-HT depuis la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0707710000020002",
+                    "intro": "Échec de l'alimentation du filament H Slot 2 de l'AMS dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0705720000020004",
+                    "intro": "Échec du retrait du filament F Slot 3 de l'AMS depuis la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0702700000020005",
+                    "intro": "Échec de l'alimentation du filament C Slot 1 de l'AMS. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0700730000020002",
+                    "intro": "Échec de l'alimentation du filament A Slot 4 de l'AMS dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1800730000020004",
+                    "intro": "Échec du retrait du filament A Slot 4 de l'AMS-HT depuis la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0702730000020004",
+                    "intro": "Échec du retrait du filament C Slot 4 de l'AMS depuis la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0701700000020002",
+                    "intro": "Échec de l'alimentation du filament B Slot 1 de l'AMS dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0702700000020002",
+                    "intro": "Échec de l'alimentation du filament C Slot 1 de l'AMS dans la tête d'outil. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "1806730000020001",
+                    "intro": "Échec de l'extraction du filament AMS-HT G Slot 4 de l'extrudeuse. Cause possible : extrudeuse obstruée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0702700000020001",
+                    "intro": "Échec du retrait du filament AMS C Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1800710000020005",
+                    "intro": "Échec de l'alimentation du filament A Slot 2 de l'AMS-HT. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0702700000020004",
+                    "intro": "Échec du retrait du filament AMS C Slot 1 de la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0701730000020002",
+                    "intro": "Échec de l'introduction du filament AMS B Slot 4 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0705710000020005",
+                    "intro": "Échec de l'alimentation du filament F Slot 2 de l'AMS. Veuillez couper l'extrémité du filament et vérifier si la bobine est bloquée."
+                },
+                {
+                    "ecode": "0700700000020002",
+                    "intro": "Échec de l'introduction du filament AMS A Slot 1 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1806710000020002",
+                    "intro": "Échec de l'introduction du filament AMS-HT G Slot 2 dans la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1801710000020005",
+                    "intro": "Échec de l'introduction du filament AMS-HT B Slot 2. Veuillez couper l'extrémité du filament et vérifier si la bobine est coincée."
+                },
+                {
+                    "ecode": "0706730000020004",
+                    "intro": "Échec du retrait du filament AMS G Slot 4 de la tête d'outil. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "0703720000020002",
+                    "intro": "Échec du chargement du filament de l'AMS D Slot 3 dans la tête d'impression. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1802720000020002",
+                    "intro": "Échec de l'alimentation du filament C Slot 3 de l'AMS-HT dans le Toolhead. Cause possible : filament ou bobine bloqués."
+                },
+                {
+                    "ecode": "0702730000020001",
+                    "intro": "Échec pour retirer le filament C Slot 4 de l'AMS de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0705710000020002",
+                    "intro": "Échec du chargement du filament de l'AMS F Slot 2 dans la tête d'impression. Cause possible : filament ou bobine coincés."
+                },
+                {
+                    "ecode": "1806700000020001",
+                    "intro": "Échec du retrait du filament de l'AMS-HT G Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0707730000020001",
+                    "intro": "Échec du retrait du filament de l'AMS H Slot 4 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "1807710000020001",
+                    "intro": "Échec pour retirer le filament H Slot 2 de l'AMS-HT de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0704700000020001",
+                    "intro": "Échec du retrait du filament de l'AMS E Slot 1 de l'extrudeuse. Cause possible : extrudeuse bouchée ou filament cassé à l'intérieur de l'extrudeuse."
+                },
+                {
+                    "ecode": "0500030000010021",
+                    "intro": "Matériel incompatible ; veuillez vérifier la caméra de la tête d'impression."
+                },
+                {
+                    "ecode": "0C00010000010001",
+                    "intro": "La caméra de la tête d'impression est hors ligne. Veuillez vérifier la connexion matérielle."
+                },
+                {
+                    "ecode": "0C00010000010003",
+                    "intro": "La synchronisation entre la caméra de l'outil et le MC est anormale. Veuillez redémarrer votre imprimante."
+                },
+                {
+                    "ecode": "0C00010000010004",
+                    "intro": "L'objectif de la caméra de l'outil semble être sale. Veuillez nettoyer l'objectif."
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "Le paramètre de la caméra de l'outil est anormal. Veuillez contacter le service après-vente."
+                },
+                {
+                    "ecode": "0C00010000010009",
+                    "intro": "L'objectif de la caméra Live View semble sale. Veuillez nettoyer l'objectif."
+                },
+                {
+                    "ecode": "0C00010000020006",
+                    "intro": "Le paramètre de la caméra Toolhead est anormal. Veuillez activer la calibration du débit lors de la prochaine impression."
+                },
+                {
+                    "ecode": "0C00010000020008",
+                    "intro": "Échec de l'obtention de l'image de la caméra Live View. La détection de l'accumulation de spaghetti et de déchets n'est pas disponible pour le moment."
+                },
+                {
+                    "ecode": "0500060000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000010012",
+                    "intro": "Le lien de données de la caméra Live View est anormal."
+                },
+                {
+                    "ecode": "0300950000010001",
+                    "intro": "Le capteur de température du module laser peut avoir un court-circuit."
+                },
+                {
+                    "ecode": "0500060000020001",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000020003",
+                    "intro": "La plateforme laser n'est pas correctement alignée. Veuillez vous assurer que les quatre coins sont alignés avec le plateau de chaleur."
+                },
+                {
+                    "ecode": "0300950000010005",
+                    "intro": "La communication du module laser est anormale ; veuillez vérifier le connecteur."
+                },
+                {
+                    "ecode": "0500060000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020004",
+                    "intro": "La caméra Live View n'est pas en place ; veuillez vérifier la connexion du matériel."
+                },
+                {
+                    "ecode": "0C00040000020002",
+                    "intro": "Plateforme de découpe non détectée. Veuillez placer le tapis requis pour la tâche et continuer."
+                },
+                {
+                    "ecode": "0300950000010003",
+                    "intro": "Module laser en surchauffe."
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "Échec de la liaison de la caméra de la buse. Veuillez vérifier le matériel et les connexions des câbles."
+                },
+                {
+                    "ecode": "0500060000020022",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "Le module laser non détecté. Le module peut s'être détaché, ou le levier de déverrouillage rapide peut ne pas être verrouillé."
+                },
+                {
+                    "ecode": "0300950000010004",
+                    "intro": "La vitesse du ventilateur de refroidissement du module laser est trop basse ou arrêtée. Il pourrait être bloqué ou le connecteur pourrait ne pas être correctement branché."
+                },
+                {
+                    "ecode": "0500060000020033",
+                    "intro": "La caméra BirdsEye n'est pas connectée. Veuillez vérifier le matériel et les connexions des câbles."
+                },
+                {
+                    "ecode": "0500060000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010002",
+                    "intro": "Le capteur de température du module laser peut avoir un circuit ouvert."
+                },
+                {
+                    "ecode": "0C0001000003000C",
+                    "intro": "La température de la caméra de la buse est trop élevée, ce qui provoque la pause de la fonction de détection AI. La fonction reprendra automatiquement une fois la température revenue à la normale."
+                },
+                {
+                    "ecode": "0C00030000020014",
+                    "intro": "Il est recommandé de calibrer la caméra de vision en direct pour améliorer la précision de la détection des objets étrangers. Appuyez sur \"Paramètres > Calibration\" sur l'écran de l'imprimante. Si un module laser ou de découpe est installé, veuillez le retirer avant la calibration."
+                },
+                {
+                    "ecode": "0C00030000020016",
+                    "intro": "La détection des objets étrangers ne fonctionne pas et le numéro de série de la caméra de vision en direct ne peut pas être lu. Veuillez contacter l'équipe de support client."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "La caméra de la buse ne fonctionne pas. Si ce problème se reproduit plusieurs fois pendant l'impression, veuillez contacter le service client."
+                },
+                {
+                    "ecode": "050005000001000D",
+                    "intro": "La caméra BirdsEye n'est pas certifiée. Veuillez utiliser les accessoires Bambu Lab."
+                },
+                {
+                    "ecode": "0C00010000010018",
+                    "intro": "La caméra BirdsEye n'est pas certifiée, et les fonctions liées à la caméra sont invalides."
+                },
+                {
+                    "ecode": "050001000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300950000010008",
+                    "intro": "La communication du Module Laser est anormale ; veuillez vérifier le connecteur."
+                },
+                {
+                    "ecode": "0503050000010010",
+                    "intro": "AMS D non certifié détecté ou firmware AMS D non mis à jour. Impossible de fonctionner avec cette imprimante."
+                },
+                {
+                    "ecode": "0C00030000020012",
+                    "intro": "La détection d'objet étranger ne fonctionne pas. La caméra Live View a besoin d'une calibration. Veuillez appuyer sur \"Paramètres > Calibration\" sur l'écran de l'imprimante. Si un module laser ou de découpe est installé, veuillez le retirer avant la calibration."
+                },
+                {
+                    "ecode": "0500050000010010",
+                    "intro": "AMS A non certifié détecté ou le firmware AMS A n'est pas mis à jour. Impossible de fonctionner avec cette imprimante."
+                },
+                {
+                    "ecode": "0C00040000020021",
+                    "intro": "Le matériau ne peut pas être détecté car il est trop petit et positionné trop à gauche ou trop près de la porte. Veuillez le déplacer vers la zone centrale."
+                },
+                {
+                    "ecode": "0505050000010010",
+                    "intro": "AMS F non certifié détecté ou firmware AMS F non mis à jour. Impossible de fonctionner avec cette imprimante."
+                },
+                {
+                    "ecode": "0501050000010010",
+                    "intro": "AMS B non certifié détecté ou firmware AMS B non mis à jour. Impossible d'opérer avec cette imprimante."
+                },
+                {
+                    "ecode": "0506050000010010",
+                    "intro": "AMS G non certifié détecté ou firmware AMS G non mis à jour. Impossible d'opérer avec cette imprimante."
+                },
+                {
+                    "ecode": "0504050000010010",
+                    "intro": "AMS E non certifié détecté ou firmware AMS E non mis à jour. Impossible de fonctionner avec cette imprimante."
+                },
+                {
+                    "ecode": "0507050000010010",
+                    "intro": "AMS H non certifié détecté ou firmware AMS H non mis à jour. Impossible d'opérer avec cette imprimante."
+                },
+                {
+                    "ecode": "0500040000020031",
+                    "intro": "Avant d'utiliser un module Laser/Coupe, il est nécessaire de déterminer la position de la caméra BirdsEye. Veuillez compléter la configuration pour calibrer la caméra."
+                },
+                {
+                    "ecode": "0502050000010010",
+                    "intro": "AMS C non certifié détecté ou firmware AMS C non mis à jour. Impossible de fonctionner avec cette imprimante."
+                },
                 {
                     "ecode": "07FF800000020002",
                     "intro": "La position du hotend gauche est anormale pendant l'impression. Veuillez vérifier si le bloqueur de flux raye le modèle imprimé."
@@ -2450,14 +3790,6 @@
                 {
                     "ecode": "1800200000020007",
                     "intro": "Le capteur Hall de sortie du module A Slot 1 de l'AMS-HT est déconnecté. Le connecteur peut avoir un mauvais contact."
-                },
-                {
-                    "ecode": "0C00010000010018",
-                    "intro": "La caméra BirdsEye n'est pas certifiée, et les fonctions liées à la caméra sont invalides."
-                },
-                {
-                    "ecode": "050001000001000A",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020007",
@@ -2594,10 +3926,6 @@
                 {
                     "ecode": "0701230000020007",
                     "intro": "Le capteur Hall de sortie B Slot 4 d'AMS est déconnecté. Le connecteur peut avoir un mauvais contact."
-                },
-                {
-                    "ecode": "0C00040000030018",
-                    "intro": "La calibration de la caméra de la tête d'outil a échoué, probablement parce que le matériau n'était pas bien adhéré. Les paramètres par défaut seront utilisés pour cette découpe."
                 },
                 {
                     "ecode": "0300970000010004",
@@ -2836,14 +4164,6 @@
                     "intro": "Le chauffage de la chambre a échoué. Le chauffage de la chambre peut ne pas souffler d'air chaud."
                 },
                 {
-                    "ecode": "0C00030000020014",
-                    "intro": "La détection d'objet étranger ne fonctionne pas. Il est recommandé de désinstaller le module laser ou de coupe s'il a été installé, puis d'appuyer sur \"Réglages>Calibration\" sur l'écran de l'imprimante et de re-calibrer la caméra Live View."
-                },
-                {
-                    "ecode": "0C00030000020012",
-                    "intro": "La détection d'objet étranger ne fonctionne pas. Il est recommandé de désinstaller le module laser ou de coupe s'il a été installé, puis de cliquer sur \"Réglages>Calibration\" sur l'écran de l'imprimante et de re-calibrer la caméra Live View."
-                },
-                {
                     "ecode": "0C00030000020015",
                     "intro": "La détection d'objet étranger ne fonctionne pas. Il a été détecté que la caméra Live View a été remplacée. Si un module laser ou de coupe est installé, veuillez désinstaller le module, puis cliquer sur \"Réglages>Calibration\" sur l'écran de l'imprimante et re-calibrer la caméra Live View."
                 },
@@ -2864,84 +4184,12 @@
                     "intro": "Module de découpe installé. Incompatibilité de type de plateforme détectée. Veuillez placer la plateforme de découpe pour la calibration de découpe."
                 },
                 {
-                    "ecode": "0700700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "0701700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "0703700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "0705700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "1807700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "1802700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "0704700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine bloqué."
-                },
-                {
-                    "ecode": "1801700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincée."
-                },
-                {
-                    "ecode": "1800700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "0706700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine bloqué."
-                },
-                {
-                    "ecode": "1803700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincée."
-                },
-                {
-                    "ecode": "1805700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincé."
-                },
-                {
-                    "ecode": "1804700000020002",
-                    "intro": "Échec de l'alimentation du filament dans la tête d'outil. Cause possible : filament ou bobine coincée."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "Le matériel est trop petit et placé trop à gauche pour être détecté. Veuillez le déplacer au centre ou sur le côté droit."
-                },
-                {
-                    "ecode": "0702700000020002",
-                    "intro": "Échec de l'introduction du filament dans la tête d'outil. Cause possible : filament ou bobine coincés."
-                },
-                {
-                    "ecode": "0707700000020002",
-                    "intro": "Échec de l'introduction du filament dans la tête d'outil. Cause possible : filament ou bobine coincés."
-                },
-                {
-                    "ecode": "1806700000020002",
-                    "intro": "Échec de l'introduction du filament dans la tête d'outil. Cause possible : filament ou bobine coincés."
-                },
-                {
                     "ecode": "0701200000020006",
                     "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS B à l'extrudeuse est correctement connecté."
                 },
                 {
                     "ecode": "0702200000020006",
                     "intro": "Déconnexion du tube PTFE détectée lors du chargement du filament. Veuillez vérifier si le tube PTFE de l'AMS C à l'extrudeuse est correctement connecté."
-                },
-                {
-                    "ecode": "0500040000020031",
-                    "intro": "Une nouvelle caméra BirdsEye ou un changement d'angle de caméra a été détecté. Veuillez compléter la configuration avant utilisation."
                 },
                 {
                     "ecode": "1801200000020006",
@@ -3180,16 +4428,8 @@
                     "intro": "Le homing de l'axe Z a échoué en mode découpe. Veuillez vérifier s'il y a des objets étrangers dans le glisseur de l'axe Z et la poulie synchrone de l'axe Z."
                 },
                 {
-                    "ecode": "0500050000010010",
-                    "intro": "AMS non certifié détecté. Impossible de fonctionner avec cette imprimante."
-                },
-                {
                     "ecode": "18FF600000020001",
                     "intro": "La bobine externe connectée à l'extrudeuse de droite peut être emmêlée ou coincée."
-                },
-                {
-                    "ecode": "050005000001000D",
-                    "intro": "La caméra BirdEye n'est pas certifiée. Veuillez utiliser les accessoires Bambu Lab."
                 },
                 {
                     "ecode": "050005000001000E",
@@ -3206,38 +4446,6 @@
                 {
                     "ecode": "0300280000010007",
                     "intro": "Échec de la communication entre le module de découpe et le module de tête d'outil. Veuillez vérifier si le câble de signal du module de découpe est desserré ou cassé. Cela pourrait également être dû à un bobinage de capteur de force cassé."
-                },
-                {
-                    "ecode": "1800240000020009",
-                    "intro": "Le capot avant de l'AMS HT A est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
-                },
-                {
-                    "ecode": "1807240000020009",
-                    "intro": "Le capot avant de l'AMS HT H est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
-                },
-                {
-                    "ecode": "1801240000020009",
-                    "intro": "Le capot avant de l'AMS HT B est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
-                },
-                {
-                    "ecode": "1806240000020009",
-                    "intro": "Le capot avant de l'AMS HT G est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
-                },
-                {
-                    "ecode": "1802240000020009",
-                    "intro": "Le capot avant de l'AMS HT C est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
-                },
-                {
-                    "ecode": "1805240000020009",
-                    "intro": "Le capot avant de l'AMS HT F est ouvert. Cela peut affecter les performances de séchage ou provoquer l'absorption d'humidité par le filament."
-                },
-                {
-                    "ecode": "1804240000020009",
-                    "intro": "La couverture avant de l'AMS HT E est ouverte. Cela peut affecter la performance de séchage ou amener le filament à absorber l'humidité."
-                },
-                {
-                    "ecode": "1803240000020009",
-                    "intro": "La couverture avant de l'AMS HT D est ouverte. Cela peut affecter la performance de séchage ou amener le filament à absorber l'humidité."
                 },
                 {
                     "ecode": "0C00010000020016",
@@ -3372,10 +4580,6 @@
                     "intro": "La température de la chambre est trop élevée. Veuillez ouvrir le couvercle supérieur et la porte avant pour refroidir, ou abaisser la température ambiante."
                 },
                 {
-                    "ecode": "0C00040000010012",
-                    "intro": "Le lien de données de la caméra Liveview est anormal."
-                },
-                {
                     "ecode": "0500050000010009",
                     "intro": ""
                 },
@@ -3422,10 +4626,6 @@
                 {
                     "ecode": "0500060000020034",
                     "intro": "La caméra Live View n'est pas connectée. Veuillez vérifier les connexions matérielles et les câbles."
-                },
-                {
-                    "ecode": "0500060000020033",
-                    "intro": "La caméra BirdsEye n'est pas connectée. Veuillez vérifier les connexions matérielles et les câbles."
                 },
                 {
                     "ecode": "0300D00000010003",
@@ -3478,10 +4678,6 @@
                 {
                     "ecode": "180422000002000A",
                     "intro": "Impossible d'ajuster la position du filament de la fente 3 de l'AMS-HT E. Le filament ou le tampon est peut-être bloqué."
-                },
-                {
-                    "ecode": "070822000002000A",
-                    "intro": "Impossible d'ajuster la position du filament de la fente 3 de l'AMS. Le filament ou le tampon est peut-être bloqué."
                 },
                 {
                     "ecode": "07FF800000020001",
@@ -3644,10 +4840,6 @@
                     "intro": "Échec de réglage de la position de filament de l'AMS-HT B Slot 1. Le filament ou le tampon peut être bloqué."
                 },
                 {
-                    "ecode": "070820000002000A",
-                    "intro": "Échec de réglage de la position de filament de l'AMS Slot 1 non défini. Le filament ou le tampon peut être bloqué."
-                },
-                {
                     "ecode": "180322000002000A",
                     "intro": "Échec de réglage de la position de filament de l'AMS-HT D Slot 3. Le filament ou le tampon peut être bloqué."
                 },
@@ -3658,10 +4850,6 @@
                 {
                     "ecode": "180720000002000A",
                     "intro": "Échec de réglage de la position de filament de l'AMS-HT H Slot 1. Le filament ou le tampon peut être bloqué."
-                },
-                {
-                    "ecode": "0C00010000020014",
-                    "intro": "La caméra de buse ne fonctionne pas correctement. Si ce problème survient plusieurs fois lors de l'impression, veuillez contacter le service client."
                 },
                 {
                     "ecode": "070122000002000A",
@@ -3720,10 +4908,6 @@
                     "intro": "Impossible d'ajuster la position du filament de la fente 2 de l'AMS H. Le filament ou le tampon est peut-être bloqué."
                 },
                 {
-                    "ecode": "070823000002000A",
-                    "intro": "Impossible d'ajuster la position du filament de la fente 4 de l'AMS indéfinie. Le filament ou le tampon est peut-être bloqué."
-                },
-                {
                     "ecode": "070523000002000A",
                     "intro": "Impossible d'ajuster la position du filament de la fente 4 de l'AMS F. Le filament ou le tampon est peut-être bloqué."
                 },
@@ -3742,14 +4926,6 @@
                 {
                     "ecode": "180323000002000A",
                     "intro": "Impossible d'ajuster la position du filament de la fente 4 de l'AMS-HT D. Le filament ou le tampon est peut-être bloqué."
-                },
-                {
-                    "ecode": "180821000002000A",
-                    "intro": "Impossible d'ajuster la position du filament de la fente 2 de l'AMS-HT indéfinie. Le filament ou le tampon est peut-être bloqué."
-                },
-                {
-                    "ecode": "180822000002000A",
-                    "intro": "Impossible d'ajuster la position du filament de la fente 3 de l'AMS-HT indéfinie. Le filament ou le tampon est peut-être bloqué."
                 },
                 {
                     "ecode": "070322000002000A",
@@ -3776,10 +4952,6 @@
                     "intro": "Impossible d'ajuster la position du filament de l'AMS-HT F Slot 1. Le filament ou le tampon est peut-être bloqué."
                 },
                 {
-                    "ecode": "180823000002000A",
-                    "intro": "Impossible d'ajuster la position du filament de l'AMS-HT Slot 4 non défini. Le filament ou le tampon est peut-être bloqué."
-                },
-                {
                     "ecode": "070120000002000A",
                     "intro": "Impossible d'ajuster la position du filament de l'AMS B Slot 1. Le filament ou le tampon est peut-être bloqué."
                 },
@@ -3794,10 +4966,6 @@
                 {
                     "ecode": "180223000002000A",
                     "intro": "Impossible de régler la position du filament de la fente C 4 d'AMS-HT. Le filament ou le tampon est peut-être bloqué."
-                },
-                {
-                    "ecode": "180820000002000A",
-                    "intro": "Impossible de régler la position du filament de la fente 1 d'AMS-HT. Le filament ou le tampon est peut-être bloqué."
                 },
                 {
                     "ecode": "070520000002000A",
@@ -3838,10 +5006,6 @@
                 {
                     "ecode": "180021000002000A",
                     "intro": "Impossible de régler la position du filament de la fente 2 d'AMS-HT A. Le filament ou la mémoire tampon est peut-être bloqué(e)."
-                },
-                {
-                    "ecode": "070821000002000A",
-                    "intro": "Impossible de régler la position du filament de la fente 2 d'AMS indéfini(e). Le filament ou la mémoire tampon est peut-être bloqué(e)."
                 },
                 {
                     "ecode": "070423000002000A",
@@ -3930,10 +5094,6 @@
                 {
                     "ecode": "1805700000020003",
                     "intro": "Impossible d'extruder le filament. Cause possible : obstrution de l'extrudeur ou de la buse. Veuillez vous référer à Assistant pour en savoir plus."
-                },
-                {
-                    "ecode": "1804700000020005",
-                    "intro": "Impossible d'acheminer le filament à l'extérieur de l'AMS-HT. Veuillez aplatir l'extrémité du filament et vérifier si la bobine est bloquée. Veuillez vous référer à Assistant pour en savoir plus."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -4176,10 +5336,6 @@
                     "intro": "Échec de la puce de cryptage."
                 },
                 {
-                    "ecode": "1805700000020005",
-                    "intro": "Échec de l'alimentation du filament en dehors de l'AMS-HT. Veuillez couper l'extrémité du filament en une forme plate et vérifier si la bobine est coincée. Veuillez vous référer à l'assistant pour plus de détails."
-                },
-                {
                     "ecode": "18FF200000020004",
                     "intro": "Veuillez retirer le filament externe de l'extrudeur droit."
                 },
@@ -4200,10 +5356,6 @@
                     "intro": "Le capteur de température et d'humidité présente une erreur. La puce peut être défectueuse."
                 },
                 {
-                    "ecode": "1806700000020001",
-                    "intro": "Impossible d'enlever le filament de l'extrudeur. Causes possibles: extrudeur obstrué ou filament cassé. Référez-vous à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1805700000020013",
                     "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS-HT F a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
                 },
@@ -4220,24 +5372,12 @@
                     "intro": "L'extrudeur d'assistance AMS F n'arrive pas à saisir le filament, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube du filament est dégagé."
                 },
                 {
-                    "ecode": "0707700000020005",
-                    "intro": "Impossible d'alimenter le filament à l'extérieur d'AMS. Veuillez aplatir l'extrémité du filament et vérifier si la bobine est bloquée. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1805700000020050",
                     "intro": "Le chargement du filament dans le tampon AMS-HT F a échoué; cela peut être dû à une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
                 },
                 {
-                    "ecode": "1807700000020005",
-                    "intro": "Impossible d'alimenter le filament à l'extérieur d'AMS-HT. Veuillez aplatir l'extrémité du filament et vérifier si la bobine est bloquée. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0705700000020032",
                     "intro": "L'alimentation du filament vers l'extrudeur de tête d'outil AMS F a échoué; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0704700000020004",
-                    "intro": "Échec de la récupération du filament de la tête d'outil vers AMS. Cause possible : filament ou bobine coincé(e). Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0706700000020006",
@@ -4410,10 +5550,6 @@
                 {
                     "ecode": "0707200000020008",
                     "intro": "Le capteur Hall d'entrée de la fente H AMS Slot 1 est déconnecté, ce qui peut être dû à un mauvais contact du connecteur."
-                },
-                {
-                    "ecode": "0705700000020004",
-                    "intro": "Impossible de rappeler le filament de la tête d'outil à l'AMS. Cause possible : filament ou bobine coincé(e). Veuillez consulter l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1807700000020045",
@@ -4668,16 +5804,8 @@
                     "intro": "Le signal du tampon de filament est anormal ; le ressort peut être bloqué ou le filament peut être emmêlé."
                 },
                 {
-                    "ecode": "1805700000020004",
-                    "intro": "Impossible de récupérer le filament de la tête d'outil vers AMS-HT. Cause possible : filament ou bobine coincé. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0704200000020009",
                     "intro": "Impossible d'extruder le filament AMS E fente 1 ; l'extrudeur peut être obstrué ou le filament peut être trop mince, ce qui fait que l'extrudeur glisse."
-                },
-                {
-                    "ecode": "1802700000020005",
-                    "intro": "Impossible d'alimenter le filament en dehors de l'AMS-HT. Veuillez couper l'extrémité du filament à plat et vérifier si la bobine est bloquée. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1802700000020061",
@@ -4722,10 +5850,6 @@
                 {
                     "ecode": "0707700000020022",
                     "intro": "AMS H : L'alimentation de filaments vers la mémoire tampon a échoué ; cela peut être dû à l'usure du filament qui provoque un patinage du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "1801700000020004",
-                    "intro": "Impossible de retirer le filament de la tête d'outil vers AMS-HT. Cause possible : filament ou bobine coincé. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -5030,10 +6154,6 @@
                 {
                     "ecode": "1803700000020061",
                     "intro": "AMS-HT D L'assistance à la prise de filament de l'extrudeuse a échoué, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "0706700000020004",
-                    "intro": "Impossible de retirer le filament de la tête d'outillage vers l'AMS. Cause possible : blocage du filament ou de la bobine. Veuillez vous reporter à l'Assistant pour connaître les détails."
                 },
                 {
                     "ecode": "1801700000020011",
@@ -5476,10 +6596,6 @@
                     "intro": "L'extraction du filament AMS-HT E a échoué; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
                 },
                 {
-                    "ecode": "0704700000020001",
-                    "intro": "L'extraction du filament de l'extrudeur a échoué. Causes possibles : l'extrudeur est bouché ou le filament est cassé. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1805700000020032",
                     "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS-HT F a échoué; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
                 },
@@ -5502,10 +6618,6 @@
                 {
                     "ecode": "1803700000020021",
                     "intro": "AMS-HT D L'alimentation du filament vers le tampon a échoué; cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube en PTFE est bloqué."
-                },
-                {
-                    "ecode": "1806700000020005",
-                    "intro": "Échec de l'alimentation du filament à l'extérieur d'AMS-HT. Veuillez aplatir l'extrémité du filament et vérifier si la bobine est bloquée. Veuillez vous référer à Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1800450000020001",
@@ -5554,10 +6666,6 @@
                 {
                     "ecode": "1804700000020033",
                     "intro": "L'alimentation du filament AMS-HT E vers l'extrudeur de l'extrémité de l'outil a échoué; cela peut être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il est usé."
-                },
-                {
-                    "ecode": "1802700000020004",
-                    "intro": "Impossible de retirer le filament de l'extrémité de l'outil vers AMS-HT. Cause possible : filament ou bobine bloquée. Veuillez vous référer à Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1804700000020023",
@@ -5820,10 +6928,6 @@
                     "intro": "Échec de la puce de cryptage."
                 },
                 {
-                    "ecode": "0705700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Les causes possibles peuvent être un extrudeur bouché ou un filament cassé. Veuillez consulter l'assistant pour plus de détails."
-                },
-                {
                     "ecode": "1807700000020032",
                     "intro": "AMS-HT : L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué; cela pourrait être dû à une résistance excessive de filament. Veuillez vérifier si la bobine de filament est penchée ou si le tube de filament est obstrué."
                 },
@@ -6032,20 +7136,12 @@
                     "intro": "AMS E L'extraction du filament a échoué ; cela peut être dû à une rupture de filament ou à une sortie de filament."
                 },
                 {
-                    "ecode": "1807700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Causes possibles : extrudeur obstrué ou filament cassé. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1801700000020061",
                     "intro": "AMS-HT B Echec de l'assistance de saisie de filament de l'extrudeur, peut-être en raison d'une résistance excessive de la mémoire tampon. Veuillez vérifier si la mémoire tampon est bloquée, si la bobine de filament est inclinée et si le tube de filament est dégagé."
                 },
                 {
                     "ecode": "1800700000020050",
                     "intro": "AMS-HT A Échec du chargement de filament dans la mémoire tampon; cela pourrait être dû à une résistance excessive dans la mémoire tampon. Veuillez vérifier si la mémoire tampon est bloquée, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0706700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Causes possibles: extrudeur obstrué ou filament cassé. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1804700000020012",
@@ -6062,14 +7158,6 @@
                 {
                     "ecode": "0705700000020010",
                     "intro": "AMS F L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le support de filament sont dégagés."
-                },
-                {
-                    "ecode": "1804700000020004",
-                    "intro": "Impossible de retirer le filament de la tête d'outil vers AMS-HT. Cause possible: filament ou bobine bloqué. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
-                    "ecode": "0705700000020005",
-                    "intro": "Impossible d'alimenter le filament à l'extérieur de l'AMS. Veuillez clipser l'extrémité du filament à plat et vérifier si la bobine est bloquée. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1803700000020011",
@@ -6266,10 +7354,6 @@
                 {
                     "ecode": "1804700000020046",
                     "intro": "L'extraction du filament par le moteur d'assistance AMS-HT E a échoué; cela pourrait être dû à une résistance excessive du moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée, et si le tube du filament est clair."
-                },
-                {
-                    "ecode": "0706700000020005",
-                    "intro": "Échec de l'alimentation en filament à l'extérieur de l'AMS. Veuillez couper l'extrémité du filament à plat et vérifier si la bobine de filament est bloquée. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1802700000020012",
@@ -6528,10 +7612,6 @@
                     "intro": "Le chargement du filament dans le tampon d'AMS E a échoué ; cela peut être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, la bobine de filament est inclinée ou le tube de filament est bloqué."
                 },
                 {
-                    "ecode": "1805700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Les causes possibles : extrudeur obstrué ou filament cassé. Référez-vous à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1806700000020041",
                     "intro": "Le retrait du filament AMS-HT G a échoué ; cela peut être dû au filament qui se détache de la bobine. Veuillez remplacer la bobine par une nouvelle."
                 },
@@ -6572,20 +7652,12 @@
                     "intro": "L'alimentation du filament AMS-HT G vers le tampon a échoué ; cela pourrait être dû à l'obstruction du filament par le tampon. Veuillez vérifier le bouchon du tube PTFE du tampon."
                 },
                 {
-                    "ecode": "1807700000020004",
-                    "intro": "Échec du rappel du filament de la tête d'impression vers AMS-HT. Cause possible : filament ou bobine coincé. Veuillez vous référer à l'assistant pour plus de détails."
-                },
-                {
                     "ecode": "1801700000020003",
                     "intro": "L'extrusion du filament a échoué. Cause possible : buse ou extrudeur bouché. Veuillez vous référer à l'assistant pour plus de détails."
                 },
                 {
                     "ecode": "1800300000010004",
                     "intro": "Échec de la puce de chiffrement."
-                },
-                {
-                    "ecode": "1801700000020001",
-                    "intro": "Échec du retrait du filament de l'extrudeur. Causes possibles : extrudeur bouché ou filament cassé. Référez-vous à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1802700000020031",
@@ -6820,20 +7892,12 @@
                     "intro": "L'extraction du filament avec l'assistance AMS E a échoué; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
                 },
                 {
-                    "ecode": "1803700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Causes possibles : extrudeuse bouchée ou filament cassé. Se référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
                 },
                 {
                     "ecode": "1806700000020042",
                     "intro": "AMS-HT G Échec de l'extraction du filament ; cela pourrait être dû à une perte de connexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu pour vous assurer qu'elle est correctement connectée."
-                },
-                {
-                    "ecode": "0707700000020004",
-                    "intro": "Échec de la rétractation du filament du bloc d'extrusion vers AMS. Cause possible : filament ou bobine bloqués. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -7108,10 +8172,6 @@
                     "intro": "La poignée de coupe du filament n'a pas été relâchée. La poignée ou la lame peut être bloquée, ou il pourrait y avoir un problème de connexion du capteur de filament."
                 },
                 {
-                    "ecode": "1804700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Causes possibles : extrudeur obstrué ou filament cassé. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1806700000020050",
                     "intro": "AMS-HT G Échec de l'alimentation du filament dans le tampon ; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
                 },
@@ -7350,10 +8410,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS-HT C a échoué; cela pourrait être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "0704700000020005",
-                    "intro": "Échec de l'alimentation du filament à l'extérieur de l'AMS. Veuillez clipser l'extrémité du filament à plat et vérifier si la bobine est bloquée. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1800700000020006",
@@ -7628,10 +8684,6 @@
                     "intro": "La distance de coupe du coupe-filament est trop grande. Le moteur XY pourrait perdre des pas."
                 },
                 {
-                    "ecode": "1803700000020004",
-                    "intro": "Le retrait du filament de la tête d'outil vers AMS-HT a échoué. Cause possible : le filament ou la bobine est coincé(e). Veuillez consulter Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1804700000020032",
                     "intro": "L'alimentation du filament AMS-HT E vers l'extrudeuse de la tête d'outil a échoué ; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
                 },
@@ -7808,10 +8860,6 @@
                     "intro": "Impossible d'obtenir la table de mappage AMS ; veuillez cliquer sur \"Reprendre\" pour réessayer."
                 },
                 {
-                    "ecode": "1802700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Les causes possibles sont : l'extrudeur est obstrué ou le filament est cassé. Veuillez consulter l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "L'assistance de l'extrudeur AMS-HT H pour saisir le filament a échoué ; cela pourrait être dû au patinage du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
@@ -7834,10 +8882,6 @@
                 {
                     "ecode": "1801700000020021",
                     "intro": "L'alimentation du filament AMS-HT B vers le tampon a échoué ; cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "1800700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Les causes possibles sont un extrudeur obstrué ou un filament cassé. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0706310000010004",
@@ -7878,10 +8922,6 @@
                 {
                     "ecode": "1803700000020046",
                     "intro": "L'extraction du filament AMS-HT D a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée, et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1800700000020004",
-                    "intro": "Impossible de retirer le filament de la tête d’impression vers l’AMS-HT. Cause possible : filament ou bobine bloqué. Veuillez consulter l’Assistant pour plus de détails."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -8110,10 +9150,6 @@
                 {
                     "ecode": "1801700000020032",
                     "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS-HT B a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "1800700000020005",
-                    "intro": "Impossible d'alimenter le filament à l'extérieur du système AMS-HT. Veuillez couper l'extrémité du filament à plat et vérifier si la bobine est bloquée. Veuillez vous référer à l'assistant pour plus de détails."
                 },
                 {
                     "ecode": "0705700000020033",
@@ -8370,10 +9406,6 @@
                 {
                     "ecode": "0704700000020023",
                     "intro": "Le chargement du filament dans la mémoire tampon AMS E a échoué. Cela peut être dû à une détérioration du filament. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
-                    "ecode": "1806700000020004",
-                    "intro": "Échec de la rétraction du filament de la tête d'outillage à AMS-HT. Cause possible : filament ou bobine bloquée. Veuillez vous référer à l'assistant pour plus de détails."
                 },
                 {
                     "ecode": "1804300000010004",
@@ -8652,10 +9684,6 @@
                     "intro": "AMS-HT G L'alimentation du filament à l'extrudeuse de la tête d'outil a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
                 },
                 {
-                    "ecode": "0707700000020001",
-                    "intro": "Échec du retrait du filament de l'extrudeuse. Causes possibles : extrudeuse obstruée ou filament cassé. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0707700000020010",
                     "intro": "AMS H L'alimentation du filament à la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont clairs."
                 },
@@ -8896,16 +9924,8 @@
                     "intro": "Veuillez retirer le filament externe de l'extrudeur gauche."
                 },
                 {
-                    "ecode": "1803700000020005",
-                    "intro": "Impossible d'alimenter le filament à l'extérieur du système AMS-HT. Veuillez couper l'extrémité du filament plate et vérifier si la bobine est bloquée. Veuillez consulter l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "1801700000020010",
                     "intro": "L'alimentation du filament AMS-HT B vers la roue d'extrusion du moteur d'assistance a échoué. Ceci peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont dégagés."
-                },
-                {
-                    "ecode": "1801700000020005",
-                    "intro": "Impossible d'alimenter le filament à l'extérieur du système AMS-HT. Veuillez couper l'extrémité du filament plate et vérifier si la bobine est bloquée. Veuillez consulter l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0300C00000010002",
@@ -8958,10 +9978,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "La détection d'objet étranger ne fonctionne pas. Veuillez redémarrer l'appareil ou mettre à jour le micrologiciel."
-                },
-                {
-                    "ecode": "0C00030000020016",
-                    "intro": "La détection d'objets étrangers ne fonctionne pas et le numéro de série de la caméra Liveview ne peut pas être lu. Veuillez contacter l'équipe de support client."
                 },
                 {
                     "ecode": "03009C0000010002",
@@ -9556,10 +10572,6 @@
                     "intro": "L'impression avec une température élevée de plateau est effectuée pour la première fois. Afin d'obtenir une meilleure qualité d'impression de la première couche, l'étalonnage automatique du plateau à haute température est en cours."
                 },
                 {
-                    "ecode": "0C00030000020011",
-                    "intro": "L'étalonnage du décalage de la buse de haute précision a échoué; veuillez recalibrer."
-                },
-                {
                     "ecode": "0703550000010002",
                     "intro": "Le tube PTFE est mal connecté entre la tête d'outil et le buffer. Veuillez connecter le haut du buffer à l'extrudeur droit et le bas à l'extrudeur gauche."
                 },
@@ -9768,10 +10780,6 @@
                     "intro": "L'étiquette RFID sur AMS A Slot2 est endommagée, ou son contenu ne peut pas être identifié."
                 },
                 {
-                    "ecode": "0701700000020004",
-                    "intro": "Échec de la récupération du filament de la tête d'outil à AMS. Cause possible : filament ou bobine bloquée. Veuillez vous référer à Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0703300000020002",
                     "intro": "L'étiquette RFID sur AMS D Slot1 est endommagée, ou son contenu ne peut pas être identifié."
                 },
@@ -9872,10 +10880,6 @@
                     "intro": "Échec de l'extrusion du filament. Cause possible : obstrution de l'extrudeur ou de la buse. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
-                    "ecode": "0703700000020005",
-                    "intro": "Échec de l'alimentation du filament en dehors du système AMS. Veuillez couper l'extrémité du filament à plat et vérifier si la bobine est bloquée. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0703700000020006",
                     "intro": "Délai d'attente dépassé pour la purge du vieux filament. Cause possible : filament bloqué ou obstrution de l'extrudeur/de la buse. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
@@ -9886,10 +10890,6 @@
                 {
                     "ecode": "12FF200000020004",
                     "intro": "Veuillez retirer le filament du support de bobine de l'extrudeur."
-                },
-                {
-                    "ecode": "0500060000020002",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300960000010003",
@@ -9908,20 +10908,8 @@
                     "intro": "AMS D La vanne d'échappement 2 n'est pas connectée, ce qui peut être dû à un mauvais contact du connecteur."
                 },
                 {
-                    "ecode": "0500060000020012",
-                    "intro": ""
-                },
-                {
                     "ecode": "0702810000010003",
                     "intro": "AMS C Le chauffage 2 est en court-circuit, ce qui peut être dû à un court-circuit dans le câblage ou à des dommages au chauffage."
-                },
-                {
-                    "ecode": "0500060000020006",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020004",
-                    "intro": "La caméra AI Live View n'est pas en place ; veuillez vérifier la connexion matérielle."
                 },
                 {
                     "ecode": "0702350000010002",
@@ -9930,10 +10918,6 @@
                 {
                     "ecode": "0701010000020007",
                     "intro": "AMS B Les fils de l'encodeur du moteur d'assistance ne sont pas connectés. Le connecteur du moteur d'assistance peut avoir un mauvais contact."
-                },
-                {
-                    "ecode": "0300950000010003",
-                    "intro": "Module laser surchauffe."
                 },
                 {
                     "ecode": "0300980000010003",
@@ -9960,10 +10944,6 @@
                     "intro": "La température du module MC est trop élevée, peut-être en raison de la température élevée de la chambre de l'imprimante. Vous pouvez essayer de baisser la température ambiante avant l'utilisation."
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "Le module laser n'a pas été détecté. Le module est peut-être tombé ou le levier de libération rapide peut ne pas être verrouillé."
-                },
-                {
                     "ecode": "0300C00000010001",
                     "intro": "Mauvais fonctionnement de l'évacuation de la chambre active : elle pourrait être bloquée."
                 },
@@ -9974,10 +10954,6 @@
                 {
                     "ecode": "0C00040000010013",
                     "intro": "Les paramètres d'exposition de la caméra BirdsEye ne sont pas efficaces. Veuillez réessayer."
-                },
-                {
-                    "ecode": "0300950000010002",
-                    "intro": "Le capteur de température du module laser peut avoir un circuit ouvert."
                 },
                 {
                     "ecode": "1804910000010003",
@@ -10144,10 +11120,6 @@
                     "intro": "Échec de la connexion à Internet ; veuillez vérifier la connexion réseau."
                 },
                 {
-                    "ecode": "0500030000010021",
-                    "intro": "Matériel incompatible; veuillez vérifier le laser."
-                },
-                {
                     "ecode": "0500040000010003",
                     "intro": "Le contenu du fichier d'impression est illisible. Veuillez renvoyer le travail d'impression."
                 },
@@ -10158,10 +11130,6 @@
                 {
                     "ecode": "0700330000020002",
                     "intro": "L'étiquette RFID sur la fente AMS A4 est endommagée ou son contenu ne peut pas être identifié."
-                },
-                {
-                    "ecode": "0700700000020005",
-                    "intro": "Impossible d'acheminer le filament à l'extérieur du AMS. Veuillez couper l'extrémité du filament de manière plate et vérifier si la bobine est bloquée. Veuillez vous référer à l'assistant pour plus de détails."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -10180,10 +11148,6 @@
                     "intro": "Échec de l'extrusion du filament. Cause possible: bouchage de l'extrudeur ou de la buse. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
-                    "ecode": "0701700000020005",
-                    "intro": "Impossible de faire avancer le filament à l'extérieur de l'AMS. Veuillez aplatir l'extrémité du filament et vérifier si la bobine est coincée. Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0702300000010004",
                     "intro": "Défaillance de la puce de chiffrement."
                 },
@@ -10198,10 +11162,6 @@
                 {
                     "ecode": "0702330000020002",
                     "intro": "La puce RFID sur le Slot4 de l'AMS C est endommagée ou son contenu ne peut pas être identifié."
-                },
-                {
-                    "ecode": "0702700000020005",
-                    "intro": "L'avancement du filament à l'extérieur de l'AMS a échoué. Veuillez couper l'extrémité du filament de manière plate et vérifier si la bobine est coincée. Veuillez vous référer à l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0703310000020002",
@@ -10464,10 +11424,6 @@
                     "intro": "Défaillance de la puce de chiffrement."
                 },
                 {
-                    "ecode": "0702700000020004",
-                    "intro": "Impossible de ramener le filament de la tête d'outil à AMS. Cause possible : filament ou bobine bloqué(e). Veuillez consulter l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0703300000010004",
                     "intro": "Échec de la puce de chiffrement."
                 },
@@ -10560,10 +11516,6 @@
                     "intro": "La résistance à l'extrusion est anormale. L'extrudeuse peut être obstruée ou il peut y avoir du filament coincé dans la tête d'outil."
                 },
                 {
-                    "ecode": "0300950000010004",
-                    "intro": "La vitesse du ventilateur de refroidissement du module laser est trop faible ou arrêtée. Il peut être bloqué ou le connecteur peut ne pas être correctement branché."
-                },
-                {
                     "ecode": "0500060000020014",
                     "intro": ""
                 },
@@ -10582,10 +11534,6 @@
                 {
                     "ecode": "0300310000010001",
                     "intro": "La vitesse de rotation du ventilateur de refroidissement des pièces est trop lente ou arrêtée. Il est peut-être bloqué ou le connecteur n'est peut-être pas branché correctement."
-                },
-                {
-                    "ecode": "0500060000020003",
-                    "intro": ""
                 },
                 {
                     "ecode": "0300320000010001",
@@ -10808,10 +11756,6 @@
                     "intro": "Le tag RFID sur le slot 4 de l'AMS D est endommagé ou son contenu ne peut pas être identifié."
                 },
                 {
-                    "ecode": "0703700000020004",
-                    "intro": "Échec de la rétraction du filament de la tête d'impression vers l'AMS. Cause possible : filament ou bobine coincé(e). Veuillez vous référer à l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0C00010000020007",
                     "intro": "Les paramètres laser Micro Lidar ont dérivé. Veuillez recalibrer votre imprimante."
                 },
@@ -10850,10 +11794,6 @@
                 {
                     "ecode": "0700950000010001",
                     "intro": "AMS A - Le capteur de température du chauffage 2 ne fonctionne pas correctement, ce qui peut être dû à un mauvais contacteur de connexion."
-                },
-                {
-                    "ecode": "0300950000010005",
-                    "intro": "La communication du module laser est anormale; veuillez vérifier le connecteur."
                 },
                 {
                     "ecode": "0300350000010001",
@@ -11068,10 +12008,6 @@
                     "intro": "La communication du concentrateur AMS est anormale; le câble est peut-être mal connecté."
                 },
                 {
-                    "ecode": "0700700000020004",
-                    "intro": "Impossible de retirer le filament depuis l'extrudeur vers le concentrateur AMS. Cause possible: le filament ou la bobine est coincé. Veuillez consulter l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0701300000020002",
                     "intro": "L'étiquette RFID sur la fente 1 du concentrateur AMS B est endommagée ou son contenu ne peut pas être identifié."
                 },
@@ -11092,20 +12028,12 @@
                     "intro": "Le laser vertical ne s'allume pas. Veuillez vérifier s'il est couvert ou si la connexion matérielle a un problème."
                 },
                 {
-                    "ecode": "0300950000010001",
-                    "intro": "Le capteur de température du module laser peut avoir un court-circuit."
-                },
-                {
                     "ecode": "0702910000010003",
                     "intro": "AMS C La vanne d'échappement 2 n'est pas connectée, ce qui peut être dû à un mauvais contact du connecteur."
                 },
                 {
                     "ecode": "0300980000030001",
                     "intro": "Il semble que la fenêtre côté gauche soit ouverte."
-                },
-                {
-                    "ecode": "0500060000020001",
-                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -11272,16 +12200,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020022",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020021",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C0001000003000C",
-                    "intro": "La température de la caméra de la buse est trop élevée, ce qui provoque la pause de la fonctionnalité de détection AI. La fonctionnalité se reprendra automatiquement une fois que la température reviendra à la normale."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -11372,10 +12292,6 @@
                     "intro": "AMS G Le moteur brossé 3 n'a pas de signal, cela peut être dû à un mauvais contact dans le connecteur du moteur ou à une panne du moteur."
                 },
                 {
-                    "ecode": "1806010000010005",
-                    "intro": "AMS-HT Le capteur de courant du moteur d'assistance pourrait être défectueux."
-                },
-                {
                     "ecode": "1803910000010002",
                     "intro": "AMS-HT La bobine de la vanne d'échappement 2 est en court-circuit, cela peut être dû à un câblage anormal ou à une détérioration."
                 },
@@ -11432,10 +12348,6 @@
                     "intro": "AMS-HT B Le fonctionnement de la soupape d'échappement 2 est anormal, ce qui peut être dû à une résistance excessive."
                 },
                 {
-                    "ecode": "0707010000010005",
-                    "intro": "AMS H Le capteur de courant du moteur d'assistance pourrait être défectueux."
-                },
-                {
                     "ecode": "1803020000020002",
                     "intro": "AMS-HT D L'odomètre n'a aucun signal. Le connecteur de l'odomètre pourrait avoir un mauvais contact."
                 },
@@ -11452,16 +12364,8 @@
                     "intro": "Le capteur de courant du chauffage 2 de l'AMS-HT A est anormal."
                 },
                 {
-                    "ecode": "0706010000010005",
-                    "intro": "Le capteur de courant du moteur auxiliaire de l'AMS G peut être défectueux."
-                },
-                {
                     "ecode": "1801100000020004",
                     "intro": "Le moteur balayé 1 de l'AMS-HT B n'a pas de signal, ce qui peut être dû à un mauvais contact dans le connecteur du moteur ou une panne du moteur."
-                },
-                {
-                    "ecode": "0704010000010005",
-                    "intro": "Le capteur de courant du moteur auxiliaire de l'AMS E peut être défectueux."
                 },
                 {
                     "ecode": "0706130000020004",
@@ -11736,10 +12640,6 @@
                     "intro": "AMS E Erreur de vitesse et de longueur de filament : L'odométrie du filament pourrait être défectueuse."
                 },
                 {
-                    "ecode": "1801010000010005",
-                    "intro": "AMS-HT B Le capteur de courant du moteur d'assistance pourrait être défectueux."
-                },
-                {
                     "ecode": "1802310000010001",
                     "intro": "La carte RFID 2 de l'AMS-HT C a une erreur."
                 },
@@ -11884,10 +12784,6 @@
                     "intro": "AMS-HT G Erreur de vitesse et de longueur de filament : L'odométrie du filament pourrait être défectueuse."
                 },
                 {
-                    "ecode": "0705010000010005",
-                    "intro": "AMS F Le capteur de courant du moteur d'assistance pourrait être défectueux."
-                },
-                {
                     "ecode": "1803010000010001",
                     "intro": "AMS-HT D Le moteur d'assistance a glissé. La roue d'extrusion peut être usée, ou le filament peut être trop fin."
                 },
@@ -12024,10 +12920,6 @@
                     "intro": "La carte RFID AMS C 1 a une erreur."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "L'objectif de la caméra de visualisation en direct semble être sale. Veuillez nettoyer l'objectif."
-                },
-                {
                     "ecode": "1807020000020002",
                     "intro": "AMS-HT H L'odomètre n'a pas de signal. Le connecteur de l'odomètre peut avoir un mauvais contact."
                 },
@@ -12042,10 +12934,6 @@
                 {
                     "ecode": "1805810000010004",
                     "intro": "AMS-HT F Le chauffage 2 chauffe de manière anormale."
-                },
-                {
-                    "ecode": "1802010000010005",
-                    "intro": "AMS-HT C Le capteur de courant du moteur auxiliaire peut être défectueux."
                 },
                 {
                     "ecode": "0705920000010001",
@@ -12074,10 +12962,6 @@
                 {
                     "ecode": "1804810000010004",
                     "intro": "Le chauffage 2 de l'AMS-HT E ne fonctionne pas normalement."
-                },
-                {
-                    "ecode": "1807010000010005",
-                    "intro": "Le capteur de courant du moteur d'assistance de l'AMS-HT H pourrait être défectueux."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -12146,10 +13030,6 @@
                 {
                     "ecode": "0706910000020001",
                     "intro": "AMS G Le fonctionnement de la soupape d'échappement 2 est anormal, ce qui peut être dû à une résistance excessive."
-                },
-                {
-                    "ecode": "1805010000010005",
-                    "intro": "AMS-HT F Le capteur de courant du moteur d'assistance est peut-être défectueux."
                 },
                 {
                     "ecode": "0707960000010001",
@@ -12448,10 +13328,6 @@
                     "intro": "AMS F Erreur de paramètre d'étalonnage du moteur d'assistance. Veuillez retirer le filament du moyeu du filament, puis redémarrer l'AMS."
                 },
                 {
-                    "ecode": "1803010000010005",
-                    "intro": "AMS-HT D Le capteur de courant du moteur d'assistance peut être défectueux."
-                },
-                {
                     "ecode": "1807010000010004",
                     "intro": "Le contrôle de vitesse du moteur d'assistance de l'AMS-HT H ne fonctionne pas correctement. Le capteur de vitesse peut être défectueux."
                 },
@@ -12470,10 +13346,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS : Le moteur à balais 1 n'a pas de signal, ce qui peut être dû à un mauvais contact dans le connecteur moteur ou à une défaillance du moteur."
-                },
-                {
-                    "ecode": "0C00010000020008",
-                    "intro": "Impossible de récupérer l'image de la caméra de visualisation en temps réel. La détection d'encombrement de \"spaghetti\" et de déchets dans le bac n'est pas disponible pour le moment."
                 },
                 {
                     "ecode": "0C00040000020007",
@@ -12578,10 +13450,6 @@
                 {
                     "ecode": "1807920000010001",
                     "intro": "AMS-HT H Le ventilateur de refroidissement du chauffage 1 est bloqué, ce qui pourrait être dû à un blocage du ventilateur."
-                },
-                {
-                    "ecode": "1800010000010005",
-                    "intro": "AMS-HT: Le capteur de courant du moteur d'assistance peut être défectueux."
                 },
                 {
                     "ecode": "1804910000020001",
@@ -12852,10 +13720,6 @@
                     "intro": "AMS-HT E Le ventilateur de refroidissement du chauffage 2 est bloqué, ce qui peut être dû au blocage du ventilateur."
                 },
                 {
-                    "ecode": "1804010000010005",
-                    "intro": "AMS-HT E Le capteur de courant du moteur d'assistance peut être défectueux."
-                },
-                {
                     "ecode": "1801910000010002",
                     "intro": "AMS-HT B La bobine de la vanne d'échappement 2 est en court-circuit, ce qui peut être dû à un câblage anormal ou à des dommages."
                 },
@@ -12956,26 +13820,6 @@
                     "intro": "Problème de retour à la position initiale de l'axe Y : veuillez vérifier si l'extrudeur est coincé ou si le chariot de l'axe Y rencontre trop de résistance."
                 },
                 {
-                    "ecode": "0C00010000010001",
-                    "intro": "La caméra de l'extrudeur est hors ligne. Veuillez vérifier la connexion du matériel."
-                },
-                {
-                    "ecode": "0C00010000010003",
-                    "intro": "La synchronisation entre la caméra de l'extrudeur et MC est anormale. Veuillez redémarrer votre imprimante."
-                },
-                {
-                    "ecode": "0C00010000010004",
-                    "intro": "L'objectif de la caméra de la tête d'outil semble être sale. Veuillez nettoyer l'objectif."
-                },
-                {
-                    "ecode": "0C00010000010005",
-                    "intro": "Le paramètre de la caméra de la tête d'outil est anormal. Veuillez contacter le service après-vente."
-                },
-                {
-                    "ecode": "0C00010000020006",
-                    "intro": "Le paramètre de la caméra de la tête d'outil est anormal. Veuillez activer l'étalonnage du débit pour la prochaine impression."
-                },
-                {
                     "ecode": "0500030000010007",
                     "intro": "Le module d'extension de la tête d'outil présente une défaillance. Veuillez éteindre l'appareil, vérifier la connexion et le redémarrer."
                 },
@@ -13010,10 +13854,6 @@
                 {
                     "ecode": "07FF810000010002",
                     "intro": "Le capteur de position à effet Hall du moteur de commutation de l'extrudeur est anormal. Veuillez vérifier si le câble de connexion est lâche."
-                },
-                {
-                    "ecode": "0500060000020032",
-                    "intro": "La liaison de la caméra de buse a échoué. Veuillez vérifier le matériel et les connexions du câble."
                 },
                 {
                     "ecode": "07FF810000020001",
@@ -13150,10 +13990,6 @@
                 {
                     "ecode": "1203300000010001",
                     "intro": "La bobine RFID de la fente D1 de l'AMS est cassée ou le circuit matériel RF présente une erreur."
-                },
-                {
-                    "ecode": "0703010000010005",
-                    "intro": "Le capteur de courant du moteur d'assistance de l'AMS D pourrait être défectueux."
                 },
                 {
                     "ecode": "0703800000010001",
@@ -13940,16 +14776,8 @@
                     "intro": "AMS C Le capteur de courant du chauffage 1 est anormal."
                 },
                 {
-                    "ecode": "0702010000010005",
-                    "intro": "AMS C Le capteur de courant du moteur d'assistance pourrait être défectueux."
-                },
-                {
                     "ecode": "0703960000010001",
                     "intro": "AMS D Le processus de séchage pourrait être victime d'une fuite thermique. Veuillez éteindre l'alimentation AMS."
-                },
-                {
-                    "ecode": "0701010000010005",
-                    "intro": "AMS B Le capteur de courant du moteur d'assistance pourrait être défectueux."
                 },
                 {
                     "ecode": "0700010000010003",
@@ -14154,10 +14982,6 @@
                 {
                     "ecode": "0703100000020004",
                     "intro": "L'AMS D Le moteur brossé 1 n'a pas de signal, ce qui peut être dû à un mauvais contact dans le connecteur moteur ou à un défaut moteur."
-                },
-                {
-                    "ecode": "0C00040000020002",
-                    "intro": "Tapis de découpe non détecté. Veuillez placer le tapis requis pour la tâche et continuer."
                 },
                 {
                     "ecode": "0C00040000020008",
@@ -14404,10 +15228,6 @@
                     "intro": "La communication d'AMS D est anormale; veuillez vérifier le câble de connexion."
                 },
                 {
-                    "ecode": "0C00040000020003",
-                    "intro": "La base de travail du laser n'est pas correctement alignée. Assurez-vous que les quatre coins sont alignés avec le plateau chauffant."
-                },
-                {
                     "ecode": "0702010000020009",
                     "intro": "AMS C Le moteur d'assistance a une résistance déséquilibrée sur trois phases. Le moteur d'assistance pourrait être défectueux."
                 },
@@ -14618,10 +15438,6 @@
                 {
                     "ecode": "0702100000020004",
                     "intro": "AMS C Le moteur brossé 1 n'a pas de signal, ce qui peut être dû à un mauvais contact dans le connecteur du moteur ou à une défaillance du moteur."
-                },
-                {
-                    "ecode": "0700010000010005",
-                    "intro": "AMS A Le capteur de courant du moteur d'assistance peut être défectueux."
                 },
                 {
                     "ecode": "0702900000020001",
@@ -14864,10 +15680,6 @@
                     "intro": "Votre imprimante semble imprimer sans extruder."
                 },
                 {
-                    "ecode": "0703700000020001",
-                    "intro": "Échec d'extraction du filament de l'extrudeur. Causes possibles : extrudeur obstrué ou filament cassé. Pour plus de détails, veuillez vous référer à l'Assistant."
-                },
-                {
                     "ecode": "0703700000020008",
                     "intro": "Échec de récupération du tableau de mappage AMS ; veuillez cliquer sur \"Reprendre\" pour réessayer."
                 },
@@ -14896,16 +15708,8 @@
                     "intro": "Le capteur de température et d'humidité a une erreur. Le circuit intégré peut être défectueux."
                 },
                 {
-                    "ecode": "0702700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeuse. Causes possibles : extrudeuse obstruée ou filament cassé. Veuillez consulter l'Assistant pour plus de détails."
-                },
-                {
                     "ecode": "0702700000020008",
                     "intro": "Impossible d'obtenir la table de mappage AMS; veuillez cliquer sur \"Reprendre\" pour réessayer."
-                },
-                {
-                    "ecode": "0701700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeuse. Causes possibles : extrudeuse obstruée ou filament cassé. Veuillez consulter l'Assistant pour plus de détails."
                 },
                 {
                     "ecode": "0701700000020008",
@@ -14958,10 +15762,6 @@
                 {
                     "ecode": "0700510000030001",
                     "intro": "L'AMS est désactivé ; veuillez charger le filament depuis le porte-bobine."
-                },
-                {
-                    "ecode": "0700700000020001",
-                    "intro": "Impossible de retirer le filament de l'extrudeur. Les causes possibles : l'extrudeur est bouché ou le filament est cassé. Pour plus de détails, veuillez vous référer à l'Assistant."
                 },
                 {
                     "ecode": "0700700000020008",
