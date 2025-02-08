@@ -161,8 +161,12 @@ namespace Slic3r
 
             int group_cost = 0;
             for (size_t i = 0; i < 2; ++i) {
-                if (group_colors[i].empty() || ams_filament_colors[i].empty())
+                if (group_colors[i].empty())
                     continue;
+                if (ams_filament_colors.empty()) {
+                    group_cost += group_colors.size() * fail_cost;
+                    continue;
+                }
                 std::vector<std::vector<float>>distance_matrix(group_colors[i].size(), std::vector<float>(ams_filament_colors[i].size()));
 
                 // calculate color distance matrix

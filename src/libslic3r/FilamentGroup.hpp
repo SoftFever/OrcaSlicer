@@ -13,7 +13,7 @@
 
 const static int DEFAULT_CLUSTER_SIZE = 16;
 
-const static int ABSOLUTE_FLUSH_GAP_TOLERANCE = 2000;
+const static int ABSOLUTE_FLUSH_GAP_TOLERANCE = 5;
 
 namespace Slic3r
 {
