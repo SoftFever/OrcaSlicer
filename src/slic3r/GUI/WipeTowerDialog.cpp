@@ -31,8 +31,8 @@ static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 #define ROW_BEG_PADDING         FromDIP(20)
 #define EDIT_BOXES_GAP          FromDIP(30)
 #define ROW_END_PADDING         FromDIP(21)
-#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
-#define BTN_GAP                 FromDIP(20)
+//#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
+//#define BTN_GAP                 FromDIP(20)
 #define TEXT_BEG_PADDING        FromDIP(30)
 #define MAX_FLUSH_VALUE         999
 #define MIN_WIPING_DIALOG_WIDTH FromDIP(300)
@@ -210,82 +210,27 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     btn_sizer->AddStretchSpacer();
 
-    StateColor ok_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bg(
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bd_(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_text(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-    
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-    
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
     if (flags & wxRESET) {
         Button *calc_btn = new Button(this, _L("Auto-Calc"));
-        calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-        calc_btn->SetCornerRadius(FromDIP(12));
-        calc_btn->SetBackgroundColor(calc_btn_bg);
-        calc_btn->SetBorderColor(calc_btn_bd);
-        calc_btn->SetTextColor(calc_btn_text);
+        calc_btn->SetStyle("Confirm", "Choice");
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
-        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
         m_button_list[wxRESET] = calc_btn;
     }
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
-        ok_btn->SetMinSize(BTN_SIZE);
-        ok_btn->SetCornerRadius(FromDIP(12));
-        ok_btn->SetBackgroundColor(ok_btn_bg);
-        ok_btn->SetBorderColor(ok_btn_bd);
-        ok_btn->SetTextColor(ok_btn_text);
+        ok_btn->SetStyle("Confirm", "Choice");
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
-        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
         m_button_list[wxOK] = ok_btn;
     }
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
-        cancel_btn->SetMinSize(BTN_SIZE);
-        cancel_btn->SetCornerRadius(FromDIP(12));
-        cancel_btn->SetBackgroundColor(cancel_btn_bg);
-        cancel_btn->SetBorderColor(cancel_btn_bd_);
-        cancel_btn->SetTextColor(cancel_btn_text);
+        cancel_btn->SetStyle("Regular", "Choice");
         cancel_btn->SetId(wxID_CANCEL);
-        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
         m_button_list[wxCANCEL] = cancel_btn;
     }
 
@@ -295,29 +240,11 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 
 wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
 
     Button* calc_btn = new Button(parent, _L("Re-calculate"));
-    calc_btn->SetFont(Label::Body_13);
-    calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-    calc_btn->SetCornerRadius(FromDIP(12));
-    calc_btn->SetBackgroundColor(calc_btn_bg);
-    calc_btn->SetBorderColor(calc_btn_bd);
-    calc_btn->SetTextColor(calc_btn_text);
+    calc_btn->SetStyle("Confirm", "Window");
     calc_btn->SetFocus();
-    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
 
     return btn_sizer;
@@ -328,16 +255,13 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
     {
         if (button_item.first == wxRESET) 
         {
-            button_item.second->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-            button_item.second->SetCornerRadius(FromDIP(12));
+            button_item.second->SetType("Choice");
         }
         if (button_item.first == wxOK) {
-            button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
+            button_item.second->SetType("Choice");
         }
         if (button_item.first == wxCANCEL) {
-            button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
+            button_item.second->SetType("Choice");
         }
     }
     m_panel_wiping->msw_rescale();
@@ -376,7 +300,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     main_sizer->Add(m_panel_wiping, 1, wxEXPAND | wxALL, 0);
 
     auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
-    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BTN_GAP);
+    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxTOP | wxEXPAND, FromDIP(ButtonProps::ChoiceGap()));
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
 
