@@ -1017,13 +1017,22 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	case coPercents:
 	case coFloats:
 	case coFloat:{
-		double val = opt->type == coFloats ?
-					config.opt_float(opt_key, idx) :
-						opt->type == coFloat ? config.opt_float(opt_key) :
-						config.option<ConfigOptionPercents>(opt_key)->get_at(idx);
-		ret = double_to_string(val);
-		}
-		break;
+        if (opt_key == "extruder_printable_height") {
+            auto opt_values = dynamic_cast<const ConfigOptionFloatsNullable *>(config.option(opt_key))->values;
+            if (!opt_values.empty()) {
+                double val = opt_values[idx];
+                ret  = double_to_string(val);
+            }
+        }
+        else {
+            double val = opt->type == coFloats ?
+                config.opt_float(opt_key, idx) :
+                opt->type == coFloat ? config.opt_float(opt_key) :
+                config.option<ConfigOptionPercents>(opt_key)->get_at(idx);
+            ret = double_to_string(val);
+        }
+        break;
+    }
 	case coString:
 		ret = from_u8(config.opt_string(opt_key));
 		break;
@@ -1089,6 +1098,15 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
 		else
 			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
+        break;
+    case coPointsGroups:
+        if (opt_key == "extruder_printable_area") {
+            auto values = config.option<ConfigOptionPointsGroups>(opt_key)->values;
+            if (!values.empty())
+                ret = get_thumbnails_string(config.option<ConfigOptionPointsGroups>(opt_key)->get_at(idx));
+        }
+        else
+            ret = config.option<ConfigOptionPointsGroups>(opt_key)->get_at(idx);
 		break;
 	case coNone:
 	default:

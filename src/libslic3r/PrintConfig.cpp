@@ -663,13 +663,13 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionFloat(100.0));
 
     def           = this->add("extruder_printable_height", coFloats);
-    def->label    = L("Printable height");
-    def->tooltip  = L("Maximum printable height which is limited by mechanism of printer");
+    def->label    = L("Extruder printable height");
+    def->tooltip  = L("Maximum printable height of the extruder");
     def->sidetext = L("mm");
     def->min      = 0;
     def->max      = 1000;
-    def->mode     = comSimple;
-    def->set_default_value(new ConfigOptionFloatsNullable{});
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def           = this->add("unprintable_filament_types", coStrings);
     def->label    = L("Unprintable filament type");
@@ -7384,6 +7384,7 @@ std::set<std::string> printer_extruder_options = {
 };
 
 std::set<std::string> printer_options_with_variant_1 = {
+    "nozzle_volume",
     "retraction_length",
     "z_hop",
     "retract_lift_above",

@@ -4065,7 +4065,6 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
         optgroup->append_single_option_line("support_multi_bed_types","bed-types");
-        optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         // todo: for multi_extruder test
         optgroup->append_single_option_line("z_offset");
@@ -4618,9 +4617,15 @@ if (is_marlin_flavor)
             auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
             m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-                auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size");
+            auto optgroup = page->new_optgroup(L("Basic information"), L"param_type", -1, true);
                 optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
                 //optgroup->append_single_option_line("nozzle_volume_type", "", extruder_idx);
+
+            optgroup->append_single_option_line("nozzle_volume", "", extruder_idx);
+            optgroup->append_single_option_line("extruder_printable_height", "", extruder_idx);
+            Option option         = optgroup->get_option("extruder_printable_area", extruder_idx);
+            option.opt.full_width = true;
+            optgroup->append_single_option_line(option);
 
                 optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
                 {
@@ -4909,6 +4914,11 @@ void TabPrinter::toggle_options()
     {
         size_t i = size_t(val - 1);
         bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
+
+        toggle_option("extruder_printable_area", false, i);          // disable
+        toggle_line("extruder_printable_area", m_preset_bundle->get_printer_extruder_count() == 2, i);  //hide
+        toggle_option("extruder_printable_height", false, i);
+        toggle_line("extruder_printable_height", m_preset_bundle->get_printer_extruder_count() == 2, i);
 
         // when using firmware retraction, firmware decides retraction length
         bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
@@ -6610,7 +6620,7 @@ void Tab::switch_excluder(int extruder_id)
     for (auto page : m_pages) {
         bool is_extruder = false;
         page->m_opt_id_map.clear();
-        if (m_extruder_switch == nullptr && page->title().StartsWith("Extruder ")) {
+        if (m_extruder_switch == nullptr && page->title().StartsWith("Extruder")) {
             int extruder_id2 = std::atoi(page->title().Mid(9).ToUTF8()) - 1;
             if (extruder_id >= 0 && extruder_id2 != extruder_id)
                 continue;
@@ -6619,12 +6629,13 @@ void Tab::switch_excluder(int extruder_id)
             is_extruder = true;
         }
         for (auto group : page->m_optgroups) {
-            if (is_extruder && group->title == "Type") {
-                for (auto &opt : group->opt_map())
-                    page->m_opt_id_map.insert({opt.first, opt.first});
-                continue;
-            }
             for (auto &opt : group->opt_map()) {
+                auto iter = std::find(printer_extruder_options.begin(), printer_extruder_options.end(), opt.second.first);
+                if (iter != printer_extruder_options.end()) {
+                    page->m_opt_id_map.insert({opt.first, opt.first});
+                    continue;
+                }
+
                 if (opt.second.second >= 0) {
                     const_cast<int &>(opt.second.second) = index;
                     page->m_opt_id_map.insert({opt.second.first + "#" + std::to_string(index), opt.first});
