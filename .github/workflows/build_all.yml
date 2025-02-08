@@ -78,7 +78,7 @@ jobs:
     steps:
     - name: "Remove unneeded stuff to free disk space"
       run:
-        sudo rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
+        rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
     - uses: actions/checkout@v4
     - name: Get the version and date
       run: |
@@ -92,14 +92,15 @@ jobs:
         echo "ver_pure=$ver_pure" >> $GITHUB_ENV
         echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
       shell: bash
-    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@master
       with:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
+        upload-artifact: false
     - name: Deploy Flatpak to nightly release
       if: ${{github.ref == 'refs/heads/main'}}
-      uses: WebFreak001/deploy-nightly@v3.1.0
+      uses: WebFreak001/deploy-nightly@v3.2.0
       with:
         upload_url: https://uploads.github.com/repos/gingeradditive/OrcaSlicer/releases/137995723/assets{?name,label}
         release_id: 137995723

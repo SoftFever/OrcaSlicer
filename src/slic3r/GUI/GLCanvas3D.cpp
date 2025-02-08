@@ -3519,6 +3519,12 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         m_dirty = true;
                     }
 //                    set_cursor(Standard);
+#ifdef __WXMSW__
+                    if (m_camera_movement && m_is_touchpad_navigation) {
+                        m_camera_movement = false;
+                        m_mouse.set_start_position_3D_as_invalid();
+                    }
+#endif
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
@@ -3873,6 +3879,12 @@ std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
 		out += "RightUp ";
 	if (evt.RightDClick())
 		out += "RightDClick ";
+    if (evt.AltDown())
+        out += "AltDown ";
+    if (evt.ShiftDown())
+        out += "ShiftDown ";
+    if (evt.ControlDown())
+        out += "ControlDown ";
 
 	sprintf(buf, "(%d, %d)", evt.GetX(), evt.GetY());
 	out += buf;
@@ -6767,7 +6779,7 @@ void GLCanvas3D::_picking_pass()
         case SceneRaycaster::EType::Bed:
         {
             // BBS: add plate picking logic
-            int plate_hover_id = PartPlate::PLATE_BASE_ID - hit.raycaster_id;
+            int plate_hover_id = hit.raycaster_id;
             if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
                 wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
                 m_hover_plate_idxs.emplace_back(plate_hover_id);
