@@ -989,7 +989,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             e.Skip();
         });
 
-        m_sizer_button->Add(*btn, 0, wxLEFT, 5);
+        m_sizer_button->Add(*btn, 0, wxLEFT, FromDIP(ButtonProps::ChoiceGap()));
     };
 
     // "Transfer" / "Keep" button
@@ -1978,7 +1978,7 @@ void DiffPresetDialog::create_buttons()
 
     for (Button* btn : { m_transfer_btn, m_cancel_btn }) {
         btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
-        m_buttons->Add(btn, 1, wxLEFT, 5);
+        m_buttons->Add(btn, 1, wxLEFT, FromDIP(ButtonProps::ChoiceGap()));
         btn->SetStyle("Regular", "Choice");
     }
 

@@ -4,6 +4,12 @@
 #include "../wxExtensions.hpp"
 #include "StaticBox.hpp"
 
+class ButtonProps
+{
+public:
+    static int ChoiceGap();
+};
+
 class Button : public StaticBox
 {
     wxRect textSize;
@@ -18,8 +24,6 @@ class Button : public StaticBox
     bool m_selected  = true;
     bool canFocus  = true;
     bool isCenter = true;
-
-    int alignment = 1;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -42,8 +46,6 @@ public:
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
-
-    void SetContentAlignment(const wxString& side);
 
     void SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type = "" /* Choice/Window/Parameter */);
 

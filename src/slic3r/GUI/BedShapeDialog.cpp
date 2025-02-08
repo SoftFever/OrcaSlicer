@@ -147,13 +147,13 @@ void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const Co
    ok_btn->SetStyle("Confirm", "Choice");
    ok_btn->SetFocus();
    ok_btn->SetId(wxID_OK);
-   btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+   btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
    m_button_list[wxOK] = ok_btn;
 
    Button* cancel_btn = new Button(this, _L("Cancel"));
    cancel_btn->SetStyle("Regular", "Choice");
    cancel_btn->SetId(wxID_CANCEL);
-   btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 0);
+   btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
    m_button_list[wxCANCEL] = cancel_btn;
 
    main_sizer->Add(btn_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);

@@ -148,12 +148,6 @@ void Button::SetCenter(bool isCenter)
     this->isCenter = isCenter;
 }
 
-// ORCA: add support for alignment
-void Button::SetContentAlignment(const wxString& side /* "L" / "R"  Center is default*/)
-{
-    alignment = (side == "L") ? 0 : (side == "R") ? 1 : 0;
-}
-
 // Button Colors           bg-Disabled bg-Pressed bg-Hovered bg-Normal  bg-Enabled fg-Disabled fg-Normal
 wxString btn_regular[7]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30"};
 wxString btn_confirm[7]  = {"#00897B", "#00897B", "#26A69A", "#009688", "#009688", "#6B6A6A", "#FEFEFE"};
@@ -162,49 +156,51 @@ wxString btn_disabled[7] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF
 
 void Button::SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type /* Choice/Window/Parameter/Compact */)
 {
-    if (type == "Compact") {
-        this->SetFont(Label::Body_10);
-    } else {
-        this->SetFont(Label::Body_14);
-    }
-
+    this->SetFont( type == "Compact" ? Label::Body_10 : 
+                   type == "Window"  ? Label::Body_12 : 
+                                       Label::Body_14
+    );
     auto clr_arr = style == "Regular"  ? btn_regular :
                    style == "Confirm"  ? btn_confirm :
                    style == "Alert"    ? btn_alert :
                    style == "Disabled" ? btn_disabled :
                                          btn_regular;
-    StateColor clr_bg = StateColor( std::pair<wxColour, int>(wxColour(clr_arr[0]), StateColor::Disabled),
-                                    std::pair<wxColour, int>(wxColour(clr_arr[1]), StateColor::Pressed),
-                                    std::pair<wxColour, int>(wxColour(clr_arr[2]), StateColor::Hovered),
-                                    std::pair<wxColour, int>(wxColour(clr_arr[3]), StateColor::Normal),
-                                    std::pair<wxColour, int>(wxColour(clr_arr[4]), StateColor::Enabled)
+    StateColor clr_bg  =     StateColor(std::pair<wxColour, int>(wxColour(clr_arr[0]), StateColor::Disabled),
+                                        std::pair<wxColour, int>(wxColour(clr_arr[1]), StateColor::Pressed),
+                                        std::pair<wxColour, int>(wxColour(clr_arr[2]), StateColor::Hovered),
+                                        std::pair<wxColour, int>(wxColour(clr_arr[3]), StateColor::Normal),
+                                        std::pair<wxColour, int>(wxColour(clr_arr[4]), StateColor::Enabled)
     );
     this->SetBackgroundColor(clr_bg);
     this->SetBorderColor(clr_bg);
-    StateColor clr_fg = StateColor( std::pair<wxColour, int>(wxColour(clr_arr[5]), StateColor::Disabled),
-                                    std::pair<wxColour, int>(wxColour(clr_arr[6]), StateColor::Normal)
-    );
-    this->Button::SetTextColor(clr_fg);
-
-    this->Button::SetType(type);
-
+    this->SetTextColor(      StateColor(std::pair<wxColour, int>(wxColour(clr_arr[5]), StateColor::Disabled),
+                                        std::pair<wxColour, int>(wxColour(clr_arr[6]), StateColor::Normal)
+    ));
+    this->SetType(type);
 }
 
-void Button::SetType(const wxString type)
+void Button::SetType(const wxString type /* Choice/Window/Parameter/Compact */)
 {
-    if (type == "Choice" || type == "Window") {
-        this->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-        this->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    } else if (type == "Parameter") {
-        this->SetSize(wxSize(FromDIP(120), FromDIP(26)));
-    }
-    if (type == "Compact") {
+    // Function also rescales button
+    if        (type == "Compact") {     //  FontSize:10  FullyRounded    Use for less spaced areas
+        this->SetPaddingSize(FromDIP(wxSize(8,3)));
         this->SetCornerRadius(this->FromDIP(8));
-        this->SetPaddingSize(wxSize(8, 3));
-    } else {
+    } else if (type == "Window") {      //  FontSize:12  FullyRounded    Use for regular windows in windows
+        this->SetSize(FromDIP(wxSize(58,24)));
+        this->SetMinSize(FromDIP(wxSize(58,24)));
+        this->SetCornerRadius(this->FromDIP(12));
+    } else if (type == "Choice") {      //  FontSize:14  SemiRounded     Use for dialog/window choice buttons. 
+        this->SetMinSize(FromDIP(wxSize(100,32)));
+        this->SetPaddingSize(FromDIP(wxSize(12,8)));
+        this->SetCornerRadius(this->FromDIP(4));
+    } else if (type == "Parameter") {   //  FontSize:14  SemiRounded     Use for buttons that near parameter boxes
+        this->SetMinSize(FromDIP(wxSize(120,26)));
+        this->SetSize(FromDIP(wxSize(120,26)));
+        this->SetCornerRadius(this->FromDIP(4));
+    } else {         // DEFAULTS            FontSize:14  SemiRounded     Dont specify type parameter on SetStyle(style, type) to get regular button
         this->SetCornerRadius(this->FromDIP(4));
     }
-    
+    // ???? rescale
 }
 
 void Button::Rescale()
@@ -261,23 +257,16 @@ void Button::render(wxDC& dc)
             szContent.x -= d;
         }
     }
-
-    // ORCA Align content. Button content centered as default until use of SetContentAlignment("L")
+    // move to center
     wxRect rcContent = {{0, 0}, size};
-    wxSize offset    = (size - szContent) / 2;
-    if (offset.x < 0)
-        offset.x = 0;
-    rcContent.Deflate(offset.x, offset.y);
-
+    if (isCenter) {
+        wxSize offset = (size - szContent) / 2;
+        if (offset.x < 0)
+            offset.x = 0;
+        rcContent.Deflate(offset.x, offset.y);
+    }
+    // start draw
     wxPoint pt = rcContent.GetLeftTop();
-
-    if (alignment == 0) { // to left
-        if (offset.x > 0)
-            pt.x = pt.x - offset.x + paddingSize.x;
-    } else if (alignment == 2) { // to right
-        if (offset.x > 0)
-            pt.x = pt.x + offset.x - paddingSize.x;
-    } 
 
     // start draw
     //wxPoint pt = rcContent.GetLeftTop();
@@ -402,3 +391,5 @@ WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 #endif
 
 bool Button::AcceptsFocus() const { return canFocus; }
+
+int ButtonProps::ChoiceGap() { return 10; }
