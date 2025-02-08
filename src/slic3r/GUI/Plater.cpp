@@ -316,7 +316,7 @@ enum class ActionButtonType : int {
 int SidebarProps::TitlebarMargin() { return 8; }  // Use as side margins on titlebar. Has less margin on sides to create separation with its content
 int SidebarProps::ContentMargin()  { return 12; } // Use as side margins contents of title
 int SidebarProps::IconSpacing()    { return 10; } // Use on main elements
-int SidebarProps::ElementSpacing() { return 5; }
+int SidebarProps::ElementSpacing() { return 5; }  // Use if elements has relation between them like edit button for combo box etc.
 
 struct Sidebar::priv
 {
