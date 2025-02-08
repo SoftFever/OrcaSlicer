@@ -293,6 +293,7 @@ public:
     wxPanel * ip_input_top_panel{ nullptr };
     wxPanel * ip_input_bot_panel{ nullptr };
     Button* m_button_ok{ nullptr };
+    Button* m_button_manual_setup{ nullptr };
     Label* m_tips_ip{ nullptr };
     Label* m_tips_access_code{ nullptr };
     Label* m_tips_sn{nullptr};
@@ -301,6 +302,7 @@ public:
     Label* m_test_wrong_msg{ nullptr };
     TextInput* m_input_ip{ nullptr };
     TextInput* m_input_access_code{ nullptr };
+    TextInput* m_input_printer_name{ nullptr };
     TextInput* m_input_sn{ nullptr };
     ComboBox*  m_input_modelID{ nullptr };
     wxStaticBitmap* m_img_help{ nullptr };
@@ -327,7 +329,7 @@ public:
     void on_ok(wxMouseEvent& evt);
     void update_test_msg_event(wxCommandEvent &evt);
     void post_update_test_msg(wxString text, bool beconnect);
-    void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id);
+    void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id, std::string name);
     void OnTimer(wxTimerEvent& event);
     void on_text(wxCommandEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
