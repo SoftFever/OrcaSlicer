@@ -258,18 +258,14 @@ void Button::render(wxDC& dc)
         }
     }
     // move to center
-    wxRect rcContent = {{0, 0}, size};
+    wxRect rcContent = { {0, 0}, size };
     if (isCenter) {
         wxSize offset = (size - szContent) / 2;
-        if (offset.x < 0)
-            offset.x = 0;
+        if (offset.x < 0) offset.x = 0;
         rcContent.Deflate(offset.x, offset.y);
     }
     // start draw
     wxPoint pt = rcContent.GetLeftTop();
-
-    // start draw
-    //wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {
         pt.y += (rcContent.height - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
