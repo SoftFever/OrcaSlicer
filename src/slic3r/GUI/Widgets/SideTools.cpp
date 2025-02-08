@@ -57,6 +57,8 @@ void SideToolsPanel::on_timer(wxTimerEvent &event)
 
 void SideToolsPanel::set_current_printer_name(std::string dev_name)
 {
+     if (m_dev_name == from_u8(dev_name)) return;
+
      m_none_printer = false;
      m_dev_name     = from_u8(dev_name);
      Refresh();

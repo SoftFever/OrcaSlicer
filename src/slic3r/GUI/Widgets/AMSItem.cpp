@@ -718,6 +718,7 @@ void AMSextruder::updateNozzleNum(int nozzle_num)
     }
 
     SetSizer(m_bitmap_sizer);
+    Refresh();
 }
 
 void AMSextruder::msw_rescale()
@@ -1527,10 +1528,10 @@ void AMSLib::Update(Caninfo info, std::string ams_idx, bool refresh)
     if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && info.material_colour.Alpha() != 254 && m_info.material_colour != info.material_colour) {
         transparent_changed = true;
     }
+
     m_info = info;
     m_ams_id = ams_idx;
     m_slot_id = info.can_id;
-    Layout();
     if (refresh) Refresh();
 }
 
@@ -3068,6 +3069,11 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
 
 void AmsItem::Update(AMSinfo info)
 {
+    if (m_info == info)
+    {
+        return;
+    }
+
     m_info      = info;
     m_can_count = info.cans.size();
 

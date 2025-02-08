@@ -289,6 +289,7 @@ public:
     void update_progress_percent(wxString percent, wxString icon);
     void update_left_time(wxString time);
     void update_left_time(int mc_left_time);
+    void show_layers_num(bool show) { m_staticText_layers->Show(show); }
     void update_layers_num(bool show, wxString num = wxEmptyString);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
     void show_profile_info(bool show, wxString profile = wxEmptyString);
