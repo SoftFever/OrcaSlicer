@@ -14494,11 +14494,16 @@ void Plater::send_calibration_job_finished(wxCommandEvent & evt)
 void Plater::print_job_finished(wxCommandEvent &evt)
 {
     //start print failed
-    if (Slic3r::GUI::wxGetApp().get_inf_dialog_contect().empty()) {
+    if (p) {
+#ifdef __APPLE__
         p->hide_select_machine_dlg();
-    }
-    else {
-        p->enter_prepare_mode();
+#else
+        if (Slic3r::GUI::wxGetApp().get_inf_dialog_contect().empty()) {
+            p->hide_select_machine_dlg();
+        } else {
+            p->enter_prepare_mode();
+        }
+#endif // __APPLE__
     }
 
 
