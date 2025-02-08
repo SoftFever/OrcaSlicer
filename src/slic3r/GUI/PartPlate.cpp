@@ -1814,7 +1814,8 @@ Vec3d PartPlate::calculate_wipe_tower_size(const DynamicPrintConfig &config, con
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
     int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
-    double depth = std::sqrt(wipe_volume * (nozzle_nums == 2 ? plate_extruder_size : (plate_extruder_size - 1)) / layer_height);
+    double extra_spacing     = config.option("prime_tower_infill_gap")->getFloat() / 100.;
+    double depth             = std::sqrt(wipe_volume * (nozzle_nums == 2 ? plate_extruder_size : (plate_extruder_size - 1)) / layer_height * extra_spacing);
     if (timelapse_enabled || plate_extruder_size > 1) {
         float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
         depth = std::max((double) min_wipe_tower_depth, depth);
@@ -1858,41 +1859,11 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 	//const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
-
-    double depth = plate_extruder_size == 1 ? 0 : d;
+    double extra_spacing     = config.option("prime_tower_infill_gap")->getFloat() / 100.;
+    double depth = plate_extruder_size == 1 ? 0 : d*extra_spacing;
     if (timelapse_enabled || depth > EPSILON) {
-		float min_wipe_tower_depth = 0.f;
-		auto iter = WipeTower::min_depth_per_height.begin();
-		while (iter != WipeTower::min_depth_per_height.end()) {
-			auto curr_height_to_depth = *iter;
-
-			// This is the case that wipe tower height is lower than the first min_depth_to_height member.
-			if (curr_height_to_depth.first >= max_height) {
-				min_wipe_tower_depth = curr_height_to_depth.second;
-				break;
-			}
-
-			iter++;
-
-			// If curr_height_to_depth is the last member, use its min_depth.
-			if (iter == WipeTower::min_depth_per_height.end()) {
-				min_wipe_tower_depth = curr_height_to_depth.second;
-				break;
-			}
-
-			// If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
-			auto next_height_to_depth = *iter;
-			if (next_height_to_depth.first > max_height) {
-				float height_base = curr_height_to_depth.first;
-				float height_diff = next_height_to_depth.first - curr_height_to_depth.first;
-				float min_depth_base = curr_height_to_depth.second;
-				float depth_diff = next_height_to_depth.second - curr_height_to_depth.second;
-
-				min_wipe_tower_depth = min_depth_base + (max_height - curr_height_to_depth.first) / height_diff * depth_diff;
-				break;
-			}
-		}
-		depth = std::max((double)min_wipe_tower_depth, depth);
+        float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
+        depth = std::max((double)min_wipe_tower_depth, depth);
 	}
 	wipe_tower_size(1) = depth;
 	return wipe_tower_size;

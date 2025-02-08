@@ -6073,13 +6073,21 @@ void PrintConfigDef::init_fff_params()
     def->label   = L("rib wall");
     def->tooltip = L("The wall of prime tower will add four ribs");
     def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("prime_tower_fillet_wall", coBool);
     def->label   = L("fillet wall");
     def->tooltip = L("The wall of prime tower will fillet");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+
+    def           = this->add("prime_tower_infill_gap", coPercent);
+    def->label    = L("Infill gap");
+    def->tooltip  = L("Infill gap");
+    def->sidetext = L("%");
+    def->mode     = comAdvanced;
+    def->min      = 100;
+    def->set_default_value(new ConfigOptionPercent(150));
 
     def = this->add("flush_into_infill", coBool);
     def->category = L("Flush options");

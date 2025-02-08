@@ -1451,6 +1451,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              prime_tower_brim_width))
     ((ConfigOptionFloat,              prime_tower_extra_rib_length))
     ((ConfigOptionFloat,              prime_tower_rib_width))
+    ((ConfigOptionPercent,            prime_tower_infill_gap))
     ((ConfigOptionBool,               prime_tower_skip_points))
     ((ConfigOptionBool,               prime_tower_rib_wall))
     ((ConfigOptionBool,               prime_tower_fillet_wall))

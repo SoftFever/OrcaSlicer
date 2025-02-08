@@ -1359,9 +1359,10 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_is_multi_extruder(config.nozzle_diameter.size() > 1),
     m_use_gap_wall(config.prime_tower_skip_points.value),
     m_use_rib_wall(config.prime_tower_rib_wall.value),
-    m_extra_rib_length(config.prime_tower_extra_rib_length.value),
-    m_rib_width(config.prime_tower_rib_width.value),
-    m_used_fillet(config.prime_tower_fillet_wall.value)
+    m_extra_rib_length((float)config.prime_tower_extra_rib_length.value),
+    m_rib_width((float)config.prime_tower_rib_width.value),
+    m_used_fillet(config.prime_tower_fillet_wall.value),
+    m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -2976,7 +2977,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         }
     }
 
-    if (extrude_perimeter) writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
+    if (extrude_perimeter || loops_num > 0)
+        writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
     else {
         // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
         Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
@@ -3475,7 +3477,7 @@ void WipeTower::plan_tower_new()
         // recalculate wipe_tower_with and layer's depth
         generate_wipe_tower_blocks();
         float max_depth    = std::accumulate(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), 0.f, [](float a, const auto &t) { return a + t.depth; }) + m_perimeter_width;
-        float square_width = align_ceil(std::sqrt(max_depth * m_wipe_tower_width), m_perimeter_width);
+        float square_width = align_ceil(std::sqrt(max_depth * m_wipe_tower_width * m_extra_spacing), m_perimeter_width);
         //std::cout << " before  m_wipe_tower_width = " << m_wipe_tower_width << "  max_depth = " << max_depth << std::endl;
         m_wipe_tower_width = square_width;
         float width        = m_wipe_tower_width - 2 * m_perimeter_width;
@@ -3508,37 +3510,7 @@ void WipeTower::plan_tower_new()
     }
     //std::cout << " after square " << m_wipe_tower_width << "  depth  " << max_depth << std::endl;
 
-    float min_wipe_tower_depth = 0.f;
-    auto  iter                 = WipeTower::min_depth_per_height.begin();
-    while (iter != WipeTower::min_depth_per_height.end()) {
-        auto curr_height_to_depth = *iter;
-
-        // This is the case that wipe tower height is lower than the first min_depth_to_height member.
-        if (curr_height_to_depth.first >= m_wipe_tower_height) {
-            min_wipe_tower_depth = curr_height_to_depth.second;
-            break;
-        }
-
-        iter++;
-
-        // If curr_height_to_depth is the last member, use its min_depth.
-        if (iter == WipeTower::min_depth_per_height.end()) {
-            min_wipe_tower_depth = curr_height_to_depth.second;
-            break;
-        }
-
-        // If wipe tower height is between the current and next member, set the min_depth as linear interpolation between them
-        auto next_height_to_depth = *iter;
-        if (next_height_to_depth.first > m_wipe_tower_height) {
-            float height_base    = curr_height_to_depth.first;
-            float height_diff    = next_height_to_depth.first - curr_height_to_depth.first;
-            float min_depth_base = curr_height_to_depth.second;
-            float depth_diff     = next_height_to_depth.second - curr_height_to_depth.second;
-
-            min_wipe_tower_depth = min_depth_base + (m_wipe_tower_height - curr_height_to_depth.first) / height_diff * depth_diff;
-            break;
-        }
-    }
+    float min_wipe_tower_depth = get_limit_depth_by_height(m_wipe_tower_height);
 
     // only for get m_extra_spacing
     {
@@ -3548,11 +3520,11 @@ void WipeTower::plan_tower_new()
         }
 
         if (max_depth + EPSILON < min_wipe_tower_depth) {
-            m_extra_spacing = min_wipe_tower_depth / max_depth;
-            if (m_use_rib_wall) {
-                m_rib_length    = std::max(m_rib_length, min_wipe_tower_depth * (float) std::sqrt(2));
-                m_extra_spacing = 1.f;
-            }
+            //if enable rib_wall, there is no need to set extra_spacing
+            if (m_use_rib_wall)
+                m_rib_length = std::max(m_rib_length, min_wipe_tower_depth * (float) std::sqrt(2));
+            else
+                m_extra_spacing = std::max(min_wipe_tower_depth / max_depth, m_extra_spacing);
         }
 
         for (int idx = 0; idx < m_plan.size(); idx++) {
@@ -3639,7 +3611,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 {
     if (m_plan.empty())
         return;
-    m_extra_spacing = 1.f;
+    //m_extra_spacing = 1.f;
 
     plan_tower_new();
 
