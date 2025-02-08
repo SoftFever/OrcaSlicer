@@ -1370,6 +1370,14 @@ public:
 
 // change the opacity
 void change_the_opacity(wxColour& colour);
-} // namespace Slic3r
+
+
+class JsonValParser
+{
+public:
+    static std::string get_longlong_val(const json& j);
+};
+
+}; // namespace Slic3r
 
 #endif //  slic3r_DeviceManager_hpp_

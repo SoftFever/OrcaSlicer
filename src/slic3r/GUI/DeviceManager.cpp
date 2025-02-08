@@ -3637,7 +3637,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                     if (jj.contains("job_id")) {
                         is_support_wait_sending_finish = true;
-                        this->job_id_ = jj["job_id"].get<std::string>();
+                        this->job_id_ = JsonValParser::get_longlong_val(jj["job_id"]);
                     }
                     else {
                         is_support_wait_sending_finish = false;
@@ -4682,7 +4682,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     BOOST_LOG_TRIVIAL(info) << "parse_json, ack of project_prepare = " << j.dump(4);
                     if (m_agent) {
                         if (jj.contains("job_id")) {
-                            this->job_id_ = jj["job_id"].get<std::string>();
+                            this->job_id_ = JsonValParser::get_longlong_val(jj["job_id"]);
                         }
                     }
 
@@ -7485,4 +7485,28 @@ void change_the_opacity(wxColour& colour)
         colour = wxColour(colour.Red(), colour.Green(), colour.Blue(), 254);
     }
 }
+
+
+//************************************
+// Method:    get_longlong_val
+// FullName:  Slic3r::JsonValParser::get_longlong_val
+// Access:    public static
+// Returns:   std::string
+// Qualifier:
+// Parameter: const json & j
+//************************************
+std::string JsonValParser::get_longlong_val(const json& j)
+{
+    if (j.is_number())
+    {
+        return std::to_string(j.get<long long>());
+    }
+    else if (j.is_string())
+    {
+        return j.get<std::string>();
+    }
+
+    return string();
+}
+
 } // namespace Slic3r

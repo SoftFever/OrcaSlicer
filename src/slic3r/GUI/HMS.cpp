@@ -34,7 +34,7 @@ int get_hms_info_version(std::string& version)
             try {
                 json j = json::parse(body);
                 if (j.contains("ver")) {
-                    version = std::to_string(j["ver"].get<long long>());
+                    version = JsonValParser::get_longlong_val(j["ver"]);
                 }
             } catch (...) {
                 ;
@@ -87,7 +87,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
                         return;
                     }
 
-                    const std::string& remote_ver = std::to_string(j["ver"].get<long long>());
+                    const std::string& remote_ver = JsonValParser::get_longlong_val(j["ver"]);
                     if (remote_ver <= local_version)
                     {
                         return;
@@ -135,12 +135,12 @@ _copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* copy and override
 	    {
 	        return;
 	    }
-	
+
 	    if (!fs::exists(to_dir))
-	    { 
+	    {
 	        fs::create_directory(to_dir);
 	    }
-	
+
 	    for (const auto &entry : fs::directory_iterator(from_dir))
 	    {
 	        const fs::path &source_path   = entry.path();
@@ -148,7 +148,7 @@ _copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* copy and override
 	        const fs::path &dest_path     = to_dir / relative_path;
 
 	        if (fs::is_regular_file(source_path))
-            { 
+            {
                 if (fs::exists(dest_path))
                 {
                     fs::remove(dest_path);
@@ -164,7 +164,7 @@ _copy_dir(const fs::path& from_dir, const fs::path& to_dir) /* copy and override
     }
     catch (...)
     {
-    	
+
     }
 }
 
@@ -209,8 +209,8 @@ int HMSQuery::load_from_local(const std::string& hms_type, const std::string& de
 
                 if ((*load_json).contains("ver"))
                 {
-                    load_version = (*load_json)["ver"].get<std::string>();
-                } 
+                    load_version = JsonValParser::get_longlong_val((*load_json)["ver"]);
+                }
                 else
                 {
                     BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
@@ -221,7 +221,7 @@ int HMSQuery::load_from_local(const std::string& hms_type, const std::string& de
                 json_file >> (*load_json);
                 if ((*load_json).contains("version"))
                 {
-                    load_version = (*load_json)["version"].get<std::string>();
+                    load_version = JsonValParser::get_longlong_val((*load_json)["version"]);
                 }
                 else
                 {
@@ -529,7 +529,7 @@ wxImage HMSQuery::query_image_from_local(const wxString& image_name)
     {
         const fs::path& local_img_dir = fs::path(Slic3r::data_dir()) / HMS_LOCAL_IMG_PATH;
         if (fs::exists(local_img_dir))
-        { 
+        {
             for (const auto &entry : fs::directory_iterator(local_img_dir))
             {
                 const fs::path& image_path = entry.path();
