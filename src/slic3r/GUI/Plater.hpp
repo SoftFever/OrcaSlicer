@@ -834,3 +834,12 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
 } // namespace Slic3r
 
 #endif
+
+class SidebarProps
+{
+public:
+    static int TitlebarMargin();
+    static int ContentMargin();
+    static int IconSpacing();
+    static int ElementSpacing();
+};
