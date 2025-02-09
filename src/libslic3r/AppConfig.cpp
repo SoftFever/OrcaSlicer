@@ -184,10 +184,12 @@ void AppConfig::set_defaults()
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
 
-     if (get("enable_append_color_by_sync_ams").empty())
+    if (get("enable_append_color_by_sync_ams").empty())
         set_bool("enable_append_color_by_sync_ams", false);
     if (get("enable_merge_color_by_sync_ams").empty())
         set_bool("enable_merge_color_by_sync_ams", true);
+    if (get("ams_sync_match_full_use_color_dist").empty())
+        set_bool("ams_sync_match_full_use_color_dist", false);
 
     if (get("camera_orbit_mult").empty())
         set("camera_orbit_mult", "1.0");

@@ -719,7 +719,7 @@ public:
 
     void get_ams_colors(std::vector<wxColour>& ams_colors);
     void parse_tray_info(int ams_id, int sot_id, AmsTray tray, FilamentInfo& result);
-    int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>());
+    int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>(),bool nozzle_has_ams_then_ignore_ext =false);
     bool is_valid_mapping_result(std::vector<FilamentInfo>& result, bool check_empty_slot = false);
     // exceed index start with 0
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);

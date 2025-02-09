@@ -966,17 +966,17 @@ void MachineObject::parse_tray_info(int ams_id, int slot_id, AmsTray tray, Filam
 
 }
 
-int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<bool> map_opt, std::vector<int> exclude_id)
+int MachineObject::ams_filament_mapping(
+    std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext)
 {
     if (filaments.empty())
         return -1;
 
     // tray_index : tray_color
     std::map<int, FilamentInfo> tray_filaments;
-
+    bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
         std::string ams_id = ams->second->id;
-        FilamentInfo info;
         for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
             int ams_id = atoi(ams->first.c_str());
             int tray_id = atoi(tray->first.c_str());
@@ -987,19 +987,38 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     continue;
             }
             // push
+            FilamentInfo info;
             if (tray->second->is_tray_info_ready())
                 parse_tray_info(ams_id, tray_id, *(tray->second), info);
 
             //first: left,nozzle=1,map=1   second: right,nozzle=0,map=2
-            if ((ams->second->nozzle == 0 && map_opt[MappingOption::USE_RIGHT_AMS]) || (ams->second->nozzle == 1 && map_opt[MappingOption::USE_LEFT_AMS]))
+            bool right_ams_valid = ams->second->nozzle == 0 && map_opt[MappingOption::USE_RIGHT_AMS];
+            bool left_ams_valid  = ams->second->nozzle == 1 && map_opt[MappingOption::USE_LEFT_AMS];
+            if (right_ams_valid || left_ams_valid) {
                 tray_filaments.emplace(std::make_pair(tray_index, info));
+                if (right_ams_valid) {
+                    right_nozzle_has_ams = true;
+                }
+                if (left_ams_valid) {
+                    left_nozzle_has_ams = true;
+                }
+            }
         }
     }
 
     if (map_opt[MappingOption::USE_RIGHT_EXT] || map_opt[MappingOption::USE_LEFT_EXT]){
         for (auto tray : vt_slot){
-            if ((tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && map_opt[MappingOption::USE_RIGHT_EXT])
-                || (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && map_opt[MappingOption::USE_LEFT_EXT])){
+            bool right_ext_valid = (tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && map_opt[MappingOption::USE_RIGHT_EXT]);
+            bool left_ext_valid = (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && map_opt[MappingOption::USE_LEFT_EXT]);
+            if (right_ext_valid || left_ext_valid) {
+                if (nozzle_has_ams_then_ignore_ext) {
+                    if (right_ext_valid && right_nozzle_has_ams) {
+                        continue;
+                    }
+                    if (left_ext_valid && left_nozzle_has_ams) {
+                        continue;
+                    }
+                }
                 FilamentInfo info;
                 parse_tray_info(atoi(tray.id.c_str()), 0, tray, info);
                 tray_filaments.emplace(std::make_pair(info.tray_id, info));

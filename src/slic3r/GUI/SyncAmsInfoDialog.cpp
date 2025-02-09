@@ -1589,66 +1589,16 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
     int               filament_result = 0;
     std::vector<bool> map_opt; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1) {
-        // get nozzle property, the extders are same?
-        if (false) {
-            std::vector<FilamentInfo> m_ams_mapping_result_left, m_ams_mapping_result_right;
-            std::vector<FilamentInfo> m_filament_left, m_filament_right;
-            for (auto it = m_filaments.begin(); it != m_filaments.end(); it++) {
-                if (it->id < 0 || it->id > m_filaments_map.size()) {
-                    BOOST_LOG_TRIVIAL(info) << "error: do_ams_mapping: m_filaments[].it" << it->id;
-                    BOOST_LOG_TRIVIAL(info) << "m_filaments_map.size()" << m_filaments_map.size();
-                    return false;
-                }
-                if (m_filaments_map[it->id] == 1)
-                    m_filament_left.push_back(*it);
-                else if (m_filaments_map[it->id] == 2)
-                    m_filament_right.push_back(*it);
-            }
-
-            bool has_left_ams = false, has_right_ams = false;
-            for (auto ams_item : obj_->amsList) {
-                if (ams_item.second->nozzle == 0) {
-                    if (obj_->is_main_extruder_on_left())
-                        has_left_ams = true;
-                    else
-                        has_right_ams = true;
-                } else if (ams_item.second->nozzle == 1) {
-                    if (obj_->is_main_extruder_on_left())
-                        has_right_ams = true;
-                    else
-                        has_left_ams = true;
-                }
-
-                if (has_left_ams && has_right_ams) break;
-            }
-
-            map_opt           = {true, false, !has_left_ams, false}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-            int result_first  = obj_->ams_filament_mapping(m_filament_left, m_ams_mapping_result_left, map_opt);
-            map_opt           = {false, true, false, !has_right_ams};
-            int result_second = obj_->ams_filament_mapping(m_filament_right, m_ams_mapping_result_right, map_opt);
-
-            // m_ams_mapping_result.clear();
-            m_ams_mapping_result.resize(m_ams_mapping_result_left.size() + m_ams_mapping_result_right.size());
-            std::merge(m_ams_mapping_result_left.begin(), m_ams_mapping_result_left.end(), m_ams_mapping_result_right.begin(), m_ams_mapping_result_right.end(),
-                       m_ams_mapping_result.begin(), [](const FilamentInfo &f1, const FilamentInfo &f2) {
-                           return f1.id < f2.id; // Merge based on age
-                       });
-            filament_result = (result_first && result_second);
-        }
-        // can hybrid mapping
-        else {
-            map_opt         = {true, true, true, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
-        }
-        // When filaments cannot be matched automatically, whether to use ext for automatic supply
-        // auto_supply_with_ext(obj_->vt_slot);
+        map_opt         = {true, true, true, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+        filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
+                                                     wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
     }
-
     // single nozzle
     else {
         if (obj_->is_support_amx_ext_mix_mapping()) {
             map_opt         = {false, true, false, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
+            filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
+                                                         wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
             // auto_supply_with_ext(obj_->vt_slot);
         } else {
             map_opt         = {false, true, false, false};
