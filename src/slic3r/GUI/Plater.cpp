@@ -3356,22 +3356,23 @@ wxColour Plater::get_next_color_for_filament()
     static int curr_color_filamenet = 0;
     // refs to https://www.ebaomonthly.com/window/photo/lesson/colorList.htm
     wxColour colors[FILAMENT_SYSTEM_COLORS_NUM] = {
-        *wxYELLOW,
-        * wxRED,
-        *wxBLUE,
-        *wxCYAN,
-        *wxLIGHT_GREY,
-        *wxWHITE,
-        *wxBLACK,
-        wxColour(0,127,255),
-        wxColour(139,0,255),
-        wxColour(102,255,0),
-        wxColour(255,215,0),
-        wxColour(0,35,100),
-        wxColour(255,0,255),
-        wxColour(8,37,103),
-        wxColour(127,255,212),
-        wxColour(255,191,0)
+        // ORCA updated all color palette
+        wxColour("#00C1AE"),
+        wxColour("#F4E2C1"),
+        wxColour("#ED1C24"),
+        wxColour("#00FF7F"),
+        wxColour("#F26722"),
+        wxColour("#FFEB31"),
+        wxColour("#7841CE"),
+        wxColour("#115877"),
+        wxColour("#ED1E79"),
+        wxColour("#2EBDEF"),
+        wxColour("#345B2F"),
+        wxColour("#800080"),
+        wxColour("#FA8173"),
+        wxColour("#800000"),
+        wxColour("#F7B763"),
+        wxColour("#A4C41E"),
     };
     return colors[curr_color_filamenet++ % FILAMENT_SYSTEM_COLORS_NUM];
 }
@@ -8925,7 +8926,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     return wxID_YES;
 }
 
-
+LoadType determine_load_type(std::string filename, std::string override_setting = "");
 
 // BBS: FIXME, missing resotre logic
 void Plater::load_project(wxString const& filename2,
@@ -8977,8 +8978,16 @@ void Plater::load_project(wxString const& filename2,
     auto strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig;
     if (originfile == "<silence>") {
         strategy = strategy | LoadStrategy::Silence;
+    } else if (originfile == "<loadall>") {
+        // Do nothing
     } else if (originfile != "-") {
         strategy = strategy | LoadStrategy::Restore;
+    } else {
+        switch (determine_load_type(filename.ToStdString())) {
+            case LoadType::OpenProject: break; // Do nothing
+            case LoadType::LoadGeometry:; strategy = LoadStrategy::LoadModel; break;
+            default: return; // User cancelled
+        }
     }
     bool load_restore = strategy & LoadStrategy::Restore;
 
@@ -10440,7 +10449,7 @@ private:
     wxColour          m_def_color = wxColour(255, 255, 255);
     RadioSelectorList m_radio_group;
     int               m_action{1};
-    bool              m_show_again;
+    bool              m_remember_choice{false};
 
 public:
     ProjectDropDialog(const std::string &filename);
@@ -10463,7 +10472,7 @@ public:
     int       get_action() const { return m_action; }
     void      set_action(int index) { m_action = index; }
 
-    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+    wxBoxSizer *create_remember_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     wxBoxSizer *create_item_radiobox(wxString title, wxWindow *parent, int select_id, int groupid);
 
 protected:
@@ -10557,14 +10566,12 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
-    // hide the "Don't show again" checkbox
-    //wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
 
-    //auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "show_drop_project_dialog");
-    //m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
+    auto dont_show_again = create_remember_checkbox(_L("Remember my choice."), this, _L("This option can be changed later in preferences, under 'Load Behaviour'."));
+    m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
 
-    //m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
-
+    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
     wxBoxSizer *m_sizer_right  = new wxBoxSizer(wxHORIZONTAL);
@@ -10653,13 +10660,14 @@ wxBoxSizer *ProjectDropDialog ::create_item_radiobox(wxString title, wxWindow *p
 
     return sizer;
 }
-wxBoxSizer *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
+wxBoxSizer *ProjectDropDialog::create_remember_checkbox(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
-
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 5);
 
     auto checkbox = new ::CheckBox(parent);
+    checkbox->SetValue(m_remember_choice);
+    checkbox->SetToolTip(tooltip);
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
 
@@ -10667,13 +10675,11 @@ wxBoxSizer *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox_title->SetForegroundColour(wxColour(144,144,144));
     checkbox_title->SetFont(::Label::Body_13);
     checkbox_title->Wrap(-1);
+    checkbox_title->SetToolTip(tooltip);
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-     m_show_again = wxGetApp().app_config->get(param) == "true" ? true : false;
-    checkbox->SetValue(m_show_again);
-
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
-        m_show_again = m_show_again ? false : true;
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox](wxCommandEvent &e) {
+        m_remember_choice = checkbox->GetValue();
         e.Skip();
     });
 
@@ -10739,7 +10745,19 @@ void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
 
 void ProjectDropDialog::on_select_ok(wxMouseEvent &event)
 {
-    wxGetApp().app_config->set_bool("show_drop_project_dialog", m_show_again);
+    if (m_remember_choice) {
+        LoadType load_type = static_cast<LoadType>(get_action());
+        switch (load_type)
+        {
+            case LoadType::OpenProject:
+                wxGetApp().app_config->set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL);
+                break;
+            case LoadType::LoadGeometry:
+                wxGetApp().app_config->set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY);
+                break;
+        }
+    }
+
     EndModal(wxID_OK);
 }
 
@@ -10919,6 +10937,35 @@ bool Plater::load_files(const wxArrayString& filenames)
     return res;
 }
 
+LoadType determine_load_type(std::string filename, std::string override_setting)
+{
+    std::string setting;
+
+    if (override_setting != "") {
+        setting = override_setting;
+    } else {
+        setting = wxGetApp().app_config->get(SETTING_PROJECT_LOAD_BEHAVIOUR);
+    }
+
+    if (setting == OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY) {
+        return LoadType::LoadGeometry;
+    } else if (setting == OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK) {
+        ProjectDropDialog dlg(filename);
+        if (dlg.ShowModal() == wxID_OK) {
+            int      choice    = dlg.get_action();
+            LoadType load_type = static_cast<LoadType>(choice);
+            wxGetApp().app_config->set("import_project_action", std::to_string(choice));
+
+            // BBS: jump to plater panel
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+            return load_type;
+        }
+
+        return LoadType::Unknown; // Cancel
+    } else {
+        return LoadType::OpenProject;
+    }
+}
 
 bool Plater::open_3mf_file(const fs::path &file_path)
 {
@@ -10927,31 +10974,16 @@ bool Plater::open_3mf_file(const fs::path &file_path)
         return false;
     }
 
-    LoadType load_type = LoadType::Unknown;
-    if (!model().objects.empty()) {
-        bool show_drop_project_dialog = true;
-        if (show_drop_project_dialog) {
-            ProjectDropDialog dlg(filename);
-            if (dlg.ShowModal() == wxID_OK) {
-                int choice = dlg.get_action();
-                load_type  = static_cast<LoadType>(choice);
-                wxGetApp().app_config->set("import_project_action", std::to_string(choice));
-
-                // BBS: jump to plater panel
-                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-            }
-        } else
-            load_type = static_cast<LoadType>(
-                std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")), static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
-    } else
-        load_type = LoadType::OpenProject;
+    bool not_empty_plate = !model().objects.empty();
+    bool load_setting_ask_when_relevant = wxGetApp().app_config->get(SETTING_PROJECT_LOAD_BEHAVIOUR) == OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT;
+    LoadType load_type = determine_load_type(filename, (not_empty_plate && load_setting_ask_when_relevant) ? OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK : "");
 
     if (load_type == LoadType::Unknown) return false;
 
     switch (load_type) {
         case LoadType::OpenProject: {
             if (wxGetApp().can_load_project())
-                load_project(from_path(file_path));
+                load_project(from_path(file_path), "<loadall>");
             break;
         }
         case LoadType::LoadGeometry: {
