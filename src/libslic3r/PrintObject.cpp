@@ -1475,7 +1475,7 @@ void PrintObject::detect_surfaces_type()
                     // Step 3: Filter out small bridges by contracting and expanding the bridge surface by the width of the external perimeter
                     // This filters out bridges that are too narrow (less than 1 perimeter wide)
                     LayerRegion *layerm = m_layers[i]->m_regions[region_id];
-                    float        offset_distance = layerm->flow(frExternalPerimeter).scaled_width();
+                    float        offset_distance = layerm->flow(frExternalPerimeter).scaled_width() * 1.5f;
                     // Convert to ExPolygons once for offsetting
                     ExPolygons ex_bridge = to_expolygons(polygons_bridge);
                     // Shrink (negative offset) …
