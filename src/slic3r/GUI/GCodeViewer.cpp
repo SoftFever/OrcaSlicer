@@ -778,7 +778,7 @@ const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ {
     decode_color_to_float_array("#aaf200"),
     decode_color_to_float_array("#fcf903"),
     decode_color_to_float_array("#f5ce0a"),
-    //decode_color_to_float_array("#e38820"),
+    decode_color_to_float_array("#e38820"),
     decode_color_to_float_array("#d16830"),
     decode_color_to_float_array("#c2523c"),
     decode_color_to_float_array("#942616")    // reddish
