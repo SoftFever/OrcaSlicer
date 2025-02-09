@@ -669,6 +669,7 @@ static Point bounding_box_middle(const BoundingBox &bbox)
 TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_params)
     : m_object(&object), m_slicing_params(slicing_params), m_object_config(&object.config())
 {
+    m_print_config = &m_object->print()->config();
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
@@ -705,8 +706,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
     with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
-    const PrintConfig& print_config = m_object->print()->config();
-    m_machine_border.contour = get_bed_shape_with_excluded_area(print_config);
+    m_machine_border.contour = get_bed_shape_with_excluded_area(*m_print_config);
     Vec3d plate_offset       = m_object->print()->get_plate_origin();
     // align with the centered object in current plate (may not be the 1st plate, so need to add the plate offset)
     m_machine_border.translate(Point(scale_(plate_offset(0)), scale_(plate_offset(1))) - m_object->instances().front().shift);
@@ -1404,10 +1404,9 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
 
 void TreeSupport::generate_toolpaths()
 {
-    const PrintConfig &print_config = m_object->print()->config();
     const PrintObjectConfig &object_config = m_object->config();
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
-    coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_filament - 1);
+    coordf_t nozzle_diameter = m_print_config->nozzle_diameter.get_at(object_config.support_filament - 1);
     coordf_t layer_height = object_config.layer_height.value;
     const size_t wall_count = object_config.tree_support_wall_count.value;
 
@@ -1882,7 +1881,7 @@ Polygons TreeSupport::contact_nodes_to_polygon(const std::vector<Node*>& contact
 void TreeSupport::generate()
 {
     if (support_style == smsOrganic) {
-        generate_tree_support_3D(*m_object, this->throw_on_cancel);
+        generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;
     }
 
