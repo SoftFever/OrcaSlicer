@@ -197,12 +197,9 @@ public:
      *
      * \param xy_distance The required clearance between the model and the
      * tree branches.
-     * \param max_move The maximum allowable movement between nodes on
-     * adjacent layers
      * \param radius_sample_resolution Sample size used to round requested node radii.
-     * \param collision_resolution
      */
-    TreeSupportData(const PrintObject& object, coordf_t radius_sample_resolution, coordf_t collision_resolution);
+    TreeSupportData(const PrintObject& object, coordf_t xy_distance, coordf_t radius_sample_resolution);
     ~TreeSupportData() {
         clear_nodes();
     }
