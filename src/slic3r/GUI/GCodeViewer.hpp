@@ -219,6 +219,9 @@ class GCodeViewer
         float feedrate{ 0.0f };
         float fan_speed{ 0.0f };
         float temperature{ 0.0f };
+        float thermal_index_min{ 0.0f };
+        float thermal_index_max{ 0.0f };
+        float thermal_index_mean{ 0.0f };
         float volumetric_rate{ 0.0f };
         float layer_time{ 0.0f };
         unsigned char extruder_id{ 0 };
@@ -395,17 +398,40 @@ class GCodeViewer
         {
             float min;
             float max;
+            bool  is_fixed_range;
             unsigned int count;
             bool log_scale;
 
-            Range() { reset(); }
+            Range() : is_fixed_range(false)
+            {
+                reset();
+            }
+
+            /*Sometimes we want min and max of the range to be fixed to have consistent color later*/
+            Range(float min_a, float max_a): min(min_a), max(max_a), is_fixed_range(true) {
+                reset();
+            }
+
             void update_from(const float value) {
                 if (value != max && value != min)
                     ++count;
-                min = std::min(min, value);
-                max = std::max(max, value);
+                if (!is_fixed_range) {
+                    min = std::min(min, value);
+                    max = std::max(max, value);
+                }
             }
-            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = log; }
+            void reset(bool log = false)
+            {
+                if (!is_fixed_range) {
+                    min       = FLT_MAX;
+                    max       = -FLT_MAX;
+                    count     = 0;
+                    log_scale = log;
+                } else {
+                    count     = 0;
+                    log_scale = log;
+                }
+            }
 
             float step_size() const;
             ColorRGBA get_color_at(float value) const;
@@ -429,7 +455,14 @@ class GCodeViewer
             Range temperature;
             // Color mapping by layer time.
             Range layer_duration;
-Range layer_duration_log;
+            // Color mapping by thermal index min
+            Range thermal_index_min{-100.0f, 100.0f};
+            // Color mapping by thermal index max
+            Range thermal_index_max{-100.0f, 100.0f};
+            // Color mapping by thermal index mean
+            Range thermal_index_mean{-100.0f, 100.0f};
+
+		Range layer_duration_log;
             void reset() {
                 height.reset();
                 width.reset();
@@ -439,6 +472,9 @@ Range layer_duration_log;
                 temperature.reset();
                 layer_duration.reset();
                 layer_duration_log.reset(true);
+                thermal_index_min.reset();
+                thermal_index_max.reset();
+                thermal_index_mean.reset();
             }
         };
 
@@ -716,6 +752,9 @@ public:
         Feedrate,
         FanSpeed,
         Temperature,
+		ThermalIndexMin,
+		ThermalIndexMax,
+		ThermalIndexMean,
         VolumetricRate,
         Tool,
         ColorPrint,
