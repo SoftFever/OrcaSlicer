@@ -78,7 +78,9 @@ public:
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
     Vec3d           m_buffered_position;
+    Vec3d           m_buffered_position_relative;
     Vec3d           m_buffered_rotation;
+    int             m_rotate_relative = 45;
     Vec3d           m_buffered_scale;
     Vec3d           m_buffered_size;
     bool            m_new_enabled {true};
@@ -122,7 +124,8 @@ public:
     void do_render_rotate_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     void do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     float max_unit_size(int number, Vec3d &vec1, Vec3d &vec2,std::string str);
-    bool reset_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
+    float max_caption_width(float space_size);
+    bool reset_button(ImGuiWrapper *imgui_wrapper);
 
 private:
     void reset_settings_value();
