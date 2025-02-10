@@ -1473,32 +1473,27 @@ void PrintObject::detect_surfaces_type()
                         }
                     }
                     
-                    // Step 3: Filter out small bridges by contracting and expanding the bridge surface by the width of the external perimeter
-                    // This filters out bridges that are too narrow (less than 2 external perimeters and number_of_internal_walls internal perimeter wide as each bridge is a rectangle with 2x
-                    // external perimeters)
-                    LayerRegion *layerm = m_layers[i]->m_regions[region_id];
-                    int number_of_internal_walls = std::max(0, layerm->m_region->config().wall_loops - 1); // number of internal walls, clamped to a minimum of 0 as a safety precaution
-                    float        offset_distance = layerm->flow(frExternalPerimeter).scaled_width() + ((layerm->flow(frPerimeter).scaled_width()/2) * number_of_internal_walls);
-                    
-                    // Convert to ExPolygons once for offsetting
-                    ExPolygons ex_bridge = to_expolygons(polygons_bridge);
-                    // Shrink (negative offset) …
-                    ExPolygons shrunk = offset_ex(ex_bridge, -offset_distance);
-                    // … then expand (positive offset)
-                    ExPolygons expanded = offset_ex(shrunk, offset_distance);
-                    // Convert back to Polygons for further intersection
-                    polygons_bridge = to_polygons(expanded);
-                    
-                    // Step 4: Early termination of loop if no meaningfull bridge found
+                    // Step 3: Early termination of loop if no meaningfull bridge found
                     // No bridge polygons found, continue to the next layer
                     if (polygons_bridge.empty())
                         continue;
                     
-                    // Step 5: Bottom bridge polygons found - create layer+1 bridge polygons
-                    // For each surface in layer i+1, split it into overlaping polygons with the bottom bridge polygons vs remainder.
+                    // Step 4: Bottom bridge polygons found - scan and create layer+1 bridge polygon
                     Surfaces new_surfaces;
                     new_surfaces.reserve(top_surfs.size());
                     
+                    //filtering parameters here. Filter bridges that are less than 2x external walls and 2xN internal perimeters wide.
+                    LayerRegion *layerm = m_layers[i]->m_regions[region_id];
+                    int number_of_internal_walls = std::max(0, layerm->m_region->config().wall_loops - 1); // number of internal walls, clamped to a minimum of 0 as a safety precaution
+                    float        offset_distance = layerm->flow(frExternalPerimeter).scaled_width() // shrink down by external perimeter width (effectively filtering out 2x external perimeters wide bridges)
+                                                    + ((layerm->flow(frPerimeter).scaled_width()) * number_of_internal_walls); // shrink down by number of external walls * width of them, effectively filtering out 2x internal perimeter wide bridges
+                    // The reason for doing the above filtering is that in pure bridges, the walls are always printed separately as overhang walls. Here we care abpout the bridge infill which is distinct and is the remainder
+                    // of the bridge area minus the perimeter width on both sides of the bridge itself.
+                    // This would also skip generation of very short dual bridge layers (that are shorter than N perimeters), but these are unecessary as the brifge distance is
+                    // We could reduce this slightly to account for innacurcies in the clipping operation.
+                    // TODO: Monitor GH issues to check whether second bridge layers are ommited where they should be generated. If yes, reduce the filtering distance
+                    
+                    // For each surface in the layer above
                     for (Surface &s_up : top_surfs) {
                         // Only reclassify stInternal polygons (i.e. what will become later solid and sparse infill)
                         // Leave the rest unaffected
@@ -1506,17 +1501,23 @@ void PrintObject::detect_surfaces_type()
                             new_surfaces.push_back(std::move(s_up)); // do not modify them
                             continue; // continue to the next surface
                         }
-                        // Check stInternal polygons for overlap with the bottom bridging polygons on the layer underneath.
+                        // Identify stInternal polygons that overlap with the bridging polygons on the layer underneath.
                         Polygons p_up = to_polygons(s_up);
                         ExPolygons overlap   = intersection_ex(p_up, polygons_bridge , ApplySafetyOffset::Yes);
-                        ExPolygons remainder = diff_ex(p_up, polygons_bridge, ApplySafetyOffset::Yes);
+                        // Filter out the resulting candidate bridges based on size. First perform a shrink operation (negative offset)...
+                        ExPolygons shrunk = offset_ex(overlap, -offset_distance);
+                        // ...followed by an expand operation to bring them back to the original size (positive offset)
+                        overlap = offset_ex(shrunk, offset_distance);
                         
-                        // Remainder stays stInternal
+                        // Now subtract the filtered new bridge layer from the remaining internal surfaces to create the new internal surface
+                        ExPolygons remainder = diff_ex(p_up, overlap, ApplySafetyOffset::Yes);
+                        
+                        // Remainder stays as stInternal
                         for (auto &ex_remainder : remainder) {
                             Surface s(stInternal, ex_remainder);
                             new_surfaces.push_back(std::move(s));
                         }
-                        // Overlap portion becomes new polygon type - stInternalAfterBridge
+                        // Overlap portion becomes the new polygon type - stInternalAfterBridge
                         for (auto &ex_overlap : overlap) {
                             Surface s(stInternalAfterBridge, ex_overlap);
                             new_surfaces.push_back(std::move(s));
