@@ -1079,6 +1079,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "rotate_solid_infill_direction"
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
+            || opt_key == "internal_bridge_angle" // ORCA: Internal bridge angle override
             //BBS
             || opt_key == "bridge_density") {
             steps.emplace_back(posPrepareInfill);
@@ -2743,6 +2744,10 @@ void PrintObject::bridge_over_infill()
                         // Also, use Infill pattern that is neutral for angle determination, since there are no infill lines.
                         bridging_angle = determine_bridging_angle(area_to_be_bridge, to_lines(boundary_plines), InfillPattern::ipLine, 0);
                     }
+                    
+                    // ORCA: Internal bridge angle override
+                    if (candidate.region->region().config().internal_bridge_angle > 0)
+                        bridging_angle = candidate.region->region().config().internal_bridge_angle.value * PI / 180.0; // Convert degrees to radians
 
                     boundary_plines.insert(boundary_plines.end(), anchors.begin(), anchors.end());
                     if (!lightning_area.empty() && !intersection(area_to_be_bridge, lightning_area).empty()) {

@@ -535,7 +535,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, has_solid_infill);
     
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
+        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","internal_bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
         toggle_field(el, have_infill || has_solid_infill);
     
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
