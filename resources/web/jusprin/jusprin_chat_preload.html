@@ -49,7 +49,7 @@
             document.querySelector('.error').style.display = 'none';
         }
 
-        function checkAndRedirectToChatServer() {
+        function checkAndRedirectToChatServer(developerMode = false) {
             showLoading();
 
             if (typeof CHAT_SERVER_URL === 'undefined') {
@@ -63,7 +63,10 @@
                 showError();
             }, 5000); // 5 second timeout
 
-            const pageUrl = CHAT_SERVER_URL + '/v0.3/embedded_chat/';
+            let pageUrl = CHAT_SERVER_URL + '/v0.3/embedded_chat/';
+            if (developerMode) {
+                pageUrl += '?devmode=true';
+            }
             fetch(pageUrl, {
                 method: 'HEAD',
                 mode: 'no-cors'
