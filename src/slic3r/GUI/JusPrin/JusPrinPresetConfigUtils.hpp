@@ -17,6 +17,7 @@ public:
     static void DiscardCurrentPresetChanges();
     static void UpdatePresetTabs();
     static void ApplyConfig(const nlohmann::json& item);
+    static void SelectPreset(const std::string& type, const std::string& presetName);
 };
 
 }} // namespace Slic3r::GUI

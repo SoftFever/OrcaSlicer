@@ -87,7 +87,6 @@ private:
 
     void OnActionCallReceived(wxWebViewEvent& event);
 
-    void UpdatePresetTabs();
     void AdvertiseSupportedAction();
 
     wxWebView* m_browser;
