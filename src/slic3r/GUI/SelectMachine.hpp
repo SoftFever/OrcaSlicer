@@ -103,7 +103,8 @@ enum PrintDialogStatus {
     PrintStatusTimelapseWarning,
     PrintStatusMixAmsAndVtSlotWarning,
     PrintStatusPublicInitFailed,
-    PrintStatusPublicUploadFiled
+    PrintStatusPublicUploadFiled,
+    PrintStatusInvalidMapping
 };
 
 

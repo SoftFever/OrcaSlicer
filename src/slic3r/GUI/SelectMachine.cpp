@@ -1767,6 +1767,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(_L("AMS is setting up. Please try again later."), false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
         update_print_status_msg(wxEmptyString, false, true, true);
+    } else if (status == PrintDialogStatus::PrintStatusInvalidMapping) {
+        update_print_status_msg(wxEmptyString, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text;
         if (params.size() > 0)
@@ -3224,6 +3226,17 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
+
+    // disable print when there is no mapping
+    if (obj_->m_extder_data.total_extder_count > 1) {
+        for (auto mres : m_ams_mapping_result) {
+            if (mres.ams_id.empty() && mres.slot_id.empty()) {
+                show_status(PrintDialogStatus::PrintStatusInvalidMapping);
+                return;
+            }
+        }
+    }
+
     // no ams
     if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
         if (!has_tips(obj_)) {
@@ -3249,10 +3262,6 @@ void SelectMachineDialog::update_show_status()
 
         return;
     }
-
-    //if (m_ams_mapping_result.empty()) {
-    //    do_ams_mapping(obj_);
-    //}
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
@@ -4499,6 +4508,7 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
     case PrintStatusUnsupportedPrinter: return "PrintStatusUnsupportedPrinter";
     case PrintStatusTimelapseNoSdcard: return "PrintStatusTimelapseNoSdcard";
     case PrintStatusNotSupportedPrintAll: return "PrintStatusNotSupportedPrintAll";
+    case PrintStatusInvalidMapping: return "PrintStatusInvalidMapping";
     }
     return "unknown";
 }
