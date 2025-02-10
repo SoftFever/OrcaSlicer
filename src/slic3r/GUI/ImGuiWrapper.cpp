@@ -3160,17 +3160,34 @@ void ImGuiWrapper::clipboard_set(void* /* user_data */, const char* text)
     }
 }
 
-void ImGuiWrapper::filament_group(const std::string &filament_type, const char *hex_color, unsigned char filament_id)
+std::tuple<ImVec2, bool>  ImGuiWrapper::calculate_filament_group_text_size(const std::string& filament_type)
+{
+    ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
+    float         four_word_width = ImGui::CalcTextSize("ABCD").x;
+
+    float wrap_width = four_word_width;
+    float line_height = ImGui::GetTextLineHeight();
+
+    bool is_multiline = text_size.x > wrap_width;
+    int line_count = std::ceil(text_size.x / wrap_width);
+    float text_height = line_count * line_height;
+
+    float final_width = is_multiline ? wrap_width : text_size.x;
+    float final_height = line_count * line_height;
+
+    return { { final_width,final_height },is_multiline };
+}
+
+void ImGuiWrapper::filament_group(const std::string& filament_type, const char* hex_color, unsigned char filament_id, float align_width)
 {
     //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     std::string id = std::to_string(static_cast<unsigned int> (filament_id + 1));
-    ImDrawList *draw_list = ImGui::GetWindowDrawList();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
     static ImTextureID transparent;
     ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
     // BBS image sizing based on text width (DPI scaling)
-    float         four_word_width    = ImGui::CalcTextSize("ABCD").x;
-    float         img_width    = ImGui::CalcTextSize("ABC").x;
-    ImVec2        img_size     = {img_width, img_width * 1.5f};
+    float         img_width = ImGui::CalcTextSize("ABC").x;
+    ImVec2        img_size = { img_width, img_width * 1.5f };
     ImVec2        id_text_size = this->calc_text_size(id);
     unsigned char rgba[4];
     rgba[3] = 0xff;
@@ -3182,24 +3199,40 @@ void ImGuiWrapper::filament_group(const std::string &filament_type, const char *
     BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + svg_path, img_size.x, img_size.y, transparent, hex_color);
     ImGui::BeginGroup();
     {
-    ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
-        draw_list->AddImage(transparent, cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, {0, 0}, {1, 1}, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
-    // image border test
-    // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
-    ImVec2 current_cursor = ImGui::GetCursorPos();
-    ImGui::SetCursorPos({current_cursor.x + (img_size.x - id_text_size.x) * 0.5f + 2, current_cursor.y + (img_size.y - id_text_size.y) * 0.5f - 2});
-    
-    float gray = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2];
-    ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
-    this->text_colored(text_color, id.c_str());
-    float text_width_max = four_word_width;
-    if (filament_type.size() < 4) text_width_max = text_size.x;
-    current_cursor = ImGui::GetCursorPos();
-    ImGui::SetCursorPos({current_cursor.x + (img_size.x - text_width_max) * 0.5f + 2, current_cursor.y + 4});
-    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + four_word_width);
-    this->text(filament_type);
-    ImGui::PopTextWrapPos();
-    ImGui::EndGroup();
+        ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+        draw_list->AddImage(transparent, cursor_pos, { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y }, { 0, 0 }, { 1, 1 }, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
+        // image border test
+        // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
+        ImVec2 current_cursor = ImGui::GetCursorPos();
+        ImGui::SetCursorPos({ current_cursor.x + (img_size.x - id_text_size.x) * 0.5f + 2, current_cursor.y + (img_size.y - id_text_size.y) * 0.5f - 2 });
+
+        float gray = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2];
+        ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
+        this->text_colored(text_color, id.c_str());
+
+        auto wrapped_text_info = calculate_filament_group_text_size(filament_type);
+        ImVec2 wrapped_text_size = std::get<0>(wrapped_text_info);
+        bool is_multiline = std::get<1>(wrapped_text_info);
+
+        float text_y_offset = 4.f;
+        float text_x_offset = is_multiline ? (img_size.x - wrapped_text_size.x) * 0.5f + 2.f : (img_size.x - wrapped_text_size.x) * 0.5f + 2.f;
+
+        auto cursor_x_before_text = ImGui::GetCursorPosX();
+        current_cursor = ImGui::GetCursorPos();
+        ImGui::SetCursorPos({
+            current_cursor.x + text_x_offset,
+            current_cursor.y + text_y_offset
+            });
+
+        if (is_multiline) {
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrapped_text_size.x);
+        }
+        this->text(filament_type);
+        if (is_multiline) {
+            ImGui::PopTextWrapPos();
+        }
+        ImGui::Dummy(ImVec2(align_width, 0));
+        ImGui::EndGroup();
     }
     //ImGui::PopStyleVar(1);
 }

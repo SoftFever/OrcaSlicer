@@ -155,7 +155,10 @@ public:
     void text_wrapped(const wxString &label, float wrap_width);
     void tooltip(const char *label, float wrap_width);
     void tooltip(const wxString &label, float wrap_width);
-    void filament_group(const std::string &filament_type, const char *hex_color, unsigned char filament_id);
+    void filament_group(const std::string &filament_type, const char *hex_color, unsigned char filament_id, float align_width);
+
+    // text size and is_multi_line
+    std::tuple<ImVec2,bool> calculate_filament_group_text_size(const std::string& filament_type);
     void sub_title(const std::string &label);
 
 

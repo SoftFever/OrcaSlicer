@@ -988,11 +988,12 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     std::vector<int>         filament_maps = print.get_filament_maps();
     std::vector<std::string> color_opt     = print.config().option<ConfigOptionStrings>("filament_colour")->values;
     std::vector<std::string> type_opt      = print.config().option<ConfigOptionStrings>("filament_type")->values;
+    std::vector<unsigned char> support_filament_opt = print.config().option<ConfigOptionBools>("filament_is_support")->values;
     for (auto extruder_id : m_extruder_ids) {
         if (filament_maps[extruder_id] == 1) {
-            m_left_extruder_filament.push_back({type_opt[extruder_id], color_opt[extruder_id], extruder_id});
+            m_left_extruder_filament.push_back({type_opt[extruder_id], color_opt[extruder_id], extruder_id, (bool)(support_filament_opt[extruder_id])});
         } else {
-            m_right_extruder_filament.push_back({type_opt[extruder_id], color_opt[extruder_id], extruder_id});
+            m_right_extruder_filament.push_back({type_opt[extruder_id], color_opt[extruder_id], extruder_id, (bool)(support_filament_opt[extruder_id])});
         }
     }
     //BBS: add mutex for protection of gcode result
@@ -4489,11 +4490,38 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     bool less_to_single_ext = delta_weight_to_single_ext > EPSILON || delta_change_to_single_ext > 0;
     bool more_to_best = delta_weight_to_best > EPSILON || delta_change_to_best > 0;
 
+    auto get_filament_display_type = [](const ExtruderFilament& filament) {
+        if (filament.is_support_filament && (filament.type == "PLA" || filament.type == "PA" || filament.type == "ABS"))
+            return "Sup." + filament.type;
+        return filament.type;
+        };
+
+
     // BBS AMS containers
     float line_height          = ImGui::GetFrameHeight();
-    int   AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
-    float three_words_width    = imgui.calc_text_size("ABC"sv).x;
-    float ams_item_height = std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.6f + line_height) + line_height * 2;
+    float ams_item_height = 0;
+    float filament_group_item_align_width = 0;
+    {
+        float three_words_width    = imgui.calc_text_size("ABC"sv).x;
+        const int line_capacity = 4;
+
+        for (const auto& extruder_filaments : {m_left_extruder_filament,m_right_extruder_filament })
+        {
+            float container_height = 0.f;
+            for (size_t idx = 0; idx < extruder_filaments.size(); idx += line_capacity) {
+                float text_line_height = 0;
+                for (int j = idx; j < extruder_filaments.size() && j < idx + line_capacity; ++j) {
+                    auto text_info = imgui.calculate_filament_group_text_size(get_filament_display_type(extruder_filaments[j]));
+                    auto text_size = std::get<0>(text_info);
+                    filament_group_item_align_width = max(filament_group_item_align_width, text_size.x);
+                    text_line_height = max(text_line_height, text_size.y);
+                }
+                container_height += (three_words_width * 1.5f + text_line_height );
+            }
+            container_height += 2 * line_height;
+            ams_item_height = std::max(ams_item_height, container_height);
+        }
+    }
 
     int tips_count = 8;
     if (more_to_best)
@@ -4538,7 +4566,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_left_extruder_filament) {
-                imgui.filament_group(extruder_filament.type, extruder_filament.hex_color.c_str(), extruder_filament.filament_id);
+                imgui.filament_group(get_filament_display_type(extruder_filament), extruder_filament.hex_color.c_str(), extruder_filament.filament_id, filament_group_item_align_width);
                 if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
                 index++;
             }
@@ -4553,7 +4581,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImGui::Dummy({window_padding, window_padding});
             int index = 1;
             for (const auto &extruder_filament : m_right_extruder_filament) {
-                imgui.filament_group(extruder_filament.type, extruder_filament.hex_color.c_str(), extruder_filament.filament_id);
+                imgui.filament_group(get_filament_display_type(extruder_filament), extruder_filament.hex_color.c_str(), extruder_filament.filament_id, filament_group_item_align_width);
                 if (index % 4 != 0) { ImGui::SameLine(0, spacing); }
                 index++;
             }

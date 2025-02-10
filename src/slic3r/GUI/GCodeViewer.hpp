@@ -704,6 +704,7 @@ public:
         std::string   type;
         std::string   hex_color;
         unsigned char filament_id;
+        bool is_support_filament;
     };
 
     enum class EViewType : unsigned char
