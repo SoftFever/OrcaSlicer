@@ -1742,7 +1742,10 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
-            std::string filament_types_str = config.option<ConfigOptionStrings>("unprintable_filament_types")->values.at(extruder_idx);
+            std::string filament_types_str;
+            auto unprintable_filament_types = config.option<ConfigOptionStrings>("unprintable_filament_types")->values;
+            if (extruder_idx < unprintable_filament_types.size())
+                filament_types_str = unprintable_filament_types.at(extruder_idx);
             std::vector<string> filament_types = split_string(filament_types_str, ',');
             auto iter = std::find(filament_types.begin(), filament_types.end(), filament_type);
             if (iter != filament_types.end()) {
