@@ -1512,7 +1512,7 @@ Sidebar::Sidebar(Plater *parent)
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
 
-        ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "dot");
+        ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "help");
         wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
             wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
         });
@@ -1534,14 +1534,6 @@ Sidebar::Sidebar(Plater *parent)
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, isDual ? 48 : 32));
             e.Skip(); // fix bug:Event spreads to sidebar
         });
-
-        {
-        auto hovered = std::make_shared<wxWindow *>();
-        for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_bed, wiki_bed, p->image_printer_bed, p->combo_printer_bed}) {
-            w->Bind(wxEVT_ENTER_WINDOW, [w, hovered, wiki_bed](wxMouseEvent &evt) { *hovered = w; wiki_bed->SetBitmap_("help"); });
-            w->Bind(wxEVT_LEAVE_WINDOW, [w, hovered, wiki_bed](wxMouseEvent &evt) { if (*hovered == w) { wiki_bed->SetBitmap_("dot"); *hovered = nullptr; } });
-        }
-        }
 
         wxBoxSizer *bed_type_sizer = new wxBoxSizer(wxVERTICAL);
         bed_type_sizer->AddStretchSpacer(1);
