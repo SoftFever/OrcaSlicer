@@ -132,9 +132,11 @@ void JusPrinChatPanel::SendNativeErrorOccurredEvent(const std::string& error_mes
 
 // Actions for preload.html only
 void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json& params) {
+    bool isDeveloperMode = wxGetApp().app_config->get_bool("developer_mode");
     wxString strJS = wxString::Format(
-        "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer();",
-        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"));
+        "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer(developerMode =%s);",
+        wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"),
+        isDeveloperMode ? "true" : "false");
     WebView::RunScript(m_browser, strJS);
 }
 
