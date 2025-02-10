@@ -217,7 +217,7 @@ void JusPrinPlateUtils::RenderThumbnail(ThumbnailData& thumbnail_data,
 
     plate_build_volume.min.z() = plate_build_volume.max.z() = 0.0;
     camera.zoom_to_box(plate_build_volume, 1.0);
-    camera.look_at(camera_position, target, Vec3d::UnitY() + Vec3d::UnitZ());
+    camera.look_at(camera_position, target, Vec3d::UnitZ());
 
     const Transform3d& view_matrix = camera.get_view_matrix();
     camera.apply_projection(plate_build_volume);
