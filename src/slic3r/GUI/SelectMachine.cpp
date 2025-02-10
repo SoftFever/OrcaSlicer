@@ -1552,10 +1552,10 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     sizer_check->Add(check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
 
     sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
-    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(11));
+    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(7));
 
     auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    text->SetFont(::Label::Body_13);
+    text->SetFont(::Label::Body_12);
     text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
     text->Wrap(-1);
     sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
