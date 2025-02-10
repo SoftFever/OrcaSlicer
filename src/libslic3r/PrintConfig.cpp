@@ -2476,8 +2476,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBools { false });
 
     def           = this->add("filament_change_length", coFloats);
-    def->label    = L("Filament change length");
-    def->tooltip  = L("Filament change length");
+    def->label    = L("Filament ramming length");
+    def->tooltip  = L("the ramming length of this filament when changing extruder");
     def->sidetext = L("mm");
     def->min      = 0;
     def->mode     = comAdvanced;
