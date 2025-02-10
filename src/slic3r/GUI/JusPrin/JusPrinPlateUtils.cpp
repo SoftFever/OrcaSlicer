@@ -4,6 +4,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
+#include <boost/beast/core/detail/base64.hpp>
 
 namespace Slic3r { namespace GUI {
 
@@ -28,12 +29,53 @@ static void z_debug_output_thumbnail(const ThumbnailData& thumbnail_data, std::s
     image.SaveFile(file_name_path, wxBITMAP_TYPE_PNG);
 }
 
-nlohmann::json JusPrinPlateUtils::GetPlate2DImages(const nlohmann::json& params) {
+static std::string encode_thumbnail_to_base64(const ThumbnailData& thumbnail_data, bool use_png = true) {
+    // Create wxImage from thumbnail data
+    wxImage image(thumbnail_data.width, thumbnail_data.height);
+    image.InitAlpha();
+
+    for (unsigned int r = 0; r < thumbnail_data.height; ++r) {
+        unsigned int rr = (thumbnail_data.height - 1 - r) * thumbnail_data.width;
+        for (unsigned int c = 0; c < thumbnail_data.width; ++c) {
+            unsigned char* px = (unsigned char*)thumbnail_data.pixels.data() + 4 * (rr + c);
+            image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+            image.SetAlpha((int)c, (int)r, px[3]);
+        }
+    }
+
+    // Convert wxImage to memory stream
+    wxMemoryOutputStream stream;
+    if (use_png) {
+        image.SaveFile(stream, wxBITMAP_TYPE_PNG);
+    } else {
+        image.SaveFile(stream, wxBITMAP_TYPE_JPEG);
+    }
+
+    // Get the binary data
+    const size_t data_size = stream.GetSize();
+    std::vector<unsigned char> buffer(data_size);
+    stream.CopyTo(buffer.data(), data_size);
+
+    // Convert to base64
+    std::string base64_data;
+    base64_data.resize(boost::beast::detail::base64::encoded_size(data_size));
+    boost::beast::detail::base64::encode(base64_data.data(), buffer.data(), data_size);
+
+    // Add appropriate data URI prefix
+    std::string data_uri = "data:image/";
+    data_uri += (use_png ? "png" : "jpeg");
+    data_uri += ";base64,";
+    data_uri += base64_data;
+
+    return data_uri;
+}
+
+nlohmann::json JusPrinPlateUtils::RenderPlateView(const nlohmann::json& params) {
     nlohmann::json payload = params.value("payload", nlohmann::json::object());
     if (payload.is_null() ||
         payload.value("plateIndex", -1) == -1 ||
         !payload.contains("views")) {
-        BOOST_LOG_TRIVIAL(error) << "GetPlate2DImages: missing required parameters";
+        BOOST_LOG_TRIVIAL(error) << "RenderPlateView: missing required parameters";
         throw std::runtime_error("Missing required parameters");
     }
 
@@ -41,16 +83,16 @@ nlohmann::json JusPrinPlateUtils::GetPlate2DImages(const nlohmann::json& params)
     auto views = payload["views"];
 
     if (!views.is_array()) {
-        BOOST_LOG_TRIVIAL(error) << "GetPlate2DImages: views must be an array";
+        BOOST_LOG_TRIVIAL(error) << "RenderPlateView: views must be an array";
         throw std::runtime_error("Views must be an array");
     }
 
-    std::vector<ThumbnailData> thumbnails;
+    nlohmann::json result = nlohmann::json::array();
 
     // Generate thumbnails for each view
     for (const auto& view : views) {
         if (!view.contains("camera_position") || !view.contains("target")) {
-            BOOST_LOG_TRIVIAL(error) << "GetPlate2DImages: each view must contain camera_position and target";
+            BOOST_LOG_TRIVIAL(error) << "RenderPlateView: each view must contain camera_position and target";
             throw std::runtime_error("Invalid view format");
         }
 
@@ -70,13 +112,18 @@ nlohmann::json JusPrinPlateUtils::GetPlate2DImages(const nlohmann::json& params)
         );
 
         ThumbnailData data;
-        data.set(1024, 1024);
+        data.set(512, 512);
         RenderThumbnail(data, camera_position, target);
-        thumbnails.push_back(data);
+
+        // Convert to base64-encoded image
+        std::string base64_image = encode_thumbnail_to_base64(data, true); // true for PNG, false for JPEG
+
+        result.push_back({
+            {"base64", base64_image}
+        });
     }
 
-    // TODO: Process thumbnails as needed
-    return nlohmann::json();
+    return result;
 }
 
 void JusPrinPlateUtils::RenderThumbnail(ThumbnailData& thumbnail_data,
@@ -211,11 +258,11 @@ void JusPrinPlateUtils::RenderThumbnail(ThumbnailData& thumbnail_data,
     glsafe(::glReadPixels(0, 0, thumbnail_data.width, thumbnail_data.height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
 
     // Debug output
-    std::string file_name = "zzh_" +
-        std::to_string(int(camera_position.x()*100)) + "_" +
-        std::to_string(int(camera_position.y()*100)) + "_" +
-        std::to_string(int(camera_position.z()*100));
-    z_debug_output_thumbnail(thumbnail_data, file_name);
+    // std::string file_name = "zzh_" +
+    //     std::to_string(int(camera_position.x()*100)) + "_" +
+    //     std::to_string(int(camera_position.y()*100)) + "_" +
+    //     std::to_string(int(camera_position.z()*100));
+    // z_debug_output_thumbnail(thumbnail_data, file_name);
 
     BOOST_LOG_TRIVIAL(info) << "RenderThumbnail: finished";
 }
