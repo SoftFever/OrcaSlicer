@@ -687,7 +687,6 @@ void AMSextruder::OnAmsLoading(bool load, int nozzle_id, wxColour col /*= AMS_CO
             }
         }
     }
-    Refresh();
 }
 
 void AMSextruder::updateNozzleNum(int nozzle_num)
@@ -2286,21 +2285,25 @@ void AMSRoadDownPart::doRender(wxDC& dc)
 void AMSRoadDownPart::UpdatePassRoad(AMSPanelPos pos, int len, AMSPassRoadSTEP step) {
     if (m_nozzle_num >= 2){
         if (pos == AMSPanelPos::LEFT_PANEL){
+            if (m_left_road_length == len && m_pass_road_left_step == step){ return; }
             m_left_road_length = len;;
             m_pass_road_left_step = step;
         }
         else{
+            if (m_right_road_length == len && m_pass_road_right_step == step) { return; }
             m_right_road_length = len;
             m_pass_road_right_step = step;
         }
     }
     else{
         if (pos == AMSPanelPos::LEFT_PANEL) {
+            if (m_left_road_length == len && m_pass_road_left_step == step && m_right_road_length == -1) { return; }
             m_left_road_length = len;
             m_right_road_length = -1;
             m_pass_road_left_step = step;
         }
         else {
+            if (m_right_road_length == len && m_pass_road_right_step == step && m_left_road_length == -1) { return; }
             m_right_road_length = len;
             m_left_road_length = -1;
             m_pass_road_right_step = step;
