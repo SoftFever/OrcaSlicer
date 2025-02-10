@@ -116,12 +116,14 @@ nlohmann::json JusPrinPlateUtils::RenderPlateView(const nlohmann::json& params) 
         auto camera_pos_json = view["camera_position"];
         auto target_json = view["target"];
 
+        // Look at Camera::select_view for how to calculate camera_position
         Vec3d camera_position(
             camera_pos_json.value("x", 0.0),
             camera_pos_json.value("y", 0.0),
             camera_pos_json.value("z", 0.0)
         );
 
+        // Good choice is at the center of the plate. But it may be beneficial to target a little bit above the plate center.
         Vec3d target(
             target_json.value("x", 0.0),
             target_json.value("y", 0.0),
