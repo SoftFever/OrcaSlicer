@@ -16,6 +16,8 @@
 #include "JusPrinPresetConfigUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Orient.hpp"
+#include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/PartPlate.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -66,6 +68,7 @@ private:
     nlohmann::json handle_get_presets(const nlohmann::json& params);
     nlohmann::json handle_get_edited_presets(const nlohmann::json& params);
     nlohmann::json handle_get_plates(const nlohmann::json& params);
+    nlohmann::json handle_get_plate_2d_images(const nlohmann::json& params);
     nlohmann::json handle_select_preset(const nlohmann::json& params);
     nlohmann::json handle_apply_config(const nlohmann::json& params);
     nlohmann::json handle_add_printers(const nlohmann::json& params);

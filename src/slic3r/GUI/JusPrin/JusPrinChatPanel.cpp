@@ -10,8 +10,10 @@
 #include "slic3r/GUI/Jobs/OrientJob.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include "JusPrinPresetConfigUtils.hpp"
+#include "JusPrinPlateUtils.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -73,6 +75,7 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["get_presets"] = &JusPrinChatPanel::handle_get_presets;
     json_action_handlers["get_edited_presets"] = &JusPrinChatPanel::handle_get_edited_presets;
     json_action_handlers["get_plates"] = &JusPrinChatPanel::handle_get_plates;
+    json_action_handlers["get_plate_2d_images"] = &JusPrinChatPanel::handle_get_plate_2d_images;
     json_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     json_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     json_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
@@ -161,37 +164,11 @@ nlohmann::json JusPrinChatPanel::handle_get_edited_presets(const nlohmann::json&
 }
 
 nlohmann::json JusPrinChatPanel::handle_get_plates(const nlohmann::json& params) {
-    nlohmann::json j = nlohmann::json::array();
+    return JusPrinPlateUtils::GetPlates(params);
+}
 
-    for (const auto& plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
-        nlohmann::json plate_info;
-        plate_info["name"] = plate->get_plate_name();
-        plate_info["index"] = plate->get_index();
-
-        // Loop through each ModelObject
-        nlohmann::json objects_info = nlohmann::json::array();
-        for (const auto& obj : plate->get_objects_on_this_plate()) {
-            nlohmann::json object_info;
-            object_info["id"] = std::to_string(obj->id().id);
-            object_info["name"] = obj->name;
-
-            auto object_grid_config = &(obj->config);
-            int extruder_id = -1;  // Default extruder ID
-            auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-            if (extruder_id_ptr) {
-                extruder_id = *extruder_id_ptr;
-            }
-            object_info["extruderId"] = extruder_id;
-
-
-            objects_info.push_back(object_info);
-        }
-        plate_info["modelObjects"] = objects_info;
-
-        j.push_back(plate_info);
-    }
-
-    return j;
+nlohmann::json JusPrinChatPanel::handle_get_plate_2d_images(const nlohmann::json& params) {
+    return JusPrinPlateUtils::GetPlate2DImages(params);
 }
 
 nlohmann::json JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
@@ -419,6 +396,10 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
         auto void_it = void_action_handlers.find(action);
         if (void_it != void_action_handlers.end()) {
             (this->*(void_it->second))(jsonObject);
+        }
+        auto json_it = json_action_handlers.find(action);
+        if (json_it != json_action_handlers.end()) {
+            (this->*(json_it->second))(jsonObject);
         }
     }
 }
