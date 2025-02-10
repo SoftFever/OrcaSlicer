@@ -8,6 +8,23 @@
 
 namespace Slic3r { namespace GUI {
 
+namespace {
+    nlohmann::json bbox_to_json(const BoundingBoxf3& bbox) {
+        return {
+            {"min", {
+                {"x", bbox.min.x()},
+                {"y", bbox.min.y()},
+                {"z", bbox.min.z()}
+            }},
+            {"max", {
+                {"x", bbox.max.x()},
+                {"y", bbox.max.y()},
+                {"z", bbox.max.z()}
+            }}
+        };
+    }
+}
+
 static void z_debug_output_thumbnail(const ThumbnailData& thumbnail_data, std::string file_name)
 {
     // debug export of generated image
@@ -274,6 +291,7 @@ nlohmann::json JusPrinPlateUtils::GetPlates(const nlohmann::json& params) {
         nlohmann::json plate_info;
         plate_info["name"] = plate->get_plate_name();
         plate_info["index"] = plate->get_index();
+        plate_info["bounding_box"] = bbox_to_json(plate->get_plate_box());
 
         // Loop through each ModelObject
         nlohmann::json objects_info = nlohmann::json::array();
