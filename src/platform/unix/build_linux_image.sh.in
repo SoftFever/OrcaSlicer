@@ -8,7 +8,7 @@ while getopts ":ih" opt; do
     i )
         export BUILD_IMAGE="1"
         ;;
-    h ) echo "Usage: ./BuildLinuxImage.sh [-i]"
+    h ) echo "Usage: ./build_linux_image.sh [-i]"
         echo "   -i: Generate Appimage (optional)"
         exit 0
         ;;
