@@ -187,7 +187,19 @@ public:
     Polygon generate_rib_polygon(const box_coordinates &wt_box);
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width_real; }
-    BoundingBoxf get_bbx() const { return m_wipe_tower_bbx; }
+    BoundingBoxf get_bbx() const {
+        BoundingBox  box = get_extents(m_outer_wall.front());
+        BoundingBoxf res = BoundingBoxf(unscale(box.min), unscale(box.max));
+        return res;
+    }
+    Polylines get_outer_wall() const {
+        Polylines res = m_outer_wall;
+        Point trans = scaled(m_rib_offset);
+        for (auto &polyline : res)
+            for (auto &p : polyline.points)
+                p += trans;
+        return res;
+    }
     float get_height() const { return m_wipe_tower_height; }
     float get_layer_height() const { return m_layer_height; }
 
@@ -456,8 +468,8 @@ private:
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
-    BoundingBoxf    m_wipe_tower_bbx;
     std::vector<Vec2f> m_wall_skip_points;
+    std::vector<Polyline> m_outer_wall;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
 
 	// Calculates length of extrusion line to extrude given volume

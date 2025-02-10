@@ -2959,26 +2959,17 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
             // for skirt calculation and pass it to GLCanvas for precise preview box
             m_wipe_tower_brim_width_real = loops_num * spacing + spacing / 2.f;
             //m_wipe_tower_brim_width_real = wt_box.ld.x() - box.ld.x() + spacing / 2.f;
-
-            // set wipe_tower_bbx
-            auto real_polygon = outer_wall;
-            real_polygon      = offset(real_polygon, scaled(spacing/2.f)).front();
-            auto real_box     = get_extents(real_polygon);
-            m_wipe_tower_bbx  = BoundingBoxf(unscale(real_box.min), unscale(real_box.max));
         }
         //wt_box = box;
     }
-    else {
-        if (first_layer) {
-            auto real_polygon = outer_wall;
-            real_polygon      = offset(real_polygon, scaled(spacing / 2.f)).front();
-            auto real_box     = get_extents(real_polygon);
-            m_wipe_tower_bbx = BoundingBoxf(unscale(real_box.min), unscale(real_box.max));
-        }
-    }
 
-    if (extrude_perimeter || loops_num > 0)
+    if (extrude_perimeter || loops_num > 0) {
         writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
+        if (!extrude_perimeter)
+            m_outer_wall.back() = to_polyline(outer_wall);
+        else
+            m_outer_wall.push_back(to_polyline(outer_wall));
+    }
     else {
         // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
         Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
@@ -3630,7 +3621,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
     int wall_filament = get_wall_filament_for_all_layer();
 
     std::vector<WipeTower::ToolChangeResult> layer_result;
-
+    m_outer_wall.reserve(m_plan.size());
     int index = 0;
     for (auto layer : m_plan) {
         reset_block_status();
@@ -3790,6 +3781,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         }
         result.emplace_back(std::move(layer_result));
     }
+    assert(m_outer_wall.size() == m_plan.size());
 }
 
 
@@ -3939,13 +3931,13 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
     //else
     //    writer.rectangle(wt_box, feedrate);
     outer_wall = generate_support_wall_new(writer, wt_box, feedrate, first_layer, m_use_rib_wall, true, m_use_gap_wall);
+    m_outer_wall.push_back( to_polyline(outer_wall));
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
 
     // Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
     //writer.add_wipe_point(writer.pos()).add_wipe_point(target);
 
     writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
-
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
     // Ask our writer about how much material was consumed.

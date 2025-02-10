@@ -224,7 +224,8 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
     LinesBucketQueue conflictQueue;
 
     if (wtdptr.has_value()) { // wipe tower at 0 by default
-        auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
+        //auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
+        auto wtpaths = wtdptr.value()->getTrueExtrusionPathsFromWipeTower();
         ExtrusionLayers wtels;
         wtels.type = ExtrusionLayersType::WIPE_TOWER;
         for (int i = 0; i < wtpaths.size(); ++i) { // assume that wipe tower always has same height
