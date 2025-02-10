@@ -152,4 +152,25 @@ void JusPrinPresetConfigUtils::ApplyConfig(const nlohmann::json& item) {
     }
 }
 
+void JusPrinPresetConfigUtils::SelectPreset(const std::string& type, const std::string& presetName) {
+    Preset::Type preset_type;
+    if (type == "print") {
+        preset_type = Preset::Type::TYPE_PRINT;
+    } else if (type == "filament") {
+        preset_type = Preset::Type::TYPE_FILAMENT;
+    } else if (type == "printer") {
+        preset_type = Preset::Type::TYPE_PRINTER;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "SelectPreset: invalid type parameter";
+        throw std::runtime_error("Invalid type parameter");
+    }
+
+    DiscardCurrentPresetChanges(); // Selecting a printer will result in selecting a filament or print preset. So we need to discard changes for all presets in order not to have the "transfer or discard" dialog pop up
+
+    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
+    if (tab != nullptr) {
+        tab->select_preset(presetName, false, std::string(), false);
+    }
+}
+
 }} // namespace Slic3r::GUI

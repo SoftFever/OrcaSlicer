@@ -188,27 +188,11 @@ nlohmann::json JusPrinChatPanel::handle_select_preset(const nlohmann::json& para
         BOOST_LOG_TRIVIAL(error) << "handle_select_preset: missing payload parameter";
         throw std::runtime_error("Missing payload parameter");
     }
-    Preset::Type preset_type;
-    std::string  type = payload.value("type", "");
-    if (type == "print") {
-        preset_type = Preset::Type::TYPE_PRINT;
-    } else if (type == "filament") {
-        preset_type = Preset::Type::TYPE_FILAMENT;
-    } else if (type == "printer") {
-        preset_type = Preset::Type::TYPE_PRINTER;
-    } else {
-        BOOST_LOG_TRIVIAL(error) << "handle_select_preset: invalid type parameter";
-        throw std::runtime_error("Invalid type parameter");
-    }
 
-    JusPrinPresetConfigUtils::DiscardCurrentPresetChanges(); // Selecting a printer will result in selecting a filament or print preset. So we need to discard changes for all presets in order not to have the "transfer or discard" dialog pop up
+    std::string type = payload.value("type", "");
+    std::string name = payload.value("name", "");
 
-    std::string  name = payload.value("name", "");
-    Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type);
-    if (tab != nullptr) {
-        tab->select_preset(name, false, std::string(), false);
-    }
-
+    JusPrinPresetConfigUtils::SelectPreset(type, name);
     return nlohmann::json::object();
 }
 
@@ -235,18 +219,6 @@ nlohmann::json JusPrinChatPanel::handle_apply_config(const nlohmann::json& param
     JusPrinPresetConfigUtils::UpdatePresetTabs();
 
     return nlohmann::json::object();
-}
-
-void JusPrinChatPanel::UpdatePresetTabs() {
-    std::array<Preset::Type, 2> preset_types = {Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT};
-
-    for (const auto& preset_type : preset_types) {
-        if (Tab* tab = Slic3r::GUI::wxGetApp().get_tab(preset_type)) {
-            tab->reload_config();
-            tab->update();
-            tab->update_dirty();
-        }
-    }
 }
 
 void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
