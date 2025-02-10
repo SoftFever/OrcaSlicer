@@ -75,7 +75,7 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["get_presets"] = &JusPrinChatPanel::handle_get_presets;
     json_action_handlers["get_edited_presets"] = &JusPrinChatPanel::handle_get_edited_presets;
     json_action_handlers["get_plates"] = &JusPrinChatPanel::handle_get_plates;
-    json_action_handlers["get_plate_2d_images"] = &JusPrinChatPanel::handle_get_plate_2d_images;
+    json_action_handlers["render_plate"] = &JusPrinChatPanel::handle_render_plate;
     json_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     json_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     json_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
@@ -167,8 +167,8 @@ nlohmann::json JusPrinChatPanel::handle_get_plates(const nlohmann::json& params)
     return JusPrinPlateUtils::GetPlates(params);
 }
 
-nlohmann::json JusPrinChatPanel::handle_get_plate_2d_images(const nlohmann::json& params) {
-    return JusPrinPlateUtils::GetPlate2DImages(params);
+nlohmann::json JusPrinChatPanel::handle_render_plate(const nlohmann::json& params) {
+    return JusPrinPlateUtils::RenderPlateView(params);
 }
 
 nlohmann::json JusPrinChatPanel::handle_add_printers(const nlohmann::json& params) {
