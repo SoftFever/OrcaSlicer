@@ -15349,26 +15349,26 @@ msgid "Minute"
 msgstr "Minute"
 
 msgid "Print preset name"
-msgstr "Name des Druckvorgaben"
+msgstr "Name der Druckvoreinstellungen"
 
 msgid "Name of the print preset used for slicing."
-msgstr "Name der Druckvorgabe, die zum Slicen verwendet wird."
+msgstr "Name der Druckvoreinstellung, die zum Slicen verwendet wird."
 
 msgid "Filament preset name"
-msgstr "Name des Filamentvorgaben"
+msgstr "Name der Filamentvoreinstellungen"
 
 msgid ""
 "Names of the filament presets used for slicing. The variable is a vector "
 "containing one name for each extruder."
 msgstr ""
-"Name der Filamentvorgabe, die zum Slicen verwendet wird. Die Variable ist "
+"Name der Filamentvoreinstellung, die zum Slicen verwendet wird. Die Variable ist "
 "ein Vektor, der einen Namen für jeden Extruder enthält."
 
 msgid "Printer preset name"
-msgstr "Name des Druckervorgaben"
+msgstr "Name der Druckervoreinstellungen"
 
 msgid "Name of the printer preset used for slicing."
-msgstr "Name der Druckervorgabe, die zum Slicen verwendet wird."
+msgstr "Name der Druckervoreinstellung, die zum Slicen verwendet wird."
 
 msgid "Physical printer name"
 msgstr "Name des physischen Druckers"
@@ -15639,10 +15639,10 @@ msgstr ""
 
 msgid "The name is the same as another existing preset name"
 msgstr ""
-"Der Name ist der gleiche wie ein anderer vorhandener Voreinstellungsname"
+"Der Name ist der gleiche wie bei einer anderer Voreinstellung"
 
 msgid "create new preset failed."
-msgstr "erstellen einer neuen Voreinstellung fehlgeschlagen."
+msgstr "Erstellen einer neuen Voreinstellung fehlgeschlagen."
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
@@ -15709,12 +15709,12 @@ msgid "Please select at least one filament for calibration"
 msgstr "Bitte wählen Sie mindestens ein Filament zur Kalibrierung aus"
 
 msgid "Flow rate calibration result has been saved to preset"
-msgstr "Flussraten-Kalibrierungsergebnis wurde in Voreinstellung gespeichert"
+msgstr "Flussraten-Kalibrierungsergebnis wurde in einer Voreinstellung gespeichert"
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
 "Maximale volumetrische Geschwindigkeitskalibrierungsergebnis wurde in "
-"Voreinstellung gespeichert"
+"einer Voreinstellung gespeichert"
 
 msgid "When do you need Flow Dynamics Calibration"
 msgstr "Wann benötigen Sie die Kalibrierung der Flussdynamik"
@@ -16512,7 +16512,7 @@ msgstr ""
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
-"Einige vorhandene Voreinstellungen konnten nicht erstellt werden, wie "
+"Einige vorhandenen Voreinstellungen konnten nicht erstellt werden, wie "
 "folgt:\n"
 
 msgid ""
@@ -16529,7 +16529,7 @@ msgid ""
 msgstr ""
 "Wir würden die Voreinstellungen als \"Hersteller Typ Seriennummer @Drucker, "
 "den Sie ausgewählt haben\" umbenennen. \n"
-"Um Voreinstellungen für weitere Drucker hinzuzufügen, gehen Sie bitte zur "
+"Um weitere Voreinstellungen für weitere Drucker hinzuzufügen, gehen Sie bitte zur "
 "Druckerauswahl"
 
 msgid "Create Printer/Nozzle"
@@ -17876,25 +17876,25 @@ msgid "Profile dependencies"
 msgstr "Profilabhängigkeiten"
 
 msgid "This is a default preset."
-msgstr "Das ist ein Standardvorgabe."
+msgstr "Das ist ein Standardvoreinstellung."
 
 msgid "This is a system preset."
-msgstr "Das ist eine Systemvorgabe."
+msgstr "Das ist eine Systemvoreinstellung."
 
 msgid "Current preset is inherited from the default preset."
-msgstr "Aktuelle Vorgabe ist von der Standardvorgabe abgeleitet." 
+msgstr "Aktuelle Voreinstellung ist von der Standardvoreinstellung abgeleitet." 
 
 msgid "Current preset is inherited from"
-msgstr "Aktuelle Vorgabe ist abgeleitet von"
+msgstr "Aktuelle Voreinstellung ist abgeleitet von"
 
 msgid "It can't be deleted or modified."
 msgstr "Es kann nicht gelöscht oder geändert werden."
 
 msgid "Any modifications should be saved as a new preset inherited from this one."
-msgstr "Alle Änderungen sollten als neue Vorgabe gespeichert werden, die von dieser abgeleitet ist."
+msgstr "Alle Änderungen sollten als neue Voreinstellung gespeichert werden, die von dieser abgeleitet ist."
 
 msgid "To do that please specify a new name for the preset."
-msgstr "Bitte geben Sie einen neuen Namen für die Vorgabe an."
+msgstr "Bitte geben Sie einen neuen Namen für die Voreinstellung an."
 
 msgid "Additional information:"
 msgstr "Zusätzliche Informationen:"
@@ -17929,12 +17929,12 @@ msgstr "symbolischer Profilname"
 msgid ""
 "A copy of the current system preset will be created, which will be detached from the system preset."
 msgstr ""
-"Es wird eine Kopie der aktuellen Systemvorgabe erstellt, die von der Systemvorgabe abgekoppelt wird."
+"Es wird eine Kopie der aktuellen Systemvoreinstellung erstellt, die von der Systemvoreinstellung abgekoppelt wird."
 
 msgid ""
 "The current custom preset will be detached from the parent system preset."
 msgstr ""
-"Die aktuelle benutzerdefinierte Vorgabe wird von der übergeordneten Systemvorgabe abgekoppelt."
+"Die aktuelle benutzerdefinierte Voreinstellung wird von der übergeordneten Systemvoreinstellung abgekoppelt."
 
 msgid ""
 "Modifications to the current profile will be saved."
@@ -17944,12 +17944,12 @@ msgstr ""
 msgid ""
 "This action is not revertible.\nDo you want to proceed?"
 msgstr ""
-""
+"Diese Aktion ist nicht rückgängig zu machen.\nWollen Sie fortfahren?"
 
 msgid ""
 "Detach preset"
 msgstr ""
-"Vorgabe entkoppeln"
+"Voreinstellung entkoppeln"
 
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Umschalttaste + Linksklick"
