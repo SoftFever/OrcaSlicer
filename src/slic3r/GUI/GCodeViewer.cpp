@@ -246,14 +246,14 @@ ColorRGBA GCodeViewer::Extrusions::Range::get_color_at(float value) const
     }
     const float global_t = (step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f; // lower limit of 0.0f
 
-    const size_t color_max_idx = Range_Colors.size() - 1;
+    const size_t color_max_idx = range_colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
     const size_t color_low_idx = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
     const size_t color_high_idx = std::clamp<size_t>(color_low_idx + 1, 0, color_max_idx);
 
     // Interpolate between the low and high colors to find exactly which color the input value should get
-    return lerp(Range_Colors[color_low_idx], Range_Colors[color_high_idx], global_t - static_cast<float>(color_low_idx));
+    return lerp(range_colors[color_low_idx], range_colors[color_high_idx], global_t - static_cast<float>(color_low_idx));
 }
 
 float GCodeViewer::Extrusions::Range::step_size() const {
@@ -262,9 +262,9 @@ if (log_scale)
         float min_range = min;
         if (min_range == 0)
             min_range = 0.001f;
-        return (std::log(max / min_range) / (static_cast<float>(Range_Colors.size()) - 1.0f));
+        return (std::log(max / min_range) / (static_cast<float>(range_colors.size()) - 1.0f));
     } else
-    return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f);
+    return (max - min) / (static_cast<float>(range_colors.size()) - 1.0f);
 }
 
 float GCodeViewer::Extrusions::Range::get_value_at_step(int step) const {
@@ -770,7 +770,7 @@ const std::vector<ColorRGBA> GCodeViewer::Travel_Colors{ {
 
 // Normal ranges
 // blue to red
-const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ {
+const std::vector<ColorRGBA> GCodeViewer::Default_Range_Colors{ {
     decode_color_to_float_array("#0b2c7a"),  // bluish
     decode_color_to_float_array("#135985"),
     decode_color_to_float_array("#1c8891"),
@@ -782,6 +782,20 @@ const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ {
     decode_color_to_float_array("#d16830"),
     decode_color_to_float_array("#c2523c"),
     decode_color_to_float_array("#942616")    // reddish
+}};
+
+const std::vector<ColorRGBA> GCodeViewer::Thermal_Index_Range_Colors{ {
+    decode_color_to_float_array("#0b2c7a"),  // bluish
+    decode_color_to_float_array("#005478"),
+    decode_color_to_float_array("#006f86"),
+    decode_color_to_float_array("#008e8f"),
+    decode_color_to_float_array("#00b27c"),
+    decode_color_to_float_array("#04d70f"),
+    decode_color_to_float_array("#75b400"),
+    decode_color_to_float_array("#949100"),
+    decode_color_to_float_array("#a16c00"),
+    decode_color_to_float_array("#a04800"),
+    decode_color_to_float_array("#922616")    // reddish
 }};
 
 const ColorRGBA GCodeViewer::Wipe_Color    = ColorRGBA::YELLOW();
@@ -4541,22 +4555,22 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     };
 
     auto append_range = [append_item](const Extrusions::Range& range, unsigned int decimals) {
-        auto append_range_item = [append_item](int i, float value, unsigned int decimals) {
+        auto append_range_item = [append_item, range](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
-            append_item(EItemType::Rect, Range_Colors[i], { { buf , 0} });
+            append_item(EItemType::Rect, range.range_colors[i], { { buf , 0} });
         };
 
         if (range.count == 1)
             // single item use case
             append_range_item(0, range.min, decimals);
         else if (range.count == 2) {
-            append_range_item(static_cast<int>(Range_Colors.size()) - 1, range.max, decimals);
+            append_range_item(static_cast<int>(range.range_colors.size()) - 1, range.max, decimals);
             append_range_item(0, range.min, decimals);
         }
         else {
             const float step_size = range.step_size();
-            for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
+            for (int i = static_cast<int>(range.range_colors.size()) - 1; i >= 0; --i) {
                 append_range_item(i, range.get_value_at_step(i), decimals);
             }
         }

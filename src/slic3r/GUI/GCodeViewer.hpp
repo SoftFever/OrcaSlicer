@@ -45,7 +45,8 @@ class GCodeViewer
     static const std::vector<ColorRGBA> Extrusion_Role_Colors;
     static const std::vector<ColorRGBA> Options_Colors;
     static const std::vector<ColorRGBA> Travel_Colors;
-    static const std::vector<ColorRGBA> Range_Colors;
+    static const std::vector<ColorRGBA> Default_Range_Colors;
+    static const std::vector<ColorRGBA> Thermal_Index_Range_Colors;
     static const ColorRGBA              Wipe_Color;
     static const ColorRGBA              Neutral_Color;
 
@@ -399,16 +400,17 @@ class GCodeViewer
             float min;
             float max;
             bool  is_fixed_range;
+            std::vector<ColorRGBA> range_colors;
             unsigned int count;
             bool log_scale;
 
-            Range() : is_fixed_range(false)
+            Range(std::vector<ColorRGBA> range_colors_a = Default_Range_Colors) : is_fixed_range(false), range_colors(range_colors_a)
             {
                 reset();
             }
 
             /*Sometimes we want min and max of the range to be fixed to have consistent color later*/
-            Range(float min_a, float max_a): min(min_a), max(max_a), is_fixed_range(true) {
+            Range(float min_a, float max_a, std::vector<ColorRGBA> range_colors_a = Default_Range_Colors): min(min_a), max(max_a), is_fixed_range(true), range_colors(range_colors_a) {
                 reset();
             }
 
@@ -456,11 +458,11 @@ class GCodeViewer
             // Color mapping by layer time.
             Range layer_duration;
             // Color mapping by thermal index min
-            Range thermal_index_min{-100.0f, 100.0f};
+            Range thermal_index_min{-100.0f, 100.0f, Thermal_Index_Range_Colors};
             // Color mapping by thermal index max
-            Range thermal_index_max{-100.0f, 100.0f};
+            Range thermal_index_max{-100.0f, 100.0f, Thermal_Index_Range_Colors};
             // Color mapping by thermal index mean
-            Range thermal_index_mean{-100.0f, 100.0f};
+            Range thermal_index_mean{-100.0f, 100.0f, Thermal_Index_Range_Colors};
 
 		Range layer_duration_log;
             void reset() {
