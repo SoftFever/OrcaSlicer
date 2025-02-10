@@ -84,6 +84,7 @@ using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
 enum class ActionButtonType : int;
+class JusPrinChatPanel;
 
 #define EVT_PUBLISHING_START        1
 #define EVT_PUBLISHING_STOP         2
