@@ -28,6 +28,8 @@ public:
         long style = wxTAB_TRAVERSAL);
     void create_panel(wxWindow* parent);
 
+    void msw_rescale();
+
     void set_cali_stage(CaliPresetStage stage, float value);
     void get_cali_stage(CaliPresetStage& stage, float& value);
 
@@ -117,6 +119,8 @@ public:
         long style = wxTAB_TRAVERSAL);
 
     void create_panel(wxWindow* parent);
+
+    void msw_rescale();
 
     void set_unit(wxString unit);
     void set_titles(wxArrayString titles);

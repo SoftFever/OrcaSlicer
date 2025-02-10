@@ -7,6 +7,7 @@
 
 #define CALIBRATION_LABEL_SIZE wxSize(FromDIP(150), FromDIP(24))
 #define SYNC_BUTTON_SIZE (wxSize(FromDIP(50), FromDIP(50)))
+#define CALIBRATION_TEXT_INPUT_Y_SIZE FromDIP(20)
 
 #define LEFT_EXTRUDER_ID  1
 #define RIGHT_EXTRUDER_ID 0
@@ -31,6 +32,11 @@ CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
 
     this->SetSizer(m_top_sizer);
     m_top_sizer->Fit(this);
+}
+
+void CaliPresetCaliStagePanel::msw_rescale()
+{
+    flow_ratio_input->GetTextCtrl()->SetSize(wxSize(-1, CALIBRATION_TEXT_INPUT_Y_SIZE));
 }
 
 void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
@@ -267,6 +273,12 @@ CaliPresetCustomRangePanel::CaliPresetCustomRangePanel(
 
     this->SetSizer(m_top_sizer);
     m_top_sizer->Fit(this);
+}
+
+void CaliPresetCustomRangePanel::msw_rescale()
+{
+    for (TextInput *value_input : m_value_inputs)
+        value_input->GetTextCtrl()->SetSize(wxSize(-1, CALIBRATION_TEXT_INPUT_Y_SIZE));
 }
 
 void CaliPresetCustomRangePanel::set_unit(wxString unit)
@@ -507,6 +519,16 @@ void CalibrationPresetPage::msw_rescale()
     for (auto& comboBox : m_filament_comboBox_list) {
         comboBox->msw_rescale();
     }
+
+    for (AMSPreview *ams_item : m_main_ams_preview_list)
+        ams_item->msw_rescale();
+    for (AMSPreview *ams_item : m_deputy_ams_preview_list)
+        ams_item->msw_rescale();
+    for (AMSPreview *ams_item : m_ams_preview_list)
+        ams_item->msw_rescale();
+
+    m_cali_stage_panel->msw_rescale();
+    m_custom_range_panel->msw_rescale();
 }
 
 void CalibrationPresetPage::on_sys_color_changed()
