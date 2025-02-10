@@ -11,7 +11,7 @@ namespace Slic3r { namespace GUI {
 
 class JusPrinPlateUtils {
 public:
-    static nlohmann::json GetPlate2DImages(const nlohmann::json& params);
+    static nlohmann::json RenderPlateView(const nlohmann::json& params);
     static nlohmann::json GetPlates(const nlohmann::json& params);
 
 private:
