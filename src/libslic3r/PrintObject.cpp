@@ -1453,7 +1453,7 @@ void PrintObject::detect_surfaces_type()
         // === Algorithm only considers stInternal surfaces for re-classification, leaving stTop unaffected =
         // ==================================================================================================
         // Only iterate to the second-to-last layer, since we look at layer i+1.
-        if(this->config().second_external_bridge){
+        if( (this->config().enable_extra_bridge_layer.value == eblApplyToAll) || (this->config().enable_extra_bridge_layer.value == eblExternalBridgeOnly)){
             const size_t last = (m_layers.empty() ? 0 : m_layers.size() - 1);
             tbb::parallel_for( tbb::blocked_range<size_t>(0, last), [this, region_id](const tbb::blocked_range<size_t> &range) {
                 for (size_t i = range.begin(); i < range.end(); ++i) {
@@ -1489,9 +1489,9 @@ void PrintObject::detect_surfaces_type()
                                                     + ((layerm->flow(frPerimeter).scaled_width()) * number_of_internal_walls); // shrink down by number of external walls * width of them, effectively filtering out 2x internal perimeter wide bridges
                     // The reason for doing the above filtering is that in pure bridges, the walls are always printed separately as overhang walls. Here we care abpout the bridge infill which is distinct and is the remainder
                     // of the bridge area minus the perimeter width on both sides of the bridge itself.
-                    // This would also skip generation of very short dual bridge layers (that are shorter than N perimeters), but these are unecessary as the brifge distance is
+                    // This would also skip generation of very short dual bridge layers (that are shorter than N perimeters), but these are unecessary as the bridge distance is
                     // We could reduce this slightly to account for innacurcies in the clipping operation.
-                    // TODO: Monitor GH issues to check whether second bridge layers are ommited where they should be generated. If yes, reduce the filtering distance
+                    // TODO: Monitor GitHub issues to check whether second bridge layers are ommited where they should be generated. If yes, reduce the filtering distance
                     
                     // For each surface in the layer above
                     for (Surface &s_up : top_surfs) {
@@ -2964,7 +2964,7 @@ void PrintObject::bridge_over_infill()
                 // ========================================================================
                 // === ORCA: Create a SECOND bridge layer above the first bridge layer. ===
                 // ========================================================================
-                if(po->m_config.second_internal_bridge_over_infill){
+                if ( (po->m_config.enable_extra_bridge_layer == eblApplyToAll) || (po->m_config.enable_extra_bridge_layer == eblInternalBridgeOnly)){
                     
                     // 1) Gather the bridging polygons we just created for layer lidx.
                     ExPolygons bridging_current_layer;

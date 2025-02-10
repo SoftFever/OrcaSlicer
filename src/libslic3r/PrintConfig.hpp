@@ -188,6 +188,11 @@ enum InternalBridgeFilter {
 };
 
 //Orca
+enum EnableExtraBridgeLayer {
+    eblDisabled, eblExternalBridgeOnly, eblInternalBridgeOnly, eblApplyToAll
+};
+
+//Orca
 enum GapFillTarget {
      gftEverywhere, gftTopBottom, gftNowhere
  };
@@ -828,8 +833,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                thick_internal_bridges))
     ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
     // Orca
-    ((ConfigOptionBool,                second_internal_bridge_over_infill))
-    ((ConfigOptionBool,                second_external_bridge))
+    ((ConfigOptionEnum<EnableExtraBridgeLayer>,  enable_extra_bridge_layer))
     ((ConfigOptionPercent,              internal_bridge_density))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))

@@ -801,7 +801,7 @@ static std::vector<std::string> s_Preset_print_options {
     "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
-    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges","second_internal_bridge_over_infill","second_external_bridge", "max_bridge_length", "print_sequence", "print_order", "support_remove_small_overhang",
+    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges","enable_extra_bridge_layer", "max_bridge_length", "print_sequence", "print_order", "support_remove_small_overhang",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
     "ooze_prevention", "standby_temperature_delta", "preheat_time","preheat_steps", "interface_shells", "line_width", "initial_layer_line_width",
