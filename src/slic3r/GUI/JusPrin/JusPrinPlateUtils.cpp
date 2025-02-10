@@ -90,13 +90,13 @@ static std::string encode_thumbnail_to_base64(const ThumbnailData& thumbnail_dat
 nlohmann::json JusPrinPlateUtils::RenderPlateView(const nlohmann::json& params) {
     nlohmann::json payload = params.value("payload", nlohmann::json::object());
     if (payload.is_null() ||
-        payload.value("plateIndex", -1) == -1 ||
+        payload.value("plate_index", -1) == -1 ||
         !payload.contains("views")) {
         BOOST_LOG_TRIVIAL(error) << "RenderPlateView: missing required parameters";
         throw std::runtime_error("Missing required parameters");
     }
 
-    int plate_index = payload.value("plateIndex", -1);
+    int plate_index = payload.value("plate_index", -1);
     auto views = payload["views"];
 
     if (!views.is_array()) {
@@ -133,7 +133,7 @@ nlohmann::json JusPrinPlateUtils::RenderPlateView(const nlohmann::json& params) 
         RenderThumbnail(data, camera_position, target);
 
         // Convert to base64-encoded image
-        std::string base64_image = encode_thumbnail_to_base64(data, true); // true for PNG, false for JPEG
+        std::string base64_image = encode_thumbnail_to_base64(data, false); // true for PNG, false for JPEG
 
         result.push_back({
             {"base64", base64_image}
