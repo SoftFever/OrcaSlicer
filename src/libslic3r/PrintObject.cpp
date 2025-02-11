@@ -3019,7 +3019,7 @@ void PrintObject::bridge_over_infill()
                                 // if the overlap is not empty -> we've found non trivial areas to generate second internal bridges
                                 if (!overlap.empty()) {
                                     // Create bridging surface
-                                    Surface tmp{*s, {}};
+                                    Surface tmp{*s};
                                     // TODO: Here a new surface type can be assigned. For now assigning it as internal bridge and rotating it 90 degrees to the bridge underneath it
                                     tmp.surface_type = stInternalBridge;
                                     tmp.bridge_angle = bridging_angle_second;
@@ -3039,10 +3039,7 @@ void PrintObject::bridge_over_infill()
                                     ExPolygons unified_leftover = union_safety_offset_ex(leftover);
                                     for (const ExPolygon &ep : unified_leftover) {
                                         // Keep original type and angle for leftover polygons
-                                        Surface leftover_surf{*s, {}};
-                                        leftover_surf.surface_type = s->surface_type;
-                                        leftover_surf.bridge_angle = s->bridge_angle;
-                                        next_new_surfaces.emplace_back(leftover_surf, ep);
+                                        next_new_surfaces.emplace_back(*s, ep);
                                     }
                                 } else {
                                     // No overlap, so keep the surface as-is.
