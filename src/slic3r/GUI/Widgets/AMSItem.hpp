@@ -236,6 +236,16 @@ public:
         return false;
     };
 
+    bool operator!=(const AMSinfo &other) const
+    {
+        if (operator==(other))
+        {
+            return false;
+        }
+
+        return true;
+    };
+
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
     void parse_ext_info(MachineObject* obj, AmsTray tray);
 };
@@ -530,29 +540,7 @@ public:
     void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
 public:
-    AMSinfo                      m_amsinfo;
-    //Caninfo                      m_info;
-    int                          m_load_slot_index = { 0 };
-    int                          m_load_ams_index = { 0 };
-    //AMSRoadMode                  m_rode_mode = { AMSRoadMode::AMS_ROAD_MODE_LEFT_RIGHT };
-    std::vector<AMSPassRoadMode> m_pass_rode_mode = { AMSPassRoadMode::AMS_ROAD_MODE_NONE };
-    AMSRoadShowMode              m_road_mode = { AMSRoadShowMode::AMS_ROAD_MODE_FOUR };
-    AMSPassRoadSTEP              m_load_step = { AMSPassRoadSTEP::AMS_ROAD_STEP_NONE };
-
-    bool                         m_selected = { false };
-    int                          m_passroad_width = { 6 };
-    double                       m_radius = { 4 };
-    wxColour                     m_road_def_color;
-    wxColour                     m_road_color;
-    void                         Update(AMSinfo amsinfo);
-
-    std::vector<ScalableBitmap> ams_humidity_img;
-
-
-    int      m_humidity = { 0 };
-    bool     m_show_humidity = { false };
-    bool     m_vams_loading{ false };
-    AMSModel m_ams_model;
+    void Update(AMSinfo amsinfo);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(wxColour col);
@@ -565,6 +553,32 @@ public:
     void doRender(wxDC& dc);
 
     void msw_rescale();
+
+private:
+    AMSinfo m_amsinfo;
+
+    // Caninfo                      m_info;
+
+    int m_load_slot_index = {0};
+    int m_load_ams_index  = {0};
+
+    // AMSRoadMode                  m_rode_mode = { AMSRoadMode::AMS_ROAD_MODE_LEFT_RIGHT };
+    std::vector<AMSPassRoadMode> m_pass_rode_mode = {AMSPassRoadMode::AMS_ROAD_MODE_NONE};
+    AMSRoadShowMode              m_road_mode      = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
+    AMSPassRoadSTEP              m_load_step      = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
+
+    bool     m_selected       = {false};
+    int      m_passroad_width = {6};
+    double   m_radius         = {4};
+    wxColour m_road_def_color;
+    wxColour m_road_color;
+
+    std::vector<ScalableBitmap> ams_humidity_img;
+
+    int      m_humidity      = {0};
+    bool     m_show_humidity = {false};
+    bool     m_vams_loading{false};
+    AMSModel m_ams_model;
 };
 
 
@@ -579,29 +593,9 @@ public:
     void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
 public:
-    int                          m_nozzle_num = { 1 };
-    AMSRoadShowMode              m_single_ext_rode_mode = { AMSRoadShowMode::AMS_ROAD_MODE_FOUR };
-    AMSRoadShowMode              m_left_rode_mode = { AMSRoadShowMode::AMS_ROAD_MODE_FOUR };
-    AMSRoadShowMode              m_right_rode_mode = { AMSRoadShowMode::AMS_ROAD_MODE_FOUR };
-    bool                         m_selected = { false };
-
-    int                          m_left_road_length = { -1 };
-    int                          m_right_road_length = { -1 };
-    int                          m_passroad_width = { 6 };
-    double                       m_radius = { 4 };
-    AMSPassRoadType              m_pass_road_type = { AMSPassRoadType::AMS_ROAD_TYPE_NONE };
-    AMSPassRoadSTEP              m_pass_road_left_step = { AMSPassRoadSTEP::AMS_ROAD_STEP_NONE };
-    AMSPassRoadSTEP              m_pass_road_right_step = { AMSPassRoadSTEP::AMS_ROAD_STEP_NONE };
-
-    std::map<int, wxColour>      m_road_color;
-
-    //void                         Update(AMSRoadDownPartMode nozzle, AMSRoadShowMode left_mode, AMSRoadShowMode right_mode, int left_len, int right_len);
-    void                         UpdateLeft(int nozzle_num, AMSRoadShowMode mode);
-    void                         UpdateRight(int nozzle_num, AMSRoadShowMode mode);
-
-    bool     m_vams_loading{ false };
-
-    AMSModel m_ams_model;
+    // void                         Update(AMSRoadDownPartMode nozzle, AMSRoadShowMode left_mode, AMSRoadShowMode right_mode, int left_len, int right_len);
+    void UpdateLeft(int nozzle_num, AMSRoadShowMode mode);
+    void UpdateRight(int nozzle_num, AMSRoadShowMode mode);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(bool left, wxColour col);
@@ -612,7 +606,26 @@ public:
     void render(wxDC& dc);
     void doRender(wxDC& dc);
 
-    void     msw_rescale();
+    void msw_rescale();
+
+private:
+    int             m_nozzle_num           = {1};
+    AMSRoadShowMode m_single_ext_rode_mode = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
+    AMSRoadShowMode m_left_rode_mode       = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
+    AMSRoadShowMode m_right_rode_mode      = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
+    bool            m_selected             = {false};
+
+    int             m_left_road_length     = {-1};
+    int             m_right_road_length    = {-1};
+    int             m_passroad_width       = {6};
+    double          m_radius               = {4};
+    AMSPassRoadType m_pass_road_type       = {AMSPassRoadType::AMS_ROAD_TYPE_NONE};
+    AMSPassRoadSTEP m_pass_road_left_step  = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
+    AMSPassRoadSTEP m_pass_road_right_step = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
+
+    std::map<int, wxColour> m_road_color;
+    bool m_vams_loading{false};
+    AMSModel m_ams_model;
 };
 
 /*************************************************

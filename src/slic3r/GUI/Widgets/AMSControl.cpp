@@ -1118,8 +1118,7 @@ void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSi
         }
     }
     else {   //only an ext in a panel
-        if (ams1->get_ext_image()) {
-            ams1->get_ext_image()->setShowState(false);
+        if (ams1->get_ext_image()) { ams1->get_ext_image()->setShowState(false);
         }
         if (ams1->get_ams_model() == AMSModel::EXT_AMS) {
             if (ams1->get_ext_type() == LITE_EXT) {
@@ -1487,8 +1486,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (ams->get_can_count() == GENERIC_AMS_SLOT_NUM){
         length = left ? 129 : 145;
         model = ams->get_ams_model();
-    }
-    else if (ams->get_can_count() == 1){
+    } else if (ams->get_can_count() == 1) {
         for (auto it : pair_id){
             if (it.first == ams_id){
                 length = left ? 218 : 124;

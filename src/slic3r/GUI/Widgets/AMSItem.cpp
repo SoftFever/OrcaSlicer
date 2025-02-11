@@ -1917,8 +1917,11 @@ void AMSRoadUpPart::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 
 void AMSRoadUpPart::Update(AMSinfo amsinfo)
 {
-    m_amsinfo = amsinfo;
-    Refresh();
+    if (m_amsinfo != amsinfo)
+    {
+        m_amsinfo = amsinfo;
+        Refresh();
+    }
 }
 
 void AMSRoadUpPart::OnVamsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY500*/)
@@ -1928,12 +1931,22 @@ void AMSRoadUpPart::OnVamsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY50
     Refresh();*/
 }
 
-void AMSRoadUpPart::SetPassRoadColour(wxColour col) { m_road_color = col; }
+void AMSRoadUpPart::SetPassRoadColour(wxColour col)
+{
+    if (m_road_color != col)
+    {
+        m_road_color = col;
+        Refresh();
+    }
+}
 
 void AMSRoadUpPart::SetMode(AMSRoadShowMode mode)
 {
-    m_road_mode = mode;
-    Refresh();
+    if (m_road_mode != mode)
+    {
+        m_road_mode = mode;
+        Refresh();
+    }
 }
 
 void AMSRoadUpPart::paintEvent(wxPaintEvent& evt)
@@ -2019,10 +2032,19 @@ void AMSRoadUpPart::doRender(wxDC& dc)
     // left mode
 }
 
-void AMSRoadUpPart::UpdatePassRoad(std::string ams_index, std::string slot_index, AMSPassRoadType type, AMSPassRoadSTEP step) {
-    m_load_ams_index = atoi(ams_index.c_str());
-    m_load_slot_index = atoi(slot_index.c_str());
+void AMSRoadUpPart::UpdatePassRoad(std::string ams_index, std::string slot_index, AMSPassRoadType type, AMSPassRoadSTEP step)
+{
+    int ams_idx = atoi(ams_index.c_str());
+    int slot_idx = atoi(slot_index.c_str());
+    if (m_load_ams_index == ams_idx && m_load_slot_index == slot_idx && m_load_step == step)
+    {
+        return;
+    };
+
+    m_load_ams_index  = ams_idx;
+    m_load_slot_index = slot_idx;
     m_load_step = step;
+    Refresh();
 }
 
 void AMSRoadUpPart::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
@@ -2069,25 +2091,18 @@ AMSRoadDownPart::AMSRoadDownPart(wxWindow* parent, wxWindowID id, const wxPoint&
 
 void AMSRoadDownPart::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) { wxWindow::Create(parent, id, pos, size); }
 
-//void AMSRoadDownPart::Update(int nozzle_num, AMSRoadShowMode left_mode, AMSRoadShowMode right_mode, int left_len, int right_len)
-//{
-//    this->m_nozzle_num = nozzle_num;
-//    this->m_left_rode_mode = left_mode;
-//    this->m_right_rode_mode = right_mode;
-//
-//    m_left_road_length = left_len;
-//    m_right_road_length = right_len;
-//    m_selected = false;
-//
-//    Refresh();
-//}
+void AMSRoadDownPart::UpdateLeft(int nozzle_num, AMSRoadShowMode mode)
+{
+    if (nozzle_num == m_nozzle_num && m_left_rode_mode == mode) { return;}
 
-void AMSRoadDownPart::UpdateLeft(int nozzle_num, AMSRoadShowMode mode) {
     this->m_left_rode_mode = mode;
     m_nozzle_num = nozzle_num;
     Refresh();
 }
-void AMSRoadDownPart::UpdateRight(int nozzle_num, AMSRoadShowMode mode) {
+void AMSRoadDownPart::UpdateRight(int nozzle_num, AMSRoadShowMode mode)
+{
+    if (nozzle_num == m_nozzle_num && m_right_rode_mode == mode) { return; }
+
     this->m_right_rode_mode = mode;
     m_nozzle_num = nozzle_num;
     Refresh();
@@ -2102,20 +2117,33 @@ void AMSRoadDownPart::OnVamsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY
 
 void AMSRoadDownPart::SetPassRoadColour(bool left, wxColour col)
 {
-    if (left){
+    if (left)
+    {
+        if (m_road_color[DEPUTY_NOZZLE_ID] == col)
+        {
+            return;
+        }
         m_road_color[DEPUTY_NOZZLE_ID] = col;
     }
-    else{
+    else
+    {
+        if (m_road_color[MAIN_NOZZLE_ID] == col)
+        {
+            return;
+        }
         m_road_color[MAIN_NOZZLE_ID] = col;
     }
+
+    Refresh();
 }
 
-//void AMSRoadDownPart::SetMode(AMSRoadDownPartMode mode) {
-//
-//}
-void AMSRoadDownPart::SetShowMode(AMSRoadShowMode left_mode, AMSRoadShowMode right_mode) {
+void AMSRoadDownPart::SetShowMode(AMSRoadShowMode left_mode, AMSRoadShowMode right_mode)
+{
+    if (m_left_rode_mode == left_mode && m_right_rode_mode == right_mode) { return; }
+
     m_left_rode_mode = left_mode;
     m_right_rode_mode = right_mode;
+    Refresh();
 }
 
 void AMSRoadDownPart::paintEvent(wxPaintEvent& evt)
