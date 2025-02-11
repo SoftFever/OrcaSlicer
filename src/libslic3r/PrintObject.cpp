@@ -1504,10 +1504,9 @@ void PrintObject::detect_surfaces_type()
                         // Identify stInternal polygons that overlap with the bridging polygons on the layer underneath.
                         Polygons p_up = to_polygons(s_up);
                         ExPolygons overlap   = intersection_ex(p_up, polygons_bridge , ApplySafetyOffset::Yes);
-                        // Filter out the resulting candidate bridges based on size. First perform a shrink operation (negative offset)...
-                        ExPolygons shrunk = offset_ex(overlap, -offset_distance);
+                        // Filter out the resulting candidate bridges based on size. First perform a shrink operation...
                         // ...followed by an expand operation to bring them back to the original size (positive offset)
-                        overlap = offset_ex(shrunk, offset_distance);
+                        overlap = expand_ex(shrink_ex(overlap, offset_distance), offset_distance);
                         
                         // Now subtract the filtered new bridge layer from the remaining internal surfaces to create the new internal surface
                         ExPolygons remainder = diff_ex(p_up, overlap, ApplySafetyOffset::Yes);
@@ -2966,7 +2965,7 @@ void PrintObject::bridge_over_infill()
                 // ========================================================================
                 if ( (po->m_config.enable_extra_bridge_layer == eblApplyToAll) || (po->m_config.enable_extra_bridge_layer == eblInternalBridgeOnly)){
                     // One internal perimeter worth of offset distance used to remove trivial expolygons
-                    float offset_distance = region->flow(frPerimeter).scaled_width();
+                    float offset_distance = region->flow(frSolidInfill).scaled_width();
                     
                     // 1) Gather the bridging polygons we just created for layer lidx.
                     ExPolygons bridging_current_layer;
@@ -2978,7 +2977,7 @@ void PrintObject::bridge_over_infill()
                         }
                     }
                     // Shrink-expand operation to remove trivial bridging areas
-                    bridging_current_layer = offset_ex(offset_ex(bridging_current_layer, -offset_distance), offset_distance); // this now contains the filtered expolygons.
+                    bridging_current_layer = expand_ex(shrink_ex(bridging_current_layer, offset_distance), offset_distance); // this now contains the filtered expolygons.
                     
                     // 2) If bridging expolygons exist, identify surfaces from the NEXT layer to apply them
                     if (!bridging_current_layer.empty() && (lidx + 1 < po->layers().size())) {
@@ -3012,7 +3011,7 @@ void PrintObject::bridge_over_infill()
                                 // Identify the overlaping expolygons between the next layer internal surface and the current internal bridge exPolygons
                                 // and shrink expand to remove trivial polygons
                                 ExPolygons overlap = intersection_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
-                                overlap = offset_ex(offset_ex(overlap, -offset_distance), offset_distance); // this contains the now filtered overlap areas
+                                overlap = expand_ex(shrink_ex(overlap, offset_distance), offset_distance); // this contains the now filtered overlap areas
                                 
                                 // if the overlap is not empty -> we've found non trivial areas to generate second internal bridges
                                 if (!overlap.empty()) {
@@ -3028,7 +3027,7 @@ void PrintObject::bridge_over_infill()
                                     
                                     // Keep the difference for normal stInternal/stInternalSolid infill & shrink/expand the polygons to filter out insignificant areas
                                     ExPolygons leftover = diff_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
-                                    leftover = offset_ex(offset_ex(leftover, -offset_distance), offset_distance);
+                                    leftover = expand_ex(shrink_ex(leftover, offset_distance), offset_distance);
                                     
                                     // if nothing is left over, continue to the next surface
                                     if(leftover.empty())
