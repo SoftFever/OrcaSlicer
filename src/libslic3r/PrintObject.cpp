@@ -2989,26 +2989,26 @@ void PrintObject::bridge_over_infill()
                         // Use bridging_angle_second which is 90 degrees to the first bridge:
                         double bridging_angle_second = bridging_angle_current + M_PI / 2.0; // (angle in radians)
                         
-                        // For each region in the next layer, transform stInternal & stInternalSolid
+                        // For each region in the next layer, transform stInternalSolid
                         // surfaces into bridging if they overlap bridging_current_layer.
                         for (LayerRegion *next_region : next_layer->regions()) {
                             // Create new bridging surfaces in next_new_surfaces, and keep everything else in keep_surfaces.
                             Surfaces next_new_surfaces;
                             Surfaces keep_surfaces;
                             
-                            // 2A. Copy all surfaces that aren’t stInternal or stInternalSolid into keep_surfaces (eg top solid infill)
+                            // 2A. Copy all surfaces that aren’t stInternalSolid into keep_surfaces (eg top solid infill)
                             for (const Surface &s : next_region->fill_surfaces.surfaces) {
-                                if (s.surface_type != stInternal && s.surface_type != stInternalSolid) {
+                                if (s.surface_type != stInternalSolid) {
                                     keep_surfaces.push_back(s);
                                 }
                             }
                             
                             // Make a union from the current layer bridging ex polygons
                             ExPolygons bridging_union = union_safety_offset_ex(bridging_current_layer);
-                            // Get the next layer internal surfaces (stInternal and stInternalSolid)
-                            SurfacesPtr next_internals = next_region->fill_surfaces.filter_by_types({stInternal, stInternalSolid});
+                            // Get the next layer internal surfaces (stInternalSolid)
+                            SurfacesPtr next_internals = next_region->fill_surfaces.filter_by_types({stInternalSolid});
                             
-                            // 2B. Convert any overlapping stInternal or stInternalSolid surfaces to internal bridging surfaces
+                            // 2B. Convert any overlapping stInternalSolid surfaces to internal bridging surfaces
                             for (const Surface *s : next_internals) {
                                 // Identify the overlaping expolygons between the next layer internal surface and the current internal bridge exPolygons
                                 // and shrink expand to remove trivial polygons
@@ -3019,7 +3019,7 @@ void PrintObject::bridge_over_infill()
                                 // if the overlap is not empty -> we've found non trivial areas to generate second internal bridges
                                 if (!overlap.empty()) {
                                     // Create bridging surface
-                                    Surface tmp{*s};
+                                    Surface tmp{*s, {}};
                                     // TODO: Here a new surface type can be assigned. For now assigning it as internal bridge and rotating it 90 degrees to the bridge underneath it
                                     tmp.surface_type = stInternalBridge;
                                     tmp.bridge_angle = bridging_angle_second;
@@ -3029,7 +3029,7 @@ void PrintObject::bridge_over_infill()
                                         next_new_surfaces.emplace_back(tmp, ep);
                                     }
                                     
-                                    // Keep the difference for normal stInternal/stInternalSolid infill & shrink/expand the polygons to filter out insignificant areas
+                                    // Keep the difference for normal stInternalSolid infill & shrink/expand the polygons to filter out insignificant areas
                                     ExPolygons leftover = diff_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
                                     leftover = offset_ex(shrink_ex(leftover, offset_distance), offset_distance);
                                     
@@ -3039,7 +3039,10 @@ void PrintObject::bridge_over_infill()
                                     ExPolygons unified_leftover = union_safety_offset_ex(leftover);
                                     for (const ExPolygon &ep : unified_leftover) {
                                         // Keep original type and angle for leftover polygons
-                                        next_new_surfaces.emplace_back(*s, ep);
+                                        Surface leftover_surf{*s, {}};
+                                        leftover_surf.surface_type = s->surface_type;
+                                        leftover_surf.bridge_angle = s->bridge_angle;
+                                        next_new_surfaces.emplace_back(leftover_surf, ep);
                                     }
                                 } else {
                                     // No overlap, so keep the surface as-is.
