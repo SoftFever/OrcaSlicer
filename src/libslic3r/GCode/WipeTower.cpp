@@ -1421,7 +1421,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     m_filpar[idx].is_support = config.filament_is_support.get_at(idx);
     m_filpar[idx].nozzle_temperature = config.nozzle_temperature.get_at(idx);
     m_filpar[idx].nozzle_temperature_initial_layer = config.nozzle_temperature_initial_layer.get_at(idx);
-    m_filpar[idx].category = config.filament_category.get_at(idx);
+    m_filpar[idx].category = config.filament_adhesiveness_category.get_at(idx);
 
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
     // Otherwise, the defaults will be used to turn off the SE stuff.
@@ -3295,10 +3295,10 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
     if (is_first_layer()) { writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(m_perimeter_width) + "\n"); }
 }
 
-WipeTower::WipeTowerBlock &WipeTower::get_block_by_category(int filament_category)
+WipeTower::WipeTowerBlock &WipeTower::get_block_by_category(int filament_adhesiveness_category)
 {
-    auto iter = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&filament_category](const WipeTower::WipeTowerBlock &item) {
-        return item.filament_category == filament_category;
+    auto iter = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&filament_adhesiveness_category](const WipeTower::WipeTowerBlock &item) {
+        return item.filament_adhesiveness_category == filament_adhesiveness_category;
     });
 
     if (iter != m_wipe_tower_blocks.end()) {
@@ -3307,17 +3307,17 @@ WipeTower::WipeTowerBlock &WipeTower::get_block_by_category(int filament_categor
     else {
         WipeTower::WipeTowerBlock new_block;
         new_block.block_id = m_wipe_tower_blocks.size();
-        new_block.filament_category = filament_category;
+        new_block.filament_adhesiveness_category = filament_adhesiveness_category;
         m_wipe_tower_blocks.emplace_back(new_block);
         return m_wipe_tower_blocks.back();
     }
 }
 
-void WipeTower::add_depth_to_block(int filament_id, int filament_category, float depth, bool is_nozzle_change)
+void WipeTower::add_depth_to_block(int filament_id, int filament_adhesiveness_category, float depth, bool is_nozzle_change)
 {
     std::vector<WipeTower::BlockDepthInfo> &layer_depth = m_all_layers_depth[m_cur_layer_id];
-    auto iter = std::find_if(layer_depth.begin(), layer_depth.end(), [&filament_category](const WipeTower::BlockDepthInfo &item) {
-        return item.category == filament_category;
+    auto iter = std::find_if(layer_depth.begin(), layer_depth.end(), [&filament_adhesiveness_category](const WipeTower::BlockDepthInfo &item) {
+        return item.category == filament_adhesiveness_category;
     });
 
     if (iter != layer_depth.end()) {
@@ -3327,7 +3327,7 @@ void WipeTower::add_depth_to_block(int filament_id, int filament_category, float
     }
     else {
         WipeTower::BlockDepthInfo new_block;
-        new_block.category = filament_category;
+        new_block.category = filament_adhesiveness_category;
         new_block.depth = depth;
         if (is_nozzle_change)
             new_block.nozzle_change_depth += depth;
@@ -3399,8 +3399,8 @@ void WipeTower::generate_wipe_tower_blocks()
     for (auto& info : m_plan) {
         for (const WipeTowerInfo::ToolChange &tool_change : info.tool_changes) {
             if (is_in_same_extruder(tool_change.old_tool, tool_change.new_tool)) {
-                int filament_category = get_filament_category(tool_change.new_tool);
-                add_depth_to_block(tool_change.new_tool, filament_category, tool_change.required_depth);
+                int filament_adhesiveness_category = get_filament_category(tool_change.new_tool);
+                add_depth_to_block(tool_change.new_tool, filament_adhesiveness_category, tool_change.required_depth);
             }
             else {
                 int old_filament_category = get_filament_category(tool_change.old_tool);
@@ -3443,12 +3443,12 @@ void WipeTower::generate_wipe_tower_blocks()
     for (WipeTowerBlock& block : m_wipe_tower_blocks) {
         for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
             std::unordered_map<int, float> &category_to_depth = all_layer_category_to_depth[layer_id];
-            if (is_approx(category_to_depth[block.filament_category], 0.f)) {
+            if (is_approx(category_to_depth[block.filament_adhesiveness_category], 0.f)) {
                 int layer_count = solid_infill_layer;
                 while (layer_count > 0) {
                     if (layer_id + layer_count < all_layer_category_to_depth.size()) {
                         std::unordered_map<int, float>& up_layer_depth = all_layer_category_to_depth[layer_id + layer_count];
-                        if (!is_approx(up_layer_depth[block.filament_category], 0.f)) {
+                        if (!is_approx(up_layer_depth[block.filament_adhesiveness_category], 0.f)) {
                             block.solid_infill[layer_id] = true;
                             break;
                         }
@@ -3681,7 +3681,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         if (wall_idx == -1) {
             bool need_insert_solid_infill = false;
             for (const WipeTowerBlock &block : m_wipe_tower_blocks) {
-                if (block.solid_infill[m_cur_layer_id] && (block.filament_category != m_filament_categories[m_current_tool])) {
+                if (block.solid_infill[m_cur_layer_id] && (block.filament_adhesiveness_category != m_filament_categories[m_current_tool])) {
                     need_insert_solid_infill = true;
                     break;
                 }
@@ -3740,7 +3740,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 }
 
                 ToolChangeResult finish_block_tcr;
-                if (block.solid_infill[m_cur_layer_id] && block.filament_category != m_filament_categories[wall_idx])
+                if (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx])
                     finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill);
                 else
                     finish_block_tcr = finish_block(block, finish_layer_filament, layer.extruder_fill);

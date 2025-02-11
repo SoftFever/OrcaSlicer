@@ -5,7 +5,7 @@
     "from": "system",
     "filament_id": "GFS97",
     "instantiation": "false",
-    "filament_category": [
+    "filament_adhesiveness_category": [
         "797"
     ]
 }

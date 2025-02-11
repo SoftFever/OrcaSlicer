@@ -322,7 +322,7 @@ public:
 	struct WipeTowerBlock
     {
         int              block_id{0};
-        int              filament_category{0};
+        int              filament_adhesiveness_category{0};
         std::vector<float>      layer_depths;
 		std::vector<bool>       solid_infill;
         float            depth{0};
@@ -344,8 +344,8 @@ public:
     int                  m_last_block_id;
 
 	// help function
-    WipeTowerBlock& get_block_by_category(int filament_category);
-    void add_depth_to_block(int filament_id, int filament_category, float depth, bool is_nozzle_change = false);
+    WipeTowerBlock& get_block_by_category(int filament_adhesiveness_category);
+    void add_depth_to_block(int filament_id, int filament_adhesiveness_category, float depth, bool is_nozzle_change = false);
 	int get_filament_category(int filament_id);
 	bool is_in_same_extruder(int filament_id_1, int filament_id_2);
 	void reset_block_status();

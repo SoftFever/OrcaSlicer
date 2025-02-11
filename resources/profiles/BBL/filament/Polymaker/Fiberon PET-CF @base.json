@@ -83,7 +83,7 @@
     "textured_plate_temp_initial_layer": [
         "70"
     ],
-    "filament_category": [
+    "filament_adhesiveness_category": [
         "800"
     ],
     "filament_start_gcode": [

@@ -39,7 +39,7 @@
     "temperature_vitrification": [
         "90"
     ],
-    "filament_category": [
+    "filament_adhesiveness_category": [
         "706"
     ]
 }

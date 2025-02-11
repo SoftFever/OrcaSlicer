@@ -3569,7 +3569,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("filament_category");
+        optgroup->append_single_option_line("filament_adhesiveness_category");
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");

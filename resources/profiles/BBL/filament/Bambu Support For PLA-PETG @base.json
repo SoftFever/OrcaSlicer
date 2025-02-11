@@ -57,7 +57,7 @@
     "textured_plate_temp_initial_layer": [
         "60"
     ],
-    "filament_category": [
+    "filament_adhesiveness_category": [
         "705"
     ]
 }

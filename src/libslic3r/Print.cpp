@@ -309,7 +309,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
             || opt_key == "unprintable_filament_map"
-            || opt_key == "filament_category"
+            || opt_key == "filament_adhesiveness_category"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_extra_flow"
             || opt_key == "wipe_tower_no_sparse_layers"
@@ -3006,8 +3006,8 @@ void Print::_make_wipe_tower()
         wipe_tower.set_used_filament_ids(std::vector<int>(used_filament_ids.begin(), used_filament_ids.end()));
 
         std::vector<int> categories;
-        for (size_t i = 0; i < m_config.filament_category.values.size(); ++i) {
-            categories.push_back(m_config.filament_category.get_at(i));
+        for (size_t i = 0; i < m_config.filament_adhesiveness_category.values.size(); ++i) {
+            categories.push_back(m_config.filament_adhesiveness_category.get_at(i));
         }
         wipe_tower.set_filament_categories(categories);
 

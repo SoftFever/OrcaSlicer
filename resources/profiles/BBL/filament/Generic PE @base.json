@@ -29,7 +29,7 @@
     "temperature_vitrification": [
         "70"
     ],
-    "filament_category": [
+    "filament_adhesiveness_category": [
         "901"
     ],
     "filament_start_gcode": [
