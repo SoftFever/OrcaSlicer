@@ -3034,8 +3034,8 @@ void PrintObject::bridge_over_infill()
                                     // if nothing is left over, continue to the next surface
                                     if(leftover.empty())
                                         continue;
-                                    
-                                    for (const ExPolygon &ep : leftover) {
+                                    ExPolygons unified_leftover = union_safety_offset_ex(leftover);
+                                    for (const ExPolygon &ep : unified_leftover) {
                                         // Keep original type and angle for leftover polygons
                                         Surface leftover_surf{*s, {}};
                                         leftover_surf.surface_type = s->surface_type;
