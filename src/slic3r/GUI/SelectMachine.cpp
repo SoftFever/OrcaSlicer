@@ -1305,83 +1305,97 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
     if (invalid_count == m_ams_mapping_result.size()) {
         return false;
     } else {
-        json mapping_v0_json    = json::array();
-        json mapping_v1_json    = json::array();
-        json mapping_info_json  = json::array();
+        if (m_print_type == FROM_NORMAL) {
+            json mapping_v0_json   = json::array();
+            json mapping_v1_json   = json::array();
+            json mapping_info_json = json::array();
 
-        /* get filament maps */
-        std::vector<int> filament_maps;
-        Plater* plater = wxGetApp().plater();
-        if (plater) {
-            PartPlate* curr_plate = plater->get_partplate_list().get_curr_plate();
-            if (curr_plate) {
-                filament_maps = curr_plate->get_filament_maps();
+            /* get filament maps */
+            std::vector<int> filament_maps;
+            Plater *         plater = wxGetApp().plater();
+            if (plater) {
+                PartPlate *curr_plate = plater->get_partplate_list().get_curr_plate();
+                if (curr_plate) {
+                    filament_maps = curr_plate->get_filament_maps();
+                } else {
+                    BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, curr_plate is nullptr";
+                }
             } else {
-                BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, curr_plate is nullptr";
+                BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, plater is nullptr";
             }
-        } else {
-            BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, plater is nullptr";
-        }
 
-        for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
-            int tray_id = -1;
-            json mapping_item_v1;
-            mapping_item_v1["ams_id"] = 0xff;
-            mapping_item_v1["slot_id"] = 0xff;
-            json mapping_item;
-            mapping_item["ams"] = tray_id;
-            mapping_item["targetColor"] = "";
-            mapping_item["filamentId"] = "";
-            mapping_item["filamentType"] = "";
-            for (int k = 0; k < m_ams_mapping_result.size(); k++) {
-                if (m_ams_mapping_result[k].id == i) {
-                    tray_id = m_ams_mapping_result[k].tray_id;
-                    mapping_item["ams"]             = tray_id;
-                    mapping_item["filamentType"]    = m_filaments[k].type;
-                    auto it = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
-                    if (it != nullptr) {
-                        mapping_item["filamentId"] = it->filament_id;
-                    }
-                    /* nozzle id */
-                    if (i >= 0 && i < filament_maps.size()) {
-                        mapping_item["nozzleId"] = convert_filament_map_nozzle_id_to_task_nozzle_id(filament_maps[i]);
-                    }
-                    //convert #RRGGBB to RRGGBBAA
-                    mapping_item["sourceColor"]     = m_filaments[k].color;
-                    mapping_item["targetColor"]     = m_ams_mapping_result[k].color;
-                    if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID)
-                    {
-                        tray_id = -1;
-                    }
+            for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
+                int  tray_id = -1;
+                json mapping_item_v1;
+                mapping_item_v1["ams_id"]  = 0xff;
+                mapping_item_v1["slot_id"] = 0xff;
+                json mapping_item;
+                mapping_item["ams"]          = tray_id;
+                mapping_item["targetColor"]  = "";
+                mapping_item["filamentId"]   = "";
+                mapping_item["filamentType"] = "";
+                for (int k = 0; k < m_ams_mapping_result.size(); k++) {
+                    if (m_ams_mapping_result[k].id == i) {
+                        tray_id                      = m_ams_mapping_result[k].tray_id;
+                        mapping_item["ams"]          = tray_id;
+                        mapping_item["filamentType"] = m_filaments[k].type;
+                        if (i >= 0 && i < wxGetApp().preset_bundle->filament_presets.size()) {
+                            auto it = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
+                            if (it != nullptr) { mapping_item["filamentId"] = it->filament_id; }
+                        }
+                        /* nozzle id */
+                        if (i >= 0 && i < filament_maps.size()) { mapping_item["nozzleId"] = convert_filament_map_nozzle_id_to_task_nozzle_id(filament_maps[i]); }
+                        // convert #RRGGBB to RRGGBBAA
+                        mapping_item["sourceColor"] = m_filaments[k].color;
+                        mapping_item["targetColor"] = m_ams_mapping_result[k].color;
+                        if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) { tray_id = -1; }
 
-                    /*new ams mapping data*/
-                    try
-                    {
-                        if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) {  // invalid case
-                            mapping_item_v1["ams_id"]  = VIRTUAL_TRAY_MAIN_ID;
-                            mapping_item_v1["slot_id"] = VIRTUAL_TRAY_MAIN_ID;
-                        }
-                        else {
-                            mapping_item_v1["ams_id"] = std::stoi(m_ams_mapping_result[k].ams_id);
-                            mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
-                        }
-                    }
-                    catch (...)
-                    {
+                        /*new ams mapping data*/
+                        try {
+                            if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) { // invalid case
+                                mapping_item_v1["ams_id"]  = VIRTUAL_TRAY_MAIN_ID;
+                                mapping_item_v1["slot_id"] = VIRTUAL_TRAY_MAIN_ID;
+                            } else {
+                                mapping_item_v1["ams_id"]  = std::stoi(m_ams_mapping_result[k].ams_id);
+                                mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                            }
+                        } catch (...) {}
                     }
                 }
+                mapping_v0_json.push_back(tray_id);
+                mapping_v1_json.push_back(mapping_item_v1);
+                mapping_info_json.push_back(mapping_item);
             }
-            mapping_v0_json.push_back(tray_id);
-            mapping_v1_json.push_back(mapping_item_v1);
-            mapping_info_json.push_back(mapping_item);
+
+            mapping_array_str  = mapping_v0_json.dump();
+            mapping_array_str2 = mapping_v1_json.dump();
+            ams_mapping_info   = mapping_info_json.dump();
+            return valid_mapping_result;
+        } else if(m_print_type == FROM_SDCARD_VIEW){
+            json mapping_v0_json   = json::array();
+            json mapping_v1_json   = json::array();
+
+            for (int  i = 0; i < m_filaments_map.size(); i++) {
+                int mapping_result = -1;
+                json mapping_item_v1;
+                mapping_item_v1["ams_id"]  = 0xff;
+                mapping_item_v1["slot_id"] = 0xff;
+
+                for (int k = 0; k < m_ams_mapping_result.size(); k++) {
+                    if (m_ams_mapping_result[k].id == i) {
+                        mapping_result = m_ams_mapping_result[k].tray_id;
+                        mapping_item_v1["ams_id"]  = std::stoi(m_ams_mapping_result[k].ams_id);
+                        mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                    }
+                }
+
+                mapping_v0_json.push_back(mapping_result);
+                mapping_v1_json.push_back(mapping_item_v1);
+                mapping_array_str  = mapping_v0_json.dump();
+                mapping_array_str2 = mapping_v1_json.dump();
+            }
+            return true;
         }
-
-
-        mapping_array_str = mapping_v0_json.dump();
-        mapping_array_str2 = mapping_v1_json.dump();
-
-        ams_mapping_info = mapping_info_json.dump();
-        return valid_mapping_result;
     }
     return true;
 }
@@ -2469,12 +2483,12 @@ void SelectMachineDialog::on_send_print()
     }
 
     if (obj_->is_support_ams_mapping()) {
-        m_print_job->task_ams_mapping = ams_mapping_array;
-        m_print_job->task_ams_mapping2= ams_mapping_array2;
+        m_print_job->task_ams_mapping      = ams_mapping_array;
+        m_print_job->task_ams_mapping2     = ams_mapping_array2;
         m_print_job->task_ams_mapping_info = ams_mapping_info;
     } else {
-        m_print_job->task_ams_mapping = "";
-        m_print_job->task_ams_mapping2 = "";
+        m_print_job->task_ams_mapping      = "";
+        m_print_job->task_ams_mapping2     = "";
         m_print_job->task_ams_mapping_info = "";
     }
 
