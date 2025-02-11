@@ -765,6 +765,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_rib_wall = config->opt_bool("prime_tower_rib_wall")&&have_prime_tower;
     for (auto el : {"prime_tower_extra_rib_length", "prime_tower_rib_width", "prime_tower_fillet_wall"})
         toggle_line(el, have_rib_wall);
+    toggle_field("prime_tower_width", !have_rib_wall);
 
     for (auto el : {"wall_filament", "sparse_infill_filament", "solid_infill_filament", "wipe_tower_filament"})
         toggle_line(el, !bSEMM);
