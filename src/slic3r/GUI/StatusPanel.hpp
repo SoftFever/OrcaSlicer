@@ -481,6 +481,8 @@ protected:
     PrintingTaskPanel *       m_project_task_panel;
 
     FilamentLoad* m_filament_step;
+    wxStaticBitmap *m_filament_load_img;
+
     Button *m_button_retry {nullptr};
     StaticBox* m_filament_load_box;
 

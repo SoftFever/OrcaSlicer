@@ -1843,9 +1843,17 @@ wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
 
     m_filament_step = new FilamentLoad(m_filament_load_box, wxID_ANY);
     m_filament_step->SetDoubleBuffered(true);
-    m_filament_step->set_min_size(wxSize(wxSize(FromDIP(570), FromDIP(215))));
-    m_filament_step->set_max_size(wxSize(wxSize(FromDIP(570), FromDIP(215))));
+    m_filament_step->set_min_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
+    m_filament_step->set_max_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
     m_filament_step->SetBackgroundColour(*wxWHITE);
+
+    m_filament_load_img = new wxStaticBitmap(m_filament_load_box, wxID_ANY, wxNullBitmap);
+    m_filament_load_img->SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer *steps_sizer = new wxBoxSizer(wxHORIZONTAL);
+    steps_sizer->Add(m_filament_step, 0, wxALIGN_LEFT, FromDIP(20));
+    steps_sizer->Add(m_filament_load_img, 0, wxALIGN_TOP, FromDIP(30));
+    steps_sizer->AddSpacer(FromDIP(50));
 
     StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
@@ -1867,7 +1875,7 @@ wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
     });
 
 
-    sizer_box->Add(m_filament_step, 0, wxALIGN_CENTER|wxTOP, FromDIP(10));
+    sizer_box->Add(steps_sizer, 0, wxALIGN_CENTER | wxTOP, FromDIP(10));
     sizer_box->Add(0, 0, 0, wxTOP, FromDIP(5));
     sizer_box->Add(m_button_retry, 0, wxLEFT, FromDIP(28));
     sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
@@ -1890,6 +1898,35 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent& e)
         tag_show = true;
         m_img_filament_loading->SetBitmap(create_scaled_bitmap("filament_load_expand", this, 24));
     }
+
+    if (obj)
+    {
+        static int load_img_size = 215;
+        if (obj->is_series_n())
+        {
+            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_n_series", this, load_img_size));
+        }
+        else if (obj->is_series_x())
+        {
+            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_x_series", this, load_img_size));
+        }
+        else if (obj->is_series_p())
+        {
+            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_p_series", this, load_img_size));
+        }
+        else if (obj->is_series_o())
+        {
+            if (obj->get_current_extruder().id == MAIN_NOZZLE_ID)
+            {
+                m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_right", this, load_img_size));
+            }
+            else if (obj->get_current_extruder().id == DEPUTY_NOZZLE_ID)
+            {
+                m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_left", this, load_img_size));
+            }
+        }
+    }
+
     m_filament_load_box->Show(tag_show);
     ///m_button_retry->Show(tag_show);
     m_filament_step->Show(tag_show);

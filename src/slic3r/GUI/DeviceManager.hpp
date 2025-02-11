@@ -632,6 +632,9 @@ public:
     bool        get_printer_is_enclosed() const;
 
     // check printer device series
+    bool is_series_n() const;
+    bool is_series_p() const;
+    bool is_series_x() const;
     bool is_series_o() const;
 
     void reload_printer_settings();
