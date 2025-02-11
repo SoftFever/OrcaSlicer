@@ -374,6 +374,7 @@ protected:
     Label*                              m_txt_change_filament_times{ nullptr };
     Label*                              m_text_printer_msg{ nullptr };
     Label*                              m_text_printer_msg_tips{ nullptr };
+    Label*                              m_advanced_options_title{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
     wxStaticText*                       m_statictext_finish{nullptr};
@@ -466,7 +467,8 @@ public:
     void set_default_from_sdcard();
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
-    void on_selection_changed(wxCommandEvent& event);
+    void enable_advanced_option(bool en);
+    void on_selection_changed(wxCommandEvent &event);
     void update_flow_cali_check(MachineObject* obj);
     void Enable_Refresh_Button(bool en);
     void Enable_Send_Button(bool en);

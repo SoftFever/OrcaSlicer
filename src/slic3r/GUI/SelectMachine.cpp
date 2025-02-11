@@ -579,21 +579,18 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
 
 
-    auto        advanced_options_title       = new Label(scroll_area, _L("Advanced Options"));
-    advanced_options_title->SetFont(::Label::Body_13);
-    advanced_options_title->SetForegroundColour(wxColour(38, 46, 48));
-
+    m_advanced_options_title = new Label(scroll_area, _L("Advanced Options"));
+    m_advanced_options_title->SetFont(::Label::Body_13);
     m_advanced_options_icon = new wxStaticBitmap(scroll_area, wxID_ANY, create_scaled_bitmap("advanced_option1", scroll_area, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
-
 
     sizer_advanced_options_title->Add(m_hyperlink, 0, wxALIGN_CENTER, 0);
     sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
-    sizer_advanced_options_title->Add(advanced_options_title, 0, wxALIGN_CENTER, 0);
+    sizer_advanced_options_title->Add(m_advanced_options_title, 0, wxALIGN_CENTER, 0);
     sizer_advanced_options_title->Add(m_advanced_options_icon, 0, wxALIGN_CENTER, 0);
 
-    advanced_options_title->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
-    advanced_options_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
-    advanced_options_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+    m_advanced_options_title->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
+    m_advanced_options_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
+    m_advanced_options_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
         if (m_print_status == PrintStatusUnsupportedPrinter) {
             m_options_other->Hide();
         } else {
@@ -1841,6 +1838,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         wxString msg_text = _L("Storage needs to be inserted before printing.");
         update_print_status_msg(msg_text, true, false, true);
     }else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
+        enable_advanced_option(false);
+
         wxString msg_text;
         try
         {
@@ -2949,6 +2948,17 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     }
 }
 
+void SelectMachineDialog::enable_advanced_option(bool en)
+{
+    if (en) {
+        m_advanced_options_title->SetForegroundColour(wxColour(38, 46, 48));
+        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
+    } else {
+        m_advanced_options_title->SetForegroundColour(0xCECECE);
+        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1_disable", this, 18));
+    }
+}
+
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
     /* reset timeout and reading printer info */
@@ -2962,6 +2972,8 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_mapping_sugs_sizer->Show(false);
     m_change_filament_times_sizer->Show(false);
     m_txt_change_filament_times->Show(false);
+
+    enable_advanced_option(true);
 
     auto selection = m_comboBox_printer->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
