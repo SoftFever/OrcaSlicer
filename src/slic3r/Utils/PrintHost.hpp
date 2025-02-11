@@ -37,6 +37,9 @@ struct PrintHostUpload
     std::string storage;
 
     PrintHostPostUploadAction post_action { PrintHostPostUploadAction::None };
+
+    //ELE
+    std::any other;
 };
 
 class PrintHost

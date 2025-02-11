@@ -131,6 +131,45 @@ private:
     bool load_user_data(int, std::vector<int>&);
 };
 
+class ElegooPrintHostSendDialog : public GUI::MsgDialog
+{
+public:
+    ElegooPrintHostSendDialog(const boost::filesystem::path &path, PrintHostPostUploadActions post_actions, const wxArrayString& groups, const wxArrayString& storage_paths, const wxArrayString& storage_names, bool switch_to_device_tab);
+    boost::filesystem::path filename() const;
+    PrintHostPostUploadAction post_action() const;
+    std::string group() const;
+    std::string storage() const;
+    bool switch_to_device_tab() const {return m_switch_to_device_tab;}
+
+    virtual void EndModal(int ret) override;
+    int timeLapse() const { return m_timeLapse; }
+    int heatedBedLeveling() const { return m_heatedBedLeveling; }
+    BedType bedType() const { return m_BedType; }
+
+
+private:
+    BedType appBedType() const;
+    void    refresh();
+
+private:
+    wxTextCtrl *txt_filename;
+    wxComboBox *combo_groups;
+    wxComboBox* combo_storage;
+    PrintHostPostUploadAction post_upload_action;
+    wxString    m_valid_suffix;
+    wxString    m_preselected_storage;
+    wxArrayString m_paths;
+    bool m_switch_to_device_tab;
+
+
+    wxStaticText* warning_text{nullptr};
+    wxBoxSizer*   uploadandprint_sizer{nullptr};
+
+    int  m_timeLapse;
+    int  m_heatedBedLeveling;
+    BedType m_BedType;
+};
+
 wxDECLARE_EVENT(EVT_PRINTHOST_PROGRESS, PrintHostQueueDialog::Event);
 wxDECLARE_EVENT(EVT_PRINTHOST_ERROR, PrintHostQueueDialog::Event);
 wxDECLARE_EVENT(EVT_PRINTHOST_CANCEL, PrintHostQueueDialog::Event);
