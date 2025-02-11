@@ -3011,7 +3011,8 @@ void PrintObject::bridge_over_infill()
                                 // Identify the overlaping expolygons between the next layer internal surface and the current internal bridge exPolygons
                                 // and shrink expand to remove trivial polygons
                                 ExPolygons overlap = intersection_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
-                                overlap = expand_ex(shrink_ex(overlap, offset_distance), offset_distance); // this contains the now filtered overlap areas
+                                overlap = expand_ex(shrink_ex(overlap, 2*offset_distance), 2*offset_distance); // this contains the now filtered overlap areas.
+                                                                                                               // Filtering out areas that are less than 4x infill tall/wide to avoid generating trivial internal bridges
                                 
                                 // if the overlap is not empty -> we've found non trivial areas to generate second internal bridges
                                 if (!overlap.empty()) {
@@ -3021,6 +3022,7 @@ void PrintObject::bridge_over_infill()
                                     tmp.surface_type = stInternalBridge;
                                     tmp.bridge_angle = bridging_angle_second;
                                     // Insert bridging polygons
+                                    ExPolygons unified_overlap = union_safety_offset_ex(overlap);
                                     for (const ExPolygon &ep : overlap) {
                                         next_new_surfaces.emplace_back(tmp, ep);
                                     }
