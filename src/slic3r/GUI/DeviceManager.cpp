@@ -1648,6 +1648,25 @@ int MachineObject::get_bed_temperature_limit()
     return BED_TEMP_LIMIT;
 }
 
+bool MachineObject::is_filament_installed()
+{
+    if (m_extder_data.extders.size() > 0) {
+        // right//or single
+        auto ext = m_extder_data.extders[MAIN_NOZZLE_ID];
+        if (ext.ext_has_filament) {
+            return true;
+        }
+    }
+    /*left*/
+    if (m_extder_data.extders.size() > 1) {
+        auto ext = m_extder_data.extders[DEPUTY_NOZZLE_ID];
+        if (ext.ext_has_filament) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool MachineObject::is_makeworld_subtask()
 {
     if (model_task && model_task->design_id > 0) {
