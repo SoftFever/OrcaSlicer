@@ -2965,6 +2965,8 @@ void PrintObject::bridge_over_infill()
                 // === ORCA: Create a SECOND bridge layer above the first bridge layer. ===
                 // ========================================================================
                 if ( (po->m_config.enable_extra_bridge_layer == eblApplyToAll) || (po->m_config.enable_extra_bridge_layer == eblInternalBridgeOnly)){
+                    // One internal perimeter worth of offset distance used to remove trivial expolygons
+                    float offset_distance = region->flow(frPerimeter).scaled_width();
                     
                     // 1) Gather the bridging polygons we just created for layer lidx.
                     ExPolygons bridging_current_layer;
@@ -2975,54 +2977,65 @@ void PrintObject::bridge_over_infill()
                             bridging_angle_current = surf.bridge_angle;
                         }
                     }
+                    // Shrink-expand operation to remove trivial bridging areas
+                    bridging_current_layer = offset_ex(offset_ex(bridging_current_layer, -offset_distance), offset_distance); // this now contains the filtered expolygons.
                     
-                    // 2) For the next layer, use bridging_angle_second which is 90 degrees to the first bridge:
-                    double bridging_angle_second = bridging_angle_current + M_PI / 2.0; // (angle in radians)
-                    
-                    // 2) If bridging polygons exist, apply them to the NEXT layer
+                    // 2) If bridging expolygons exist, identify surfaces from the NEXT layer to apply them
                     if (!bridging_current_layer.empty() && (lidx + 1 < po->layers().size())) {
+                        // Get the next layer...
                         Layer *next_layer = po->get_layer(lidx + 1);
                         
-                        // For each region in the next layer, we will transform stInternal (or stInternalSolid)
+                        // Use bridging_angle_second which is 90 degrees to the first bridge:
+                        double bridging_angle_second = bridging_angle_current + M_PI / 2.0; // (angle in radians)
+                        
+                        // For each region in the next layer, transform stInternal & stInternalSolid
                         // surfaces into bridging if they overlap bridging_current_layer.
                         for (LayerRegion *next_region : next_layer->regions()) {
-                            // We’ll create new bridging surfaces in next_new_surfaces,
-                            // and keep everything else in keep_surfaces.
+                            // Create new bridging surfaces in next_new_surfaces, and keep everything else in keep_surfaces.
                             Surfaces next_new_surfaces;
                             Surfaces keep_surfaces;
                             
-                            // We only want to convert certain stInternal and stInternalSolid types to bridging
-                            // TODO: Are both needed?
-                            SurfacesPtr next_internals = next_region->fill_surfaces.filter_by_types({stInternal, stInternalSolid});
-                            
-                            // 2A. Copy all surfaces that aren’t stInternal / stInternalSolid into keep_surfaces (eg top solid infill)
+                            // 2A. Copy all surfaces that aren’t stInternal or stInternalSolid into keep_surfaces (eg top solid infill)
                             for (const Surface &s : next_region->fill_surfaces.surfaces) {
                                 if (s.surface_type != stInternal && s.surface_type != stInternalSolid) {
                                     keep_surfaces.push_back(s);
                                 }
                             }
                             
-                            // 2B. Convert any overlapping stInternal / stInternalSolid surfaces to bridging
-                            ExPolygons bridging_union = union_ex(bridging_current_layer);
+                            // Make a union from the current layer bridging ex polygons
+                            ExPolygons bridging_union = union_safety_offset_ex(bridging_current_layer);
+                            // Get the next layer internal surfaces (stInternal and stInternalSolid)
+                            SurfacesPtr next_internals = next_region->fill_surfaces.filter_by_types({stInternal, stInternalSolid});
+                            
+                            // 2B. Convert any overlapping stInternal or stInternalSolid surfaces to internal bridging surfaces
                             for (const Surface *s : next_internals) {
+                                // Identify the overlaping expolygons between the next layer internal surface and the current internal bridge exPolygons
+                                // and shrink expand to remove trivial polygons
                                 ExPolygons overlap = intersection_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
+                                overlap = offset_ex(offset_ex(overlap, -offset_distance), offset_distance); // this contains the now filtered overlap areas
+                                
+                                // if the overlap is not empty -> we've found non trivial areas to generate second internal bridges
                                 if (!overlap.empty()) {
                                     // Create bridging surface
                                     Surface tmp{*s, {}};
-                                    // TODO: Here a new surface type can be assigned.
-                                    // For now assigning it as internal bridge and rotating it 90 degrees to the bridge underneath it
+                                    // TODO: Here a new surface type can be assigned. For now assigning it as internal bridge and rotating it 90 degrees to the bridge underneath it
                                     tmp.surface_type = stInternalBridge;
-                                    // Use the 90 degree angle against the layer below
                                     tmp.bridge_angle = bridging_angle_second;
                                     // Insert bridging polygons
                                     for (const ExPolygon &ep : overlap) {
                                         next_new_surfaces.emplace_back(tmp, ep);
                                     }
-                                    // Keep the difference for normal infill:
+                                    
+                                    // Keep the difference for normal stInternal/stInternalSolid infill & shrink/expand the polygons to filter out insignificant areas
                                     ExPolygons leftover = diff_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
-                                    // TODO: Does it make sense to apply further polygon filtering here by contracting/expanding, after the safety offset is applied?
+                                    leftover = offset_ex(offset_ex(leftover, -offset_distance), offset_distance);
+                                    
+                                    // if nothing is left over, continue to the next surface
+                                    if(leftover.empty())
+                                        continue;
+                                    
                                     for (const ExPolygon &ep : leftover) {
-                                        // Keep original type for leftover polygons
+                                        // Keep original type and angle for leftover polygons
                                         Surface leftover_surf{*s, {}};
                                         leftover_surf.surface_type = s->surface_type;
                                         leftover_surf.bridge_angle = s->bridge_angle;
