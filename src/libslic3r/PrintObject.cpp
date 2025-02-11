@@ -1512,12 +1512,14 @@ void PrintObject::detect_surfaces_type()
                         ExPolygons remainder = diff_ex(p_up, overlap, ApplySafetyOffset::Yes);
                         
                         // Remainder stays as stInternal
-                        for (auto &ex_remainder : remainder) {
+                        ExPolygons unified_remainder = union_safety_offset_ex(remainder);
+                        for (auto &ex_remainder : unified_remainder) {
                             Surface s(stInternal, ex_remainder);
                             new_surfaces.push_back(std::move(s));
                         }
                         // Overlap portion becomes the new polygon type - stInternalAfterBridge
-                        for (auto &ex_overlap : overlap) {
+                        ExPolygons unified_overlap = union_safety_offset_ex(overlap);
+                        for (auto &ex_overlap : unified_overlap) {
                             Surface s(stInternalAfterBridge, ex_overlap);
                             new_surfaces.push_back(std::move(s));
                         }
