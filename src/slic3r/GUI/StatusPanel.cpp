@@ -2467,32 +2467,6 @@ void StatusPanel::update(MachineObject *obj)
 
         m_parts_btn->Show();
 
-        //support edit chamber temp
-        if (obj->is_support_chamber_edit) {
-            m_tempCtrl_chamber->SetReadOnly(false);
-            m_tempCtrl_chamber->Enable();
-            m_tempCtrl_chamber->SetMinTemp(obj->chamber_temp_edit_min);
-            m_tempCtrl_chamber->SetMaxTemp(obj->chamber_temp_edit_max);
-            wxCursor cursor(wxCURSOR_IBEAM);
-            m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
-        } else {
-            m_tempCtrl_chamber->SetReadOnly(true);
-
-            wxCursor cursor(wxCURSOR_ARROW);
-            m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
-
-            if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
-                m_tempCtrl_chamber->SetTagTemp(TEMP_BLANK_STR);
-            }if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
-            {
-                m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
-                m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-            }
-
-            //m_tempCtrl_chamber->Disable();
-
-        }
-
         if (!obj->dev_connection_type.empty()) {
             auto iter_connect_type = m_print_connect_types.find(obj->dev_id);
             if (iter_connect_type != m_print_connect_types.end()) {
@@ -2794,13 +2768,43 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         }
     }
 
-    m_tempCtrl_chamber->SetCurrTemp(obj->chamber_temp);
-    // update temprature if not input temp target
-    if (m_temp_chamber_timeout > 0) {
-        m_temp_chamber_timeout--;
+    // support current temp for chamber
+    if (obj->get_printer_series() == PrinterSeries::SERIES_X1)
+    {
+        m_tempCtrl_chamber->SetCurrTemp(obj->chamber_temp);
     }
-    else {
-        if (!cham_temp_input && obj->is_support_chamber_edit) { m_tempCtrl_chamber->SetTagTemp(obj->chamber_temp_target); }
+    else
+    {
+        m_tempCtrl_chamber->SetCurrTemp(TEMP_BLANK_STR);
+    }
+
+    // support edit chamber temp
+    if (obj->is_support_chamber_edit)
+    {
+        m_tempCtrl_chamber->SetReadOnly(false);
+        m_tempCtrl_chamber->Enable();
+        m_tempCtrl_chamber->SetMinTemp(obj->chamber_temp_edit_min);
+        m_tempCtrl_chamber->SetMaxTemp(obj->chamber_temp_edit_max);
+        wxCursor cursor(wxCURSOR_IBEAM);
+        m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
+
+        if (m_temp_chamber_timeout > 0)
+        {
+            m_temp_chamber_timeout--;
+        }
+        else
+        {
+            /*update temprature if not input temp target*/
+            if (!cham_temp_input) { m_tempCtrl_chamber->SetTagTemp(obj->chamber_temp_target); }
+        }
+    }
+    else
+    {
+        m_tempCtrl_chamber->SetReadOnly(true);
+        m_tempCtrl_chamber->SetTagTemp(TEMP_BLANK_STR);
+
+        wxCursor cursor(wxCURSOR_ARROW);
+        m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
     }
 
     if ((obj->chamber_temp_target - obj->chamber_temp) >= TEMP_THRESHOLD_VAL) {
