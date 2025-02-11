@@ -527,19 +527,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
     toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"));
-    bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
-    bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
-    bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
-    // solid_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "internal_solid_infill_pattern", "solid_infill_filament"})
-        toggle_field(el, has_solid_infill);
+    bool has_top_shell    = config->opt_int("top_shell_layers") > 0;
+    bool has_bottom_shell = config->opt_int("bottom_shell_layers") > 0;
+    bool has_solid_infill = has_top_shell || has_bottom_shell;
+    toggle_field("top_surface_pattern", has_top_shell);
+    toggle_field("bottom_surface_pattern", has_bottom_shell);
     
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","internal_bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
+        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","internal_bridge_angle",
+        "solid_infill_direction", "rotate_solid_infill_direction", "internal_solid_infill_pattern", "solid_infill_filament",
+        })
         toggle_field(el, have_infill || has_solid_infill);
     
-    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
-    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_solid_infill);
+    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell);
+    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell);
 
     toggle_field("wall_direction", !has_spiral_vase);
     
@@ -547,7 +548,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("gap_infill_speed", have_perimeters);
     
     for (auto el : { "top_surface_line_width", "top_surface_speed" })
-        toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
+        toggle_field(el, has_top_shell || (has_spiral_vase && has_bottom_shell));
     
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     
