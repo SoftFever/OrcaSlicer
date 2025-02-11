@@ -1487,7 +1487,7 @@ void PrintObject::detect_surfaces_type()
                     int number_of_internal_walls = std::max(0, layerm->m_region->config().wall_loops - 1); // number of internal walls, clamped to a minimum of 0 as a safety precaution
                     float        offset_distance = layerm->flow(frExternalPerimeter).scaled_width() // shrink down by external perimeter width (effectively filtering out 2x external perimeters wide bridges)
                                                     + ((layerm->flow(frPerimeter).scaled_width()) * number_of_internal_walls); // shrink down by number of external walls * width of them, effectively filtering out 2x internal perimeter wide bridges
-                    // The reason for doing the above filtering is that in pure bridges, the walls are always printed separately as overhang walls. Here we care abpout the bridge infill which is distinct and is the remainder
+                    // The reason for doing the above filtering is that in pure bridges, the walls are always printed separately as overhang walls. Here we care about the bridge infill which is distinct and is the remainder
                     // of the bridge area minus the perimeter width on both sides of the bridge itself.
                     // This would also skip generation of very short dual bridge layers (that are shorter than N perimeters), but these are unecessary as the bridge distance is
                     // We could reduce this slightly to account for innacurcies in the clipping operation.
@@ -1506,7 +1506,7 @@ void PrintObject::detect_surfaces_type()
                         ExPolygons overlap   = intersection_ex(p_up, polygons_bridge , ApplySafetyOffset::Yes);
                         // Filter out the resulting candidate bridges based on size. First perform a shrink operation...
                         // ...followed by an expand operation to bring them back to the original size (positive offset)
-                        overlap = expand_ex(shrink_ex(overlap, offset_distance), offset_distance);
+                        overlap = offset_ex(shrink_ex(overlap, offset_distance), offset_distance);
                         
                         // Now subtract the filtered new bridge layer from the remaining internal surfaces to create the new internal surface
                         ExPolygons remainder = diff_ex(p_up, overlap, ApplySafetyOffset::Yes);
@@ -2979,7 +2979,7 @@ void PrintObject::bridge_over_infill()
                         }
                     }
                     // Shrink-expand operation to remove trivial bridging areas
-                    bridging_current_layer = expand_ex(shrink_ex(bridging_current_layer, offset_distance), offset_distance); // this now contains the filtered expolygons.
+                    bridging_current_layer = offset_ex(shrink_ex(bridging_current_layer, offset_distance), offset_distance); // this now contains the filtered expolygons.
                     
                     // 2) If bridging expolygons exist, identify surfaces from the NEXT layer to apply them
                     if (!bridging_current_layer.empty() && (lidx + 1 < po->layers().size())) {
@@ -3013,7 +3013,7 @@ void PrintObject::bridge_over_infill()
                                 // Identify the overlaping expolygons between the next layer internal surface and the current internal bridge exPolygons
                                 // and shrink expand to remove trivial polygons
                                 ExPolygons overlap = intersection_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
-                                overlap = expand_ex(shrink_ex(overlap, 2*offset_distance), 2*offset_distance); // this contains the now filtered overlap areas.
+                                overlap = offset_ex(shrink_ex(overlap, 2*offset_distance), 2*offset_distance); // this contains the now filtered overlap areas.
                                                                                                                // Filtering out areas that are less than 4x infill tall/wide to avoid generating trivial internal bridges
                                 
                                 // if the overlap is not empty -> we've found non trivial areas to generate second internal bridges
@@ -3031,7 +3031,7 @@ void PrintObject::bridge_over_infill()
                                     
                                     // Keep the difference for normal stInternal/stInternalSolid infill & shrink/expand the polygons to filter out insignificant areas
                                     ExPolygons leftover = diff_ex(s->expolygon, bridging_union, ApplySafetyOffset::Yes);
-                                    leftover = expand_ex(shrink_ex(leftover, offset_distance), offset_distance);
+                                    leftover = offset_ex(shrink_ex(leftover, offset_distance), offset_distance);
                                     
                                     // if nothing is left over, continue to the next surface
                                     if(leftover.empty())
