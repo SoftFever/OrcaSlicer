@@ -65,9 +65,16 @@ static wxString get_tray_name_by_tray_id(int tray_id)
         tray_name = "Ext";
     }
     else {
-        char prefix = 'A' + (tray_id / 4);
-        char suffix = '0' + 1 + tray_id % 4;
-        tray_name = std::string(1, prefix) + std::string(1, suffix);
+        int  ams_id = tray_id / 4;
+        int slot_id = tray_id % 4;
+        if (ams_id >= 0 && ams_id < 26) {
+            char prefix = 'A' + ams_id;
+            char suffix = '0' + 1 + slot_id;
+            tray_name = std::string(1, prefix) + std::string(1, suffix);
+        } else if (ams_id >= 128 && ams_id < 153) {
+            char prefix = 'A' + ams_id - 128;
+            tray_name   = std::string(1, prefix);
+        }
     }
     return tray_name;
 }

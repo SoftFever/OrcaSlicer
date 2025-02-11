@@ -1596,6 +1596,10 @@ GUI::CalibrateFilamentComboBox::~CalibrateFilamentComboBox()
 void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
 {
     m_tray_name = config.opt_string("tray_name", 0u);
+    size_t pos = m_tray_name.find("HT-");
+    if (pos != std::string::npos) {
+        m_tray_name = m_tray_name.substr(pos + 3);
+    }
     m_filament_id = config.opt_string("filament_id", 0u);
     m_tag_uid = config.opt_string("tag_uid", 0u);
     m_filament_type  = config.opt_string("filament_type", 0u);
