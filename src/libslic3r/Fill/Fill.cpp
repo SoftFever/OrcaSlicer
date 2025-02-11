@@ -94,6 +94,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
+        RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
+		RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
 
 		return false;
 	}
@@ -115,7 +117,9 @@ struct SurfaceFillParams
 				this->extrusion_role	== rhs.extrusion_role	&&
 				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
 				this->top_surface_speed		== rhs.top_surface_speed &&
-				this->solid_infill_speed	== rhs.solid_infill_speed;
+				this->solid_infill_speed	== rhs.solid_infill_speed &&
+                this->lattice_angle_1		== rhs.lattice_angle_1 &&
+				this->lattice_angle_2	    == rhs.lattice_angle_2;
 	}
 };
 
