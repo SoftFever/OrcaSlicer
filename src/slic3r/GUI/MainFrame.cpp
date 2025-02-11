@@ -1609,16 +1609,19 @@ wxBoxSizer* MainFrame::create_side_tools()
         m_filament_group_popup->tryPopup(m_plater, curr_plate, m_slice_select == eSliceAll);
         };
 
+    // this pannel is used to trigger hover when button is disabled
     slice_panel->Bind(wxEVT_ENTER_WINDOW, [this,try_hover_pop_up](auto& event) {
-        try_hover_pop_up();
+        if(!m_slice_option_pop_up || !m_slice_option_pop_up->IsShown())
+            try_hover_pop_up();
         });
 
     slice_panel->Bind(wxEVT_LEAVE_WINDOW, [this](auto& event) {
         m_filament_group_popup->tryClose();
         });
 
-    m_slice_btn->Bind(wxEVT_ENTER_WINDOW, [this,try_hover_pop_up](auto& event) {
-        try_hover_pop_up();
+    m_slice_btn->Bind(wxEVT_ENTER_WINDOW, [this, try_hover_pop_up](auto& event) {
+        if (!m_slice_option_pop_up || !m_slice_option_pop_up->IsShown())
+            try_hover_pop_up();
         });
 
     m_slice_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& event) {
@@ -1687,32 +1690,36 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            SidePopup* p = new SidePopup(this);
-            SideButton* slice_all_btn = new SideButton(p, _L("Slice all"), "");
+            if(m_slice_option_pop_up)
+                delete m_slice_option_pop_up;
+            m_slice_option_pop_up = new SidePopup(this);
+            SideButton* slice_all_btn = new SideButton(m_slice_option_pop_up, _L("Slice all"), "");
             slice_all_btn->SetCornerRadius(0);
-            SideButton* slice_plate_btn = new SideButton(p, _L("Slice plate"), "");
+            SideButton* slice_plate_btn = new SideButton(m_slice_option_pop_up, _L("Slice plate"), "");
             slice_plate_btn->SetCornerRadius(0);
 
-            slice_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+            slice_all_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
                 m_slice_btn->SetLabel(_L("Slice all"));
                 m_slice_select = eSliceAll;
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
                 this->Layout();
-                p->Dismiss();
+                if(m_slice_option_pop_up)
+                    m_slice_option_pop_up->Dismiss();
                 });
 
-            slice_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+            slice_plate_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
                 m_slice_btn->SetLabel(_L("Slice plate"));
                 m_slice_select = eSlicePlate;
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
                 this->Layout();
-                p->Dismiss();
+                if(m_slice_option_pop_up)
+                    m_slice_option_pop_up->Dismiss();
                 });
-            p->append_button(slice_all_btn);
-            p->append_button(slice_plate_btn);
-            p->Popup(m_slice_btn);
+            m_slice_option_pop_up->append_button(slice_all_btn);
+            m_slice_option_pop_up->append_button(slice_plate_btn);
+            m_slice_option_pop_up->Popup(m_slice_btn);
         }
     );
 

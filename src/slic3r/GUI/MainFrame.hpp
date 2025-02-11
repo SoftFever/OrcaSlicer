@@ -397,6 +397,8 @@ public:
     SideButton* m_print_btn{ nullptr };
     SideButton* m_print_option_btn{ nullptr };
 
+    SidePopup*  m_slice_option_pop_up{ nullptr };
+
     FilamentGroupPopup* m_filament_group_popup{ nullptr };
     mutable bool          m_slice_enable{ true };
     mutable bool          m_print_enable{ true };
