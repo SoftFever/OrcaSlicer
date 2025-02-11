@@ -104,7 +104,7 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     std::string replace_color = m_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
     std::string svg_name = "filament_green";
     if (replace_color == "#FFFFFF00") {
-        svg_name = "filament_transparent";
+        svg_name = "filament_transparent2";
     }
     wxBitmap bmp = ScalableBitmap(this, svg_name, 40, false, false, false, { replace_color }).bmp();
     dc.DrawBitmap(bmp, wxPoint(0,0));

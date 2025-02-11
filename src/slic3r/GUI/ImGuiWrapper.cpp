@@ -3177,7 +3177,7 @@ void ImGuiWrapper::filament_group(const std::string &filament_type, const char *
     Slic3r::GUI::BitmapCache::parse_color4(hex_color, rgba);
     std::string svg_path = "/images/filament_green.svg";
     if (rgba[3] == 0x00) {
-        svg_path = "/images/filament_transparent.svg";
+        svg_path = "/images/filament_transparent2.svg";
     }
     BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + svg_path, img_size.x, img_size.y, transparent, hex_color);
     ImGui::BeginGroup();
