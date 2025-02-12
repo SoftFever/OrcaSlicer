@@ -72,8 +72,7 @@ namespace Slic3r
         struct ModelInfo {
             std::vector<FlushMatrix> flush_matrix;
             std::vector<std::vector<unsigned int>> layer_filaments;
-            std::vector<std::string> filament_colors;
-            std::vector<std::string> filament_types;
+            std::vector<FilamentGroupUtils::FilamentInfo> filament_info;
             std::vector<std::set<int>> unprintable_filaments;
         } model_info;
 
@@ -87,7 +86,7 @@ namespace Slic3r
 
         struct MachineInfo {
             std::vector<int> max_group_size;
-            std::vector<std::vector<FilamentGroupUtils::FilamentInfo>> machine_filament_info;
+            std::vector<std::vector<FilamentGroupUtils::MachineFilamentInfo>> machine_filament_info;
             std::vector<std::pair<std::set<int>, int>> extruder_group_size;
             int master_extruder_id;
         } machine_info;
@@ -95,9 +94,8 @@ namespace Slic3r
 
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists,
         const std::vector<unsigned int>& used_filaments,
-        const std::vector<FilamentGroupUtils::Color>& used_filament_colors,
-        const std::vector<std::string>& used_filament_types,
-        const std::vector<std::vector<FilamentGroupUtils::FilamentInfo>>& machine_filament_info,
+        const std::vector<FilamentGroupUtils::FilamentInfo>& used_filament_info,
+        const std::vector<std::vector<FilamentGroupUtils::MachineFilamentInfo>>& machine_filament_info,
         const double color_delta_threshold = 20);
 
     std::vector<int> optimize_group_for_master_extruder(const std::vector<unsigned int>& used_filaments, const FilamentGroupContext& ctx, const std::vector<int>& filament_map);

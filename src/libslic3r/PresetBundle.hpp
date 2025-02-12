@@ -55,6 +55,20 @@ struct MergeFilamentInfo {
     std::vector<std::vector<int>> merges;
     bool  is_empty() { return merges.empty();}
 };
+
+
+struct FilamentBaseInfo
+{
+    std::string filament_name;
+    std::string filament_id;
+    std::string filament_type;
+    std::string vendor;
+    int nozzle_temp_range_low;
+    int nozzle_temp_range_high;
+    bool is_support;
+    bool is_system;
+};
+
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {
@@ -112,8 +126,11 @@ public:
     Preset* get_preset_differed_for_save(Preset& preset);
     int get_differed_values_to_update(Preset& preset, std::map<std::string, std::string>& key_values);
 
+
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
+
+    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id) const;
 
     // Orca: get vendor type
     VendorType get_current_vendor_type();

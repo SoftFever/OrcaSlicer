@@ -392,6 +392,38 @@ bool PresetBundle::backup_user_folder() const
     }
 }
 
+std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id) const
+{
+    if (filament_id.empty())
+        return {};
+
+    // basic filament info should be same in the parent preset and child preset
+    // so just match the filament id is enough
+
+    for (auto iter = filaments.begin(); iter != filaments.end(); ++iter) {
+        const Preset& filament_preset = *iter;
+        const auto& config = filament_preset.config;
+        if (filament_preset.filament_id == filament_id) {
+            FilamentBaseInfo info;
+            info.filament_id = filament_id;
+            info.is_system = filament_preset.is_system;
+            info.filament_name = filament_preset.alias;
+            if (config.has("filament_is_support"))
+                info.is_support = config.option<ConfigOptionBools>("filament_is_support")->values[0];
+            if (config.has("filament_type"))
+                info.filament_type = config.option<ConfigOptionStrings>("filament_type")->values[0];
+            if (config.has("filament_vendor"))
+                info.vendor = config.option<ConfigOptionStrings>("filament_vendor")->values[0];
+            if (config.has("nozzle_temperature_range_high"))
+                info.nozzle_temp_range_high = config.option<ConfigOptionInts>("nozzle_temperature_range_high")->values[0];
+            if (config.has("nozzle_temperature_range_low"))
+                info.nozzle_temp_range_low = config.option<ConfigOptionInts>("nozzle_temperature_range_low")->values[0];
+            return info;
+        }
+    }
+    return {};
+}
+
 //BBS: load project embedded presets
 PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {

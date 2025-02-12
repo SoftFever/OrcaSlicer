@@ -29,9 +29,13 @@ namespace Slic3r
         struct FilamentInfo {
             Color color;
             std::string type;
+            bool is_support;
+        };
+
+        struct MachineFilamentInfo: public FilamentInfo {
             int extruder_id;
             bool is_extended;
-            bool operator<(const FilamentInfo& other) const;
+            bool operator<(const MachineFilamentInfo& other) const;
         };
 
 
@@ -62,7 +66,7 @@ namespace Slic3r
 
         std::vector<int> calc_max_group_size(const std::vector<std::map<int, int>>& ams_counts,bool ignore_ext_filament);
 
-        std::vector<std::vector<FilamentInfo>> build_machine_filaments(const std::vector<std::vector<DynamicPrintConfig>>& filament_configs, const std::vector<std::map<int, int>>& ams_counts, bool ignore_ext_filament);
+        std::vector<std::vector<MachineFilamentInfo>> build_machine_filaments(const std::vector<std::vector<DynamicPrintConfig>>& filament_configs, const std::vector<std::map<int, int>>& ams_counts, bool ignore_ext_filament);
 
         bool collect_unprintable_limits(const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables, std::vector<std::set<int>>& unprintable_limits);
 

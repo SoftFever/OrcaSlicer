@@ -116,17 +116,15 @@ namespace Slic3r
      *
      * @param map_lists Group list with similar flush count
      * @param used_filaments Idx of used filaments
-     * @param used_filament_colors Colors of used filaments
-     * @param used_filament_types Filament types of used filaments
+     * @param used_filament_info Information of filaments used
      * @param machine_filament_info Information of filaments loaded in printer
      * @param color_threshold Threshold for considering colors to be similar
      * @return The group that best fits the filament distribution in AMS
      */
     std::vector<int> select_best_group_for_ams(const std::vector<std::vector<int>>& map_lists,
         const std::vector<unsigned int>& used_filaments,
-        const std::vector<Color>& used_filament_colors,
-        const std::vector<std::string>& used_filament_types,
-        const std::vector<std::vector<FilamentInfo>>& machine_filament_info,
+        const std::vector<FilamentInfo>& used_filament_info,
+        const std::vector<std::vector<MachineFilamentInfo>>& machine_filament_info_,
         const double color_threshold)
     {
         using namespace FlushPredict;
@@ -135,16 +133,9 @@ namespace Slic3r
 
         const int fail_cost = 9999;
 
-        std::vector<std::vector<Color>>ams_filament_colors(2);
-        std::vector<std::vector<std::string>> ams_filament_types(2);
-
-        for (size_t idx = 0; idx < std::min(ams_filament_colors.size(), machine_filament_info.size()); ++idx) {
-            for (size_t j = 0; j < machine_filament_info[idx].size(); ++j) {
-                ams_filament_colors[idx].emplace_back(machine_filament_info[idx][j].color);
-                ams_filament_types[idx].emplace_back(machine_filament_info[idx][j].type);
-            }
-        }
-
+        // these code is to make we machine filament info size is 2
+        std::vector<std::vector<MachineFilamentInfo>> machine_filament_info = machine_filament_info_;
+        machine_filament_info.resize(2);
 
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_map;
@@ -155,7 +146,7 @@ namespace Slic3r
 
             for (size_t i = 0; i < used_filaments.size(); ++i) {
                 int target_group = map[used_filaments[i]] == 0 ? 0 : 1;
-                group_colors[target_group].emplace_back(used_filament_colors[i]);
+                group_colors[target_group].emplace_back(used_filament_info[i].color);
                 group_filaments[target_group].emplace_back(i);
             }
 
@@ -163,31 +154,32 @@ namespace Slic3r
             for (size_t i = 0; i < 2; ++i) {
                 if (group_colors[i].empty())
                     continue;
-                if (ams_filament_colors.empty()) {
+                if (machine_filament_info[i].empty()) {
                     group_cost += group_colors.size() * fail_cost;
                     continue;
                 }
-                std::vector<std::vector<float>>distance_matrix(group_colors[i].size(), std::vector<float>(ams_filament_colors[i].size()));
+                std::vector<std::vector<float>>distance_matrix(group_colors[i].size(), std::vector<float>(machine_filament_info[i].size()));
 
                 // calculate color distance matrix
                 for (size_t src = 0; src < group_colors[i].size(); ++src) {
-                    for (size_t dst = 0; dst < ams_filament_colors[i].size(); ++dst) {
+                    for (size_t dst = 0; dst < machine_filament_info[i].size(); ++dst) {
                         distance_matrix[src][dst] = calc_color_distance(
                             RGBColor(group_colors[i][src].r, group_colors[i][src].g, group_colors[i][src].b),
-                            RGBColor(ams_filament_colors[i][dst].r, ams_filament_colors[i][dst].g, ams_filament_colors[i][dst].b)
+                            RGBColor(machine_filament_info[i][dst].color.r, machine_filament_info[i][dst].color.g, machine_filament_info[i][dst].color.b)
                         );
                     }
                 }
 
                 // get min cost by min cost max flow
-                std::vector<int>l_nodes(group_colors[i].size()), r_nodes(ams_filament_colors[i].size());
+                std::vector<int>l_nodes(group_colors[i].size()), r_nodes(machine_filament_info[i].size());
                 std::iota(l_nodes.begin(), l_nodes.end(), 0);
                 std::iota(r_nodes.begin(), r_nodes.end(), 0);
 
                 std::unordered_map<int, std::vector<int>>unlink_limits;
                 for (size_t from = 0; from < group_filaments[i].size(); ++from) {
-                    for (size_t to = 0; to < ams_filament_types[i].size(); ++to) {
-                        if (used_filament_types[group_filaments[i][from]] != ams_filament_types[i][to]) {
+                    for (size_t to = 0; to < machine_filament_info[i].size(); ++to) {
+                        if (used_filament_info[group_filaments[i][from]].type != machine_filament_info[i][to].type ||
+                            used_filament_info[group_filaments[i][from]].is_support != machine_filament_info[i][to].is_support) {
                             unlink_limits[from].emplace_back(to);
                         }
                     }
@@ -504,16 +496,12 @@ namespace Slic3r
         using namespace FlushPredict;
 
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
-        std::vector<Color> used_colors;
-        std::vector<std::string> used_types;
+        std::vector<FilamentInfo> used_filament_list;
+        for (auto f : used_filaments)
+            used_filament_list.emplace_back(ctx.model_info.filament_info[f]);
 
-        for (auto& f : used_filaments) {
-            used_colors.emplace_back(Color(ctx.model_info.filament_colors[f]));
-            used_types.emplace_back(ctx.model_info.filament_types[f]);
-        }
-
-        std::vector<FilamentInfo> machine_filament_list;
-        std::map<FilamentInfo, std::set<int>> machine_filament_set;
+        std::vector<MachineFilamentInfo> machine_filament_list;
+        std::map<MachineFilamentInfo, std::set<int>> machine_filament_set;
         for (size_t eid = 0; eid < ctx.machine_info.machine_filament_info.size();++eid) {
             for (auto& filament : ctx.machine_info.machine_filament_info[eid]) {
                 machine_filament_set[filament].insert(machine_filament_list.size());
@@ -527,11 +515,11 @@ namespace Slic3r
         std::map<int, int> unprintable_limit_indices; // key stores filament idx in used_filament, value stores unprintable extruder
         extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unprintable_limit_indices);
 
-        std::vector<std::vector<float>> color_dist_matrix(used_colors.size(), std::vector<float>(machine_filament_list.size()));
-        for (size_t i = 0; i < used_colors.size(); ++i) {
+        std::vector<std::vector<float>> color_dist_matrix(used_filament_list.size(), std::vector<float>(machine_filament_list.size()));
+        for (size_t i = 0; i < used_filament_list.size(); ++i) {
             for (size_t j = 0; j < machine_filament_list.size(); ++j) {
                 color_dist_matrix[i][j] = calc_color_distance(
-                    RGBColor(used_colors[i].r, used_colors[i].g, used_colors[i].b),
+                    RGBColor(used_filament_list[i].color.r, used_filament_list[i].color.g, used_filament_list[i].color.b),
                     RGBColor(machine_filament_list[j].color.r, machine_filament_list[j].color.g, machine_filament_list[j].color.b)
                 );
             }
@@ -632,8 +620,9 @@ namespace Slic3r
         std::vector<int> group(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
         std::vector<int> ungrouped_filaments;
 
-        auto unlink_limits_full = build_unlink_limits(l_nodes, r_nodes, [&used_types, &machine_filament_list, is_extruder_filament_compatible](int used_filament_idx, int machine_filament_idx) {
-            return used_types[used_filament_idx] == machine_filament_list[machine_filament_idx].type &&
+        auto unlink_limits_full = build_unlink_limits(l_nodes, r_nodes, [&used_filament_list, &machine_filament_list, is_extruder_filament_compatible](int used_filament_idx, int machine_filament_idx) {
+            return used_filament_list[used_filament_idx].type == machine_filament_list[machine_filament_idx].type &&
+                used_filament_list[used_filament_idx].is_support == machine_filament_list[machine_filament_idx].is_support &&
                 is_extruder_filament_compatible(used_filament_idx, machine_filament_list[machine_filament_idx].extruder_id);
             });
 
@@ -697,14 +686,12 @@ namespace Slic3r
         if (optimized_ret != ret)
             memoryed_maps.insert(memoryed_maps.begin(), optimized_ret);
 
-        std::vector<Color> used_colors;
-        std::vector<std::string> used_types;
-        for (const auto& f : used_filaments) {
-            used_colors.push_back(Color(ctx.model_info.filament_colors[f]));
-            used_types.push_back(ctx.model_info.filament_types[f]);
+        std::vector<FilamentGroupUtils::FilamentInfo> used_filament_info;
+        for (auto f : used_filaments) {
+            used_filament_info.emplace_back(ctx.model_info.filament_info[f]);
         }
 
-        ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_colors,used_types, ctx.machine_info.machine_filament_info);
+        ret = select_best_group_for_ams(memoryed_maps, used_filaments, used_filament_info, ctx.machine_info.machine_filament_info);
         return ret;
     }
 
