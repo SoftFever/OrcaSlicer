@@ -3020,7 +3020,7 @@ void PrintObject::bridge_over_infill()
                 if (bridging_current_layer.empty())
                     continue;  // all bridging was trivial, continue with the next layer
                 
-                // (C) If there is a next layer, identify overlapping stInternalSolid areas and convert the overlap to stSecondInternalBridge
+                // (C) If there is a next layer, identify overlapping stInternal & stInternalSolid areas and convert the overlap to stSecondInternalBridge
                 if (lidx + 1 < this->layers().size()) {
                     Layer* next_layer = this->get_layer(lidx + 1);
                     
@@ -3034,16 +3034,16 @@ void PrintObject::bridge_over_infill()
                         Surfaces next_new_surfaces;
                         Surfaces keep_surfaces;
                         
-                        // 1) Do not modify (keep) anything that isn't stInternalSolid
+                        // 1) Do not modify (keep) anything that isn't stInternal or stInternalSolid
                         for (const Surface &s : next_region->fill_surfaces.surfaces) {
-                            if (s.surface_type != stInternalSolid) {
+                            if ( (s.surface_type != stInternal) &&  (s.surface_type != stInternalSolid)) {
                                 keep_surfaces.push_back(s);
                             }
                         }
                         
-                        // 2) For stInternalSolid surfaces, check if they overlap bridging_union
+                        // 2) For stInternal & stInternalSolid surfaces, check if they overlap bridging_union
                         // 2a) Gather the next internal stInternalSolid surfaces first
-                        SurfacesPtr next_internals = next_region->fill_surfaces.filter_by_types({ stInternalSolid });
+                        SurfacesPtr next_internals = next_region->fill_surfaces.filter_by_types({ stInternal, stInternalSolid });
                         
                         // 2b) For every collected next stInternalSolid surface
                         for (const Surface *s : next_internals) {
