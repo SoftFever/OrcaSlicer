@@ -1551,18 +1551,17 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data, wxString& error_
                 wxString pos;
                 if (target_machine_nozzle_id == DEPUTY_NOZZLE_ID)
                 {
-                    pos = _L("left");
+                    pos = _L("left nozzle");
                 }
-                else if((target_machine_nozzle_id == MAIN_NOZZLE_ID))
+                else if ((target_machine_nozzle_id == MAIN_NOZZLE_ID))
                 {
-                    pos = _L("right");
+                    pos = _L("right nozzle");
                 }
 
-                error_message = wxString::Format(_L("The nozzle flow setting of %snozzle(%s) doesn't match with the slicing file(%s). "
-                                                     "Please make sure the nozzle installed matches with settings in printer, "
-                                                     "then set the corresponding printer preset while slicing."),
-                                                     pos, flow_type_of_machine[target_machine_nozzle_id],
-                                                     used_extruders_flow[it->first]);
+                error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
+                                                    "Please make sure the nozzle installed matches with settings in printer, "
+                                                    "then set the corresponding printer preset while slicing."),
+                                                     pos, flow_type_of_machine[target_machine_nozzle_id], used_extruders_flow[it->first]);
                 return false;
             }
         }
