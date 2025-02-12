@@ -136,6 +136,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "concentric",         ipConcentric },
     { "zig-zag",            ipRectilinear },
     { "grid",               ipGrid },
+    { "2dlattice",          ip2DLattice },
     { "line",               ipLine },
     { "cubic",              ipCubic },
     { "triangles",          ipTriangles },
@@ -2282,6 +2283,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("grid");
+    def->enum_values.push_back("2dlattice");
     def->enum_values.push_back("line");
     def->enum_values.push_back("cubic");
     def->enum_values.push_back("triangles");
@@ -2301,6 +2303,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
+    def->enum_labels.push_back(L("2D Lattice"));
     def->enum_labels.push_back(L("Line"));
     def->enum_labels.push_back(L("Cubic"));
     def->enum_labels.push_back(L("Triangles"));
@@ -2318,6 +2321,26 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("Quarter Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
+
+    def           = this->add("lattice_angle_1", coFloat);
+    def->label    = L("Lattice angle 1");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-45));
+
+    def           = this->add("lattice_angle_2", coFloat);
+    def->label    = L("Lattice angle 2");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(45));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
