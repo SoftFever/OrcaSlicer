@@ -3192,9 +3192,9 @@ void ImGuiWrapper::filament_group(const std::string& filament_type, const char* 
     unsigned char rgba[4];
     rgba[3] = 0xff;
     Slic3r::GUI::BitmapCache::parse_color4(hex_color, rgba);
-    std::string svg_path = "/images/filament_green.svg";
+    std::string svg_path = "/images/outlined_rect.svg";
     if (rgba[3] == 0x00) {
-        svg_path = "/images/filament_transparent2.svg";
+        svg_path = "/images/outlined_rect_transparent.svg";
     }
     BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + svg_path, img_size.x, img_size.y, transparent, hex_color);
     ImGui::BeginGroup();
@@ -3204,7 +3204,7 @@ void ImGuiWrapper::filament_group(const std::string& filament_type, const char* 
         // image border test
         // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
         ImVec2 current_cursor = ImGui::GetCursorPos();
-        ImGui::SetCursorPos({ current_cursor.x + (img_size.x - id_text_size.x) * 0.5f + 2, current_cursor.y + (img_size.y - id_text_size.y) * 0.5f - 2 });
+        ImGui::SetCursorPos({ current_cursor.x + (img_size.x - id_text_size.x) * 0.5f, current_cursor.y + (img_size.y - id_text_size.y) * 0.5f - 7 });
 
         float gray = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2];
         ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
