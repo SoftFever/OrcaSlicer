@@ -1329,8 +1329,7 @@ void AMSControl::SwitchAms(std::string ams_id)
         if (prv->get_nozzle_id() == DEPUTY_NOZZLE_ID) {
             m_sizer_prv_left->Layout();
             m_panel_prv_left->Fit();
-        }
-        else if (prv->get_nozzle_id() == MAIN_NOZZLE_ID){
+        } else if (prv->get_nozzle_id() == MAIN_NOZZLE_ID) {
             m_sizer_prv_right->Layout();
             m_panel_prv_right->Fit();
         }
