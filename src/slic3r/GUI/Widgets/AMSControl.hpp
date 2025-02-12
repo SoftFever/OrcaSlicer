@@ -123,7 +123,7 @@ public:
     bool        IsAmsInRightPanel(std::string ams_id);
 	wxColour GetCanColour(std::string amsid, std::string canid);
     void createAms(wxSimplebook* parent, int& idx, AMSinfo info, AMSPanelPos pos);
-    void createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSinfo>infos, AMSPanelPos pos);
+    void createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSinfo>infos, AMSPanelPos pos, int total_ext_num);
     AMSRoadShowMode findFirstMode(AMSPanelPos pos);
 
     AMSModel m_ams_model{AMSModel::EXT_AMS};

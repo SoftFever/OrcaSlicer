@@ -347,24 +347,33 @@ public:
 //AMSExtImage upon ext lib
 class AMSExtImage : public wxWindow
 {
-    private:
-    bool m_ext_show = true;
-    ExtderData* m_extder_data = nullptr;
-    AMSPanelPos m_ext_pos;
-public:
-    void msw_rescale();
-    void paintEvent(wxPaintEvent& evt);
-    void setShowState(bool show) { m_ext_show = show; };
+private:
+    bool    m_show_ams_ext = false;
+    bool    m_show_ext     = false;
 
-    void            render(wxDC& dc);
-    ScalableBitmap  m_ams_ext;
-    ScalableBitmap  m_ams_ext_left;
-    ScalableBitmap  m_ams_ext_right;
-    ScalableBitmap  m_ams_ext_single_nozzle;
-    void            doRender(wxDC& dc);
-    AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, ExtderData *data = nullptr,
-        wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition);
+    AMSPanelPos m_ext_pos;
+    int         total_ext_num = 1;
+
+    ScalableBitmap m_ams_ext_left;
+    ScalableBitmap m_ams_ext_right;
+    ScalableBitmap m_ams_single_ext;
+
+    ScalableBitmap m_ext_left;
+    ScalableBitmap m_ext_right;
+    ScalableBitmap m_ext_single_nozzle;
+
+public:
+    AMSExtImage(wxWindow *parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, ExtderData *data = nullptr, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition);
     ~AMSExtImage();
+
+    void msw_rescale();
+    void setShowAmsExt(bool show);
+    void setTotalExtNum(int num);
+
+private:
+    void paintEvent(wxPaintEvent &evt);
+    void render(wxDC &dc);
+    void doRender(wxDC &dc);
 };
 
 

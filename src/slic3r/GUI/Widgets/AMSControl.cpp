@@ -1095,7 +1095,8 @@ AMSRoadShowMode AMSControl::findFirstMode(AMSPanelPos pos) {
     }
 }
 
-void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSinfo>infos, AMSPanelPos pos) {
+void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSinfo> infos, AMSPanelPos pos, int total_ext_num)
+{
     if (infos.size() <= 0) return;
 
     wxPanel* book_panel = new wxPanel(parent);
@@ -1106,8 +1107,12 @@ void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSi
 
     AmsItem* ams1 = nullptr, * ams2 = nullptr;
     ams1 = new AmsItem(book_panel, infos[0], infos[0].ams_type, pos);
+    if (ams1->get_ext_image()) { ams1->get_ext_image()->setTotalExtNum(total_ext_num); }
+
     if (infos.size() == MAX_AMS_NUM_IN_PANEL) {    //n3s and ? in a panel
         ams2 = new AmsItem(book_panel, infos[1], infos[1].ams_type, pos);
+        if (ams2->get_ext_image()) { ams2->get_ext_image()->setTotalExtNum(total_ext_num); }
+
         if (pos == AMSPanelPos::LEFT_PANEL) {
             book_sizer->Add(ams1, 0, wxLEFT, FromDIP(4));
             book_sizer->Add(ams2, 0, wxLEFT, FromDIP(30));
@@ -1118,8 +1123,8 @@ void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSi
         }
     }
     else {   //only an ext in a panel
-        if (ams1->get_ext_image()) { ams1->get_ext_image()->setShowState(false);
-        }
+        if (ams1->get_ext_image()) { ams1->get_ext_image()->setShowAmsExt(false);}
+
         if (ams1->get_ams_model() == AMSModel::EXT_AMS) {
             if (ams1->get_ext_type() == LITE_EXT) {
                 //book_sizer->Add(ams1, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1194,18 +1199,18 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, AMSPanelPos pos) {
     }
     if (m_extder_data.total_extder_count == 2) {
         if (single_info[0].nozzle_id == MAIN_NOZZLE_ID) {
-            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, AMSPanelPos::RIGHT_PANEL);
+            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, AMSPanelPos::RIGHT_PANEL, m_extder_data.total_extder_count);
         }
         else if (single_info[0].nozzle_id == DEPUTY_NOZZLE_ID) {
-            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, AMSPanelPos::LEFT_PANEL);
+            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, AMSPanelPos::LEFT_PANEL, m_extder_data.total_extder_count);
         }
     }
     else if (m_extder_data.total_extder_count == 1) {
         if (pos == AMSPanelPos::RIGHT_PANEL) {
-            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, AMSPanelPos::RIGHT_PANEL);
+            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, AMSPanelPos::RIGHT_PANEL, m_extder_data.total_extder_count);
         }
         else {
-            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, AMSPanelPos::LEFT_PANEL);
+            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, AMSPanelPos::LEFT_PANEL, m_extder_data.total_extder_count);
         }
     }
 
