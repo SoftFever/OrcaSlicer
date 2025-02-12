@@ -9737,6 +9737,8 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
         _obj->config.set_key_value("wall_loops", new ConfigOptionInt(1));
         _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
         _obj->config.set_key_value("thick_internal_bridges", new ConfigOptionBool(false));
+        _obj->config.set_key_value("enable_extra_bridge_layer", new ConfigOptionEnum<EnableExtraBridgeLayer>(eblDisabled));
+        _obj->config.set_key_value("internal_bridge_density", new ConfigOptionPercent(100));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(35));
         _obj->config.set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100,true));
         _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
