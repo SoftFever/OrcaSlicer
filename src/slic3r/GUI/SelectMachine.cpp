@@ -1378,13 +1378,15 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                 mapping_item_v1["ams_id"]  = 0xff;
                 mapping_item_v1["slot_id"] = 0xff;
 
-                for (int k = 0; k < m_ams_mapping_result.size(); k++) {
-                    if (m_ams_mapping_result[k].id == i) {
-                        mapping_result = m_ams_mapping_result[k].tray_id;
-                        mapping_item_v1["ams_id"]  = std::stoi(m_ams_mapping_result[k].ams_id);
-                        mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                try {
+                    for (int k = 0; k < m_ams_mapping_result.size(); k++) {
+                        if (m_ams_mapping_result[k].id == i) {
+                            mapping_result = m_ams_mapping_result[k].tray_id;
+                            mapping_item_v1["ams_id"]  = std::stoi(m_ams_mapping_result[k].ams_id);
+                            mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                        }
                     }
-                }
+                } catch (...) {}
 
                 mapping_v0_json.push_back(mapping_result);
                 mapping_v1_json.push_back(mapping_item_v1);
