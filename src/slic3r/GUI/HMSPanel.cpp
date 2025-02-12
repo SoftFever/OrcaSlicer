@@ -17,7 +17,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_ALREADY_READ_HMS, wxCommandEvent);
 
 HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, HMSItem& item)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL) 
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
     , m_hms_item(item)
     , dev_id(dev_id)
     , long_error_code(item.get_long_error_code())
@@ -119,10 +119,11 @@ HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, HMSIte
         }
         });
     m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
-        if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
             wxCommandEvent evt(EVT_ALREADY_READ_HMS);
             evt.SetString(long_error_code);
             wxPostEvent(wxGetApp().mainframe->m_monitor, evt);
+
+            if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
         });
 #endif
 }
@@ -140,19 +141,19 @@ void HMSNotifyItem::init_bitmaps() {
 wxBitmap & HMSNotifyItem::get_notify_bitmap()
 {
     switch (m_hms_item.msg_level) {
-        case (HMS_FATAL): 
+        case (HMS_FATAL):
             return m_img_notify_lv1;
             break;
         case (HMS_SERIOUS):
             return m_img_notify_lv2;
             break;
-        case (HMS_COMMON): 
+        case (HMS_COMMON):
             return m_img_notify_lv3;
             break;
-        case (HMS_INFO): 
+        case (HMS_INFO):
             //return m_img_notify_lv4;
             break;
-        case (HMS_UNKNOWN): 
+        case (HMS_UNKNOWN):
         case (HMS_MSG_LEVEL_MAX):
         default: break;
     }
@@ -225,7 +226,7 @@ void HMSPanel::update(MachineObject *obj)
                 append_hms_panel(obj->dev_id, item);
             }
         }
-        
+
         for (auto it = temp_hms_list.begin(); it != temp_hms_list.end(); ) {
             auto key = it->second.get_long_error_code();
             bool inr = false;
