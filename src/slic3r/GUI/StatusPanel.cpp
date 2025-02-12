@@ -1454,7 +1454,6 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle->SetTextColor(tempinput_text_colour);
     m_tempCtrl_nozzle->SetBorderColor(tempinput_border_colour);
 
-    sizer->Add(m_tempCtrl_nozzle, 0, wxEXPAND | wxALL, 1);
     m_tempCtrl_nozzle_deputy = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TempInputType::TEMP_OF_NORMAL_TYPE, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle_deputy->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_TWO_ICON);
@@ -1466,6 +1465,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle_deputy->SetBorderColor(tempinput_border_colour);
 
     sizer->Add(m_tempCtrl_nozzle_deputy, 0, wxEXPAND | wxALL, 1);
+    sizer->Add(m_tempCtrl_nozzle, 0, wxEXPAND | wxALL, 1);
     m_tempCtrl_nozzle_deputy->Hide();
 
     m_line_nozzle = new StaticLine(parent);
