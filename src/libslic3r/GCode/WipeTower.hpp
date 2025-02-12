@@ -338,6 +338,8 @@ public:
         int              filament_adhesiveness_category{0};
         std::vector<float>      layer_depths;
 		std::vector<bool>       solid_infill;
+		std::vector<bool>       solid_infill_lower_h_nozzlechange;
+		std::vector<bool>       has_nozzle_change;
         std::vector<float>      finish_depth{0}; // the start pos of finish frame for every layer
         float            depth{0};
         float            start_depth{0};
@@ -372,12 +374,12 @@ public:
 	void generate_wipe_tower_blocks();
     void update_all_layer_depth(float wipe_tower_depth);
 
-    ToolChangeResult tool_change_new(size_t new_tool);
-    NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id);
+    ToolChangeResult   tool_change_new(size_t new_tool, bool solid_change = false);
+    NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id, bool solid_change = false);
     ToolChangeResult   finish_layer_new(bool extrude_perimeter = true, bool extrude_fill = true, bool extrude_fill_wall = true);
     ToolChangeResult   finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
-    void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length);
+    void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
     Vec2f              get_rib_offset() const { return m_rib_offset; }
 
 private:
