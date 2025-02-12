@@ -241,18 +241,20 @@ Description:AMSrefresh
 
 AMSrefresh::AMSrefresh() { SetFont(Label::Body_10);}
 
-AMSrefresh::AMSrefresh(wxWindow *parent, wxString number, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSrefresh()
+AMSrefresh::AMSrefresh(wxWindow *parent, std::string ams_id, wxString can_id, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSrefresh()
 {
-    m_info = info;
-    m_can_id = number.ToStdString();
+    m_can_id = can_id.ToStdString();
     create(parent, wxID_ANY, pos, size);
+
+    Update(ams_id, info);
 }
 
-AMSrefresh::AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSrefresh()
+AMSrefresh::AMSrefresh(wxWindow *parent, std::string ams_id, int can_id, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSrefresh()
 {
-    m_info = info;
-    m_can_id = wxString::Format("%d", number).ToStdString();
+    m_can_id = wxString::Format("%d", can_id).ToStdString();
     create(parent, wxID_ANY, pos, size);
+
+    Update(ams_id, info);
 }
 
  AMSrefresh::~AMSrefresh()
@@ -317,16 +319,17 @@ void AMSrefresh::on_timer(wxTimerEvent &event)
 
 void AMSrefresh::PlayLoading()
 {
-    if (m_play_loading | m_disable_mode)  return;
+    if (m_play_loading || m_disable_mode)  return;
+
     m_play_loading = true;
-    //m_rotation_angle = 0;
     m_playing_timer->Start(AMS_REFRESH_PLAY_LOADING_TIMER);
     Refresh();
 }
 
 void AMSrefresh::StopLoading()
 {
-    if (!m_play_loading | m_disable_mode) return;
+    if (!m_play_loading || m_disable_mode) return;
+
     m_playing_timer->Stop();
     m_play_loading = false;
     Refresh();
@@ -350,6 +353,8 @@ void AMSrefresh::OnClick(wxMouseEvent &evt) {
 
 void AMSrefresh::post_event(wxCommandEvent &&event)
 {
+    if (m_play_loading) { return;}
+
     if (m_disable_mode)
         return;
     event.SetString(m_info.can_id);
@@ -400,6 +405,11 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
 
 void AMSrefresh::Update(std::string ams_id, Caninfo info)
 {
+    if (m_ams_id == ams_id && m_info == info)
+    {
+        return;
+    }
+
     m_ams_id = ams_id;
     m_info   = info;
 
@@ -409,7 +419,8 @@ void AMSrefresh::Update(std::string ams_id, Caninfo info)
         auto tray_id = aid * 4 + tid;
         m_refresh_id = wxGetApp().transition_tridid(tray_id);
     }
-    StopLoading();
+
+    Refresh();
 }
 
 void AMSrefresh::msw_rescale() {
@@ -2986,7 +2997,6 @@ void AmsItem::create(wxWindow *parent)
 
 void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer)
 {
-
     auto        amscan = new wxWindow(this, wxID_ANY);
 
     amscan->SetSize(wxSize(FromDIP(52), FromDIP(109)));
@@ -3000,7 +3010,7 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
     AMSrefresh* m_panel_refresh;
     if (m_ams_model != AMSModel::EXT_AMS)
     {
-        m_panel_refresh = new AMSrefresh(amscan, m_can_count, caninfo);
+        m_panel_refresh = new AMSrefresh(amscan, m_info.ams_id, m_can_count, caninfo);
         m_can_refresh_list[caninfo.can_id] = m_panel_refresh;
     }
     else if (m_ams_model == AMSModel::EXT_AMS){
@@ -3109,7 +3119,7 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
         ev.Skip();
         });
 
-    auto ams_refresh = new AMSrefresh(amscan, canindex, caninfo);
+    auto ams_refresh = new AMSrefresh(amscan, m_info.ams_id, canindex, caninfo);
     m_can_refresh_list[caninfo.can_id] = ams_refresh;
     m_panel_lib->m_ams_model = m_ams_model;
     m_panel_lib->m_ams_id = m_info.ams_id;
@@ -3382,7 +3392,7 @@ void AmsItem::PlayRridLoading(wxString canid)
 {
     for (auto refresh_it : m_can_refresh_list) {
         AMSrefresh* refresh = refresh_it.second;
-        if (refresh->m_info.can_id == canid) { refresh->PlayLoading(); }
+        if (refresh->GetCanId() == canid) { refresh->PlayLoading(); }
     }
 }
 
@@ -3523,7 +3533,7 @@ void AmsItem::StopRridLoading(wxString canid)
 {
     for (auto refresh_it : m_can_refresh_list) {
         AMSrefresh* refresh = refresh_it.second;
-        if (refresh->m_info.can_id == canid) { refresh->StopLoading(); }
+        if (refresh->GetCanId() == canid) { refresh->StopLoading(); }
     }
 }
 

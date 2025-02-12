@@ -275,23 +275,29 @@ class AMSrefresh : public wxWindow
 {
 public:
     AMSrefresh();
-    AMSrefresh(wxWindow *parent, wxString number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-    AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(wxWindow *parent, std::string ams_id, wxString can_id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(wxWindow *parent, std::string ams_id, int can_id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSrefresh();
+
+public:
+    void        Update(std::string ams_id, Caninfo info);
+
+    std::string GetCanId() const { return m_info.can_id; };
+
     void    PlayLoading();
     void    StopLoading();
-    void    create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
-    void    on_timer(wxTimerEvent &event);
-    void    OnEnterWindow(wxMouseEvent &evt);
-    void    OnLeaveWindow(wxMouseEvent &evt);
-    void    OnClick(wxMouseEvent &evt);
-    void    post_event(wxCommandEvent &&event);
-    void    paintEvent(wxPaintEvent &evt);
-    void    Update(std::string ams_id, Caninfo info);
-    void    msw_rescale();
-    void    set_disable_mode(bool disable) { m_disable_mode = disable; }
-    Caninfo m_info;
 
+    void    msw_rescale();
+
+protected:
+    void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
+
+    void on_timer(wxTimerEvent &event);
+    void OnEnterWindow(wxMouseEvent &evt);
+    void OnLeaveWindow(wxMouseEvent &evt);
+    void OnClick(wxMouseEvent &evt);
+    void post_event(wxCommandEvent &&event);
+    void paintEvent(wxPaintEvent &evt);
 
 protected:
     wxTimer *m_playing_timer= {nullptr};
@@ -301,6 +307,7 @@ protected:
 
     std::string      m_ams_id;
     std::string      m_can_id;
+    Caninfo          m_info;
 
     ScalableBitmap   m_bitmap_normal;
     ScalableBitmap   m_bitmap_selected;
