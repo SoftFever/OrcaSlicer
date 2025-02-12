@@ -2455,8 +2455,8 @@ void AMSPreview::Update(AMSinfo amsinfo)
 
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 14);
-    m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 14);
+    m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 12);
+    m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 12);
 
     m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
     m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot_ams_item_dark", 32);
@@ -2588,11 +2588,11 @@ void AMSPreview::doRender(wxDC &dc)
                 if (iter->material_colour.Alpha() == 0) {
                     if (wxGetApp().dark_mode())
                     {
-                        dc.DrawBitmap(m_ts_bitmap_cube_dark.bmp(), left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+                        dc.DrawBitmap(m_ts_bitmap_cube_dark.bmp(), left - FromDIP(2), (size.y - m_ts_bitmap_cube_dark.GetBmpHeight()) / 2);
                     }
                     else
                     {
-                        dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+                        dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left - FromDIP(2), (size.y - m_ts_bitmap_cube.GetBmpHeight()) / 2);
                     }
                 }
                 else {
