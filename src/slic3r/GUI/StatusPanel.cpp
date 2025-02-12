@@ -1006,6 +1006,7 @@ void PrintingTaskPanel::show_profile_info(bool show, wxString profile /*= wxEmpt
 void PrintingTaskPanel::set_thumbnail_img(const wxBitmap& bmp)
 {
     m_thumbnail_bmp_display = bmp;
+    Refresh();
 }
 
 void PrintingTaskPanel::set_plate_index(int plate_idx)
