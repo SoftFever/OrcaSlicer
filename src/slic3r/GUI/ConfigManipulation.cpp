@@ -782,6 +782,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
     toggle_line("interlocking_depth", use_beam_interlocking);
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
+
+    bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DLattice;
+    for (auto el : { "lattice_angle_1", "lattice_angle_2"})
+        toggle_line(el, lattice_options);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
