@@ -857,6 +857,9 @@ void GLGizmoMmuSegmentation::on_set_state()
         ModelObject* mo = m_c->selection_info()->model_object();
         if (mo) Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
+        if (m_current_tool == ImGui::GapFillIcon) {//exit gap fill
+            m_current_tool = ImGui::CircleButtonIcon;
+        }
     }
 }
 
