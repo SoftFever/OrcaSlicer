@@ -3408,6 +3408,9 @@ void PartPlate::set_unprintable_filament_ids(const std::vector<std::vector<int>>
 void PartPlate::on_extruder_count_changed(int extruder_count)
 {
     if (extruder_count < 2) {
+        std::vector<int> f_map = wxGetApp().plater()->get_global_filament_map();
+        std::fill(f_map.begin(), f_map.end(), 1);
+        wxGetApp().plater()->set_global_filament_map(f_map);
         // clear filament map and mode in single extruder mode
         clear_filament_map();
         clear_filament_map_mode();
