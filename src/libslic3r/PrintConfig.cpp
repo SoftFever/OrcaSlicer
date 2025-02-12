@@ -7236,6 +7236,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 opt_key == "ironing_pattern"               ||
                 opt_key == "support_ironing_pattern") && value == "zig-zag") {
         value = "rectilinear";
+    } else if (opt_key == "filament_map_mode") {
+        if (value == "Auto") value = "Auto For Flush";
     }
 
     // Ignore the following obsolete configuration keys:
