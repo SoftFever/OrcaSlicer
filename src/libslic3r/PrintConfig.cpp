@@ -664,7 +664,7 @@ void PrintConfigDef::init_common_params()
 
     def           = this->add("extruder_printable_height", coFloats);
     def->label    = L("Extruder printable height");
-    def->tooltip  = L("Maximum printable height of the extruder");
+    def->tooltip  = L("Maximum printable height of this extruder which is limited by mechanism of printer");
     def->sidetext = L("mm");
     def->min      = 0;
     def->max      = 1000;
@@ -2477,7 +2477,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("filament_change_length", coFloats);
     def->label    = L("Filament ramming length");
-    def->tooltip  = L("the ramming length of this filament when changing extruder");
+    def->tooltip  = L("When changing the extruder, it is recommended to extrude a certain length of filament from the original extruder. This helps minimize nozzle oozing.");
     def->sidetext = L("mm");
     def->min      = 0;
     def->mode     = comAdvanced;
@@ -5959,7 +5959,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("prime_tower_brim_width", coFloat);
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Brim width");
-    def->tooltip = L("Brim width of wipe tower, negative number means auto calculated width based on the height of wipe tower.");
+    def->tooltip = L("Brim width of prime tower, negative number means auto calculated width based on the height of prime tower.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->mode = comAdvanced;
     def->min = -1;
