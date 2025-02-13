@@ -324,9 +324,11 @@ bool SyncAmsInfoDialog::is_need_show()
     if (m_is_empty_project && !is_dirty_filament()) {
         return false;
     }
-    auto mode =PageType::ptColorMap;
-    update_panel_status(mode);
-    update_when_change_map_mode(mode);
+    auto mode = PageType::ptColorMap;
+    if (m_colormap_btn) {
+        update_panel_status(mode);
+        update_when_change_map_mode(mode);
+    }
     return true;
 }
 

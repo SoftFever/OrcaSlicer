@@ -109,6 +109,7 @@ wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
+wxDECLARE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -183,6 +184,7 @@ public:
     bool need_auto_sync_extruder_list_after_connect_priner(const MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
     int get_sidebar_pos_right_x();
+    void on_size(SimpleEvent &e);
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     // Orca
@@ -211,7 +213,8 @@ public:
 	bool                    get_eject_shown() const;
     bool                    is_multifilament();
     void                    deal_btn_sync();
-    void                    pop_sync_nozzle_and_ams_ialog();
+    void                    pop_sync_nozzle_and_ams_dialog();
+    void                    pop_finsish_sync_ams_dialog();
     void                    update_mode();
     bool                    is_collapsed();
     void                    collapse(bool collapse);
