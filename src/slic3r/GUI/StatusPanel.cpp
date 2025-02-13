@@ -3925,6 +3925,7 @@ void StatusPanel::on_set_nozzle_temp(int nozzle_id)
 void StatusPanel::on_set_chamber_temp()
 {
     if (!obj) {return;}
+    if (champer_switch_head_dlg && champer_switch_head_dlg->IsShown()) { return; } /*STUDIO-10386 champer_switch_head_dlg->ShowModal() could wake up another wxCUSTOMEVT_SET_TEMP_FINISH*/
 
     wxString str = m_tempCtrl_chamber->GetTextCtrl()->GetValue();
     try {
@@ -3939,8 +3940,11 @@ void StatusPanel::on_set_chamber_temp()
 
             if (chamber_temp >= obj->chamber_temp_switch_heat)
             {
-                delete champer_switch_head_dlg;
-                champer_switch_head_dlg = new  MessageDialog(nullptr, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. Please confirm whether to switch."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+                if (!champer_switch_head_dlg)
+                {
+                    champer_switch_head_dlg = new MessageDialog(this, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. Please confirm whether to switch."),
+                        wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+                }
 
                 if (champer_switch_head_dlg->ShowModal() != wxID_OK)
                 {
