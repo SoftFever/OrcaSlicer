@@ -2541,7 +2541,10 @@ Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std:
     auto printer_variant_old = printers.get_selected_preset().config.opt_string("printer_variant");
     std::set<std::string> printer_names;
     for (auto &preset : printers.m_presets) {
-        if (preset.config.opt_string("printer_model") == printer_model) printer_names.insert(preset.name);
+        if (printer_variant.empty() && !preset.is_system)
+            continue;
+        if (preset.config.opt_string("printer_model") == printer_model)
+            printer_names.insert(preset.name);
     }
     if (printer_names.empty())
         return nullptr;
