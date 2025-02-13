@@ -1547,6 +1547,7 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
 
 void PresetBundle::load_installed_filaments(AppConfig &config)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, printer size %1%")%printers.size();
     //if (! config.has_section(AppConfig::SECTION_FILAMENTS)
     //    || config.get_section(AppConfig::SECTION_FILAMENTS).empty()) {
         // Compatibility with the PrusaSlicer 2.1.1 and older, where the filament profiles were not installable yet.
@@ -1567,6 +1568,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
 
                             //already has compatible filament
                             add_default_materials = false;
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": printer %1% vendor %2% already has default filament %3%")%printer.name %printer.vendor %filament_iter.first;
                             break;
                         }
                     }
@@ -1580,6 +1582,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not find printer_model for printer %1%")%printer.name;
                     continue;
                 }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": printer %1% vendor %2% don't have filament visible, will add %3% default filaments")%printer.name %printer.vendor %printer_model->default_materials.size();
                 for (auto default_filament: printer_model->default_materials)
                 {
                     Preset* filament = filaments.find_preset(default_filament, false, true);
@@ -1592,12 +1595,15 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
                 //      compatible_filaments.insert(&filament);
             }
         // and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
-        for (const auto &filament: compatible_filaments)
+        for (const auto &filament: compatible_filaments) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": set filament %1% to visible by default")%filament->name;
             config.set(AppConfig::SECTION_FILAMENTS, filament->name, "true");
+        }
     //}
 
     for (auto &preset : filaments)
         preset.set_visible_from_appconfig(config);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit.");
 }
 
 void PresetBundle::load_installed_sla_materials(AppConfig &config)
@@ -3747,6 +3753,8 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
             int match_quality = PreferedProfileMatch::operator()(preset);
             if (match_quality < std::numeric_limits<int>::max()) {
                 match_quality += 1;
+                if (preset.is_visible)
+                    match_quality += 1;
                 if (m_prefered_layer_height > 0. && std::abs(preset.config.opt_float("layer_height") - m_prefered_layer_height) < 0.0005)
                     match_quality *= 10;
             }
@@ -3773,6 +3781,8 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
             int match_quality = PreferedProfileMatch::operator()(preset);
             if (match_quality < std::numeric_limits<int>::max()) {
                 match_quality += 1;
+                if(preset.is_visible)
+                    match_quality += 1;
                 if (! m_prefered_filament_type.empty() && m_prefered_filament_type == preset.config.opt_string("filament_type", 0))
                     match_quality *= 10;
             }
@@ -3830,6 +3840,14 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
             filament_preset_was_compatible[idx] = preset != nullptr && preset->is_compatible;
         }
         // First select a first compatible profile for the preset editor.
+        BOOST_LOG_TRIVIAL(info) << boost::format("prefered filaments: size %1%, previous selected %2%") %prefered_filament_profiles.size() % this->filaments.get_selected_idx();
+        if (this->filaments.get_selected_idx() != size_t(-1))
+        {
+            BOOST_LOG_TRIVIAL(info) << boost::format("previous selected filament： %1%") % this->filaments.get_edited_preset().name;
+        }
+        for (size_t idx = 0; idx < prefered_filament_profiles.size(); ++idx) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("prefered filament： %1%") % prefered_filament_profiles[idx];
+        }
         this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_filament_if_incompatible,
             PreferedFilamentsProfileMatch(this->filaments.get_selected_idx() == size_t(-1) ? nullptr : &this->filaments.get_edited_preset(), prefered_filament_profiles));
         if (select_other_filament_if_incompatible != PresetSelectCompatibleType::Never) {

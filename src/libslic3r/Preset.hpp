@@ -628,7 +628,7 @@ public:
         int    match_quality = -1;
         for (; i < n; ++i)
             // Since we use the filament selection from Wizard, it's needed to control the preset visibility too
-            if (m_presets[i].is_compatible && m_presets[i].is_visible) {
+            if (m_presets[i].is_compatible) {
                 int this_match_quality = prefered_condition(m_presets[i]);
                 if (this_match_quality > match_quality) {
                     if (match_quality == std::numeric_limits<int>::max())
@@ -665,9 +665,11 @@ public:
     template<typename PreferedCondition>
     void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible, PreferedCondition prefered_condition)
     {
-        if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1)
+        if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1) {
             // Find some other compatible preset, or the "-- default --" preset.
-            this->select_preset(this->first_compatible_idx(prefered_condition));
+            size_t index = this->first_compatible_idx(prefered_condition);
+            this->select_preset(index);
+        }
     }
     void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible)
         { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const Preset&) -> int { return 0; }); }

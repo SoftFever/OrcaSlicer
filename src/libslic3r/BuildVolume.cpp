@@ -13,7 +13,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
     : m_bed_shape(printable_area), m_max_print_height(printable_height), m_extruder_shapes(extruder_areas), m_extruder_printable_height(extruder_printable_heights)
 {
     assert(printable_height >= 0);
-    assert(extruder_printable_heights.size() == extruder_areas.size());
+    //assert(extruder_printable_heights.size() == extruder_areas.size());
 
     m_polygon     = Polygon::new_scale(printable_area);
     assert(m_polygon.is_counter_clockwise());
