@@ -180,6 +180,7 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
+	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmAutoForFlush;
 }
 
 BedType PartPlate::get_bed_type(bool load_from_project) const

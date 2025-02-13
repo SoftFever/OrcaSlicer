@@ -14,7 +14,7 @@ class FilamentGroupPopup : public PopupWindow
 {
 public:
     FilamentGroupPopup(wxWindow *parent);
-    void tryPopup(Plater* plater,PartPlate* plate,bool skip_plate_sync);
+    void tryPopup(Plater* plater,PartPlate* plate, bool slice_all);
     void tryClose();
 
     FilamentMapMode GetSelectedMode() const { return m_mode; }
@@ -45,6 +45,7 @@ private:
     bool m_active{ false };
 
     bool m_sync_plate{ false };
+    bool m_slice_all{ false };
     FilamentMapMode m_mode;
     wxTimer        *m_timer;
 

@@ -38,7 +38,7 @@ extern std::string& get_left_extruder_unprintable_text();
 extern std::string& get_right_extruder_unprintable_text();
 
 
-bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate* partplate_ref)
+bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref)
 {
     auto full_config = wxGetApp().preset_bundle->full_config();
     const auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
@@ -46,7 +46,7 @@ bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate
         return true;
 
     bool force_pop_up = get_pop_up_remind_flag();
-    bool sync_plate = !skip_plate_sync && partplate_ref->get_filament_map_mode() != fmmDefault;
+    bool sync_plate = true;
 
     std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
     FilamentMapMode applied_mode = get_applied_map_mode(full_config, plater_ref,partplate_ref, sync_plate);
@@ -57,7 +57,7 @@ bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate
         return true;
 
     std::vector<int> filament_lists;
-    if (skip_plate_sync) {
+    if (is_slice_all) {
         filament_lists.resize(filament_colors.size());
         std::iota(filament_lists.begin(), filament_lists.end(), 1);
     }
@@ -80,9 +80,19 @@ bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate
         FilamentMapMode new_mode = map_dlg.get_mode();
         std::vector<int> new_maps = map_dlg.get_filament_maps();
         if (sync_plate) {
-            partplate_ref->set_filament_map_mode(new_mode);
-            if (new_mode == fmmManual)
-                partplate_ref->set_filament_maps(new_maps);
+            if (is_slice_all) {
+                auto plate_list = plater_ref->get_partplate_list().get_plate_list();
+                for (int i = 0; i < plate_list.size(); ++i) {
+                    plate_list[i]->set_filament_map_mode(new_mode);
+                    if(new_mode == fmmManual)
+                        plate_list[i]->set_filament_maps(new_maps);
+                }
+            }
+            else {
+                partplate_ref->set_filament_map_mode(new_mode);
+                if (new_mode == fmmManual)
+                    partplate_ref->set_filament_maps(new_maps);
+            }
         }
         else {
             plater_ref->set_global_filament_map_mode(new_mode);

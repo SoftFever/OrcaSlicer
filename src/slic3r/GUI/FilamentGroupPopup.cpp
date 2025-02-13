@@ -218,13 +218,14 @@ void FilamentGroupPopup::Init()
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 
-void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool skip_plate_sync)
+void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice_all)
 {
     if (should_pop_up()) {
         bool connect_status = plater->get_machine_sync_status();
         this->partplate_ref = partplate;
         this->plater_ref = plater;
-        this->m_sync_plate = !skip_plate_sync && partplate->get_filament_map_mode() != fmmDefault;
+        this->m_sync_plate = true;
+        this->m_slice_all = slice_all;
         if (m_active) {
             if (m_connected != connect_status) { Init(); }
             m_connected = connect_status;
@@ -253,7 +254,15 @@ FilamentMapMode FilamentGroupPopup::GetFilamentMapMode() const
 void FilamentGroupPopup::SetFilamentMapMode(const FilamentMapMode mode)
 {
     if (m_sync_plate) {
-        partplate_ref->set_filament_map_mode(mode);
+        if (m_slice_all) {
+            auto plate_list = plater_ref->get_partplate_list().get_plate_list();
+            for (int i = 0; i < plate_list.size(); ++i) {
+                plate_list[i]->set_filament_map_mode(mode);
+            }
+        }
+        else {
+            partplate_ref->set_filament_map_mode(mode);
+        }
         return;
     }
     plater_ref->set_global_filament_map_mode(mode);

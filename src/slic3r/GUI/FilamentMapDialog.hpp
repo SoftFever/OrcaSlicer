@@ -22,12 +22,12 @@ class PartPlate;
  * Only pop up in multi extruder machines. If user don't want the pop up, we
  * pop up if the applied filament map mode in manual
  * 
- * @param skip_plate_sync whether sync the map mode change to plate. In slice all, we should skip the sync and change on global param
+ * @param is_slice_all  In slice all
  * @param plater_ref Plater to get/set global filament map
  * @param partplate_ref Partplate to get/set plate filament map mode
  * @return whether continue slicing
 */
-bool try_pop_up_before_slice(bool skip_plate_sync, Plater* plater_ref, PartPlate* partplate_ref);
+bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref);
 
 
 class FilamentMapDialog : public wxDialog

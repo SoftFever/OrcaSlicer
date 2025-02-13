@@ -16001,7 +16001,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
         curr_plate->get_extruders(true),
         plate_filament_map_mode,
         this->get_machine_sync_status(),
-        true
+        false
     );
 
     if (filament_dlg.ShowModal() == wxID_OK) {
