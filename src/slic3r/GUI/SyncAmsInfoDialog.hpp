@@ -270,6 +270,7 @@ public:
     };
     SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info);
     ~SyncAmsInfoDialog();
+    void set_info(SyncInfo &info);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     const SyncResult &get_result() { return m_result; }
 
@@ -351,7 +352,7 @@ private:
     bool m_is_empty_project = true;
 
     bool m_check_dirty_fialment  = true;
-    bool m_expand_more_settings  = false;
+    bool m_expand_more_settings  = true;
     bool m_image_is_top          = false;
 
     const int LEFT_THUMBNAIL_SIZE_WIDTH = 100;

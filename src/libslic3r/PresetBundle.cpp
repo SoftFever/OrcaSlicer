@@ -2184,7 +2184,22 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
                                                      [](std::vector<std::string> &value) { return value.empty(); }),
                                       ams_multi_color_filment.end());
         if (need_append_colors.size() > 0 && enable_append) {
+            auto get_idx_in_array = [](std::vector<std::string> &presets, std::vector<std::string> &colors, const std::string &preset, const std::string &color) -> int {
+                for (size_t i = 0; i < presets.size(); i++) {
+                    if (presets[i] == preset && colors[i] == color) {
+                        return i;
+                    }
+                }
+                return -1;
+            };
             for (size_t i = 0; i < need_append_colors.size(); i++){
+                if (exist_filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)){
+                    break;
+                }
+                auto idx = get_idx_in_array(exist_filament_presets, exist_colors, need_append_colors[i].filament_preset, need_append_colors[i].filament_color);
+                if (idx >= 0) {
+                    continue;
+                }
                 exist_filament_presets.push_back(need_append_colors[i].filament_preset);
                 exist_colors.push_back(need_append_colors[i].filament_color);
                 std::vector<std::string> value = {need_append_colors[i].filament_color};

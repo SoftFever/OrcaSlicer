@@ -402,7 +402,9 @@ void     SyncAmsInfoDialog::update_map_when_change_map_mode()
         for (size_t i = 0; i < m_preview_colors_in_thumbnail.size(); i++) {
             if (i < m_ams_combo_info.ams_filament_colors.size()) {
                 auto result                  = decode_ams_color(m_ams_combo_info.ams_filament_colors[i]);
-                m_cur_colors_in_thumbnail[i] = result;
+                if (i < m_cur_colors_in_thumbnail.size()) {
+                    m_cur_colors_in_thumbnail[i] = result;
+                }
             }
             else {
                 if (!m_cur_colors_in_thumbnail.empty()) {
@@ -4353,6 +4355,11 @@ SyncAmsInfoDialog::~SyncAmsInfoDialog() {
     if (m_refresh_timer) {
         delete m_refresh_timer;
     }
+}
+
+void SyncAmsInfoDialog::set_info(SyncInfo &info)
+{
+    m_input_info = info;
 }
 
 void SyncAmsInfoDialog::update_lan_machine_list()

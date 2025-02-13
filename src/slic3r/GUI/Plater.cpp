@@ -2839,22 +2839,26 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     temp_info.use_dialog_pos = false;
     temp_info.cancel_text_to_later = is_from_big_sync_btn;
     temp_info.connected_printer = true;
-    SyncAmsInfoDialog           sync_dlg(this, temp_info);
+    if (m_sync_dlg == nullptr) {
+        m_sync_dlg = std::make_shared<SyncAmsInfoDialog>(this, temp_info);
+    } else {
+        m_sync_dlg->set_info(temp_info);
+    }
     int dlg_res{(int) wxID_CANCEL};
-    if (sync_dlg.is_need_show()) {
-        if (sync_dlg.is_dirty_filament()){
+    if (m_sync_dlg->is_need_show()) {
+        if (m_sync_dlg->is_dirty_filament()) {
             wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true);
             wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
             dynamic_filament_list.update();
         }
-        sync_dlg.set_check_dirty_fialment(false);
-        dlg_res = sync_dlg.ShowModal();
+        m_sync_dlg->set_check_dirty_fialment(false);
+        dlg_res = m_sync_dlg->ShowModal();
     } else {
         dlg_res =(int) wxID_YES;
     }
     if (dlg_res == wxID_CANCEL)
         return;
-    auto sync_result = sync_dlg.get_result();
+    auto sync_result = m_sync_dlg->get_result();
     if (!sync_result.is_same_printer) {
         return;
     }

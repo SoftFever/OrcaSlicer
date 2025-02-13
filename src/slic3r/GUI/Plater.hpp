@@ -64,7 +64,7 @@ namespace UndoRedo {
 }
 
 namespace GUI {
-
+class SyncAmsInfoDialog;
 class MainFrame;
 class ConfigOptionsGroup;
 class ObjectSettings;
@@ -132,6 +132,7 @@ class Sidebar : public wxPanel
     std::vector<BedType>                    m_cur_combox_bed_types;
     int                                     m_last_combo_bedtype_count{0};
     bool                                    m_begin_sync_printer_status{false};
+    std::shared_ptr<SyncAmsInfoDialog>      m_sync_dlg{nullptr};
 
 public:
     enum DockingState
