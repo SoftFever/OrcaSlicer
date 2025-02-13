@@ -7976,8 +7976,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //!     combo->GetStringSelection().ToUTF8().data());
 
     wxString wx_name = combo->GetString(selection);
-    if (preset_type == Preset::TYPE_PRINTER) {
-        wx_name = combo->get_preset_item_name(selection); }
+    // if (preset_type == Preset::TYPE_PRINTER) {
+    //     wx_name = combo->get_preset_item_name(selection); }
 
     std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type,
         Preset::remove_suffix_modified(wx_name.ToUTF8().data()));
