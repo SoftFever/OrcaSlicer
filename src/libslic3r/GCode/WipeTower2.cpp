@@ -1601,19 +1601,23 @@ void WipeTower2::save_on_last_wipe()
             auto& toolchange = m_layer_info->tool_changes[i];
             tool_change(toolchange.new_tool);
 
-            if (i == idx) {
-                float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
+            // Orca: allow calculation of the required depth and wipe volume for soluable toolchanges as well
+            // NOTE: it's not clear if this is the right way, technically we should disable wipe tower if soluble filament is used as it
+            // will will make the wipe tower unstable. Need to revist this in the future.
 
-                float volume_to_save = length_to_volume(finish_layer().total_extrusion_length_in_plane(), m_perimeter_width, m_layer_info->height);
-                float volume_left_to_wipe = std::max(m_filpar[toolchange.new_tool].filament_minimal_purge_on_wipe_tower, toolchange.wipe_volume_total - volume_to_save);
-                float volume_we_need_depth_for = std::max(0.f, volume_left_to_wipe - length_to_volume(toolchange.first_wipe_line, m_perimeter_width*m_extra_flow, m_layer_info->height));
-                float depth_to_wipe = get_wipe_depth(volume_we_need_depth_for, m_layer_info->height, m_perimeter_width, m_extra_flow, m_extra_spacing_wipe, width);
+            // if (i == idx) {
+            float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
 
-                toolchange.required_depth = toolchange.ramming_depth + depth_to_wipe;
-                toolchange.wipe_volume = volume_left_to_wipe;
-            }
-        }
+            float volume_to_save = length_to_volume(finish_layer().total_extrusion_length_in_plane(), m_perimeter_width, m_layer_info->height);
+            float volume_left_to_wipe = std::max(m_filpar[toolchange.new_tool].filament_minimal_purge_on_wipe_tower, toolchange.wipe_volume_total - volume_to_save);
+            float volume_we_need_depth_for = std::max(0.f, volume_left_to_wipe - length_to_volume(toolchange.first_wipe_line, m_perimeter_width*m_extra_flow, m_layer_info->height));
+            float depth_to_wipe = get_wipe_depth(volume_we_need_depth_for, m_layer_info->height, m_perimeter_width, m_extra_flow, m_extra_spacing_wipe, width);
+
+            toolchange.required_depth = toolchange.ramming_depth + depth_to_wipe;
+            toolchange.wipe_volume = volume_left_to_wipe;
+        // }
     }
+}
 }
 
 
