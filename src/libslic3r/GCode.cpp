@@ -714,7 +714,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             auto_lift_type = LiftType::SpiralLift;
 
         // BBS: should be placed before toolchange parsing
-        std::string toolchange_retract_str = gcodegen.retract(false, false, auto_lift_type);
+        std::string toolchange_retract_str = gcodegen.retract(true, false, auto_lift_type);
         check_add_eol(toolchange_retract_str);
 
         // Process the custom change_filament_gcode. If it is empty, provide a simple Tn command to change the filament.
@@ -738,7 +738,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             gcodegen.m_wipe.reset_path();
             for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            nozzle_change_gcode_trans += gcodegen.retract(false, false, auto_lift_type);
+            nozzle_change_gcode_trans += gcodegen.retract(true, false, auto_lift_type);
             change_filament_gcode = nozzle_change_gcode_trans + change_filament_gcode;
         }
 
