@@ -24,6 +24,19 @@ namespace Slic3r
         }
     }
 
+    static std::unordered_map<int, int> get_merged_filament_map(const std::unordered_map<int, std::vector<int>>& merged_filaments)
+    {
+        std::unordered_map<int, int> filament_merge_map;
+        for (auto elem : merged_filaments) {
+            for (auto f : elem.second) {
+                //traverse filaments in merged group
+                filament_merge_map[f] = elem.first;
+            }
+        }
+        return filament_merge_map;
+    }
+
+
     std::vector<int> calc_filament_group_for_tpu(const std::set<int>& tpu_filaments, const int filament_nums, const int master_extruder_id)
     {
         std::vector<int> ret(filament_nums);
@@ -129,8 +142,6 @@ namespace Slic3r
     {
         using namespace FlushPredict;
 
-        const double ams_color_dist_threshold = used_filaments.size() * color_threshold;
-
         const int fail_cost = 9999;
 
         // these code is to make we machine filament info size is 2
@@ -189,14 +200,16 @@ namespace Slic3r
                 auto ams_map = mcmf.solve();
 
                 for (size_t idx = 0; idx < ams_map.size(); ++idx) {
-                    if (ams_map[idx] == MaxFlowGraph::INVALID_ID)
+                    if (ams_map[idx] == MaxFlowGraph::INVALID_ID || distance_matrix[idx][ams_map[idx]] > color_threshold) {
                         group_cost += fail_cost;
-                    else
+                    }
+                    else {
                         group_cost += distance_matrix[idx][ams_map[idx]];
+                    }
                 }
             }
 
-            if (best_map.empty() || (group_cost < ams_color_dist_threshold && group_cost < best_cost)) {
+            if (best_map.empty() || group_cost < best_cost) {
                 best_cost = group_cost;
                 best_map = map;
             }
@@ -479,6 +492,88 @@ namespace Slic3r
             return calc_min_flush_group_by_pam2(used_filaments, cost, 500);
     }
 
+    std::unordered_map<int, std::vector<int>> FilamentGroup::try_merge_filaments()
+    {
+        std::unordered_map<int, std::vector<int>>merged_filaments;
+
+        std::unordered_map<std::string, std::vector<int>> merge_filament_map;
+
+        auto unprintable_stat_to_str = [unprintable_filaments = this->ctx.model_info.unprintable_filaments](int idx) {
+            std::string str;
+            for (size_t eid = 0; eid < unprintable_filaments.size(); ++eid) {
+                if (unprintable_filaments[eid].count(idx)) {
+                    if (eid > 0)
+                        str += ',';
+                    str += std::to_string(idx);
+                }
+            }
+            return str;
+            };
+
+        for (size_t idx = 0; idx < ctx.model_info.filament_ids.size(); ++idx) {
+            std::string id = ctx.model_info.filament_ids[idx];
+            Color color = ctx.model_info.filament_info[idx].color;
+            std::string unprintable_str = unprintable_stat_to_str(idx);
+
+            std::string key = id + "," + color.to_hex_str(true) + "," + unprintable_str;
+            merge_filament_map[key].push_back(idx);
+        }
+
+        for (auto& elem : merge_filament_map) {
+            if (elem.second.size() > 1) {
+                merged_filaments[elem.second.front()] = elem.second;
+            }
+        }
+        return merged_filaments;
+    }
+
+    std::vector<int> FilamentGroup::seperate_merged_filaments(const std::vector<int>& filament_map, const std::unordered_map<int, std::vector<int>>& merged_filaments)
+    {
+        std::vector<int> ret_map = filament_map;
+        for (auto& elem : merged_filaments) {
+            int src = elem.first;
+            for (auto f : elem.second) {
+                ret_map[f] = ret_map[src];
+            }
+        }
+        return ret_map;
+    }
+
+    void  FilamentGroup::rebuild_context(const std::unordered_map<int, std::vector<int>>& merged_filaments)
+    {
+        if (merged_filaments.empty())
+            return;
+
+        FilamentGroupContext new_ctx = ctx;
+
+        std::unordered_map<int, int> filament_merge_map = get_merged_filament_map(merged_filaments);
+
+        // modify layer filaments
+        for (auto& layer_filament : new_ctx.model_info.layer_filaments) {
+            for (auto& f : layer_filament) {
+                if (auto iter = filament_merge_map.find((int)(f)); iter != filament_merge_map.end()) {
+                    f = iter->second;
+                }
+            }
+        }
+
+        for (auto& unprintables : new_ctx.model_info.unprintable_filaments) {
+            std::set<int> new_unprintables;
+            for (auto f : unprintables) {
+                if (auto iter = filament_merge_map.find((int)(f)); iter != filament_merge_map.end()) {
+                    new_unprintables.insert(iter->second);
+                }
+                else {
+                    new_unprintables.insert(f);
+                }
+            }
+        }
+
+        ctx = new_ctx;
+        return;
+    }
+
+
 
     std::vector<int> FilamentGroup::calc_filament_group(int* cost)
     {
@@ -488,7 +583,11 @@ namespace Slic3r
         }
         catch (const FilamentGroupException& e) {
         }
-        return calc_filament_group_for_flush(cost);
+
+        auto merged_map = try_merge_filaments();
+        rebuild_context(merged_map);
+        auto filamnet_map = calc_filament_group_for_flush(cost);
+        return seperate_merged_filaments(filamnet_map, merged_map);
     }
 
     std::vector<int> FilamentGroup::calc_filament_group_for_match(int* cost)
@@ -529,16 +628,7 @@ namespace Slic3r
         std::iota(l_nodes.begin(), l_nodes.end(), 0);
         std::vector<int>r_nodes(machine_filament_list.size());
         std::iota(r_nodes.begin(), r_nodes.end(), 0);
-        std::vector<int>machine_filament_capacity(machine_filament_list.size());
-        for (size_t idx = 0; idx < machine_filament_capacity.size(); ++idx) {
-            if (machine_filament_list[idx].is_extended) {
-                machine_filament_capacity[idx] = 1; // extend filaments can at most map one filaments
-            }
-            else {
-                machine_filament_capacity[idx] = l_nodes.size();  // AMS filaments can map multiple filaments
-            }
-        }
-
+        std::vector<int>machine_filament_capacity(machine_filament_list.size(),l_nodes.size());
         std::vector<int>extruder_filament_count(2, 0);
 
         auto is_extruder_filament_compatible = [&unprintable_limit_indices](int filament_idx, int extruder_id) {
@@ -628,19 +718,7 @@ namespace Slic3r
 
         {
             MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits_full);
-            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes,group,true);
-            if (ungrouped_filaments.empty())
-                return group;
-        }
-
-        for (size_t idx = 0; idx < machine_filament_capacity.size(); ++idx)
-            machine_filament_capacity[idx] = l_nodes.size();
-
-        // remove capacity limits
-        {
-            l_nodes = ungrouped_filaments;
-            MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits_full);
-            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group,false);
+            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes,group,false);
             if (ungrouped_filaments.empty())
                 return group;
         }

@@ -73,6 +73,7 @@ namespace Slic3r
             std::vector<FlushMatrix> flush_matrix;
             std::vector<std::vector<unsigned int>> layer_filaments;
             std::vector<FilamentGroupUtils::FilamentInfo> filament_info;
+            std::vector<std::string> filament_ids;
             std::vector<std::set<int>> unprintable_filaments;
         } model_info;
 
@@ -133,6 +134,11 @@ namespace Slic3r
         std::vector<int> calc_min_flush_group(int* cost = nullptr);
         std::vector<int> calc_min_flush_group_by_enum(const std::vector<unsigned int>& used_filaments, int* cost = nullptr);
         std::vector<int> calc_min_flush_group_by_pam2(const std::vector<unsigned int>& used_filaments, int* cost = nullptr, int timeout_ms = 300);
+
+        std::unordered_map<int, std::vector<int>> try_merge_filaments();
+        void rebuild_context(const std::unordered_map<int, std::vector<int>>& merged_filaments);
+        std::vector<int> seperate_merged_filaments(const std::vector<int>& filament_map, const std::unordered_map<int,std::vector<int>>& merged_filaments );
+
     private:
         FilamentGroupContext ctx;
         std::vector<std::vector<int>> m_memoryed_groups;

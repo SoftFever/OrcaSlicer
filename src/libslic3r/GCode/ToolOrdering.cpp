@@ -1030,7 +1030,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         std::vector<std::string> filament_types = print_config.filament_type.values;
         std::vector<std::string> filament_colours = print_config.filament_colour.values;
         std::vector<unsigned char> filament_is_support = print_config.filament_is_support.values;
-
+        std::vector<std::string> filament_ids = print_config.filament_ids.values;
         // speacially handle tpu filaments
         auto used_filaments = collect_sorted_used_filaments(layer_filaments);
         auto tpu_filaments = get_filament_by_type(used_filaments, &print_config, "TPU");
@@ -1044,6 +1044,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
             context.model_info.unprintable_filaments = ext_unprintable_filaments;
             context.model_info.layer_filaments = layer_filaments;
+            context.model_info.filament_ids = filament_ids;
 
             for (size_t idx = 0; idx < filament_types.size(); ++idx) {
                 FilamentGroupUtils::FilamentInfo info;

@@ -1,5 +1,5 @@
 #include "FilamentGroupUtils.hpp"
-
+#include <sstream>
 
 namespace Slic3r
 {
@@ -44,6 +44,20 @@ namespace FilamentGroupUtils
     {
         return r != other.r || g != other.g || b != other.b || a != other.a;
     }
+
+    std::string Color::to_hex_str(bool include_alpha) const {
+        std::ostringstream oss;
+        oss << "#" << std::hex << std::setfill('0')
+            << std::setw(2) << static_cast<int>(r)
+            << std::setw(2) << static_cast<int>(g)
+            << std::setw(2) << static_cast<int>(b);
+
+        if (include_alpha) {
+            oss << std::setw(2) << static_cast<int>(a);
+        }
+        return oss.str();
+    }
+
 
     bool MachineFilamentInfo::operator<(const MachineFilamentInfo& other) const
     {
