@@ -1969,7 +1969,7 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
  * @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
  * @return is same or not
 /*************************************************************/
-bool SelectMachineDialog::is_same_nozzle_diameters(float& tag_nozzle_diameter) const
+bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter, int& mismatch_nozzle_id) const
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return false;
@@ -2000,6 +2000,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(float& tag_nozzle_diameter) c
             tag_nozzle_diameter = float(opt_nozzle_diameters->get_at(used_nozzle_idx));
             if (tag_nozzle_diameter != obj_->m_extder_data.extders[used_nozzle_idx].current_nozzle_diameter)
             {
+                mismatch_nozzle_id = used_nozzle_idx;
                 return false;
             }
         }
@@ -3313,16 +3314,27 @@ void SelectMachineDialog::update_show_status()
     // check nozzle type and diameter
     if (m_print_type == PrintFromType::FROM_NORMAL)
     {
+        int mismatch_nozzle_id = 0;
         float nozzle_diameter = 0;
-        if (!is_same_nozzle_diameters(nozzle_diameter))
+        if (!is_same_nozzle_diameters(nozzle_diameter, mismatch_nozzle_id))
         {
             std::vector<wxString> msg_params;
             if (obj_->m_extder_data.total_extder_count == 2)
             {
-                const wxString& nozzle_config = wxString::Format(_L("The current nozzle diameter (Left: %.1fmm  Right: %.1fmm) doesn't match with the slicing file (%.1fmm). "
-                                                                     "Please make sure the nozzle installed matches with settings in printer, then set the "
-                                                                     "corresponding printer preset when slicing."), obj_->m_extder_data.extders[1].current_nozzle_diameter,
-                                                                     obj_->m_extder_data.extders[0].current_nozzle_diameter, nozzle_diameter);
+                wxString mismatch_nozzle_str;
+                if (mismatch_nozzle_id == MAIN_NOZZLE_ID)
+                {
+                    mismatch_nozzle_str = _L("right nozzle");
+                }
+                else
+                {
+                    mismatch_nozzle_str = _L("left nozzle");
+                }
+
+                const wxString& nozzle_config = wxString::Format(_L("The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). "
+                                                                    "Please make sure the nozzle installed matches with settings in printer, then set the "
+                                                                    "corresponding printer preset when slicing."), mismatch_nozzle_str,
+                                                                     obj_->m_extder_data.extders[mismatch_nozzle_id].current_nozzle_diameter, nozzle_diameter);
                 msg_params.emplace_back(nozzle_config);
             }
             else
