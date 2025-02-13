@@ -760,13 +760,13 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
         if (object->volumes.size() > 1) {
             for (size_t id = 0; id < object->volumes.size(); id++) {
                 item = m_objects_model->GetItemByVolumeId(i, id);
-                if (!item) continue;
-                if (!object->volumes[id]->config.has("extruder") || size_t(object->volumes[id]->config.extruder()) == filament_id + 1) {
-                    int new_extruder = object->config.extruder() > filament_id ? object->config.extruder() - 1 : object->config.extruder();
-                    if (replace_id >= 0)
-                        new_extruder = replace_filament_id;
-                    extruder = wxString::Format("%d", new_extruder);
-                    object->volumes[id]->config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+                if (!item)
+                    continue;
+                if (!object->volumes[id]->config.has("extruder")) {
+                    continue;
+                }
+                else if (size_t(object->volumes[id]->config.extruder()) == filament_id + 1) {
+                    object->volumes[id]->config.set_key_value("extruder", new ConfigOptionInt(replace_filament_id));
                 } else {
                     int new_extruder = object->volumes[id]->config.extruder() > filament_id ? object->volumes[id]->config.extruder() - 1 : object->volumes[id]->config.extruder();
                     extruder = wxString::Format("%d", new_extruder);
