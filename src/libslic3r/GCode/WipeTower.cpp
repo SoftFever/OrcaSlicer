@@ -2652,9 +2652,9 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
         toolchange_Load(writer, cleaning_box);
 
         if (m_is_multi_extruder && is_tpu_filament(new_tool)) {
-            float dy = m_layer_info->extra_spacing * m_perimeter_width;
+            float dy = m_layer_info->extra_spacing * m_nozzle_change_perimeter_width;
             if (m_layer_info->extra_spacing < m_tpu_fixed_spacing) {
-                dy = m_tpu_fixed_spacing * m_perimeter_width;
+                dy = m_tpu_fixed_spacing * m_nozzle_change_perimeter_width;
             }
 
             float nozzle_change_speed = 60.0f * m_filpar[new_tool].max_e_speed / m_extrusion_flow;
@@ -2663,7 +2663,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool)
             const float &xl = cleaning_box.ld.x();
             const float &xr = cleaning_box.rd.x();
 
-            Vec2f  start_pos         = m_nozzle_change_result.origin_start_pos + Vec2f(0, m_perimeter_width);
+            Vec2f  start_pos         = m_nozzle_change_result.origin_start_pos + Vec2f(0, m_nozzle_change_perimeter_width);
             bool   left_to_right     = true;
             double tpu_travel_length = 5;
             double e_flow            = extrusion_flow(m_layer_height);
@@ -2787,7 +2787,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
         double tpu_travel_length = 5;
         double e_flow            = extrusion_flow(m_layer_height);
         double length            = tpu_travel_length / e_flow;
-        int    tpu_line_count    = length / (m_wipe_tower_width - 2 * m_nozzle_change_perimeter_width) + 1;
+        int    tpu_line_count    = length / (m_wipe_tower_width - 2 * m_perimeter_width) + 1;
 
         writer.travel(writer.x(), writer.y() - m_nozzle_change_perimeter_width);
 
