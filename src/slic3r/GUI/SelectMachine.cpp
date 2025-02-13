@@ -4259,15 +4259,15 @@ void SelectMachineDialog::set_default_from_sdcard()
                 auto nozzle_id = m_filaments_map[fo.id];
 
                 if (nozzle_id == 1) {
-                    item = new MaterialItem(m_filament_left_panel, wxColour(fo.color), fo.type);
+                    item = new MaterialItem(m_filament_left_panel, wxColour(fo.color), fo.get_display_filament_type());
                     m_sizer_ams_mapping_left->Add(item, 0, wxALL, FromDIP(5));
                 } else if (nozzle_id == 2) {
-                    item = new MaterialItem(m_filament_right_panel, wxColour(fo.color), fo.type);
+                    item = new MaterialItem(m_filament_right_panel, wxColour(fo.color), fo.get_display_filament_type());
                     m_sizer_ams_mapping_right->Add(item, 0, wxALL, FromDIP(5));
                 }
             }
         } else {
-            item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.type);
+            item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.get_display_filament_type());
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
 

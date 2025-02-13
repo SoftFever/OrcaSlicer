@@ -67,6 +67,20 @@ public:
 
         return -1;
     };
+
+    /*copied from AmsTray::get_display_filament_type()*/
+    std::string get_display_filament_type()
+    {
+        if (type == "PLA-S")
+            return "Sup.PLA";
+        else if (type == "PA-S")
+            return "Sup.PA";
+        else if (type == "ABS-S")
+            return "Sup.ABS";
+        else
+            return type;
+        return type;
+    }
 };
 
 class BBLSliceInfo {
