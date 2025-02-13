@@ -3233,7 +3233,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
     float dy        = solid_tool_toolchange ? m_perimeter_width :m_layer_info->extra_spacing * m_perimeter_width;
     x_to_wipe                = solid_tool_toolchange ? std::numeric_limits<float>::max(): x_to_wipe;
     float target_speed = is_first_layer() ? std::min(m_first_layer_speed * 60.f, 4800.f) : 4800.f;
-    target_speed             = solid_tool_toolchange ? 40.f*60.f : target_speed;
+    target_speed             = solid_tool_toolchange ? 20.f * 60.f : target_speed;
     float       wipe_speed   = 0.33f * target_speed;
 
     m_left_to_right = ((m_cur_layer_id + 3) % 4 >= 2);
@@ -3497,7 +3497,7 @@ void WipeTower::generate_wipe_tower_blocks()
 
     // add solid infill flag
     // if the upper layer has a lower layer height and has_nozzle_change
-    int solid_infill_layer = 3;
+    int solid_infill_layer = 4;
     float lower_layer_height   = 0.2 - WT_EPSILON;
     for (WipeTowerBlock& block : m_wipe_tower_blocks) {
         for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
