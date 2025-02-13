@@ -102,15 +102,15 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     wxPaintDC dc(this);
     wxSize   size  = GetSize();
     std::string replace_color = m_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-    std::string svg_name = "filament_green";
+    std::string svg_name = "outlined_rect";
     if (replace_color == "#FFFFFF00") {
-        svg_name = "filament_transparent2";
+        svg_name = "outlined_rect_transparent";
     }
-    wxBitmap bmp = ScalableBitmap(this, svg_name, 40, false, false, false, { replace_color }).bmp();
+    wxBitmap bmp = ScalableBitmap(this, svg_name, 35, false, false, false, { replace_color }).bmp();
     dc.DrawBitmap(bmp, wxPoint(0,0));
     wxString label = wxString::Format(wxT("%d"), m_filament_id);
     dc.SetTextForeground(m_color.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);  // set text color
-    dc.DrawLabel(label, wxRect(0, 0, size.GetWidth(), size.GetHeight()), wxALIGN_CENTER);
+    dc.DrawLabel(label, wxRect(2, -3, size.GetWidth(), size.GetHeight()), wxALIGN_CENTER);
 }
 ///////////////   ColorPanel  end ////////////////////////
 
