@@ -1520,7 +1520,6 @@ Sidebar::Sidebar(Plater *parent)
         wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
             wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
         });
-        p->big_bed_image_popup = new ImageDPIFrame();
 
         ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
         p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, wxDefaultSize, 0);
@@ -1537,7 +1536,10 @@ Sidebar::Sidebar(Plater *parent)
             auto select_bed_type = get_cur_select_bed_type();
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, isDual ? 48 : 32));
-            p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + bed_type_thumbnails[select_bed_type], p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+            if (p->big_bed_image_popup) {
+                p->big_bed_image_popup->set_bitmap(
+                    create_scaled_bitmap("big_" + bed_type_thumbnails[select_bed_type], p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+            }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
 
@@ -1545,6 +1547,12 @@ Sidebar::Sidebar(Plater *parent)
             auto    pos  = p->image_printer_bed->GetScreenPosition();
             auto    rect = p->image_printer_bed->GetRect();
             wxPoint temp_pos(pos.x + rect.GetWidth(), pos.y);
+            if (p->big_bed_image_popup == nullptr) {
+                p->big_bed_image_popup = new ImageDPIFrame();
+                auto select_bed_type   = get_cur_select_bed_type();
+                p->big_bed_image_popup->set_bitmap(
+                    create_scaled_bitmap("big_" + bed_type_thumbnails[select_bed_type], p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+            }
             p->big_bed_image_popup->SetCanFocus(false);
             p->big_bed_image_popup->SetPosition(temp_pos);
             p->big_bed_image_popup->on_show();
