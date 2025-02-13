@@ -369,12 +369,12 @@ struct ExtruderGroup : StaticGroup
 
     void set_ams_count(int n4, int n1)
     {
+        if (n4 == ams_n4 || n1 == ams_n1)
+            return;
         ams_n4 = n4;
         ams_n1 = n1;
-
         if (btn_edit) {
-            if (GUI::wxGetApp().plater())
-                GUI::wxGetApp().plater()->update_machine_sync_status();
+            update_ams();
         }
     }
 
@@ -996,6 +996,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     hsizer_ams->Add(label_ams, 0, wxALIGN_CENTER);
     if (btn_edit)
         hsizer_ams->Add(btn_edit, 0, wxLEFT | wxALIGN_CENTER, FromDIP(2));
+    hsizer_ams->Add(ams_not_installed_msg, 0, wxALIGN_CENTER);
 
     btn_up = new ScalableButton(this, wxID_ANY, "page_up", "", {-1, FromDIP(14)});
     btn_up->SetBackgroundColour(*wxWHITE);
@@ -1104,17 +1105,23 @@ void ExtruderGroup::update_ams()
 
 void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<Ams *> const &ams4, std::vector<Ams *> const &ams1)
 {
-    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<Ams *> const &ams) {
-        infos.clear();
+    if (ams_4.empty() && ams4.empty()
+            && ams_1.empty() && ams1.empty())
+        return;
+    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<Ams *> const &ams) -> bool {
+        std::vector<AMSinfo> infos2;
         for (auto a : ams) {
             AMSinfo ams_info;
             ams_info.parse_ams_info(const_cast<MachineObject*>(obj), a, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity);
             infos.push_back(ams_info);
         }
+        if (infos == infos2)
+            return false;
+        infos.swap(infos2);
+        return true;
     };
-    sync(ams_4, ams4);
-    sync(ams_1, ams1);
-    update_ams();
+    if (sync(ams_4, ams4) || sync(ams_1, ams1))
+        update_ams();
 }
 
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material)

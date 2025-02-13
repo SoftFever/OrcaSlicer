@@ -26,7 +26,7 @@ void StaticGroup::ShowBadge(bool show)
         badge->SetBackgroundColour("#F7F7F7");
         LayoutBadge();
     }
-    if (badge)
+    if (badge && badge->IsShown() != show)
         badge->Show(show);
 #endif
 }
@@ -74,8 +74,9 @@ void StaticGroup::PaintForeground(wxDC &dc, const struct tagRECT &rc)
 
 void StaticGroup::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+    auto size = GetSize();
     wxStaticBox::DoSetSize(x, y, width, height, sizeFlags);
-    if (badge)
+    if (badge && size != GetSize())
         LayoutBadge();
 }
 
