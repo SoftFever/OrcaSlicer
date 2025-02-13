@@ -2867,6 +2867,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         return;
     auto sync_result = m_sync_dlg->get_result();
     if (!sync_result.is_same_printer) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error: sync_result.is_same_printer value is false";
         return;
     }
     list2.resize(list.size());

@@ -286,6 +286,7 @@ void SyncAmsInfoDialog::deal_ok()
     if (m_input_info.connected_printer && !m_is_empty_project) {
         if (m_map_mode == MapModeEnum::Override || !m_result.is_same_printer) {
             m_is_empty_project = true;
+            m_result.direct_sync = true;
             return;
         }
         m_result.direct_sync = false;
@@ -319,9 +320,13 @@ bool SyncAmsInfoDialog::is_need_show()
     if (!m_input_info.connected_printer) {
         return true;
     }
+    check_empty_project();
     if (m_is_empty_project && !is_dirty_filament()) {
         return false;
     }
+    auto mode =PageType::ptColorMap;
+    update_panel_status(mode);
+    update_when_change_map_mode(mode);
     return true;
 }
 
@@ -700,20 +705,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     //m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(11));
     auto &bSizer = m_sizer_main;
         { // content
-        GUI::PartPlateList &plate_list             = wxGetApp().plater()->get_partplate_list();
-        GUI::PartPlate *    curr_plate             = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
-        m_is_empty_project                         = true;
-        m_plate_number_choices_str.clear();
-        for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
-            auto temp_plate = GUI::wxGetApp().plater()->get_partplate_list().get_plate(i);
-            if (!temp_plate->get_objects_on_this_plate().empty()) {
-                if (m_is_empty_project) {
-                    m_is_empty_project     = false;
-                }
-                m_plate_number_choices_str.Add(i < 10 ? ("0" + std::to_wstring(i + 1)) : std::to_wstring(i));
-                m_plate_choices.emplace_back(i);
-            }
-        }
+        check_empty_project();
         if (m_is_empty_project == false) {
             //use map mode
             m_mode_combox_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -730,12 +722,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
             m_override_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this);
 
             bSizer->Add(m_mode_combox_sizer, FromDIP(0), wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(10));
-            m_specify_plate_idx = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
-
-            bool not_exist = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx) == m_plate_choices.end();
-            if (not_exist) {
-                m_specify_plate_idx = m_plate_choices[0];
-            }
         }
     }
 
@@ -1382,6 +1368,29 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     init_timer();
     //Centre(wxBOTH);
     wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void SyncAmsInfoDialog::check_empty_project()
+{
+    GUI::PartPlateList &plate_list = wxGetApp().plater()->get_partplate_list();
+    GUI::PartPlate *    curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
+    m_is_empty_project             = true;
+    m_plate_number_choices_str.clear();
+    for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
+        auto temp_plate = GUI::wxGetApp().plater()->get_partplate_list().get_plate(i);
+        if (!temp_plate->get_objects_on_this_plate().empty()) {
+            if (m_is_empty_project) { m_is_empty_project = false; }
+            m_plate_number_choices_str.Add(i < 10 ? ("0" + std::to_wstring(i + 1)) : std::to_wstring(i));
+            m_plate_choices.emplace_back(i);
+        }
+    }
+    if (!m_is_empty_project) {
+        m_specify_plate_idx = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+        bool not_exist = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx) == m_plate_choices.end();
+        if (not_exist) {
+            m_specify_plate_idx = m_plate_choices[0];
+        }
+    }
 }
 
 void SyncAmsInfoDialog::init_bind()

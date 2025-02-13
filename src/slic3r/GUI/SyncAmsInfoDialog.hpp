@@ -169,6 +169,7 @@ protected:
     wxGridSizer *m_sizer_ams_mapping_right{nullptr};
 
 public:
+    void check_empty_project();
     void init_bind();
     void init_timer();
     void check_focus(wxWindow *window);
