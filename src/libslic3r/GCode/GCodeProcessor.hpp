@@ -317,12 +317,7 @@ class Print;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         static const std::string Mm3_Per_Mm_Tag;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
-
-    private:
-        using AxisCoords = std::array<double, 4>;
-        using ExtruderColors = std::vector<unsigned char>;
-        using ExtruderTemps = std::vector<float>;
-
+        
         struct ThermalIndex
         {
             float max;
@@ -333,6 +328,12 @@ class Print;
 
             ThermalIndex(float maxVal, float minVal, float meanVal) : max(maxVal), min(minVal), mean(meanVal) {}
         };
+
+    private:
+        using AxisCoords = std::array<double, 4>;
+        using ExtruderColors = std::vector<unsigned char>;
+        using ExtruderTemps = std::vector<float>;
+
 
         enum class EUnits : unsigned char
         {
@@ -822,6 +823,26 @@ class Print;
         // Orca: if true, only change new layer if ETags::Layer_Change occurs
         // otherwise when we got a lift of z during extrusion, a new layer will be added
         void detect_layer_based_on_tag(bool enabled) { m_detect_layer_based_on_tag = enabled; }
+        
+        static ThermalIndex parse_helioadditive_comment(const std::string comment){
+            if (boost::algorithm::contains(comment, ";helioadditive=")) {
+                std::regex  regexPattern(R"(\bti\.max=(-?[0-9]*\.?[0-9]+),ti\.min=(-?[0-9]*\.?[0-9]+),ti\.mean=(-?[0-9]*\.?[0-9]+)\b)");
+                std::smatch match;
+                if (std::regex_search(comment, match, regexPattern)) {
+                    float maxVal  = std::stof(match[1].str()) * 100.0;
+                    float minVal  = std::stof(match[2].str()) * 100.0;
+                    float meanVal = std::stof(match[3].str()) * 100.0;
+
+                    return ThermalIndex(minVal, maxVal, meanVal);
+                } else {
+                    std::cerr << "Error: Unable to parse thermal index values from comment." << std::endl;
+                    return ThermalIndex();
+                }
+                
+            } else {
+                return ThermalIndex();
+            }
+        };
 
     private:
         void apply_config(const DynamicPrintConfig& config);
@@ -829,7 +850,7 @@ class Print;
         void apply_config_superslicer(const std::string& filename);
         void process_gcode_line(const GCodeReader::GCodeLine& line, bool producers_enabled);
         void process_helioadditive_comment(const GCodeReader::GCodeLine& line);
-
+        
         // Process tags embedded into comments
         void process_tags(const std::string_view comment, bool producers_enabled);
         bool process_producers_tags(const std::string_view comment);

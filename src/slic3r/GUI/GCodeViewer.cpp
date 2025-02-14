@@ -1,5 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "GCodeViewer.hpp"
+#include "libslic3r/GCode/GCodeProcessor.hpp"
 
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/ClipperUtils.hpp"
@@ -402,7 +403,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
         } else {
-            sprintf(buf, "%s%", thermal_index.c_str());
+            sprintf(buf, "%s", thermal_index.c_str());
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
         }
@@ -454,17 +455,17 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         case EViewType::ThermalIndexMax:
         case EViewType::ThermalIndexMean:
         {
-            sprintf(buf, "%s%.0f", min.c_str(), m_curr_move.thermal_index_min);
+            sprintf(buf, "%s%.1f", min.c_str(), m_curr_move.thermal_index_min);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
 
             ImGui::SameLine(startx2);
-            sprintf(buf, "%s%.0f", max.c_str(), m_curr_move.thermal_index_max);
+            sprintf(buf, "%s%.1f", max.c_str(), m_curr_move.thermal_index_max);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
 
             ImGui::SameLine(startx3);
-            sprintf(buf, "%s%.0f", mean.c_str(), m_curr_move.thermal_index_mean);
+            sprintf(buf, "%s%.1f", mean.c_str(), m_curr_move.thermal_index_mean);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
@@ -636,14 +637,32 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.8f);
+    ImGui::SetNextWindowBgAlpha(0.5f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 pos_rect = ImGui::GetCursorScreenPos();
+    ImVec2 windowPadding = ImGui::GetStyle().WindowPadding;
+    ImVec2 framePadding = ImGui::GetStyle().FramePadding;
+
+    float textHeight = ImGui::GetTextLineHeight() + 4.0f;
+    
+    ImVec2 rectMin = ImVec2(pos_rect.x - windowPadding.x - framePadding.x, pos_rect.y - windowPadding.y - framePadding.y);
+    
+    ImVec2 rectMax = ImVec2(pos_rect.x + ImGui::GetContentRegionAvail().x, pos_rect.y + textHeight);
+
+    draw_list->AddRectFilled(rectMin, rectMax, ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
     // center the text in the window by pushing down the first line
     const float f_lines_count = static_cast<float>(lines_count);
     ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
+    
+    const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
+    
+    ImGui::SameLine(0.0f, 0.0f);
+    
     // render text lines
+    imgui.text("GCode");
     for (uint64_t id = start_id; id <= end_id; ++id) {
         const Line& line = m_lines[id - start_id];
 
@@ -697,6 +716,60 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
             imgui.text(line.comment);
             ImGui::PopStyleColor();
         }
+    }
+    
+    float gcodeWindowWidth = ImGui::GetCurrentWindow() -> Pos.x;
+
+    imgui.end();
+    ImGui::PopStyleVar();
+    
+    auto get_thermal_index = [this](uint64_t start_id, uint64_t end_id) {
+            std::vector<GCodeProcessor::ThermalIndex> ret;
+            ret.reserve(end_id - start_id + 1);
+            for (uint64_t id = start_id; id <= end_id; ++id) {
+                // read line from file
+                const size_t start        = id == 1 ? 0 : m_lines_ends[id - 2];
+                const size_t len = m_lines_ends[id - 1] - start;
+                std::string  gline(m_file.data() + start, len);
+
+                std::string command, comment;
+                // extract comment
+                std::vector<std::string> tokens;
+                boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
+                command = tokens.front();
+                if (tokens.size() > 1)
+                    comment = ";" + tokens.back();
+
+                ret.push_back(GCodeProcessor::parse_helioadditive_comment(comment));
+            }
+            return ret;
+        };
+
+    //BBS: GUI refactor: move to right
+    //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
+    imgui.set_next_window_pos(gcodeWindowWidth, top, ImGuiCond_Always, 1.0f, 0.0f);
+    imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::SetNextWindowBgAlpha(0.8f);
+    imgui.begin(std::string("Thermal-Index-1"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+    
+    std::vector<GCodeProcessor::ThermalIndex> thermal_indexes = get_thermal_index(start_id, end_id);
+    
+    ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
+    
+    const float item_size = imgui.calc_text_size(std::string_view{"X: 000.000  "}).x;
+    const float item_spacing = imgui.get_item_spacing().x;
+    
+    char buf[1024];
+    for (uint64_t id = start_id; id <= end_id; ++id) {
+        auto thermal_index = thermal_indexes[id-start_id];
+        
+        ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
+        
+        sprintf(buf, "%8.2f | %8.2f | %8.2f", thermal_index.min, thermal_index.max, thermal_index.mean);
+        
+        imgui.text(buf);
+        ImGui::PopStyleColor();
     }
 
     imgui.end();
@@ -4433,7 +4506,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
-    ImGui::SetNextWindowBgAlpha(0.8f);
+    ImGui::SetNextWindowBgAlpha(0.4f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
     ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });
