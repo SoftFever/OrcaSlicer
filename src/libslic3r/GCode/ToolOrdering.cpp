@@ -6,6 +6,8 @@
 #include "ParameterUtils.hpp"
 #include "GCode/ToolOrderUtils.hpp"
 #include "FilamentGroupUtils.hpp"
+#include "I18N.hpp"
+
 // #define SLIC3R_DEBUG
 
 // Make assert active if SLIC3R_DEBUG
@@ -23,6 +25,13 @@
 #include <libslic3r.h>
 
 namespace Slic3r {
+
+    //! macro used to mark string used at localization,
+    //! return same string
+
+#ifndef _L
+#define _L(s) Slic3r::I18N::translate(s)
+#endif
 
 const static bool g_wipe_into_objects = false;
 constexpr double similar_color_threshold_de2000 = 20.0;
@@ -64,9 +73,8 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
                 std::vector<std::string> limit_types = split_string(print_config->unprintable_filament_types.get_at(idx), ',');
                 auto                     iter        = std::find(limit_types.begin(), limit_types.end(), filament_type);
                 if (iter != limit_types.end()) {
-                    std::string error_msg;
-                    std::string extruder_name = idx == 0 ? "left" : "right";
-                    error_msg                 = "Grouping error: " + filament_type + " can not be placed in the " + extruder_name + " extruder";
+                    std::string extruder_name = idx == 0 ? _L("left") : _L("right");
+                    std::string error_msg = _L("Grouping error: ") + filament_type + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
                     throw Slic3r::RuntimeError(error_msg);
                 }
             }
@@ -1168,12 +1176,10 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         check_filament_printable_after_group(used_filaments, filament_maps, print_config);
 
         if (nozzle_nums > 1 && !check_tpu_group(used_filaments, filament_maps, print_config)) {
-            if (map_mode == FilamentMapMode::fmmManual) {
-                throw Slic3r::RuntimeError(std::string("Manual grouping error: TPU can only be placed in a nozzle alone."));
-            }
-            else {
-                throw Slic3r::RuntimeError(std::string("Auto grouping error: TPU can only be placed in a nozzle alone."));
-            }
+            int master_extruder_id = print_config->master_extruder_id.value - 1; // to 0 based
+            std::string nozzle_name = master_extruder_id == 0 ? "left" : "right";
+            std::string exception_str = _L(std::string("TPU is incompatible with AMS and must be printed seperately in the ") + nozzle_name + " nozzle.\nPlease adjust the filament group accordingly.");
+            throw Slic3r::RuntimeError(exception_str);
         }
     }
     else {

@@ -27,7 +27,7 @@ class PartPlate;
  * @param partplate_ref Partplate to get/set plate filament map mode
  * @return whether continue slicing
 */
-bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref);
+bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
 
 
 class FilamentMapDialog : public wxDialog

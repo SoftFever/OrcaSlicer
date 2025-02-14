@@ -38,14 +38,13 @@ extern std::string& get_left_extruder_unprintable_text();
 extern std::string& get_right_extruder_unprintable_text();
 
 
-bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref)
+bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up)
 {
     auto full_config = wxGetApp().preset_bundle->full_config();
     const auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     if (nozzle_diameters->size() <= 1)
         return true;
 
-    bool force_pop_up = get_pop_up_remind_flag();
     bool sync_plate = true;
 
     std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
@@ -53,7 +52,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     std::vector<int> applied_maps = get_applied_map(full_config, plater_ref, partplate_ref, sync_plate);
     applied_maps.resize(filament_colors.size(), 1);
 
-    if (applied_mode != fmmManual)
+    if (!force_pop_up && applied_mode != fmmManual)
         return true;
 
     std::vector<int> filament_lists;

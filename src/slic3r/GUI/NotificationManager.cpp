@@ -3098,7 +3098,7 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_before_slic
     auto callback = [](wxEvtHandler*) {
         auto plater = wxGetApp().plater();
         auto partplate = plater->get_partplate_list().get_curr_plate();
-        try_pop_up_before_slice(false, plater, partplate); // ignore the return value
+        try_pop_up_before_slice(false, plater, partplate, true); // ignore the return value
         return false;
     };
 
