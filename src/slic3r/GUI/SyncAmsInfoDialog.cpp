@@ -1301,7 +1301,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_merge_color_checkbox->Hide();
         m_merge_color_sizer->Add(m_merge_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
 
-        m_merge_color_text = new wxStaticText(this, wxID_ANY, _L("Automatically merge the same colors in the model after mapping."));
+        m_merge_color_text = new wxStaticText(this, wxID_ANY, _L("Merge all identical filaments."));
         m_merge_color_text->Hide();
         m_merge_color_sizer->AddSpacer(FromDIP(gap_between_checebox_and_text));
         m_merge_color_sizer->Add(m_merge_color_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
