@@ -1861,29 +1861,19 @@ void SyncAmsInfoDialog::auto_supply_with_ext(std::vector<AmsTray> slots)
     }
 }
 
-bool SyncAmsInfoDialog::is_nozzle_type_match(ExtderData data)
+bool SyncAmsInfoDialog::is_nozzle_type_match(ExtderData data, wxString &error_message) const
 {
     if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle) return false;
 
     const auto &project_config = wxGetApp().preset_bundle->project_config;
     // check nozzle used
-    auto                       used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments();                // 1 based
+    auto                       used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments();                   // 1 based
     auto                       filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config); // 1 based
     std::map<int, std::string> used_extruders_flow;
     std::vector<int>           used_extruders; // 0 based
     for (auto f : used_filaments) {
-        if (f <= 0) {
-               BOOST_LOG_TRIVIAL(error) << "check error:f < 0";
-               continue;
-        }
         int filament_extruder = filament_maps[f - 1] - 1;
-        if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end()) {
-            if (filament_extruder < 0) {
-                BOOST_LOG_TRIVIAL(error) << "check error:filament_extruder < 0";
-                continue;
-            }
-            used_extruders.emplace_back(filament_extruder);
-        }
+        if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end()) used_extruders.emplace_back(filament_extruder);
     }
 
     std::sort(used_extruders.begin(), used_extruders.end());
@@ -1914,10 +1904,29 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(ExtderData data)
 
     // Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
     for (std::map<int, std::string>::iterator it = used_extruders_flow.begin(); it != used_extruders_flow.end(); it++) {
-        int target_machine_nozzle_id = map_extruders[it->first];
+        if (it->first >= 0 && it->first < map_extruders.size()) {
+            int target_machine_nozzle_id = map_extruders[it->first];
 
-        if (target_machine_nozzle_id <= flow_type_of_machine.size()) {
-            if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) { return false; }
+            if (target_machine_nozzle_id < flow_type_of_machine.size()) {
+                if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
+                    wxString pos;
+                    if (target_machine_nozzle_id == DEPUTY_NOZZLE_ID) {
+                        pos = _L("left nozzle");
+                    } else if ((target_machine_nozzle_id == MAIN_NOZZLE_ID)) {
+                        pos = _L("right nozzle");
+                    }
+
+                    error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
+                                                        "Please make sure the nozzle installed matches with settings in printer, "
+                                                        "then set the corresponding printer preset while slicing."),
+                                                     pos, flow_type_of_machine[target_machine_nozzle_id], used_extruders_flow[it->first]);
+                    return false;
+                }
+            }
+        }
+        else {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "check error:array bound in map_extruders" << it->first;
+            return false;
         }
     }
     return true;
@@ -3476,8 +3485,11 @@ void SyncAmsInfoDialog::update_show_status()
             return;
         }
 
-        if (!is_nozzle_type_match(obj_->m_extder_data)) {
-            show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
+         wxString error_message;
+        if (!is_nozzle_type_match(obj_->m_extder_data, error_message)) {
+            std::vector<wxString> params{error_message};
+            params.emplace_back(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
+            show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid, params);
             return;
         }
     }

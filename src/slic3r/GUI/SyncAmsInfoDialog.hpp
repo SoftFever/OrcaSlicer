@@ -240,7 +240,7 @@ public:
     bool build_nozzles_info(std::string &nozzles_info);
     bool can_hybrid_mapping(ExtderData data);
     void auto_supply_with_ext(std::vector<AmsTray> slots);
-    bool is_nozzle_type_match(ExtderData data);
+    bool is_nozzle_type_match(ExtderData data, wxString &error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
     std::string get_print_status_info(PrintDialogStatus status);
