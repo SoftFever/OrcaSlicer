@@ -1665,6 +1665,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     }
 
+    //Orca: disable purge_in_prime_tower if single_extruder_multi_material is disabled
+    if (opt_key == "single_extruder_multi_material" && m_config->opt_bool("single_extruder_multi_material") == false){
+        DynamicPrintConfig new_conf = *m_config;
+        new_conf.set_key_value("purge_in_prime_tower", new ConfigOptionBool(false));
+        m_config_manipulation.apply(m_config, &new_conf);
+    }
+
     if (m_postpone_update_ui) {
         // It means that not all values are rolled to the system/last saved values jet.
         // And call of the update() can causes a redundant check of the config values,
