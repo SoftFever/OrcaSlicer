@@ -15826,6 +15826,19 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
     ObjectFilamentResults object_results;
     ModelInstanceEPrintVolumeState state = p->view3D->get_canvas3d()->check_volumes_outside_state(&object_results);
     model_fits = (state != ModelInstancePVS_Partly_Outside);
+
+    PartPlate *cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    if (model_fits) {  // TPU check
+        bool  tpu_valid = cur_plate->check_tpu_printable_status(wxGetApp().preset_bundle->full_config(), wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
+        model_fits &= tpu_valid;
+    }
+
+    if (model_fits) { // Filament printable check
+        wxString filament_printable_error_msg;
+        bool filament_printable = cur_plate->check_filament_printable(wxGetApp().preset_bundle->full_config(), filament_printable_error_msg);
+        model_fits &= filament_printable;
+    }
+
     model_fits = model_fits && object_results.filaments.empty();
     validate_error = false;
     if (p->printer_technology == ptFFF) {
