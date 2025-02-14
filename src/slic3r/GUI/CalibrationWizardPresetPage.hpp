@@ -286,7 +286,9 @@ protected:
     ComboBox*       m_comboBox_bed_type;
     ComboBox*       m_comboBox_process;
     Label*          m_nozzle_diameter_tips{nullptr};
-    
+
+    std::vector<BedType> m_displayed_bed_types;
+
     // multi_extruder
     void update_multi_extruder_filament_combobox(const std::string &ams_id, int nozzle_id);
     void create_multi_extruder_filament_list_panel(wxWindow *parent);

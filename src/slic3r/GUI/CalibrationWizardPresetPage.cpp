@@ -766,12 +766,36 @@ void CalibrationPresetPage::init_selection_values()
     }
     m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
 
+    Preset* cur_printer_preset = get_printer_preset(curr_obj, 0.4);
+
+    m_comboBox_bed_type->Clear();
+    m_displayed_bed_types.clear();
+
     // init plate type
     int curr_selection = 0;
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     if (bed_type_def && bed_type_def->enum_keys_map) {
+        int select_index = 0;
+        int bed_type_value = 0;
         for (auto item : bed_type_def->enum_labels) {
+            bed_type_value++;
+            if (cur_printer_preset) {
+                const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(*cur_printer_preset);
+                if (pm) {
+                    bool find = std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), item) != pm->not_support_bed_types.end();
+                    if (find) {
+                        continue;
+                    }
+                }
+            }
+
+            if (item == "Textured PEI Plate") {
+                curr_selection = select_index;
+            }
+
             m_comboBox_bed_type->AppendString(_L(item));
+            m_displayed_bed_types.emplace_back(BedType(bed_type_value));
+            select_index++;
         }
         m_comboBox_bed_type->SetSelection(curr_selection);
     }
@@ -1472,7 +1496,7 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*
             continue;
 
         // update bed temperature
-        BedType curr_bed_type = BedType(m_comboBox_bed_type->GetSelection() + btDefault + 1);
+        BedType curr_bed_type = BedType(m_displayed_bed_types[m_comboBox_bed_type->GetSelection()]);
         const ConfigOptionInts *opt_bed_temp_ints = item_preset->config.option<ConfigOptionInts>(get_bed_temp_key(curr_bed_type));
         int bed_temp_int = 0;
         if (opt_bed_temp_ints) {
@@ -1807,7 +1831,8 @@ void CalibrationPresetPage::update(MachineObject* obj)
 }
 
 void CalibrationPresetPage::on_device_connected(MachineObject* obj)
-{   
+{
+    init_selection_values();
     init_with_machine(obj);
     update_combobox_filaments(obj);
 }
@@ -2412,7 +2437,7 @@ void CalibrationPresetPage::get_preset_info(float& nozzle_dia, BedType& plate_ty
     }
 
     if (m_comboBox_bed_type->GetSelection() >= 0)
-        plate_type = static_cast<BedType>(m_comboBox_bed_type->GetSelection() + 1);
+        plate_type = static_cast<BedType>(m_displayed_bed_types[m_comboBox_bed_type->GetSelection()]);
 }
 
 void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
