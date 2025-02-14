@@ -3654,8 +3654,8 @@ void WipeTower::plan_tower_new()
 
 int WipeTower::get_wall_filament_for_all_layer()
 {
-    std::unordered_map<int, int> category_counts;
-    std::unordered_map<int, int> filament_counts;
+    std::map<int, int> category_counts;
+    std::map<int, int> filament_counts;
     for (const auto &layer : m_plan) {
         for (size_t i = 0; i < layer.tool_changes.size(); ++i) {
             if (i == 0) {
@@ -3838,8 +3838,8 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 
                 ToolChangeResult finish_block_tcr;
                 if (interface_solid || block.solid_infill_lower_h_nozzlechange[m_cur_layer_id] ||
-                    (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[finish_layer_filament])) {
-                    interface_solid  = block.filament_adhesiveness_category == m_filament_categories[finish_layer_filament]; // reduce speed
+                    (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx])) {
+                    interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx]));//noly reduce speed when 
                     finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill, interface_solid);
                 }
                 else {
