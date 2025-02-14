@@ -3391,7 +3391,6 @@ void PartPlate::clear_filament_map_mode()
 {
     if (m_config.has("filament_map_mode"))
         m_config.erase("filament_map_mode");
-
 }
 
 const std::vector<std::vector<int>>& PartPlate::get_unprintable_filament_ids()
@@ -3414,7 +3413,9 @@ void PartPlate::on_extruder_count_changed(int extruder_count)
         wxGetApp().plater()->set_global_filament_map(f_map);
         // clear filament map and mode in single extruder mode
         clear_filament_map();
-        clear_filament_map_mode();
+        //clear_filament_map_mode();
+        // do not clear mode now, reset to default mode
+        m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmAutoForFlush;
     }
 }
 
@@ -3422,7 +3423,7 @@ void PartPlate::set_filament_count(int filament_count)
 {
     if (m_config.has("filament_map")) {
         std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map")->values;
-        filament_maps.resize(filament_count);
+        filament_maps.resize(filament_count, 1);
     }
 }
 
