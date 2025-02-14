@@ -3947,9 +3947,9 @@ void StatusPanel::on_set_chamber_temp()
                 }
 
                 /*the dialog will be blocked APPLE, let the printer send back message*/
-#ifndef _APPLE
+#ifndef __APPLE__
                 if (champer_switch_head_dlg->ShowModal() != wxID_OK) { return; }
-#endif // _APPLE
+#endif // __APPLE__
             }
 
             obj->command_set_chamber(chamber_temp);
