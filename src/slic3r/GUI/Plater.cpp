@@ -369,7 +369,7 @@ struct ExtruderGroup : StaticGroup
 
     void set_ams_count(int n4, int n1)
     {
-        if (n4 == ams_n4 || n1 == ams_n1)
+        if (n4 == ams_n4 && n1 == ams_n1)
             return;
         ams_n4 = n4;
         ams_n1 = n1;
@@ -1113,7 +1113,7 @@ void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<Ams *> const 
         for (auto a : ams) {
             AMSinfo ams_info;
             ams_info.parse_ams_info(const_cast<MachineObject*>(obj), a, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity);
-            infos.push_back(ams_info);
+            infos2.push_back(ams_info);
         }
         if (infos == infos2)
             return false;
@@ -3111,6 +3111,7 @@ void Sidebar::deal_btn_sync() {
         pop_sync_nozzle_and_ams_dialog();
     }
     m_begin_sync_printer_status = false;
+    wxGetApp().plater()->update_machine_sync_status();
 }
 
 void Sidebar::pop_sync_nozzle_and_ams_dialog() {
