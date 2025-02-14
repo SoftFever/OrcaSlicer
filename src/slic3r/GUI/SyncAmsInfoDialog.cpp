@@ -1349,7 +1349,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_button_ok->SetCornerRadius(FromDIP(12));
         bSizer_button->Add(m_button_ok, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
-        m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        m_button_ok->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) {
             deal_ok();
             EndModal(wxID_YES);
             SetFocusIgnoringChildren();
@@ -1367,7 +1367,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_button_cancel->SetCornerRadius(FromDIP(12));
         bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
-        m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        m_button_cancel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) {
             EndModal(wxID_CANCEL);
         });
 

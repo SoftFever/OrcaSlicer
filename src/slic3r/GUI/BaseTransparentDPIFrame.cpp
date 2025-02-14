@@ -71,7 +71,7 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
     m_button_ok->SetCornerRadius(FromDIP(6));
     bSizer_button->Add(m_button_ok, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { deal_ok(); });
+    m_button_ok->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) { deal_ok(); });
 
     m_button_cancel = new Button(this, cancel_text);
     m_button_cancel->SetBackgroundColor(btn_bg_white);
@@ -83,7 +83,7 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
     m_button_cancel->SetCornerRadius(FromDIP(6));
     bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { deal_cancel(); });
+    m_button_cancel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) { deal_cancel(); });
 
     m_sizer_main->Add(bSizer_button, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
 
