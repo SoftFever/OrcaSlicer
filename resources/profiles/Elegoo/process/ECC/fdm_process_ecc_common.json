@@ -81,5 +81,6 @@
     "gap_fill_target": "everywhere",
     "filter_out_gap_fill": "1",
     "ensure_vertical_shell_thickness": "ensure_all",
-    "compatible_printers": []
+    "compatible_printers": [],
+	"slowdown_for_curled_perimeters": "0"
 }
