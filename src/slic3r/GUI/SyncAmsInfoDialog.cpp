@@ -1613,6 +1613,7 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
 bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
 {
     if (!obj_) return false;
+    BOOST_LOG_TRIVIAL(trace) << "SyncAmsInfoDialog:begin do_ams_mapping result";
     obj_->get_ams_colors(m_cur_colors_in_thumbnail);
     // try color and type mapping
 
@@ -3854,7 +3855,6 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         contronal_index++;
-        item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify"));
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
@@ -4046,7 +4046,6 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
         }
         contronal_index++;
         item->allow_paint_dropdown(false);
-        item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you cannot click it to modify"));
 
         Material *material_item = new Material();
         material_item->id       = extruder;
