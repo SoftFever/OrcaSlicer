@@ -328,6 +328,8 @@ bool SyncAmsInfoDialog::is_need_show()
     if (m_colormap_btn) {
         update_panel_status(mode);
         update_when_change_map_mode(mode);
+        update_plate_combox();
+        update_swipe_button_state();
     }
     return true;
 }
@@ -385,6 +387,19 @@ void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
     update_map_when_change_map_mode();
     Layout();
     Fit();
+}
+
+void SyncAmsInfoDialog::update_plate_combox()
+{
+    if (m_combobox_plate) {
+        m_combobox_plate->Clear();
+        for (size_t i = 0; i < m_plate_number_choices_str.size(); i++) { m_combobox_plate->Append(m_plate_number_choices_str[i]); }
+        auto iter = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx);
+        if (iter != m_plate_choices.end()) {
+            auto index = iter - m_plate_choices.begin();
+            m_combobox_plate->SetSelection(index);
+        }
+    }
 }
 
 wxColour SyncAmsInfoDialog::decode_ams_color(const std::string &color_str) {
@@ -470,6 +485,11 @@ void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
 
 void SyncAmsInfoDialog::update_more_setting(bool layout)
 {
+    if (!m_expand_more_settings) {
+        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option3", this, 18));
+    } else {
+        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option4", this, 18));
+    }
     show_sizer(m_append_color_sizer, m_expand_more_settings);
     show_sizer(m_merge_color_sizer, m_expand_more_settings);
     if (layout) {
@@ -582,14 +602,7 @@ void SyncAmsInfoDialog::add_two_image_control()
     m_choose_plate_sizer->AddSpacer(FromDIP(10));
 
     m_combobox_plate = new ComboBox(m_two_thumbnail_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), 0, NULL, wxCB_READONLY);
-    for (size_t i = 0; i < m_plate_number_choices_str.size(); i++) {
-        m_combobox_plate->Append(m_plate_number_choices_str[i]);
-    }
-    auto iter = std::find(m_plate_choices.begin(), m_plate_choices.end(), m_specify_plate_idx);
-    if (iter != m_plate_choices.end()) {
-        auto index = iter - m_plate_choices.begin();
-        m_combobox_plate->SetSelection(index);
-    }
+
     m_combobox_plate->Bind(wxEVT_COMBOBOX, [this](auto &e) {
         if (e.GetSelection() < m_plate_choices.size()) {
             update_when_change_plate(m_plate_choices[e.GetSelection()]);
@@ -708,23 +721,21 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     auto &bSizer = m_sizer_main;
         { // content
         check_empty_project();
-        if (m_is_empty_project == false) {
-            //use map mode
-            m_mode_combox_sizer = new wxBoxSizer(wxHORIZONTAL);
-            m_colormap_btn      = new CapsuleButton(this, PageType::ptColorMap, _L("Mapping"), true);
-            m_override_btn      = new CapsuleButton(this, PageType::ptOverride, _L("Overwriting"), false);
-            m_mode_combox_sizer->AddSpacer(FromDIP(25));
-            m_mode_combox_sizer->AddStretchSpacer();
-            m_mode_combox_sizer->Add(m_colormap_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
-            m_mode_combox_sizer->AddSpacer(FromDIP(8));
-            m_mode_combox_sizer->Add(m_override_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
-            m_mode_combox_sizer->AddStretchSpacer();
+        //use map mode
+        m_mode_combox_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_colormap_btn      = new CapsuleButton(this, PageType::ptColorMap, _L("Mapping"), true);
+        m_override_btn      = new CapsuleButton(this, PageType::ptOverride, _L("Overwriting"), false);
+        m_mode_combox_sizer->AddSpacer(FromDIP(25));
+        m_mode_combox_sizer->AddStretchSpacer();
+        m_mode_combox_sizer->Add(m_colormap_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
+        m_mode_combox_sizer->AddSpacer(FromDIP(8));
+        m_mode_combox_sizer->Add(m_override_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
+        m_mode_combox_sizer->AddStretchSpacer();
 
-            m_colormap_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this); // update_when_change_map_mode(e.GetSelection());
-            m_override_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this);
+        m_colormap_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this); // update_when_change_map_mode(e.GetSelection());
+        m_override_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this);
 
-            bSizer->Add(m_mode_combox_sizer, FromDIP(0), wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(10));
-        }
+        bSizer->Add(m_mode_combox_sizer, FromDIP(0), wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(10));
     }
 
     m_basic_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -1033,21 +1044,16 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     advanced_options_title->SetFont(::Label::Body_13);
     advanced_options_title->SetForegroundColour(wxColour(38, 46, 48));
 
-    m_advanced_options_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("advanced_option1", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
-
     sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
     sizer_advanced_options_title->Add(advanced_options_title, 0, wxALIGN_CENTER, 0);
-    sizer_advanced_options_title->Add(m_advanced_options_icon, 0, wxALIGN_CENTER, 0);
 
     advanced_options_title->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
     advanced_options_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
     advanced_options_title->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
         if (m_options_other->IsShown()) {
             m_options_other->Hide();
-            m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
         } else {
             m_options_other->Show();
-            m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option2", this, 18));
         }
         Layout();
         Fit();
@@ -1250,15 +1256,20 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         add_two_image_control();
 
         wxBoxSizer * more_setting_sizer = new wxBoxSizer(wxVERTICAL);
-        m_more_setting_tips = new wxStaticText(this, wxID_ANY, _L("Advanced settings >"));
+        wxBoxSizer * advace_setting_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_more_setting_tips = new wxStaticText(this, wxID_ANY, _L("Advanced settings"));
         m_more_setting_tips->SetForegroundColour(wxColour(0, 174, 100));
         m_more_setting_tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
             m_expand_more_settings = !m_expand_more_settings;
             update_more_setting();
         });
-        more_setting_sizer->Add(m_more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+        advace_setting_sizer->Add(m_more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+        m_advanced_options_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("advanced_option3", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
+        advace_setting_sizer->Add(m_advanced_options_icon, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+        more_setting_sizer->Add(advace_setting_sizer, 0, wxALIGN_LEFT, FromDIP(0));
 
         m_append_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
+        m_append_color_sizer->AddSpacer(FromDIP(10));
         m_append_color_checkbox = new ::CheckBox(this, wxID_ANY);
         //m_append_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_append_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams"));
@@ -1278,6 +1289,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         more_setting_sizer->Add(m_append_color_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
 
         m_merge_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
+        m_merge_color_sizer->AddSpacer(FromDIP(10));
         m_merge_color_checkbox = new ::CheckBox(this, wxID_ANY);
         //m_merge_color_checkbox->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_merge_color_checkbox->SetValue(wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams"));
@@ -1378,11 +1390,20 @@ void SyncAmsInfoDialog::check_empty_project()
     GUI::PartPlate *    curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
     m_is_empty_project             = true;
     m_plate_number_choices_str.clear();
+    m_plate_choices.clear();
     for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
         auto temp_plate = GUI::wxGetApp().plater()->get_partplate_list().get_plate(i);
         if (!temp_plate->get_objects_on_this_plate().empty()) {
             if (m_is_empty_project) { m_is_empty_project = false; }
-            m_plate_number_choices_str.Add(i < 10 ? ("0" + std::to_wstring(i + 1)) : std::to_wstring(i));
+            if (i < 9) {
+                m_plate_number_choices_str.Add("0" + std::to_wstring(i + 1)); 
+            }
+            else if (i == 9) {
+                m_plate_number_choices_str.Add("10");
+            }
+            else {
+                m_plate_number_choices_str.Add(std::to_wstring(i + 1));
+            }
             m_plate_choices.emplace_back(i);
         }
     }

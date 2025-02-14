@@ -114,7 +114,7 @@ protected:
     std::unique_ptr<Worker>   m_worker;
     wxScrolledWindow *        m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl *         m_hyperlink{nullptr};
-    wxStaticBitmap *          m_advanced_options_icon{nullptr};
+
     ScalableBitmap *          rename_editable{nullptr};
     ScalableBitmap *          rename_editable_light{nullptr};
     ScalableBitmap *          ams_mapping_help_icon{nullptr};
@@ -295,6 +295,7 @@ private:
     wxBoxSizer *create_sizer_thumbnail(wxButton *image_button, bool left);
     void        update_when_change_plate(int);
     void        update_when_change_map_mode(int);
+    void        update_plate_combox();
     void        update_map_when_change_map_mode();
     wxColour    decode_ams_color(const std::string &color);
     void        update_when_change_map_mode(wxCommandEvent &e);
@@ -344,6 +345,7 @@ private:
     CapsuleButton *  m_colormap_btn = nullptr;
     CapsuleButton *  m_override_btn = nullptr;
     wxStaticText *   m_more_setting_tips = nullptr;
+    wxStaticBitmap * m_advanced_options_icon{nullptr};
     wxBoxSizer *     m_append_color_sizer = nullptr;
     CheckBox* m_append_color_checkbox = nullptr;
     wxStaticText *   m_append_color_text = nullptr;
