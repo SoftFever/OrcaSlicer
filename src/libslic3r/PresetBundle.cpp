@@ -2037,11 +2037,12 @@ void PresetBundle::get_ams_cobox_infos(AMSComboInfo& combox_info)
 
 unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo &merge_info)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "use_map:" << use_map << " enable_append:" << enable_append;
     std::vector<std::string> ams_filament_presets;
     std::vector<std::string> ams_filament_colors;
     std::vector<AMSMapInfo>  ams_array_maps;
     ams_multi_color_filment.clear();
-    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
     struct AmsInfo
     {
         bool valid{false};
@@ -2090,7 +2091,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
         auto iter = std::find_if(filaments.begin(), filaments.end(), [this, &filament_id](auto &f) {
             return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
             auto filament_type = ams.opt_string("filament_type", 0u);
             if (!filament_type.empty()) {
                 filament_type = "Generic " + filament_type;
