@@ -2876,7 +2876,6 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     SyncAmsInfoDialog::SyncInfo temp_info;
     temp_info.use_dialog_pos = false;
     temp_info.cancel_text_to_later = is_from_big_sync_btn;
-    temp_info.connected_printer = true;
     if (m_sync_dlg == nullptr) {
         m_sync_dlg = std::make_shared<SyncAmsInfoDialog>(this, temp_info);
     } else {
