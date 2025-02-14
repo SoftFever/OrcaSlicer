@@ -5892,7 +5892,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("prime_tower_enable_framework", coBool);
     def->label = L("Internal ribs");
-    def->tooltip = L("");
+    def->tooltip = L("Enable internal ribs to increase the stability of the prime tower.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
