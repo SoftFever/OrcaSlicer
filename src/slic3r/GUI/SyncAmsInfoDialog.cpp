@@ -317,6 +317,7 @@ bool SyncAmsInfoDialog::is_dirty_filament() {
 
 bool SyncAmsInfoDialog::is_need_show()
 {
+    m_result.direct_sync = true;//init
     if (!m_input_info.connected_printer) {
         return true;
     }
@@ -1256,17 +1257,17 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         add_two_image_control();
 
         wxBoxSizer * more_setting_sizer = new wxBoxSizer(wxVERTICAL);
-        wxBoxSizer * advace_setting_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_advace_setting_sizer         = new wxBoxSizer(wxHORIZONTAL);
         m_more_setting_tips = new wxStaticText(this, wxID_ANY, _L("Advanced settings"));
         m_more_setting_tips->SetForegroundColour(wxColour(0, 174, 100));
         m_more_setting_tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
             m_expand_more_settings = !m_expand_more_settings;
             update_more_setting();
         });
-        advace_setting_sizer->Add(m_more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+        m_advace_setting_sizer->Add(m_more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
         m_advanced_options_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("advanced_option3", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
-        advace_setting_sizer->Add(m_advanced_options_icon, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
-        more_setting_sizer->Add(advace_setting_sizer, 0, wxALIGN_LEFT, FromDIP(0));
+        m_advace_setting_sizer->Add(m_advanced_options_icon, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+        more_setting_sizer->Add(m_advace_setting_sizer, 0, wxALIGN_LEFT, FromDIP(0));
 
         m_append_color_sizer    = new wxBoxSizer(wxHORIZONTAL);
         m_append_color_sizer->AddSpacer(FromDIP(10));
@@ -1396,7 +1397,7 @@ void SyncAmsInfoDialog::check_empty_project()
         if (!temp_plate->get_objects_on_this_plate().empty()) {
             if (m_is_empty_project) { m_is_empty_project = false; }
             if (i < 9) {
-                m_plate_number_choices_str.Add("0" + std::to_wstring(i + 1)); 
+                m_plate_number_choices_str.Add("0" + std::to_wstring(i + 1));
             }
             else if (i == 9) {
                 m_plate_number_choices_str.Add("10");
@@ -4231,7 +4232,7 @@ void SyncAmsInfoDialog::updata_thumbnail_data_after_connected_printer()
 }
 
 void SyncAmsInfoDialog::show_advanced_settings(bool flag) {
-    m_more_setting_tips->Show(flag);
+    show_sizer(m_advace_setting_sizer, flag);
     if (!flag) {
         show_sizer(m_append_color_sizer, false);
         show_sizer(m_merge_color_sizer, false);

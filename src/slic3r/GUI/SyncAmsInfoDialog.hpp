@@ -344,6 +344,7 @@ private:
 
     CapsuleButton *  m_colormap_btn = nullptr;
     CapsuleButton *  m_override_btn = nullptr;
+    wxBoxSizer *     m_advace_setting_sizer = nullptr;
     wxStaticText *   m_more_setting_tips = nullptr;
     wxStaticBitmap * m_advanced_options_icon{nullptr};
     wxBoxSizer *     m_append_color_sizer = nullptr;
