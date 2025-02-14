@@ -4121,8 +4121,8 @@ void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
             if (item) {
                 auto m = item->item;
                 if (m) {
-                    m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
                     if (item->id < m_cur_colors_in_thumbnail.size()) {
+                        m_preview_colors_in_thumbnail[item->id] = m->m_material_coloul;
                         if (m->m_ams_name == "-") {
                             m_cur_colors_in_thumbnail[item->id] = m->m_material_coloul;
                         } else {
@@ -4131,6 +4131,8 @@ void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
                     } else { // exist empty or unrecognized type ams in machine
                         m_cur_colors_in_thumbnail.resize(item->id + 1);
                         m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+                        m_preview_colors_in_thumbnail.resize(item->id + 1);
+                        m_preview_colors_in_thumbnail[item->id] = m->m_material_coloul;
                     }
                 }
             }
