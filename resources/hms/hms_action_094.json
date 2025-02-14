@@ -1,8 +1,17 @@
 {
     "result": 0,
-    "t": 1738837884,
-    "ver": 202503250207,
+    "t": 1739522542,
+    "ver": 202503250214,
     "data": [
+        {
+            "ecode": "05008084",
+            "image": "51688cf5b99fa015090a27c56bf326c1.png",
+            "actions": [
+                22,
+                21
+            ],
+            "device": "094"
+        },
         {
             "ecode": "03008054",
             "image": "364bc929b68278f0b3b85c5a1bce7494.png",
@@ -53,19 +62,19 @@
             "device": "094"
         },
         {
-            "ecode": "03008047",
-            "image": "",
-            "actions": [
-                11
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "07FFC008",
             "image": "23b9dffd4aaf35870ab018a4366b0a21.png",
             "actions": [
                 4,
                 6
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008047",
+            "image": "",
+            "actions": [
+                11
             ],
             "device": "094"
         },
@@ -79,19 +88,19 @@
             "device": "094"
         },
         {
-            "ecode": "03008046",
-            "image": "",
-            "actions": [
-                11
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "07FE8002",
             "image": "2376f2145e9418615a840302adbd2a66.png",
             "actions": [
                 4,
                 6
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008046",
+            "image": "",
+            "actions": [
+                11
             ],
             "device": "094"
         },
@@ -120,19 +129,19 @@
             "device": "094"
         },
         {
+            "ecode": "0500040000020037",
+            "image": "",
+            "actions": [
+                18
+            ],
+            "device": "094"
+        },
+        {
             "ecode": "03008041",
             "image": "",
             "actions": [
                 4,
                 6
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "0500040000020037",
-            "image": "",
-            "actions": [
-                18
             ],
             "device": "094"
         },
@@ -154,19 +163,19 @@
             "device": "094"
         },
         {
-            "ecode": "03004011",
-            "image": "",
-            "actions": [
-                11
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05008051",
             "image": "",
             "actions": [
                 22,
                 21
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03004011",
+            "image": "",
+            "actions": [
+                11
             ],
             "device": "094"
         },
@@ -264,19 +273,19 @@
             "device": "094"
         },
         {
-            "ecode": "0C004029",
-            "image": "",
-            "actions": [
-                4
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05FF8053",
             "image": "1c6893be4fe8b0b6da0e8dde6e350ac3.png",
             "actions": [
                 22,
                 21
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0C004029",
+            "image": "",
+            "actions": [
+                4
             ],
             "device": "094"
         },
@@ -330,10 +339,11 @@
             "device": "094"
         },
         {
-            "ecode": "0500040000020036",
+            "ecode": "05008077",
             "image": "",
             "actions": [
-                17
+                21,
+                22
             ],
             "device": "094"
         },
@@ -347,11 +357,10 @@
             "device": "094"
         },
         {
-            "ecode": "05008077",
+            "ecode": "0500040000020036",
             "image": "",
             "actions": [
-                21,
-                22
+                17
             ],
             "device": "094"
         },
@@ -374,8 +383,8 @@
             "device": "094"
         },
         {
-            "ecode": "05008062",
-            "image": "",
+            "ecode": "0500806C",
+            "image": "c77248ef406e975f6daa1df682489654.png",
             "actions": [
                 21,
                 22
@@ -383,8 +392,8 @@
             "device": "094"
         },
         {
-            "ecode": "0500806C",
-            "image": "c77248ef406e975f6daa1df682489654.png",
+            "ecode": "05008062",
+            "image": "",
             "actions": [
                 21,
                 22
@@ -425,19 +434,19 @@
             "device": "094"
         },
         {
-            "ecode": "0300804B",
-            "image": "",
-            "actions": [
-                4
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "07FEC00A",
             "image": "f336022fadaef978b9e4c72a8416a838.png",
             "actions": [
                 7,
                 8
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0300804B",
+            "image": "",
+            "actions": [
+                4
             ],
             "device": "094"
         },
@@ -451,10 +460,10 @@
             "device": "094"
         },
         {
-            "ecode": "0500040000020034",
-            "image": "",
+            "ecode": "03008042",
+            "image": "26e5af5ade19e20ff6bbb1b2cfa9cb21.png",
             "actions": [
-                15
+                4
             ],
             "device": "094"
         },
@@ -467,18 +476,10 @@
             "device": "094"
         },
         {
-            "ecode": "03008042",
-            "image": "26e5af5ade19e20ff6bbb1b2cfa9cb21.png",
-            "actions": [
-                4
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "0500040000020035",
+            "ecode": "0500040000020034",
             "image": "",
             "actions": [
-                16
+                15
             ],
             "device": "094"
         },
@@ -492,19 +493,18 @@
             "device": "094"
         },
         {
-            "ecode": "0500807B",
-            "image": "957b1e24bcb394ee02661113f7b60f10.png",
+            "ecode": "0500040000020035",
+            "image": "",
             "actions": [
-                22
+                16
             ],
             "device": "094"
         },
         {
-            "ecode": "03008049",
-            "image": "",
+            "ecode": "0500807B",
+            "image": "957b1e24bcb394ee02661113f7b60f10.png",
             "actions": [
-                4,
-                6
+                22
             ],
             "device": "094"
         },
@@ -514,6 +514,15 @@
             "actions": [
                 22,
                 21
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008049",
+            "image": "",
+            "actions": [
+                4,
+                6
             ],
             "device": "094"
         },
@@ -552,19 +561,19 @@
             "device": "094"
         },
         {
-            "ecode": "03008045",
-            "image": "",
-            "actions": [
-                11
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "07FE8004",
             "image": "",
             "actions": [
                 4,
                 6
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008045",
+            "image": "",
+            "actions": [
+                11
             ],
             "device": "094"
         },
@@ -595,18 +604,18 @@
             "device": "094"
         },
         {
-            "ecode": "0500C032",
-            "image": "",
-            "actions": [
-                11
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "03008064",
             "image": "dec054744461428e529e5a66548b498e.png",
             "actions": [
                 4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500C032",
+            "image": "",
+            "actions": [
+                11
             ],
             "device": "094"
         },
@@ -637,8 +646,8 @@
             "device": "094"
         },
         {
-            "ecode": "05008059",
-            "image": "",
+            "ecode": "05008079",
+            "image": "ba109d320caab495cd0823333c448f0a.png",
             "actions": [
                 21,
                 22
@@ -646,8 +655,8 @@
             "device": "094"
         },
         {
-            "ecode": "05008079",
-            "image": "ba109d320caab495cd0823333c448f0a.png",
+            "ecode": "05008059",
+            "image": "",
             "actions": [
                 21,
                 22
@@ -806,14 +815,6 @@
             "device": "094"
         },
         {
-            "ecode": "0C008033",
-            "image": "",
-            "actions": [
-                4
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05FF806A",
             "image": "1c6893be4fe8b0b6da0e8dde6e350ac3.png",
             "actions": [
@@ -823,10 +824,10 @@
             "device": "094"
         },
         {
-            "ecode": "0500806E",
+            "ecode": "0C008033",
             "image": "",
             "actions": [
-                21
+                4
             ],
             "device": "094"
         },
@@ -835,6 +836,14 @@
             "image": "63eb2465bf54ea2f5454da378155ca79.png",
             "actions": [
                 4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500806E",
+            "image": "",
+            "actions": [
+                21
             ],
             "device": "094"
         },

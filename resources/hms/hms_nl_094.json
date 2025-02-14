@@ -1,14 +1,346 @@
 {
     "result": 0,
-    "t": 1738858019,
-    "ver": 202503250207,
+    "t": 1739522908,
+    "ver": 202503250214,
     "data": {
         "device_error": {
-            "ver": 202503250207,
+            "ver": 202503250214,
             "nl": [
                 {
+                    "ecode": "0300801A",
+                    "intro": "Filament extrusiefout; controleer de assistant voor probleemoplossing. Nadat het probleem is opgelost, beslis of je de afdruktaak wilt annuleren of hervatten op basis van de actuele afdrukstatus."
+                },
+                {
+                    "ecode": "05008084",
+                    "intro": "De Live View-camera is vies; maak het schoon en ga verder."
+                },
+                {
+                    "ecode": "0500401E",
+                    "intro": "De cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05014023",
+                    "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05014025",
+                    "intro": "De cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Observeer alstublieft de nozzle van de linker extruder. Als het filament is geëxtrudeerd, selecteer dan \"Doorgaan\"; als dat niet het geval is, duw dan het filament iets naar voren en selecteer vervolgens \"Opnieuw proberen\"."
+                },
+                {
                     "ecode": "10018003",
-                    "intro": "De tijdsvertragingmodus is ingesteld op Traditioneel in het snijbestand. Dit kan oppervlaktefouten veroorzaken. Wilt u het inschakelen?"
+                    "intro": "De tijdsintervalmodus is ingesteld op Traditioneel in het snijbestand. Dit kan oppervlaktefouten veroorzaken. Wilt u het inschakelen?"
+                },
+                {
+                    "ecode": "03008014",
+                    "intro": "De nozzle is bedekt met filament, of de bouwplaat is verkeerd geïnstalleerd. Annuleer deze print en maak de nozzle schoon of stel de bouwplaat in volgens de huidige status. Je kunt ook \"Hervatten\" selecteren om de printopdracht voort te zetten."
+                },
+                {
+                    "ecode": "03008017",
+                    "intro": "Vreemde voorwerpen gedetecteerd op de verwarmde bouwplaat. Controleer en maak de verwarmde bouwplaat schoon. Selecteer daarna \"Hervatten\" om de printopdracht voort te zetten."
+                },
+                {
+                    "ecode": "0500401C",
+                    "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05004025",
+                    "intro": "De cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05004026",
+                    "intro": "Toegang tot de cloud geweigerd. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05004028",
+                    "intro": "Cloudrespons is ongeldig. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0501401B",
+                    "intro": "Cloudrespons is ongeldig. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05014020",
+                    "intro": "Toegang tot de cloud geweigerd. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05014022",
+                    "intro": "Cloudrespons is ongeldig. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05014029",
+                    "intro": "Toegang tot de cloud is geweigerd. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; selecteer \"Herstarten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07018012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer alstublieft \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; selecteer \"Herstarten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Observeer de nozzle van de linker extruder. Als het filament is geëxtrudeerd, selecteer dan \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en selecteer vervolgens \"Opnieuw proberen\"."
+                },
+                {
+                    "ecode": "0300801C",
+                    "intro": "De extrusieweerstand is abnormaal. De extruder kan verstopt zijn, raadpleeg de assistent, na het oplossen van problemen kunt u \"Doorgaan\" selecteren om de afdruktaken opnieuw te starten."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "Kon de mappingtabel niet ophalen; selecteer \"Doorgaan\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Observeer de nozzle van de linkse extruder. Als het filament is geëxtrudeerd, selecteer \"Doorgaan\"; zo niet, duw dan het filament iets naar voren en selecteer vervolgens \"Opnieuw proberen\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "De lasermodule is geïnstalleerd, maar er is een snijplatform gedetecteerd. Plaats een laserplatform en voer de laser calibratie uit."
+                },
+                {
+                    "ecode": "03004020",
+                    "intro": "De detectie van de nozzle is mislukt. Controleer de assistent voor details."
+                },
+                {
+                    "ecode": "0500402E",
+                    "intro": "Het systeem ondersteunt het huidige bestandssysteem van de USB-flashdrive niet. Vervang of formatteer de USB-flashdrive naar FAT32."
+                },
+                {
+                    "ecode": "05008063",
+                    "intro": "Het platform is niet gedetecteerd tijdens de calibratie; zorg ervoor dat het laserplatform goed is geplaatst."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "De taak vereist een snijplatform, maar het huidige platform is een laserplatform. Vervang het door een snijplatform (Snijbeschermbasis + LightGrip snijmat)."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "Kon de AMS mappingtabel niet ophalen; selecteer \"Doorgaan\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Observeer alstublieft de sproeier van de rechter extruder. Als het filament is geëxtrudeerd, selecteer dan \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en selecteer vervolgens \"Opnieuw proberen\"."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "Kon de mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Vervolg\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "De taak vereist een Laser Platform, maar de huidige is een Snij Platform. Vervang deze alstublieft, meet de materiaaldikte in de software, en start de taak opnieuw."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "Er is geen Laser Platform gedetecteerd, wat de nauwkeurigheid van de diktemeting kan beïnvloeden. Plaats het laserplatform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn, en start vervolgens de diktemeting in de software opnieuw voordat u de taak initieert."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Observeer alstublieft de nozzle van de rechter extruder. Als het filament is geëxtrudeerd, selecteer dan \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en selecteer vervolgens \"Opnieuw proberen\"."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Observeer alstublieft de nozzle van de rechter extruder. Als het filament is geëxtrudeerd, selecteer dan \"Doorgaan\"; als dit niet het geval is, duw het filament dan iets naar voren en selecteer vervolgens \"Opnieuw proberen\"."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Deze taak vereist een Snij Platform, maar de huidige is een Laser Platform. Vervang deze alstublieft door een Snij Platform (Snijbeschermingsbasis + StrongGrip Snijmat)."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "Laser Module is niet gecertificeerd; het apparaat kan niet doorgaan met werken. Gebruik alstublieft Bambu Lab-accessoires."
+                },
+                {
+                    "ecode": "03008000",
+                    "intro": "Printen is om onbekende reden gepauzeerd. U kunt \"Hervatten\" selecteren om de printtaak voort te zetten."
+                },
+                {
+                    "ecode": "0300800D",
+                    "intro": "Sommige objecten zijn gevallen of de extruder extrudeert niet normaal. Als de defecten acceptabel zijn, selecteer dan \"Hervatten\" om de afdruktaak voort te zetten."
+                },
+                {
+                    "ecode": "03008016",
+                    "intro": "De nozzle is verstopt met filament. Annuleer deze print en maak de nozzle schoon of selecteer \"Hervatten\" om de printtaak voort te zetten."
+                },
+                {
+                    "ecode": "0500401B",
+                    "intro": "De cloudreactie is ongeldig. Als u meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05004020",
+                    "intro": "Toegang tot de cloud afgewezen. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05004022",
+                    "intro": "Cloudreactie is ongeldig. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05004023",
+                    "intro": "Toegang tot de cloud afgewezen. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05004029",
+                    "intro": "Toegang tot de cloud is afgewezen. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0501401C",
+                    "intro": "Toegang tot de cloud is afgewezen. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0501401E",
+                    "intro": "Cloudreactie is ongeldig. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05014026",
+                    "intro": "Toegang tot de cloud afgewezen. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05014028",
+                    "intro": "Cloudreactie is ongeldig. Als je meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; selecteer \"Herstart\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; selecteer \"Herstart\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "05008064",
+                    "intro": "Plaats het Laser Platform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn voor laser calibratie."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Observeer de nozzle van de rechter extruder. Als het filament is geëxtrudeerd, kies dan \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en kies vervolgens \"Opnieuw proberen\"."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Observeer de nozzle van de linker extruder. Als het filament is geëxtrudeerd, kies dan \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en kies vervolgens \"Opnieuw proberen\"."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; kies alstublieft \"Vervolg\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; kies alstublieft \"Vervolg\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; kies alstublieft \"Vervolg\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Plaats het Laser Platform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn, start vervolgens de diktemeting in de software opnieuw voordat je de taak begint."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "Het Laser Platform is verschoven. Zorg ervoor dat de vier hoeken van het platform uitgelijnd zijn met de verwarmde bed."
+                },
+                {
+                    "ecode": "0500807A",
+                    "intro": "De functie voor het detecteren van vreemde objecten werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor probleemoplossing."
+                },
+                {
+                    "ecode": "05004033",
+                    "intro": "Niet-gecertificeerde AMS gedetecteerd of AMS-firmware niet bijgewerkt: het apparaat kan niet verder werken."
+                },
+                {
+                    "ecode": "03004000",
+                    "intro": "Z-as-homing mislukt; de taak is gestopt."
+                },
+                {
+                    "ecode": "03004002",
+                    "intro": "Afdrukken gestopt omdat Auto Bed Leveling is mislukt."
+                },
+                {
+                    "ecode": "0300800A",
+                    "intro": "Een filamentophoping werd gedetecteerd door AI Print Monitoring. Verwijder alstublieft filament uit de afvalschacht."
+                },
+                {
+                    "ecode": "0300800B",
+                    "intro": "De snijder is vastgelopen. Zorg ervoor dat de snijderhandgreep eruit is en controleer de verbinding van de filament sensor kabel."
+                },
+                {
+                    "ecode": "03008065",
+                    "intro": "De temperatuur van de MC-module is te hoog. Controleer de Wiki voor mogelijke verklaringen."
+                },
+                {
+                    "ecode": "05004070",
+                    "intro": "De laser- of snijmodule is aangesloten, dus het apparaat kan geen 3D-printtaak starten."
+                },
+                {
+                    "ecode": "0300400B",
+                    "intro": "Interne communicatiefout"
+                },
+                {
+                    "ecode": "03008001",
+                    "intro": "Afdrukken gepauzeerd vanwege het pauzecommando in het afdrukbestand."
+                },
+                {
+                    "ecode": "05014038",
+                    "intro": "De regionale instellingen komen niet overeen met de printer; controleer alstublieft de regionale instellingen van de printer."
+                },
+                {
+                    "ecode": "03008051",
+                    "intro": "De snijmodule is gevallen of de kabel van de snijmodule is losgekoppeld; controleer alstublieft de module."
+                },
+                {
+                    "ecode": "0C004024",
+                    "intro": "De Birdseye Camera is schuin geïnstalleerd. Neem contact op met de assistent om deze opnieuw te installeren."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Taak gepauzeerd. Het Laser Safety Window is open."
+                },
+                {
+                    "ecode": "03004042",
+                    "intro": "Het Laser Safety Window is niet goed geïnstalleerd. De taak is gestopt."
                 },
                 {
                     "ecode": "10018004",
@@ -363,28 +695,12 @@
                     "intro": "De linker en rechter nozzle komen niet overeen met het snijbestand. Start de print na het hersnijden, of ga door met printen na het vervangen van de juiste nozzle. Voorzichtig: de hotend temperatuur is hoog."
                 },
                 {
-                    "ecode": "03004020",
-                    "intro": "De detectie van de nozzle is mislukt. De nozzle is mogelijk niet op de extruder gemonteerd of de sensor is beschadigd. Controleer de Assistant voor details."
-                },
-                {
-                    "ecode": "0C004024",
-                    "intro": "De Birdseye Camera is scheef geïnstalleerd. Raadpleeg de a si z voor herinstallatie."
-                },
-                {
                     "ecode": "05FE8053",
                     "intro": "De linker nozzle komt niet overeen met het snijbestand. Start de print opnieuw na het opnieuw snijden, of ga door met printen na het vervangen van de juiste nozzle. Voorzichtig: de temperatuur van de hotend is hoog."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "De lasermodule is geïnstalleerd, maar het snijplatform wordt gedetecteerd. Plaats het bijpassende laserplatform en start vervolgens de diktemeting opnieuw in de software voordat je de taak start."
-                },
-                {
                     "ecode": "03008054",
                     "intro": "Plaats het papier dat nodig is voor Print Then Cut."
-                },
-                {
-                    "ecode": "0300804B",
-                    "intro": "Taak gepauzeerd omdat de zijkant Laser Safety Windows open is."
                 },
                 {
                     "ecode": "0703C06D",
@@ -479,20 +795,8 @@
                     "intro": "AMS D motor voert een zelftest uit. Kan niet starten met drogen. Probeer het later opnieuw."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Lasermodule is geïnstalleerd, maar snijplatform wordt niet gedetecteerd. Plaats het laserplatform en voer de laserafstemming uit."
-                },
-                {
                     "ecode": "05008056",
                     "intro": "Snijmodule is geïnstalleerd, maar het laserplatform wordt gedetecteerd. Plaats het snijplatform voor afstemming."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Snijmodule is geïnstalleerd, maar het laserplatform wordt gedetecteerd. Plaats het snijplatform (snijbeschermingsbasis + LightGrip snijmat)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "Snijmodule is geïnstalleerd, maar het laserplatform wordt gedetecteerd. Plaats het snijplatform (snijbeschermingsbasis + StrongGrip snijmat)."
                 },
                 {
                     "ecode": "0500C07F",
@@ -507,18 +811,6 @@
                     "intro": "De functie voor het detecteren van vreemde voorwerpen werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor oplossingen."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "Er werd geen laserplatform gedetecteerd, wat de nauwkeurigheid van de diktemeting kan beïnvloeden. Plaats het laserplatform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn, en herstart vervolgens de diktemeting in de software voordat je de taak start."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Plaats het laserplatform correct en zorg ervoor dat de achterste markers niet geblokkeerd zijn, en herstart vervolgens de diktemeting in de software voordat je de taak start."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "Plaats het laserplatform correct en zorg ervoor dat de achterste markeringen niet geblokkeerd zijn voor laser kalibratie."
-                },
-                {
                     "ecode": "07018016",
                     "intro": "De extruder voert niet normaal uit; raadpleeg de Assistent. Na het oplossen van het probleem. Als de defecten acceptabel zijn, hervat dan."
                 },
@@ -527,16 +819,8 @@
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de Assistent. Na het oplossen van het probleem. Als de defecten acceptabel zijn, hervat dan."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Bekijk de nozzle van de rechter extruder. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en klik daarna op \"Opnieuw proberen\"."
-                },
-                {
                     "ecode": "18028016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de Assistent. Na het oplossen van het probleem. Als de defecten acceptabel zijn, hervat dan."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Bekijk de nozzle van de linker extruder. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en klik daarna op \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "07078016",
@@ -549,10 +833,6 @@
                 {
                     "ecode": "18008016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de Assistent. Na het oplossen van het probleem. Als de defecten acceptabel zijn, hervat dan."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Bekijk de nozzle van de rechter extruder. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet het geval is, duw het filament dan iets naar voren en klik daarna op \"Opnieuw proberen\"."
                 },
                 {
                     "ecode": "05004031",
@@ -595,20 +875,8 @@
                     "intro": "Verbinding van de PTFE-buis gedetecteerd. Controleer of de PTFE-buis van AMS-HT G naar de extruder goed is aangesloten."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Gelieve de monding van de linker extruder te bekijken. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet zo is, duw het filament dan iets naar voren en klik vervolgens op \"Probeer opnieuw\"."
-                },
-                {
                     "ecode": "0C004021",
                     "intro": "De installatie van de BirdsEye Camera is mislukt; herstart de printer alstublieft."
-                },
-                {
-                    "ecode": "07FEC00A",
-                    "intro": "Gelieve de monding van de linker extruder te bekijken. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet zo is, duw het filament dan iets naar voren en klik vervolgens op \"Probeer opnieuw\"."
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Gelieve de monding van de rechter extruder te bekijken. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; als dat niet zo is, duw het filament dan iets naar voren en klik vervolgens op \"Probeer opnieuw\"."
                 },
                 {
                     "ecode": "0C004026",
@@ -635,10 +903,6 @@
                     "intro": "De extruder extrudeert niet normaal; raadpleeg alstublieft de Assistent. Na het oplossen van problemen. Als de defecten acceptabel zijn, hervat dan."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Controleer de nozzle van de linkse extruder. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; zo niet, duw het filament dan iets naar voren en klik daarna op \"Probeer opnieuw\"."
-                },
-                {
                     "ecode": "18068016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg alstublieft de Assistent. Na het oplossen van problemen. Als de defecten acceptabel zijn, hervat dan."
                 },
@@ -657,10 +921,6 @@
                 {
                     "ecode": "18058016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg alstublieft de Assistent. Na het oplossen van problemen. Als de defecten acceptabel zijn, hervat dan."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Controleer de nozzle van de rechter extruder. Als het filament is geëxtrudeerd, klik dan op \"Doorgaan\"; zo niet, duw het filament dan iets naar voren en klik daarna op \"Probeer opnieuw\"."
                 },
                 {
                     "ecode": "1803800A",
@@ -707,20 +967,8 @@
                     "intro": "Kon niet het filament extruderen. Controleer of de extruder verstopt is."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Doorgaan\" om het opnieuw te proberen."
-                },
-                {
                     "ecode": "07028007",
                     "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Doorgaan\" om het opnieuw te proberen."
-                },
-                {
-                    "ecode": "07038012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Doorgaan\" om het opnieuw te proberen."
                 },
                 {
                     "ecode": "07FF8005",
@@ -795,20 +1043,12 @@
                     "intro": "Timeout bij het purgen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
                 },
                 {
-                    "ecode": "18048012",
-                    "intro": "Mislukt om AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om het opnieuw te proberen."
-                },
-                {
                     "ecode": "07078007",
                     "intro": "Mislukt om de filament te extruderen. Controleer of de extruder verstopt is."
                 },
                 {
                     "ecode": "18078007",
                     "intro": "Mislukt om de filament te extruderen. Controleer of de extruder verstopt is."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; klik op \"Doorgaan\" om het opnieuw te proberen."
                 },
                 {
                     "ecode": "18FE8024",
@@ -823,16 +1063,8 @@
                     "intro": "Mislukt om het filament te extruderen. Controleer of de extruder verstopt is."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "18018007",
                     "intro": "Mislukt om het filament te extruderen. Controleer of de extruder verstopt is."
-                },
-                {
-                    "ecode": "18078012",
-                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "18FE8001",
@@ -851,10 +1083,6 @@
                     "intro": "Mislukt om het filament te extruderen. Controleer of de extruder verstopt is."
                 },
                 {
-                    "ecode": "18018012",
-                    "intro": "Mislukt om de AMS-mappingtabel te verkrijgen; klik op \"Doorgaan\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "18048007",
                     "intro": "Het is niet gelukt om het filament uit te extruderen. Controleer of de extruder verstopt is."
                 },
@@ -871,10 +1099,6 @@
                     "intro": "Controleer of de juiste externe filamentspoel of filament vastzit."
                 },
                 {
-                    "ecode": "0500807A",
-                    "intro": "De functie voor het detecteren van vreemde voorwerpen werkt niet. Je kunt de taak voortzetten of de assistent raadplegen voor probleemoplossing."
-                },
-                {
                     "ecode": "05008068",
                     "intro": "Plaats het sterke grip snijmat correct en zorg ervoor dat de marker zichtbaar is."
                 },
@@ -887,16 +1111,8 @@
                     "intro": "Plaats alstublieft een LightGrip snijmat op de snijbeschermbasis."
                 },
                 {
-                    "ecode": "07008012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Herstarten\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "07038007",
                     "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik op \"Herstarten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "07FE8013",
@@ -905,10 +1121,6 @@
                 {
                     "ecode": "07FE8010",
                     "intro": "Controleer of de linker externe filamentspoel of het filament vastzit."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "Kon de mappingtabel niet ophalen; klik op \"Herstarten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "07FE8002",
@@ -955,10 +1167,6 @@
                     "intro": "Timeout het verwijderen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
                 },
                 {
-                    "ecode": "18068012",
-                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; klik alstublieft op \"Hervatten\" om het opnieuw te proberen."
-                },
-                {
                     "ecode": "07008007",
                     "intro": "Het is niet gelukt om het filament te extruderen. Controleer of de extruder verstopt is."
                 },
@@ -975,32 +1183,12 @@
                     "intro": "Controleer of de linker externe filamentspoel of het filament vastzit."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "Het is niet gelukt om de AMS-mappingtabel te krijgen; klik alstublieft op \"Hervatten\" om het opnieuw te proberen."
-                },
-                {
                     "ecode": "07058013",
                     "intro": "Timeout het verwijderen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
                 },
                 {
-                    "ecode": "18FE8012",
-                    "intro": "Het is niet gelukt om de mappingtabel te krijgen; klik alstublieft op \"Hervatten\" om het opnieuw te proberen."
-                },
-                {
-                    "ecode": "18038012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Vervinden\" om het opnieuw te proberen."
-                },
-                {
                     "ecode": "18038007",
                     "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Vervinden\" om het opnieuw te proberen."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Vervinden\" om het opnieuw te proberen."
                 },
                 {
                     "ecode": "18FF8002",
@@ -1025,14 +1213,6 @@
                 {
                     "ecode": "18018013",
                     "intro": "Time-out bij het reinigen van oude filament: Controleer of het filament vastzit of de extruder verstopt is."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Herstarten\" om opnieuw te proberen."
-                },
-                {
-                    "ecode": "18028012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Herstarten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "18FE8002",
@@ -1061,10 +1241,6 @@
                 {
                     "ecode": "07068007",
                     "intro": "Niet gelukt om het filament te extruderen. Controleer of de extruder verstopt is."
-                },
-                {
-                    "ecode": "18FF8012",
-                    "intro": "Kon de AMS-mappingtabel niet ophalen; klik alstublieft op \"Herstarten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "07FF8010",
@@ -1143,14 +1319,6 @@
                     "intro": "Kan afdruktaak niet downloaden; controleer uw netwerkverbinding."
                 },
                 {
-                    "ecode": "05008074",
-                    "intro": "Het laserplatform is verschoven. Zorg ervoor dat de vier hoeken van het platform zijn uitgelijnd met het hittebed."
-                },
-                {
-                    "ecode": "05008063",
-                    "intro": "Het platform wordt niet gedetecteerd tijdens kalibratie; zorg er alstublieft voor dat de laserplaat goed is geplaatst."
-                },
-                {
                     "ecode": "0C00803F",
                     "intro": "AI heeft een verstopte nozzle gedetecteerd. Controleer de toestand van de nozzle. Raadpleeg de assistent voor oplossingen."
                 },
@@ -1159,20 +1327,12 @@
                     "intro": "AI heeft een probleem met air-printing gedetecteerd. Controleer de status van de hotend-extrusie. Raadpleeg de assistent voor oplossingen."
                 },
                 {
-                    "ecode": "03008051",
-                    "intro": "Het snijmodule is gevallen of de kabel van de snijmodule is losgekoppeld. Controleer dit alstublieft."
-                },
-                {
                     "ecode": "0500403D",
                     "intro": "De toolhead module is niet ingesteld. Gelieve deze in te stellen voordat u de taak start."
                 },
                 {
                     "ecode": "07FE8011",
                     "intro": "De externe filament die verbonden is met de linker extruder is op; gelieve een nieuwe filament te laden."
-                },
-                {
-                    "ecode": "03004000",
-                    "intro": "Homing van de Z-as mislukt, taak is gestopt."
                 },
                 {
                     "ecode": "0300400C",
@@ -1679,10 +1839,6 @@
                     "intro": "De printer heeft geen kalibratiedata voor precisiebeweging; de precisiebeweging kan niet worden ingeschakeld."
                 },
                 {
-                    "ecode": "05004070",
-                    "intro": "Het apparaat is aangesloten op de laser- of snijmodule en kan geen 3D-printtaak starten."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "De printer is momenteel aan het printen en de functie voor verbetering van de bewegingsnauwkeurigheid kan niet worden in- of uitgeschakeld."
                 },
@@ -1699,10 +1855,6 @@
                     "intro": "Trek alstublieft het filament uit de spoelhouder van de rechter extruder. Als dit bericht aanhoudt, controleer dan of er filament is gebroken in de extruder. (Sluit een PTFE-buis aan als u een AMS gaat gebruiken)."
                 },
                 {
-                    "ecode": "03008016",
-                    "intro": "De nozzle is verstopt met filament. Annuleer deze print alstublieft en maak de nozzle schoon of klik op de knop \"Hervatten\" om de printopdracht te hervatten."
-                },
-                {
                     "ecode": "05004008",
                     "intro": "Het starten van printen is mislukt; schakel de printer uit en weer aan en stuur de printopdracht opnieuw."
                 },
@@ -1717,10 +1869,6 @@
                 {
                     "ecode": "0500402C",
                     "intro": "Kan geen IP-adres verkrijgen, dit kan worden veroorzaakt door draadloze interferentie waardoor gegevensoverdracht mislukt of doordat de DHCP-adrespool van de router vol is. Plaats de printer dichter bij de router en probeer het opnieuw. Als het probleem aanhoudt, controleer dan de routerinstellingen om te zien of de IP-adressen zijn uitgeput."
-                },
-                {
-                    "ecode": "0300801C",
-                    "intro": "De extrusieweerstand is abnormaal. De extruder kan verstopt zijn, raadpleeg de assistent. Na probleemoplossing kunt u op de knop \"Hervatten\" tikken om de afdruktaak te hervatten."
                 },
                 {
                     "ecode": "0500400A",
@@ -1743,10 +1891,6 @@
                     "intro": "Trek het filament uit de spoelhouder van de linker extruder. Als deze melding blijft verschijnen, controleer dan of er filament is gebroken in de extruder. (Sluit een PTFE-buis aan als u een AMS gaat gebruiken.)"
                 },
                 {
-                    "ecode": "03008014",
-                    "intro": "De nozzle is bedekt met filament, of het bouwplatform is verkeerd geïnstalleerd. Annuleer deze print alstublieft en reinig de nozzle of pas het bouwplatform aan volgens de werkelijke status. U kunt ook op de knop \"Hervatten\" tikken om de printtaak te hervatten."
-                },
-                {
                     "ecode": "0500402D",
                     "intro": "Systeemfout"
                 },
@@ -1761,10 +1905,6 @@
                 {
                     "ecode": "03008009",
                     "intro": "Storing in temperatuur van de heatbed."
-                },
-                {
-                    "ecode": "03008017",
-                    "intro": "Vreemde objecten op het heatbed gedetecteerd. Controleer en maak het heatbed alstublieft schoon. Tik vervolgens op de \"Hervatten\" knop om de afdruktaak te voltooien."
                 },
                 {
                     "ecode": "05004002",
@@ -1789,14 +1929,6 @@
                 {
                     "ecode": "03008045",
                     "intro": "Time-out voor materiaaldetectie: start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0300801A",
-                    "intro": "De extruder extrudeert niet normaal; raadpleeg de assistent. Als de defecten na het oplossen acceptabel zijn, tik dan op de knop \"Doorgaan\" om de afdruktaak te hervatten."
-                },
-                {
-                    "ecode": "03008001",
-                    "intro": "Afdrukken is gepauzeerd vanwege het pauzecommando dat in het afdrukbestand is toegevoegd."
                 },
                 {
                     "ecode": "0300800C",
@@ -1931,10 +2063,6 @@
                     "intro": "Het is niet gelukt om het filament uit de extruder te halen. Dit kan veroorzaakt worden door een verstopte extruder of gebroken filament in de extruder."
                 },
                 {
-                    "ecode": "0500402E",
-                    "intro": "Het systeem ondersteunt het bestandssysteem van de huidige USB-flashdrive niet. Vervang of formatteer de USB-flashdrive naar het FAT32-formaat."
-                },
-                {
                     "ecode": "07FFC009",
                     "intro": "Voer alstublieft filament in de PTFE-buis van de rechter extruder totdat het niet verder geduwd kan worden."
                 },
@@ -2015,10 +2143,6 @@
                     "intro": "De laser module werkt niet naar behoren."
                 },
                 {
-                    "ecode": "03008065",
-                    "intro": "De temperatuur van de MC module is te hoog. Controleer de Wiki voor specifieke redenen."
-                },
-                {
                     "ecode": "07FEC006",
                     "intro": "Voer alsjeblieft filament in de PTFE-buis van de linker extruder in totdat het niet verder geduwd kan worden."
                 },
@@ -2033,10 +2157,6 @@
                 {
                     "ecode": "0C004029",
                     "intro": "Materiaal niet gedetecteerd. Bevestig de plaatsing en ga verder."
-                },
-                {
-                    "ecode": "05014038",
-                    "intro": "De regionale instellingen komen niet overeen met de printer, controleer de regionale instellingen van de printer."
                 },
                 {
                     "ecode": "0C008005",
@@ -2135,64 +2255,24 @@
                     "intro": "De AMS assist motor is overbelast. Dit kan komen door verstrikt filament of een vastzittende spoel."
                 },
                 {
-                    "ecode": "0501401B",
-                    "intro": "De cloud respons is ongeldig. Als u meerdere pogingen heeft geprobeerd, maar nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "0501401C",
-                    "intro": "De toegang tot de cloud wordt geweigerd. Als u meerdere pogingen heeft geprobeerd, maar nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "0501401D",
                     "intro": "Toegang tot de cloud is mislukt, dit kan worden veroorzaakt door een netwerkstoornis als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
-                },
-                {
-                    "ecode": "0501401E",
-                    "intro": "De cloud respons is ongeldig. Als u meerdere pogingen heeft geprobeerd, maar nog steeds niet lukt, neem dan contact op met de klantenservice."
                 },
                 {
                     "ecode": "0501401F",
                     "intro": "Autorisatie time-out. Zorg ervoor dat uw telefoon of pc toegang heeft tot internet en controleer of de Bambu Studio/Bambu Handy-app actief is op de voorgrond tijdens de koppelingsprocedure."
                 },
                 {
-                    "ecode": "05014020",
-                    "intro": "De toegang tot de cloud wordt geweigerd. Als u meerdere pogingen heeft geprobeerd, maar nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "05014021",
                     "intro": "Toegang tot de cloud is mislukt, dit kan worden veroorzaakt door een netwerkstoornis als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
-                },
-                {
-                    "ecode": "05014022",
-                    "intro": "De cloud respons is ongeldig. Als u meerdere pogingen heeft geprobeerd, maar nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "05014023",
-                    "intro": "Cloud toegang geweigerd. Als u meerdere keren heeft geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
                 },
                 {
                     "ecode": "05014024",
                     "intro": "Cloud toegang mislukt. Mogelijke redenen zijn netwerkinstabiliteit veroorzaakt door interferentie, het onvermogen om toegang te krijgen tot internet of router firewall configurati beperkingen. U kunt proberen de printer dichter bij de router te plaatsen of de routerconfiguratie te controleren voordat u het opnieuw probeert."
                 },
                 {
-                    "ecode": "05014025",
-                    "intro": "Cloudreactie is ongeldig. Als u meerdere keren heeft geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "05014026",
-                    "intro": "Cloud toegang geweigerd. Als u meerdere keren heeft geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "05014027",
                     "intro": "Cloud toegang mislukt; dit kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
-                },
-                {
-                    "ecode": "05014028",
-                    "intro": "Cloudreactie is ongeldig. Als u meerdere keren heeft geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "05014029",
-                    "intro": "Cloud toegang is afgewezen. Als u meerdere keren heeft geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
                 },
                 {
                     "ecode": "05014031",
@@ -2251,64 +2331,24 @@
                     "intro": "De printer is al gekoppeld. Maak de koppeling ongedaan en probeer het opnieuw."
                 },
                 {
-                    "ecode": "0500401B",
-                    "intro": "Cloud-reactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "0500401C",
-                    "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "0500401D",
                     "intro": "Cloud-toegang mislukt, dit kan worden veroorzaakt door netwerkinstabiliteit als gevolg van storing. Probeer de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
-                },
-                {
-                    "ecode": "0500401E",
-                    "intro": "Cloud-reactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
                 },
                 {
                     "ecode": "0500401F",
                     "intro": "Autorisatie verlopen. Zorg ervoor dat uw telefoon of computer toegang heeft tot internet en zorg ervoor dat de Bambu Studio / Bambu Handy-app op de voorgrond wordt uitgevoerd tijdens de koppelingsbewerking."
                 },
                 {
-                    "ecode": "05004020",
-                    "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "05004021",
                     "intro": "Cloud-toegang mislukt, dit kan worden veroorzaakt door netwerkinstabiliteit als gevolg van storing. Probeer de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
-                },
-                {
-                    "ecode": "05004022",
-                    "intro": "Cloud-reactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "05004023",
-                    "intro": "Cloudtoegang geweigerd. Als u het meerdere keren heeft geprobeerd en nog steeds faalt, neem dan contact op met de klantenservice."
                 },
                 {
                     "ecode": "05004024",
                     "intro": "Cloudtoegang mislukt. Mogelijke redenen zijn netwerkinstabiliteit veroorzaakt door interferentie, onmogelijkheid om toegang te krijgen tot het internet of beperkingen in de routerfirewallconfiguratie. U kunt proberen de printer dichter bij de router te plaatsen of de routerconfiguratie te controleren voordat u het opnieuw probeert."
                 },
                 {
-                    "ecode": "05004025",
-                    "intro": "De cloudreactie is ongeldig. Als u het meerdere keren heeft geprobeerd en nog steeds faalt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "05004026",
-                    "intro": "Cloudtoegang geweigerd. Als u het meerdere keren heeft geprobeerd en nog steeds faalt, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "05004027",
                     "intro": "De toegang tot de cloud is mislukt; dit kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
-                },
-                {
-                    "ecode": "05004028",
-                    "intro": "De cloudreactie is ongeldig. Als u het meerdere keren heeft geprobeerd en nog steeds faalt, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "05004029",
-                    "intro": "Toegang tot de cloud is geweigerd. Neem contact op met de klantenservice als u het meerdere keren heeft geprobeerd en nog steeds niet kunt verbinden."
                 },
                 {
                     "ecode": "0500402A",
@@ -2355,10 +2395,6 @@
                     "intro": "De printer heeft time-out bereikt bij het wachten op het afkoelen van het mondstuk voordat het home-proces wordt gestart."
                 },
                 {
-                    "ecode": "03004002",
-                    "intro": "Afdrukken gestopt omdat Auto Bed Leveling is mislukt."
-                },
-                {
                     "ecode": "03004005",
                     "intro": "De ventilatorsnelheid van de hotend koeling is abnormaal."
                 },
@@ -2379,10 +2415,6 @@
                     "intro": "Identificatie van mechanische resonantiefrequentie is mislukt."
                 },
                 {
-                    "ecode": "0300400B",
-                    "intro": "Interne communicatie-uitzondering."
-                },
-                {
                     "ecode": "0300400D",
                     "intro": "Doorgaan na stroomuitval is mislukt."
                 },
@@ -2391,28 +2423,12 @@
                     "intro": "De zelfcontrole van de motor is mislukt."
                 },
                 {
-                    "ecode": "03008000",
-                    "intro": "Het printen is om onbekende reden onderbroken. Klik op \"Doorgaan\" om de printopdracht te hervatten."
-                },
-                {
                     "ecode": "03008003",
                     "intro": "Spaghettidefecten zijn gedetecteerd door de AI Print Monitoring. Controleer de kwaliteit van het afgedrukte model voordat u doorgaat met printen."
                 },
                 {
                     "ecode": "03008007",
                     "intro": "Er was een onvoltooide printtaak toen de printer zonder stroom kwam te zitten. Als het model nog steeds aan het bouwplatform kleeft, kan je proberen de printtaak te hervatten."
-                },
-                {
-                    "ecode": "0300800A",
-                    "intro": "Er is een filamentopbouw gedetecteerd door de AI Print Monitoring. Gelieve het filament uit de afvalgoot te verwijderen."
-                },
-                {
-                    "ecode": "0300800B",
-                    "intro": "De snijder zit vast. Zorg ervoor dat de handgreep van de snijder uit is en controleer de verbinding van de filament sensor kabel."
-                },
-                {
-                    "ecode": "0300800D",
-                    "intro": "Sommige objecten zijn gevallen of de extruder extrudeert niet normaal. Als de defecten acceptabel zijn, klik dan op de knop \"Hervatten\" om de printtaak te hervatten."
                 },
                 {
                     "ecode": "0300800E",
@@ -2441,8 +2457,804 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250207,
+            "ver": 202503250214,
             "nl": [
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Dikte meting mislukt, de Toolhead Camera kon het oppervlak van het materiaal niet detecteren."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Visuele marker niet gedetecteerd; gelieve het materiaal opnieuw op de juiste positie te plakken."
+                },
+                {
+                    "ecode": "0584050000010010",
+                    "intro": "Niet-gecertificeerde AMS-HT E gedetecteerd of AMS-HT E firmware niet geüpgraded. Kan niet functioneren met deze printer."
+                },
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "De gevoeligheid van de linker extruder extrusiekracht sensor is laag; de krachtsensor is mogelijk niet correct geïnstalleerd."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "Hand-Oog calibratie mislukt, en de snijnauwkeurigheid kan zijn afgenomen. Controleer alstublieft of de snijmespunt versleten is."
+                },
+                {
+                    "ecode": "0582050000010010",
+                    "intro": "Niet-gecertificeerde AMS-HT C gedetecteerd of AMS-HT C firmware niet geüpgraded. Kan niet functioneren met deze printer."
+                },
+                {
+                    "ecode": "0587050000010010",
+                    "intro": "Niet-gecertificeerde AMS-HT H gedetecteerd of AMS-HT H firmware niet geüpgraded. Kan niet functioneren met deze printer."
+                },
+                {
+                    "ecode": "0C00010000020017",
+                    "intro": "De lens van de nozzle camera is vuil, wat de AI-monitoringfunctionaliteit kan beïnvloeden. Maak alstublieft zo snel mogelijk het oppervlak van de lens van de nozzle camera schoon."
+                },
+                {
+                    "ecode": "0583050000010010",
+                    "intro": "Niet-gecertificeerde AMS-HT D gedetecteerd of AMS-HT D firmware niet geüpgraded. Kan niet functioneren met deze printer."
+                },
+                {
+                    "ecode": "0586050000010010",
+                    "intro": "Niet-gecertificeerde AMS-HT G gedetecteerd of AMS-HT G firmware niet geüpgraded. Kan niet functioneren met deze printer."
+                },
+                {
+                    "ecode": "0585050000010010",
+                    "intro": "Ongecertificeerde AMS-HT F gedetecteerd of AMS-HT F firmware niet geüpgraded. Niet in staat om met deze printer te werken."
+                },
+                {
+                    "ecode": "0581050000010010",
+                    "intro": "Ongecertificeerde AMS-HT B gedetecteerd of AMS-HT B firmware niet geüpgraded. Niet in staat om met deze printer te werken."
+                },
+                {
+                    "ecode": "0580050000010010",
+                    "intro": "Ongecertificeerde AMS-HT A gedetecteerd of AMS-HT A firmware niet geüpgraded. Niet in staat om met deze printer te werken."
+                },
+                {
+                    "ecode": "0500040000020037",
+                    "intro": "De snijmodule moet worden gekalibreerd om de gereedschapspositie te bepalen. Voer alstublieft de montagekalibratie uit voordat u deze gebruikt. (ongeveer 2-4 minuten)"
+                },
+                {
+                    "ecode": "0705700000020046",
+                    "intro": "AMS F Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1806700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "0705700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "1800700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "Het huidige platform voldoet niet aan de taakvereisten; gebruik alstublieft het Snijplatform."
+                },
+                {
+                    "ecode": "07FE800000010006",
+                    "intro": "De TH-board is losgekoppeld tijdens het wisselen van de extruder. Controleer of de aansluitkabel loszit."
+                },
+                {
+                    "ecode": "0500010000020001",
+                    "intro": "De mediapijplijn werkt niet goed. Start de printer opnieuw op. Als meerdere pogingen mislukken, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0500010000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "0700700000020046",
+                    "intro": "AMS A Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "0701700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Opnieuw\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "0701700000020046",
+                    "intro": "AMS B Het trekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "0702700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "0703700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Opnieuw\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "0300260000010001",
+                    "intro": "De frequentie van de extrusiekrachtsensor van de linker extruder is te laag. De sensor is mogelijk te ver geïnstalleerd of de sensor kan los zitten."
+                },
+                {
+                    "ecode": "0300280000010001",
+                    "intro": "De gegevens van de krachtsensor van de Snijmodule zijn abnormaal. De magneet op de Tool Holder kan zijn losgekomen of de krachtsensor kan beschadigd zijn."
+                },
+                {
+                    "ecode": "0300250000010007",
+                    "intro": "De frequentie van de krachtsensor van de rechter extruder is te hoog. De sensor kan beschadigd zijn, of de spuitmond koeler kan te dicht bij de sensor zijn."
+                },
+                {
+                    "ecode": "0300260000010007",
+                    "intro": "De frequentie van de krachtsensor van de linker extruder is te hoog. De sensor kan te dicht zijn geïnstalleerd, of de sensor kan los zijn."
+                },
+                {
+                    "ecode": "0300250000010004",
+                    "intro": "Het signaal van de krachtsensor van de rechter extruder is abnormaal. De sensor kan beschadigd zijn, of de MC-TH-communicatie kan abnormaal zijn."
+                },
+                {
+                    "ecode": "03009D0000020003",
+                    "intro": "De kalibratieresultaten van het Z-focale punt van de graveerlazer wijken aanzienlijk af van de ontwerpwaarden. Herinstalleer de Laser Module en voer de Laser Module Setup opnieuw uit. Als het herhaaldelijk mislukt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0C00010000020002",
+                    "intro": "De gereedschaphuidcamera is defect. Als dit probleem meerdere keren tijdens het printen voorkomt, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "1805700000020046",
+                    "intro": "AMS-HT F Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1803700000020046",
+                    "intro": "AMS-HT D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1803700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "1805700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "0704700000020046",
+                    "intro": "AMS E Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "0706700000020046",
+                    "intro": "AMS G Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1804700000020046",
+                    "intro": "AMS-HT E Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1802700000020046",
+                    "intro": "AMS-HT C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1800700000020046",
+                    "intro": "AMS-HT A Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1802700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Resume\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "1807700000020008",
+                    "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Resume\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "0500040000020042",
+                    "intro": "Er is een mondstukmisverstand gedetecteerd tijdens het printen. Initiëer de print opnieuw na het opnieuw snijden, of ga door met printen na het vervangen door het juiste mondstuk. Voorzichtig: de hotend-temperatuur is hoog."
+                },
+                {
+                    "ecode": "0500040000020048",
+                    "intro": "Geen platform gedetecteerd; zorg ervoor dat het Laser Platform goed is geplaatst."
+                },
+                {
+                    "ecode": "05FF040000020042",
+                    "intro": "Er is een mondstukmisverstand gedetecteerd tijdens het printen. Start de print opnieuw na het opnieuw snijden, of ga door met printen na vervanging met het juiste mondstuk. Voorzichtig: de hotend-temperatuur is hoog."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "De Nozzle Camera werkt niet goed. Als dit probleem meerdere keren optreedt tijdens het printen, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300280000010003",
+                    "intro": "Communicatieverlies tussen het snijmodule en de toolhead tijdens het Z-as homing. Controleer of de signaalkabel van het snijmodule los of kapot is, of controleer of de krachtsensor spoel intact is."
+                },
+                {
+                    "ecode": "18FE810000010004",
+                    "intro": "De positie Hall-sensor van de Extruder Switching Motor heeft een kortsluiting; controleer of de Hall-sensor niet goed werkt."
+                },
+                {
+                    "ecode": "07FE810000010004",
+                    "intro": "De positie Hall-sensor van de Extruder Switching Motor heeft een kortsluiting; controleer of de Hall-sensor defect is."
+                },
+                {
+                    "ecode": "18FF810000010004",
+                    "intro": "De positie Hall-sensor van de Extruder Switching Motor heeft een kortsluiting; controleer of de Hall-sensor defect is."
+                },
+                {
+                    "ecode": "18FF800000010006",
+                    "intro": "De TH-board heeft losgekoppeld tijdens het schakelen van de extruder. Controleer of de aansluitkabel loszit."
+                },
+                {
+                    "ecode": "07FF800000010006",
+                    "intro": "De TH-board heeft losgekoppeld tijdens het schakelen van de extruder. Controleer of de aansluitkabel loszit."
+                },
+                {
+                    "ecode": "030025000001000A",
+                    "intro": "De kalibratie van de nozzle-offset is mislukt. Filament blijft plakken aan de nozzle, wat de printkwaliteit kan beïnvloeden. Maak de nozzle schoon en probeer het opnieuw."
+                },
+                {
+                    "ecode": "0300280000010004",
+                    "intro": "De krachtsensor van de Cutting Module is abnormaal. De kabel van de krachtsensor kan losgekoppeld zijn of de krachtsensor is beschadigd."
+                },
+                {
+                    "ecode": "0500050000010011",
+                    "intro": "Niet-gecertificeerde luchtpomp of luchtpompfirmware is niet geüpgraded. Kan niet functioneren met deze printer."
+                },
+                {
+                    "ecode": "18FE800000010006",
+                    "intro": "De TH-board heeft losgekoppeld tijdens het schakelen van de extruder. Controleer of de aansluitkabel loszit."
+                },
+                {
+                    "ecode": "0702700000020046",
+                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assist-motor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "0703700000020046",
+                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assist-motor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "0300250000010001",
+                    "intro": "De frequentie van de extrusiekrachtsensor van de rechter extruder is te laag. De nozzle is misschien niet geïnstalleerd, of de koellichaam van de nozzle staat misschien te ver van de sensor."
+                },
+                {
+                    "ecode": "0C00040000010005",
+                    "intro": "BirdsEye Camera storing: neem contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0300260000010004",
+                    "intro": "Het signaal van de extrusiekracht sensor van de linker extruder is abnormaal. De sensor kan beschadigd zijn, of de MC-TH communicatie kan abnormaal zijn."
+                },
+                {
+                    "ecode": "0300280000010007",
+                    "intro": "Communicatiefout tussen de Cutting Module en de toolhead module. Controleer of de signaalkabel van de Cutting module los of beschadigd is. Het kan ook komen door een defecte krachtsensor spoel."
+                },
+                {
+                    "ecode": "0300270000010004",
+                    "intro": "Het signaal van de sensor voor het kalibreren van de nozzle-offset is abnormaal. De sensor kan beschadigd zijn, of de bedrading is mogelijk niet goed aangesloten."
+                },
+                {
+                    "ecode": "0300260000010005",
+                    "intro": "De rotatie van de Z-as motor is belemmerd; controleer of er vreemde voorwerpen vastzitten in de Z-slider of de Z-timingpulley."
+                },
+                {
+                    "ecode": "0300250000010005",
+                    "intro": "De rotatie van de Z-as motor is geblokkeerd; controleer of er vreemde voorwerpen vastzitten in de Z-slider of de Z-timingriemschijf."
+                },
+                {
+                    "ecode": "0C00010000010012",
+                    "intro": "De calibratie van de Live View Camera is mislukt en het calibratieresultaat kon niet worden opgeslagen. Probeer opnieuw te calibreren. Als de calibratie herhaaldelijk mislukt, neem dan contact op met het klantenserviceteam."
+                },
+                {
+                    "ecode": "1804700000020008",
+                    "intro": "Het is niet gelukt om de AMS-mappingtabel te verkrijgen; selecteer \"Resume\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "0707700000020046",
+                    "intro": "AMS H Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "0707700000020008",
+                    "intro": "Het is niet gelukt om de AMS-mappingtabel te verkrijgen; selecteer \"Resume\" om het opnieuw te proberen."
+                },
+                {
+                    "ecode": "0706700000020008",
+                    "intro": "Mislukt om de AMS maptabel te verkrijgen; selecteer alstublieft \"Hervatten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "0704700000020008",
+                    "intro": "Mislukt om de AMS maptabel te verkrijgen; selecteer alstublieft \"Hervatten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "1801700000020008",
+                    "intro": "Mislukt om de AMS maptabel te verkrijgen; selecteer alstublieft \"Hervatten\" om opnieuw te proberen."
+                },
+                {
+                    "ecode": "1801700000020046",
+                    "intro": "AMS-HT B Uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1806700000020046",
+                    "intro": "AMS-HT G Uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "1807700000020046",
+                    "intro": "AMS-HT H Uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "Het huidige platform voldoet niet aan de vereisten voor deze taak; gebruik alstublieft het Laser Platform."
+                },
+                {
+                    "ecode": "05FE040000020042",
+                    "intro": "Er is een nozzle mismatch gedetecteerd tijdens het printen. Start de print opnieuw na het her-slicen, of ga door met printen na het vervangen door de juiste nozzle. Voorzichtig: de temperatuur van de hotend is hoog."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Verkeerd platfromtype gedetecteerd; plaats alstublieft het Laser Platform voor de calibratie."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Verkeerd platformtype gedetecteerd; plaats het snijplatform voor de calibratie."
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18FE800000010004",
+                    "intro": "De hall-sensor van de positie van de Toolhead-hefmotor is kortgesloten; controleer of de hall-sensor defect is."
+                },
+                {
+                    "ecode": "07FE800000010004",
+                    "intro": "De Hall-sensor van de positie van de Toolhead-hefmotor is kortgesloten; controleer of de Hall-sensor defect is."
+                },
+                {
+                    "ecode": "18FF800000010004",
+                    "intro": "De Hall-sensor van de positie van de Toolhead-hefmotor is kortgesloten; controleer of de Hall-sensor niet functioneert."
+                },
+                {
+                    "ecode": "07FF800000010004",
+                    "intro": "De Hall-sensor van de positie van de Toolhead-hefmotor is kortgesloten; controleer of de Hall-sensor niet werkt."
+                },
+                {
+                    "ecode": "07FF810000010004",
+                    "intro": "De Hall-sensor van de positie van de Extruder-schakelmotor heeft een kortsluiting; controleer of de Hall-sensor defect is."
+                },
+                {
+                    "ecode": "030026000001000B",
+                    "intro": "Detectie van het aanwezig zijn van de nozzle is mislukt: Linker extruder nozzle niet geïnstalleerd of verkeerd geïnstalleerd."
+                },
+                {
+                    "ecode": "030025000001000B",
+                    "intro": "Detectie van het aanwezig zijn van de nozzle is mislukt: Rechter extruder nozzle niet geïnstalleerd of verkeerd geïnstalleerd."
+                },
+                {
+                    "ecode": "0500050000010012",
+                    "intro": "Niet-gecertificeerde Snijmodule of Snijmodule-firmware niet geüpgraded. Kan niet werken met deze printer."
+                },
+                {
+                    "ecode": "03000F0000010001",
+                    "intro": "Abnormale versnellingsmetergegevens gedetecteerd. Probeer de printer opnieuw op te starten."
+                },
+                {
+                    "ecode": "0500030000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020018",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "Toolhead Camera parameter is abnormaal. Neem contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0C00020000020006",
+                    "intro": "De hoogte van de nozzle lijkt te hoog te zijn. Controleer of er restfilament aan de nozzle hangt."
+                },
+                {
+                    "ecode": "0702800000010004",
+                    "intro": "AMS C De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "07FE800000010003",
+                    "intro": "Het hall-signaal van de Toolhead Lifting Motor is abnormaal, mogelijk door een interne communicatie storing in de Toolhead module."
+                },
+                {
+                    "ecode": "0702810000010004",
+                    "intro": "AMS C De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "07FF810000010002",
+                    "intro": "De positie hall sensor van de Extruder Switching Motor heeft een open situatie. Controleer of de verbindingskabel los is."
+                },
+                {
+                    "ecode": "0701800000010004",
+                    "intro": "AMS B De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "07FF810000010003",
+                    "intro": "Het hall-signaal van de Extruder Switching Motor is abnormaal, mogelijk door een interne communicatie storing in de Toolhead module."
+                },
+                {
+                    "ecode": "0704800000010004",
+                    "intro": "AMS E De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1803810000010004",
+                    "intro": "AMS-HT D De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0707810000010004",
+                    "intro": "AMS H De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1805810000010004",
+                    "intro": "AMS-HT F De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1804810000010004",
+                    "intro": "AMS-HT E De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1801800000010004",
+                    "intro": "AMS-HT B De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0705810000010004",
+                    "intro": "AMS F De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1800400000020001",
+                    "intro": "Filament buffer positie-signaal verloren: de kabel of positie-sensor kan defect zijn."
+                },
+                {
+                    "ecode": "1800510000030001",
+                    "intro": "De AMS is uitgeschakeld; laad alstublieft filament vanaf de spoelhouder."
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "AMS filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "AMS-HT filament is op. Plaats alstublieft een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "1800550000010004",
+                    "intro": "De binding tussen AMS-HT A en de extruder is onjuist. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "1803550000010004",
+                    "intro": "De binding tussen AMS-HT D en de extruder is onjuist. Voer de AMS Setup uit."
+                },
+                {
+                    "ecode": "0706550000010004",
+                    "intro": "De binding tussen AMS G en de extruder is onjuist. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "0300910000010002",
+                    "intro": "De temperatuur van kamer verwarming 1 is abnormaal. De verwarming kan een open circuit hebben of de thermische zekering kan zijn doorgebrand."
+                },
+                {
+                    "ecode": "0500030000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020017",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700400000020001",
+                    "intro": "Filamentbufferpositie signaal verloren: de kabel of positie sensor kan defect zijn."
+                },
+                {
+                    "ecode": "0700400000020002",
+                    "intro": "Filamentbufferpositie signaal fout: de positie sensor kan defect zijn."
+                },
+                {
+                    "ecode": "0700510000030001",
+                    "intro": "De AMS is uitgeschakeld; laad alstublieft filament van de spoolhouder."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en voort te zetten."
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "AMS filament is op. Plaats alstublieft een nieuw filament in dezelfde sleuf in AMS en ga verder."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en voort te zetten."
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "AMS filament is op. Plaats alstublieft een nieuw filament in dezelfde sleuf in AMS en ga verder."
+                },
+                {
+                    "ecode": "0500060000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07FE810000010003",
+                    "intro": "Het hall-signaal van de Extruder Switching Motor is abnormaal, mogelijk door een interne communicatie fout in de Toolhead-module."
+                },
+                {
+                    "ecode": "0700800000010004",
+                    "intro": "AMS A De verwarmer 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "07FE810000010002",
+                    "intro": "De positie hall sensor van de Extruder Switching Motor heeft een open circuit. Controleer of de aansluitkabel los zit."
+                },
+                {
+                    "ecode": "0500060000020005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300C30000010001",
+                    "intro": "Huidige sensor van de Actieve Kamer Afzuiging defect: dit kan te wijten zijn aan een open circuit of een fout in de hardware monsternemingscircuit."
+                },
+                {
+                    "ecode": "0700810000010004",
+                    "intro": "AMS A De verwarmer 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "07FF800000010003",
+                    "intro": "Het hall-signaal van de Toolhead Lifting Motor is abnormaal, mogelijk door een interne communicatie storing in de Toolhead-module."
+                },
+                {
+                    "ecode": "0703810000010004",
+                    "intro": "AMS D De verwarmer 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0701810000010004",
+                    "intro": "AMS B De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "Laser Module niet gedetecteerd: de module kan zijn losgeraakt, of de snelontgrendelingshendel is mogelijk niet vergrendeld."
+                },
+                {
+                    "ecode": "07FE800000010002",
+                    "intro": "De positie hall-sensor van de Toolhead Lifting Motor heeft een open circuit; controleer of de aansluitt kabel los is."
+                },
+                {
+                    "ecode": "07FF800000010002",
+                    "intro": "De positie hall-sensor van de Toolhead Lifting Motor heeft een open circuit; controleer of de aansluitt kabel los is."
+                },
+                {
+                    "ecode": "1800810000010004",
+                    "intro": "AMS-HT A De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0705800000010004",
+                    "intro": "AMS F De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1805800000010004",
+                    "intro": "AMS-HT F De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1800800000010004",
+                    "intro": "AMS-HT A De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1802810000010004",
+                    "intro": "AMS-HT C De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0704810000010004",
+                    "intro": "AMS E De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1807800000010004",
+                    "intro": "AMS-HT H De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1802800000010004",
+                    "intro": "AMS-HT C De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1804800000010004",
+                    "intro": "AMS-HT E De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0707800000010004",
+                    "intro": "AMS H De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1807810000010004",
+                    "intro": "AMS-HT H De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0706810000010004",
+                    "intro": "AMS G De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1806810000010004",
+                    "intro": "AMS-HT G De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1806800000010004",
+                    "intro": "AMS-HT G De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0706800000010004",
+                    "intro": "AMS G De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "AMS-HT het filament is op. Plaats een nieuw filament in dezelfde gleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "1800400000020002",
+                    "intro": "Filament buffer positie signaal fout: de positie sensor werkt mogelijk niet goed."
+                },
+                {
+                    "ecode": "18FE800000010003",
+                    "intro": "Het hall-signaal van de Toolhead Lifting Motor is abnormaal, mogelijk door een interne communicatieprobleem in de Toolhead-module."
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "AMS filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "18FF800000010003",
+                    "intro": "Het hall-signaal van de Toolhead Hefmotor is abnormaal, mogelijk door een interne communicatiefout in de Toolhead-module."
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "18FE810000010003",
+                    "intro": "Het hall-signaal van de Extruder Schakelmotor is abnormaal, mogelijk door een interne communicatiefout in de Toolhead-module."
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "AMS filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "18FF800000010002",
+                    "intro": "De hall-sensor van de positie van de Toolhead Lifting Motor heeft een open circuit; controleer alstublieft of de verbindingskabel los zit."
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "18FE810000010002",
+                    "intro": "De positie hall-sensor van de Extruder Switching Motor heeft een open lijn. Controleer of de aansluitkabel los zit."
+                },
+                {
+                    "ecode": "18FF810000010003",
+                    "intro": "Het hall-signaal van de Extruder Switching Motor is abnormaal, mogelijk door een interne communicatiefout in de Toolhead-module."
+                },
+                {
+                    "ecode": "18FF810000010002",
+                    "intro": "De positie hall-sensor van de Extruder Switching Motor heeft een open circuit. Controleer of de verbindingskabel los zit."
+                },
+                {
+                    "ecode": "0500040000020050",
+                    "intro": "Laser veiligheidsvenster is niet geïnstalleerd."
+                },
+                {
+                    "ecode": "0701550000010004",
+                    "intro": "De verbinding tussen AMS B en de extruder is onjuist. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "0707550000010004",
+                    "intro": "De verbinding tussen AMS H en de extruder is onjuist. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "0704550000010004",
+                    "intro": "De binding tussen AMS E en de extruder is incorrect. Voer de AMS Setup uit."
+                },
+                {
+                    "ecode": "0705550000010004",
+                    "intro": "De binding tussen AMS F en de extruder is incorrect. Voer de AMS Setup uit."
+                },
+                {
+                    "ecode": "1802550000010004",
+                    "intro": "De binding tussen AMS-HT C en de extruder is incorrect. Voer de AMS Setup uit."
+                },
+                {
+                    "ecode": "1804550000010004",
+                    "intro": "De binding tussen AMS-HT E en de extruder is incorrect. Voer de AMS Setup uit."
+                },
+                {
+                    "ecode": "0702550000010004",
+                    "intro": "De verbinding tussen AMS C en de extruder is ongeldig. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "1805550000010004",
+                    "intro": "De verbinding tussen AMS-HT F en de extruder is ongeldig. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "0703550000010004",
+                    "intro": "De verbinding tussen AMS D en de extruder is onjuist. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "1801550000010004",
+                    "intro": "De verbinding tussen AMS-HT B en de extruder is ongeldig. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "1806550000010004",
+                    "intro": "De verbinding tussen AMS-HT G en de extruder is ongeldig. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "1807550000010004",
+                    "intro": "De verbinding tussen AMS-HT H en de extruder is onjuist. Voer alstublieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "0500030000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300970000030001",
+                    "intro": "Het bovenste deksel is open."
+                },
+                {
+                    "ecode": "0703800000010004",
+                    "intro": "AMS D De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1801810000010004",
+                    "intro": "AMS-HT B De verwarming 2 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "1803800000010004",
+                    "intro": "AMS-HT D De verwarming 1 verwarmt abnormaal."
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "AMS filament is op. Gelieve een nieuwe filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
+                },
+                {
+                    "ecode": "18FE800000010002",
+                    "intro": "De hall-sensor voor de positie van de Toolhead Lifting Motor heeft een open circuit; controleer of de verbindingskabel los zit."
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "AMS-HT filament is op. Plaats een nieuw filament in dezelfde sleuf in AMS en hervat."
+                },
+                {
+                    "ecode": "0700550000010004",
+                    "intro": "De binding tussen AMS A en de extruder is onjuist. Voer alsjeblieft de AMS Setup uit."
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "Lasergraveren Z-as focuskalibratie mislukt. Controleer of het Laser Testmateriaal (350g karton) goed geplaatst is en of het oppervlak schoon en intact is."
+                },
                 {
                     "ecode": "0300A40000010002",
                     "intro": "De juiste hotend-temperatuur is te hoog. Wacht alstublieft tot deze is afgekoeld tot kamertemperatuur voordat u de taak opnieuw start."
@@ -2462,10 +3274,6 @@
                 {
                     "ecode": "0C00010000020019",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00030000020017",
-                    "intro": "De nauwkeurige nozzle-offsetkalibratie is mislukt; gelieve opnieuw te kalibreren."
                 },
                 {
                     "ecode": "0C0001000002001A",
@@ -3612,10 +4420,6 @@
                     "intro": "De lens van de Toolhead Camera lijkt vuil te zijn. Gelieve de lens schoon te maken."
                 },
                 {
-                    "ecode": "0C00010000010005",
-                    "intro": "Toolhead Camera parameter is abnormaal. Neem alstublieft contact op met de klantenservice."
-                },
-                {
                     "ecode": "0C00010000010009",
                     "intro": "De lens van de Live View Camera lijkt vuil te zijn. Gelieve de lens schoon te maken."
                 },
@@ -3680,10 +4484,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "De Laser Module is niet gedetecteerd. De module kan zijn gevallen, of de snelontgrendelingshendel is mogelijk niet vergrendeld."
-                },
-                {
                     "ecode": "0300950000010004",
                     "intro": "De snelheid van de koelfan van de Laser Module is te laag of gestopt. Hij kan vastzitten of de connector is mogelijk niet goed aangesloten."
                 },
@@ -3712,10 +4512,6 @@
                     "intro": "De detectie van vreemde voorwerpen werkt niet en het serienummer van de Live View camera kan niet worden gelezen. Neem alstublieft contact op met het klantenserviceteam."
                 },
                 {
-                    "ecode": "0C00010000020014",
-                    "intro": "Nozzle Camera functioneert niet goed. Als dit probleem meerdere keren tijdens het printen voorkomt, neem dan alstublieft contact op met de klantenservice."
-                },
-                {
                     "ecode": "050005000001000D",
                     "intro": "BirdsEye Camera is niet gecertificeerd. Gebruik alstublieft Bambu Lab accessoires."
                 },
@@ -3742,10 +4538,6 @@
                 {
                     "ecode": "0500050000010010",
                     "intro": "Ongecertificeerde AMS A gedetecteerd of AMS A firmware niet geüpdatet. Niet mogelijk om met deze printer te werken."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "Het materiaal kan niet worden gedetecteerd omdat het te klein is en te ver naar links of te dicht bij de deur staat. Verplaats het naar het middengebied."
                 },
                 {
                     "ecode": "0505050000010010",
@@ -3916,10 +4708,6 @@
                     "intro": "AMS C Slot 2 uitvoer Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
                 },
                 {
-                    "ecode": "0300280000010001",
-                    "intro": "Krachtensordata abnormaal in het snijmodule. De magneet op de meshouder kan zijn losgekomen."
-                },
-                {
                     "ecode": "0700230000020007",
                     "intro": "AMS A Slot 4 uitvoer Hall-sensor is losgekoppeld. De connector kan slecht contact maken."
                 },
@@ -4004,16 +4792,8 @@
                     "intro": "De XY-calibratie van het graveerlaserfocalpunt is mislukt. Maak alstublieft het Laser Hominggebied op het Laserplatform schoon en voer de kalibratie van de Laser Module Mount opnieuw uit."
                 },
                 {
-                    "ecode": "03009D0000020003",
-                    "intro": "De calibratieresultaten van het Z-focalisatiepunt van de gravurelaser wijken aanzienlijk af van de ontwerpwaarden. Gelieve de Laser Module opnieuw te installeren en de Laser Module Setup opnieuw uit te voeren. Als het meerdere keren mislukt, neem dan contact op met ons ondersteuningsteam."
-                },
-                {
                     "ecode": "03009C0000010001",
                     "intro": "De Active Airflow Assist Module wordt niet gedetecteerd. Controleer of de connector goed is aangesloten."
-                },
-                {
-                    "ecode": "0C00040000020024",
-                    "intro": "Het apparaat ondersteunt geen meting van materiaal dikte. Installeer de Laser Module en probeer het opnieuw."
                 },
                 {
                     "ecode": "0702230000020007",
@@ -4042,10 +4822,6 @@
                 {
                     "ecode": "0700200000020007",
                     "intro": "AMS A Slot 1 feed-out Hall sensor is losgekoppeld. De connector heeft mogelijk slecht contact."
-                },
-                {
-                    "ecode": "0300280000010004",
-                    "intro": "Force sensor gegevens abnormaal in snijmodule. De magneet op de meshouder is mogelijk gevallen."
                 },
                 {
                     "ecode": "1804230000020007",
@@ -4116,28 +4892,12 @@
                     "intro": "De calibratie van de Live View Camera is mislukt, graag opnieuw calibreren. Zorg ervoor dat het bouwplatform leeg is en dat het camerabeeld helder en goed georiënteerd is. Neem contact op met de klantenservice als de mislukkingen zich blijven voordoen."
                 },
                 {
-                    "ecode": "0500040000020050",
-                    "intro": "Laser Veiligheidsvenster niet geïnstalleerd."
-                },
-                {
                     "ecode": "0500040000010052",
                     "intro": "Veiligheidsleutel is niet ingevoegd. Volg alstublieft de Wiki om deze te installeren."
                 },
                 {
                     "ecode": "0500040000010051",
                     "intro": "Noodstopknop staat niet in de juiste positie. Volg alstublieft de Wiki om deze te installeren."
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Diktemeting is mislukt. Het materiaal lijkt transparant of ongelijk te zijn."
-                },
-                {
-                    "ecode": "0C00030000020023",
-                    "intro": "Lasergraveren Z-as focus calibratie is mislukt. Controleer of het Laser Testmateriaal (350g karton) goed is geplaatst en of het oppervlak schoon en intact is."
-                },
-                {
-                    "ecode": "0C00040000020022",
-                    "intro": "Geen materiaal gedetecteerd. Plaats het te verwerken materiaal."
                 },
                 {
                     "ecode": "0300090000010001",
@@ -4166,22 +4926,6 @@
                 {
                     "ecode": "0C00030000020015",
                     "intro": "Detectie van vreemde objecten werkt niet. Gedetecteerd dat de Live View Camera is vervangen. Als er een laser of snijmodule is geïnstalleerd, verwijder dan de module, tik op \"Instellingen>Kalibratie\" op het printer scherm en hercalibreer de Live View Camera."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "Laser module is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft een laserplatform."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "Snijmodule is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft het juiste snijplatform."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Laser module is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft het laserplatform voor laser calibratie."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Snijmodule is geïnstalleerd. Type platform mismatch gedetecteerd. Plaats alstublieft het snijplatform voor snijcalibratie."
                 },
                 {
                     "ecode": "0701200000020006",
@@ -4328,42 +5072,6 @@
                     "intro": "Controleer of het materiaal uit de linker nozzle komt. Als dat niet het geval is, duw het materiaal voorzichtig en probeer opnieuw te extruderen."
                 },
                 {
-                    "ecode": "0700700000020007",
-                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
-                },
-                {
-                    "ecode": "0703700000020007",
-                    "intro": "AMS filament is op. Gelieve een nieuwe filament in dezelfde sleuf in AMS te plaatsen en doorgaan."
-                },
-                {
-                    "ecode": "1802700000020007",
-                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "AMS filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
-                },
-                {
-                    "ecode": "1806700000020007",
-                    "intro": "AMS-HT filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
-                },
-                {
-                    "ecode": "1807700000020007",
-                    "intro": "AMS-HT filament is op. Gelieve een nieuwe filament in dezelfde sleuf in AMS te plaatsen en te hervatten."
-                },
-                {
-                    "ecode": "1804700000020007",
-                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en door te gaan."
-                },
-                {
-                    "ecode": "1801700000020007",
-                    "intro": "AMS-HT filament is op. Plaats een nieuwe filament in dezelfde sleuf in AMS en hervat."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Onbekend type snijbeschermingsbasis. Vervang het met de juiste snijbeschermingsbasis."
                 },
@@ -4386,34 +5094,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "De externe spoel die op de rechter extruder is aangesloten, kan verward of geblokkeerd zijn."
-                },
-                {
-                    "ecode": "0702700000020007",
-                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
-                },
-                {
-                    "ecode": "1800700000020007",
-                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
-                },
-                {
-                    "ecode": "0706700000020007",
-                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
-                },
-                {
-                    "ecode": "0705700000020007",
-                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "AMS filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
-                },
-                {
-                    "ecode": "1803700000020007",
-                    "intro": "AMS-HT filament is op. Gelieve een nieuw filament in dezelfde sleuf in AMS te plaatsen en opnieuw te starten."
                 },
                 {
                     "ecode": "050004000002004D",
@@ -4444,20 +5124,12 @@
                     "intro": "Z-as homing mislukt. Controleer of de beweging van de bladhouder soepel is en zorg ervoor dat er geen vreemde objecten op de contactplaats op de verwarmde bed liggen."
                 },
                 {
-                    "ecode": "0300280000010007",
-                    "intro": "Communicatie fout tussen de snijmodule en de gereedschapshouder module. Controleer of de signaalkabel van de snijmodule los of kapot is. Het kan ook te wijten zijn aan een defecte force sensor spoel."
-                },
-                {
                     "ecode": "0C00010000020016",
                     "intro": ""
                 },
                 {
                     "ecode": "0500030000020020",
                     "intro": "De capaciteit van de USB-flashdrive is onvoldoende om printbestanden op te slaan."
-                },
-                {
-                    "ecode": "0300280000010003",
-                    "intro": "Communicatiefout tussen het snijmodule en de toolhead tijdens het Z-as homing. Controleer of de signaalkabel van het snijmodule los of beschadigd is, of verifieer of de krachtsensor spoel intact is."
                 },
                 {
                     "ecode": "0C00010000020015",
@@ -4556,10 +5228,6 @@
                     "intro": "MQTT-opdrachtverificatie mislukt, werk alstublieft Studio of Handy bij."
                 },
                 {
-                    "ecode": "0500040000020037",
-                    "intro": "De snijmodule moet worden gekalibreerd om de gereedschapspositie te verkrijgen. Voer alstublieft de montagekalibratie uit voor gebruik. (ongeveer 1 minuut)"
-                },
-                {
                     "ecode": "0500040000020034",
                     "intro": "Nieuwe laser module verbonden; voor preciezer snijden en graveren, ga alstublieft naar de instellingen voor gebruik. (ongeveer 4 minuten)"
                 },
@@ -4580,14 +5248,6 @@
                     "intro": "De kamertemperatuur is te hoog. Gelieve de bovenste deksel en de voordeur te openen om af te koelen, of verlaag de omgevingstemperatuur."
                 },
                 {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
                     "ecode": "050005000001000B",
                     "intro": ""
                 },
@@ -4606,18 +5266,6 @@
                 {
                     "ecode": "0500040000020038",
                     "intro": "Schuif de snijmodule erin en bevestig de snelontgrendelingshendel. Als de module al geïnstalleerd is, is deze mogelijk niet goed uitgelijnd. Probeer deze opnieuw te installeren."
-                },
-                {
-                    "ecode": "0300260000010005",
-                    "intro": "De rotatie van de Z-as-motor is geblokkeerd; controleer of er vreemde objecten vastzitten in de Z-schuifregelaar of de Z-timingpoelie."
-                },
-                {
-                    "ecode": "0300250000010005",
-                    "intro": "De rotatie van de Z-as motor is belemmerd. Controleer of er vreemde objecten vastzitten in de Z-schuifregelaar of de Z-timing pulley."
-                },
-                {
-                    "ecode": "0300260000010007",
-                    "intro": "De frequentie van de extrusiekrachtsensor van de linkerextruder is te hoog. De sensor kan te dichtbij geïnstalleerd zijn of de sensor kan los zitten."
                 },
                 {
                     "ecode": "0500010000020002",
@@ -5048,22 +5696,6 @@
                     "intro": "De snelheid van de koelventilator van de hotend is traag. Het kan vastzitten en moeten worden schoongemaakt."
                 },
                 {
-                    "ecode": "0500040000020042",
-                    "intro": "Er is een nozzlemismatch gedetecteerd tijdens het afdrukken. Start de afdruk opnieuw na het opnieuw slicen of vervang de juiste nozzle en ga door met het printen. Let op: de hotend-temperatuur is hoog."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "Geen platform gedetecteerd; zorg ervoor dat de lasertafel op de juiste manier is geplaatst."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "Er is een nozzlemismatch gedetecteerd tijdens het afdrukken. Start de afdruk opnieuw na het opnieuw slicen of vervang de juiste nozzle en ga door met printen. Let op: de hotend-temperatuur is hoog."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "Tijdens het printen is er een spuitmond verschil gedetecteerd. Start de print opnieuw na opnieuw te snijden of vervang de juiste spuitmond en ga dan verder met printen. Let op: de temperatuur van de hotend is hoog."
-                },
-                {
                     "ecode": "0500040000020049",
                     "intro": "Het platformtype is onbekend; vervang het met de juiste en controleer of de BirdsEye-camera geblokkeerd is."
                 },
@@ -5102,10 +5734,6 @@
                 {
                     "ecode": "0706700000020020",
                     "intro": "Het voeden van AMS G filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer alstublieft de PTFE tube plug van de buffer."
-                },
-                {
-                    "ecode": "18FF810000010002",
-                    "intro": "De positie hall-sensor van de extruder-switchmotor is abnormaal. Controleer alstublieft of de verbindingskabel los zit."
                 },
                 {
                     "ecode": "0701130000010001",
@@ -5338,10 +5966,6 @@
                 {
                     "ecode": "18FF200000020004",
                     "intro": "Trek de externe filament uit de rechter extruder."
-                },
-                {
-                    "ecode": "18FF810000010003",
-                    "intro": "De communicatieacquisitie van het positie-hallsignaal van de extruder schakelmotor is abnormaal."
                 },
                 {
                     "ecode": "0705700000020003",
@@ -5600,10 +6224,6 @@
                     "intro": "AMS G Het pakken van het filament door de assisterende extruder is mislukt, mogelijk door te veel weerstand vanuit de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis vrij is."
                 },
                 {
-                    "ecode": "18FE810000010002",
-                    "intro": "De positie hall-sensor van de extruder switch-motor is abnormaal. Controleer alstublieft of de verbindingskabel los zit."
-                },
-                {
                     "ecode": "1800700000020022",
                     "intro": "AMS-HT Er is een probleem opgetreden bij het invoeren van filament in de buffer; dit kan worden veroorzaakt door versleten filament waardoor de hulpmotor wegglijdt. Knip het versleten gedeelte van het filament af."
                 },
@@ -5796,10 +6416,6 @@
                     "intro": "AMS-HT C Assisterende extruder kan filament niet vasthouden, dit kan komen door slippen van de motor. Knip het versleten stuk van het filament af."
                 },
                 {
-                    "ecode": "1800700000020008",
-                    "intro": "Niet gelukt om de AMS-mappingtabel te verkrijgen; klik op \"Hervatten\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "1800400000020004",
                     "intro": "Het signaal van de filamentbuffer is abnormaal; de veer zit mogelijk vast, of het filament is in de knoop geraakt."
                 },
@@ -5826,10 +6442,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT Het invoeren van filament naar de extruder van de printkop is mislukt; dit kan worden veroorzaakt doordat het filament versleten is en ervoor zorgt dat de hulpmotor slippen. Knip het versleten gedeelte van het filament weg."
-                },
-                {
-                    "ecode": "18FF800000010002",
-                    "intro": "De positie hall-sensor van de motor voor het liften van de printkop is abnormaal. Controleer of de verbindingskabel los zit."
                 },
                 {
                     "ecode": "0705700000020020",
@@ -6136,10 +6748,6 @@
                     "intro": "AMS G Het voeden van filament aan de buffer is mislukt; dit kan te wijten zijn aan versleten filament dat ervoor zorgt dat de hulpmotor slipt. Knip het versleten gedeelte van de filament af."
                 },
                 {
-                    "ecode": "1807700000020046",
-                    "intro": "AMS-HT H Het uittrekken van de filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de hulpmotor. Controleer of de filament spoel gekanteld of vervormd is en of de filamentbuis duidelijk is."
-                },
-                {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F Assisteren van de extruder om het filament vast te kunnen grijpen is mislukt. Dit kan mogelijk komen door te veel weerstand vanuit de buffer. Controleer of de buffer vastzit, of de filamentspoel scheef ligt en of de filamentbuis vrij is."
                 },
@@ -6408,10 +7016,6 @@
                     "intro": "AMS G Het voeden van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het odometer wiel. Controleer de verbinding van de plug van het odometer wiel."
                 },
                 {
-                    "ecode": "1806700000020046",
-                    "intro": "AMS-HT G Uitvoeren van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de ondersteunende motor. Controleer of de filament spoel gekanteld of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "1806700000020012",
                     "intro": "AMS-HT G Het voeden van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de filament. Controleer of de spoel gekanteld is, de filament is verward of als de rotatie van de spoel niet soepel verloopt."
                 },
@@ -6642,10 +7246,6 @@
                 {
                     "ecode": "0706700000020003",
                     "intro": "Het extruderen van het filament is mislukt. Mogelijke oorzaak: verstopte extruder of nozzle. Raadpleeg de Assistent voor details."
-                },
-                {
-                    "ecode": "18FE800000010002",
-                    "intro": "De hall-sensorpositie van de liftmotor van de gereedschapskop is abnormaal, controleer of de verbindingskabel los zit."
                 },
                 {
                     "ecode": "1807700000020023",
@@ -6888,18 +7488,6 @@
                     "intro": "AMS H Het uittrekken van filament is mislukt; dit kan te wijten zijn aan een verbroken verbinding van de DC-motor. Controleer of de DC-motorstekker goed is aangesloten."
                 },
                 {
-                    "ecode": "1800700000020046",
-                    "intro": "AMS-HT A Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de ondersteunende motor. Controleer of de filamentspoel is gekanteld of vervormd is, en of de filamentbuis schoon is."
-                },
-                {
-                    "ecode": "1802700000020008",
-                    "intro": "Mislukt om de AMS-toewijzingstabel te verkrijgen; klik op \"Hervatten\" om opnieuw te proberen."
-                },
-                {
-                    "ecode": "1807700000020008",
-                    "intro": "Mislukt om de AMS-toewijzingstabel te verkrijgen; klik op \"Doorgaan\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "1800700000020012",
                     "intro": "AMS-HT: Het aanvoeren van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel scheef staat, het filament verward is of dat de rotatie van de spoel niet soepel verloopt."
                 },
@@ -7096,20 +7684,12 @@
                     "intro": "AMS-HT F Het uittrekken van filament is mislukt; dit kan te wijten zijn aan filament slijtage en het slippen van de assistmotor. Knip het versleten gedeelte van het filament af."
                 },
                 {
-                    "ecode": "1802700000020046",
-                    "intro": "AMS-HT C Het uittrekken van filament is mislukt; dit kan worden veroorzaakt door overmatige weerstand in de hulpmotor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is van verstoppingen."
-                },
-                {
                     "ecode": "1802700000020045",
                     "intro": "AMS-HT C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het opraken van het filament of dat het filament uit de houder is getrokken."
                 },
                 {
                     "ecode": "1800700000020041",
                     "intro": "AMS-HT Een filament die eruit getrokken wordt, is mislukt; dit kan komen doordat het filament zich van de spoel heeft losgemaakt. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1801700000020046",
-                    "intro": "AMS-HT B Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de hulp motor. Controleer of de filament spoel gekanteld of vervormd is, en of de filament buis vrij is van obstructies."
                 },
                 {
                     "ecode": "1806310000030003",
@@ -7352,10 +7932,6 @@
                     "intro": "AMS-HT A Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer alstublieft of de PTFE-buisplug van de buffer in orde is."
                 },
                 {
-                    "ecode": "1804700000020046",
-                    "intro": "AMS-HT E Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de hulpmotor. Controleer alstublieft of de filament spoel gekanteld of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "1802700000020012",
                     "intro": "AMS-HT C Het invoeren van filament naar het aandrijfwiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer alstublieft of de spoel gekanteld is, of het filament in de knoop zit, of de rotatie van de spoel niet soepel verloopt."
                 },
@@ -7374,10 +7950,6 @@
                 {
                     "ecode": "1804300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structuurfout."
-                },
-                {
-                    "ecode": "1801700000020008",
-                    "intro": "Kon AMS-mappingtabel niet ophalen; klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "1806700000020033",
@@ -7640,10 +8212,6 @@
                     "intro": "Time-out tijdens het verwijderen van oud filament. Mogelijke oorzaak: filament vastgelopen of een verstopte extruder / nozzle. Raadpleeg de assistent voor meer informatie."
                 },
                 {
-                    "ecode": "0706700000020046",
-                    "intro": "AMS G Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de hulpmotor. Controleer of de filament spoel gekanteld of vervormd is en of de filament buis duidelijk is."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
@@ -7664,16 +8232,8 @@
                     "intro": "AMS-HT C Het voeden van filament naar de gereedschapskopextruder is mislukt; dit kan te wijten zijn aan het versleten filament waardoor de hulpmotor wegglijdt. Knip het versleten gedeelte van het filament af."
                 },
                 {
-                    "ecode": "0705700000020008",
-                    "intro": "Kan AMS toewijzingstabel niet ophalen; klik op \"Hervatten\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "De toevoer van filament naar de hulp motor extrusiewiel van AMS-HT B is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de toevoerpijp terecht is gekomen. Verwijder het gebroken filament uit de toevoerpijp."
-                },
-                {
-                    "ecode": "0704700000020008",
-                    "intro": "Kon AMS-mapping tabel niet ophalen; klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "1804700000020043",
@@ -7876,20 +8436,12 @@
                     "intro": "AMS G Uittrekken van filament is mislukt; dit kan te wijten zijn aan het verlies van verbinding met de DC-motor. Controleer alstublieft of de plug van de DC-motor goed is aangesloten."
                 },
                 {
-                    "ecode": "1805700000020008",
-                    "intro": "Kan de AMS-mappingtabel niet ophalen; klik op \"Hervatten\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "18FF450000020002",
                     "intro": "De snijafstand van de filamentcutter is te groot. De XY-motor kan stappen verliezen."
                 },
                 {
                     "ecode": "1803700000020044",
                     "intro": "AMS-HT D Uittrekken van filament is mislukt; dit kan te wijten zijn aan een gebroken filament in de gereedschapskop. Verwijder alstublieft het gebroken filament."
-                },
-                {
-                    "ecode": "0704700000020046",
-                    "intro": "AMS E Uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de ondersteunende motor. Controleer alstublieft of de filamentspoel gekanteld of vervormd is, en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "1803310000030003",
@@ -8160,10 +8712,6 @@
                     "intro": "Het extruderen van filament op AMS H Slot 2 is mislukt; de extruder kan verstopt zijn of het filament is mogelijk te dun, waardoor de extruder wegglijdt."
                 },
                 {
-                    "ecode": "1800510000030001",
-                    "intro": "De AMS is uitgeschakeld; laad het filament vanaf de spoelhouder."
-                },
-                {
                     "ecode": "0705700000020012",
                     "intro": "AMS F Het invoeren van filament in het extrusiewiel van de hulp motor is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel is gekanteld, het filament in de war zit of dat de rotatie van de spoel niet soepel verloopt."
                 },
@@ -8376,14 +8924,6 @@
                     "intro": "De AMS-HT D-sleuf 4 motor is uitgeschoven. Het uitdrijfwiel kan defect zijn, of het filament kan te dun zijn."
                 },
                 {
-                    "ecode": "1800400000020001",
-                    "intro": "Het signaal van de filament buffer positie is verloren gegaan: de kabel of positie sensor kan defect zijn."
-                },
-                {
-                    "ecode": "18FE810000010003",
-                    "intro": "De communicatie verwerving van het positie hall signaal van de extruder switchende motor is abnormaal."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "Het verwijderen van het filament uit AMS G is mislukt; dit kan te wijten zijn aan een tekort aan filament of doordat het filament eruit getrokken werd."
                 },
@@ -8430,10 +8970,6 @@
                 {
                     "ecode": "0704700000020013",
                     "intro": "Het toevoeren van filament naar het hulpmotor-extrusiewiel AMS E is mislukt. Dit kan te wijten zijn aan een verloren signaal van het odometer-wiel. Controleer de verbinding van de odometer-wielstekker."
-                },
-                {
-                    "ecode": "1806700000020008",
-                    "intro": "Het ophalen van de AMS-mappingtabel is mislukt; klik op \"Doorgaan\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "1802700000020040",
@@ -8616,24 +9152,12 @@
                     "intro": "Het invoeren van filament naar de assist motor extrusiewiel van AMS-HT H is mislukt. Dit kan te wijten zijn aan een blokkade in de voerbuis. Controleer of de voerbuis en de filament hub duidelijk zijn."
                 },
                 {
-                    "ecode": "18FF800000010003",
-                    "intro": "Het hall-signaal van de positie van de gereedschaphefmotor is abnormaal tijdens het wisselen van de extruder."
-                },
-                {
                     "ecode": "1801700000020060",
                     "intro": "AMS-HT B De ondersteuning van de extrudergrijper om het filament vast te grijpen is mislukt; dit kan te wijten zijn aan het slippen van de ondersteuningsmotor. Knip het versleten gedeelte van het filament af."
                 },
                 {
                     "ecode": "0707700000020061",
                     "intro": "AMS H Het helpen van de extrudergrijper om het filament vast te pakken is mislukt, mogelijk als gevolg van overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis helder is."
-                },
-                {
-                    "ecode": "0705700000020046",
-                    "intro": "AMS F Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de ondersteunings motor. Controleer of de spoel gekanteld of vervormd is en of de filamentbuis helder is."
-                },
-                {
-                    "ecode": "0706700000020008",
-                    "intro": "Het ophalen van de AMS-toewijzingstabel is mislukt; klik op \"Doorgaan\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "1804700000020044",
@@ -8702,10 +9226,6 @@
                 {
                     "ecode": "1806700000020014",
                     "intro": "AMS-HT G Het voeden van filament aan het extrusiewiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat de toevoerbuis is binnengekomen. Verwijder alstublieft het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "1803700000020008",
-                    "intro": "Kan AMS toewijzingstabel niet ophalen. Klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "1806700000020030",
@@ -8856,10 +9376,6 @@
                     "intro": "Fout in encryptiechip."
                 },
                 {
-                    "ecode": "0707700000020008",
-                    "intro": "Niet gelukt om AMS toewijzingstabel te verkrijgen; klik op \"Hervatten\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "Assisterende extruder grijpen van AMS-HT H filament is mislukt; dit kan te wijten zijn aan een slip in de ondersteunende motor. Knip alstublieft het versleten gedeelte van de filament af."
                 },
@@ -8918,10 +9434,6 @@
                 {
                     "ecode": "1800700000020010",
                     "intro": "Het toevoeren van filament naar de assist motor extrusiewiel van AMS-HT A is mislukt. Dit kan te wijten zijn aan een blokkade in de voedingsbuis. Controleer of de voedingsbuis en de filament hub duidelijk zijn."
-                },
-                {
-                    "ecode": "1803700000020046",
-                    "intro": "Het uittrekken van filament uit AMS-HT D is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de assist motor. Controleer of de filamentspoel gekanteld of vervormd is, en of de filamentbuis duidelijk is."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -9156,10 +9668,6 @@
                     "intro": "AMS F Het toevoeren van filament naar de gereedschap extruder is mislukt; dit kan komen doordat de filament eruit gegleden is. Controleer alstublieft of de filamentbuis losgekoppeld is of dat de buis versleten is."
                 },
                 {
-                    "ecode": "0707700000020046",
-                    "intro": "AMS H Het uittrekken van de filament is mislukt; dit kan komen door overmatige weerstand in de hulpmotor. Controleer alstublieft of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "0706350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
                 },
@@ -9376,10 +9884,6 @@
                     "intro": "De filament van gleuf 3 van de AMS-HT D kan gebroken zijn in de AMS-HT."
                 },
                 {
-                    "ecode": "18FE800000010003",
-                    "intro": "Het Hall-signaal van de positie van de liftmotor van de toolhead is abnormaal bij het wisselen van de extruder."
-                },
-                {
                     "ecode": "1801700000020043",
                     "intro": "AMS-HT B Het verwijderen van het filament is mislukt; dit kan te wijten zijn aan slijtage van het filament, waardoor de hulpmotor verschuift. Knip het versleten gedeelte van het filament af."
                 },
@@ -9394,10 +9898,6 @@
                 {
                     "ecode": "0707700000020023",
                     "intro": "AMS H Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan losraken van het filament. Controleer of de filamentbuis niet goed is aangesloten of dat de buis is versleten."
-                },
-                {
-                    "ecode": "1805700000020046",
-                    "intro": "AMS-HT F Het verwijderen van het filament is mislukt; dit kan te wijten zijn aan de overmatige weerstand in de assistent motor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -9434,10 +9934,6 @@
                 {
                     "ecode": "0707700000020032",
                     "intro": "AMS H Het toevoeren van filament aan de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer alstublieft of de spoel met filament gekanteld is of dat de buis van het filament geblokkeerd is."
-                },
-                {
-                    "ecode": "1804700000020008",
-                    "intro": "AMS mapping-tabel ophalen is mislukt; klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "1807700000020020",
@@ -9672,10 +10168,6 @@
                     "intro": "Versleutelingschip defect."
                 },
                 {
-                    "ecode": "1800400000020002",
-                    "intro": "Fout in het signaal van de filament buffer positie: de positie sensor functioneert mogelijk niet goed."
-                },
-                {
                     "ecode": "0707700000020033",
                     "intro": "AMS H Het invoeren van filament naar de tool head extruder is mislukt; dit kan te wijten zijn aan het losschieten van het filament. Controleer of de filamentbuis is losgekoppeld of dat de buis versleten is."
                 },
@@ -9884,10 +10376,6 @@
                     "intro": "AMS G Het grijpen van filmaat door de hulpmotor is mislukt. Dit kan worden veroorzaakt doordat de hulpmotor wegglijdt. Knip het versleten gedeelte van de filament af."
                 },
                 {
-                    "ecode": "0C00010000020002",
-                    "intro": "De camera van de toolhead werkt niet naar behoren. Als deze fout meerdere keren tijdens het printen optreedt, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "0706200000020009",
                     "intro": "Het extruderen van filament via AMS G Slot 1 is mislukt; dit kan worden veroorzaakt door een verstopte extruder of doordat de filament te dun is, waardoor de extruder slipt."
                 },
@@ -9950,10 +10438,6 @@
                 {
                     "ecode": "07FF200000020002",
                     "intro": "Er is geen filament gedetecteerd in de rechtse extruder vanaf de externe spoel; laad alstublieft het nieuwe filament."
-                },
-                {
-                    "ecode": "0C00010000010012",
-                    "intro": "De kalibratie van de Live View-camera is mislukt en het kalibratieresultaat kon niet worden opgeslagen. Probeer opnieuw te kalibreren. Als de kalibratie meerdere keren mislukt, neem dan contact op met het klantenserviceteam."
                 },
                 {
                     "ecode": "0C00010000010010",
@@ -10148,10 +10632,6 @@
                     "intro": "AMS Het verwijderen van filament is mislukt; dit kan komen doordat de filament op is of is uitgetrokken."
                 },
                 {
-                    "ecode": "0700700000020046",
-                    "intro": "AMS Het verwijderen van filament is mislukt; dit kan komen doordat er overmatige weerstand is in de bijstandsmotor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "0700700000020050",
                     "intro": "AMS Het laden van filament in de buffer is mislukt; dit kan komen doordat er overmatige weerstand is in de buffer. Controleer of de buffer vastzit, de filamentspoel is gekanteld of de filamentbuis is geblokkeerd."
                 },
@@ -10198,10 +10678,6 @@
                 {
                     "ecode": "0701700000020045",
                     "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan een tekort aan filament of omdat het filament is uitgetrokken."
-                },
-                {
-                    "ecode": "0701700000020046",
-                    "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de hulpmotor. Controleer of de filamentspoel scheef staat of vervormd is en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "0701700000020050",
@@ -10252,10 +10728,6 @@
                     "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan dat het filament op is of is uitgetrokken."
                 },
                 {
-                    "ecode": "0702700000020046",
-                    "intro": "AMS C Het uittrekken van de filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de hulpmotor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis helder is."
-                },
-                {
                     "ecode": "0702700000020050",
                     "intro": "AMS C Het laden van filament in de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer is vastgelopen, de filamentspoel gekanteld is of de filamentbuis geblokkeerd is."
                 },
@@ -10304,10 +10776,6 @@
                     "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het opraken van het filament of dat het filament eruit getrokken is."
                 },
                 {
-                    "ecode": "0703700000020046",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de hulpmotor. Controleer alstublieft of de filamentspoel gekanteld of vervormd is en of de filamentbuis helder is."
-                },
-                {
                     "ecode": "0703700000020050",
                     "intro": "AMS D Het laden van filament in de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer alsjeblieft of de buffer vastzit, de filamentspoel gekanteld is of de filamentbuis geblokkeerd is."
                 },
@@ -10330,10 +10798,6 @@
                 {
                     "ecode": "0702700000020014",
                     "intro": "AMS C Het invoeren van filament in het extrusiewiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de toevoerbuis terechtkomt. Verwijder het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "0300250000010001",
-                    "intro": "De frequentie van de extrusiedruksensor van de rechterextruder is te laag. Mogelijk is de nozzle niet geïnstalleerd of is de afstand tussen de nozzle-koellichaam en de sensor te groot."
                 },
                 {
                     "ecode": "0702700000020022",
@@ -10362,10 +10826,6 @@
                 {
                     "ecode": "0703700000020020",
                     "intro": "AMS D kan geen filament naar de buffer toe voeren. Dit kan te wijten zijn aan het blokkeren van de buffer door het filament. Controleer de PTFE-buisstekker van de buffer."
-                },
-                {
-                    "ecode": "0300260000010004",
-                    "intro": "Het signaal van de extrusiedruksensor van de linkerextruder is abnormaal. De sensor kan beschadigd zijn of de communicatie tussen de MC en TH kan abnormaal zijn."
                 },
                 {
                     "ecode": "0701700000020014",
@@ -10424,10 +10884,6 @@
                     "intro": "AMS D Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan versleten filament dat ervoor zorgt dat de hulp motor slip. Knip het versleten gedeelte van het filament af."
                 },
                 {
-                    "ecode": "0300250000010007",
-                    "intro": "De frequentie van de extrusiekrachtsensor van de rechter extruder is te hoog. De sensor kan beschadigd zijn of de warmteafvoer van de spuitmond kan te dicht bij de sensor zitten."
-                },
-                {
                     "ecode": "0703700000020011",
                     "intro": "AMS D Het invoeren van filament naar het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een ontkoppeling van de DC-motor. Controleer de verbinding van de DC-motorstekker."
                 },
@@ -10472,16 +10928,8 @@
                     "intro": "AMS A Voeden van filament naar het hulp-motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een ontkoppeling van de DC-motor. Controleer alstublieft de verbinding van de DC-motorstekker."
                 },
                 {
-                    "ecode": "0300250000010004",
-                    "intro": "Het signaal van de extrusiekrachtsensor van de rechter extruder is abnormaal. De sensor kan beschadigd zijn of de communicatie tussen MC-TH kan abnormaal zijn."
-                },
-                {
                     "ecode": "0702700000020010",
                     "intro": "AMS C Voeden van filament naar het hulp-motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een blokkade in de voedingstube. Controleer alstublieft of de voedingstube en de filament hub vrij zijn van obstructies."
-                },
-                {
-                    "ecode": "0300270000010004",
-                    "intro": "Het signaal van de nozzle offset kalibratiesensor is abnormaal. De sensor kan beschadigd zijn of de bedrading is mogelijk niet correct aangesloten."
                 },
                 {
                     "ecode": "0300260000010008",
@@ -10572,6 +11020,10 @@
                     "intro": "Voor het eerst wordt er bij hoge temperaturen op het printbed geprint. Om betere kwaliteit voor de eerste laag te krijgen, vindt er automatisch een kalibratie van het verhittingsbed op hoge temperatuur plaats."
                 },
                 {
+                    "ecode": "0C00030000020011",
+                    "intro": "De kalibratie van de hoge precisie spuitmondoffset is mislukt; gelieve opnieuw te kalibreren."
+                },
+                {
                     "ecode": "0703550000010002",
                     "intro": "De PTFE-buis is verkeerd aangesloten tussen de gereedschapkop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
                 },
@@ -10590,10 +11042,6 @@
                 {
                     "ecode": "0701550000010002",
                     "intro": "De PTFE slang is verkeerd aangesloten tussen de toolhead en de buffer. Verbind de bovenkant van de buffer met de rechter extruder en de onderkant met de linker extruder."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "De gevoeligheid van de extrusiekrachtsensor van de linker extruder is laag; de nozzle is mogelijk niet correct geïnstalleerd."
                 },
                 {
                     "ecode": "1807960000010003",
@@ -10754,10 +11202,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "De afwijking in de positioneringskalibratiewaarde van de extruder is te groot; kalibreer opnieuw."
-                },
-                {
-                    "ecode": "0500030000020010",
-                    "intro": ""
                 },
                 {
                     "ecode": "0500010000020009",
@@ -11112,10 +11556,6 @@
                     "intro": "Kamerkoeling kan te langzaam zijn. U kunt de voordeur of bovenkant openen om de koeling te helpen als de lucht in de kamer niet giftig is."
                 },
                 {
-                    "ecode": "0500010000020001",
-                    "intro": "De media pijplijn functioneert niet goed. Start de printer opnieuw op. Als meerdere pogingen mislukken, neem dan contact op met de klantenservice."
-                },
-                {
                     "ecode": "0500020000020005",
                     "intro": "Kan geen verbinding maken met internet, controleer de netwerkverbinding."
                 },
@@ -11202,10 +11642,6 @@
                 {
                     "ecode": "0702940000010001",
                     "intro": "AMS C De temperatuursensor van verwarming 1 werkt niet goed, wat mogelijk te wijten is aan slecht contact van de connector."
-                },
-                {
-                    "ecode": "0300C30000010001",
-                    "intro": "Huidige sensor van Actieve Kamer Uitlaat storing: dit kan te wijten zijn aan een open circuit of een storing in de hardware-samplingcircuit."
                 },
                 {
                     "ecode": "0700010000020008",
@@ -11408,10 +11844,6 @@
                     "intro": "Er treedt een afwijking op tijdens het verwarmingsproces van het verwarmingsbed; de verwarmingsmodules kunnen kapot zijn."
                 },
                 {
-                    "ecode": "0500010000020003",
-                    "intro": ""
-                },
-                {
                     "ecode": "0700320000020002",
                     "intro": "De RFID-tag op AMS A Slot3 is beschadigd of de inhoud kan niet worden geïdentificeerd."
                 },
@@ -11440,10 +11872,6 @@
                     "intro": "Het is niet gelukt om het filament te extruderen; de extruder kan verstopt zijn."
                 },
                 {
-                    "ecode": "0500060000020007",
-                    "intro": ""
-                },
-                {
                     "ecode": "0C00040000010014",
                     "intro": "Beschermende snijbasis niet gedetecteerd, wat kan leiden tot schade aan het warmtebed. Plaats deze en ga verder."
                 },
@@ -11470,10 +11898,6 @@
                 {
                     "ecode": "0700350000010002",
                     "intro": "AMS A De vochtsensor is losgekoppeld, mogelijk als gevolg van een slecht contact met de connector."
-                },
-                {
-                    "ecode": "0500060000020005",
-                    "intro": ""
                 },
                 {
                     "ecode": "0703810000010002",
@@ -11764,10 +12188,6 @@
                     "intro": "De nozzlehoogte lijkt te laag te zijn. Controleer of de nozzle versleten of gekanteld is. Kalibreer de Lidar opnieuw als de nozzle is vervangen."
                 },
                 {
-                    "ecode": "0C00020000020006",
-                    "intro": "De nozzlehoogte lijkt te hoog te zijn. Controleer of er resterend filament aan de nozzle vastzit."
-                },
-                {
                     "ecode": "0C00020000020009",
                     "intro": "De verticale laser is niet helder genoeg in de homing positie. Als deze melding herhaaldelijk verschijnt, gelieve dan het heatbed schoon te maken of te vervangen."
                 },
@@ -11778,10 +12198,6 @@
                 {
                     "ecode": "0703800000010002",
                     "intro": "AMS D: De heater 1 is losgekoppeld, wat mogelijk te wijten is aan een slecht connectorcontact."
-                },
-                {
-                    "ecode": "07FE800000010003",
-                    "intro": "Het hall-signaal van de toolhead lift motor positie is abnormaal tijdens extruderwissel."
                 },
                 {
                     "ecode": "0701010000020008",
@@ -11798,18 +12214,6 @@
                 {
                     "ecode": "0300350000010001",
                     "intro": "De ventilatorsnelheid van de koelventilator van de MC-module is te laag of gestopt. Het kan vastzitten of de connector is mogelijk niet correct aangesloten."
-                },
-                {
-                    "ecode": "0C00040000010005",
-                    "intro": "BirdsEye-camera storing: neem contact op met de klantenservice."
-                },
-                {
-                    "ecode": "0300970000030001",
-                    "intro": "De bovenklep lijkt open te zijn."
-                },
-                {
-                    "ecode": "07FF800000010003",
-                    "intro": "Het Hall-signaal van de positie van de toolhead-liftmotor is abnormaal tijdens het wisselen van de extruder."
                 },
                 {
                     "ecode": "0C00040000010010",
@@ -12148,39 +12552,7 @@
                     "intro": "AMS-HT B De verwarming 2 is kortgesloten, wat kan komen door een bedradingstoring of een defect aan de verwarming zelf."
                 },
                 {
-                    "ecode": "0500030000020014",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020016",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000030009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020011",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020012",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020013",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020015",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020017",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020018",
                     "intro": ""
                 },
                 {
@@ -12336,10 +12708,6 @@
                     "intro": "AMS A was offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
-                    "ecode": "0706800000010004",
-                    "intro": "AMS G De verwarming 1 verwarmt abnormaal."
-                },
-                {
                     "ecode": "1800930000010001",
                     "intro": "AMS-HT A De koelventilator van verwarming 2 is geblokkeerd, dit kan te wijten zijn aan een vastgelopen ventilator."
                 },
@@ -12486,10 +12854,6 @@
                 {
                     "ecode": "1803020000010001",
                     "intro": "AMS-HT D Snelheids- en lengtefout van de draad: de odometrie van de draad kan defect zijn."
-                },
-                {
-                    "ecode": "0705810000010004",
-                    "intro": "AMS F De heater 2 verwarmt abnormaal."
                 },
                 {
                     "ecode": "0706010000020009",
@@ -12696,10 +13060,6 @@
                     "intro": "AMS-HT G De werking van uitlaatklep 1 is abnormaal, wat kan worden veroorzaakt door overmatige weerstand."
                 },
                 {
-                    "ecode": "1806810000010004",
-                    "intro": "AMS-HT G De verwarming van kachel 2 verloopt abnormaal."
-                },
-                {
                     "ecode": "0704010000010011",
                     "intro": "AMS E Fout in de kalibratieparameter van de hulpmotor. Verwijder de filament vanaf de hub en start daarna de AMS opnieuw op."
                 },
@@ -12714,10 +13074,6 @@
                 {
                     "ecode": "1800100000020004",
                     "intro": "AMS-HT A De geborstelde motor 1 heeft geen signaal, wat kan worden veroorzaakt door een slecht contact in de motorconnector of een motorstoring."
-                },
-                {
-                    "ecode": "1806800000010004",
-                    "intro": "AMS-HT G De verwarming van verwarmer 1 verloopt abnormaal."
                 },
                 {
                     "ecode": "1802130000020004",
@@ -12764,10 +13120,6 @@
                     "intro": "AMS-HT E De koelventilator van verwarming 1 is geblokkeerd, wat mogelijk veroorzaakt wordt door een vastzittende ventilator."
                 },
                 {
-                    "ecode": "1807810000010004",
-                    "intro": "AMS-HT H Verwarming 2 verwarmt abnormaal."
-                },
-                {
                     "ecode": "1801010000010004",
                     "intro": "De ondersteunende motorsnelheidsregeling van AMS-HT B werkt niet goed. De snelheidssensor kan defect zijn."
                 },
@@ -12792,16 +13144,8 @@
                     "intro": "De AMS H RFID 2-plaat heeft een fout."
                 },
                 {
-                    "ecode": "1801800000010004",
-                    "intro": "AMS-HT B: De verwarmingselement 1 verwarmt abnormaal."
-                },
-                {
                     "ecode": "0707020000010001",
                     "intro": "AMS H: Snelheid en lengte van filament wijken af: De fermentatieteller kan defect zijn."
-                },
-                {
-                    "ecode": "0706810000010004",
-                    "intro": "AMS G: De verwarmingselement 2 verwarmt abnormaal."
                 },
                 {
                     "ecode": "1807010000010001",
@@ -12846,10 +13190,6 @@
                 {
                     "ecode": "1803920000010001",
                     "intro": "AMS-HT D De koelventilator van verwarming 1 is geblokkeerd, wat mogelijk komt doordat de ventilator vastzit."
-                },
-                {
-                    "ecode": "0707800000010004",
-                    "intro": "AMS H Verwarming 1 verwarmt abnormaal."
                 },
                 {
                     "ecode": "0704300000010001",
@@ -12932,10 +13272,6 @@
                     "intro": "AMS-HT F De stroomsensor van verwarming 1 is abnormaal."
                 },
                 {
-                    "ecode": "1805810000010004",
-                    "intro": "AMS-HT F De verwarming 2 verwarmt abnormaal."
-                },
-                {
                     "ecode": "0705920000010001",
                     "intro": "AMS F De koelventilator van verwarming 1 is geblokkeerd, dit kan komen door de ventilator die vastzit."
                 },
@@ -12958,10 +13294,6 @@
                 {
                     "ecode": "0704930000020002",
                     "intro": "AMS E De koelventilatorsnelheid van verwarming 2 is te laag, mogelijk als gevolg van overmatige weerstand van de ventilator."
-                },
-                {
-                    "ecode": "1804810000010004",
-                    "intro": "AMS-HT E Verwarming 2 verhit abnormaal."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -13072,10 +13404,6 @@
                     "intro": "AMS E De hulpmotor heeft een onevenwichtige driefasenweerstand. De hulpmotor kan defect zijn."
                 },
                 {
-                    "ecode": "1802800000010004",
-                    "intro": "AMS-HT C De verwarming van verwarmer 1 werkt abnormaal."
-                },
-                {
                     "ecode": "0705960000010001",
                     "intro": "AMS F Het droogproces kan thermische runaway ondervinden. Schakel alstublieft de AMS-voeding uit."
                 },
@@ -13108,10 +13436,6 @@
                     "intro": "De spoel van uitlaatklep 2 in AMS-HT A is kortgesloten, dit kan te wijten zijn aan abnormale bedrading of schade."
                 },
                 {
-                    "ecode": "0707810000010004",
-                    "intro": "AMS H De verwarming 2 verwarmt abnormaal."
-                },
-                {
                     "ecode": "1803010000010011",
                     "intro": "AMS-HT D De kalibratieparameterfout van de hulpmotor. Haal het filament uit de filament hub en start vervolgens de AMS opnieuw op."
                 },
@@ -13130,10 +13454,6 @@
                 {
                     "ecode": "1800960000010001",
                     "intro": "AMS-HT A Het droogproces kan een thermische runaway ervaren. Schakel de AMS-voeding uit."
-                },
-                {
-                    "ecode": "1804800000010004",
-                    "intro": "AMS-HT E De verwarming 1 warmt abnormaal op."
                 },
                 {
                     "ecode": "1800010000020010",
@@ -13210,10 +13530,6 @@
                 {
                     "ecode": "0706920000020002",
                     "intro": "AMS G De ventilatorsnelheid van de koeling van heater 1 is te laag, dit kan te wijten zijn aan overmatige weerstand in de ventilator."
-                },
-                {
-                    "ecode": "1807800000010004",
-                    "intro": "AMS-HT H Heater 1 verwarmt abnormaal."
                 },
                 {
                     "ecode": "0704110000020004",
@@ -13312,14 +13628,6 @@
                     "intro": "AMS-HT G De geborstelde motor 1 heeft geen signaal, dit kan te wijten zijn aan een slecht contact in de motorconnector of een motorstoring."
                 },
                 {
-                    "ecode": "0704810000010004",
-                    "intro": "AMS E De verwarming van verwarming 2 is abnormaal."
-                },
-                {
-                    "ecode": "1803800000010004",
-                    "intro": "AMS-HT D De kachel 1 verwarmt abnormaal."
-                },
-                {
                     "ecode": "1801960000010001",
                     "intro": "AMS-HT B Het droogproces kan mogelijk thermisch doorslaan ervaren. Schakel de stroomtoevoer van AMS uit."
                 },
@@ -13380,10 +13688,6 @@
                     "intro": "De AMS G hulp motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
                 },
                 {
-                    "ecode": "1800800000010004",
-                    "intro": "AMS-HT A Verwarmingselement 1 verwarmt abnormaal."
-                },
-                {
                     "ecode": "1800300000010001",
                     "intro": "De RFID 1-printplaat van AMS-HT A heeft een fout."
                 },
@@ -13418,10 +13722,6 @@
                 {
                     "ecode": "1804930000020002",
                     "intro": "AMS-HT E De ventilatorsnelheid van koellichaam 2 is te laag, dit kan te wijten zijn aan overmatige ventilatorweerstand."
-                },
-                {
-                    "ecode": "1802810000010004",
-                    "intro": "AMS-HT C De verwarming van verwarmingselement 2 verloopt abnormaal."
                 },
                 {
                     "ecode": "1805100000020004",
@@ -13528,10 +13828,6 @@
                     "intro": "De AMS H hulpmotor is uitgeschoven. Het extrusiewiel kan versleten zijn of het filament kan te dun zijn."
                 },
                 {
-                    "ecode": "1805800000010004",
-                    "intro": "AMS-HT F De verwarming 1 wordt abnormaal heet."
-                },
-                {
                     "ecode": "1806010000020009",
                     "intro": "AMS-HT G De hulpmotor heeft ongebalanceerde driefasenweerstand. De hulpmotor kan defect zijn."
                 },
@@ -13596,10 +13892,6 @@
                     "intro": "AMS-HT F De kilometerteller heeft geen signaal. Er kan een slecht contact zijn in de kilometertellerconnector."
                 },
                 {
-                    "ecode": "1803810000010004",
-                    "intro": "AMS-HT D De verwarming van verwarmingselement 2 is abnormaal."
-                },
-                {
                     "ecode": "1806920000010001",
                     "intro": "AMS-HT G De koelventilator van verwarmingselement 1 is geblokkeerd, dit kan komen doordat de ventilator vastzit."
                 },
@@ -13662,10 +13954,6 @@
                 {
                     "ecode": "0705500000020001",
                     "intro": "AMS F-communicatie is abnormaal; controleer de verbindingskabel."
-                },
-                {
-                    "ecode": "0705800000010004",
-                    "intro": "AMS F verwarming 1 wordt abnormaal heet."
                 },
                 {
                     "ecode": "1806920000020002",
@@ -13744,10 +14032,6 @@
                     "intro": "AMS-HT C De koelventilatorsnelheid van verwarmer 2 is te laag, wat te wijten kan zijn aan overmatige ventilatorweerstand."
                 },
                 {
-                    "ecode": "1801810000010004",
-                    "intro": "AMS-HT B De verwarming 2 verwarmt abnormaal."
-                },
-                {
                     "ecode": "1806810000010001",
                     "intro": "AMS-HT G De huidige sensor van verwarming 2 is abnormaal."
                 },
@@ -13768,20 +14052,12 @@
                     "intro": "De stroomsensor van verwarmer 1 is abnormaal bij AMS-HT H."
                 },
                 {
-                    "ecode": "1800810000010004",
-                    "intro": "De verwarmer 2 van AMS-HT A wordt abnormaal heet."
-                },
-                {
                     "ecode": "0706800000010001",
                     "intro": "De stroomsensor van verwarmer 1 is abnormaal bij AMS G."
                 },
                 {
                     "ecode": "1806130000020004",
                     "intro": "De geborstelde motor 4 heeft geen signaal bij AMS-HT G, wat kan worden veroorzaakt door een slecht contact in de motorconnector of een motorstoring."
-                },
-                {
-                    "ecode": "0704800000010004",
-                    "intro": "De verwarmer 1 wordt abnormaal heet bij AMS E."
                 },
                 {
                     "ecode": "1801930000020002",
@@ -13832,14 +14108,6 @@
                     "intro": "De extruder schakelmotor werkt abnormaal. Controleer alstublieft of de verbindingskabel los zit."
                 },
                 {
-                    "ecode": "07FE810000010003",
-                    "intro": "De positie hall signaal communicatie van de extruder schakelmotor is abnormaal."
-                },
-                {
-                    "ecode": "07FE810000010002",
-                    "intro": "De positie hall sensor van de extruder schakelmotor is abnormaal. Controleer alstublieft of de verbindingskabel los zit."
-                },
-                {
                     "ecode": "07FE800000010001",
                     "intro": "De liftmotor van de gereedschapkop werkt abnormaal. Controleer alstublieft of de verbindingskabel los zit."
                 },
@@ -13852,10 +14120,6 @@
                     "intro": "De liftmotor van de gereedschapkop werkt abnormaal. Controleer alstublieft of de verbindingskabel los zit."
                 },
                 {
-                    "ecode": "07FF810000010002",
-                    "intro": "De positie hall-sensor van de wisselmotor van de extruder is abnormaal. Controleer alstublieft of de verbindingskabel los zit."
-                },
-                {
                     "ecode": "07FF810000020001",
                     "intro": "De wisselwerking van de extruder is abnormaal. Controleer alstublieft of er iets vastzit in de gereedschapkop."
                 },
@@ -13866,18 +14130,6 @@
                 {
                     "ecode": "0500030000010026",
                     "intro": "De uitbreidingsmodule van de gereedschapkop werkt niet goed. Zet het apparaat uit, controleer de verbinding en start het opnieuw op."
-                },
-                {
-                    "ecode": "07FE800000010002",
-                    "intro": "De positie hall-sensor van de liftmotor van de gereedschapkop is abnormaal. Controleer alstublieft of de verbindingskabel los zit."
-                },
-                {
-                    "ecode": "07FF800000010002",
-                    "intro": "De positie hall-sensor van de liftmotor van de gereedschapkop is abnormaal. Controleer alstublieft of de verbindingskabel los zit."
-                },
-                {
-                    "ecode": "07FF810000010003",
-                    "intro": "De communicatie voor de positie hall signaalacquisitie van de extruderomschakelmotor is abnormaal."
                 },
                 {
                     "ecode": "0300200000010001",
@@ -14126,10 +14378,6 @@
                 {
                     "ecode": "1203220000020005",
                     "intro": "De AMS D Slot3 filament is op en het reinigen van de oude filament verliep abnormaal; controleer of de filament vastzit in de toolhead."
-                },
-                {
-                    "ecode": "0703800000010004",
-                    "intro": "AMS D Heater 1 verwarmt abnormaal."
                 },
                 {
                     "ecode": "0703010000020009",
@@ -14408,10 +14656,6 @@
                     "intro": "AMS D Slot 4 filament is op en het verwijderen van de oude filament is abnormaal verlopen; controleer alstublieft of de filament vastzit in de gereedschapskop."
                 },
                 {
-                    "ecode": "0701810000010004",
-                    "intro": "AMS B Heater 2 verwarmt abnormaal."
-                },
-                {
                     "ecode": "0702910000010002",
                     "intro": "AMS C De spoel van uitlaatklep 2 is kortgesloten, wat kan worden veroorzaakt door abnormale bedrading of schade."
                 },
@@ -14450,10 +14694,6 @@
                 {
                     "ecode": "1203110000010001",
                     "intro": "De AMS D Slot2 motor is uitgegleden. Het extrusiewiel kan defect zijn of de filament kan te dun zijn."
-                },
-                {
-                    "ecode": "0701800000010004",
-                    "intro": "AMS B De verwarming van methode 1 werkt abnormaal."
                 },
                 {
                     "ecode": "0703010000020011",
@@ -14736,10 +14976,6 @@
                     "intro": "De RFID-spoel van AMS D Slot 4 is kapot of er is een fout in het RF hardware circuit."
                 },
                 {
-                    "ecode": "0703810000010004",
-                    "intro": "De verwarmer 2 van AMS D verwarmt abnormaal."
-                },
-                {
                     "ecode": "0701810000010001",
                     "intro": "De stroomsensor van verwarmer 2 van AMS B is abnormaal."
                 },
@@ -14840,10 +15076,6 @@
                     "intro": "AMS D Slot4 filament kan gebroken zijn in de PTFE-buis."
                 },
                 {
-                    "ecode": "0700810000010004",
-                    "intro": "AMS A De heater 2 verwarmt abnormaal."
-                },
-                {
                     "ecode": "050004000002001F",
                     "intro": "De RFID-tag op AMS D Slot4 kan niet worden geïdentificeerd."
                 },
@@ -14886,10 +15118,6 @@
                 {
                     "ecode": "1203720000010001",
                     "intro": "AMS D Filament snelheid - en lengte fout: De odometrie van sleuf 3 is mogelijk defect."
-                },
-                {
-                    "ecode": "0702810000010004",
-                    "intro": "AMS C Heater 2 verwarming abnormaal."
                 },
                 {
                     "ecode": "07FE200000020001",
@@ -15090,10 +15318,6 @@
                 {
                     "ecode": "1203830000020001",
                     "intro": "De AMS D Slot4 filament kan in de knoop zitten of vastzitten."
-                },
-                {
-                    "ecode": "0700800000010004",
-                    "intro": "Bij de AMS A werkt verwarming 1 abnormaal."
                 },
                 {
                     "ecode": "0C00040000010016",
@@ -15302,10 +15526,6 @@
                 {
                     "ecode": "050003000001000B",
                     "intro": "Het scherm functioneert niet goed; herstart het apparaat alstublieft."
-                },
-                {
-                    "ecode": "0C00040000020009",
-                    "intro": "Materiaalpositie gedetecteerd in blinde vlek. Plaats materiaal alstublieft niet te ver naar de rand van het apparaat."
                 },
                 {
                     "ecode": "0500040000020016",
@@ -15536,10 +15756,6 @@
                     "intro": "Het is niet gelukt om AMS D Slot4 filament te extruderen; de extruder is misschien verstopt of het filament is te dun waardoor de extruder slipt."
                 },
                 {
-                    "ecode": "0300260000010001",
-                    "intro": "De frequentie van de extrusiekrachtsensor van de linker extruder is te laag. De sensor kan te ver geïnstalleerd zijn of de sensor zit los."
-                },
-                {
                     "ecode": "0700930000010001",
                     "intro": "AMS A De koelventilator van heater 2 is geblokkeerd, dit kan komen doordat de ventilator vastzit."
                 },
@@ -15586,10 +15802,6 @@
                 {
                     "ecode": "0702930000010001",
                     "intro": "AMS C De koelventilator van verwarmer 2 is geblokkeerd, dit kan te wijten zijn aan een vastzittende ventilator."
-                },
-                {
-                    "ecode": "0702800000010004",
-                    "intro": "AMS C de verwarmer 1 wordt abnormaal heet."
                 },
                 {
                     "ecode": "12FF200000020001",
@@ -15680,10 +15892,6 @@
                     "intro": "Uw printer lijkt af te drukken zonder materiaal uit te extruderen."
                 },
                 {
-                    "ecode": "0703700000020008",
-                    "intro": "Kan de kaarttabel van AMS niet ophalen; klik op \"Hervatten\" om opnieuw te proberen."
-                },
-                {
                     "ecode": "0703300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
@@ -15706,14 +15914,6 @@
                 {
                     "ecode": "0702350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
-                },
-                {
-                    "ecode": "0702700000020008",
-                    "intro": "Het is niet gelukt om de AMS-toewijzingstabel op te halen; klik op \"Hervatten\" om opnieuw te proberen."
-                },
-                {
-                    "ecode": "0701700000020008",
-                    "intro": "Er is een fout opgetreden bij het ophalen van de AMS-toewijzingstabel; klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "0701300000030003",
@@ -15740,14 +15940,6 @@
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
                 },
                 {
-                    "ecode": "0700400000020001",
-                    "intro": "Het signaal van de filament buffer positie is verloren: de kabel of de positie sensor kan defect zijn."
-                },
-                {
-                    "ecode": "0700400000020002",
-                    "intro": "Er is een fout opgetreden bij het signaal van de filament buffer positie: de positie sensor kan defect zijn."
-                },
-                {
                     "ecode": "0700450000020001",
                     "intro": "De filament-snijdersensor werkt niet goed; controleer of de connector goed is aangesloten."
                 },
@@ -15758,14 +15950,6 @@
                 {
                     "ecode": "0700450000020003",
                     "intro": "De handgreep van de filament-snijder is niet vrijgegeven. De handgreep of het mes kan vastzitten, of er kan een probleem zijn met de verbinding van de filament sensor."
-                },
-                {
-                    "ecode": "0700510000030001",
-                    "intro": "De AMS is uitgeschakeld; laad de filament vanaf de haspelhouder."
-                },
-                {
-                    "ecode": "0700700000020008",
-                    "intro": "Mislukt om AMS mapping tabel te krijgen; klik op \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "0500040000020020",
@@ -15882,10 +16066,6 @@
                 {
                     "ecode": "0300910000010001",
                     "intro": "De temperatuur van kamer verwarmer 1 is abnormaal. De verwarmer kan een kortsluiting hebben."
-                },
-                {
-                    "ecode": "0300910000010002",
-                    "intro": "De temperatuur van kamer verwarmer 1 is abnormaal. De verwarmer kan een open circuit hebben of de thermische zekering kan zijn geactiveerd."
                 },
                 {
                     "ecode": "0300910000010003",
@@ -16034,10 +16214,6 @@
                 {
                     "ecode": "03000C0000010005",
                     "intro": "Krachtsensor 3 heeft onverwachte continue kracht gedetecteerd. Het warmtebed kan vastzitten, of de analoge voorkant kan kapot zijn."
-                },
-                {
-                    "ecode": "03000F0000010001",
-                    "intro": "Abnormale versnellingsmetergegevens gedetecteerd. Probeer de printer opnieuw op te starten."
                 },
                 {
                     "ecode": "0300100000020001",

@@ -1,14 +1,346 @@
 {
     "result": 0,
-    "t": 1738858019,
-    "ver": 202503250207,
+    "t": 1739522908,
+    "ver": 202503250214,
     "data": {
         "device_error": {
-            "ver": 202503250207,
+            "ver": 202503250214,
             "es": [
                 {
+                    "ecode": "0300801A",
+                    "intro": "Error de extrusión de filamento; por favor, consulta al asistente para solucionar problemas. Después de resolver el problema, decide si cancelar o reanudar el trabajo de impresión según el estado actual de la impresión."
+                },
+                {
+                    "ecode": "05008084",
+                    "intro": "La cámara de vista en vivo está sucia; por favor, límpiala y continúa."
+                },
+                {
+                    "ecode": "0500401E",
+                    "intro": "La respuesta de la nube no es válida. Si has intentado varias veces y aún así no tienes éxito, por favor contacta al servicio de atención al cliente."
+                },
+                {
+                    "ecode": "05014023",
+                    "intro": "Acceso a la nube rechazado. Si has intentado varias veces y aún así no tienes éxito, por favor contacta al servicio de atención al cliente."
+                },
+                {
+                    "ecode": "05014025",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún así no tienes éxito, por favor contacta al servicio de atención al cliente."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Por favor, observa la boquilla del extrusor izquierdo. Si se ha extruido el filamento, selecciona \"Continuar\"; si no, empuja el filamento ligeramente hacia adelante y luego selecciona \"Reintentar\"."
+                },
+                {
                     "ecode": "10018003",
-                    "intro": "El modo de intervalos de tiempo está configurado en Tradicional en el archivo de corte. Esto puede causar defectos en la superficie. ¿Te gustaría habilitarlo?"
+                    "intro": "El modo de time-lapse está configurado en Tradicional en el archivo de corte. Esto podría causar defectos en la superficie. ¿Te gustaría activarlo?"
+                },
+                {
+                    "ecode": "03008014",
+                    "intro": "La boquilla está cubierta con filamento, o la placa de construcción está instalada incorrectamente. Por favor, cancela esta impresión y limpia la boquilla o ajusta la placa de construcción según el estado actual. También puedes seleccionar \"Reanudar\" para continuar con el trabajo de impresión."
+                },
+                {
+                    "ecode": "03008017",
+                    "intro": "Se han detectado objetos extraños en la cama caliente. Por favor, revisa y limpia la cama. Luego, selecciona \"Reanudar\" para continuar con el trabajo de impresión."
+                },
+                {
+                    "ecode": "0500401C",
+                    "intro": "Acceso a la nube rechazado. Si has intentado varias veces y aún así no tienes éxito, por favor contacta al servicio de atención al cliente."
+                },
+                {
+                    "ecode": "05004025",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún así no tienes éxito, por favor contacta al servicio de atención al cliente."
+                },
+                {
+                    "ecode": "05004026",
+                    "intro": "Acceso a la nube rechazado. Si has intentado varias veces y aún no tienes éxito, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05004028",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún no tienes éxito, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "0501401B",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún no tienes éxito, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05014020",
+                    "intro": "Acceso a la nube rechazado. Si has intentado varias veces y aún no tienes éxito, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05014022",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún no tienes éxito, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05014029",
+                    "intro": "El acceso a la nube está rechazado. Si has intentado varias veces y aún no tienes éxito, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07018012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Por favor observa la boquilla del extrusor izquierdo. Si se ha extruido el filamento, selecciona \"Continuar\"; si no, por favor empuja el filamento hacia adelante ligeramente y luego selecciona \"Reintentar\"."
+                },
+                {
+                    "ecode": "0300801C",
+                    "intro": "La resistencia de extrusión es anormal. Es posible que el extrusor esté atascado, por favor consulta al asistente; después de resolver el problema, puedes seleccionar \"Reanudar\" para continuar con el trabajo de impresión."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "Error al obtener la tabla de mapeo; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Por favor, observa la boquilla del extrusor izquierdo. Si se ha extruido el filamento, selecciona \"Continuar\"; si no, empuja el filamento hacia adelante ligeramente y luego selecciona \"Reintentar\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "El módulo láser está instalado, pero se detecta una Plataforma de Corte. Por favor coloca una Plataforma Láser y realiza la calibración del láser."
+                },
+                {
+                    "ecode": "03004020",
+                    "intro": "La detección de la presencia de la boquilla falló. Por favor, consulta al Asistente para más detalles."
+                },
+                {
+                    "ecode": "0500402E",
+                    "intro": "El sistema no soporta el sistema de archivos actualmente utilizado por la unidad flash USB. Por favor, reemplaza o formatea la unidad flash USB a FAT32."
+                },
+                {
+                    "ecode": "05008063",
+                    "intro": "La plataforma no se detecta durante la calibración; por favor asegúrate de que la Plataforma Láser esté colocada correctamente."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "La tarea requiere una Plataforma de Corte, pero la actual es una Plataforma Láser. Por favor, reemplázala con una Plataforma de Corte (Base de Protección de Corte + alfombrilla de corte LightGrip)."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Por favor, observe la boquilla del extrusor derecho. Si se ha extruido el filamento, seleccione \"Continuar\"; si no, empuje el filamento hacia adelante ligeramente y luego seleccione \"Reintentar\"."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "No se pudo obtener la tabla de mapeo; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "La tarea requiere una Plataforma Láser, pero la actual es una Plataforma de Corte. Por favor, sustitúyela, mide el grosor del material en el software y luego reinicia la tarea."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "No se detectó ninguna Plataforma Láser, lo que puede afectar la precisión de la medición del grosor. Por favor, coloca correctamente la plataforma láser y asegúrate de que los marcadores traseros no estén bloqueados. Luego, reinicia la medición del grosor en el software antes de iniciar la tarea."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Por favor, observa la boquilla del extrusor derecho. Si se ha extruido el filamento, selecciona \"Continuar\"; si no, empuja el filamento hacia adelante ligeramente y luego selecciona \"Reintentar\"."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Por favor, observa la boquilla del extrusor derecho. Si se ha extruido el filamento, selecciona \"Continuar\"; si no, empuja el filamento hacia adelante ligeramente y luego selecciona \"Reintentar\"."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "Esta tarea requiere una Plataforma de Corte, pero la actual es una Plataforma Láser. Por favor, sustitúyela por una Plataforma de Corte (Base de Protección de Corte + Tapete de Corte StrongGrip)."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "El Módulo Láser no está certificado; el dispositivo no puede continuar funcionando. Por favor, utiliza accesorios de Bambu Lab."
+                },
+                {
+                    "ecode": "03008000",
+                    "intro": "La impresión se pausó por una razón desconocida. Puedes seleccionar \"Reanudar\" para continuar con el trabajo de impresión."
+                },
+                {
+                    "ecode": "0300800D",
+                    "intro": "Algunos objetos se han caído, o el extrusor no está extruyendo normalmente. Si los defectos son aceptables, selecciona \"Reanudar\" para continuar con el trabajo de impresión."
+                },
+                {
+                    "ecode": "03008016",
+                    "intro": "La boquilla está obstruida con filamento. Por favor, cancela esta impresión y limpia la boquilla o selecciona \"Reanudar\" para continuar con el trabajo de impresión."
+                },
+                {
+                    "ecode": "0500401B",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún no tienes éxito, por favor contacta al soporte técnico."
+                },
+                {
+                    "ecode": "05004020",
+                    "intro": "Acceso a la nube rechazado. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05004022",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05004023",
+                    "intro": "Acceso a la nube rechazado. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05004029",
+                    "intro": "El acceso a la nube está rechazado. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "0501401C",
+                    "intro": "El acceso a la nube está rechazado. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "0501401E",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05014026",
+                    "intro": "Acceso a la nube rechazado. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "05014028",
+                    "intro": "La respuesta de la nube es inválida. Si has intentado varias veces y aún no puedes acceder, por favor contacta al soporte al cliente."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "05008064",
+                    "intro": "Por favor, coloque la plataforma láser correctamente y asegúrese de que los marcadores traseros no estén bloqueados para la calibración del láser."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Por favor, observe la boquilla del extrusor derecho. Si se ha extruido el filamento, seleccione \"Continuar\"; si no, empuje ligeramente el filamento hacia adelante y luego seleccione \"Reintentar\"."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Por favor, observe la boquilla del extrusor izquierdo. Si se ha extruido el filamento, seleccione \"Continuar\"; si no, empuje ligeramente el filamento hacia adelante y luego seleccione \"Reintentar\"."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Por favor, coloque la plataforma láser correctamente y asegúrese de que los marcadores traseros no estén bloqueados, luego reinicie la medición de espesor en el software antes de iniciar la tarea."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "La plataforma láser está desalineada. Por favor, asegúrese de que las cuatro esquinas de la plataforma estén alineadas con la cama de calor."
+                },
+                {
+                    "ecode": "0500807A",
+                    "intro": "La función de detección de objetos extraños no está funcionando. Puede continuar con la tarea o consultar al asistente para solucionar problemas."
+                },
+                {
+                    "ecode": "05004033",
+                    "intro": "Se ha detectado un AMS no certificado o el firmware de AMS no ha sido actualizado: el dispositivo no puede continuar funcionando."
+                },
+                {
+                    "ecode": "03004000",
+                    "intro": "Fallo en el homing del eje Z; la tarea ha sido detenida."
+                },
+                {
+                    "ecode": "03004002",
+                    "intro": "Impresión detenida porque el nivelado automático de la cama falló."
+                },
+                {
+                    "ecode": "0300800A",
+                    "intro": "Se detectó un acumulamiento de filamento por la supervisión de impresión AI. Por favor, limpie el filamento del conducto de desechos."
+                },
+                {
+                    "ecode": "0300800B",
+                    "intro": "El cortador está atascado. Por favor, asegúrese de que el mango del cortador esté extendido y verifique la conexión del cable del sensor de filamento."
+                },
+                {
+                    "ecode": "03008065",
+                    "intro": "La temperatura del módulo MC es demasiado alta. Por favor, consulte la Wiki para posibles explicaciones."
+                },
+                {
+                    "ecode": "05004070",
+                    "intro": "El módulo láser o cortador está conectado, por lo que el dispositivo no puede iniciar una tarea de impresión 3D."
+                },
+                {
+                    "ecode": "0300400B",
+                    "intro": "Excepción de comunicación interna"
+                },
+                {
+                    "ecode": "03008001",
+                    "intro": "Impresión en pausa debido al comando de pausa agregado al archivo de impresión."
+                },
+                {
+                    "ecode": "05014038",
+                    "intro": "La configuración regional no coincide con la impresora; por favor, verifique la configuración regional de la impresora."
+                },
+                {
+                    "ecode": "03008051",
+                    "intro": "El módulo de corte ha caído o el cable del módulo de corte está desconectado; por favor, verifique el módulo."
+                },
+                {
+                    "ecode": "0C004024",
+                    "intro": "La cámara Birdseye está instalada descentrada. Por favor, consulta al asistente para reinstalarla."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Tarea pausada. La ventana de seguridad láser está abierta."
+                },
+                {
+                    "ecode": "03004042",
+                    "intro": "La ventana de seguridad láser no está instalada correctamente. La tarea ha sido detenida."
                 },
                 {
                     "ecode": "10018004",
@@ -363,28 +695,12 @@
                     "intro": "La boquilla izquierda y derecha no coincide con el archivo de corte. Por favor, inicia la impresión después de volver a cortar, o continúa la impresión después de reemplazar la boquilla correcta. Precaución: la temperatura del hotend es alta."
                 },
                 {
-                    "ecode": "03004020",
-                    "intro": "La detección de la presencia de la boquilla falló. La boquilla puede no estar montada en el extrusor o el sensor puede estar dañado. Por favor, verifica el Asistente para más detalles."
-                },
-                {
-                    "ecode": "0C004024",
-                    "intro": "La cámara Birdseye está instalada descentrada. Por favor, consulta el a si z para reinstalarla."
-                },
-                {
                     "ecode": "05FE8053",
                     "intro": "La boquilla izquierda no coincide con el archivo de corte. Por favor, inicie la impresión después de volver a cortar, o continúe imprimiendo después de reemplazar la boquilla correcta. Precaución: la temperatura del hotend es alta."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "El módulo láser está instalado, pero se detecta la plataforma de corte. Por favor, coloque la plataforma láser correspondiente y luego reinicie la medición de grosor en el software antes de iniciar la tarea."
-                },
-                {
                     "ecode": "03008054",
                     "intro": "Por favor, coloque el papel requerido para Imprimir y Cortar."
-                },
-                {
-                    "ecode": "0300804B",
-                    "intro": "Tarea pausada porque las Ventanas de Seguridad Lateral del Láser están abiertas."
                 },
                 {
                     "ecode": "0703C06D",
@@ -479,20 +795,8 @@
                     "intro": "El motor AMS D está realizando una autocomprobación. No se puede iniciar el secado. Por favor, intenta nuevamente más tarde."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "El módulo láser está instalado, pero no se detecta la plataforma de corte. Por favor, coloca la plataforma láser y realiza la calibración del láser."
-                },
-                {
                     "ecode": "05008056",
                     "intro": "El módulo de corte está instalado, pero se detecta la plataforma láser. Por favor, coloca la plataforma de corte para la calibración."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "El módulo de corte está instalado, pero se detecta la plataforma láser. Por favor, coloca la plataforma de corte (base de protección de corte + tapete de corte LightGrip)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "El módulo de corte está instalado, pero se detecta la plataforma láser. Por favor, coloca la plataforma de corte (base de protección de corte + tapete de corte StrongGrip)."
                 },
                 {
                     "ecode": "0500C07F",
@@ -507,18 +811,6 @@
                     "intro": "La función de detección de objetos extraños no está funcionando. Puedes continuar con la tarea o consultar al asistente para soluciones."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "No se detectó la plataforma láser, lo que puede afectar la precisión de la medición de espesor. Por favor, coloque la plataforma láser correctamente y asegúrese de que los marcadores traseros no estén bloqueados, luego reinicie la medición de espesor en el software antes de iniciar la tarea."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Por favor, coloque la plataforma láser correctamente y asegúrese de que los marcadores traseros no estén bloqueados, luego reinicie la medición de espesor en el software antes de iniciar la tarea."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "Por favor, coloca la plataforma láser correctamente y asegúrate de que los marcadores traseros no estén bloqueados para la calibración del láser."
-                },
-                {
                     "ecode": "07018016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulta al Asistente. Después de la solución de problemas. Si los defectos son aceptables, por favor, reanuda."
                 },
@@ -527,16 +819,8 @@
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulta al Asistente. Después de solucionar problemas. Si los defectos son aceptables, por favor, reanuda."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Por favor, observa la boquilla del extrusor derecho. Si se ha extruido el filamento, haz clic en \"Continuar\"; si no es así, empuja el filamento hacia adelante ligeramente y luego haz clic en \"Reintentar\"."
-                },
-                {
                     "ecode": "18028016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulta al Asistente. Después de solucionar problemas. Si los defectos son aceptables, por favor, reanuda."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Por favor, observa la boquilla del extrusor izquierdo. Si se ha extruido el filamento, haz clic en \"Continuar\"; si no es así, empuja el filamento hacia adelante ligeramente y luego haz clic en \"Reintentar\"."
                 },
                 {
                     "ecode": "07078016",
@@ -549,10 +833,6 @@
                 {
                     "ecode": "18008016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulta al Asistente. Después de la solución de problemas. Si los defectos son aceptables, por favor, reanuda."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Por favor, observa la boquilla del extrusor derecho. Si se ha extruido el filamento, haz clic en \"Continuar\"; si no, empuja el filamento hacia adelante ligeramente y luego haz clic en \"Reintentar\"."
                 },
                 {
                     "ecode": "05004031",
@@ -595,20 +875,8 @@
                     "intro": "Se detectó una desconexión del tubo de PTFE. Por favor, verifique si el tubo de PTFE de AMS-HT G al extrusor está correctamente conectado."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Por favor, observe la boquilla del extrusor izquierdo. Si el filamento ha sido extrudido, haga clic en \"Continuar\"; si no, empuje el filamento un poco hacia adelante y luego haga clic en \"Reintentar\"."
-                },
-                {
                     "ecode": "0C004021",
                     "intro": "La configuración de la cámara BirdsEye falló; por favor reinicie la impresora."
-                },
-                {
-                    "ecode": "07FEC00A",
-                    "intro": "Por favor, observe la boquilla del extrusor izquierdo. Si el filamento ha sido extrudido, haga clic en \"Continuar\"; si no, empuje el filamento un poco hacia adelante y luego haga clic en \"Reintentar\"."
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Por favor, observe la boquilla del extrusor derecho. Si el filamento ha sido extrudido, haga clic en \"Continuar\"; si no, empuje el filamento un poco hacia adelante y luego haga clic en \"Reintentar\"."
                 },
                 {
                     "ecode": "0C004026",
@@ -635,10 +903,6 @@
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulta con el Asistente. Después de solucionar el problema. Si los defectos son aceptables, por favor reanuda."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Por favor, observa la boquilla del extrusor izquierdo. Si se ha extruido el filamento, haz clic en \"Continuar\"; si no, por favor empuja el filamento hacia adelante ligeramente y luego haz clic en \"Reintentar\"."
-                },
-                {
                     "ecode": "18068016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulta con el Asistente. Después de solucionar el problema. Si los defectos son aceptables, por favor reanuda."
                 },
@@ -657,10 +921,6 @@
                 {
                     "ecode": "18058016",
                     "intro": "El extrusor no está extruyendo normalmente; por favor, consulta con el Asistente. Después de solucionar el problema. Si los defectos son aceptables, por favor reanuda."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Por favor, observa la boquilla del extrusor derecho. Si se ha extruido el filamento, haz clic en \"Continuar\"; si no, por favor empuja el filamento hacia adelante ligeramente y luego haz clic en \"Reintentar\"."
                 },
                 {
                     "ecode": "1803800A",
@@ -707,20 +967,8 @@
                     "intro": "Fallo al extruir el filamento. Por favor verifica si el extrusor está atascado."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para reintentar."
-                },
-                {
                     "ecode": "07028007",
                     "intro": "Fallo al extruir el filamento. Por favor verifica si el extrusor está atascado."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para reintentar."
-                },
-                {
-                    "ecode": "07038012",
-                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para reintentar."
                 },
                 {
                     "ecode": "07FF8005",
@@ -795,20 +1043,12 @@
                     "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido."
                 },
                 {
-                    "ecode": "18048012",
-                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para volver a intentar."
-                },
-                {
                     "ecode": "07078007",
                     "intro": "Fallo al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
                 },
                 {
                     "ecode": "18078007",
                     "intro": "Fallo al extruir el filamento. Por favor, verifica si el extrusor está atascado."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para intentar de nuevo."
                 },
                 {
                     "ecode": "18FE8024",
@@ -823,16 +1063,8 @@
                     "intro": "No se pudo extruir el filamento. Por favor verifica si el extrusor está obstruido."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Error al obtener la tabla de mapeo AMS; por favor haz clic en \"Reanudar\" para reintentar."
-                },
-                {
                     "ecode": "18018007",
                     "intro": "No se pudo extruir el filamento. Por favor verifica si el extrusor está obstruido."
-                },
-                {
-                    "ecode": "18078012",
-                    "intro": "Error al obtener la tabla de mapeo AMS; por favor haz clic en \"Reanudar\" para reintentar."
                 },
                 {
                     "ecode": "18FE8001",
@@ -851,10 +1083,6 @@
                     "intro": "No se pudo extruir el filamento. Por favor verifica si el extrusor está obstruido."
                 },
                 {
-                    "ecode": "18018012",
-                    "intro": "Error al obtener la tabla de mapeo AMS; por favor haz clic en \"Reanudar\" para reintentar."
-                },
-                {
                     "ecode": "18048007",
                     "intro": "Fallo al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
                 },
@@ -871,10 +1099,6 @@
                     "intro": "Verifica si el carrete de filamento externo derecho o el filamento están atascados."
                 },
                 {
-                    "ecode": "0500807A",
-                    "intro": "La función de detección de objetos extraños no está funcionando. Puedes continuar con la tarea o consultar al asistente para solucionar problemas."
-                },
-                {
                     "ecode": "05008068",
                     "intro": "Por favor, coloca la alfombrilla de corte de agarre fuerte correctamente y asegúrate de que el marcador esté expuesto."
                 },
@@ -887,16 +1111,8 @@
                     "intro": "Por favor, coloca una alfombrilla de corte LightGrip sobre la base de protección de corte."
                 },
                 {
-                    "ecode": "07008012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haga clic en \"Reanudar\" para reintentarlo."
-                },
-                {
                     "ecode": "07038007",
                     "intro": "Fallo al extrudir el filamento. Por favor, verifique si el extrusor está atascado."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haga clic en \"Reanudar\" para reintentarlo."
                 },
                 {
                     "ecode": "07FE8013",
@@ -905,10 +1121,6 @@
                 {
                     "ecode": "07FE8010",
                     "intro": "Verifique si el carrete de filamento externo izquierdo o el filamento están atascados."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "No se pudo obtener la tabla de mapeo; por favor haga clic en \"Reanudar\" para reintentarlo."
                 },
                 {
                     "ecode": "07FE8002",
@@ -955,10 +1167,6 @@
                     "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido."
                 },
                 {
-                    "ecode": "18068012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para reintentar."
-                },
-                {
                     "ecode": "07008007",
                     "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
                 },
@@ -975,32 +1183,12 @@
                     "intro": "Verifica si el carrete de filamento externo izquierdo o el filamento están atascados."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haz clic en \"Reanudar\" para reintentar."
-                },
-                {
                     "ecode": "07058013",
                     "intro": "Tiempo de espera para purgar el filamento viejo: Por favor, verifica si el filamento está atascado o si el extrusor está obstruido."
                 },
                 {
-                    "ecode": "18FE8012",
-                    "intro": "No se pudo obtener la tabla de mapeo; por favor, haz clic en \"Reanudar\" para reintentar."
-                },
-                {
-                    "ecode": "18038012",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
-                },
-                {
                     "ecode": "18038007",
                     "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está atascado."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
                 },
                 {
                     "ecode": "18FF8002",
@@ -1025,14 +1213,6 @@
                 {
                     "ecode": "18018013",
                     "intro": "Tiempo de espera agotado al purgar el filamento viejo: por favor, verifica si el filamento está atascado o si el extrusor está atascado."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para intentar de nuevo."
-                },
-                {
-                    "ecode": "18028012",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para volver a intentar."
                 },
                 {
                     "ecode": "18FE8002",
@@ -1061,10 +1241,6 @@
                 {
                     "ecode": "07068007",
                     "intro": "Error al extruir el filamento. Por favor, verifica si el extrusor está obstruido."
-                },
-                {
-                    "ecode": "18FF8012",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor haz clic en \"Reanudar\" para intentar de nuevo."
                 },
                 {
                     "ecode": "07FF8010",
@@ -1143,14 +1319,6 @@
                     "intro": "Error al descargar el trabajo de impresión; por favor verifica tu conexión a la red."
                 },
                 {
-                    "ecode": "05008074",
-                    "intro": "La plataforma láser está desalineada. Por favor, asegúrate de que las cuatro esquinas de la plataforma estén alineadas con la cama caliente."
-                },
-                {
-                    "ecode": "05008063",
-                    "intro": "La plataforma no se detecta durante la calibración; por favor asegúrese de que la placa láser esté colocada correctamente."
-                },
-                {
                     "ecode": "0C00803F",
                     "intro": "Se detectó una obstrucción en la boquilla por inteligencia artificial. Por favor, revisa el estado de la boquilla. Consulta al asistente para obtener soluciones."
                 },
@@ -1159,20 +1327,12 @@
                     "intro": "La inteligencia artificial detectó un defecto en la impresión por aire. Por favor, comprueba el estado de extrusión del hotend. Consulta al asistente para obtener soluciones."
                 },
                 {
-                    "ecode": "03008051",
-                    "intro": "El módulo de corte se ha caído o el cable del módulo de corte está desconectado; Por favor revise."
-                },
-                {
                     "ecode": "0500403D",
                     "intro": "El módulo de cabezal de herramienta no está configurado. Por favor configurelo antes de iniciar la tarea."
                 },
                 {
                     "ecode": "07FE8011",
                     "intro": "El filamento externo conectado al extrusor izquierdo se ha agotado; por favor, cargue un nuevo filamento."
-                },
-                {
-                    "ecode": "03004000",
-                    "intro": "El homing del eje Z ha fallado, la tarea ha sido detenida."
                 },
                 {
                     "ecode": "0300400C",
@@ -1679,10 +1839,6 @@
                     "intro": "La impresora no tiene datos de calibración de mejora de precisión del movimiento; la mejora de precisión del movimiento no se puede encender."
                 },
                 {
-                    "ecode": "05004070",
-                    "intro": "El dispositivo se ha conectado al módulo láser o de corte y no se puede iniciar una tarea de impresión 3D."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "La impresora está imprimiendo actualmente y la función de mejora de la precisión del movimiento no se puede activar o desactivar."
                 },
@@ -1699,10 +1855,6 @@
                     "intro": "Por favor saque el filamento del soporte de carrete del extrusor derecho. Si este mensaje persiste, verifique si hay filamento roto en el extrusor. (Conecte un tubo PTFE si está a punto de usar un AMS)."
                 },
                 {
-                    "ecode": "03008016",
-                    "intro": "La boquilla está obstruida con filamento. Por favor, cancele esta impresión y limpie la boquilla o presione el botón \"Reanudar\" para continuar con el trabajo de impresión."
-                },
-                {
                     "ecode": "05004008",
                     "intro": "Falló el inicio de la impresión; por favor reinicie la impresora y envíe el trabajo de impresión de nuevo."
                 },
@@ -1717,10 +1869,6 @@
                 {
                     "ecode": "0500402C",
                     "intro": "No se pudo obtener la dirección IP, lo que puede deberse a una interferencia inalámbrica que causa fallos en la transmisión de datos o que el grupo de direcciones DHCP del router está lleno. Por favor, acerque la impresora al router e intente nuevamente. Si el problema persiste, verifique la configuración del router para saber si se han agotado las direcciones IP."
-                },
-                {
-                    "ecode": "0300801C",
-                    "intro": "La resistencia de extrusión es anormal. El extrusor puede estar obstruido, por favor consulte la guía de asistente. Después de solucionar el problema, puede presionar el botón \"Reanudar\" para continuar la impresión."
                 },
                 {
                     "ecode": "0500400A",
@@ -1743,10 +1891,6 @@
                     "intro": "Por favor, saque el filamento del carrete del soporte del extrusor izquierdo. Si este mensaje persiste, verifique si hay filamento roto en el extrusor (conecte un tubo PTFE si está a punto de usar un AMS)."
                 },
                 {
-                    "ecode": "03008014",
-                    "intro": "La boquilla está cubierta de filamento, o la placa de construcción está instalada incorrectamente. Por favor, cancele esta impresión y limpie la boquilla o ajuste la placa de construcción de acuerdo con el estado real. También puede tocar el botón \"Reanudar\" para continuar con el trabajo de impresión."
-                },
-                {
                     "ecode": "0500402D",
                     "intro": "Excepción del sistema."
                 },
@@ -1761,10 +1905,6 @@
                 {
                     "ecode": "03008009",
                     "intro": "Malfunción de la temperatura de la cama caliente."
-                },
-                {
-                    "ecode": "03008017",
-                    "intro": "Se detectaron objetos extraños en la cama caliente. Por favor, revise y limpie la cama caliente. Luego, presione el botón \"Reanudar\" para continuar con el trabajo de impresión."
                 },
                 {
                     "ecode": "05004002",
@@ -1789,14 +1929,6 @@
                 {
                     "ecode": "03008045",
                     "intro": "Tiempo de espera de detección de material agotado: reinicie la impresora, por favor."
-                },
-                {
-                    "ecode": "0300801A",
-                    "intro": "El extrusor no está extruyendo normalmente; sigue las instrucciones del asistente. Después de resolver los problemas, si consideras que los defectos son aceptables, presiona el botón \"Continuar\" para continuar con la impresión."
-                },
-                {
-                    "ecode": "03008001",
-                    "intro": "La impresión se pausó debido a que se agregó el comando de pausa en el archivo de impresión."
                 },
                 {
                     "ecode": "0300800C",
@@ -1931,10 +2063,6 @@
                     "intro": "No se pudo extraer el filamento del extrusor. Esto podría deberse a un extrusor obstruido o a que el filamento se haya roto dentro del extrusor."
                 },
                 {
-                    "ecode": "0500402E",
-                    "intro": "El sistema no admite el sistema de archivos utilizado actualmente por la unidad flash USB. Por favor, reemplace o formatee la unidad flash USB al formato FAT32."
-                },
-                {
                     "ecode": "07FFC009",
                     "intro": "Por favor inserte filamento en el tubo PTFE del extrusor derecho hasta que no se pueda empujar más."
                 },
@@ -2015,10 +2143,6 @@
                     "intro": "El módulo láser está anormal."
                 },
                 {
-                    "ecode": "03008065",
-                    "intro": "La temperatura del módulo MC es demasiado alta. Por favor, verifica el Wiki para razones específicas."
-                },
-                {
                     "ecode": "07FEC006",
                     "intro": "Por favor, alimenta el filamento en el tubo PTFE del extrusor izquierdo hasta que no pueda ser empujado más lejos."
                 },
@@ -2033,10 +2157,6 @@
                 {
                     "ecode": "0C004029",
                     "intro": "No se detectó material. Por favor, confirma la colocación y continúa."
-                },
-                {
-                    "ecode": "05014038",
-                    "intro": "La configuración regional no coincide con la impresora, por favor revise la configuración regional de la impresora."
                 },
                 {
                     "ecode": "0C008005",
@@ -2135,64 +2255,24 @@
                     "intro": "El motor de asistencia AMS está sobrecargado. Esto podría deberse a que el filamento esté enredado o que el carrete esté atascado."
                 },
                 {
-                    "ecode": "0501401B",
-                    "intro": "La respuesta de la nube es inválida. Si ha intentado varias veces y sigue fallando, por favor póngase en contacto con el servicio al cliente."
-                },
-                {
-                    "ecode": "0501401C",
-                    "intro": "El acceso a la nube ha sido rechazado. Si ha intentado varias veces y sigue fallando, por favor póngase en contacto con el servicio al cliente."
-                },
-                {
                     "ecode": "0501401D",
                     "intro": "El acceso a la nube falló, lo que puede ser causado por inestabilidad en la red debido a interferencias. Puede intentar mover la impresora más cerca del enrutador antes de intentar nuevamente."
-                },
-                {
-                    "ecode": "0501401E",
-                    "intro": "La respuesta de la nube es inválida. Si ha intentado varias veces y sigue fallando, por favor póngase en contacto con el servicio al cliente."
                 },
                 {
                     "ecode": "0501401F",
                     "intro": "La autorización ha expirado. Por favor asegúrese de que su teléfono o computadora tenga acceso a internet y asegúrese de que la aplicación Bambu Studio/Bambu Handy esté ejecutándose en primer plano durante la operación de enlace."
                 },
                 {
-                    "ecode": "05014020",
-                    "intro": "El acceso a la nube ha sido rechazado. Si ha intentado varias veces y sigue fallando, por favor póngase en contacto con el servicio al cliente."
-                },
-                {
                     "ecode": "05014021",
                     "intro": "El acceso a la nube falló, lo que puede ser causado por inestabilidad en la red debido a interferencias. Puede intentar mover la impresora más cerca del enrutador antes de intentar nuevamente."
-                },
-                {
-                    "ecode": "05014022",
-                    "intro": "La respuesta de la nube es inválida. Si ha intentado varias veces y sigue fallando, por favor póngase en contacto con el servicio al cliente."
-                },
-                {
-                    "ecode": "05014023",
-                    "intro": "Acceso a la nube rechazado. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
                 },
                 {
                     "ecode": "05014024",
                     "intro": "Fallo al acceder a la nube. Las posibles razones incluyen inestabilidad de la red causada por interferencias, incapacidad de acceder a internet o restricciones en la configuración del firewall del router. Puede intentar mover la impresora más cerca del router o verificar la configuración del router antes de intentarlo nuevamente."
                 },
                 {
-                    "ecode": "05014025",
-                    "intro": "La respuesta de la nube es inválida. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
-                },
-                {
-                    "ecode": "05014026",
-                    "intro": "Acceso a la nube rechazado. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
-                },
-                {
                     "ecode": "05014027",
                     "intro": "Fallo al acceder a la nube; esto puede ser causado por inestabilidad de la red debido a interferencias. Puede intentar mover la impresora más cerca del router antes de intentarlo nuevamente."
-                },
-                {
-                    "ecode": "05014028",
-                    "intro": "La respuesta de la nube es inválida. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
-                },
-                {
-                    "ecode": "05014029",
-                    "intro": "El acceso a la nube ha sido rechazado. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
                 },
                 {
                     "ecode": "05014031",
@@ -2251,64 +2331,24 @@
                     "intro": "La impresora ya ha sido vinculada. Por favor, desvínculala e intenta de nuevo."
                 },
                 {
-                    "ecode": "0500401B",
-                    "intro": "La respuesta de la nube no es válida. Si lo has intentado varias veces y sigues fallando, por favor ponte en contacto con el servicio al cliente."
-                },
-                {
-                    "ecode": "0500401C",
-                    "intro": "El acceso a la nube ha sido rechazado. Si lo has intentado varias veces y sigues fallando, por favor ponte en contacto con el servicio al cliente."
-                },
-                {
                     "ecode": "0500401D",
                     "intro": "El acceso a la nube falló, lo cual puede ser causado por inestabilidad en la red debido a interferencias. Puedes intentar mover la impresora más cerca del enrutador antes de intentarlo de nuevo."
-                },
-                {
-                    "ecode": "0500401E",
-                    "intro": "La respuesta de la nube no es válida. Si has intentado varias veces y sigues fallando, por favor ponte en contacto con el servicio al cliente."
                 },
                 {
                     "ecode": "0500401F",
                     "intro": "La autorización ha caducado. Por favor, asegúrate de que tu teléfono o PC tenga acceso a Internet, y asegúrate de que la aplicación Bambu Studio/Bambu Handy esté en primer plano durante la operación de vinculación."
                 },
                 {
-                    "ecode": "05004020",
-                    "intro": "El acceso a la nube ha sido rechazado. Si has intentado varias veces y sigues fallando, por favor ponte en contacto con el servicio al cliente."
-                },
-                {
                     "ecode": "05004021",
                     "intro": "El acceso a la nube falló, lo cual puede ser causado por inestabilidad en la red debido a interferencias. Puedes intentar mover la impresora más cerca del enrutador antes de intentarlo de nuevo."
-                },
-                {
-                    "ecode": "05004022",
-                    "intro": "La respuesta de la nube no es válida. Si has intentado varias veces y sigues fallando, por favor ponte en contacto con el servicio al cliente."
-                },
-                {
-                    "ecode": "05004023",
-                    "intro": "Acceso a la nube rechazado. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
                 },
                 {
                     "ecode": "05004024",
                     "intro": "Falló el acceso a la nube. Las posibles causas incluyen inestabilidad de la red provocada por interferencias, incapacidad para acceder a internet o restricciones de configuración del firewall del router. Puede intentar acercar la impresora al router o revisar la configuración del router antes de intentarlo de nuevo."
                 },
                 {
-                    "ecode": "05004025",
-                    "intro": "La respuesta de la nube no es válida. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
-                },
-                {
-                    "ecode": "05004026",
-                    "intro": "Acceso a la nube rechazado. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
-                },
-                {
                     "ecode": "05004027",
                     "intro": "El acceso a la nube ha fallado, esto puede ser causado por inestabilidad en la red debido a interferencias. Puede intentar mover la impresora más cerca del router antes de intentarlo de nuevo."
-                },
-                {
-                    "ecode": "05004028",
-                    "intro": "La respuesta de la nube no es válida. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
-                },
-                {
-                    "ecode": "05004029",
-                    "intro": "El acceso a la nube ha sido rechazado. Si ha intentado varias veces y sigue fallando, por favor contacte con el servicio al cliente."
                 },
                 {
                     "ecode": "0500402A",
@@ -2355,10 +2395,6 @@
                     "intro": "La impresora se agotó esperando a que la boquilla se enfriara antes de volver a home."
                 },
                 {
-                    "ecode": "03004002",
-                    "intro": "La impresión se detuvo porque la nivelación automática de la cama falló."
-                },
-                {
                     "ecode": "03004005",
                     "intro": "La velocidad del ventilador de enfriamiento del hotend es anormal."
                 },
@@ -2379,10 +2415,6 @@
                     "intro": "Error al identificar la frecuencia de resonancia mecánica."
                 },
                 {
-                    "ecode": "0300400B",
-                    "intro": "Excepción de comunicación interna."
-                },
-                {
                     "ecode": "0300400D",
                     "intro": "Error al reanudar después de una pérdida de energía."
                 },
@@ -2391,28 +2423,12 @@
                     "intro": "Error en la autocomprobación del motor."
                 },
                 {
-                    "ecode": "03008000",
-                    "intro": "La impresión se pausó por razones desconocidas. Puede tocar \"Reanudar\" para continuar con el trabajo de impresión."
-                },
-                {
                     "ecode": "03008003",
                     "intro": "Se detectaron defectos en la calidad tipo \"espagueti\" por la supervisión de impresión de IA. Por favor, revise la calidad del modelo impreso antes de continuar con la impresión."
                 },
                 {
                     "ecode": "03008007",
                     "intro": "Hubo un trabajo de impresión incompleto cuando la impresora perdió energía. Si el modelo todavía está adherido a la placa de construcción, puedes intentar reanudar el trabajo de impresión."
-                },
-                {
-                    "ecode": "0300800A",
-                    "intro": "Se detectó un atasco de filamento por la IA de Monitoreo de Impresión. Por favor, limpie el filamento de la salida de desechos."
-                },
-                {
-                    "ecode": "0300800B",
-                    "intro": "El cortador está atascado. Por favor, asegúrate de que el mango del cortador esté hacia afuera, y revisa la conexión del cable del sensor del filamento."
-                },
-                {
-                    "ecode": "0300800D",
-                    "intro": "Algunos objetos han caído, o el extrusor no está extruyendo normalmente. Si los defectos son aceptables, haz clic en el botón \"Reanudar\" para continuar el trabajo de impresión."
                 },
                 {
                     "ecode": "0300800E",
@@ -2441,8 +2457,804 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250207,
+            "ver": 202503250214,
             "es": [
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "La medición de grosor falló, la cámara del cabezal de herramienta no pudo detectar la superficie del material."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Marcador visual no detectado; por favor, reubique el material en la posición correcta."
+                },
+                {
+                    "ecode": "0584050000010010",
+                    "intro": "AMS-HT E no certificado detectado o el firmware de AMS-HT E no ha sido actualizado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "La sensibilidad del sensor de fuerza de extrusión del extrusor izquierdo es baja; el sensor de fuerza puede no estar instalado correctamente."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "La calibración mano-ojo falló y la precisión de corte puede haber disminuido. Por favor, verifique si la punta de la cuchilla de corte está desgastada."
+                },
+                {
+                    "ecode": "0582050000010010",
+                    "intro": "AMS-HT C no certificado detectado o el firmware de AMS-HT C no ha sido actualizado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "0587050000010010",
+                    "intro": "AMS-HT H no certificado detectado o el firmware de AMS-HT H no ha sido actualizado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "0C00010000020017",
+                    "intro": "La lente de la cámara del cabezal de impresión está sucia, lo que puede afectar la funcionalidad de monitoreo de IA. Por favor, limpie la superficie de la lente de la cámara del cabezal de impresión lo antes posible."
+                },
+                {
+                    "ecode": "0583050000010010",
+                    "intro": "AMS-HT D no certificado detectado o el firmware de AMS-HT D no ha sido actualizado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "0586050000010010",
+                    "intro": "AMS-HT G no certificado detectado o el firmware de AMS-HT G no ha sido actualizado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "0585050000010010",
+                    "intro": "Se detectó AMS-HT F no certificado o firmware de AMS-HT F no actualizado. Imposible operar con esta impresora."
+                },
+                {
+                    "ecode": "0581050000010010",
+                    "intro": "Se detectó AMS-HT B no certificado o firmware de AMS-HT B no actualizado. Imposible operar con esta impresora."
+                },
+                {
+                    "ecode": "0580050000010010",
+                    "intro": "Se detectó AMS-HT A no certificado o firmware de AMS-HT A no actualizado. Imposible operar con esta impresora."
+                },
+                {
+                    "ecode": "0500040000020037",
+                    "intro": "El Módulo de Corte necesita calibración para obtener la posición de la herramienta. Por favor, realiza la calibración de montaje antes de usarlo. (aproximadamente 2-4 minutos)"
+                },
+                {
+                    "ecode": "0705700000020046",
+                    "intro": "AMS F La extracción del filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, verifica si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1806700000020008",
+                    "intro": "Error al obtener la tabla de mapeo AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "0705700000020008",
+                    "intro": "Error al obtener la tabla de mapeo AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "1800700000020008",
+                    "intro": "Error al obtener la tabla de mapeo AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "La plataforma actual no cumple con los requisitos de la tarea; por favor utiliza la Plataforma de Corte."
+                },
+                {
+                    "ecode": "07FE800000010006",
+                    "intro": "La placa TH se desconectó durante el proceso de cambio de extrusora. Por favor, verifica si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "0500010000020001",
+                    "intro": "La línea de medios está fallando. Por favor, reinicia la impresora. Si varios intentos fallan, por favor contacta al soporte técnico."
+                },
+                {
+                    "ecode": "0500010000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020008",
+                    "intro": "Error al obtener la tabla de mapeo AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "0700700000020046",
+                    "intro": "AMS A La extracción del filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, verifica si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "0701700000020008",
+                    "intro": "Falló al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "0701700000020046",
+                    "intro": "AMS B La extracción del filamento ha fallado; esto puede deberse a una resistencia excesiva en el motor asistente. Por favor, verifica si la bobina de filamento está inclinada o deformada y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "0702700000020008",
+                    "intro": "Falló al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "0703700000020008",
+                    "intro": "Falló al obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para volver a intentar."
+                },
+                {
+                    "ecode": "0300260000010001",
+                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor izquierdo es demasiado baja. El sensor puede estar instalado demasiado lejos o puede estar suelto."
+                },
+                {
+                    "ecode": "0300280000010001",
+                    "intro": "Los datos del sensor de fuerza del Módulo de Corte son anormales. El imán en el Portaherramientas puede haberse caído o el sensor de fuerza puede estar dañado."
+                },
+                {
+                    "ecode": "0300250000010007",
+                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor derecho es demasiado alta. El sensor puede estar dañado o el disipador de calor de la boquilla puede estar demasiado cerca del sensor."
+                },
+                {
+                    "ecode": "0300260000010007",
+                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor izquierdo es demasiado alta. El sensor puede estar instalado demasiado cerca o puede estar suelto."
+                },
+                {
+                    "ecode": "0300250000010004",
+                    "intro": "La señal del sensor de fuerza de extrusión del extrusor derecho es anormal. El sensor puede estar dañado o la comunicación MC-TH puede ser anormal."
+                },
+                {
+                    "ecode": "03009D0000020003",
+                    "intro": "El resultado de calibración del punto focal Z del láser de grabado difiere significativamente de los valores de diseño. Por favor, reinstala el Módulo Láser y vuelve a ejecutar la Configuración del Módulo Láser. Si falla repetidamente, por favor contacta con el soporte al cliente."
+                },
+                {
+                    "ecode": "0C00010000020002",
+                    "intro": "La cámara del cabezal de herramientas está fallando. Si este problema ocurre varias veces durante la impresión, por favor contacte al servicio de atención al cliente."
+                },
+                {
+                    "ecode": "1805700000020046",
+                    "intro": "La extracción del filamento de AMS-HT F ha fallado; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1803700000020046",
+                    "intro": "La extracción del filamento de AMS-HT D ha fallado; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1803700000020008",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "1805700000020008",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "0704700000020046",
+                    "intro": "La extracción del filamento de AMS E ha fallado; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "0706700000020046",
+                    "intro": "La extracción del filamento de AMS G ha fallado; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1804700000020046",
+                    "intro": "La extracción del filamento de AMS-HT E ha fallado; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1802700000020046",
+                    "intro": "La extracción del filamento de AMS-HT C ha fallado; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1800700000020046",
+                    "intro": "La extracción del filamento de AMS-HT A ha fallado; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1802700000020008",
+                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor seleccione \"Reanudar\" para intentar nuevamente."
+                },
+                {
+                    "ecode": "1807700000020008",
+                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "0500040000020042",
+                    "intro": "Se detectó un desajuste de boquilla durante la impresión. Por favor, inicie la impresión después de volver a rebanar, o continúe imprimiendo después de reemplazar con la boquilla correcta. Precaución: la temperatura del hotend es alta."
+                },
+                {
+                    "ecode": "0500040000020048",
+                    "intro": "No se detectó la plataforma; por favor asegúrese de que la plataforma láser esté colocada correctamente."
+                },
+                {
+                    "ecode": "05FF040000020042",
+                    "intro": "Se detectó un desajuste de boquilla durante la impresión. Por favor, inicie la impresión después de rebanar nuevamente, o continúe la impresión después de reemplazar con la boquilla correcta. Precaución: la temperatura del hotend es alta."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "La cámara de la boquilla está fallando. Si este problema ocurre múltiples veces durante la impresión, por favor contacte al soporte técnico."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300280000010003",
+                    "intro": "Falló la comunicación entre el módulo de corte y el cabezal durante la homing del eje Z. Por favor, verifique si el cable de señal del módulo de corte está suelto o roto, o asegúrese de que la bobina del sensor de fuerza esté intacta."
+                },
+                {
+                    "ecode": "18FE810000010004",
+                    "intro": "El sensor hall de posición del motor de conmutación del extrusor tiene un cortocircuito; por favor verifique si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "07FE810000010004",
+                    "intro": "El sensor hall de posición del motor de conmutación del extrusor tiene un cortocircuito; por favor verifique si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "18FF810000010004",
+                    "intro": "El sensor de posición Hall del motor de conmutación del extrusor tiene un cortocircuito; por favor verifica si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "18FF800000010006",
+                    "intro": "La placa TH se desconectó durante el proceso de conmutación del extrusor. Por favor verifica si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "07FF800000010006",
+                    "intro": "La placa TH se desconectó durante el proceso de conmutación del extrusor. Por favor verifica si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "030025000001000A",
+                    "intro": "La calibración del desplazamiento de la boquilla falló. El filamento se adhiere a la boquilla, lo que puede afectar la calidad de impresión. Por favor limpia la boquilla y vuelve a intentarlo."
+                },
+                {
+                    "ecode": "0300280000010004",
+                    "intro": "El sensor de fuerza del módulo de corte es anormal. El cable del sensor de fuerza puede estar desconectado o el sensor de fuerza está dañado."
+                },
+                {
+                    "ecode": "0500050000010011",
+                    "intro": "Bomba de aire no certificada o firmware de la bomba de aire no actualizado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "18FE800000010006",
+                    "intro": "La placa TH se desconectó durante el proceso de conmutación del extrusor. Por favor verifica si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "0702700000020046",
+                    "intro": "El AMS C no pudo extraer el filamento; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor verifica si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "0703700000020046",
+                    "intro": "El AMS D no pudo extraer el filamento; esto podría deberse a una resistencia excesiva en el motor asistente. Por favor verifica si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "0300250000010001",
+                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor derecho es demasiado baja. La boquilla puede no estar instalada, o el disipador de calor de la boquilla puede estar demasiado lejos del sensor."
+                },
+                {
+                    "ecode": "0C00040000010005",
+                    "intro": "Malfunción de la cámara BirdsEye: por favor, contacte al servicio de atención al cliente."
+                },
+                {
+                    "ecode": "0300260000010004",
+                    "intro": "La señal del sensor de fuerza de extrusión del extrusor izquierdo es anormal. El sensor puede estar dañado, o la comunicación MC-TH puede estar anormal."
+                },
+                {
+                    "ecode": "0300280000010007",
+                    "intro": "Fallo de comunicación entre el módulo de corte y el módulo de la herramienta. Por favor, verifique si el cable de señal del módulo de corte está suelto o roto. También podría ser debido a una bobina del sensor de fuerza rota."
+                },
+                {
+                    "ecode": "0300270000010004",
+                    "intro": "La señal del sensor de calibración del desplazamiento de la boquilla es anormal. El sensor puede estar dañado, o el cableado puede no estar conectado correctamente."
+                },
+                {
+                    "ecode": "0300260000010005",
+                    "intro": "La rotación del motor del eje Z está obstruida; por favor, verifique si hay objetos extraños atrapados en el deslizador Z o en la polea de sincronización Z."
+                },
+                {
+                    "ecode": "0300250000010005",
+                    "intro": "La rotación del motor del eje Z está obstruida; por favor, verifique si hay objetos extraños atrapados en el deslizador Z o en la polea de sincronización Z."
+                },
+                {
+                    "ecode": "0C00010000010012",
+                    "intro": "La calibración de la cámara de vista en vivo falló y el resultado de la calibración no se pudo guardar. Por favor, intente recalibrar. Si la calibración falla repetidamente, contacte al equipo de atención al cliente."
+                },
+                {
+                    "ecode": "1804700000020008",
+                    "intro": "Fallo al obtener la tabla de mapeo AMS; por favor, seleccione \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "0707700000020046",
+                    "intro": "El retiro de filamento AMS H ha fallado; esto puede deberse a una resistencia excesiva en el motor asistente. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "0707700000020008",
+                    "intro": "Fallo al obtener la tabla de mapeo AMS; por favor, seleccione \"Reanudar\" para reintentar."
+                },
+                {
+                    "ecode": "0706700000020008",
+                    "intro": "No se pudo obtener la tabla de mapeo AMS; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "0704700000020008",
+                    "intro": "No se pudo obtener la tabla de mapeo AMS; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "1801700000020008",
+                    "intro": "No se pudo obtener la tabla de mapeo AMS; por favor selecciona \"Reanudar\" para intentar de nuevo."
+                },
+                {
+                    "ecode": "1801700000020046",
+                    "intro": "AMS-HT B La extracción del filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, verifica si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1806700000020046",
+                    "intro": "AMS-HT G La extracción del filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, verifica si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "1807700000020046",
+                    "intro": "AMS-HT H La extracción del filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, verifica si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "La plataforma actual no cumple con el requisito de la tarea; por favor, utiliza la Plataforma Láser."
+                },
+                {
+                    "ecode": "05FE040000020042",
+                    "intro": "Se detectó una incompatibilidad de boquilla durante la impresión. Por favor, inicia la impresión después de volver a hacer el corte, o continúa imprimiendo después de reemplazar con la boquilla correcta. Precaución: la temperatura del hotend es alta."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Se detectó un tipo de plataforma incorrecto; por favor coloca la Plataforma Láser para la calibración."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Se detectó un tipo de plataforma incorrecto; por favor coloca la Plataforma de Corte para la calibración."
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18FE800000010004",
+                    "intro": "El sensor hall de posición del motor de levantamiento del cabezal de herramientas está en cortocircuito; por favor verifica si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "07FE800000010004",
+                    "intro": "El sensor hall de posición del motor de levantamiento del cabezal de herramientas está en cortocircuito; por favor verifica si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "18FF800000010004",
+                    "intro": "El sensor hall de posición del motor de levantamiento del cabezal de herramientas está en cortocircuito; por favor verifica si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "07FF800000010004",
+                    "intro": "El sensor hall de posición del motor de levantamiento del cabezal de herramientas está en cortocircuito; por favor verifica si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "07FF810000010004",
+                    "intro": "El sensor hall de posición del motor de conmutación del extrusor tiene un cortocircuito; por favor verifica si el sensor Hall está fallando."
+                },
+                {
+                    "ecode": "030026000001000B",
+                    "intro": "La detección de presencia de la boquilla falló: la boquilla del extrusor izquierdo no está instalada o está mal instalada."
+                },
+                {
+                    "ecode": "030025000001000B",
+                    "intro": "La detección de presencia de la boquilla falló: la boquilla del extrusor derecho no está instalada o está mal instalada."
+                },
+                {
+                    "ecode": "0500050000010012",
+                    "intro": "Módulo de corte no certificado o firmware del módulo de corte no actualizado. No se puede operar con esta impresora."
+                },
+                {
+                    "ecode": "03000F0000010001",
+                    "intro": "Se detectaron datos anormales del acelerómetro. Por favor, intenta reiniciar la impresora."
+                },
+                {
+                    "ecode": "0500030000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020018",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "El parámetro de la cámara Toolhead es anormal. Por favor, comuníquese con el soporte al cliente."
+                },
+                {
+                    "ecode": "0C00020000020006",
+                    "intro": "La altura de la boquilla parece estar demasiado alta. Por favor, verifica si hay filamento residual adherido a la boquilla."
+                },
+                {
+                    "ecode": "0702800000010004",
+                    "intro": "AMS C El calentador 1 se está calentando de manera anormal."
+                },
+                {
+                    "ecode": "07FE800000010003",
+                    "intro": "La señal Hall del Motor de Elevación del Cabezal de Herramientas es anormal, posiblemente debido a una falla de comunicación interna en el módulo del Cabezal de Herramientas."
+                },
+                {
+                    "ecode": "0702810000010004",
+                    "intro": "AMS C El calentador 2 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "07FF810000010002",
+                    "intro": "El sensor hall de posición del Motor de Conmutación del Extrusor tiene un circuito abierto. Por favor, verifique si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "0701800000010004",
+                    "intro": "AMS B El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "07FF810000010003",
+                    "intro": "La señal de Hall del motor de conmutación del extrusor es anormal, posiblemente debido a una falla de comunicación interna en el módulo Toolhead."
+                },
+                {
+                    "ecode": "0704800000010004",
+                    "intro": "AMS E El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1803810000010004",
+                    "intro": "AMS-HT D El calentador 2 se está calentando de manera anormal."
+                },
+                {
+                    "ecode": "0707810000010004",
+                    "intro": "AMS H El calentador 2 se está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1805810000010004",
+                    "intro": "AMS-HT F El calentador 2 se está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1804810000010004",
+                    "intro": "AMS-HT E El calentador 2 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1801800000010004",
+                    "intro": "AMS-HT B El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "0705810000010004",
+                    "intro": "AMS F El calentador 2 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1800400000020001",
+                    "intro": "Se perdió la señal de posición del buffer de filamento: el cable o el sensor de posición pueden estar fallando."
+                },
+                {
+                    "ecode": "1800510000030001",
+                    "intro": "El AMS está deshabilitado; por favor, cargue el filamento desde el soporte de carrete."
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "Se acabó el filamento AMS. Por favor, coloque un nuevo filamento en la misma ranura del AMS y reanude."
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "Se acabó el filamento AMS. Por favor, coloque un nuevo filamento en la misma ranura del AMS y reanude."
+                },
+                {
+                    "ecode": "1800550000010004",
+                    "intro": "La conexión entre AMS-HT A y el extrusor es incorrecta. Por favor, realiza la configuración de AMS."
+                },
+                {
+                    "ecode": "1803550000010004",
+                    "intro": "La vinculación entre AMS-HT D y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "0706550000010004",
+                    "intro": "La vinculación entre AMS G y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "0300910000010002",
+                    "intro": "La temperatura del calentador de la cámara 1 es anormal. El calentador puede tener un circuito abierto o el fusible térmico puede haberse quemado."
+                },
+                {
+                    "ecode": "0500030000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020017",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700400000020001",
+                    "intro": "Se perdió la señal de posición del buffer de filamento: el cable o el sensor de posición pueden estar fallando."
+                },
+                {
+                    "ecode": "0700400000020002",
+                    "intro": "Error en la señal de posición del buffer de filamento: el sensor de posición puede estar fallando."
+                },
+                {
+                    "ecode": "0700510000030001",
+                    "intro": "El AMS está desactivado; por favor, carga el filamento del soporte del carrete."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "Se acabó el filamento del AMS. Por favor, coloca un nuevo filamento en la misma ranura del AMS y reanuda."
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "El filamento AMS se agotó. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "El filamento AMS se agotó. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "Se acabó el filamento AMS. Por favor, coloque un nuevo filamento en la misma ranura del AMS y reanude."
+                },
+                {
+                    "ecode": "0500060000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07FE810000010003",
+                    "intro": "La señal hall del motor de cambio del extrusor es anormal, posiblemente debido a una falla de comunicación interna en el módulo del Toolhead."
+                },
+                {
+                    "ecode": "0700800000010004",
+                    "intro": "AMS A El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "07FE810000010002",
+                    "intro": "El sensor de posición hall del Motor de Conmutación del Extrusor tiene un circuito abierto. Por favor, verifique si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "0500060000020005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300C30000010001",
+                    "intro": "Malfunción del sensor de corriente del Escape de Cámara Activa: esto puede deberse a un circuito abierto o a una falla en el circuito de muestreo de hardware."
+                },
+                {
+                    "ecode": "0700810000010004",
+                    "intro": "AMS A El calentador 2 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "07FF800000010003",
+                    "intro": "La señal Hall del Motor de Elevación del Cabezal de Herramienta es anormal, posiblemente debido a una falla de comunicación interna en el módulo del Cabezal de Herramienta."
+                },
+                {
+                    "ecode": "0703810000010004",
+                    "intro": "AMS D El calentador 2 está calentando anormalmente."
+                },
+                {
+                    "ecode": "0701810000010004",
+                    "intro": "AMS B El calentador 2 está calentando anormalmente."
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "Módulo de láser no detectado: el módulo puede haberse caído, o la palanca de liberación rápida puede no estar bloqueada."
+                },
+                {
+                    "ecode": "07FE800000010002",
+                    "intro": "El sensor de posición del motor de elevación del cabezal de herramientas tiene un circuito abierto; por favor, verifica si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "07FF800000010002",
+                    "intro": "El sensor de posición del motor de elevación del cabezal de herramientas tiene un circuito abierto; por favor, verifica si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "1800810000010004",
+                    "intro": "AMS-HT A El calentador 2 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "0705800000010004",
+                    "intro": "AMS F El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1805800000010004",
+                    "intro": "AMS-HT F El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1800800000010004",
+                    "intro": "AMS-HT A El calentador 1 está calentando anormalmente."
+                },
+                {
+                    "ecode": "1802810000010004",
+                    "intro": "AMS-HT C El calentador 2 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "0704810000010004",
+                    "intro": "AMS E El calentador 2 está calentando anormalmente."
+                },
+                {
+                    "ecode": "1807800000010004",
+                    "intro": "AMS-HT H El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1802800000010004",
+                    "intro": "AMS-HT C El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1804800000010004",
+                    "intro": "AMS-HT E El calentador 1 está calentando de forma anormal."
+                },
+                {
+                    "ecode": "0707800000010004",
+                    "intro": "AMS H El calentador 1 está calentando de forma anormal."
+                },
+                {
+                    "ecode": "1807810000010004",
+                    "intro": "AMS-HT H El calentador 2 está calentando de forma anormal."
+                },
+                {
+                    "ecode": "0706810000010004",
+                    "intro": "AMS G El calentador 2 está calentando de forma anormal."
+                },
+                {
+                    "ecode": "1806810000010004",
+                    "intro": "AMS-HT G El calentador 2 está calentando de forma anormal."
+                },
+                {
+                    "ecode": "1806800000010004",
+                    "intro": "AMS-HT G El calentador 1 está calentando anormalmente."
+                },
+                {
+                    "ecode": "0706800000010004",
+                    "intro": "AMS G El calentador 1 está calentando anormalmente."
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "Se agotó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura en AMS y reanuda."
+                },
+                {
+                    "ecode": "1800400000020002",
+                    "intro": "Error de señal en la posición del buffer de filamento: el sensor de posición puede estar fallando."
+                },
+                {
+                    "ecode": "18FE800000010003",
+                    "intro": "La señal hall del motor de elevación del Toolhead es anormal, posiblemente debido a una falla de comunicación interna en el módulo del Toolhead."
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "Se agotó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura en AMS y reanuda."
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "Se agotó el filamento AMS. Por favor, coloca un nuevo filamento en la misma ranura en AMS y reanuda."
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "Se agotó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura en AMS y reanuda."
+                },
+                {
+                    "ecode": "18FF800000010003",
+                    "intro": "El señal hall del motor de elevación del Toolhead es anormal, posiblemente debido a una falla de comunicación interna en el módulo del Toolhead."
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "Se agotó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura en AMS y reanuda."
+                },
+                {
+                    "ecode": "18FE810000010003",
+                    "intro": "La señal hall del motor de conmutación del extrusor es anormal, posiblemente debido a una falla de comunicación interna en el módulo del Toolhead."
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "Se agotó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura en AMS y reanuda."
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "Se acabó el filamento de AMS. Por favor, coloque un nuevo filamento en la misma ranura de AMS y reanude."
+                },
+                {
+                    "ecode": "18FF800000010002",
+                    "intro": "El sensor hall de posición del motor de elevación del Toolhead tiene un circuito abierto; por favor, verifica si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "El filamento AMS-HT se ha agotado. Por favor, pon un nuevo filamento en la misma ranura en AMS y reanuda."
+                },
+                {
+                    "ecode": "18FE810000010002",
+                    "intro": "El sensor hall de posición del motor de conmutación del extrusor tiene un circuito abierto. Por favor, verifique si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "18FF810000010003",
+                    "intro": "La señal Hall del Motor de Conmutación del Extrusor es anormal, posiblemente debido a una falla de comunicación interna en el módulo Toolhead."
+                },
+                {
+                    "ecode": "18FF810000010002",
+                    "intro": "El sensor hall de posición del Motor de Conmutación del Extrusor tiene un circuito abierto. Por favor, verifique si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "0500040000020050",
+                    "intro": "La Ventana de Seguridad del Láser no está instalada."
+                },
+                {
+                    "ecode": "0701550000010004",
+                    "intro": "La conexión entre AMS B y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "0707550000010004",
+                    "intro": "La conexión entre AMS H y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "0704550000010004",
+                    "intro": "La vinculación entre AMS E y el extrusor es incorrecta. Por favor, ejecute la Configuración de AMS."
+                },
+                {
+                    "ecode": "0705550000010004",
+                    "intro": "La conexión entre AMS F y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "1802550000010004",
+                    "intro": "La conexión entre AMS-HT C y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "1804550000010004",
+                    "intro": "La vinculación entre AMS-HT E y el extrusor es incorrecta. Por favor, ejecute la Configuración de AMS."
+                },
+                {
+                    "ecode": "0702550000010004",
+                    "intro": "La conexión entre AMS C y el extrusor es incorrecta. Por favor, ejecute la configuración de AMS."
+                },
+                {
+                    "ecode": "1805550000010004",
+                    "intro": "La conexión entre AMS-HT F y el extrusor es incorrecta. Por favor, ejecute la configuración de AMS."
+                },
+                {
+                    "ecode": "0703550000010004",
+                    "intro": "La conexión entre AMS D y el extrusor es incorrecta. Por favor, ejecute la configuración de AMS."
+                },
+                {
+                    "ecode": "1801550000010004",
+                    "intro": "La conexión entre AMS-HT B y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "1806550000010004",
+                    "intro": "La conexión entre AMS-HT G y el extrusor es incorrecta. Por favor, ejecute la configuración de AMS."
+                },
+                {
+                    "ecode": "1807550000010004",
+                    "intro": "La conexión entre AMS-HT H y el extrusor es incorrecta. Por favor, ejecuta la configuración de AMS."
+                },
+                {
+                    "ecode": "0500030000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300970000030001",
+                    "intro": "La tapa superior está abierta."
+                },
+                {
+                    "ecode": "0703800000010004",
+                    "intro": "AMS D El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1801810000010004",
+                    "intro": "AMS-HT B El calentador 2 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "1803800000010004",
+                    "intro": "AMS-HT D El calentador 1 está calentando de manera anormal."
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "AMS se quedó sin filamento. Por favor, coloque un nuevo filamento en la misma ranura en AMS y reanude."
+                },
+                {
+                    "ecode": "18FE800000010002",
+                    "intro": "El sensor hall de posición del motor de elevación del cabezal de herramienta tiene un circuito abierto; por favor verifique si el cable de conexión está suelto."
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "AMS-HT se quedó sin filamento. Por favor, coloque un nuevo filamento en la misma ranura en AMS y reanude."
+                },
+                {
+                    "ecode": "0700550000010004",
+                    "intro": "La conexión entre AMS A y el extrusor es incorrecta. Por favor, ejecute la configuración de AMS."
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "La calibración del enfoque en el eje Z del grabado láser ha fallado. Por favor, verifique si el Material de Prueba del Láser (cartón de 350 g) está correctamente colocado y si su superficie está limpia e intacta."
+                },
                 {
                     "ecode": "0300A40000010002",
                     "intro": "La temperatura correcta del hotend está demasiado alta. Por favor, espera a que se enfríe a temperatura ambiente antes de reiniciar la tarea."
@@ -2462,10 +3274,6 @@
                 {
                     "ecode": "0C00010000020019",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00030000020017",
-                    "intro": "La calibración del offset de la boquilla de alta precisión falló; por favor, recalibra."
                 },
                 {
                     "ecode": "0C0001000002001A",
@@ -3612,10 +4420,6 @@
                     "intro": "La lente de la cámara del Toolhead parece estar sucia. Por favor, limpia la lente."
                 },
                 {
-                    "ecode": "0C00010000010005",
-                    "intro": "El parámetro de la cámara del cabezal de herramienta es anormal. Por favor, contacte al servicio postventa."
-                },
-                {
                     "ecode": "0C00010000010009",
                     "intro": "La lente de la cámara de vista en vivo parece estar sucia. Por favor, limpia la lente."
                 },
@@ -3680,10 +4484,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "Módulo láser no detectado. Es posible que el módulo se haya caído o que la palanca de liberación rápida no esté bloqueada."
-                },
-                {
                     "ecode": "0300950000010004",
                     "intro": "La velocidad del ventilador de enfriamiento del módulo láser es demasiado baja o se ha detenido. Puede estar atascado o el conector puede no estar bien enchufado."
                 },
@@ -3712,10 +4512,6 @@
                     "intro": "La detección de objetos extraños no está funcionando y no se puede leer el número de serie de la cámara Live View. Por favor, contacta con el equipo de atención al cliente."
                 },
                 {
-                    "ecode": "0C00010000020014",
-                    "intro": "La cámara de boquilla está fallando. Si este problema ocurre varias veces durante la impresión, por favor, contacta al servicio al cliente."
-                },
-                {
                     "ecode": "050005000001000D",
                     "intro": "La cámara BirdsEye no está certificada. Por favor, usa accesorios de Bambu Lab."
                 },
@@ -3742,10 +4538,6 @@
                 {
                     "ecode": "0500050000010010",
                     "intro": "Se detectó un AMS A no certificado o el firmware del AMS A no está actualizado. No se puede operar con esta impresora."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "El material no se puede detectar porque es demasiado pequeño y está colocado demasiado a la izquierda o demasiado cerca de la puerta. Por favor, muévelo al área central."
                 },
                 {
                     "ecode": "0505050000010010",
@@ -3916,10 +4708,6 @@
                     "intro": "El sensor de Hall de alimentación C Slot 2 de AMS está desconectado. Es posible que el conector tenga un mal contacto."
                 },
                 {
-                    "ecode": "0300280000010001",
-                    "intro": "Los datos del sensor de fuerza son anormales en el módulo de corte. Es posible que el imán del soporte de la cuchilla se haya caído."
-                },
-                {
                     "ecode": "0700230000020007",
                     "intro": "El sensor de Hall de alimentación A Slot 4 de AMS está desconectado. Es posible que el conector tenga un mal contacto."
                 },
@@ -4004,16 +4792,8 @@
                     "intro": "La calibración del punto focal XY del láser de grabado ha fallado. Por favor, limpia el Área de Homing del Láser en la Plataforma del Láser y vuelve a ejecutar la Calibración del Soporte del Módulo del Láser."
                 },
                 {
-                    "ecode": "03009D0000020003",
-                    "intro": "El resultado de la calibración Z del punto focal del láser de grabado difiere significativamente de los valores de diseño. Por favor, reinstala el Módulo del Láser y vuelve a ejecutar la Configuración del Módulo del Láser. Si falla muchas veces, por favor contacta a nuestro equipo de soporte."
-                },
-                {
                     "ecode": "03009C0000010001",
                     "intro": "El Módulo de Asistencia de Flujo de Aire Activo no está detectado. Por favor, verifica si el conector está enchufado correctamente."
-                },
-                {
-                    "ecode": "0C00040000020024",
-                    "intro": "El dispositivo no soporta la medición de grosor de material. Por favor, instala el Módulo Láser e inténtalo de nuevo."
                 },
                 {
                     "ecode": "0702230000020007",
@@ -4042,10 +4822,6 @@
                 {
                     "ecode": "0700200000020007",
                     "intro": "El sensor Hall de salida del alimentador Slot 1 de AMS A está desconectado. El conector puede tener un mal contacto."
-                },
-                {
-                    "ecode": "0300280000010004",
-                    "intro": "Los datos del sensor de fuerza son anormales en el módulo de corte. El imán del soporte de la cuchilla puede haberse caído."
                 },
                 {
                     "ecode": "1804230000020007",
@@ -4116,28 +4892,12 @@
                     "intro": "La calibración de la cámara de vista en vivo ha fallado, por favor, recalibra. Asegúrate de que la placa de construcción esté vacía y que la vista de la cámara esté clara y correctamente orientada. Por favor, contacta al soporte al cliente si ocurren fallos repetidos."
                 },
                 {
-                    "ecode": "0500040000020050",
-                    "intro": "La ventana de seguridad del láser no está instalada."
-                },
-                {
                     "ecode": "0500040000010052",
                     "intro": "La llave de seguridad no está insertada. Por favor, sigue la Wiki para instalarla."
                 },
                 {
                     "ecode": "0500040000010051",
                     "intro": "El botón de parada de emergencia no está en la posición correcta. Por favor, sigue la Wiki para instalarlo."
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "La medición de grosor falló. El material parece ser transparente o desigual."
-                },
-                {
-                    "ecode": "0C00030000020023",
-                    "intro": "La calibración del enfoque del eje Z del grabado láser falló. Por favor, verifica que el Material de Prueba del Láser (cartón de 350 g) esté colocado correctamente y que su superficie esté limpia e intacta."
-                },
-                {
-                    "ecode": "0C00040000020022",
-                    "intro": "No se detecta material. Por favor, coloque el material a procesar."
                 },
                 {
                     "ecode": "0300090000010001",
@@ -4166,22 +4926,6 @@
                 {
                     "ecode": "0C00030000020015",
                     "intro": "La detección de objetos extraños no está funcionando. Se detectó que la cámara de vista en vivo ha sido reemplazada. Si se ha instalado un módulo láser o de corte, por favor desinstala el módulo, presiona en \"Configuración>Calibración\" en la pantalla de la impresora y recalibra la cámara de vista en vivo."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "Módulo láser instalado. Se detectó una incompatibilidad de tipo de plataforma. Por favor, coloca una plataforma láser."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "Módulo de corte instalado. Se detectó una incompatibilidad de tipo de plataforma. Por favor, coloca la plataforma de corte correcta."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Módulo láser instalado. Se detectó una incompatibilidad de tipo de plataforma. Por favor, coloca la plataforma láser para la calibración del láser."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Módulo de corte instalado. Se detectó una incompatibilidad de tipo de plataforma. Por favor, coloca la plataforma de corte para la calibración del corte."
                 },
                 {
                     "ecode": "0701200000020006",
@@ -4328,42 +5072,6 @@
                     "intro": "Por favor, verifica si el material está saliendo por la boquilla izquierda. Si no, empuja suavemente el material y intenta extruir nuevamente."
                 },
                 {
-                    "ecode": "0700700000020007",
-                    "intro": "Se acabó el filamento de AMS. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "Se acabó el filamento de AMS. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "0703700000020007",
-                    "intro": "El filamento de AMS se acabó. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1802700000020007",
-                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "Se acabó el filamento de AMS. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1806700000020007",
-                    "intro": "El filamento de AMS-HT se acabó. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1807700000020007",
-                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1804700000020007",
-                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1801700000020007",
-                    "intro": "Se acabó el filamento AMS-HT. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Tipo de base de protección contra cortes desconocido. Por favor, reemplázalo con la base de protección contra cortes correcta."
                 },
@@ -4386,34 +5094,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "El carrete externo conectado al extrusor derecho puede estar enredado o atascado."
-                },
-                {
-                    "ecode": "0702700000020007",
-                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1800700000020007",
-                    "intro": "El filamento de AMS-HT se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "0706700000020007",
-                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "El filamento de AMS-HT se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "0705700000020007",
-                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "El filamento de AMS se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
-                },
-                {
-                    "ecode": "1803700000020007",
-                    "intro": "El filamento de AMS-HT se ha agotado. Por favor, coloca un nuevo filamento en la misma ranura de AMS y reanuda."
                 },
                 {
                     "ecode": "050004000002004D",
@@ -4444,20 +5124,12 @@
                     "intro": "Fallo en la homing del eje Z. Por favor, verifica si el movimiento del soporte de la cuchilla es suave y asegúrate de que no haya objetos extraños en la posición de contacto en la cama caliente."
                 },
                 {
-                    "ecode": "0300280000010007",
-                    "intro": "Fallo de comunicación entre el módulo de corte y el módulo de la herramienta. Por favor, verifica si el cable de señal del módulo de corte está suelto o roto. También podría deberse a una bobina del sensor de fuerza rota."
-                },
-                {
                     "ecode": "0C00010000020016",
                     "intro": ""
                 },
                 {
                     "ecode": "0500030000020020",
                     "intro": "La capacidad de la unidad flash USB es insuficiente para almacenar archivos de impresión."
-                },
-                {
-                    "ecode": "0300280000010003",
-                    "intro": "Fallo de comunicación entre el módulo de corte y la cabeza de herramienta durante la homing en el eje Z. Por favor, verifica si el cable de señal del módulo de corte está suelto o roto, o comprueba si la bobina del sensor de fuerza está intacta."
                 },
                 {
                     "ecode": "0C00010000020015",
@@ -4556,10 +5228,6 @@
                     "intro": "La verificación del comando MQTT falló, por favor actualice Studio o Handy."
                 },
                 {
-                    "ecode": "0500040000020037",
-                    "intro": "El Módulo de Corte necesita calibración para obtener la posición de la herramienta. Por favor, realice la calibración de montaje antes de usarlo. (aproximadamente 1 minuto)"
-                },
-                {
                     "ecode": "0500040000020034",
                     "intro": "Nuevo Módulo Láser conectado; para un corte y grabado más precisos, por favor configurarlo antes de usar. (aproximadamente 4 minutos)"
                 },
@@ -4580,14 +5248,6 @@
                     "intro": "La temperatura de la cámara es demasiado alta. Por favor, abra la cubierta superior y la puerta frontal para enfriar, o baje la temperatura ambiental."
                 },
                 {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
                     "ecode": "050005000001000B",
                     "intro": ""
                 },
@@ -4606,18 +5266,6 @@
                 {
                     "ecode": "0500040000020038",
                     "intro": "Por favor deslice el módulo de corte y ajuste la palanca de liberación rápida. Si ya está instalado, es posible que el módulo no esté correctamente alineado. Intente reinstalarlo."
-                },
-                {
-                    "ecode": "0300260000010005",
-                    "intro": "La rotación del motor del eje Z está obstaculizada; por favor revise si hay objetos extraños atascados en el deslizador Z o en la polea de sincronización Z."
-                },
-                {
-                    "ecode": "0300250000010005",
-                    "intro": "La rotación del motor del eje Z está obstaculizada; por favor revise si hay objetos extraños atascados en el deslizador Z o en la polea de sincronización Z."
-                },
-                {
-                    "ecode": "0300260000010007",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor izquierdo es demasiado alta. Puede ser que el sensor esté instalado muy cerca o que esté flojo."
                 },
                 {
                     "ecode": "0500010000020002",
@@ -5048,22 +5696,6 @@
                     "intro": "La velocidad del ventilador de refrigeración del hotend es lenta. Puede estar atascado y necesitar limpieza."
                 },
                 {
-                    "ecode": "0500040000020042",
-                    "intro": "Se detectó una incompatibilidad de boquilla durante la impresión. Inicie la impresión después de volver a generar el archivo de impresión, o continúe la impresión después de reemplazar la boquilla correcta. Precaución: la temperatura del hotend es alta."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "No se detecta ninguna plataforma; por favor asegúrese de que la plancha láser esté colocada correctamente."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "Se detectó una incompatibilidad de boquilla durante la impresión. Inicie la impresión después de volver a generar el archivo de impresión, o continúe la impresión después de reemplazar la boquilla correcta. Precaución: la temperatura del hotend es alta."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "Se ha detectado una inconsistencia de boquilla durante la impresión. Inicie la impresión después de volver a cortar o continúe después de reemplazar la boquilla correcta. Precaución: la temperatura de la boquilla está alta."
-                },
-                {
                     "ecode": "0500040000020049",
                     "intro": "El tipo de plataforma es desconocido. Por favor reemplácelo por el correcto y revise si la cámara BirdsEye está obstruida."
                 },
@@ -5102,10 +5734,6 @@
                 {
                     "ecode": "0706700000020020",
                     "intro": "La alimentación del filamento de AMS G hacia el buffer ha fallado; esto puede deberse a que el buffer esté bloqueando el filamento. Por favor, compruebe el tapón del tubo PTFE del buffer."
-                },
-                {
-                    "ecode": "18FF810000010002",
-                    "intro": "El sensor hall de posición del motor de cambio del extrusor es anormal. Por favor, comprueba si el cable de conexión está suelto."
                 },
                 {
                     "ecode": "0701130000010001",
@@ -5338,10 +5966,6 @@
                 {
                     "ecode": "18FF200000020004",
                     "intro": "Por favor, retire el filamento externo del extrusor derecho."
-                },
-                {
-                    "ecode": "18FF810000010003",
-                    "intro": "La adquisición de la comunicación de la señal del hall de posición del motor de conmutación del extrusor es anormal."
                 },
                 {
                     "ecode": "0705700000020003",
@@ -5600,10 +6224,6 @@
                     "intro": "AMS G: Fallido el agarre del filamento por la extrusora auxiliar, posiblemente debido a una resistencia excesiva en el buffer. Por favor, revise si el buffer está atascado, si el rollo de filamento está inclinado y si el tubo de filamento está despejado."
                 },
                 {
-                    "ecode": "18FE810000010002",
-                    "intro": "El sensor Hall de posición del motor de conmutación del extrusor es anormal. Por favor, revise si el cable de conexión está suelto."
-                },
-                {
                     "ecode": "1800700000020022",
                     "intro": "AMS-HT: La alimentación del filamento al buffer ha fallado; esto podría deberse a un filamento desgastado que causa que el motor de asistencia se resbale. Por favor, recorta la sección desgastada del filamento."
                 },
@@ -5796,10 +6416,6 @@
                     "intro": "AMS-HT C Falló la ayuda para que el extrusor agarre el filamento; esto puede deberse a que el motor de asistencia se deslizó. Por favor, corte la sección desgastada del filamento."
                 },
                 {
-                    "ecode": "1800700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor haga clic en \"Continuar\" para reintentar."
-                },
-                {
                     "ecode": "1800400000020004",
                     "intro": "La señal del buffer de filamento es anormal; puede ser que el resorte esté atascado o que el filamento esté enredado."
                 },
@@ -5826,10 +6442,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT: El suministro de filamento al extrusor de la cabeza de impresión ha fallado; esto podría deberse a que el filamento está desgastado y provoque que el motor de asistencia se resbale. Recortar la sección desgastada del filamento."
-                },
-                {
-                    "ecode": "18FF800000010002",
-                    "intro": "El sensor de posición del motor de elevación de la cabeza de herramienta es anormal, verificar si el cable de conexión está suelto."
                 },
                 {
                     "ecode": "0705700000020020",
@@ -6136,10 +6748,6 @@
                     "intro": "El suministro de filamento al buffer de AMS G ha fallado; esto puede deberse a que el filamento se ha desgastado y ha provocado que el motor de asistencia patine. Por favor, recorte la sección desgastada del filamento."
                 },
                 {
-                    "ecode": "1807700000020046",
-                    "intro": "El retractado del filamento AMS-HT H ha fallado; esto puede deberse a una resistencia excesiva en el motor de asistencia. Por favor, comprueba si la bobina de filamento está inclinada o deformada, y si el tubo de filamento está despejado."
-                },
-                {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F Ha fallado la asistencia al extrusor para coger el filamento, posiblemente debido a una resistencia excesiva del amortiguador. Por favor, compruebe si el amortiguador está atascado, si el carrete del filamento está inclinado y si el tubo del filamento está despejado."
                 },
@@ -6408,10 +7016,6 @@
                     "intro": "La alimentación del filamento al rodillo de extrusión del motor de asistencia AMS G ha fallado. Esto podría deberse a una señal perdida del rodillo del odómetro. Por favor, comprueba la conexión del enchufe del rodillo del odómetro."
                 },
                 {
-                    "ecode": "1806700000020046",
-                    "intro": "La extracción de filamento del motor de asistencia AMS-HT G ha fallado; esto podría deberse a una resistencia excesiva del motor de asistencia. Por favor, comprueba si el carrete de filamento está inclinado o deformado, y si el tubo de filamento está despejado."
-                },
-                {
                     "ecode": "1806700000020012",
                     "intro": "La alimentación del filamento al rodillo de extrusión del motor de asistencia AMS-HT G ha fallado. Esto podría deberse a una resistencia excesiva del filamento. Por favor, comprueba si el carrete está inclinado, si el filamento está enredado o si la rotación del carrete no es suave."
                 },
@@ -6642,10 +7246,6 @@
                 {
                     "ecode": "0706700000020003",
                     "intro": "Falló la extrusión del filamento. Posible causa: extrusor o boquilla obstruidos. Por favor consulte con el asistente para obtener más detalles."
-                },
-                {
-                    "ecode": "18FE800000010002",
-                    "intro": "El sensor Hall de posición del motor de elevación del cabezal de herramienta es anormal, por favor revise si el cable de conexión está suelto."
                 },
                 {
                     "ecode": "1807700000020023",
@@ -6888,18 +7488,6 @@
                     "intro": "La extracción de filamento de AMS H ha fallado; esto puede deberse a que el motor DC ha perdido la conexión. Por favor, verifique que el enchufe del motor DC esté correctamente conectado."
                 },
                 {
-                    "ecode": "1800700000020046",
-                    "intro": "La extracción de filamento de AMS-HT A ha fallado; esto puede deberse a una resistencia excesiva en el motor de ayuda. Por favor, compruebe si la bobina de filamento está inclinada o deformada, y si el tubo del filamento está despejado."
-                },
-                {
-                    "ecode": "1802700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reanudar\" para volver a intentar."
-                },
-                {
-                    "ecode": "1807700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reanudar\" para volver a intentar."
-                },
-                {
                     "ecode": "1800700000020012",
                     "intro": "AMS-HT Se ha producido un fallo al alimentar el filamento al rodillo de extrusión del motor de ayuda. Esto podría deberse a una resistencia excesiva en el filamento. Por favor, compruebe si el carrete está inclinado, si el filamento está enredado o si la rotación del carrete no es suave."
                 },
@@ -7096,20 +7684,12 @@
                     "intro": "La extracción del filamento de AMS-HT F ha fallado; esto puede deberse a que el filamento se desgasta y hace que el motor de asistencia se deslice. Por favor, corte la sección desgastada del filamento."
                 },
                 {
-                    "ecode": "1802700000020046",
-                    "intro": "La extracción del filamento de AMS-HT C ha fallado; esto puede deberse a una resistencia excesiva en el motor de asistencia. Por favor, revise si la bobina de filamento está inclinada o deformada, y si el tubo de filamento está despejado."
-                },
-                {
                     "ecode": "1802700000020045",
                     "intro": "La extracción del filamento de AMS-HT C ha fallado; esto puede deberse a que se ha agotado el filamento o ha sido sacado."
                 },
                 {
                     "ecode": "1800700000020041",
                     "intro": "AMS-HT La extracción del filamento ha fallado; esto puede deberse a que el filamento se ha separado del carrete. Por favor, reemplace el carrete con uno nuevo."
-                },
-                {
-                    "ecode": "1801700000020046",
-                    "intro": "AMS-HT B La extracción del filamento ha fallado; esto puede deberse a una resistencia excesiva en el motor de asistencia. Por favor, verifique si el carrete del filamento está inclinado o deformado, y si el tubo del filamento está despejado."
                 },
                 {
                     "ecode": "1806310000030003",
@@ -7352,10 +7932,6 @@
                     "intro": "El suministro de filamento al buffer AMS-HT A ha fallado. Esto podría deberse a que el buffer está bloqueando el filamento. Por favor verifica el enchufe del tubo de PTFE del buffer."
                 },
                 {
-                    "ecode": "1804700000020046",
-                    "intro": "La extracción de filamento del AMS-HT E ha fallado. Esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor verifica si el rollo de filamento está inclinado o deformado, y si el tubo del filamento está despejado."
-                },
-                {
                     "ecode": "1802700000020012",
                     "intro": "El suministro de filamento al motor de asistencia de extrusión AMS-HT C ha fallado. Esto podría deberse a una resistencia excesiva en el filamento. Por favor verifica si el rollo de filamento está inclinado, si el filamento está enredado o si la rotación del carrete no es suave."
                 },
@@ -7374,10 +7950,6 @@
                 {
                     "ecode": "1804300000030003",
                     "intro": "No se puede leer RFID debido a un error de hardware o estructural."
-                },
-                {
-                    "ecode": "1801700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reanudar\" para intentarlo de nuevo."
                 },
                 {
                     "ecode": "1806700000020033",
@@ -7640,10 +8212,6 @@
                     "intro": "Tiempo de espera agotado al purgar el filamento antiguo. Posible causa: el filamento está atascado o el extrusor/boquilla está obstruida. Por favor, consulte al Asistente para obtener detalles."
                 },
                 {
-                    "ecode": "0706700000020046",
-                    "intro": "La extracción del filamento AMS G ha fallado, esto podría ser debido a una resistencia excesiva en el motor de asistencia. Por favor, verifique si el carrete del filamento está inclinado o deformado, y si el tubo del filamento está despejado."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "No se puede leer la RFID debido a un error de hardware o estructural."
                 },
@@ -7664,16 +8232,8 @@
                     "intro": "La alimentación del filamento AMS-HT C al extrusor de la cabezal de herramientas ha fallado; esto podría ser debido al desgaste del filamento provocando que el motor de asistencia se resbale. Por favor, corte la sección desgastada del filamento."
                 },
                 {
-                    "ecode": "0705700000020008",
-                    "intro": "Error al obtener la tabla de asignación de AMS; haga clic en \"Reanudar\" para volver a intentar."
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "Falló la alimentación de filamento al AMS-HT B al motor auxiliar de la rueda de extrusión. Esto podría deberse a un pequeño trozo de filamento roto que entra en el tubo de alimentación. Por favor, retire el filamento roto del tubo de alimentación."
-                },
-                {
-                    "ecode": "0704700000020008",
-                    "intro": "Error al obtener la tabla de asignación de AMS; por favor haga clic en \"Reanudar\" para volver a intentar."
                 },
                 {
                     "ecode": "1804700000020043",
@@ -7876,20 +8436,12 @@
                     "intro": "AMS G Falló al sacar el filamento; esto podría ser debido a una desconexión del motor DC. Por favor, compruebe que el enchufe del motor DC esté correctamente conectado."
                 },
                 {
-                    "ecode": "1805700000020008",
-                    "intro": "Fallo al obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reanudar\" para intentarlo de nuevo."
-                },
-                {
                     "ecode": "18FF450000020002",
                     "intro": "La distancia de corte del cortador de filamentos es demasiado grande. El motor XY puede perder pasos."
                 },
                 {
                     "ecode": "1803700000020044",
                     "intro": "AMS-HT D Falló al sacar el filamento; esto podría ser debido a un filamento roto en la cabeza de la herramienta. Por favor, retire el filamento roto."
-                },
-                {
-                    "ecode": "0704700000020046",
-                    "intro": "AMS E Falló al sacar el filamento; esto podría ser debido a una resistencia excesiva en el motor de asistencia. Por favor, compruebe si el rollo de filamento está inclinado o deformado, y si el tubo de filamento está despejado."
                 },
                 {
                     "ecode": "1803310000030003",
@@ -8160,10 +8712,6 @@
                     "intro": "No se ha podido extruir el filamento de la ranura 2 de AMS H; el extrusor podría estar obstruido o el filamento podría ser demasiado delgado, lo que causa que el extrusor se resbale."
                 },
                 {
-                    "ecode": "1800510000030001",
-                    "intro": "AMS está deshabilitado; por favor carga el filamento desde el portabobinas."
-                },
-                {
                     "ecode": "0705700000020012",
                     "intro": "AMS F La alimentación del filamento a la rueda extrusora del motor de asistencia ha fallado. Esto podría deberse a una resistencia excesiva en el filamento. Por favor, comprueba si la bobina está inclinada, el filamento está enredado o la rotación de la bobina no es suave."
                 },
@@ -8376,14 +8924,6 @@
                     "intro": "El motor de la ranura 4 del AMS-HT D se ha resbalado. La rueda de extrusión puede estar fallando, o el filamento puede ser demasiado delgado."
                 },
                 {
-                    "ecode": "1800400000020001",
-                    "intro": "La señal de posición del buffer del filamento se ha perdido: el cable o el sensor de posición pueden estar funcionando mal."
-                },
-                {
-                    "ecode": "18FE810000010003",
-                    "intro": "La adquisición de comunicación de la señal del sensor Hall de posición del motor de cambio de extrusor es anómala."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "Falló al sacar el filamento AMS-G; esto puede deberse a que se ha agotado el filamento o ha sido sacado de forma incorrecta."
                 },
@@ -8430,10 +8970,6 @@
                 {
                     "ecode": "0704700000020013",
                     "intro": "No se ha podido alimentar el filamento a la rueda de extrusión del motor de asistencia AMS E. Esto puede deberse a una señal perdida del odómetro. Por favor, compruebe la conexión del enchufe del odómetro."
-                },
-                {
-                    "ecode": "1806700000020008",
-                    "intro": "Error al obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reanudar\" para volver a intentarlo."
                 },
                 {
                     "ecode": "1802700000020040",
@@ -8616,24 +9152,12 @@
                     "intro": "Ha fallado la alimentación de filamento de la rueda de extrusión del motor auxiliar AMS-HT H. Esto podría deberse a una obstrucción en el tubo de alimentación. Por favor, verifique que el tubo de alimentación y la rueda del filamento estén despejados."
                 },
                 {
-                    "ecode": "18FF800000010003",
-                    "intro": "La señal del sensor hall de la posición del motor de elevación de la cabeza de la herramienta es anormal durante el cambio del extrusor."
-                },
-                {
                     "ecode": "1801700000020060",
                     "intro": "AMS-HT B: Falló la asistencia del agarre del filamento del extrusor, esto puede deberse a que el motor de asistencia se deslizó. Por favor, recorte la sección desgastada del filamento."
                 },
                 {
                     "ecode": "0707700000020061",
                     "intro": "AMS H: Falló la asistencia del agarre del filamento del extrusor, posiblemente debido a una resistencia excesiva del buffer. Por favor, verifique si el buffer está atascado, si la bobina de filamento está inclinada y si el tubo del filamento está despejado."
-                },
-                {
-                    "ecode": "0705700000020046",
-                    "intro": "AMS F: Falló la extracción del filamento; esto puede deberse a una resistencia excesiva en el motor de asistencia. Por favor, compruebe si la bobina de filamento está inclinada o deformada y si el tubo del filamento está despejado."
-                },
-                {
-                    "ecode": "0706700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reanudar\" para volver a intentarlo."
                 },
                 {
                     "ecode": "1804700000020044",
@@ -8702,10 +9226,6 @@
                 {
                     "ecode": "1806700000020014",
                     "intro": "AMS-HT G: La alimentación del filamento a la rueda de extrusión del motor auxiliar ha fallado. Esto podría deberse a que un pequeño trozo de filamento roto ha entrado en el tubo de alimentación. Por favor, retire el filamento roto del tubo de alimentación."
-                },
-                {
-                    "ecode": "1803700000020008",
-                    "intro": "No se ha podido obtener la tabla de mapeo de AMS; por favor haga clic en \"Reanudar\" para reintentar."
                 },
                 {
                     "ecode": "1806700000020030",
@@ -8856,10 +9376,6 @@
                     "intro": "Fallo del chip de encriptación."
                 },
                 {
-                    "ecode": "0707700000020008",
-                    "intro": "No se pudo obtener la tabla de asignación de AMS; por favor haga clic en \"Reanudar\" para intentarlo de nuevo."
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "La extracción asistida del filamento de AMS-HT H ha fallado; esto podría deberse a que el motor de asistencia se deslizó. Por favor, corte la sección desgastada del filamento."
                 },
@@ -8918,10 +9434,6 @@
                 {
                     "ecode": "1800700000020010",
                     "intro": "La alimentación de filamento AMS-HT A hacia la rueda de extrusión del motor de asistencia ha fallado. Esto puede deberse a una obstrucción en el tubo de alimentación. Por favor, comprueba si el tubo de alimentación y el buje del filamento están limpios."
-                },
-                {
-                    "ecode": "1803700000020046",
-                    "intro": "Falló al retirar el filamento AMS-HT D; esto puede deberse a una resistencia excesiva en el motor de asistencia. Por favor, comprueba si la bobina de filamento está inclinada o deformada, y si el tubo de filamento está claro."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -9156,10 +9668,6 @@
                     "intro": "AMS F La alimentación del filamento al extrusor de la cabeza de la herramienta ha fallado; esto podría deberse a que el filamento se deslizó hacia afuera. Por favor, verifique si el tubo de filamento está desconectado o si el tubo se ha desgastado."
                 },
                 {
-                    "ecode": "0707700000020046",
-                    "intro": "AMS H Se ha producido un fallo al retirar el filamento; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, verifique si el carrete de filamento está inclinado o deformado y si el tubo de filamento está despejado."
-                },
-                {
                     "ecode": "0706350000010001",
                     "intro": "El sensor de temperatura y humedad tiene un error. Es posible que el chip esté defectuoso."
                 },
@@ -9376,10 +9884,6 @@
                     "intro": "El filamento de la ranura 3 de AMS-HT D puede estar roto en AMS-HT."
                 },
                 {
-                    "ecode": "18FE800000010003",
-                    "intro": "La señal Hall de posición del motor de elevación de la cabeza de herramienta es anormal durante el cambio del extrusor."
-                },
-                {
                     "ecode": "1801700000020043",
                     "intro": "La extracción del filamento ha fallado en la AMS-HT B; esto puede deberse al desgaste del filamento y causar que el motor de asistencia resbale. Por favor, corte la sección desgastada del filamento."
                 },
@@ -9394,10 +9898,6 @@
                 {
                     "ecode": "0707700000020023",
                     "intro": "La alimentación del filamento al buffer ha fallado en la AMS H; esto puede deberse a que el filamento se ha desprendido. Por favor, compruebe si el tubo del filamento está conectado de forma incorrecta o si el tubo se ha desgastado."
-                },
-                {
-                    "ecode": "1805700000020046",
-                    "intro": "La extracción del filamento ha fallado en la AMS-HT F; esto puede deberse a una resistencia excesiva en el motor de asistencia. Por favor, compruebe si el carrete del filamento está inclinado o deformado, y si el tubo del filamento está despejado."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -9434,10 +9934,6 @@
                 {
                     "ecode": "0707700000020032",
                     "intro": "AMS H La alimentación del filamento al extrusor del cabezal de herramientas no se ha completado; esto podría deberse a una resistencia excesiva del filamento. Por favor, compruebe si la bobina de filamento está inclinada o si el tubo de filamento está obstruido."
-                },
-                {
-                    "ecode": "1804700000020008",
-                    "intro": "No se ha podido obtener la tabla de mapeo de AMS; por favor, haga clic en \"Reanudar\" para intentarlo de nuevo."
                 },
                 {
                     "ecode": "1807700000020020",
@@ -9672,10 +10168,6 @@
                     "intro": "Fallo en el chip de encriptación."
                 },
                 {
-                    "ecode": "1800400000020002",
-                    "intro": "Error en la señal de posición del buffer del filamento: puede que el sensor de posición esté fallando."
-                },
-                {
                     "ecode": "0707700000020033",
                     "intro": "AMS H Ha fallado la alimentación del filamento al extrusor de la herramienta; esto podría deberse a que el filamento se ha deslizado fuera. Por favor, verifica si el tubo del filamento está desconectado o si el tubo se ha desgastado."
                 },
@@ -9884,10 +10376,6 @@
                     "intro": "AMS G El fallo al asistir al extrusor al agarrar el filamento podría deberse a que el motor de asistencia se ha deslizado. Por favor, corta la sección desgastada del filamento."
                 },
                 {
-                    "ecode": "0C00010000020002",
-                    "intro": "La cámara del cabezal de la herramienta no funciona correctamente. Si este problema ocurre varias veces durante la impresión, por favor contacta al servicio de atención al cliente."
-                },
-                {
                     "ecode": "0706200000020009",
                     "intro": "No se pudo extruir el filamento AMS G Slot 1; el extrusor puede estar obstruido o el filamento puede ser demasiado delgado, lo que hace que el extrusor se deslice."
                 },
@@ -9950,10 +10438,6 @@
                 {
                     "ecode": "07FF200000020002",
                     "intro": "No se ha detectado filamento en el extrusor derecho desde el carrete externo; por favor cargar el nuevo filamento."
-                },
-                {
-                    "ecode": "0C00010000010012",
-                    "intro": "La calibración de la cámara de vista en tiempo real ha fallado y el resultado de la calibración no se pudo guardar. Por favor, intenta recalibrar de nuevo. Si la calibración falla varias veces, por favor, ponte en contacto con el equipo de soporte al cliente."
                 },
                 {
                     "ecode": "0C00010000010010",
@@ -10148,10 +10632,6 @@
                     "intro": "AMS: Ha fallado la extracción del filamento; esto podría deberse a que el filamento se haya agotado o haya sido extraído."
                 },
                 {
-                    "ecode": "0700700000020046",
-                    "intro": "AMS: Ha fallado la extracción del filamento; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, revise si el carrete del filamento está inclinado o deformado, y si el tubo del filamento está despejado."
-                },
-                {
                     "ecode": "0700700000020050",
                     "intro": "AMS: Ha fallado la carga del filamento en el buffer; esto podría deberse a una resistencia excesiva en el buffer. Por favor, revise si el buffer está trabado, si la bobina del filamento está inclinada o si el tubo del filamento está bloqueado."
                 },
@@ -10198,10 +10678,6 @@
                 {
                     "ecode": "0701700000020045",
                     "intro": "AMS B La extracción de filamento ha fallado; esto podría deberse a que el filamento se ha agotado o se ha tirado de él."
-                },
-                {
-                    "ecode": "0701700000020046",
-                    "intro": "AMS B La extracción de filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, compruebe si el carrete de filamento está inclinado o deformado, y si el tubo de filamento está despejado."
                 },
                 {
                     "ecode": "0701700000020050",
@@ -10252,10 +10728,6 @@
                     "intro": "AMS C La extracción del filamento ha fallado; esto puede deberse a que el filamento se ha agotado o ha sido retirado."
                 },
                 {
-                    "ecode": "0702700000020046",
-                    "intro": "AMS C La extracción del filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, compruebe si la bobina del filamento está inclinada o deformada y si el tubo del filamento está despejado."
-                },
-                {
                     "ecode": "0702700000020050",
                     "intro": "AMS C La carga del filamento en el buffer ha fallado; Esto podría deberse a una resistencia excesiva en el buffer. Por favor, compruebe si el buffer está obstruido, si la bobina del filamento está inclinada o si el tubo del filamento está bloqueado."
                 },
@@ -10304,10 +10776,6 @@
                     "intro": "AMS D La extracción del filamento ha fallado; esto podría deberse a que el filamento se ha agotado o ha sido extraído."
                 },
                 {
-                    "ecode": "0703700000020046",
-                    "intro": "AMS D La extracción del filamento ha fallado; esto podría deberse a una resistencia excesiva en el motor de asistencia. Por favor, compruebe si el carrete de filamento está inclinado o deformado, y si el tubo de filamento está despejado."
-                },
-                {
                     "ecode": "0703700000020050",
                     "intro": "AMS D La carga del filamento en el buffer ha fallado; esto podría deberse a una resistencia excesiva en el buffer. Por favor, compruebe si el buffer está atascado, el carrete de filamento está inclinado o el tubo de filamento está bloqueado."
                 },
@@ -10330,10 +10798,6 @@
                 {
                     "ecode": "0702700000020014",
                     "intro": "AMS C La alimentación de filamento a la rueda de extrusión del motor de asistencia ha fallado. Esto podría deberse a que un trozo pequeño de filamento roto ha entrado en el tubo de alimentación. Por favor, retire el filamento roto del tubo de alimentación."
-                },
-                {
-                    "ecode": "0300250000010001",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor derecho es demasiado baja. Puede ser que la boquilla no esté instalada o que el disipador de calor de la boquilla esté demasiado lejos del sensor."
                 },
                 {
                     "ecode": "0702700000020022",
@@ -10362,10 +10826,6 @@
                 {
                     "ecode": "0703700000020020",
                     "intro": "AMS D ha fallado el suministro de filamento al búfer; esto podría deberse a que el búfer está bloqueando el filamento. Por favor, revise el enchufe del tubo de PTFE del búfer."
-                },
-                {
-                    "ecode": "0300260000010004",
-                    "intro": "La señal del sensor de fuerza de extrusión del extrusor izquierda es anormal. El sensor puede estar dañado o la comunicación MC-TH puede ser anormal."
                 },
                 {
                     "ecode": "0701700000020014",
@@ -10424,10 +10884,6 @@
                     "intro": "El suministro de filamento AMS D al búfer ha fallado; esto podría deberse a que el motor auxiliar se resbale debido a un filamento desgastado. Por favor, recorte la sección desgastada del filamento."
                 },
                 {
-                    "ecode": "0300250000010007",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor derecho es demasiado alta. El sensor puede estar dañado o el disipador de calor de la boquilla puede estar demasiado cerca del sensor."
-                },
-                {
                     "ecode": "0703700000020011",
                     "intro": "El suministro de filamento AMS D al motor auxiliar de rueda de extrusión ha fallado. Esto podría ser debido a una desconexión del motor DC. Por favor, compruebe la conexión del enchufe del motor DC."
                 },
@@ -10472,16 +10928,8 @@
                     "intro": "La alimentación del filamento al motor de asistencia de extrusión de AMS A ha fallado. Esto puede deberse a una desconexión del motor DC. Por favor, revise la conexión del enchufe del motor DC."
                 },
                 {
-                    "ecode": "0300250000010004",
-                    "intro": "La señal del sensor de la fuerza de extrusión del extrusor derecho es anormal. El sensor puede estar dañado o la comunicación MC-TH puede ser anormal."
-                },
-                {
                     "ecode": "0702700000020010",
                     "intro": "La alimentación del filamento al motor de asistencia de extrusión de AMS C ha fallado. Esto puede deberse a un bloqueo en el tubo de alimentación. Por favor, revise si el tubo de alimentación y la bobina del filamento están desbloqueados."
-                },
-                {
-                    "ecode": "0300270000010004",
-                    "intro": "La señal del sensor de calibración de compensación de la boquilla es anormal. El sensor puede estar dañado o el cableado puede no estar conectado correctamente."
                 },
                 {
                     "ecode": "0300260000010008",
@@ -10572,6 +11020,10 @@
                     "intro": "Se está realizando la impresión con una alta temperatura de cama caliente por primera vez. Para obtener una mejor calidad de impresión de la primera capa, se está procediendo automáticamente a la calibración de alta temperatura de la cama caliente."
                 },
                 {
+                    "ecode": "0C00030000020011",
+                    "intro": "La calibración del offset de la boquilla de alta precisión ha fallado; por favor, recalibre."
+                },
+                {
                     "ecode": "0703550000010002",
                     "intro": "El tubo PTFE se ha conectado incorrectamente entre la cabeza del cabezal y el buffer. Por favor, conecta la parte superior del buffer al extrusor derecho y la parte inferior al extrusor izquierdo."
                 },
@@ -10590,10 +11042,6 @@
                 {
                     "ecode": "0701550000010002",
                     "intro": "El tubo de PTFE está conectado incorrectamente entre la herramienta y el buffer. Por favor, conecte la parte superior del buffer al extrusor derecho y la parte inferior al extrusor izquierdo."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "La sensibilidad del sensor de fuerza de extrusión del extrusor izquierdo es baja; es posible que la boquilla no esté instalada correctamente."
                 },
                 {
                     "ecode": "1807960000010003",
@@ -10754,10 +11202,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "La desviación en el valor de calibración de posicionamiento del extrusor es demasiado grande; por favor recalibrar."
-                },
-                {
-                    "ecode": "0500030000020010",
-                    "intro": ""
                 },
                 {
                     "ecode": "0500010000020009",
@@ -11112,10 +11556,6 @@
                     "intro": "La refrigeración de la cámara puede ser demasiado lenta. Puede abrir la puerta frontal o la cubierta superior para ayudar a enfriar si el aire en la cámara no es tóxico."
                 },
                 {
-                    "ecode": "0500010000020001",
-                    "intro": "El sistema de medios no está funcionando correctamente. Por favor, reinicie la impresora. Si después de varios intentos sigue sin funcionar, póngase en contacto con el servicio al cliente."
-                },
-                {
                     "ecode": "0500020000020005",
                     "intro": "No se pudo conectar a Internet; por favor, compruebe la conexión de red."
                 },
@@ -11202,10 +11642,6 @@
                 {
                     "ecode": "0702940000010001",
                     "intro": "AMS C El sensor de temperatura del calentador 1 está funcionando mal, lo que puede deberse a una mala conexión del conector."
-                },
-                {
-                    "ecode": "0300C30000010001",
-                    "intro": "Malfuncionamiento del sensor de corriente de escape de la cámara activa; esto puede deberse a un circuito abierto o una falla del circuito de muestreo de hardware."
                 },
                 {
                     "ecode": "0700010000020008",
@@ -11408,10 +11844,6 @@
                     "intro": "Se produce una anomalía durante el proceso de calentamiento de la cama caliente; los módulos de calentamiento pueden estar rotos."
                 },
                 {
-                    "ecode": "0500010000020003",
-                    "intro": ""
-                },
-                {
                     "ecode": "0700320000020002",
                     "intro": "El etiquetado RFID en la ranura AMS A3 está dañado, o su contenido no se puede identificar."
                 },
@@ -11440,10 +11872,6 @@
                     "intro": "Error al extruir el filamento; es posible que el extrusor esté obstruido."
                 },
                 {
-                    "ecode": "0500060000020007",
-                    "intro": ""
-                },
-                {
                     "ecode": "0C00040000010014",
                     "intro": "La Base de Protección de Corte no se ha detectado, lo que puede provocar daños en la cama térmica. Por favor, colócala y continúa."
                 },
@@ -11470,10 +11898,6 @@
                 {
                     "ecode": "0700350000010002",
                     "intro": "AMS A El sensor de humedad está desconectado, lo cual puede deberse a un mal contacto del conector."
-                },
-                {
-                    "ecode": "0500060000020005",
-                    "intro": ""
                 },
                 {
                     "ecode": "0703810000010002",
@@ -11764,10 +12188,6 @@
                     "intro": "La altura de la boquilla parece ser demasiado baja. Verifique si la boquilla está desgastada o inclinada. Vuelva a calibrar el Lidar si se ha reemplazado la boquilla."
                 },
                 {
-                    "ecode": "0C00020000020006",
-                    "intro": "La altura de la boquilla parece ser demasiado alta. Verifique si hay residuos de filamento pegados a la boquilla."
-                },
-                {
                     "ecode": "0C00020000020009",
                     "intro": "El láser vertical no es lo suficientemente brillante en la posición de inicio. Por favor, limpie o reemplace la cama caliente si este mensaje aparece repetidamente."
                 },
@@ -11778,10 +12198,6 @@
                 {
                     "ecode": "0703800000010002",
                     "intro": "AMS D El calentador 1 está desconectado, lo que puede ser debido a un mal contacto del conector."
-                },
-                {
-                    "ecode": "07FE800000010003",
-                    "intro": "La señal hall de la posición del motor de elevación de la cabeza de herramienta es anormal durante el cambio de extrusor."
                 },
                 {
                     "ecode": "0701010000020008",
@@ -11798,18 +12214,6 @@
                 {
                     "ecode": "0300350000010001",
                     "intro": "La velocidad del ventilador de enfriamiento del módulo MC es demasiado lenta o se detuvo. Puede estar bloqueado o el conector podría no estar conectado correctamente."
-                },
-                {
-                    "ecode": "0C00040000010005",
-                    "intro": "Mal funcionamiento de la cámara BirdsEye: por favor, póngase en contacto con el servicio al cliente."
-                },
-                {
-                    "ecode": "0300970000030001",
-                    "intro": "La cubierta superior parece estar abierta."
-                },
-                {
-                    "ecode": "07FF800000010003",
-                    "intro": "La señal Hall de la posición del motor de elevación del cabezal de herramienta es anormal durante el cambio del extrusor."
                 },
                 {
                     "ecode": "0C00040000010010",
@@ -12148,39 +12552,7 @@
                     "intro": "AMS-HT B El calentador 2 está en cortocircuito, lo cual puede deberse a un cortocircuito en el cableado o a daño en el calentador."
                 },
                 {
-                    "ecode": "0500030000020014",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020016",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000030009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020011",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020012",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020013",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020015",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020017",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020018",
                     "intro": ""
                 },
                 {
@@ -12336,10 +12708,6 @@
                     "intro": "Se detectó que el AMS A está desconectado durante el proceso de inicialización del AMS."
                 },
                 {
-                    "ecode": "0706800000010004",
-                    "intro": "El calentador 1 del AMS G se está calentando de forma anormal."
-                },
-                {
                     "ecode": "1800930000010001",
                     "intro": "El ventilador de enfriamiento del calentador 2 del AMS-HT A está bloqueado, lo que puede deberse a que el ventilador está atascado."
                 },
@@ -12486,10 +12854,6 @@
                 {
                     "ecode": "1803020000010001",
                     "intro": "AMS-HT D: Error de velocidad y longitud del filamento: El odómetro del filamento puede estar defectuoso."
-                },
-                {
-                    "ecode": "0705810000010004",
-                    "intro": "AMS F: El calentador 2 se está calentando de forma anormal."
                 },
                 {
                     "ecode": "0706010000020009",
@@ -12696,10 +13060,6 @@
                     "intro": "AMS-HT G El funcionamiento de la válvula de escape 1 no es normal, lo que puede deberse a una resistencia excesiva."
                 },
                 {
-                    "ecode": "1806810000010004",
-                    "intro": "AMS-HT G El calentador 2 se está calentando anormalmente."
-                },
-                {
                     "ecode": "0704010000010011",
                     "intro": "AMS E Error de parámetros de calibración del motor de asistencia. Por favor, saque el filamento del soporte del filamento y luego reinicie el AMS."
                 },
@@ -12714,10 +13074,6 @@
                 {
                     "ecode": "1800100000020004",
                     "intro": "AMS-HT A El motor con escobillas 1 no tiene señal, lo que puede deberse a un mal contacto en el conector del motor o a una falla del motor."
-                },
-                {
-                    "ecode": "1806800000010004",
-                    "intro": "AMS-HT G El calentador 1 está calentando de forma anormal."
                 },
                 {
                     "ecode": "1802130000020004",
@@ -12764,10 +13120,6 @@
                     "intro": "AMS-HT y el ventilador de enfriamiento del calefactor 1 está bloqueado, lo cual podría ser debido a que el ventilador está atascado."
                 },
                 {
-                    "ecode": "1807810000010004",
-                    "intro": "AMS-HT H El calefactor 2 se está calentando anormalmente."
-                },
-                {
                     "ecode": "1801010000010004",
                     "intro": "El control de velocidad del motor de asistencia AMS-HT B está funcionando mal. Puede haber una falla en el sensor de velocidad."
                 },
@@ -12792,16 +13144,8 @@
                     "intro": "AMS H La placa RFID 2 tiene un error."
                 },
                 {
-                    "ecode": "1801800000010004",
-                    "intro": "AMS-HT B: El calentador 1 está calentando de forma anormal."
-                },
-                {
                     "ecode": "0707020000010001",
                     "intro": "AMS H: Error en la velocidad y longitud del filamento. Es posible que el odómetro del filamento esté defectuoso."
-                },
-                {
-                    "ecode": "0706810000010004",
-                    "intro": "AMS G: El calentador 2 está calentando de forma anormal."
                 },
                 {
                     "ecode": "1807010000010001",
@@ -12846,10 +13190,6 @@
                 {
                     "ecode": "1803920000010001",
                     "intro": "AMS-HT D El ventilador de enfriamiento del calefactor 1 está bloqueado, lo cual puede deberse a que el ventilador se haya atascado."
-                },
-                {
-                    "ecode": "0707800000010004",
-                    "intro": "AMS H El calefactor 1 está calentando anormalmente."
                 },
                 {
                     "ecode": "0704300000010001",
@@ -12932,10 +13272,6 @@
                     "intro": "AMS-HT F El sensor de corriente del calentador 1 es anormal."
                 },
                 {
-                    "ecode": "1805810000010004",
-                    "intro": "AMS-HT F El calentador 2 está calentando anormalmente."
-                },
-                {
                     "ecode": "0705920000010001",
                     "intro": "AMS F El ventilador de refrigeración del calentador 1 está bloqueado, lo cual puede deberse a que el ventilador esté atascado."
                 },
@@ -12958,10 +13294,6 @@
                 {
                     "ecode": "0704930000020002",
                     "intro": "AMS E La velocidad del ventilador de refrigeración del calentador 2 es demasiado baja, lo que podría deberse a una resistencia excesiva del ventilador."
-                },
-                {
-                    "ecode": "1804810000010004",
-                    "intro": "AMS-HT E El calentador 2 se está calentando anormalmente."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -13072,10 +13404,6 @@
                     "intro": "AMS E: El motor de asistencia tiene una resistencia desequilibrada en las tres fases. El motor de asistencia puede estar defectuoso."
                 },
                 {
-                    "ecode": "1802800000010004",
-                    "intro": "AMS-HT C: El calentador 1 está calentando de forma anormal."
-                },
-                {
                     "ecode": "0705960000010001",
                     "intro": "AMS F: El proceso de secado puede experimentar una sobrecarga térmica. Por favor, apague la fuente de alimentación de AMS."
                 },
@@ -13108,10 +13436,6 @@
                     "intro": "La bobina de la válvula de escape 2 está en cortocircuito en AMS-HT A, lo cual puede deberse a un cableado anormal o a un daño."
                 },
                 {
-                    "ecode": "0707810000010004",
-                    "intro": "AMS H El calentador 2 está calentando de forma anormal."
-                },
-                {
                     "ecode": "1803010000010011",
                     "intro": "AMS-HT D Error en el parámetro de calibración del motor de asistencia. Por favor, saque el filamento del concentrador de filamento y luego reinicie el AMS."
                 },
@@ -13130,10 +13454,6 @@
                 {
                     "ecode": "1800960000010001",
                     "intro": "AMS-HT A El proceso de secado puede experimentar sobrecalentamiento. Por favor, apague el suministro de energía del AMS."
-                },
-                {
-                    "ecode": "1804800000010004",
-                    "intro": "AMS-HT y el calentador 1 están calentando de manera anormal."
                 },
                 {
                     "ecode": "1800010000020010",
@@ -13210,10 +13530,6 @@
                 {
                     "ecode": "0706920000020002",
                     "intro": "AMS G: La velocidad del ventilador de refrigeración del calentador 1 es demasiado baja, lo que podría deberse a una resistencia excesiva del ventilador."
-                },
-                {
-                    "ecode": "1807800000010004",
-                    "intro": "AMS-HT H: El calentador 1 se está calentando anormalmente."
                 },
                 {
                     "ecode": "0704110000020004",
@@ -13312,14 +13628,6 @@
                     "intro": "AMS-HT G El motor de escobillas 1 no tiene señal, lo que puede deberse a un mal contacto en el conector del motor o a una falla del motor."
                 },
                 {
-                    "ecode": "0704810000010004",
-                    "intro": "AMS E El calentador 2 se está calentando anormalmente."
-                },
-                {
-                    "ecode": "1803800000010004",
-                    "intro": "AMS-HT D El calentador 1 se está calentando anormalmente."
-                },
-                {
                     "ecode": "1801960000010001",
                     "intro": "AMS-HT B El proceso de secado puede experimentar sobrecalentamiento. Por favor apague la fuente de alimentación de AMS."
                 },
@@ -13380,10 +13688,6 @@
                     "intro": "El motor de asistencia AMS G está sobrecargado. El filamento puede estar enredado o atascado."
                 },
                 {
-                    "ecode": "1800800000010004",
-                    "intro": "AMS-HT A El calentador 1 está calentando de forma anormal."
-                },
-                {
                     "ecode": "1800300000010001",
                     "intro": "La placa AMS-HT A RFID 1 tiene un error."
                 },
@@ -13418,10 +13722,6 @@
                 {
                     "ecode": "1804930000020002",
                     "intro": "AMS-HT E La velocidad del ventilador de enfriamiento del calentador 2 es demasiado baja, lo que podría deberse a una resistencia excesiva del ventilador."
-                },
-                {
-                    "ecode": "1802810000010004",
-                    "intro": "AMS-HT C El calentador 2 está calentando de forma anormal."
                 },
                 {
                     "ecode": "1805100000020004",
@@ -13528,10 +13828,6 @@
                     "intro": "El motor de asistencia AMS H ha resbalado. La rueda de extrusión puede estar desgastada o el filamento puede ser demasiado delgado."
                 },
                 {
-                    "ecode": "1805800000010004",
-                    "intro": "AMS-HT F El calentador 1 se está calentando anormalmente."
-                },
-                {
                     "ecode": "1806010000020009",
                     "intro": "AMS-HT G El motor de asistencia tiene una resistencia desequilibrada en tres fases. El motor de asistencia podría estar averiado."
                 },
@@ -13596,10 +13892,6 @@
                     "intro": "AMS-HT F El odómetro no tiene señal. Es posible que el conector del odómetro tenga un mal contacto."
                 },
                 {
-                    "ecode": "1803810000010004",
-                    "intro": "AMS-HT D El calentador 2 está calentando de forma anormal."
-                },
-                {
                     "ecode": "1806920000010001",
                     "intro": "AMS-HT G El ventilador de enfriamiento del calentador 1 está bloqueado, lo que puede ser debido a que está atascado."
                 },
@@ -13662,10 +13954,6 @@
                 {
                     "ecode": "0705500000020001",
                     "intro": "La comunicación de AMS F es anormal. Por favor, verifica el cable de conexión."
-                },
-                {
-                    "ecode": "0705800000010004",
-                    "intro": "AMS F El calentador 1 está calentando de manera anormal."
                 },
                 {
                     "ecode": "1806920000020002",
@@ -13744,10 +14032,6 @@
                     "intro": "AMS-HT C La velocidad del ventilador de enfriamiento del calefactor 2 es demasiado baja, lo cual podría deberse a una resistencia excesiva del ventilador."
                 },
                 {
-                    "ecode": "1801810000010004",
-                    "intro": "AMS-HT B El calentador 2 está calentando anormalmente."
-                },
-                {
                     "ecode": "1806810000010001",
                     "intro": "AMS-HT G El sensor de corriente del calentador 2 es anormal."
                 },
@@ -13768,20 +14052,12 @@
                     "intro": "El sensor de corriente del calentador 1 de AMS-HT H es anormal."
                 },
                 {
-                    "ecode": "1800810000010004",
-                    "intro": "El calentador 2 de AMS-HT A está calentando anormalmente."
-                },
-                {
                     "ecode": "0706800000010001",
                     "intro": "El sensor de corriente del calentador 1 de AMS G es anormal."
                 },
                 {
                     "ecode": "1806130000020004",
                     "intro": "El motor cepillado 4 de AMS-HT G no tiene señal, lo que puede deberse a un mal contacto en el conector del motor o a una falla en el motor."
-                },
-                {
-                    "ecode": "0704800000010004",
-                    "intro": "El calentador 1 de AMS E está calentando anormalmente."
                 },
                 {
                     "ecode": "1801930000020002",
@@ -13832,14 +14108,6 @@
                     "intro": "El motor de cambio de extrusor está funcionando anormalmente. Por favor revise si el cable de conexión está suelto."
                 },
                 {
-                    "ecode": "07FE810000010003",
-                    "intro": "La adquisición de la comunicación de señal de posición hall del motor de cambio de extrusor es anormal."
-                },
-                {
-                    "ecode": "07FE810000010002",
-                    "intro": "El sensor de posición Hall del motor de cambio de extrusor es anormal. Por favor, revise si el cable de conexión está suelto."
-                },
-                {
                     "ecode": "07FE800000010001",
                     "intro": "El motor de elevación del cabezal de herramienta funciona de manera anormal. Por favor, compruebe si el cable de conexión está suelto."
                 },
@@ -13852,10 +14120,6 @@
                     "intro": "El motor de elevación del cabezal de herramienta funciona de manera anormal. Por favor, compruebe si el cable de conexión está suelto."
                 },
                 {
-                    "ecode": "07FF810000010002",
-                    "intro": "El sensor hall de posición del motor de cambio del extrusor es anormal. Por favor, compruebe si el cable de conexión está suelto."
-                },
-                {
                     "ecode": "07FF810000020001",
                     "intro": "La acción del cambio de extrusor es anormal. Por favor, compruebe si hay algo atascado en el cabezal de la herramienta."
                 },
@@ -13866,18 +14130,6 @@
                 {
                     "ecode": "0500030000010026",
                     "intro": "El módulo de expansión del cabezal de herramienta no funciona correctamente. Por favor, apague el dispositivo, compruebe la conexión y vuelva a encender el dispositivo."
-                },
-                {
-                    "ecode": "07FE800000010002",
-                    "intro": "El sensor hall de posición del motor de elevación del cabezal de herramienta es anormal, por favor compruebe si el cable de conexión está suelto."
-                },
-                {
-                    "ecode": "07FF800000010002",
-                    "intro": "El sensor hall de posición del motor de elevación del cabezal de herramienta es anormal, por favor compruebe si el cable de conexión está suelto."
-                },
-                {
-                    "ecode": "07FF810000010003",
-                    "intro": "La adquisición de la comunicación de la señal del sensor Hall de posición del motor de cambio del extrusor es anormal."
                 },
                 {
                     "ecode": "0300200000010001",
@@ -14126,10 +14378,6 @@
                 {
                     "ecode": "1203220000020005",
                     "intro": "Se ha agotado el filamento del motor AMS D Slot3, y la purga del filamento anterior se realizó de forma anormal; por favor revisar si el filamento está atascado en el cabezal."
-                },
-                {
-                    "ecode": "0703800000010004",
-                    "intro": "AMS D El calentador 1 se está calentando de forma anormal."
                 },
                 {
                     "ecode": "0703010000020009",
@@ -14408,10 +14656,6 @@
                     "intro": "El filamento de la ranura 4 de la impresora AMS D se ha agotado, y la purga del filamento usado falló anormalmente; por favor revise si el filamento está atascado en el cabezal de la herramienta."
                 },
                 {
-                    "ecode": "0701810000010004",
-                    "intro": "El calentador 2 de la impresora AMS B se está calentando anormalmente."
-                },
-                {
                     "ecode": "0702910000010002",
                     "intro": "La bobina de la válvula de escape 2 de la impresora AMS C está en cortocircuito, lo cual puede deberse a una conexión anormal o daño."
                 },
@@ -14450,10 +14694,6 @@
                 {
                     "ecode": "1203110000010001",
                     "intro": "El motor del Slot2 AMS D se ha deslizado. Es posible que la rueda de extrusión no funcione correctamente o que el filamento sea demasiado delgado."
-                },
-                {
-                    "ecode": "0701800000010004",
-                    "intro": "AMS B: El calentador 1 está calentando de forma anormal."
                 },
                 {
                     "ecode": "0703010000020011",
@@ -14736,10 +14976,6 @@
                     "intro": "La bobina RFID de la ranura 4 de AMS D está rota o el circuito de hardware de RF tiene un error."
                 },
                 {
-                    "ecode": "0703810000010004",
-                    "intro": "AMS D El calentador 2 está calentando anormalmente."
-                },
-                {
                     "ecode": "0701810000010001",
                     "intro": "AMS B El sensor de corriente del calentador 2 es anormal."
                 },
@@ -14840,10 +15076,6 @@
                     "intro": "El filamento AMS D Slot4 puede estar roto dentro del tubo PTFE."
                 },
                 {
-                    "ecode": "0700810000010004",
-                    "intro": "AMS A El calentador 2 está calentando de manera anormal."
-                },
-                {
                     "ecode": "050004000002001F",
                     "intro": "No se puede identificar la etiqueta RFID en el Slot4 de AMS D."
                 },
@@ -14886,10 +15118,6 @@
                 {
                     "ecode": "1203720000010001",
                     "intro": "Error de velocidad y longitud del filamento de la AMS D: es posible que la odometría del filamento de la ranura 3 esté defectuosa."
-                },
-                {
-                    "ecode": "0702810000010004",
-                    "intro": "El calentador 2 de la AMS C se está calentando de manera anormal."
                 },
                 {
                     "ecode": "07FE200000020001",
@@ -15090,10 +15318,6 @@
                 {
                     "ecode": "1203830000020001",
                     "intro": "El filamento de la ranura 4 del AMS D puede estar enredado o atascado."
-                },
-                {
-                    "ecode": "0700800000010004",
-                    "intro": "AMS A El calentador 1 se está calentando anormalmente."
                 },
                 {
                     "ecode": "0C00040000010016",
@@ -15302,10 +15526,6 @@
                 {
                     "ecode": "050003000001000B",
                     "intro": "La pantalla no está funcionando correctamente; por favor, reinicie el dispositivo."
-                },
-                {
-                    "ecode": "0C00040000020009",
-                    "intro": "Se ha detectado material en una zona ciega. Por favor, no coloque el material demasiado cerca del borde del dispositivo."
                 },
                 {
                     "ecode": "0500040000020016",
@@ -15536,10 +15756,6 @@
                     "intro": "Error al extruir el filamento AMS D Slot4; el extrusor puede estar obstruido o el filamento puede ser demasiado delgado, lo que hace que el extrusor se deslice."
                 },
                 {
-                    "ecode": "0300260000010001",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor izquierdo es demasiado baja. Es posible que el sensor esté instalado demasiado lejos o que esté suelto."
-                },
-                {
                     "ecode": "0700930000010001",
                     "intro": "AMS A El ventilador de enfriamiento del calentador 2 está bloqueado, lo que puede ser debido a que el ventilador esté atascado."
                 },
@@ -15586,10 +15802,6 @@
                 {
                     "ecode": "0702930000010001",
                     "intro": "El ventilador de refrigeración del calentador 2 de AMS C está bloqueado, lo que puede deberse a que el ventilador está atascado."
-                },
-                {
-                    "ecode": "0702800000010004",
-                    "intro": "El calentador 1 de AMS C se está calentando de forma anormal."
                 },
                 {
                     "ecode": "12FF200000020001",
@@ -15680,10 +15892,6 @@
                     "intro": "Tu impresora parece estar imprimiendo sin extruir."
                 },
                 {
-                    "ecode": "0703700000020008",
-                    "intro": "Falló al obtener la tabla de mapeo de AMS; por favor haga clic en \"Reanudar\" para reintentar."
-                },
-                {
                     "ecode": "0703300000030003",
                     "intro": "No se puede leer la RFID debido a un error de hardware o estructural."
                 },
@@ -15706,14 +15914,6 @@
                 {
                     "ecode": "0702350000010001",
                     "intro": "El sensor de temperatura y humedad presenta un error. El chip podría estar defectuoso."
-                },
-                {
-                    "ecode": "0702700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo AMS; por favor, haga clic en \"Reanudar\" para intentarlo de nuevo."
-                },
-                {
-                    "ecode": "0701700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo AMS; por favor, haga clic en \"Reanudar\" para intentarlo de nuevo."
                 },
                 {
                     "ecode": "0701300000030003",
@@ -15740,14 +15940,6 @@
                     "intro": "El sensor de temperatura y humedad presenta un error. El chip puede estar defectuoso."
                 },
                 {
-                    "ecode": "0700400000020001",
-                    "intro": "La señal de posición del buffer de filamento se perdió: es posible que el cable o el sensor de posición estén fallando."
-                },
-                {
-                    "ecode": "0700400000020002",
-                    "intro": "Error en la señal de posición del buffer de filamento: es posible que el sensor de posición esté fallando."
-                },
-                {
                     "ecode": "0700450000020001",
                     "intro": "El sensor del cortador de filamento está fallando; por favor verifique si el conector está conectado correctamente."
                 },
@@ -15758,14 +15950,6 @@
                 {
                     "ecode": "0700450000020003",
                     "intro": "El mango del cortador de filamento no se ha liberado. El mango o la cuchilla pueden estar atascados, o puede haber un problema con la conexión del sensor de filamento."
-                },
-                {
-                    "ecode": "0700510000030001",
-                    "intro": "El sistema AMS está desactivado; por favor cargue el filamento desde el soporte del carrete."
-                },
-                {
-                    "ecode": "0700700000020008",
-                    "intro": "No se pudo obtener la tabla de mapeo de AMS; haz clic en \"Reanudar\" para volver a intentarlo."
                 },
                 {
                     "ecode": "0500040000020020",
@@ -15882,10 +16066,6 @@
                 {
                     "ecode": "0300910000010001",
                     "intro": "La temperatura del calentador de la cámara 1 es anormal. El calentador puede tener un cortocircuito."
-                },
-                {
-                    "ecode": "0300910000010002",
-                    "intro": "La temperatura del calentador de la cámara 1 es anormal. El calentador puede tener un circuito abierto o el fusible térmico puede haberse activado."
                 },
                 {
                     "ecode": "0300910000010003",
@@ -16034,10 +16214,6 @@
                 {
                     "ecode": "03000C0000010005",
                     "intro": "El sensor de fuerza 3 detectó una fuerza continua e inesperada. El heatbed puede estar atascado o el extremo frontal analógico puede estar roto."
-                },
-                {
-                    "ecode": "03000F0000010001",
-                    "intro": "Se detectaron datos de acelerómetro anormales. Por favor, intente reiniciar la impresora."
                 },
                 {
                     "ecode": "0300100000020001",

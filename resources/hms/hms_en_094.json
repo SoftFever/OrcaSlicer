@@ -1,14 +1,346 @@
 {
     "result": 0,
-    "t": 1738858019,
-    "ver": 202503250207,
+    "t": 1739522906,
+    "ver": 202503250214,
     "data": {
         "device_error": {
-            "ver": 202503250207,
+            "ver": 202503250214,
             "en": [
                 {
+                    "ecode": "0300801A",
+                    "intro": "Filament extrusion error; please check the assistant for troubleshooting. After resolving the issue, decide whether to cancel or resume the print job based on the actual print status."
+                },
+                {
+                    "ecode": "05008084",
+                    "intro": "The Live View Camera is dirty; please clean it and continue."
+                },
+                {
+                    "ecode": "0500401E",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05014023",
+                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05014025",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "18068012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FE8007",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, select \"Continue\"; if it is not, please push the filament forward slightly, and then select \"Retry\"."
+                },
+                {
                     "ecode": "10018003",
-                    "intro": "The time-lapse mode is set to Tranditional in the slicing file. This may cause surface defects. Would you like to enable it?"
+                    "intro": "The time-lapse mode is set to Traditional in the slicing file. This may cause surface defects. Would you like to enable it?"
+                },
+                {
+                    "ecode": "03008014",
+                    "intro": "The nozzle is covered with filament, or the build plate is installed incorrectly. Please cancel this print and clean the nozzle or adjust the build plate according to the actual status. You can also select \"Resume\" to resume the print job."
+                },
+                {
+                    "ecode": "03008017",
+                    "intro": "Foreign objects detected on heatbed. Please check and clean the heatbed. Then, select \"Resume\" to resume the print job."
+                },
+                {
+                    "ecode": "0500401C",
+                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05004025",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05004026",
+                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05004028",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "0501401B",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05014020",
+                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05014022",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05014029",
+                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "07008012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07018012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07028012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07FE8007",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, select \"Continue\"; if it is not, please push the filament forward slightly, and then select \"Retry\"."
+                },
+                {
+                    "ecode": "0300801C",
+                    "intro": "The extrusion resistance is abnormal. The extruder may be clogged, please refer to the assistant, after trouble shooting, you can select \"Resume\" to resume the print job."
+                },
+                {
+                    "ecode": "07FE8012",
+                    "intro": "Failed to get mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07FEC00A",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, select \"Continue\"; if not, please push the filament forward slightly and then select \"Retry\"."
+                },
+                {
+                    "ecode": "05008055",
+                    "intro": "Laser module is installed, but a Cutting Platform is detected. Please place a Laser Platform and perform laser calibration."
+                },
+                {
+                    "ecode": "03004020",
+                    "intro": "The nozzle presence detection failed. Please check the Assistant for details."
+                },
+                {
+                    "ecode": "0500402E",
+                    "intro": "System does not support the file system currently used by the USB flash drive. Please replace or format the USB flash drive to FAT32."
+                },
+                {
+                    "ecode": "05008063",
+                    "intro": "The platform is not detected during calibration; please make sure the Laser Platform is properly placed."
+                },
+                {
+                    "ecode": "05008066",
+                    "intro": "The task requires a Cutting Platform, but the current one is a Laser Platform. Please replace it with a Cutting Platform (Cutting Protection Base + LightGrip cutting mat)."
+                },
+                {
+                    "ecode": "18008012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18048012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FF8007",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, select \"Continue\"; if it is not, please push the filament forward slightly, and then select \"Retry\"."
+                },
+                {
+                    "ecode": "07058012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FE8012",
+                    "intro": "Failed to get mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07068012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07078012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18058012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18078012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07048012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18018012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "05004065",
+                    "intro": "The task requires a Laser Platform, but the current one is a Cutting Platform. Please replace it, measure the material thickness in the software, and then restart the task."
+                },
+                {
+                    "ecode": "05004075",
+                    "intro": "No Laser Platform was detected, which may affect thickness measurement accuracy. Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the thickness measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "18FFC00A",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, select \"Continue\"; if not, please push the filament forward slightly and then select \"Retry\"."
+                },
+                {
+                    "ecode": "07FFC00A",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, select \"Continue\"; if not, please push the filament forward slightly and then select \"Retry\"."
+                },
+                {
+                    "ecode": "0500807D",
+                    "intro": "This task requires a Cutting Platform, but the current one is a Laser Platform. Please replace it with a Cutting Platform (Cutting Protection Base + StrongGrip Cutting Mat)."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "Laser Module is not certified; the device cannot continue working. Please use Bambu Lab accessories."
+                },
+                {
+                    "ecode": "03008000",
+                    "intro": "Printing was paused for unknown reason. You can select \"Resume\" to resume the print job."
+                },
+                {
+                    "ecode": "0300800D",
+                    "intro": "Some objects have fallen down, or the extruder is not extruding normally. If the defects are acceptable, select \"Resume\" to resume the print job."
+                },
+                {
+                    "ecode": "03008016",
+                    "intro": "The nozzle is clogged with filament. Please cancel this print and clean the nozzle or select \"Resume\" to resume the print job."
+                },
+                {
+                    "ecode": "0500401B",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05004020",
+                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05004022",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05004023",
+                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05004029",
+                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "0501401C",
+                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "0501401E",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05014026",
+                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "05014028",
+                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer support."
+                },
+                {
+                    "ecode": "07038012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "07FF8012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "05008064",
+                    "intro": "Please place the Laser Platform correctly and ensure the rear markers are not blocked for laser calibration."
+                },
+                {
+                    "ecode": "07FF8007",
+                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, select \"Continue\"; if it is not, please push the filament forward slightly, and then select \"Retry\"."
+                },
+                {
+                    "ecode": "18FEC00A",
+                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, select \"Continue\"; if not, please push the filament forward slightly and then select \"Retry\"."
+                },
+                {
+                    "ecode": "18038012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18028012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "18FF8012",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "05004076",
+                    "intro": "Please place the Laser Platform correctly and ensure the rear markers are not blocked, then restart the thickness measurement in the software before initiating the task."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "The Laser Platform is offset. Please ensure that the four corners of the platform are aligned with the heatbed."
+                },
+                {
+                    "ecode": "0500807A",
+                    "intro": "The foreign object detection function is not working. You can continue the task or check the assistant for troubleshooting."
+                },
+                {
+                    "ecode": "05004033",
+                    "intro": "Uncertified AMS detected or AMS firmware not upgraded: the device cannot continue working."
+                },
+                {
+                    "ecode": "03004000",
+                    "intro": "Z axis homing failed; the task has been stopped."
+                },
+                {
+                    "ecode": "03004002",
+                    "intro": "Printing stopped because Auto Bed Leveling failed."
+                },
+                {
+                    "ecode": "0300800A",
+                    "intro": "A Filament pile-up was detected by AI Print Monitoring. Please clean filament from the waste chute."
+                },
+                {
+                    "ecode": "0300800B",
+                    "intro": "The cutter is stuck. Please make sure the cutter handle is out and check the filament sensor cable connection."
+                },
+                {
+                    "ecode": "03008065",
+                    "intro": "The temperature of the MC module is too high. Please check the Wiki for possible explanations."
+                },
+                {
+                    "ecode": "05004070",
+                    "intro": "The laser or cutter module is connected, so the device cannot initiate a 3D printing task."
+                },
+                {
+                    "ecode": "0300400B",
+                    "intro": "Internal communication exception"
+                },
+                {
+                    "ecode": "03008001",
+                    "intro": "Printing paused due to the pause command added to the printing file."
+                },
+                {
+                    "ecode": "05014038",
+                    "intro": "The regional settings do not match the printer; please check the printer's regional settings."
+                },
+                {
+                    "ecode": "03008051",
+                    "intro": "The cutting module has dropped or the cutting module cable is disconnected; please check the module."
+                },
+                {
+                    "ecode": "0C004024",
+                    "intro": "The Birdseye Camera is installed offset. Please refer to the assistant to reinstall it."
+                },
+                {
+                    "ecode": "0300804B",
+                    "intro": "Task paused. The Laser Safety Window is open."
+                },
+                {
+                    "ecode": "03004042",
+                    "intro": "The Laser Safety Window is not properly installed. The task has been stopped."
                 },
                 {
                     "ecode": "10018004",
@@ -363,28 +695,12 @@
                     "intro": "The left and right nozzle is not matched with slicing file. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
                 },
                 {
-                    "ecode": "03004020",
-                    "intro": "The nozzle presence detection failed. The nozzle may not be mounted on the extruder or the sensor may be damaged. Please check the Assistant for details."
-                },
-                {
-                    "ecode": "0C004024",
-                    "intro": "The Birdseye Camera is installed offset. Please refer to the a si z to reinstall it."
-                },
-                {
                     "ecode": "05FE8053",
                     "intro": "The left nozzle is not matched with slicing file. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
                 },
                 {
-                    "ecode": "05004065",
-                    "intro": "Laser module is installed, but the cutting platform is detected. Please place the matching laser platform, then restart the thickness measurement in the software before initiating the task."
-                },
-                {
                     "ecode": "03008054",
                     "intro": "Please place the paper required for Print Then Cut."
-                },
-                {
-                    "ecode": "0300804B",
-                    "intro": "Task paused because the side Laser Safety Windows is open."
                 },
                 {
                     "ecode": "0703C06D",
@@ -479,20 +795,8 @@
                     "intro": "AMS D motor is performing self-test. Unable to start drying. Please try again later."
                 },
                 {
-                    "ecode": "05008055",
-                    "intro": "Laser module is installed, but cutting platform is detected. Please place the laser platform and perform laser calibration."
-                },
-                {
                     "ecode": "05008056",
                     "intro": "Cutting module is installed, but the laser platform is detected. Please place the cutting platform for calibration."
-                },
-                {
-                    "ecode": "05008066",
-                    "intro": "Cutting module is installed, but the laser platform is detected.  Please place the cutting platform (cutting protection base + LightGrip cutting mat)."
-                },
-                {
-                    "ecode": "0500807D",
-                    "intro": "Cutting module is installed, but the laser platform is detected, please place the cutting platform (cutting protection base + StrongGrip cutting mat)."
                 },
                 {
                     "ecode": "0500C07F",
@@ -507,18 +811,6 @@
                     "intro": "The foreign object detection function is not working. You can continue the task or check assistant for solutions."
                 },
                 {
-                    "ecode": "05004075",
-                    "intro": "No laser platform was detected, which may affect thickness measurement accuracy. Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the thickness measurement in the software before initiating the task."
-                },
-                {
-                    "ecode": "05004076",
-                    "intro": "Please place the laser platform correctly and ensure the rear markers are not blocked, then restart the thickness measurement in the software before initiating the task."
-                },
-                {
-                    "ecode": "05008064",
-                    "intro": "Please place the laser platform correctly and ensure the rear markers are not blocked for laser calibration."
-                },
-                {
                     "ecode": "07018016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
                 },
@@ -527,16 +819,8 @@
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
                 },
                 {
-                    "ecode": "18FF8007",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
-                },
-                {
                     "ecode": "18028016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
-                },
-                {
-                    "ecode": "18FE8007",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
                 },
                 {
                     "ecode": "07078016",
@@ -549,10 +833,6 @@
                 {
                     "ecode": "18008016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
-                },
-                {
-                    "ecode": "18FFC00A",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
                 },
                 {
                     "ecode": "05004031",
@@ -595,20 +875,8 @@
                     "intro": "PTFE tube disconnection detected. Please check if the PTFE tube from AMS-HT G to the extruder is properly connected."
                 },
                 {
-                    "ecode": "07FE8007",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
-                },
-                {
                     "ecode": "0C004021",
                     "intro": "The setup of BirdsEye Camera failed; please reboot the printer."
-                },
-                {
-                    "ecode": "07FEC00A",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
-                },
-                {
-                    "ecode": "07FF8007",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if it is not, please push the filament forward slightly, and then click \"Retry\"."
                 },
                 {
                     "ecode": "0C004026",
@@ -635,10 +903,6 @@
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
                 },
                 {
-                    "ecode": "18FEC00A",
-                    "intro": "Please observe the nozzle of the left extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
-                },
-                {
                     "ecode": "18068016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
                 },
@@ -657,10 +921,6 @@
                 {
                     "ecode": "18058016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
-                },
-                {
-                    "ecode": "07FFC00A",
-                    "intro": "Please observe the nozzle of the right extruder. If the filament has been extruded, click \"Continue\"; if not, please push the filament forward slightly and then click \"Retry\"."
                 },
                 {
                     "ecode": "1803800A",
@@ -707,20 +967,8 @@
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
-                    "ecode": "07018012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "07028007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "07028012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07038012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "07FF8005",
@@ -795,20 +1043,12 @@
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
-                    "ecode": "18048012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "07078007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
                     "ecode": "18078007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "07058012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "18FE8024",
@@ -823,16 +1063,8 @@
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
-                    "ecode": "18058012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "18018007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "18078012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "18FE8001",
@@ -851,10 +1083,6 @@
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
                 {
-                    "ecode": "18018012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "18048007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
@@ -871,10 +1099,6 @@
                     "intro": "Check if the right external filament spool or filament is stuck."
                 },
                 {
-                    "ecode": "0500807A",
-                    "intro": "The foreign object detection function is not working. You can continue the task, or check the assistant for troubleshooting."
-                },
-                {
                     "ecode": "05008068",
                     "intro": "Please place the strong grip cutting mat correctly and ensure the marker is exposed."
                 },
@@ -887,16 +1111,8 @@
                     "intro": "Please place a LightGrip cutting mat on the cutting protection base."
                 },
                 {
-                    "ecode": "07008012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "07038007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "07FF8012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "07FE8013",
@@ -905,10 +1121,6 @@
                 {
                     "ecode": "07FE8010",
                     "intro": "Check if the left external filament spool or filament is stuck."
-                },
-                {
-                    "ecode": "07FE8012",
-                    "intro": "Failed to get mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "07FE8002",
@@ -955,10 +1167,6 @@
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
-                    "ecode": "18068012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "07008007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
                 },
@@ -975,32 +1183,12 @@
                     "intro": "Check if the left external filament spool or filament is stuck."
                 },
                 {
-                    "ecode": "18008012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "07058013",
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
                 },
                 {
-                    "ecode": "18FE8012",
-                    "intro": "Failed to get mapping table; please click \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18038012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
                     "ecode": "18038007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "07068012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
-                    "ecode": "07078012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "18FF8002",
@@ -1025,14 +1213,6 @@
                 {
                     "ecode": "18018013",
                     "intro": "Timeout purging old filament: Please check if the filament is stuck or the extruder is clogged."
-                },
-                {
-                    "ecode": "07048012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
-                },
-                {
-                    "ecode": "18028012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "18FE8002",
@@ -1061,10 +1241,6 @@
                 {
                     "ecode": "07068007",
                     "intro": "Failed to extrude the filament. Please check if the extruder clogged."
-                },
-                {
-                    "ecode": "18FF8012",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry."
                 },
                 {
                     "ecode": "07FF8010",
@@ -1143,14 +1319,6 @@
                     "intro": "Failed to download print job; please check your network connection."
                 },
                 {
-                    "ecode": "05008074",
-                    "intro": "The laser platform is offset. Please ensure that the four corners of the platform are aligned with the heatbed."
-                },
-                {
-                    "ecode": "05008063",
-                    "intro": "The platform is not detected during calibration; please make sure the laser plate is properly placed."
-                },
-                {
                     "ecode": "0C00803F",
                     "intro": "AI detected nozzle clumping. Please check the nozzle condition. Refer to assistant for solutions."
                 },
@@ -1159,20 +1327,12 @@
                     "intro": "AI detected air-printing defect. Please check the hotend extrusion status. Refer to assistant for solutions."
                 },
                 {
-                    "ecode": "03008051",
-                    "intro": "The cutting module has dropped or the cutting module cable is disconnected; Please check."
-                },
-                {
                     "ecode": "0500403D",
                     "intro": "The toolhead module is not set up. Please set it up before initiating the task."
                 },
                 {
                     "ecode": "07FE8011",
                     "intro": "The external filament connected to the left extruder has run out; please load a new filament."
-                },
-                {
-                    "ecode": "03004000",
-                    "intro": "Z axis homing failed, task has been stopped."
                 },
                 {
                     "ecode": "0300400C",
@@ -1679,10 +1839,6 @@
                     "intro": "The printer does not have motion precision enhancement calibration data; the motion precision enhancement cannot be turned on."
                 },
                 {
-                    "ecode": "05004070",
-                    "intro": "The device has been connected to the laser or cutter module and cannot initiate a 3D printing task."
-                },
-                {
                     "ecode": "05024003",
                     "intro": "The printer is currently printing and the motion accuracy enhancement feature cannot be turned on or off."
                 },
@@ -1699,10 +1855,6 @@
                     "intro": "Please pull out the filament on the spool holder  of the right extruder. If this message persists, please check to see if there is filament broken in the extruder. (Connect a PTFE tube if you are about to use an AMS.)"
                 },
                 {
-                    "ecode": "03008016",
-                    "intro": "The nozzle is clogged with filament. Please cancel this print and clean the nozzle or tap the \"Resume\" button to resume the print job."
-                },
-                {
                     "ecode": "05004008",
                     "intro": "Starting printing failed; please power cycle the printer and resend the print job."
                 },
@@ -1717,10 +1869,6 @@
                 {
                     "ecode": "0500402C",
                     "intro": "Failed to obtain IP address, which may be caused by wireless interference resulting in data transmission failure or the DHCP address pool of the router being full. Please move the printer closer to the router and try again. If the issue persists, please check router settings to see whether the IP addresses have been exhausted."
-                },
-                {
-                    "ecode": "0300801C",
-                    "intro": "The extrusion resistance is abnormal. The extruder may be clogged, please refer to the assistant, after trouble shooting, you can tap the \"Resume\" button to resume the print job."
                 },
                 {
                     "ecode": "0500400A",
@@ -1743,10 +1891,6 @@
                     "intro": "Please pull out the filament on the spool holder  of the left extruder. If this message persists, please check to see if there is filament broken in the extruder. (Connect a PTFE tube if you are about to use an AMS.)"
                 },
                 {
-                    "ecode": "03008014",
-                    "intro": "The nozzle is covered with filament, or the build plate is installed incorrectly. Please cancel this print and clean the nozzle or adjust the build plate according to the actual status. You can also tap the \"Resume\" button to resume the print job."
-                },
-                {
                     "ecode": "0500402D",
                     "intro": "System exception"
                 },
@@ -1761,10 +1905,6 @@
                 {
                     "ecode": "03008009",
                     "intro": "Heatbed temperature malfunction"
-                },
-                {
-                    "ecode": "03008017",
-                    "intro": "Foreign objects detected on heatbed. Please check and clean the heatbed. Then, tap the \"Resume\" button to resume the print job."
                 },
                 {
                     "ecode": "05004002",
@@ -1789,14 +1929,6 @@
                 {
                     "ecode": "03008045",
                     "intro": "Material detection timeout: please restart the printer."
-                },
-                {
-                    "ecode": "0300801A",
-                    "intro": "The extruder is not extruding normally; please refer to the assistant. After trouble shooting, if the defects are acceptable, please tap the \"Resume\" button to resume the print job."
-                },
-                {
-                    "ecode": "03008001",
-                    "intro": "Printing paused due to the pause command added in the printing file."
                 },
                 {
                     "ecode": "0300800C",
@@ -1931,10 +2063,6 @@
                     "intro": "Failed to pull out the filament from the extruder. This might be caused by clogged extruder or filament broken inside the extruder."
                 },
                 {
-                    "ecode": "0500402E",
-                    "intro": "System does not support the file system currently used by the USB flash drive. Please replace or format the USB flash drive to FAT32 format."
-                },
-                {
                     "ecode": "07FFC009",
                     "intro": "Please feed filament into the PTFE tube of the right extruder until it can not be pushed any farther."
                 },
@@ -2015,10 +2143,6 @@
                     "intro": "The laser module is abnormal."
                 },
                 {
-                    "ecode": "03008065",
-                    "intro": "The temperature of the MC module is too high. Please check the Wiki for specific reasons."
-                },
-                {
                     "ecode": "07FEC006",
                     "intro": "Please feed filament into the PTFE tube of the left extruder until it can not be pushed any farther."
                 },
@@ -2033,10 +2157,6 @@
                 {
                     "ecode": "0C004029",
                     "intro": "Material not detected. Please confirm placement and continue."
-                },
-                {
-                    "ecode": "05014038",
-                    "intro": "The regional settings do not match the printer, please check the printer's regional settings."
                 },
                 {
                     "ecode": "0C008005",
@@ -2135,64 +2255,24 @@
                     "intro": "The AMS assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
                 {
-                    "ecode": "0501401B",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "0501401C",
-                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
                     "ecode": "0501401D",
                     "intro": "Cloud access failed, which may be caused by network instability due to interference. You can try moving the printer closer to the router before you try again."
-                },
-                {
-                    "ecode": "0501401E",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
                 },
                 {
                     "ecode": "0501401F",
                     "intro": "Authorization timed out. Please make sure that your phone or PC has access to the internet, and ensure that the Bambu Studio/Bambu Handy APP is running in the foreground during the binding operation."
                 },
                 {
-                    "ecode": "05014020",
-                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
                     "ecode": "05014021",
                     "intro": "Cloud access failed, which may be caused by network instability due to interference. You can try moving the printer closer to the router before you try again."
-                },
-                {
-                    "ecode": "05014022",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "05014023",
-                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer service."
                 },
                 {
                     "ecode": "05014024",
                     "intro": "Cloud access failed. Possible reasons include network instability caused by interference, inability to access the internet, or router firewall configuration restrictions. You can try moving the printer closer to the router or checking the router configuration before you try again."
                 },
                 {
-                    "ecode": "05014025",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "05014026",
-                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
                     "ecode": "05014027",
                     "intro": "Cloud access failed; this may be caused by network instability due to interference. You can try moving the printer closer to the router before you try again."
-                },
-                {
-                    "ecode": "05014028",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "05014029",
-                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer service."
                 },
                 {
                     "ecode": "05014031",
@@ -2251,64 +2331,24 @@
                     "intro": "The printer has already been bound. Please unbind it and try again."
                 },
                 {
-                    "ecode": "0500401B",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "0500401C",
-                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
                     "ecode": "0500401D",
                     "intro": "Cloud access failed, which may be caused by network instability due to interference. You can try moving the printer closer to the router before you try again."
-                },
-                {
-                    "ecode": "0500401E",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
                 },
                 {
                     "ecode": "0500401F",
                     "intro": "Authorization timed out. Please make sure that your phone or PC has access to the internet, and ensure that the Bambu Studio/Bambu Handy APP is running in the foreground during the binding operation."
                 },
                 {
-                    "ecode": "05004020",
-                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
                     "ecode": "05004021",
                     "intro": "Cloud access failed, which may be caused by network instability due to interference. You can try moving the printer closer to the router before you try again."
-                },
-                {
-                    "ecode": "05004022",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "05004023",
-                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer service."
                 },
                 {
                     "ecode": "05004024",
                     "intro": "Cloud access failed. Possible reasons include network instability caused by interference, inability to access the internet, or router firewall configuration restrictions. You can try moving the printer closer to the router or checking the router configuration before you try again."
                 },
                 {
-                    "ecode": "05004025",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "05004026",
-                    "intro": "Cloud access rejected. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
                     "ecode": "05004027",
                     "intro": "Cloud access failed; this may be caused by network instability due to interference. You can try moving the printer closer to the router before you try again."
-                },
-                {
-                    "ecode": "05004028",
-                    "intro": "Cloud response is invalid. If you have tried multiple times and are still failing, please contact customer service."
-                },
-                {
-                    "ecode": "05004029",
-                    "intro": "Cloud access is rejected. If you have tried multiple times and are still failing, please contact customer service."
                 },
                 {
                     "ecode": "0500402A",
@@ -2355,10 +2395,6 @@
                     "intro": "The printer timed out waiting for the nozzle to cool down before homing."
                 },
                 {
-                    "ecode": "03004002",
-                    "intro": "Printing Stopped because Auto Bed Leveling failed."
-                },
-                {
                     "ecode": "03004005",
                     "intro": "The hotend cooling fan speed is abnormal."
                 },
@@ -2379,10 +2415,6 @@
                     "intro": "Mechanical resonance frequency identification failed."
                 },
                 {
-                    "ecode": "0300400B",
-                    "intro": "Internal communication exception."
-                },
-                {
                     "ecode": "0300400D",
                     "intro": "Resume failed after power loss."
                 },
@@ -2391,28 +2423,12 @@
                     "intro": "The motor self-check failed."
                 },
                 {
-                    "ecode": "03008000",
-                    "intro": "Printing was paused for unknown reason. You can tap \"Resume\" to resume the print job."
-                },
-                {
                     "ecode": "03008003",
                     "intro": "Spaghetti defects were detected by the AI Print Monitoring. Please check the quality of the printed model before continuing your print."
                 },
                 {
                     "ecode": "03008007",
                     "intro": "There was an unfinished print job when the printer lost power. If the model is still adhered to the build plate, you can try resuming the print job."
-                },
-                {
-                    "ecode": "0300800A",
-                    "intro": "A Filament pile-up was detected by the AI Print Monitoring. Please clean the filament from the waste chute."
-                },
-                {
-                    "ecode": "0300800B",
-                    "intro": "The cutter is stuck. Please make sure the cutter handle is out, and check the filament sensor cable connection."
-                },
-                {
-                    "ecode": "0300800D",
-                    "intro": "Some objects have fallen down, or the extruder is not extruding normally. If the defects are acceptable, click \"Resume\" button to resume the print job."
                 },
                 {
                     "ecode": "0300800E",
@@ -2441,8 +2457,804 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250207,
+            "ver": 202503250214,
             "en": [
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Thickness measurement failed, the Toolhead Camera was unable to detect the material surface."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Visual marker not detected; please re-paste the material in the correct position."
+                },
+                {
+                    "ecode": "0584050000010010",
+                    "intro": "Uncertified AMS-HT E detected or AMS-HT E firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "The sensitivity of the left extruder extrusion force sensor is low; the force sensor may not installed correctly."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "Hand-Eye calibration failed, and cutting accuracy may have decreased. Please check if the cutting blade tip is worn."
+                },
+                {
+                    "ecode": "0582050000010010",
+                    "intro": "Uncertified AMS-HT C detected or AMS-HT C firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0587050000010010",
+                    "intro": "Uncertified AMS-HT H detected or AMS-HT H firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0C00010000020017",
+                    "intro": "Nozzle camera lens is dirty, which may affect the AI monitoring functionality. Please clean the surface of the nozzle camera lens as soon as possible."
+                },
+                {
+                    "ecode": "0583050000010010",
+                    "intro": "Uncertified AMS-HT D detected or AMS-HT D firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0586050000010010",
+                    "intro": "Uncertified AMS-HT G detected or AMS-HT G firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0585050000010010",
+                    "intro": "Uncertified AMS-HT F detected or AMS-HT F firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0581050000010010",
+                    "intro": "Uncertified AMS-HT B detected or AMS-HT B firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0580050000010010",
+                    "intro": "Uncertified AMS-HT A detected or AMS-HT A firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "0500040000020037",
+                    "intro": "The Cutting Module needs calibration to get the tool position. Please perform the mounting calibration before use. (about 2-4 minutes)"
+                },
+                {
+                    "ecode": "0705700000020046",
+                    "intro": "AMS F Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1806700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0705700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "1800700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "050004000002004B",
+                    "intro": "The current platform does not meet the task requirement; please use the Cutting Platform."
+                },
+                {
+                    "ecode": "07FE800000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "0500010000020001",
+                    "intro": "The media pipeline is malfunctioning. Please restart the printer. If multiple attempts fail, please contact customer support."
+                },
+                {
+                    "ecode": "0500010000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0700700000020046",
+                    "intro": "AMS A Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "0701700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0701700000020046",
+                    "intro": "AMS B Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "0702700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0703700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0300260000010001",
+                    "intro": "The frequency of the extrusion force sensor of the left extruder is too low. The sensor may be installed too far, or the sensor may be loose."
+                },
+                {
+                    "ecode": "0300280000010001",
+                    "intro": "The data of the force sensor of the Cutting Module is abnormal. The magnet on the Tool Holder may fall off or the force sensor may be damaged."
+                },
+                {
+                    "ecode": "0300250000010007",
+                    "intro": "The frequency of the extrusion force sensor of the right extruder is too high. The sensor may be damaged, or the nozzle heat sink may be too close to the sensor."
+                },
+                {
+                    "ecode": "0300260000010007",
+                    "intro": "The frequency of the extrusion force sensor of the left extruder is too high. The sensor may be installed too close, or the sensor may be loose."
+                },
+                {
+                    "ecode": "0300250000010004",
+                    "intro": "The signal of the extrusion force sensor of the right extruder is abnormal. The sensor may be damaged, or the MC-TH communication may be abnormal."
+                },
+                {
+                    "ecode": "03009D0000020003",
+                    "intro": "The engrave laser focal point Z calibration result differs significantly from the design values. Please re-install the Laser Module and re-run the Laser Module Setup. If it fails repeatedly, please get in touch with customer support."
+                },
+                {
+                    "ecode": "0C00010000020002",
+                    "intro": "Toolhead camera is malfunctioning. If this issue occurs multiple times during printing, please contact customer support."
+                },
+                {
+                    "ecode": "1805700000020046",
+                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1803700000020046",
+                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1803700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "1805700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0704700000020046",
+                    "intro": "AMS E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "0706700000020046",
+                    "intro": "AMS G Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1804700000020046",
+                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1802700000020046",
+                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1800700000020046",
+                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1802700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "1807700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0500040000020042",
+                    "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing with the correct nozzle. Caution: the hotend temperature is high."
+                },
+                {
+                    "ecode": "0500040000020048",
+                    "intro": "No platform detected; please make sure the Laser Platform is placed properly."
+                },
+                {
+                    "ecode": "05FF040000020042",
+                    "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing with the correct nozzle. Caution: the hotend temperature is high."
+                },
+                {
+                    "ecode": "0C00010000020014",
+                    "intro": "Nozzle Camera is malfunctioning. If this issue occurs multiple times during printing, please contact customer support."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300280000010003",
+                    "intro": "Communication failure between cutting module and toolhead during Z-axis homing. Please check if the cutting module signal cable is loose or broken or verify if the force sensor coil is intact."
+                },
+                {
+                    "ecode": "18FE810000010004",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has a short circuit; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "07FE810000010004",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has a short circuit; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "18FF810000010004",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has a short circuit; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "18FF800000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "07FF800000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "030025000001000A",
+                    "intro": "Nozzle offset calibration failed. Filament sticks to the nozzle, which may affect print quality. Please clean the nozzle and try again."
+                },
+                {
+                    "ecode": "0300280000010004",
+                    "intro": "The force sensor of the Cutting Module is abnormal. The force sensor cable may be disconnected or the force sensor is damaged."
+                },
+                {
+                    "ecode": "0500050000010011",
+                    "intro": "Uncertified Air Pump or Air Pump firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "18FE800000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "0702700000020046",
+                    "intro": "AMS C Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "0703700000020046",
+                    "intro": "AMS D Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "0300250000010001",
+                    "intro": "The frequency of the extrusion force sensor of the right extruder is too low. The nozzle may not be installed, or the nozzle heat sink may be too far away from the sensor."
+                },
+                {
+                    "ecode": "0C00040000010005",
+                    "intro": "BirdsEye Camera malfunction: please contact customer support."
+                },
+                {
+                    "ecode": "0300260000010004",
+                    "intro": "The signal of the extrusion force sensor of the left extruder is abnormal. The sensor may be damaged, or the MC-TH communication may be abnormal."
+                },
+                {
+                    "ecode": "0300280000010007",
+                    "intro": "Communication failure between the Cutting Module and toolhead module. Please check if the Cutting module signal cable is loose or broken. It could also be due to a broken force sensor coil."
+                },
+                {
+                    "ecode": "0300270000010004",
+                    "intro": "The signal of the nozzle offset calibration sensor is abnormal. The sensor may be damaged, or the wiring may not be connected properly."
+                },
+                {
+                    "ecode": "0300260000010005",
+                    "intro": "Z axis motor rotation is obstructed; please check if there are foreign objects stuck in the Z slider or Z timing pulley."
+                },
+                {
+                    "ecode": "0300250000010005",
+                    "intro": "Z axis motor rotation is obstructed; please check if there are foreign objects stuck in the Z slider or Z timing pulley."
+                },
+                {
+                    "ecode": "0C00010000010012",
+                    "intro": "The Live View Camera calibration failed and the calibration result could not be saved. Please try recalibrating. If calibration fails repeatedly, please contact the customer support team."
+                },
+                {
+                    "ecode": "1804700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0707700000020046",
+                    "intro": "AMS H Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "0707700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0706700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "0704700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "1801700000020008",
+                    "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
+                },
+                {
+                    "ecode": "1801700000020046",
+                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1806700000020046",
+                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "1807700000020046",
+                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
+                },
+                {
+                    "ecode": "050004000002004A",
+                    "intro": "The current platform does not meet the task requirement; please use the Laser Platform."
+                },
+                {
+                    "ecode": "05FE040000020042",
+                    "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing with the correct nozzle. Caution: the hotend temperature is high."
+                },
+                {
+                    "ecode": "050004000002004E",
+                    "intro": "Wrong platform type detected; please place the Laser Platform for the calibration."
+                },
+                {
+                    "ecode": "050004000002004F",
+                    "intro": "Wrong platform type detected; please place the Cutting Platform for the calibration."
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18FE800000010004",
+                    "intro": "The Toolhead Lifting Motor position hall sensor is short-circuited; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "07FE800000010004",
+                    "intro": "The Toolhead Lifting Motor position hall sensor is short-circuited; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "18FF800000010004",
+                    "intro": "The Toolhead Lifting Motor position hall sensor is short-circuited; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "07FF800000010004",
+                    "intro": "The Toolhead Lifting Motor position hall sensor is short-circuited; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "07FF810000010004",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has a short circuit; please check if the Hall sensor is malfunctioning."
+                },
+                {
+                    "ecode": "030026000001000B",
+                    "intro": "Nozzle presence detection failed: Left extruder nozzle not installed or improperly installed."
+                },
+                {
+                    "ecode": "030025000001000B",
+                    "intro": "Nozzle presence detection failed: Right extruder nozzle not installed or improperly installed."
+                },
+                {
+                    "ecode": "0500050000010012",
+                    "intro": "Uncertified Cutting Module or Cutting Module firmware not upgraded. Unable to operate with this printer."
+                },
+                {
+                    "ecode": "03000F0000010001",
+                    "intro": "Abnormal accelerometer data detected. Please try restarting the printer."
+                },
+                {
+                    "ecode": "0500030000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020018",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "Toolhead Camera parameter is abnormal. Please contact customer support."
+                },
+                {
+                    "ecode": "0C00020000020006",
+                    "intro": "Nozzle height seems to be too high. Please check if there is residual filament attached to the nozzle."
+                },
+                {
+                    "ecode": "0702800000010004",
+                    "intro": "AMS C The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "07FE800000010003",
+                    "intro": "The hall signal of the Toolhead Lifting Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "0702810000010004",
+                    "intro": "AMS C The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "07FF810000010002",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has an open circuit. Please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "0701800000010004",
+                    "intro": "AMS B The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "07FF810000010003",
+                    "intro": "The hall signal of the Extruder Switching Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "0704800000010004",
+                    "intro": "AMS E The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1803810000010004",
+                    "intro": "AMS-HT D The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "0707810000010004",
+                    "intro": "AMS H The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1805810000010004",
+                    "intro": "AMS-HT F The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1804810000010004",
+                    "intro": "AMS-HT E The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1801800000010004",
+                    "intro": "AMS-HT B The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "0705810000010004",
+                    "intro": "AMS F The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1800400000020001",
+                    "intro": "Filament buffer position signal lost: the cable or position sensor may be malfunctioning."
+                },
+                {
+                    "ecode": "1800510000030001",
+                    "intro": "The AMS is disabled; please load filament from the spool holder."
+                },
+                {
+                    "ecode": "0705700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "1803700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "1800550000010004",
+                    "intro": "The binding between AMS-HT A and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "1803550000010004",
+                    "intro": "The binding between AMS-HT D and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0706550000010004",
+                    "intro": "The binding between AMS G and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0300910000010002",
+                    "intro": "The temperature of chamber heater 1 is abnormal. The heater may have an open circuit or the thermal fuse may have burned out."
+                },
+                {
+                    "ecode": "0500030000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020017",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700400000020001",
+                    "intro": "Filament buffer position signal lost: the cable or position sensor may be malfunctioning."
+                },
+                {
+                    "ecode": "0700400000020002",
+                    "intro": "Filament buffer position signal error: the position sensor may be malfunctioning."
+                },
+                {
+                    "ecode": "0700510000030001",
+                    "intro": "The AMS is disabled; please load filament from the spool holder."
+                },
+                {
+                    "ecode": "0700700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "0701700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "0702700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "0703700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "0500060000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07FE810000010003",
+                    "intro": "The hall signal of the Extruder Switching Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "0700800000010004",
+                    "intro": "AMS A The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "07FE810000010002",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has an open circuit. Please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "0500060000020005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300C30000010001",
+                    "intro": "Current sensor of Active Chamber Exhaust malfunction: this may be due to an open circuit or a hardware sampling circuit fault."
+                },
+                {
+                    "ecode": "0700810000010004",
+                    "intro": "AMS A The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "07FF800000010003",
+                    "intro": "The hall signal of the Toolhead Lifting Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "0703810000010004",
+                    "intro": "AMS D The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "0701810000010004",
+                    "intro": "AMS B The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "0300950000010006",
+                    "intro": "Laser Module not detected: the module may have fallen off, or the quick-release lever may not be locked."
+                },
+                {
+                    "ecode": "07FE800000010002",
+                    "intro": "The Toolhead Lifting Motor position hall sensor has an open circuit; please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "07FF800000010002",
+                    "intro": "The Toolhead Lifting Motor position hall sensor has an open circuit; please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "1800810000010004",
+                    "intro": "AMS-HT A The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "0705800000010004",
+                    "intro": "AMS F The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1805800000010004",
+                    "intro": "AMS-HT F The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1800800000010004",
+                    "intro": "AMS-HT A The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1802810000010004",
+                    "intro": "AMS-HT C The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "0704810000010004",
+                    "intro": "AMS E The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1807800000010004",
+                    "intro": "AMS-HT H The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1802800000010004",
+                    "intro": "AMS-HT C The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1804800000010004",
+                    "intro": "AMS-HT E The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "0707800000010004",
+                    "intro": "AMS H The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1807810000010004",
+                    "intro": "AMS-HT H The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "0706810000010004",
+                    "intro": "AMS G The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1806810000010004",
+                    "intro": "AMS-HT G The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1806800000010004",
+                    "intro": "AMS-HT G The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "0706800000010004",
+                    "intro": "AMS G The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1800700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "1800400000020002",
+                    "intro": "Filament buffer position signal error: the position sensor may be malfunctioning."
+                },
+                {
+                    "ecode": "18FE800000010003",
+                    "intro": "The hall signal of the Toolhead Lifting Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "1802700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "0707700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "1805700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "18FF800000010003",
+                    "intro": "The hall signal of the Toolhead Lifting Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "1806700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "18FE810000010003",
+                    "intro": "The hall signal of the Extruder Switching Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "1807700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "0704700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "18FF800000010002",
+                    "intro": "The Toolhead Lifting Motor position hall sensor has an open circuit; please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "1801700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "18FE810000010002",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has an open circuit. Please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "18FF810000010003",
+                    "intro": "The hall signal of the Extruder Switching Motor is abnormal, possibly due to internal communication failure in the Toolhead module."
+                },
+                {
+                    "ecode": "18FF810000010002",
+                    "intro": "The position hall sensor of the Extruder Switching Motor has an open circuit. Please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "0500040000020050",
+                    "intro": "Laser Safety Window is not installed."
+                },
+                {
+                    "ecode": "0701550000010004",
+                    "intro": "The binding between AMS B and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0707550000010004",
+                    "intro": "The binding between AMS H and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0704550000010004",
+                    "intro": "The binding between AMS E and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0705550000010004",
+                    "intro": "The binding between AMS F and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "1802550000010004",
+                    "intro": "The binding between AMS-HT C and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "1804550000010004",
+                    "intro": "The binding between AMS-HT E and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0702550000010004",
+                    "intro": "The binding between AMS C and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "1805550000010004",
+                    "intro": "The binding between AMS-HT F and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0703550000010004",
+                    "intro": "The binding between AMS D and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "1801550000010004",
+                    "intro": "The binding between AMS-HT B and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "1806550000010004",
+                    "intro": "The binding between AMS-HT G and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "1807550000010004",
+                    "intro": "The binding between AMS-HT H and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0500030000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300970000030001",
+                    "intro": "The top cover is open."
+                },
+                {
+                    "ecode": "0703800000010004",
+                    "intro": "AMS D The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "1801810000010004",
+                    "intro": "AMS-HT B The heater 2 is heating abnormally."
+                },
+                {
+                    "ecode": "1803800000010004",
+                    "intro": "AMS-HT D The heater 1 is heating abnormally."
+                },
+                {
+                    "ecode": "0706700000020007",
+                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "18FE800000010002",
+                    "intro": "The Toolhead Lifting Motor position hall sensor has an open circuit; please check whether the connecting cable is loose."
+                },
+                {
+                    "ecode": "1804700000020007",
+                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume."
+                },
+                {
+                    "ecode": "0700550000010004",
+                    "intro": "The binding between AMS A and the extruder is incorrect. Please run the AMS Setup."
+                },
+                {
+                    "ecode": "0C00030000020017",
+                    "intro": "Laser engraving Z-axis focus calibration failed. Please check if the Laser Test Material (350g paperboard) is properly placed and its surface is clean and intact."
+                },
                 {
                     "ecode": "0300A40000010002",
                     "intro": "The right hotend temperature is too high. Please wait for it to cool down to room temperature before restarting the task."
@@ -2462,10 +3274,6 @@
                 {
                     "ecode": "0C00010000020019",
                     "intro": ""
-                },
-                {
-                    "ecode": "0C00030000020017",
-                    "intro": "The high-precision nozzle offset calibration failed; please recalibrate."
                 },
                 {
                     "ecode": "0C0001000002001A",
@@ -3612,10 +4420,6 @@
                     "intro": "Toolhead Camera lens seems to be dirty. Please clean the lens."
                 },
                 {
-                    "ecode": "0C00010000010005",
-                    "intro": "Toolhead Camera parameter is abnormal. Please contact after-sales."
-                },
-                {
                     "ecode": "0C00010000010009",
                     "intro": "The Live View Camera lens seems to be dirty. Please clean the lens."
                 },
@@ -3680,10 +4484,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0300950000010006",
-                    "intro": "The Laser Module not detected. The module may have fallen off, or the quick-release lever may not be locked."
-                },
-                {
                     "ecode": "0300950000010004",
                     "intro": "The speed of the Laser Module cooling fan is too low or stopped. It may be stuck or the connector may not be plugged in properly."
                 },
@@ -3712,10 +4512,6 @@
                     "intro": "Foreign object detection is not working and the Live View camera serial number cannot be read. Please contact the customer support team."
                 },
                 {
-                    "ecode": "0C00010000020014",
-                    "intro": "Nozzle Camera is malfunctioning. If this issue occurs multiple times during printing, please contact customer service."
-                },
-                {
                     "ecode": "050005000001000D",
                     "intro": "BirdsEye Camera is not certified. Please use Bambu Lab accessories."
                 },
@@ -3742,10 +4538,6 @@
                 {
                     "ecode": "0500050000010010",
                     "intro": "Uncertified AMS A detected or AMS A firmware not upgraded. Unable to operate with this printer."
-                },
-                {
-                    "ecode": "0C00040000020021",
-                    "intro": "The material can't be detected because it's too small and positioned too far to the left or too close to the door. Please move it to the center area."
                 },
                 {
                     "ecode": "0505050000010010",
@@ -3916,10 +4708,6 @@
                     "intro": "AMS C Slot 2 feed-out Hall sensor is disconnected. The connector may have poor contact."
                 },
                 {
-                    "ecode": "0300280000010001",
-                    "intro": "Force sensor data abnormal in cutting module. The magnet on blade holder may have fallen off."
-                },
-                {
                     "ecode": "0700230000020007",
                     "intro": "AMS A Slot 4 feed-out Hall sensor is disconnected. The connector may have poor contact."
                 },
@@ -4004,16 +4792,8 @@
                     "intro": "The engrave laser focal point XY calibration has failed. Please clean up the Laser Homing Area on the Laser Platform, and re-run the Laser Module Mount Calibration."
                 },
                 {
-                    "ecode": "03009D0000020003",
-                    "intro": "The engrave laser focal point Z calibration result differs significantly from the design values. Please re-install the Laser Module and re-run the Laser Module Setup. If it fails many times, please get in touch with our support team."
-                },
-                {
                     "ecode": "03009C0000010001",
                     "intro": "The Active Airflow Assist Module is not detected. Please check whether the connector is plugged in properly."
-                },
-                {
-                    "ecode": "0C00040000020024",
-                    "intro": "The device does not support material thickness measurement. Please install the Laser Module and try again."
                 },
                 {
                     "ecode": "0702230000020007",
@@ -4042,10 +4822,6 @@
                 {
                     "ecode": "0700200000020007",
                     "intro": "AMS A Slot 1 feed-out Hall sensor is disconnected. The connector may have poor contact."
-                },
-                {
-                    "ecode": "0300280000010004",
-                    "intro": "Force sensor data abnormal in cutting module. The magnet on blade holder may have fallen off."
                 },
                 {
                     "ecode": "1804230000020007",
@@ -4116,28 +4892,12 @@
                     "intro": "The Live View Camera calibration failed, please recalibrate. Ensure the build plate is empty, and the camera view is clear and properly oriented. Please contact customer support if repeated failures occur."
                 },
                 {
-                    "ecode": "0500040000020050",
-                    "intro": "Laser Safety Window not installed."
-                },
-                {
                     "ecode": "0500040000010052",
                     "intro": "Safety Key is not inserted. Please follow the Wiki to install it."
                 },
                 {
                     "ecode": "0500040000010051",
                     "intro": "Emergency Stop Button is not in the right position. Please follow the Wiki to install it."
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Thickness measurement failed. The material appears to be transparent or uneven."
-                },
-                {
-                    "ecode": "0C00030000020023",
-                    "intro": "Laser engraving Z-axis focus calibration failed. Please check if the Laser Test Material (350g paperboard) is properly placed and its surface is clean and intact."
-                },
-                {
-                    "ecode": "0C00040000020022",
-                    "intro": "No material is detected. Please place the material to be processed."
                 },
                 {
                     "ecode": "0300090000010001",
@@ -4166,22 +4926,6 @@
                 {
                     "ecode": "0C00030000020015",
                     "intro": "Foreign object detection is not working. Detected the Live View Camera has been replaced. If a laser or cutting module is installed, please uninstall the module, tab \"Settings>Calibration\" on printer screen and re-calibrate the Live View Camera."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "Laser module is installed. Platform type mismatch detected. Please place a laser platform."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "Cutting module is installed. Platform type mismatch detected. Please place the correct cutting platform."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Laser module is installed. Platform type mismatch detected. Please place the laser platform for laser calibration."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Cutting module is installed. Platform type mismatch detected. Please place the cutting platform for cutting calibration."
                 },
                 {
                     "ecode": "0701200000020006",
@@ -4328,42 +5072,6 @@
                     "intro": "Please check if the material is coming out of the left nozzle. If not, gently push the material and try to extrude again."
                 },
                 {
-                    "ecode": "0700700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "0701700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "0703700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1802700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "0707700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1806700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1807700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1804700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1801700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
                     "ecode": "050004000002004C",
                     "intro": "Unknown cutting protection base type. Please replace it with the correct cutting protection base."
                 },
@@ -4386,34 +5094,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "External spool connected to right extruder may be tangled or jammed."
-                },
-                {
-                    "ecode": "0702700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1800700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "0706700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1805700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "0705700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "0704700000020007",
-                    "intro": "AMS filament ran out. Please put a new filament into the same slot in AMS and resume"
-                },
-                {
-                    "ecode": "1803700000020007",
-                    "intro": "AMS-HT filament ran out. Please put a new filament into the same slot in AMS and resume"
                 },
                 {
                     "ecode": "050004000002004D",
@@ -4444,20 +5124,12 @@
                     "intro": "Z-axis homing failed. Please check if the blade holder movement is smooth and ensure no foreign objects are at the contact position on the heatbed."
                 },
                 {
-                    "ecode": "0300280000010007",
-                    "intro": "Communication failure between cutting module and toolhead module. Please check if the cutting module signal cable is loose or broken. It could also be due to a broken force sensor coil."
-                },
-                {
                     "ecode": "0C00010000020016",
                     "intro": ""
                 },
                 {
                     "ecode": "0500030000020020",
                     "intro": "USB flash drive capacity is insufficient to cache print files."
-                },
-                {
-                    "ecode": "0300280000010003",
-                    "intro": "Communication failure between cutting module and toolhead during Z-axis homing. Please check if the cutting module signal cable is loose or broken, or verify if the force sensor coil is intact."
                 },
                 {
                     "ecode": "0C00010000020015",
@@ -4556,10 +5228,6 @@
                     "intro": "MQTT Command verification failed, please update Studio or Handy."
                 },
                 {
-                    "ecode": "0500040000020037",
-                    "intro": "The Cutting Module needs calibration to get the tool position. Please perform the mounting calibration before use. (about 1 minutes)"
-                },
-                {
                     "ecode": "0500040000020034",
                     "intro": "New Laser Module connected; for more precise cutting and engraving, please go to set up before use. (about 4 minutes)"
                 },
@@ -4580,14 +5248,6 @@
                     "intro": "Chamber temperature is too high. Please open the top cover and front door to cool down, or lower the ambient temperature."
                 },
                 {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
                     "ecode": "050005000001000B",
                     "intro": ""
                 },
@@ -4606,18 +5266,6 @@
                 {
                     "ecode": "0500040000020038",
                     "intro": "Please slide in cutting module and fasten the quick release lever. If already installed, the module might not be properly aligned. Please try reinstalling it."
-                },
-                {
-                    "ecode": "0300260000010005",
-                    "intro": "Z axis motor rotation is obstructed; please check if there are foreign objects stuck in the Z slider, or Z timing pulley."
-                },
-                {
-                    "ecode": "0300250000010005",
-                    "intro": "Z axis motor rotation is obstructed; please check if there are foreign objects stuck in the Z slider, or Z timing pulley."
-                },
-                {
-                    "ecode": "0300260000010007",
-                    "intro": "The frequency of the extrusion force sensor of the left extruder is too high. The sensor may be installed too close or the sensor may be loose."
                 },
                 {
                     "ecode": "0500010000020002",
@@ -5048,22 +5696,6 @@
                     "intro": "The hotend cooling fan speed is slow. It may be stuck and need cleaning."
                 },
                 {
-                    "ecode": "0500040000020042",
-                    "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "No platform detected; please make sure the laser plate is placed properly."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "Nozzle mismatch was detected during printing. Please initiate the print after re-slicing, or continue printing after replacing the correct nozzle. Caution: the hotend temperature is high."
-                },
-                {
                     "ecode": "0500040000020049",
                     "intro": "The platform type is unknown; please replace it with the correct one and check if the BirdsEye camera is obstructed."
                 },
@@ -5102,10 +5734,6 @@
                 {
                     "ecode": "0706700000020020",
                     "intro": "AMS G filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "18FF810000010002",
-                    "intro": "The position hall sensor of the extruder switching motor is abnormal. Please check whether the connecting cable is loose."
                 },
                 {
                     "ecode": "0701130000010001",
@@ -5338,10 +5966,6 @@
                 {
                     "ecode": "18FF200000020004",
                     "intro": "Please pull the external filament from the right extruder."
-                },
-                {
-                    "ecode": "18FF810000010003",
-                    "intro": "The position hall signal communication acquisition of the extruder switching motor is abnormal."
                 },
                 {
                     "ecode": "0705700000020003",
@@ -5600,10 +6224,6 @@
                     "intro": "AMS G Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
                 {
-                    "ecode": "18FE810000010002",
-                    "intro": "The position hall sensor of the extruder switching motor is abnormal. Please check whether the connecting cable is loose."
-                },
-                {
                     "ecode": "1800700000020022",
                     "intro": "AMS-HT A Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
                 },
@@ -5796,10 +6416,6 @@
                     "intro": "AMS-HT C Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
                 {
-                    "ecode": "1800700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
                     "ecode": "1800400000020004",
                     "intro": "The filament buffer signal is abnormal; the spring may be stuck, or the filament may be tangled."
                 },
@@ -5826,10 +6442,6 @@
                 {
                     "ecode": "1800700000020031",
                     "intro": "AMS-HT A Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "18FF800000010002",
-                    "intro": "The toolhead lift motor position hall sensor is abnormal, please check whether the connecting cable is loose."
                 },
                 {
                     "ecode": "0705700000020020",
@@ -6136,10 +6748,6 @@
                     "intro": "AMS G Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
                 },
                 {
-                    "ecode": "1807700000020046",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
@@ -6408,10 +7016,6 @@
                     "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
                 },
                 {
-                    "ecode": "1806700000020046",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "1806700000020012",
                     "intro": "AMS-HT G Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
                 },
@@ -6642,10 +7246,6 @@
                 {
                     "ecode": "0706700000020003",
                     "intro": "Failed to extrude the filament. Possible cause: extruder or nozzle clog. Please refer to Assistant for details."
-                },
-                {
-                    "ecode": "18FE800000010002",
-                    "intro": "The toolhead lift motor position hall sensor is abnormal, please check whether the connecting cable is loose."
                 },
                 {
                     "ecode": "1807700000020023",
@@ -6888,18 +7488,6 @@
                     "intro": "AMS H Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
                 },
                 {
-                    "ecode": "1800700000020046",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1802700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
-                    "ecode": "1807700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
                     "ecode": "1800700000020012",
                     "intro": "AMS-HT A Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
                 },
@@ -7096,20 +7684,12 @@
                     "intro": "AMS-HT F Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
                 {
-                    "ecode": "1802700000020046",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "1802700000020045",
                     "intro": "AMS-HT C Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
                 {
                     "ecode": "1800700000020041",
                     "intro": "AMS-HT A Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1801700000020046",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
                 },
                 {
                     "ecode": "1806310000030003",
@@ -7352,10 +7932,6 @@
                     "intro": "AMS-HT A filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
                 },
                 {
-                    "ecode": "1804700000020046",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "1802700000020012",
                     "intro": "AMS-HT C Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
                 },
@@ -7374,10 +7950,6 @@
                 {
                     "ecode": "1804300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "1801700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "1806700000020033",
@@ -7640,10 +8212,6 @@
                     "intro": "Timeout purging old filament. Possible cause: filament stuck or the extruder/nozzle clog. Please refer to Assistant for details."
                 },
                 {
-                    "ecode": "0706700000020046",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
@@ -7664,16 +8232,8 @@
                     "intro": "AMS-HT C Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
                 {
-                    "ecode": "0705700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
                     "ecode": "1801700000020014",
                     "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "0704700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "1804700000020043",
@@ -7876,20 +8436,12 @@
                     "intro": "AMS G Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
                 },
                 {
-                    "ecode": "1805700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
                     "ecode": "18FF450000020002",
                     "intro": "The filament cutter's cutting distance is too large. The XY motor may lose steps."
                 },
                 {
                     "ecode": "1803700000020044",
                     "intro": "AMS-HT D Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "0704700000020046",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
                 },
                 {
                     "ecode": "1803310000030003",
@@ -8160,10 +8712,6 @@
                     "intro": "Failed to extrude AMS H Slot 2 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "1800510000030001",
-                    "intro": "The AMS is disabled; please load filament from spool holder."
-                },
-                {
                     "ecode": "0705700000020012",
                     "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
                 },
@@ -8376,14 +8924,6 @@
                     "intro": "The AMS-HT D slot 4 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
                 },
                 {
-                    "ecode": "1800400000020001",
-                    "intro": "The filament buffer position signal lost: the cable or position sensor may be malfunctioning."
-                },
-                {
-                    "ecode": "18FE810000010003",
-                    "intro": "The position hall signal communication acquisition of the extruder switching motor is abnormal."
-                },
-                {
                     "ecode": "0706700000020045",
                     "intro": "AMS G Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
@@ -8430,10 +8970,6 @@
                 {
                     "ecode": "0704700000020013",
                     "intro": "AMS E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "1806700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "1802700000020040",
@@ -8616,24 +9152,12 @@
                     "intro": "AMS-HT H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
                 },
                 {
-                    "ecode": "18FF800000010003",
-                    "intro": "The toolhead lift motor position hall signal is abnormal during extruder switching."
-                },
-                {
                     "ecode": "1801700000020060",
                     "intro": "AMS-HT B Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
                 {
                     "ecode": "0707700000020061",
                     "intro": "AMS H Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "0705700000020046",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "0706700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "1804700000020044",
@@ -8702,10 +9226,6 @@
                 {
                     "ecode": "1806700000020014",
                     "intro": "AMS-HT G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1803700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "1806700000020030",
@@ -8856,10 +9376,6 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "0707700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
                     "ecode": "1807700000020060",
                     "intro": "AMS-HT H Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
@@ -8918,10 +9434,6 @@
                 {
                     "ecode": "1800700000020010",
                     "intro": "AMS-HT A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1803700000020046",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -9156,10 +9668,6 @@
                     "intro": "AMS F Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
                 },
                 {
-                    "ecode": "0707700000020046",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "0706350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
@@ -9376,10 +9884,6 @@
                     "intro": "AMS-HT D Slot 3's filament may be broken in AMS-HT."
                 },
                 {
-                    "ecode": "18FE800000010003",
-                    "intro": "The toolhead lift motor position hall signal is abnormal during extruder switching."
-                },
-                {
                     "ecode": "1801700000020043",
                     "intro": "AMS-HT B Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
@@ -9394,10 +9898,6 @@
                 {
                     "ecode": "0707700000020023",
                     "intro": "AMS H Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1805700000020046",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
                 },
                 {
                     "ecode": "1803700000020012",
@@ -9434,10 +9934,6 @@
                 {
                     "ecode": "0707700000020032",
                     "intro": "AMS H Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "1804700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "1807700000020020",
@@ -9672,10 +10168,6 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "1800400000020002",
-                    "intro": "The filament buffer position signal error: the position sensor may be malfunctioning."
-                },
-                {
                     "ecode": "0707700000020033",
                     "intro": "AMS H Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
                 },
@@ -9884,10 +10376,6 @@
                     "intro": "AMS G Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
                 {
-                    "ecode": "0C00010000020002",
-                    "intro": "Toolhead camera is malfunctioning. If this issue occurs multiple times during printing, please contact customer service."
-                },
-                {
                     "ecode": "0706200000020009",
                     "intro": "Failed to extrude AMS G Slot 1 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
@@ -9950,10 +10438,6 @@
                 {
                     "ecode": "07FF200000020002",
                     "intro": "No filament was detected in the right extruder from the external spool; please load the new filament."
-                },
-                {
-                    "ecode": "0C00010000010012",
-                    "intro": "The Live View Cameracalibration failed and the calibration result could not be saved. Please try recalibrating. If calibration fails multiple times, please contact the customer support team."
                 },
                 {
                     "ecode": "0C00010000010010",
@@ -10148,10 +10632,6 @@
                     "intro": "AMS A Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
                 {
-                    "ecode": "0700700000020046",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "0700700000020050",
                     "intro": "AMS A Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
                 },
@@ -10198,10 +10678,6 @@
                 {
                     "ecode": "0701700000020045",
                     "intro": "AMS B Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0701700000020046",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
                 },
                 {
                     "ecode": "0701700000020050",
@@ -10252,10 +10728,6 @@
                     "intro": "AMS C Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
                 {
-                    "ecode": "0702700000020046",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "0702700000020050",
                     "intro": "AMS C Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
                 },
@@ -10304,10 +10776,6 @@
                     "intro": "AMS D Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
                 {
-                    "ecode": "0703700000020046",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed, and if the filament tube is clear."
-                },
-                {
                     "ecode": "0703700000020050",
                     "intro": "AMS D Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
                 },
@@ -10330,10 +10798,6 @@
                 {
                     "ecode": "0702700000020014",
                     "intro": "AMS C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "0300250000010001",
-                    "intro": "The frequency of the extrusion force sensor of the right extruder is too low. The nozzle may not be installed or the nozzle heat sink may be too far away from the sensor."
                 },
                 {
                     "ecode": "0702700000020022",
@@ -10362,10 +10826,6 @@
                 {
                     "ecode": "0703700000020020",
                     "intro": "AMS D filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0300260000010004",
-                    "intro": "The signal of the extrusion force sensor of the left extruder is abnormal. The sensor may be damaged or the MC-TH communication may be abnormal."
                 },
                 {
                     "ecode": "0701700000020014",
@@ -10424,10 +10884,6 @@
                     "intro": "AMS D Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
                 },
                 {
-                    "ecode": "0300250000010007",
-                    "intro": "The frequency of the extrusion force sensor of the right extruder is too high. The sensor may be damaged or the nozzle heat sink may be too close to the sensor."
-                },
-                {
                     "ecode": "0703700000020011",
                     "intro": "AMS D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
                 },
@@ -10472,16 +10928,8 @@
                     "intro": "AMS A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
                 },
                 {
-                    "ecode": "0300250000010004",
-                    "intro": "The signal of the extrusion force sensor of the right extruder is abnormal. The sensor may be damaged or the MC-TH communication may be abnormal."
-                },
-                {
                     "ecode": "0702700000020010",
                     "intro": "AMS C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "0300270000010004",
-                    "intro": "The signal of the nozzle offset calibration sensor is abnormal. The sensor may be damaged or the wiring may not be connected properly."
                 },
                 {
                     "ecode": "0300260000010008",
@@ -10572,6 +11020,10 @@
                     "intro": "High heatbed temperature printing is performed for the first time. In order to obtain better first layer printing quality, high temperature heatbed calibration is being automatically performed."
                 },
                 {
+                    "ecode": "0C00030000020011",
+                    "intro": "The high-precision nozzle offset calibration failed; please recalibrate."
+                },
+                {
                     "ecode": "0703550000010002",
                     "intro": "The PTFE tube is incorrectly connected between the toolhead and the buffer. Please connect the buffer's top to the right extruder and the bottom to the left extruder."
                 },
@@ -10590,10 +11042,6 @@
                 {
                     "ecode": "0701550000010002",
                     "intro": "The PTFE tube is incorrectly connected between the toolhead and the buffer. Please connect the buffer's top to the right extruder and the bottom to the left extruder."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "The sensitivity of the left extruder extrusion force sensor is low; the nozzle may not installed correctly."
                 },
                 {
                     "ecode": "1807960000010003",
@@ -10754,10 +11202,6 @@
                 {
                     "ecode": "07FF800000020003",
                     "intro": "The deviation in the positioning calibration value of the extruder is too large; please recalibrate."
-                },
-                {
-                    "ecode": "0500030000020010",
-                    "intro": ""
                 },
                 {
                     "ecode": "0500010000020009",
@@ -11112,10 +11556,6 @@
                     "intro": "Chamber cooling may be too slow. You can open the front door or top cover to help cooling if the air in the chamber is non-toxic."
                 },
                 {
-                    "ecode": "0500010000020001",
-                    "intro": "The media pipeline is malfunctioning. Please restart the printer. If multiple attempts fail, please contact customer service."
-                },
-                {
                     "ecode": "0500020000020005",
                     "intro": "Failed to connect to the internet; please check the network connection."
                 },
@@ -11202,10 +11642,6 @@
                 {
                     "ecode": "0702940000010001",
                     "intro": "AMS C The temperature sensor of heater 1 is malfunctioning, which may be due to poor connector contact."
-                },
-                {
-                    "ecode": "0300C30000010001",
-                    "intro": "Current sensor of Active Chamber Exhaust malfunction; this may be due to open circuit or a hardware sampling circuit fault."
                 },
                 {
                     "ecode": "0700010000020008",
@@ -11408,10 +11844,6 @@
                     "intro": "An abnormality occurs during the heating process of the heatbed; the heating modules may be broken."
                 },
                 {
-                    "ecode": "0500010000020003",
-                    "intro": ""
-                },
-                {
                     "ecode": "0700320000020002",
                     "intro": "The RFID-tag on AMS A Slot3 is damaged, or its content cannot be identified."
                 },
@@ -11440,10 +11872,6 @@
                     "intro": "Failed to extrude the filament; the extruder may be clogged."
                 },
                 {
-                    "ecode": "0500060000020007",
-                    "intro": ""
-                },
-                {
                     "ecode": "0C00040000010014",
                     "intro": "Cutting Protection Base not detected, which\nmay lead to heatbed damage. Please place it and continue."
                 },
@@ -11470,10 +11898,6 @@
                 {
                     "ecode": "0700350000010002",
                     "intro": "AMS A The humidity sensor is disconnected, which may be due to poor connector contact."
-                },
-                {
-                    "ecode": "0500060000020005",
-                    "intro": ""
                 },
                 {
                     "ecode": "0703810000010002",
@@ -11764,10 +12188,6 @@
                     "intro": "Nozzle height seems to be too low. Please check if the nozzle is worn or tilted. Re-calibrate Lidar if the nozzle has been replaced."
                 },
                 {
-                    "ecode": "0C00020000020006",
-                    "intro": "Nozzle height seems to be too high. Please check if there is filament residual attached to the nozzle."
-                },
-                {
                     "ecode": "0C00020000020009",
                     "intro": "The vertical laser is not bright enough at homing position. Please clean or replace the heatbed if this message appears repeatedly."
                 },
@@ -11778,10 +12198,6 @@
                 {
                     "ecode": "0703800000010002",
                     "intro": "AMS D The heater 1 is disconnected, which may be due to poor connector contact."
-                },
-                {
-                    "ecode": "07FE800000010003",
-                    "intro": "The toolhead lift motor position hall signal is abnormal during extruder switching."
                 },
                 {
                     "ecode": "0701010000020008",
@@ -11798,18 +12214,6 @@
                 {
                     "ecode": "0300350000010001",
                     "intro": "The MC module cooling fan speed is too slow or stopped. It may be stuck, or the connector may not be plugged in properly."
-                },
-                {
-                    "ecode": "0C00040000010005",
-                    "intro": "BirdsEye Camera malfunction: please contact customer service."
-                },
-                {
-                    "ecode": "0300970000030001",
-                    "intro": "The top cover seems to be open."
-                },
-                {
-                    "ecode": "07FF800000010003",
-                    "intro": "The toolhead lift motor position hall signal is abnormal during extruder switching."
                 },
                 {
                     "ecode": "0C00040000010010",
@@ -12148,39 +12552,7 @@
                     "intro": "AMS-HT B The heater 2 is short-circuited, which may be due to a wiring short or heater damage."
                 },
                 {
-                    "ecode": "0500030000020014",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020016",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500010000030009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020011",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020012",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020013",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020015",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020017",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020018",
                     "intro": ""
                 },
                 {
@@ -12336,10 +12708,6 @@
                     "intro": "AMS A was detected offline during the AMS initialization process."
                 },
                 {
-                    "ecode": "0706800000010004",
-                    "intro": "AMS G The heater 1 heating abnormally."
-                },
-                {
                     "ecode": "1800930000010001",
                     "intro": "AMS-HT A The cooling fan of heater 2 is blocked, which may be due to the fan being stuck."
                 },
@@ -12486,10 +12854,6 @@
                 {
                     "ecode": "1803020000010001",
                     "intro": "AMS-HT D Filament speed and length error: The filament odometry may be faulty."
-                },
-                {
-                    "ecode": "0705810000010004",
-                    "intro": "AMS F The heater 2 heating abnormally."
                 },
                 {
                     "ecode": "0706010000020009",
@@ -12696,10 +13060,6 @@
                     "intro": "AMS-HT G The operation of the exhaust valve 1 is abnormal, which may be due to excessive resistance."
                 },
                 {
-                    "ecode": "1806810000010004",
-                    "intro": "AMS-HT G The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "0704010000010011",
                     "intro": "AMS E The assist motor calibration parameter error. Please pull out the filament from the filament hub and then restart the AMS."
                 },
@@ -12714,10 +13074,6 @@
                 {
                     "ecode": "1800100000020004",
                     "intro": "AMS-HT A The brushed motor 1 has no signal, which may be due to poor contact in the motor connector or a motor fault."
-                },
-                {
-                    "ecode": "1806800000010004",
-                    "intro": "AMS-HT G The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "1802130000020004",
@@ -12764,10 +13120,6 @@
                     "intro": "AMS-HT E The cooling fan of heater 1 is blocked, which may be due to the fan being stuck."
                 },
                 {
-                    "ecode": "1807810000010004",
-                    "intro": "AMS-HT H The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "1801010000010004",
                     "intro": "The AMS-HT B assist motor speed control is malfunctioning. The speed sensor may be faulty."
                 },
@@ -12792,16 +13144,8 @@
                     "intro": "The AMS H RFID 2 board has an error."
                 },
                 {
-                    "ecode": "1801800000010004",
-                    "intro": "AMS-HT B The heater 1 heating abnormally."
-                },
-                {
                     "ecode": "0707020000010001",
                     "intro": "AMS H Filament speed and length error: The filament odometry may be faulty."
-                },
-                {
-                    "ecode": "0706810000010004",
-                    "intro": "AMS G The heater 2 heating abnormally."
                 },
                 {
                     "ecode": "1807010000010001",
@@ -12846,10 +13190,6 @@
                 {
                     "ecode": "1803920000010001",
                     "intro": "AMS-HT D The cooling fan of heater 1 is blocked, which may be due to the fan being stuck."
-                },
-                {
-                    "ecode": "0707800000010004",
-                    "intro": "AMS H The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "0704300000010001",
@@ -12932,10 +13272,6 @@
                     "intro": "AMS-HT F The current sensor of heater 1 is abnormal."
                 },
                 {
-                    "ecode": "1805810000010004",
-                    "intro": "AMS-HT F The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "0705920000010001",
                     "intro": "AMS F The cooling fan of heater 1 is blocked, which may be due to the fan being stuck."
                 },
@@ -12958,10 +13294,6 @@
                 {
                     "ecode": "0704930000020002",
                     "intro": "AMS E The cooling fan speed of heater 2 is too low, which could be due to excessive fan resistance."
-                },
-                {
-                    "ecode": "1804810000010004",
-                    "intro": "AMS-HT E The heater 2 heating abnormally."
                 },
                 {
                     "ecode": "1802930000010001",
@@ -13072,10 +13404,6 @@
                     "intro": "AMS E The assist motor has unbalanced tree-phase resistaance. The assist motor may be faulty."
                 },
                 {
-                    "ecode": "1802800000010004",
-                    "intro": "AMS-HT C The heater 1 heating abnormally."
-                },
-                {
                     "ecode": "0705960000010001",
                     "intro": "AMS F The drying process may experience thermal runaway. Please turn off the AMS power supply."
                 },
@@ -13108,10 +13436,6 @@
                     "intro": "AMS-HT A The coil of exhaust valve 2 is short-circuited, which may be due to abnormal wiring or damage."
                 },
                 {
-                    "ecode": "0707810000010004",
-                    "intro": "AMS H The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "1803010000010011",
                     "intro": "AMS-HT D The assist motor calibration parameter error. Please pull out the filament from the filament hub and then restart the AMS."
                 },
@@ -13130,10 +13454,6 @@
                 {
                     "ecode": "1800960000010001",
                     "intro": "AMS-HT A The drying process may experience thermal runaway. Please turn off the AMS power supply."
-                },
-                {
-                    "ecode": "1804800000010004",
-                    "intro": "AMS-HT E The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "1800010000020010",
@@ -13210,10 +13530,6 @@
                 {
                     "ecode": "0706920000020002",
                     "intro": "AMS G The cooling fan speed of heater 1 is too low, which could be due to excessive fan resistance."
-                },
-                {
-                    "ecode": "1807800000010004",
-                    "intro": "AMS-HT H The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "0704110000020004",
@@ -13312,14 +13628,6 @@
                     "intro": "AMS-HT G The brushed motor 1 has no signal, which may be due to poor contact in the motor connector or a motor fault."
                 },
                 {
-                    "ecode": "0704810000010004",
-                    "intro": "AMS E The heater 2 heating abnormally."
-                },
-                {
-                    "ecode": "1803800000010004",
-                    "intro": "AMS-HT D The heater 1 heating abnormally."
-                },
-                {
                     "ecode": "1801960000010001",
                     "intro": "AMS-HT B The drying process may experience thermal runaway. Please turn off the AMS power supply."
                 },
@@ -13380,10 +13688,6 @@
                     "intro": "The AMS G assist motor is overloaded. The filament may be tangled or stuck."
                 },
                 {
-                    "ecode": "1800800000010004",
-                    "intro": "AMS-HT A The heater 1 heating abnormally."
-                },
-                {
                     "ecode": "1800300000010001",
                     "intro": "The AMS-HT A RFID 1 board has an error."
                 },
@@ -13418,10 +13722,6 @@
                 {
                     "ecode": "1804930000020002",
                     "intro": "AMS-HT E The cooling fan speed of heater 2 is too low, which could be due to excessive fan resistance."
-                },
-                {
-                    "ecode": "1802810000010004",
-                    "intro": "AMS-HT C The heater 2 heating abnormally."
                 },
                 {
                     "ecode": "1805100000020004",
@@ -13528,10 +13828,6 @@
                     "intro": "The AMS H assist motor has slipped. The extrusion wheel may be worn down, or the filament may be too thin."
                 },
                 {
-                    "ecode": "1805800000010004",
-                    "intro": "AMS-HT F The heater 1 heating abnormally."
-                },
-                {
                     "ecode": "1806010000020009",
                     "intro": "AMS-HT G The assist motor has unbalanced tree-phase resistaance. The assist motor may be faulty."
                 },
@@ -13596,10 +13892,6 @@
                     "intro": "AMS-HT F The odometer has no signal. The odometer connector may have poor contact."
                 },
                 {
-                    "ecode": "1803810000010004",
-                    "intro": "AMS-HT D The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "1806920000010001",
                     "intro": "AMS-HT G The cooling fan of heater 1 is blocked, which may be due to the fan being stuck."
                 },
@@ -13662,10 +13954,6 @@
                 {
                     "ecode": "0705500000020001",
                     "intro": "AMS F communication is abnormal; please check the connection cable."
-                },
-                {
-                    "ecode": "0705800000010004",
-                    "intro": "AMS F The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "1806920000020002",
@@ -13744,10 +14032,6 @@
                     "intro": "AMS-HT C The cooling fan speed of heater 2 is too low, which could be due to excessive fan resistance."
                 },
                 {
-                    "ecode": "1801810000010004",
-                    "intro": "AMS-HT B The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "1806810000010001",
                     "intro": "AMS-HT G The current sensor of heater 2 is abnormal."
                 },
@@ -13768,20 +14052,12 @@
                     "intro": "AMS-HT H The current sensor of heater 1 is abnormal."
                 },
                 {
-                    "ecode": "1800810000010004",
-                    "intro": "AMS-HT A The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "0706800000010001",
                     "intro": "AMS G The current sensor of heater 1 is abnormal."
                 },
                 {
                     "ecode": "1806130000020004",
                     "intro": "AMS-HT G The brushed motor 4 has no signal, which may be due to poor contact in the motor connector or a motor fault."
-                },
-                {
-                    "ecode": "0704800000010004",
-                    "intro": "AMS E The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "1801930000020002",
@@ -13832,14 +14108,6 @@
                     "intro": "The extruder switching motor is working abnormally. Please check whether the connecting cable is loose."
                 },
                 {
-                    "ecode": "07FE810000010003",
-                    "intro": "The position hall signal communication acquisition of the extruder switching motor is abnormal."
-                },
-                {
-                    "ecode": "07FE810000010002",
-                    "intro": "The position hall sensor of the extruder switching motor is abnormal. Please check whether the connecting cable is loose."
-                },
-                {
                     "ecode": "07FE800000010001",
                     "intro": "The toolhead lift motor works abnormally. Please check whether the connecting cable is loose."
                 },
@@ -13852,10 +14120,6 @@
                     "intro": "The toolhead lift motor works abnormally. Please check whether the connecting cable is loose."
                 },
                 {
-                    "ecode": "07FF810000010002",
-                    "intro": "The position hall sensor of the extruder switching motor is abnormal. Please check whether the connecting cable is loose."
-                },
-                {
                     "ecode": "07FF810000020001",
                     "intro": "The extruder switching action is abnormal. Please check whether there is something stuck in the toolhead."
                 },
@@ -13866,18 +14130,6 @@
                 {
                     "ecode": "0500030000010026",
                     "intro": "The Toolhead expansion module is malfunctioning. Please power off, check the connection, and restart the device."
-                },
-                {
-                    "ecode": "07FE800000010002",
-                    "intro": "The toolhead lift motor position hall sensor is abnormal, please check whether the connecting cable is loose."
-                },
-                {
-                    "ecode": "07FF800000010002",
-                    "intro": "The toolhead lift motor position hall sensor is abnormal, please check whether the connecting cable is loose."
-                },
-                {
-                    "ecode": "07FF810000010003",
-                    "intro": "The position hall signal communication acquisition of the extruder switching motor is abnormal."
                 },
                 {
                     "ecode": "0300200000010001",
@@ -14126,10 +14378,6 @@
                 {
                     "ecode": "1203220000020005",
                     "intro": "AMS D Slot3 filament has run out, and purging the old filament went abnormally; please check to see if filament is stuck in the toolhead."
-                },
-                {
-                    "ecode": "0703800000010004",
-                    "intro": "AMS D The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "0703010000020009",
@@ -14408,10 +14656,6 @@
                     "intro": "AMS D Slot4 filament has run out, and purging the old filament went abnormally; please check to see if filament is stuck in the toolhead."
                 },
                 {
-                    "ecode": "0701810000010004",
-                    "intro": "AMS B The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "0702910000010002",
                     "intro": "AMS C The coil of exhaust valve 2 is short-circuited, which may be due to abnormal wiring or damage."
                 },
@@ -14450,10 +14694,6 @@
                 {
                     "ecode": "1203110000010001",
                     "intro": "The AMS D Slot2 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
-                },
-                {
-                    "ecode": "0701800000010004",
-                    "intro": "AMS B The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "0703010000020011",
@@ -14736,10 +14976,6 @@
                     "intro": "AMS D Slot 4 RFID coil is broken or the RF hardware circuit has an error."
                 },
                 {
-                    "ecode": "0703810000010004",
-                    "intro": "AMS D The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "0701810000010001",
                     "intro": "AMS B The current sensor of heater 2 is abnormal."
                 },
@@ -14840,10 +15076,6 @@
                     "intro": "AMS D Slot4 filament may be broken in the PTFE tube."
                 },
                 {
-                    "ecode": "0700810000010004",
-                    "intro": "AMS A The heater 2 heating abnormally."
-                },
-                {
                     "ecode": "050004000002001F",
                     "intro": "The RFID-tag on AMS D Slot4 cannot be identified."
                 },
@@ -14886,10 +15118,6 @@
                 {
                     "ecode": "1203720000010001",
                     "intro": "AMS D Filament speed and length error: The slot 3 filament odometry may be faulty."
-                },
-                {
-                    "ecode": "0702810000010004",
-                    "intro": "AMS C The heater 2 heating abnormally."
                 },
                 {
                     "ecode": "07FE200000020001",
@@ -15090,10 +15318,6 @@
                 {
                     "ecode": "1203830000020001",
                     "intro": "AMS D Slot4 filament may be tangled or stuck."
-                },
-                {
-                    "ecode": "0700800000010004",
-                    "intro": "AMS A The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "0C00040000010016",
@@ -15302,10 +15526,6 @@
                 {
                     "ecode": "050003000001000B",
                     "intro": "The screen is malfunctioning; please restart the device."
-                },
-                {
-                    "ecode": "0C00040000020009",
-                    "intro": "Material position detected in blind spot. Please do not place material too far towards the edge of the device."
                 },
                 {
                     "ecode": "0500040000020016",
@@ -15536,10 +15756,6 @@
                     "intro": "Failed to extrude AMS D Slot4 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "0300260000010001",
-                    "intro": "The frequency of the extrusion force sensor of the left extruder is too low. The sensor may be installed too far or the sensor may be loose."
-                },
-                {
                     "ecode": "0700930000010001",
                     "intro": "AMS A The cooling fan of heater 2 is blocked, which may be due to the fan being stuck."
                 },
@@ -15586,10 +15802,6 @@
                 {
                     "ecode": "0702930000010001",
                     "intro": "AMS C The cooling fan of heater 2 is blocked, which may be due to the fan being stuck."
-                },
-                {
-                    "ecode": "0702800000010004",
-                    "intro": "AMS C The heater 1 heating abnormally."
                 },
                 {
                     "ecode": "12FF200000020001",
@@ -15680,10 +15892,6 @@
                     "intro": "Your printer seems to be printing without extruding."
                 },
                 {
-                    "ecode": "0703700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
                     "ecode": "0703300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
@@ -15706,14 +15914,6 @@
                 {
                     "ecode": "0702350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
-                },
-                {
-                    "ecode": "0702700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
-                },
-                {
-                    "ecode": "0701700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "0701300000030003",
@@ -15740,14 +15940,6 @@
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
                 {
-                    "ecode": "0700400000020001",
-                    "intro": "The filament buffer position signal lost: the cable or position sensor may be malfunctioning."
-                },
-                {
-                    "ecode": "0700400000020002",
-                    "intro": "The filament buffer position signal error: the position sensor may be malfunctioning."
-                },
-                {
                     "ecode": "0700450000020001",
                     "intro": "The filament cutter sensor is malfunctioning; please check whether the connector is properly plugged in."
                 },
@@ -15758,14 +15950,6 @@
                 {
                     "ecode": "0700450000020003",
                     "intro": "The filament cutter handle has not been released. The handle or blade may be jammed, or there could be an issue with the filament sensor connection."
-                },
-                {
-                    "ecode": "0700510000030001",
-                    "intro": "The AMS is disabled; please load filament from spool holder."
-                },
-                {
-                    "ecode": "0700700000020008",
-                    "intro": "Failed to get AMS mapping table; please click \"Resume\" to retry"
                 },
                 {
                     "ecode": "0500040000020020",
@@ -15882,10 +16066,6 @@
                 {
                     "ecode": "0300910000010001",
                     "intro": "The temperature of chamber heater 1 is abnormal. The heater may have a short circuit."
-                },
-                {
-                    "ecode": "0300910000010002",
-                    "intro": "The temperature of chamber heater 1 is abnormal. The heater may have an open circuit or the thermal fuse may have taken effect."
                 },
                 {
                     "ecode": "0300910000010003",
@@ -16034,10 +16214,6 @@
                 {
                     "ecode": "03000C0000010005",
                     "intro": "Force sensor 3 detected unexpected continuous force. The heatbed may be stuck, or the analog front end may be broken."
-                },
-                {
-                    "ecode": "03000F0000010001",
-                    "intro": "Abnormal accelerometer data detected. Please try to restart the printer."
                 },
                 {
                     "ecode": "0300100000020001",
