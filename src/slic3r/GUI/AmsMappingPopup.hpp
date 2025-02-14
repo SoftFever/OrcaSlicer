@@ -124,6 +124,10 @@ public:
     int  get_real_offset();
     void render(wxDC &dc) override;
     void doRender(wxDC &dc) override;
+    void set_material_index_str(std::string str);
+
+private:
+    std::string m_material_index;
 };
 
 class MappingItem : public wxPanel

@@ -3810,6 +3810,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
         m_filaments_map            = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
     }
     auto contronal_index = 0;
+    int  item_index      = 1;
     bool is_first_row    = true;
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
@@ -3854,6 +3855,9 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
+        item->set_material_index_str(std::to_string(item_index));
+        item_index++;
+
         contronal_index++;
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
@@ -4001,6 +4005,7 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
         m_filaments_map            = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
     }
     auto contronal_index = 0;
+    int  item_index      = 1;
     bool is_first_row    = true;
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
@@ -4044,6 +4049,8 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
             item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]));
             m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
+        item->set_material_index_str(std::to_string(item_index));
+        item_index++;
         contronal_index++;
         item->allow_paint_dropdown(false);
 

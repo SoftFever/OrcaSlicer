@@ -402,12 +402,13 @@ void MaterialSyncItem::render(wxDC &dc)
     if (mcolor.Alpha() == 0) { material_name_colour = wxColour(0x26, 0x2E, 0x30); }
     dc.SetTextForeground(material_name_colour);
 
-    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
+    auto full_text = m_material_index + " " + m_material_name;
+    if (dc.GetTextExtent(full_text).x > GetSize().x - 10) {
         dc.SetFont(::Label::Body_10);
     }
 
-    auto material_txt_size = dc.GetTextExtent(m_material_name);
-    dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, ((float) GetSize().y * 2 / 5 - material_txt_size.y) / 2));
+    auto material_txt_size = dc.GetTextExtent(full_text);
+    dc.DrawText(full_text, wxPoint((GetSize().x - material_txt_size.x) / 2, ((float) GetSize().y * 2 / 5 - material_txt_size.y) / 2));
     int real_left_offset = get_real_offset();
     if (m_match) {
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
@@ -537,6 +538,10 @@ void MaterialSyncItem::doRender(wxDC &dc)
         }
     }
     //not draw m_ams_not_match
+}
+
+void MaterialSyncItem::set_material_index_str(std::string str) {
+    m_material_index = str;
 }
 
 AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
