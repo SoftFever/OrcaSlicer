@@ -281,6 +281,12 @@ public:
         if (layer_height < 0) return m_extrusion_flow;
         return layer_height * (m_perimeter_width - layer_height * (1.f - float(M_PI) / 4.f)) / filament_area();
     }
+    float nozzle_change_extrusion_flow(float layer_height = -1.f) const // negative layer_height - return current m_extrusion_flow
+    {
+        if (layer_height < 0)
+            return m_extrusion_flow;
+        return layer_height * (m_nozzle_change_perimeter_width - layer_height * (1.f - float(M_PI) / 4.f)) / filament_area();
+    }
 
 	bool get_floating_area(float& start_pos_y, float& end_pos_y) const;
 	bool need_thick_bridge_flow(float pos_y) const;
