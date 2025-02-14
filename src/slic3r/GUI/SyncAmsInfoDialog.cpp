@@ -319,6 +319,7 @@ bool SyncAmsInfoDialog::is_need_show()
 {
     m_result.direct_sync = true;//init
     m_generate_fix_sizer_ams_mapping = false;//init
+    m_ams_combo_info.clear();
     if (!m_input_info.connected_printer) {
         return true;
     }
