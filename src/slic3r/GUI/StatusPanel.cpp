@@ -3946,10 +3946,10 @@ void StatusPanel::on_set_chamber_temp()
                         wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
                 }
 
-                if (champer_switch_head_dlg->ShowModal() != wxID_OK)
-                {
-                    return;
-                }
+                /*the dialog will be blocked APPLE, let the printer send back message*/
+#ifndef _APPLE
+                if (champer_switch_head_dlg->ShowModal() != wxID_OK) { return; }
+#endif // _APPLE
             }
 
             obj->command_set_chamber(chamber_temp);
