@@ -183,8 +183,22 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
     BOOST_LOG_TRIVIAL(info) << "sync_history_result";
 
     m_calib_results_history.clear();
-    if (obj)
-        m_calib_results_history = obj->pa_calib_tab;
+    if (obj) {
+        if (obj->is_multi_extruders()) {
+            for (const PACalibResult &pa_result : obj->pa_calib_tab) {
+                if (pa_result.extruder_id == 0 && m_extruder_switch_btn->GetValue()) {
+                    // left extruder
+                    m_calib_results_history.emplace_back(pa_result);
+                } else if (pa_result.extruder_id == 1 && !m_extruder_switch_btn->GetValue()) {
+                    // right extruder
+                    m_calib_results_history.emplace_back(pa_result);
+                }
+            }
+        }
+        else {
+            m_calib_results_history = obj->pa_calib_tab;
+        }
+    }
 
     if (m_calib_results_history.empty()) {
         m_tips->SetLabel(_L("No History Result"));
@@ -274,6 +288,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.nozzle_diameter = nozzle_value;
             cali_info.extruder_id     = extruder_id;
             cali_info.use_nozzle_volume_type = false;
+            cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request calib history";
