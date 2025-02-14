@@ -541,6 +541,82 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
     }
 }
 
+
+void GCodeViewer::SequentialView::GCodeWindow::render_thermal_index_windows(std::vector<GCodeProcessor::ThermalIndex> thermal_indexes,
+    float top, float right, float wnd_height, float f_lines_count, uint64_t start_id, uint64_t end_id ) const {
+
+    const float text_height = ImGui::CalcTextSize("0").y;
+    static const ImVec4 LINE_NUMBER_COLOR    = ImGuiWrapper::COL_ORANGE_LIGHT;
+
+
+   float previousWindowWidth = right;
+
+    auto place_window = [text_height, thermal_indexes, top, wnd_height, f_lines_count, start_id, end_id]
+    (std::string heading, size_t index_id, float right) {
+
+		ImGuiWrapper& imgui = *wxGetApp().imgui();
+		const ImGuiStyle& style = ImGui::GetStyle();
+        imgui.set_next_window_pos(right - 0.4f, top, ImGuiCond_Always, 1.0f, 0.0f);
+        imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::SetNextWindowBgAlpha(0.8f);
+        imgui.begin(std::string("Thermal-Index-" + heading),
+                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+
+        ImDrawList* draw_list     = ImGui::GetWindowDrawList();
+        ImVec2      pos_rect      = ImGui::GetCursorScreenPos();
+        ImVec2      windowPadding = ImGui::GetStyle().WindowPadding;
+        ImVec2      framePadding  = ImGui::GetStyle().FramePadding;
+
+        float textHeight = ImGui::GetTextLineHeight() + 4.0f;
+
+        ImVec2 rectMin = ImVec2(pos_rect.x - windowPadding.x - framePadding.x, pos_rect.y - windowPadding.y - framePadding.y);
+
+        ImVec2 rectMax = ImVec2(pos_rect.x + ImGui::GetContentRegionAvail().x, pos_rect.y + textHeight);
+
+        draw_list->AddRectFilled(rectMin, rectMax, ImGui::GetColorU32(ImVec4(0, 0, 0, 0.3)));
+        ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
+
+        const float item_size    = imgui.calc_text_size(std::string_view{"X: 000.000  "}).x;
+        const float item_spacing = imgui.get_item_spacing().x;
+
+        ImGui::SameLine(0.0f, 0.0f);
+
+        // render text lines
+        imgui.bold_text(" " + heading);
+
+        char buf[1024];
+        for (uint64_t id = start_id; id <= end_id; ++id) {
+            auto thermal_index = thermal_indexes[id - start_id];
+
+            ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
+
+            float ti_value;
+
+            switch (index_id) {
+            case 0: ti_value = thermal_index.min; break;
+            case 1: ti_value = thermal_index.max; break;
+            case 2: ti_value = thermal_index.mean; break;
+            };
+
+            sprintf(buf, "%8.2f  ", ti_value);
+
+            imgui.text(buf);
+            ImGui::PopStyleColor();
+        }
+
+        float previousWindowWidth = ImGui::GetCurrentWindow() -> Pos.x;
+        imgui.end();
+        ImGui::PopStyleVar();
+
+        return previousWindowWidth;
+    };
+    
+    previousWindowWidth = place_window("Mean", 2, previousWindowWidth);
+    previousWindowWidth = place_window("Max", 1, previousWindowWidth);
+    previousWindowWidth = place_window("Min", 0, previousWindowWidth);
+}
+
 //BBS: GUI refactor: move to right
 void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, float right, uint64_t curr_line_id) const
 //void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
@@ -551,14 +627,15 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         ret.reserve(end_id - start_id + 1);
         for (uint64_t id = start_id; id <= end_id; ++id) {
             // read line from file
+            const size_t length_of_line = 40;
             const size_t start        = id == 1 ? 0 : m_lines_ends[id - 2];
             const size_t original_len = m_lines_ends[id - 1] - start;
-            const size_t len          = std::min(original_len, (size_t) 55);
+            const size_t len          = std::min(original_len, (size_t) length_of_line);
             std::string  gline(m_file.data() + start, len);
 
             // If original line is longer than 55 characters, truncate and append "..."
-            if (original_len > 55)
-                gline = gline.substr(0, 52) + "...";
+            if (original_len > length_of_line)
+                gline = gline.substr(0, length_of_line - 3) + "...";
 
             std::string command, parameters, comment;
             // extract comment
@@ -598,7 +675,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     // number of visible lines
     const float text_height = ImGui::CalcTextSize("0").y;
     const ImGuiStyle& style = ImGui::GetStyle();
-    const uint64_t lines_count = static_cast<uint64_t>((wnd_height - 2.0f * style.WindowPadding.y + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y));
+    const uint64_t lines_count = static_cast<uint64_t>((wnd_height - 2.0f * style.WindowPadding.y + style.ItemSpacing.y) / (text_height + style.ItemSpacing.y)) - 1;
 
     if (lines_count == 0)
         return;
@@ -637,7 +714,10 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.5f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+    ImGui::SetNextWindowBgAlpha(0.8f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -662,7 +742,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     ImGui::SameLine(0.0f, 0.0f);
     
     // render text lines
-    imgui.text("GCode");
+    imgui.bold_text(" GCode");
     for (uint64_t id = start_id; id <= end_id; ++id) {
         const Line& line = m_lines[id - start_id];
 
@@ -684,10 +764,10 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         // render line number
         const std::string id_str = std::to_string(id);
         // spacer to right align text
-        ImGui::Dummy({ id_width - ImGui::CalcTextSize(id_str.c_str()).x, text_height });
+        ImGui::Dummy({ id_width - ImGui::CalcTextSize(id_str.c_str()).x + 0.2f, text_height });
         ImGui::SameLine(0.0f, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
-        imgui.text(id_str);
+        imgui.text("  " + id_str);
         ImGui::PopStyleColor();
 
         if (!line.command.empty() || !line.comment.empty())
@@ -718,11 +798,11 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         }
     }
     
-    float gcodeWindowWidth = ImGui::GetCurrentWindow() -> Pos.x;
+    float previousWindowWidth = ImGui::GetCurrentWindow() -> Pos.x;
 
     imgui.end();
     ImGui::PopStyleVar();
-    
+
     auto get_thermal_index = [this](uint64_t start_id, uint64_t end_id) {
             std::vector<GCodeProcessor::ThermalIndex> ret;
             ret.reserve(end_id - start_id + 1);
@@ -745,35 +825,9 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
             return ret;
         };
 
-    //BBS: GUI refactor: move to right
-    //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
-    imgui.set_next_window_pos(gcodeWindowWidth, top, ImGuiCond_Always, 1.0f, 0.0f);
-    imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.8f);
-    imgui.begin(std::string("Thermal-Index-1"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    
     std::vector<GCodeProcessor::ThermalIndex> thermal_indexes = get_thermal_index(start_id, end_id);
-    
-    ImGui::SetCursorPosY(0.5f * (wnd_height - f_lines_count * text_height - (f_lines_count - 1.0f) * style.ItemSpacing.y));
-    
-    const float item_size = imgui.calc_text_size(std::string_view{"X: 000.000  "}).x;
-    const float item_spacing = imgui.get_item_spacing().x;
-    
-    char buf[1024];
-    for (uint64_t id = start_id; id <= end_id; ++id) {
-        auto thermal_index = thermal_indexes[id-start_id];
-        
-        ImGui::PushStyleColor(ImGuiCol_Text, LINE_NUMBER_COLOR);
-        
-        sprintf(buf, "%8.2f | %8.2f | %8.2f", thermal_index.min, thermal_index.max, thermal_index.mean);
-        
-        imgui.text(buf);
-        ImGui::PopStyleColor();
-    }
 
-    imgui.end();
-    ImGui::PopStyleVar();
+    render_thermal_index_windows(thermal_indexes, top, previousWindowWidth, wnd_height, f_lines_count, start_id, end_id);
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
@@ -4506,7 +4560,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
-    ImGui::SetNextWindowBgAlpha(0.4f);
+    ImGui::SetNextWindowBgAlpha(0.8f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
     ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });

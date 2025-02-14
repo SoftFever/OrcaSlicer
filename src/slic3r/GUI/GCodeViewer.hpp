@@ -697,6 +697,8 @@ public:
             // current visible lines
             std::vector<Line> m_lines;
 
+			EViewType m_view_type = m_view_type;
+
         public:
             GCodeWindow() = default;
             ~GCodeWindow() { stop_mapping_file(); }
@@ -714,6 +716,14 @@ public:
             //BBS: GUI refactor: add canvas size
             //void render(float top, float bottom, uint64_t curr_line_id) const;
             void render(float top, float bottom, float right, uint64_t curr_line_id) const;
+            void GCodeViewer::SequentialView::GCodeWindow::render_thermal_index_windows(
+                std::vector<GCodeProcessor::ThermalIndex> thermal_indexes,
+                float                                     top,
+                float                                     right,
+                float                                     wnd_height,
+                float                                     f_lines_count,
+                uint64_t                                  start_id,
+                uint64_t                                  end_id) const;
             void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
 
             void stop_mapping_file();
