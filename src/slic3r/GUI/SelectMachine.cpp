@@ -581,6 +581,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_advanced_options_title = new Label(scroll_area, _L("Advanced Options"));
     m_advanced_options_title->SetFont(::Label::Body_13);
+    m_advanced_options_title->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
     m_advanced_options_icon = new wxStaticBitmap(scroll_area, wxID_ANY, create_scaled_bitmap("advanced_option1", scroll_area, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
 
     sizer_advanced_options_title->Add(m_hyperlink, 0, wxALIGN_CENTER, 0);
@@ -2953,10 +2954,10 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 void SelectMachineDialog::enable_advanced_option(bool en)
 {
     if (en) {
-        m_advanced_options_title->SetForegroundColour(wxColour(38, 46, 48));
+        m_advanced_options_title->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
     } else {
-        m_advanced_options_title->SetForegroundColour(0xCECECE);
+        m_advanced_options_title->SetForegroundColour(StateColor::darkModeColorFor(0x6B6B6B));
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1_disable", this, 18));
     }
 }
