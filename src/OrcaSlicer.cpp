@@ -2907,13 +2907,6 @@ int CLI::run(int argc, char **argv)
                 opt_filament_settings->set_at(filament_name_setting, filament_index-1, 0);
                 config.erase("filament_settings_id");
 
-                std::string& filament_id = load_filaments_id[index];
-                ConfigOptionStrings *opt_filament_ids = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_ids", true));
-                ConfigOptionString* filament_id_setting = new ConfigOptionString(filament_id);
-                if (opt_filament_ids->size() < filament_count)
-                    opt_filament_ids->resize(filament_count, filament_id_setting);
-                opt_filament_ids->set_at(filament_id_setting,  filament_index-1, 0);
-
                 //todo: update different settings of filaments
                 different_settings[filament_index] = "";
                 inherits_group[filament_index] = load_filaments_inherit[index];
@@ -2926,6 +2919,14 @@ int CLI::run(int argc, char **argv)
                     Slic3r::unescape_strings_cstyle(diff_settings, different_keys);
                 }
             }
+
+            //add filament_id
+            std::string& filament_id = load_filaments_id[index];
+            ConfigOptionStrings *opt_filament_ids = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_ids", true));
+            ConfigOptionString* filament_id_setting = new ConfigOptionString(filament_id);
+            if (opt_filament_ids->size() < filament_count)
+                opt_filament_ids->resize(filament_count, filament_id_setting);
+            opt_filament_ids->set_at(filament_id_setting,  filament_index-1, 0);
 
             //parse the filament value to index th
             //loop through options and apply them
