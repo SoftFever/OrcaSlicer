@@ -74,7 +74,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     button_labels.resize(ButtonType::btCount);
     button_desps.resize(ButtonType::btCount);
     detail_infos.resize(ButtonType::btCount);
-    global_mode_tags.resize(ButtonType::btCount);
+    //global_mode_tags.resize(ButtonType::btCount);
 
     std::vector<wxString> btn_texts    = {AutoForFlushLabel, AutoForMatchLabel, ManualLabel};
     std::vector<wxString> btn_desps    = {AutoForFlushDesp, AutoForMatchDesp, ManualDesp};
@@ -103,16 +103,17 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         button_desps[idx]->SetForegroundColour(LabelEnableColor);
         button_desps[idx]->SetFont(Label::Body_14);
 
+#if 0
         global_mode_tags[idx] = new wxBitmapButton(this, wxID_ANY, global_tag_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
         global_mode_tags[idx]->SetBackgroundColour(BackGroundColor);
         global_mode_tags[idx]->SetToolTip(_L("Global settings"));
-
+#endif
         button_sizer->Add(radio_btns[idx], 0, wxALIGN_CENTER);
         button_sizer->AddSpacer(ratio_spacing);
         button_sizer->Add(button_labels[idx], 0, wxALIGN_CENTER);
         button_sizer->Add(button_desps[idx], 0, wxALIGN_CENTER);
-        button_sizer->AddSpacer(ratio_spacing);
-        button_sizer->Add(global_mode_tags[idx], 0, wxALIGN_CENTER);
+        //button_sizer->AddSpacer(ratio_spacing);
+        //button_sizer->Add(global_mode_tags[idx], 0, wxALIGN_CENTER);
 
         wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -212,6 +213,10 @@ void FilamentGroupPopup::Init()
     if (m_mode == fmmAutoForMatch && !m_connected) {
         SetFilamentMapMode(fmmAutoForFlush);
         m_mode = fmmAutoForFlush;
+    }
+    else if (m_slice_all) {
+        // reset the filament map mode in slice all mode
+        SetFilamentMapMode(m_mode);
     }
 
     UpdateButtonStatus();
@@ -316,10 +321,12 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
 {
     auto global_mode = plater_ref->get_global_filament_map_mode();
     for (int i = 0; i < ButtonType::btCount; ++i) {
+#if 0  // do not display global mode tag
         if (mode_list.at(i) == global_mode)
             global_mode_tags[i]->Show();
         else
             global_mode_tags[i]->Hide();
+#endif
         if (ButtonType::btForMatch == i && !m_connected) {
             button_labels[i]->SetFont(Label::Body_14);
             continue;
