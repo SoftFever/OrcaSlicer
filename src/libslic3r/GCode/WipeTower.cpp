@@ -1477,7 +1477,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         m_filpar[idx].max_e_speed = (max_vol_speed / filament_area());
 
     m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
-    m_nozzle_change_perimeter_width = 2 * m_perimeter_width;
+    m_nozzle_change_perimeter_width = m_perimeter_width;
     // BBS: remove useless config
 #if 0
     if (m_semm) {
@@ -2810,7 +2810,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
         if (i == nozzle_change_line_count - 1)
             break;
         if (writer.y() + dy - float(EPSILON) > cleaning_box.ru.y() - m_nozzle_change_perimeter_width) break;
-        writer.travel(writer.x(), writer.y() + dy, nozzle_change_speed);
+        writer.extrude(writer.x(), writer.y() + dy, nozzle_change_speed);
         m_left_to_right = !m_left_to_right;
     }
 
