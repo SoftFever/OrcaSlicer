@@ -10,6 +10,8 @@ StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label)
 #endif
 }
 
+void StaticGroup_layoutBadge(void * group, void * badge);
+
 void StaticGroup::ShowBadge(bool show)
 {
 #ifdef __WXMSW__
@@ -24,7 +26,7 @@ void StaticGroup::ShowBadge(bool show)
         badge = new ScalableButton(this, wxID_ANY, "badge", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 18);
         badge->SetSize(badge->GetBestSize());
         badge->SetBackgroundColour("#F7F7F7");
-        LayoutBadge();
+        StaticGroup_layoutBadge(GetHandle(), badge->GetHandle());
     }
     if (badge && badge->IsShown() != show)
         badge->Show(show);
@@ -66,25 +68,6 @@ void StaticGroup::PaintForeground(wxDC &dc, const struct tagRECT &rc)
             ++polygon[i - 1].y;
         dc.DrawLine(polygon[i - 1], polygon[i]);
     }
-}
-
-#endif
-
-#ifdef __WXOSX__
-
-void StaticGroup::DoSetSize(int x, int y, int width, int height, int sizeFlags)
-{
-    auto size = GetSize();
-    wxStaticBox::DoSetSize(x, y, width, height, sizeFlags);
-    if (badge && size != GetSize())
-        LayoutBadge();
-}
-
-void StaticGroup::LayoutBadge()
-{
-    auto size  = GetSize();
-    auto size2 = size - badge->GetSize();
-    badge->SetPosition({size2.x - 6, 0});
 }
 
 #endif

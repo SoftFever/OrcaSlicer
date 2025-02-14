@@ -18,10 +18,6 @@ private:
     void OnPaint(wxPaintEvent &evt);
     void PaintForeground(wxDC &dc, const struct tagRECT &rc) override;
 #endif
-#ifdef __WXOSX__
-    void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
-    void LayoutBadge();
-#endif
 
 private:
 #ifdef __WXMSW__
