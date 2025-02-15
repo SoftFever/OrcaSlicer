@@ -507,7 +507,7 @@ static const char* label_scale_values[2][3] = {
 { "##size_x", "##size_y", "##size_z"}
 };
 
-bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper)
+bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size)
 {
     bool        pressed   = false;
     ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_RESET);
@@ -565,13 +565,13 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper)
 
 void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
-    // Calculate element start points and window dimension before draw
-    float space_size  = imgui_wrapper->get_style_scaling() * 8;
-    float unit_size   = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
-    float caption_max = max_caption_width(space_size);
-    float window_size = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize();
+    // ORCA Calculate element start points and window dimension before draw
+    float space_size   = imgui_wrapper->get_style_scaling() * 8;
+    float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
+    float caption_max  = max_caption_width(space_size);
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize() + ImGui::GetStyle().WindowPadding.x * 2;
 
-    x = (m_glcanvas.get_canvas_size().get_width() - window_size) / 2; // Center gizmo to canvas
+    x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
 
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
@@ -705,13 +705,13 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
 void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
-    // Calculate element start points and window dimension before draw
-    float space_size  = imgui_wrapper->get_style_scaling() * 8;
-    float unit_size   = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
-    float caption_max = max_caption_width(space_size);
-    float window_size = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize();
+    // ORCA Calculate element start points and window dimension before draw
+    float space_size   = imgui_wrapper->get_style_scaling() * 8;
+    float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
+    float caption_max  = max_caption_width(space_size);
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize() + ImGui::GetStyle().WindowPadding.x * 2;
 
-    x = (m_glcanvas.get_canvas_size().get_width() - window_size) / 2; // Center gizmo to canvas
+    x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
 
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
@@ -742,6 +742,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     auto position_title = _L("World");
     if(selection.is_single_modifier() || selection.is_single_volume())
          position_title = _L("Object");
+    float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
     // position
     Vec3d original_position;
@@ -773,9 +774,8 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     int reset_pos = caption_max + (++index_unit) * unit_size + (++index) * space_size;
     if (m_show_clear_rotation) {
         ImGui::SameLine(reset_pos);
-        if (reset_button(imgui_wrapper)) { // Use revert button after axis text to reduce width of gizmo
+        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) // Use revert button after axis text to reduce width of gizmo
             reset_rotation_value();
-        }
     }
 
     ImGui::SameLine(reset_pos + unit_size / 2);
@@ -865,13 +865,13 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 
 void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
-    // Calculate element start points and window dimension before draw
-    float space_size  = imgui_wrapper->get_style_scaling() * 8;
-    float unit_size   = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
-    float caption_max = max_caption_width(space_size);
-    float window_size = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize();
+    // ORCA Calculate element start points and window dimension before draw
+    float space_size   = imgui_wrapper->get_style_scaling() * 8;
+    float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
+    float caption_max  = max_caption_width(space_size);
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize() + ImGui::GetStyle().WindowPadding.x * 2;
 
-    x = (m_glcanvas.get_canvas_size().get_width() - window_size) / 2; // Center gizmo to canvas
+    x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
 
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
@@ -905,7 +905,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     auto position_title = _L("World");
     if(selection.is_single_modifier() || selection.is_single_volume())
          position_title = _L("Object");
-
+    float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
 
@@ -934,7 +934,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     int reset_pos = caption_max + (++index_unit) * unit_size + (++index) * space_size;
     if (m_show_clear_scale) {
         ImGui::SameLine(reset_pos);
-        if (reset_button(imgui_wrapper)) // Use revert button after axis text to reduce width of gizmo
+        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) // Use revert button after axis text to reduce width of gizmo
             reset_scale_value();
     }
 

@@ -125,7 +125,7 @@ public:
     void do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     float max_unit_size(int number, Vec3d &vec1, Vec3d &vec2,std::string str);
     float max_caption_width(float space_size);
-    bool reset_button(ImGuiWrapper *imgui_wrapper);
+    bool reset_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
 
 private:
     void reset_settings_value();
