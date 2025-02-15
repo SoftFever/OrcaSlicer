@@ -8056,8 +8056,19 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 MachineObject *obj = dev->get_selected_machine();
                 if (obj && obj->is_multi_extruders()) {
                     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-                    if (preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
-                        GUI::wxGetApp().sidebar().sync_extruder_list();
+                    Preset& cur_preset = preset_bundle->printers.get_edited_preset();
+                    if (cur_preset.get_printer_type(preset_bundle) == obj->printer_type) {
+                        double preset_nozzle_diameter = cur_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
+                        bool   same_nozzle_diameter   = true;
+                        for (const Extder &extruder : obj->m_extder_data.extders) {
+                            if (!is_approx(extruder.current_nozzle_diameter, float(preset_nozzle_diameter))) {
+                                same_nozzle_diameter = false;
+                            }
+                        }
+
+                        if (cur_preset.is_system || (!cur_preset.is_system && same_nozzle_diameter)) {
+                            GUI::wxGetApp().sidebar().sync_extruder_list();
+                        }
                     }
                 }
             }
