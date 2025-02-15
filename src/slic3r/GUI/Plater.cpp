@@ -152,6 +152,7 @@
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
 #include "JusPrin/JusPrinView3D.hpp"
+#include "JusPrin/JusPrinNotificationManager.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -2299,7 +2300,7 @@ struct Plater::priv
     Preview *preview;
     AssembleView* assemble_view { nullptr };
     bool first_enter_assemble{ true };
-    std::unique_ptr<NotificationManager> notification_manager;
+    std::unique_ptr<JusPrinNotificationManager> notification_manager;
 
     ProjectDirtyStateManager dirty_state;
 
@@ -2816,7 +2817,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "best_object_pos"
         }))
     , sidebar(new Sidebar(q))
-    , notification_manager(std::make_unique<NotificationManager>(q))
+    , notification_manager(std::make_unique<JusPrinNotificationManager>(q))
     , m_worker{q, std::make_unique<NotificationProgressIndicator>(notification_manager.get()), "ui_worker"}
     , m_sla_import_dlg{new SLAImportDialog{q}}
     , m_job_prepare_state(Job::JobPrepareState::PREPARE_STATE_DEFAULT)
