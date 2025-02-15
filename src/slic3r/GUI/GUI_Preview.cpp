@@ -608,7 +608,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     auto curr_print_seq = curr_plate->get_real_print_seq();
     bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     m_layers_slider->SetDrawMode(sequential_print);
-    
+
     m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
