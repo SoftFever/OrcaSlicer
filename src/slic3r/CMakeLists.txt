@@ -569,6 +569,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/JusPrin/JusPrinChatPanel.hpp
     GUI/JusPrin/JusPrinPresetConfigUtils.cpp
     GUI/JusPrin/JusPrinPresetConfigUtils.hpp
+    GUI/JusPrin/JusPrinView3D.cpp
+    GUI/JusPrin/JusPrinView3D.hpp
     GUI/JusPrin/JusPrinPlateUtils.cpp
     GUI/JusPrin/JusPrinPlateUtils.hpp
 )

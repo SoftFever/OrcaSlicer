@@ -1005,6 +1005,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_FORCE_UPDATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
+wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DOWN, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
@@ -3921,6 +3922,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
     // BBS: single snapshot
     Plater::SingleSnapshot single(wxGetApp().plater());
+
+    if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown()) {
+        post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DOWN));
+    }
 
 #if ENABLE_RETINA_GL
     const float scale = m_retina_helper->get_scale_factor();

@@ -151,6 +151,7 @@
 #include "DailyTips.hpp"
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
+#include "JusPrin/JusPrinView3D.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -2877,7 +2878,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     main_frame->m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, &priv::on_tab_selection_changing, this);
 
     auto* panel_3d = new wxPanel(q);
-    view3D = new View3D(panel_3d, bed, &model, config, &background_process);
+    view3D = new JusPrinView3D(panel_3d, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
     preview = new Preview(panel_3d, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
 
