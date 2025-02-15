@@ -10881,7 +10881,11 @@ void Plater::import_model_id(wxString download_info)
         import_thread.join();
 
     dlg.Hide();
+
+#ifdef _WIN32
     dlg.Close();
+#endif
+
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
