@@ -716,7 +716,7 @@ public:
             //BBS: GUI refactor: add canvas size
             //void render(float top, float bottom, uint64_t curr_line_id) const;
             void render(float top, float bottom, float right, uint64_t curr_line_id) const;
-            void GCodeViewer::SequentialView::GCodeWindow::render_thermal_index_windows(
+            void render_thermal_index_windows(
                 std::vector<GCodeProcessor::ThermalIndex> thermal_indexes,
                 float                                     top,
                 float                                     right,
