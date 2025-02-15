@@ -193,6 +193,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "gcode_label_objects", 
         "exclude_object",
         "support_material_interface_fan_speed",
+        "internal_bridge_fan_speed", // ORCA: Add support for separate internal bridge fan speed control
         "single_extruder_multi_material_priming",
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",
@@ -2595,7 +2596,7 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
     if (!is_step_done(psWipeTower) && filaments_cnt != 0) {
         double width        = m_config.prime_tower_width;
         double layer_height = 0.2; // hard code layer height
-        if (m_config.purge_in_prime_tower) {
+        if (m_config.purge_in_prime_tower && m_config.single_extruder_multi_material) {
             // Calculating depth should take into account currently set wiping volumes.
             // For a long time, the initial preview would just use 900/width per toolchange (15mm on a 60mm wide tower)
             // and it worked well enough. Let's try to do slightly better by accounting for the purging volumes.
@@ -2644,7 +2645,7 @@ void Print::_make_wipe_tower()
 
     const auto bUseWipeTower2 = is_BBL_printer() ? false : true;
     // Orca: itertate over wipe_volumes and change the non-zero values to the prime_volume
-    if (!m_config.purge_in_prime_tower && !is_BBL_printer()) {
+    if ((!m_config.purge_in_prime_tower || !m_config.single_extruder_multi_material) && !is_BBL_printer()) {
         for (unsigned int i = 0; i < number_of_extruders; ++i) {
             for (unsigned int j = 0; j < number_of_extruders; ++j) {
                 if (wipe_volumes[i][j] > 0) {
@@ -2823,7 +2824,7 @@ void Print::_make_wipe_tower()
                     if ((first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || extruder_id !=
                         current_extruder_id) {
                         float volume_to_wipe = m_config.prime_volume;
-                        if (m_config.purge_in_prime_tower) {
+                        if (m_config.purge_in_prime_tower && m_config.single_extruder_multi_material) {
                             volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id]; // total volume to wipe after this toolchange
                             volume_to_wipe *= m_config.flush_multiplier;
                             // Not all of that can be used for infill purging:

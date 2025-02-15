@@ -1665,6 +1665,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     }
 
+    //Orca: disable purge_in_prime_tower if single_extruder_multi_material is disabled
+    if (opt_key == "single_extruder_multi_material" && m_config->opt_bool("single_extruder_multi_material") == false){
+        DynamicPrintConfig new_conf = *m_config;
+        new_conf.set_key_value("purge_in_prime_tower", new ConfigOptionBool(false));
+        m_config_manipulation.apply(m_config, &new_conf);
+    }
+
     if (m_postpone_update_ui) {
         // It means that not all values are rolled to the system/last saved values jet.
         // And call of the update() can causes a redundant check of the config values,
@@ -2105,8 +2112,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_flow");
 	    optgroup->append_single_option_line("internal_bridge_flow");
         optgroup->append_single_option_line("bridge_density");
+        optgroup->append_single_option_line("internal_bridge_density");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("thick_internal_bridges");
+        optgroup->append_single_option_line("enable_extra_bridge_layer");
         optgroup->append_single_option_line("dont_filter_internal_bridges");
         optgroup->append_single_option_line("counterbore_hole_bridging","counterbore-hole-bridging");
     
@@ -2138,6 +2147,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("lattice_angle_1");
+        optgroup->append_single_option_line("lattice_angle_2");
         optgroup->append_single_option_line("infill_anchor_max");
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
@@ -2150,6 +2161,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("solid_infill_direction");
         optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("bridge_angle");
+        optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("infill_combination_max_layer_height");
@@ -3445,6 +3457,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
         optgroup->append_single_option_line("overhang_fan_threshold", "auto-cooling");
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
+        optgroup->append_single_option_line("internal_bridge_fan_speed"); // ORCA: Add support for separate internal bridge fan speed control
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_aux_fan");
@@ -3605,7 +3618,7 @@ void TabFilament::toggle_options()
     auto cfg = m_preset_bundle->printers.get_edited_preset().config;
     if (m_active_page->title() == L("Cooling")) {
       bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
-      for (auto el : {"overhang_fan_speed", "overhang_fan_threshold"})
+      for (auto el : {"overhang_fan_speed", "overhang_fan_threshold", "internal_bridge_fan_speed"}) // ORCA: Add support for separate internal bridge fan speed control
             toggle_option(el, has_enable_overhang_bridge_fan);
 
       toggle_option("additional_cooling_fan_speed", cfg.opt_bool("auxiliary_fan"));
