@@ -4237,8 +4237,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
             }
             else if (key == FILAMENT_MAP_ATTR) {
-                if (m_curr_plater)
-                    m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(get_vector_from_string(value)));
+                if (m_curr_plater){
+                    auto filament_map = get_vector_from_string(value);
+                    for (size_t idx = 0; idx < filament_map.size(); ++idx) {
+                        if (filament_map[idx] < 1) {
+                            filament_map[idx] = 1;
+                        }
+                    }
+                    m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(filament_map));
+                }
             }
             else if (key == UNPRINTABLE_FILAMENT_MAP_ATTR)
             {
