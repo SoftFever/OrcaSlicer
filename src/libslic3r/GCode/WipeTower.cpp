@@ -3839,7 +3839,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 ToolChangeResult finish_block_tcr;
                 if (interface_solid || block.solid_infill_lower_h_nozzlechange[m_cur_layer_id] ||
                     (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx])) {
-                    interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx]));//noly reduce speed when 
+                    interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx]));//noly reduce speed when
                     finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill, interface_solid);
                 }
                 else {
@@ -3872,7 +3872,6 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                     else
                         finish_layer_tcr = merge_tcr(finish_layer_tcr, finish_block_tcr);
                 }
-                assert(has_inserted);
             }
         }
 
