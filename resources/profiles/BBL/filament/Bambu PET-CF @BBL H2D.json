@@ -85,26 +85,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_retract_lift_above": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_below": [
-        "nil",
-        "nil"
-    ],
-    "hole_coef_2": [
-        "-8000"
-    ],
-    "hole_coef_3": [
-        "135000"
-    ],
-    "hole_limit_min": [
-        "88000"
-    ],
-    "hole_limit_max": [
-        "220000"
-    ],
     "nozzle_temperature": [
         "270",
         "270"
@@ -117,6 +97,18 @@
         "Bambu Lab H2D 0.4 nozzle",
         "Bambu Lab H2D 0.6 nozzle",
         "Bambu Lab H2D 0.8 nozzle"
+    ],
+    "hole_coef_2": [
+        "-8000"
+    ],
+    "hole_coef_3": [
+        "135000"
+    ],
+    "hole_limit_min": [
+        "88000"
+    ],
+    "hole_limit_max": [
+        "220000"
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P1 ; set airduct mode to heating mode\n"
