@@ -293,8 +293,8 @@ void SyncAmsInfoDialog::deal_ok()
         m_result.sync_maps.clear();
         for (size_t i = 0; i < m_ams_mapping_result.size(); i++) {
             auto temp_idx = m_ams_mapping_result[i].id;
-            if (temp_idx >= 0 && temp_idx < m_result.sync_maps.size()) {
-                auto &temp   = m_result.sync_maps[m_ams_mapping_result[i].id];
+            if (temp_idx >= 0) {
+                auto &temp   = m_result.sync_maps[temp_idx];
                 temp.ams_id  = m_ams_mapping_result[i].ams_id;
                 temp.slot_id = m_ams_mapping_result[i].slot_id;
             }

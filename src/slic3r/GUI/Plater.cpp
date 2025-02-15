@@ -3000,12 +3000,12 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 
         for (size_t i = 0; i < merge_info.merges.size(); i++) {
             auto& cur = merge_info.merges[i];
-            for (size_t j = cur.size() -1; j >= 1 ; j--) {
+            for (int j = cur.size() -1; j >= 1 ; j--) {
                 auto last_index = cur[j];
                 change_filament(last_index, cur[0]);
                 cur.erase(cur.begin() + j);
                 sync_ams_badges.erase(sync_ams_badges.begin() + last_index);
-                reduce_index(merge_info, cur[j]);
+                reduce_index(merge_info, last_index);
             }
         }
         for (size_t i = 0; i < sync_ams_badges.size(); i++) {
