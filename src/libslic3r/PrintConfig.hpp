@@ -58,7 +58,7 @@ enum AuthorizationType {
 };
 
 enum InfillPattern : int {
-    ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
+    ipConcentric, ipRectilinear, ipGrid, ip2DLattice, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
     ipLightning, ipCrossHatch, ipQuarterCubic,
     ipCount,
@@ -185,6 +185,11 @@ enum EnsureVerticalShellThickness {
 //Orca
 enum InternalBridgeFilter {
     ibfDisabled, ibfLimited, ibfNofilter
+};
+
+//Orca
+enum EnableExtraBridgeLayer {
+    eblDisabled, eblExternalBridgeOnly, eblInternalBridgeOnly, eblApplyToAll
 };
 
 //Orca
@@ -827,6 +832,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionBool,                thick_internal_bridges))
     ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
+    // Orca
+    ((ConfigOptionEnum<EnableExtraBridgeLayer>,  enable_extra_bridge_layer))
+    ((ConfigOptionPercent,              internal_bridge_density))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloatOrPercent,      support_threshold_overlap))
@@ -923,6 +931,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 rotate_solid_infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
+    ((ConfigOptionFloat,                lattice_angle_1))
+    ((ConfigOptionFloat,                lattice_angle_2))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
