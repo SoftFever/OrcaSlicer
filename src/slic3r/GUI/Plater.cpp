@@ -2919,6 +2919,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "on_filament_count_change";
     wxGetApp().plater()->on_filament_count_change(n);
     for (auto& c : p->combos_filament)
         c->update();

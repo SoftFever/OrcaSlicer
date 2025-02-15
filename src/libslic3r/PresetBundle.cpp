@@ -2124,6 +2124,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
     }
     if (ams_filament_presets.empty())
         return 0;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get filament_colour and from config";
     ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
     ConfigOptionInts *   filament_map = project_config.option<ConfigOptionInts>("filament_map");
     if (use_map) {
@@ -2191,6 +2192,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
                                                      [](std::vector<std::string> &value) { return value.empty(); }),
                                       ams_multi_color_filment.end());
         if (need_append_colors.size() > 0 && enable_append) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "need_append_colors.size() > 0 && enable_append";
             auto get_idx_in_array = [](std::vector<std::string> &presets, std::vector<std::string> &colors, const std::string &preset, const std::string &color) -> int {
                 for (size_t i = 0; i < presets.size(); i++) {
                     if (presets[i] == preset && colors[i] == color) {
@@ -2226,6 +2228,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
     }
 
     update_multi_material_filament_presets();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "finish sync ams list";
     return this->filament_presets.size();
 }
 
