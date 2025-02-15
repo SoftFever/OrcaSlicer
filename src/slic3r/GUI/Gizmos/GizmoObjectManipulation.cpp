@@ -633,7 +633,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     int reset_pos = caption_max + (++index_unit) * unit_size + (++index) * space_size;
     // No reset button but there is a function for it
-    ImGui::SameLine(reset_pos + unit_size / 2);
+    ImGui::SameLine(reset_pos + std::max({ImGuiWrapper::calc_text_size(_L("mm")).x,ImGui::GetFontSize() + 1}));
     ImGui::Dummy(ImVec2(1, 1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 1;
@@ -679,7 +679,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         if (display_position[i] < -MAX_NUM)display_position[i] = -MAX_NUM;
     }
 
-    m_buffered_position = display_position; 
+    m_buffered_position = display_position;
     update(current_active_id, "position", original_position, m_buffered_position);
     // the init position values are not zero, won't add reset button
 
@@ -778,7 +778,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
             reset_rotation_value();
     }
 
-    ImGui::SameLine(reset_pos + unit_size / 2);
+    ImGui::SameLine(reset_pos + std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1}));
     ImGui::Dummy(ImVec2(1, 1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 1;
@@ -800,10 +800,8 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     imgui_wrapper->text(_L("°"));
 
     auto toggle = [this](string label, ImVec2 size, bool state) -> bool {
-        ImVec4 tx  = ImGui::GetStyle().Colors[ImGuiCol_Text];
-        ImVec4 bbg = ImGui::GetStyle().Colors[ImGuiCol_Button];
-        ImVec4 bhv = ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered];
-        ImVec4 bg  = (bbg.x == 1) ? bhv : bbg;
+        ImVec4 tx  = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+        ImVec4 bg  = ImGui::GetStyleColorVec4(wxGetApp().app_config->get("dark_color_mode") == "1" ? ImGuiCol_Button : ImGuiCol_ButtonHovered);
         bool   is_bg = label.substr(label.length() - 3, 3) == "_bg";
         ImGui::PushStyleColor(ImGuiCol_Button,        is_bg ? bg : (state ? ImGuiWrapper::COL_ORCA : ImVec4(0, 0, 0, 0)));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, is_bg ? bg : (state ? ImGuiWrapper::COL_ORCA : ImVec4(0, 0, 0, 0)));
@@ -821,9 +819,9 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, m_glcanvas.get_scale() * 4.0f);
     if (toggle("###toggle1_bg", ImVec2(unit_size, btn_size.y), true)) {m_rotate_relative = m_rotate_relative == 30 ? 45 : 30;};
     ImGui::SameLine(toggle_pos);
-    if (toggle("30###toggle1_btn1", btn_size, m_rotate_relative == 30));
+    toggle("30###toggle1_btn1", btn_size, m_rotate_relative == 30);
     ImGui::SameLine();
-    if (toggle("45###toggle1_btn2", btn_size, m_rotate_relative == 45));
+    toggle("45###toggle1_btn2", btn_size, m_rotate_relative == 45);
     ImGui::PopStyleVar(2);
 
     ImGui::SameLine(caption_max + space_size);
@@ -938,7 +936,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
             reset_scale_value();
     }
 
-    ImGui::SameLine(reset_pos + unit_size / 2);
+    ImGui::SameLine(reset_pos + std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1}));
     ImGui::Dummy(ImVec2(1,1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 2;
