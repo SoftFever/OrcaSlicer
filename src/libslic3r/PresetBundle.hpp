@@ -63,10 +63,10 @@ struct FilamentBaseInfo
     std::string filament_id;
     std::string filament_type;
     std::string vendor;
-    int nozzle_temp_range_low;
-    int nozzle_temp_range_high;
-    bool is_support;
-    bool is_system;
+    int nozzle_temp_range_low{ 220 };
+    int nozzle_temp_range_high{ 220 };
+    bool is_support{ false };
+    bool is_system{ true };
 };
 
 // Bundle of Print + Filament + Printer presets.

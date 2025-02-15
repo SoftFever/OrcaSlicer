@@ -395,7 +395,7 @@ bool PresetBundle::backup_user_folder() const
 std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id) const
 {
     if (filament_id.empty())
-        return {};
+        return std::nullopt;
 
     // basic filament info should be same in the parent preset and child preset
     // so just match the filament id is enough
@@ -421,7 +421,7 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
             return info;
         }
     }
-    return {};
+    return std::nullopt;
 }
 
 //BBS: load project embedded presets
