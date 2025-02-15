@@ -3031,7 +3031,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     Layout();
 
-    wxTheApp->CallAfter([this]() {pop_finsish_sync_ams_dialog(); });
+    pop_finsish_sync_ams_dialog();
 }
 
 void Sidebar::show_SEMM_buttons(bool bshow)
@@ -3140,50 +3140,53 @@ void Sidebar::deal_btn_sync() {
 }
 
 void Sidebar::pop_sync_nozzle_and_ams_dialog() {
-    SyncNozzleAndAmsDialog::InputInfo temp_na_info;
-    wxPoint                           big_btn_pt;
-    wxSize                            big_btn_size;
-    wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
-    temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 5), FromDIP(big_btn_size.y / 10.f));
+    wxTheApp->CallAfter([this]() {
+        SyncNozzleAndAmsDialog::InputInfo temp_na_info;
+        wxPoint                           big_btn_pt;
+        wxSize                            big_btn_size;
+        wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
+        temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 5), FromDIP(big_btn_size.y / 10.f));
 
-    int same_dialog_pos_x     = get_sidebar_pos_right_x() + FromDIP(5);
-    temp_na_info.dialog_pos.x = same_dialog_pos_x;
-    temp_na_info.dialog_pos.y += FromDIP(2);
+        int same_dialog_pos_x     = get_sidebar_pos_right_x() + FromDIP(5);
+        temp_na_info.dialog_pos.x = same_dialog_pos_x;
+        temp_na_info.dialog_pos.y += FromDIP(2);
 
-    wxPoint small_btn_pt;
-    wxSize  small_btn_size;
-    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
-    temp_na_info.ams_btn_pos = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
+        wxPoint small_btn_pt;
+        wxSize  small_btn_size;
+        get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
+        temp_na_info.ams_btn_pos = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
 
-    if (m_sna_dialog) {
-        if (m_fna_dialog) {
-            m_fna_dialog->on_hide();
+        if (m_sna_dialog) {
+            if (m_fna_dialog) { m_fna_dialog->on_hide(); }
+            m_sna_dialog->update_info(temp_na_info);
+        } else {
+            m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(temp_na_info);
         }
-        m_sna_dialog->update_info(temp_na_info);
-    } else {
-        m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(temp_na_info);
-    }
-    m_sna_dialog->on_show();
+        m_sna_dialog->on_show();
+    });
 }
 
 void Sidebar::pop_finsish_sync_ams_dialog()
 {
-    wxPoint small_btn_pt;
-    wxSize  small_btn_size;
-    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
+    wxTheApp->CallAfter([this]() {
+        wxPoint small_btn_pt;
+        wxSize  small_btn_size;
+        get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
 
-    FinishSyncAmsDialog::InputInfo temp_fsa_info;
-    auto                           same_dialog_pos_x = get_sidebar_pos_right_x() + FromDIP(5);
-    temp_fsa_info.dialog_pos.x                       = same_dialog_pos_x;
-    temp_fsa_info.dialog_pos.y                       = small_btn_pt.y;
-    temp_fsa_info.ams_btn_pos                        = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
-    if (m_fna_dialog) {
-        if (m_sna_dialog) { m_sna_dialog->on_hide(); }
-        m_fna_dialog->update_info(temp_fsa_info);
-    } else {
-        m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(temp_fsa_info);
-    }
-    m_fna_dialog->on_show();
+        FinishSyncAmsDialog::InputInfo temp_fsa_info;
+        auto                           same_dialog_pos_x = get_sidebar_pos_right_x() + FromDIP(5);
+        temp_fsa_info.dialog_pos.x                       = same_dialog_pos_x;
+        temp_fsa_info.dialog_pos.y                       = small_btn_pt.y;
+        temp_fsa_info.ams_btn_pos                        = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
+        if (m_fna_dialog) {
+            if (m_sna_dialog) { m_sna_dialog->on_hide(); }
+            m_fna_dialog->update_info(temp_fsa_info);
+        } else {
+            m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(temp_fsa_info);
+        }
+        m_fna_dialog->on_show();
+    });
+
 }
 
 static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
