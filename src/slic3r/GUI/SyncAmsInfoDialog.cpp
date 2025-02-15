@@ -37,6 +37,7 @@ wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 #define SYNC_FLEX_GRID_COL 7
 bool SyncAmsInfoDialog::Show(bool show)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " SyncAmsInfoDialog begin show";
     if (show) {
         if (m_options_other) { m_options_other->Hide(); }
         if (m_refresh_timer) { m_refresh_timer->Start(LIST_REFRESH_INTERVAL); }
@@ -91,7 +92,9 @@ bool SyncAmsInfoDialog::Show(bool show)
     m_scrolledWindow->Scroll(0, 0);
     Layout();
     Fit();
-    CenterOnParent();
+    CenterOnScreen();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " SyncAmsInfoDialog finish show";
     return DPIDialog::Show(show);
 }
 
