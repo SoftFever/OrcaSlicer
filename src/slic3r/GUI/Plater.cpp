@@ -1131,6 +1131,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtStandard);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     auto           printer_name = plater->get_selected_printer_name_in_combox();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " begin sync_extruder_list";
     if (obj == nullptr) {
         plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return false;
@@ -1168,6 +1169,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             printer_tab->select_preset(machine_preset->name);
         });
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " go on sync_extruder_list";
 
     int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
     for (auto ams : obj->amsList) {
@@ -1194,6 +1196,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
     AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
     return true;
 }
 
@@ -1363,6 +1366,16 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 #define PRINTER_THUMBNAIL_SIZE_SMALL (wxSize(FromDIP(32), FromDIP(32)))
 #define PRINTER_PANEL_SIZE_SMALL (wxSize(FromDIP(98), FromDIP(68)))
 #define PRINTER_PANEL_SIZE (wxSize(FromDIP(98), FromDIP(98)))
+
+void Sidebar::update_sync_ams_btn_enable(wxUpdateUIEvent &e)
+ {
+     if (m_last_slice_state != p->plater->is_background_process_slicing()) {
+         m_last_slice_state = p->plater->is_background_process_slicing();
+         btn_sync->Enable(!m_last_slice_state);
+         ams_btn->Enable(!m_last_slice_state);
+         Refresh();
+     }
+ }
 
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(42 * wxGetApp().em_unit(), -1)), p(new priv(parent))
@@ -1625,6 +1638,7 @@ Sidebar::Sidebar(Plater *parent)
         btn_sync->SetMinSize(PRINTER_PANEL_SIZE);
         btn_sync->SetMaxSize(PRINTER_PANEL_SIZE);
         btn_sync->SetVertical();
+        btn_sync->Bind(wxEVT_UPDATE_UI, &Sidebar::update_sync_ams_btn_enable, this);
         btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             deal_btn_sync();
         });
@@ -1762,6 +1776,8 @@ Sidebar::Sidebar(Plater *parent)
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
         sync_ams_list();
     });
+
+    ams_btn->Bind(wxEVT_UPDATE_UI, &Sidebar::update_sync_ams_btn_enable, this);
     p->m_bpButton_ams_filament = ams_btn;
 
     bSizer39->Add(ams_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
