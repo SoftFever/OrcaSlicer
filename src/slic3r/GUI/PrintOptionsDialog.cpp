@@ -735,6 +735,7 @@ void PrinterPartsDialog::update_machine_obj(MachineObject* obj_)
     }
     obj = obj_;
 
+    nozzle_stainless_diameter_map.clear();
     if (obj->is_series_o())
     {
         /*STUDIO-10089 there are only 0.2 stainless nozzle in O series*/
