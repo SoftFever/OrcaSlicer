@@ -713,31 +713,31 @@
             "name": "Bambu Support W @base",
             "sub_path": "filament/Bambu Support W @base.json"
         },
-		{
+        {
             "name": "SUNLU PLA Matte @base",
             "sub_path": "filament/SUNLU/SUNLU PLA Matte @base.json"
         },
-		{
+        {
             "name": "SUNLU PLA+ @base",
             "sub_path": "filament/SUNLU/SUNLU PLA+ @base.json"
         },
-		{
+        {
             "name": "SUNLU PLA+ 2.0 @base",
             "sub_path": "filament/SUNLU/SUNLU PLA+ 2.0 @base.json"
         },
-		{
+        {
             "name": "SUNLU Silk PLA+ @base",
             "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @base.json"
         },
         {
-            "name": "SUNLU Marble PLA @base",
+            "name": "SUNLU PLA Marble @base",
             "sub_path": "filament/SUNLU/SUNLU Marble PLA @base.json"
         },
-		{
+        {
             "name": "SUNLU Wood PLA @base",
             "sub_path": "filament/SUNLU/SUNLU Wood PLA @base.json"
         },
-		{
+        {
             "name": "SUNLU PETG @base",
             "sub_path": "filament/SUNLU/SUNLU PETG @base.json"
         },
@@ -1478,23 +1478,23 @@
             "sub_path": "filament/SUNLU/SUNLU Silk PLA+ @BBL A1 0.2 nozzle.json"
         },
         {
-            "name": "SUNLU Marble PLA @BBL X1C",
+            "name": "SUNLU PLA Marble @BBL X1C",
             "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL X1C.json"
         },
         {
-            "name": "SUNLU Marble PLA @BBL X1",
+            "name": "SUNLU PLA Marble @BBL X1",
             "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL X1.json"
         },
         {
-            "name": "SUNLU Marble PLA @BBL P1P",
+            "name": "SUNLU PLA Marble @BBL P1P",
             "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL P1P.json"
         },
         {
-            "name": "SUNLU Marble PLA @BBL A1M",
+            "name": "SUNLU PLA Marble @BBL A1M",
             "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL A1M.json"
         },
         {
-            "name": "SUNLU Marble PLA @BBL A1",
+            "name": "SUNLU PLA Marble @BBL A1",
             "sub_path": "filament/SUNLU/SUNLU Marble PLA @BBL A1.json"
         },
         {
