@@ -10445,7 +10445,6 @@ msgstr ""
 msgid "Overhang cooling activation threshold"
 msgstr "Seuil d’activation du refroidissement en surplomb"
 
-#, c-format, boost-format
 msgid ""
 "When the overhang exceeds this specified threshold, force the cooling fan to "
 "run at the 'Overhang Fan Speed' set below. This threshold is expressed as a "
