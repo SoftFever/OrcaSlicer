@@ -4,6 +4,8 @@
 #include <wx/bitmap.h>
 #include <wx/animate.h>
 #include <wx/glcanvas.h>
+#include <wx/dcbuffer.h>
+#include <wx/graphics.h>
 
 #include "../GLCanvas3D.hpp"
 #include "../GUI_Preview.hpp"
@@ -13,10 +15,59 @@
 namespace Slic3r {
 namespace GUI {
 
+JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+: wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL | wxBORDER_NONE) {
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    Bind(wxEVT_PAINT, &JustPrinButton::OnPaint, this);
+    Bind(wxEVT_ENTER_WINDOW, &JustPrinButton::OnMouseEnter, this);
+    Bind(wxEVT_LEAVE_WINDOW, &JustPrinButton::OnMouseLeave, this);
+    m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY);
+    wxAnimation animation;
+    wxString gif_url  = from_u8((boost::filesystem::path(resources_dir()) / "images/throbber.gif").make_preferred().string());
+    if(animation.LoadFile(gif_url, wxANIMATION_TYPE_GIF)) {
+        m_animationCtrl->SetAnimation(animation);
+        m_animationCtrl->Play();
+    }
+}
+
+void JustPrinButton::OnPaint(wxPaintEvent& event) {
+    wxAutoBufferedPaintDC dc(this);
+    dc.Clear();
+
+    wxSize size = GetClientSize();
+    int width = size.GetWidth();
+    int height = size.GetHeight();
+    int radius = 20; // Radius for rounded corners
+
+    // Create a graphics context
+    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+    if (gc) {
+        // Draw shadow
+        gc->SetBrush(wxBrush(wxColour(0, 0, 0, 50))); // Semi-transparent black
+        gc->DrawRoundedRectangle(10, 10, width - 20, height - 20, radius);
+
+        // Draw rounded rectangle
+        wxColour buttonColor =  m_isHovered ? wxColour(255, 255, 255) : wxColour(200, 200, 200);
+        gc->SetBrush(wxBrush(buttonColor)); // White
+        gc->SetPen(wxPen(wxColour(0, 0, 0), 1)); // Black border
+        gc->DrawRoundedRectangle(0, 0, width - 20, height - 20, radius);
+
+        delete gc;
+    }
+}
+
+void JustPrinButton::OnMouseEnter(wxMouseEvent& event){
+    m_isHovered = true;
+    Refresh();
+}
+
+void JustPrinButton::OnMouseLeave(wxMouseEvent& event)  {
+    m_isHovered = false;
+    Refresh(); 
+}
+
 JusPrinView3D::JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : View3D(parent, bed, model, config, process)
-    , m_chat_panel(nullptr)
-    , m_overlay_image(nullptr)
 {
     init_overlay();
 }
@@ -24,7 +75,7 @@ JusPrinView3D::JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, Dynamic
 JusPrinView3D::~JusPrinView3D()
 {
     delete m_chat_panel;
-    delete m_overlay_image;
+    delete m_overlay_btn;
 }
 
 void JusPrinView3D::init_overlay()
@@ -46,13 +97,12 @@ void JusPrinView3D::init_overlay()
     m_chat_panel->Hide();
 
     // Create image overlay using resources directory
-    wxBitmap bitmap = create_scaled_bitmap("jusprin_input_button", this, 200);
-    m_overlay_image = new wxStaticBitmap(this, wxID_ANY, bitmap,
+    m_overlay_btn = new JustPrinButton(this, wxID_ANY,
         wxPoint((client_size.GetWidth() - 200) / 2, chat_height - 40),
-        wxSize(200, 100), wxSTAY_ON_TOP);
+        wxSize(200, 100));
 
     // Bind click event to show chat panel
-    m_overlay_image->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+    m_overlay_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
         if (m_chat_panel) {
             m_chat_panel->Show();
             m_chat_panel->SetFocus();
@@ -60,16 +110,8 @@ void JusPrinView3D::init_overlay()
         evt.Skip();
     });
 
-    m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY);
-    wxAnimation animation;
-    wxString gif_url  = from_u8((boost::filesystem::path(resources_dir()) / "images/throbber.gif").make_preferred().string());
-    if(animation.LoadFile(gif_url, wxANIMATION_TYPE_GIF)) {
-        m_animationCtrl->SetAnimation(animation);
-        m_animationCtrl->Play();
-    }
-
     // Bind click event to show chat panel
-    m_overlay_image->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+    m_overlay_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
         if (m_chat_panel) {
             m_chat_panel->Show();
             m_chat_panel->SetFocus();
@@ -85,7 +127,7 @@ void JusPrinView3D::init_overlay()
 void JusPrinView3D::OnSize(wxSizeEvent& evt)
 {
     evt.Skip();
-    if (m_chat_panel && m_overlay_image) {
+    if (m_chat_panel && m_overlay_btn) {
         wxSize size = GetClientSize();
 
         // Resize chat panel
@@ -102,21 +144,13 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
         // Resize and reposition image
         int image_height = 100;
         int image_width = 200;
-        m_overlay_image->SetSize(
+        m_overlay_btn->SetSize(
             (size.GetWidth() - image_width) / 2,
             chat_height - 50,
             image_width,
             image_height
         );
-        m_overlay_image->Raise();
-        m_animationCtrl->SetSize(
-            (size.GetWidth() - image_width) / 2,
-            chat_height - 50,
-            32,
-            32
-        );
-
-        m_animationCtrl->Raise();
+        m_overlay_btn->Raise();
     }
 }
 
