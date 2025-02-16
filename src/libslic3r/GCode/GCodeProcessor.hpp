@@ -326,7 +326,7 @@ class Print;
 
             ThermalIndex() : max(0.0f), min(0.0f), mean(0.0f) {}
 
-            ThermalIndex(float maxVal, float minVal, float meanVal) : max(maxVal), min(minVal), mean(meanVal) {}
+            ThermalIndex(float minVal, float maxVal, float meanVal): min(minVal), max(maxVal), mean(meanVal) {}
         };
 
     private:
