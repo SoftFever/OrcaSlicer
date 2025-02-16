@@ -569,7 +569,8 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     float space_size   = imgui_wrapper->get_style_scaling() * 8;
     float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     float caption_max  = max_caption_width(space_size);
-    float window_width = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize() + ImGui::GetStyle().WindowPadding.x * 2;
+    float end_width    = std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1});
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + end_width + ImGui::GetStyle().WindowPadding.x * 2;
 
     x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
 
@@ -633,7 +634,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     int reset_pos = caption_max + (++index_unit) * unit_size + (++index) * space_size;
     // No reset button but there is a function for it
-    ImGui::SameLine(reset_pos + std::max({ImGuiWrapper::calc_text_size(_L("mm")).x,ImGui::GetFontSize() + 1}));
+    ImGui::SameLine(reset_pos + end_width);
     ImGui::Dummy(ImVec2(1, 1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 1;
@@ -709,7 +710,8 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     float space_size   = imgui_wrapper->get_style_scaling() * 8;
     float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     float caption_max  = max_caption_width(space_size);
-    float window_width = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize() + ImGui::GetStyle().WindowPadding.x * 2;
+    float end_width    = std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1});
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + end_width + ImGui::GetStyle().WindowPadding.x * 2;
 
     x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
 
@@ -778,7 +780,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
             reset_rotation_value();
     }
 
-    ImGui::SameLine(reset_pos + std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1}));
+    ImGui::SameLine(reset_pos + end_width);
     ImGui::Dummy(ImVec2(1, 1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 1;
@@ -867,7 +869,8 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     float space_size   = imgui_wrapper->get_style_scaling() * 8;
     float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     float caption_max  = max_caption_width(space_size);
-    float window_width = caption_max + 3 * unit_size + 4 * space_size + ImGui::GetFontSize() + ImGui::GetStyle().WindowPadding.x * 2;
+    float end_width    = std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1});
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + end_width + ImGui::GetStyle().WindowPadding.x * 2;
 
     x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
 
@@ -936,7 +939,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
             reset_scale_value();
     }
 
-    ImGui::SameLine(reset_pos + std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1}));
+    ImGui::SameLine(reset_pos + end_width);
     ImGui::Dummy(ImVec2(1,1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 2;
