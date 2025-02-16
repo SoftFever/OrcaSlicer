@@ -2399,18 +2399,19 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         option.opt.height = 25;//250;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
-        optgroup = page->new_optgroup(L("Profile dependencies"));
+    // Orca: hide the dependencies tab for process for now. The UI is not ready yet.
+    // page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
+    //     optgroup = page->new_optgroup(L("Profile dependencies"));
 
-        create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
-            return compatible_widget_create(parent, m_compatible_printers);
-        });
+    //     create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
+    //         return compatible_widget_create(parent, m_compatible_printers);
+    //     });
     
-        option = optgroup->get_option("compatible_printers_condition");
-        option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
+    //     option = optgroup->get_option("compatible_printers_condition");
+    //     option.opt.full_width = true;
+    //     optgroup->append_single_option_line(option);
 
-        build_preset_description_line(optgroup.get());
+    //     build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
