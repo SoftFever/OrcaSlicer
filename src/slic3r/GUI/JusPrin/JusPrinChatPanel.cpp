@@ -45,8 +45,14 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
     // Connect the idle events
     Bind(wxEVT_CLOSE_WINDOW, &JusPrinChatPanel::OnClose, this);
 
+    // 设置透明的部分会是黑色
+    // CreateBgBitmap();
+    // SetBackgroundStyle(wxBG_STYLE_PAINT);
+    // Bind(wxEVT_PAINT, &JusPrinChatPanel::OnPaint, this);
+
     load_url();
 }
+
 
 JusPrinChatPanel::~JusPrinChatPanel()
 {
@@ -443,6 +449,56 @@ nlohmann::json JusPrinChatPanel::GetAllModelObjectsJson() {
     }
 
     return j;
+}
+
+void JusPrinChatPanel::CreateBgBitmap(){
+    m_bgbmp.Create(m_radis*2+1, m_radis*2+1, 32);
+    wxMemoryDC dc;
+    dc.SelectObject(m_bgbmp);
+
+     // Fill the entire bitmap with transparent color
+     dc.SetBrush(wxBrush(wxColour(0, 0, 0, 0))); // Transparent brush
+     dc.Clear();
+
+    dc.SetBrush(*wxWHITE_BRUSH);
+    dc.SetPen(wxPen(wxColour(125, 125, 125), 1));//边框颜色
+    dc.DrawRoundedRectangle(0, 0, m_radis * 2 + 1, m_radis * 2 + 1, m_radis);
+    dc.SelectObject(wxNullBitmap);
+
+}
+
+
+void JusPrinChatPanel::OnPaint(wxPaintEvent& event){
+    wxAutoBufferedPaintDC dc(this);
+    dc.Clear();
+
+    wxSize size = GetClientSize();
+    int width = size.GetWidth();
+    int height = size.GetHeight();
+
+    int bmpWidth = m_bgbmp.GetWidth();
+    int bmpHeight = m_bgbmp.GetHeight();
+
+    // Create a graphics context
+    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+    if (gc) {
+        // Draw corners
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(0, 0, m_radis, m_radis)), 0, 0, m_radis, m_radis); // Top-left
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(bmpWidth - m_radis, 0, m_radis, m_radis)), width - m_radis, 0, m_radis, m_radis); // Top-right
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(0, bmpHeight - m_radis, m_radis, m_radis)), 0, height - m_radis, m_radis, m_radis); // Bottom-left
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(bmpWidth - m_radis, bmpHeight - m_radis, m_radis, m_radis)), width - m_radis, height - m_radis, m_radis, m_radis); // Bottom-right
+
+        // Draw edges
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(m_radis, 0, bmpWidth - 2 * m_radis, m_radis)), m_radis, 0, width - 2 * m_radis, m_radis); // Top
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(m_radis, bmpHeight - m_radis, bmpWidth - 2 * m_radis, m_radis)), m_radis, height - m_radis, width - 2 * m_radis, m_radis); // Bottom
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(0, m_radis, m_radis, bmpHeight - 2 * m_radis)), 0, m_radis, m_radis, height - 2 * m_radis); // Left
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(bmpWidth - m_radis, m_radis, m_radis, bmpHeight - 2 * m_radis)), width - m_radis, m_radis, m_radis, height - 2 * m_radis); // Right
+
+        // Draw center
+        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(m_radis, m_radis, bmpWidth - 2 * m_radis, bmpHeight - 2 * m_radis)), m_radis, m_radis, width - 2 * m_radis, height - 2 * m_radis); // Center
+
+        delete gc;
+    }
 }
 
 }} // namespace Slic3r::GUI

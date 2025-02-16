@@ -17,15 +17,21 @@ class JustPrinButton : public wxPanel
 {
 public:
     JustPrinButton(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO) override;
+    void AddJoin(std::function<void(wxMouseEvent&)> do_some) { m_do = do_some; }
 
 private:
     void OnPaint(wxPaintEvent& event);
     void OnMouseEnter(wxMouseEvent& event);
     void OnMouseLeave(wxMouseEvent& event);
+    void OnMouseMove(wxMouseEvent& event);
+
+
 
 private:
-    bool                 m_isHovered;
+    bool                 m_isHovered{false};
     wxAnimationCtrlBase* m_animationCtrl{nullptr};
+    std::function<void(wxMouseEvent&)> m_do{nullptr};
 };
 
 

@@ -51,7 +51,6 @@ private:
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
 
-
     using VoidMemberFunctionPtr = void (JusPrinChatPanel::*)(const nlohmann::json&);
     using JsonMemberFunctionPtr = nlohmann::json (JusPrinChatPanel::*)(const nlohmann::json&);
 
@@ -97,6 +96,12 @@ private:
     void CallEmbeddedChatMethod(const wxString& method, const wxString& params);
 
     void RunScriptInBrowser(const wxString& script);
+
+private:
+    wxBitmap m_bgbmp;
+    int m_radis{12};
+    void CreateBgBitmap();
+    void OnPaint(wxPaintEvent& event);
 };
 
 }} // namespace Slic3r::GUI
