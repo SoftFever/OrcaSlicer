@@ -136,6 +136,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "concentric",         ipConcentric },
     { "zig-zag",            ipRectilinear },
     { "grid",               ipGrid },
+    { "2dlattice",          ip2DLattice },
     { "line",               ipLine },
     { "cubic",              ipCubic },
     { "triangles",          ipTriangles },
@@ -283,6 +284,14 @@ static t_config_enum_values s_keys_map_InternalBridgeFilter {
     { "nofilter",           ibfNofilter },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InternalBridgeFilter)
+
+static t_config_enum_values s_keys_map_EnableExtraBridgeLayer {
+    { "disabled",        eblDisabled },
+    { "external_bridge_only",        eblExternalBridgeOnly },
+    { "internal_bridge_only",        eblInternalBridgeOnly },
+    { "apply_to_all",           eblApplyToAll },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(EnableExtraBridgeLayer)
 
 // Orca
 static t_config_enum_values s_keys_map_GapFillTarget {
@@ -908,15 +917,19 @@ void PrintConfigDef::init_fff_params()
     
 
     def = this->add("enable_overhang_bridge_fan", coBools);
-    def->label = L("Force cooling for overhang and bridge");
-    def->tooltip = L("Enable this option to optimize part cooling fan speed for overhang and bridge to get better cooling");
+    def->label = L("Force cooling for overhangs and bridges");
+    def->tooltip = L("Enable this option to allow adjustment of the part cooling fan speed for specifically for overhangs, internal and external "
+                     "bridges. Setting the fan speed specifically for these features can improve overall print quality and reduce warping.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBools{ true });
 
     def = this->add("overhang_fan_speed", coInts);
-    def->label = L("Fan speed for overhang");
-    def->tooltip = L("Force part cooling fan to be this speed when printing bridge or overhang wall which has large overhang degree. "
-                     "Forcing cooling for overhang and bridge can get better quality for these part");
+    def->label = L("Overhangs and external bridges fan speed");
+    def->tooltip = L("Use this part cooling fan speed when printing bridges or overhang walls with an overhang threshold that exceeds "
+                     "the value set in the 'Overhangs cooling threshold' parameter above. Increasing the cooling specifically for overhangs "
+                     "and bridges can improve the overall print quality of these features.\n\n"
+                     "Please note, this fan speed is clamped on the lower end by the minimum fan speed threshold set above. It is also adjusted "
+                     "upwards up to the maximum fan speed threshold when the minimum layer time threshold is not met.");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
@@ -924,10 +937,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 100 });
 
     def = this->add("overhang_fan_threshold", coEnums);
-    def->label = L("Cooling overhang threshold");
-    def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
-                     "Expressed as percentage which indicates how much width of the line without support from lower layer. "
-                     "0% means forcing cooling for all outer wall no matter how much overhang degree");
+    def->label = L("Overhang cooling activation threshold");
+    def->tooltip = L("When the overhang exceeds this specified threshold, force the cooling fan to run at the 'Overhang Fan Speed' set below. "
+                     "This threshold is expressed as a percentage, indicating the portion of each line's width that is unsupported by the layer "
+                     "beneath it. Setting this value to 0% forces the cooling fan to run for all outer walls, regardless of the overhang degree.");
     def->sidetext = "";
     def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
     def->mode = comAdvanced;
@@ -946,7 +959,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
 
     def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridge infill direction");
+    def->label = L("External bridge infill direction");
     def->category = L("Strength");
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
@@ -955,11 +968,39 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
+    
+    // ORCA: Internal bridge angle override
+    def = this->add("internal_bridge_angle", coFloat);
+    def->label = L("Internal bridge infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Internal bridging angle override. If left to zero, the bridging angle will be calculated "
+        "automatically. Otherwise the provided angle will be used for internal bridges. "
+        "Use 180°for zero angle.\n\nIt is recommended to leave it at 0 unless there is a specific model need not to.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("bridge_density", coPercent);
-    def->label = L("Bridge density");
+    def->label = L("External bridge density");
     def->category = L("Strength");
-    def->tooltip = L("Density of external bridges. 100% means solid bridge. Default is 100%.");
+    def->tooltip = L("Controls the density (spacing) of external bridge lines. 100% means solid bridge. Default is 100%.\n\n"
+                     "Lower density external bridges can help improve reliability as there is more space for air to circulate "
+                     "around the extruded bridge, improving its cooling speed.");
+    def->sidetext = L("%");
+    def->min = 10;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
+    
+    def = this->add("internal_bridge_density", coPercent);
+    def->label = L("Internal bridge density");
+    def->category = L("Strength");
+    def->tooltip = L("Controls the density (spacing) of internal bridge lines. 100% means solid bridge. Default is 100%.\n\n "
+                     "Lower density internal bridges can help reduce top surface pillowing and improve internal bridge reliability as there is more space for "
+                     "air to circulate around the extruded bridge, improving its cooling speed. \n\n"
+                     "This option works particularly well when combined with the second internal bridge over infill option, "
+                     "further improving internal bridging structure before solid infill is extruded.");
     def->sidetext = L("%");
     def->min = 10;
     def->max = 100;
@@ -1011,8 +1052,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
     def->category = L("Quality");
-    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.\nNote: This setting "
-                       "will only take effect if the wall sequence is configured to Inner-Outer");
+    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.");
     def->set_default_value(new ConfigOptionBool{false});
     
     def = this->add("only_one_wall_top", coBool);
@@ -1416,7 +1456,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("thick_bridges", coBool);
-    def->label = L("Thick bridges");
+    def->label = L("Thick external bridges");
     def->category = L("Quality");
     def->tooltip = L("If enabled, bridges are more reliable, can bridge longer distances, but may look worse. "
         "If disabled, bridges look better but are reliable just for shorter bridged distances.");
@@ -1430,23 +1470,53 @@ void PrintConfigDef::init_fff_params()
                        "consider turning it off if you are using large nozzles.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+    
+    def = this->add("enable_extra_bridge_layer", coEnum);
+    def->label = L("Extra bridge layers (beta)");
+    def->category = L("Quality");
+    def->tooltip = L("This option enables the generation of an extra bridge layer over internal and/or external bridges.\n\n"
+                     "Extra bridge layers help improve bridge appearance and reliability, as the solid infill is better supported. "
+                     "This is especially useful in fast printers, where the bridge and solid infill speeds vary greatly. "
+                     "The extra bridge layer results in reduced pillowing on top surfaces, as well as reduced separation of the external bridge layer from its surrounding perimeters.\n\n"
+                     "It is generally recommended to set this to at least 'External bridge only', unless specific issues with the sliced model are found.\n\n"
+                     "Options:\n"
+                     "1. Disabled - does not generate second bridge layers. This is the default and is set for compatibility purposes.\n"
+                     "2. External bridge only - generates second bridge layers for external-facing bridges only. Please note that small bridges that are shorter "
+                     "or narrower than the set number of perimeters will be skipped as they would not benefit from a second bridge layer. If generated, the second bridge layer will be extruded "
+                     "parallel to the first bridge layer to reinforce the bridge strength.\n"
+                     "3. Internal bridge only - generates second bridge layers for internal bridges over sparse infill only. Please note that the internal "
+                     "bridges count towards the top shell layer count of your model. The second internal bridge layer will be extruded as close to perpendicular to the first as possible. If multiple regions "
+                     "in the same island, with varying bridge angles are present, the last region of that island will be selected as the angle reference.\n"
+                     "4. Apply to all - generates second bridge layers for both internal and external-facing bridges\n");
+
+    def->enum_keys_map = &ConfigOptionEnum<EnableExtraBridgeLayer>::get_enum_values();
+    def->enum_values.push_back("disabled");
+    def->enum_values.push_back("external_bridge_only");
+    def->enum_values.push_back("internal_bridge_only");
+    def->enum_values.push_back("apply_to_all");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("External bridge only"));
+    def->enum_labels.push_back(L("Internal bridge only"));
+    def->enum_labels.push_back(L("Apply to all"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<EnableExtraBridgeLayer>(eblDisabled));
 
     def = this->add("dont_filter_internal_bridges", coEnum);
-    def->label = L("Filter out small internal bridges (beta)");
+    def->label = L("Filter out small internal bridges");
     def->category = L("Quality");
-    def->tooltip = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\n"
-                      "By default, small internal bridges are filtered out and the internal solid infill is printed directly"
-                      " over the sparse infill. This works well in most cases, speeding up printing without too much compromise"
-                      " on top surface quality. \n\nHowever, in heavily slanted or curved models especially where too low sparse"
-                     " infill density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\n"
-                      "Disabling this option will print internal bridge layer over slightly unsupported internal"
-                      " solid infill. The options below control the amount of filtering, i.e. the amount of internal bridges "
+    def->tooltip = L("This option can help reduce pillowing on top surfaces in heavily slanted or curved models.\n\n"
+                     "By default, small internal bridges are filtered out and the internal solid infill is printed directly "
+                     "over the sparse infill. This works well in most cases, speeding up printing without too much compromise "
+                     "on top surface quality. \n\nHowever, in heavily slanted or curved models, especially where too low a sparse "
+                     "infill density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\n"
+                     "Enabling limited filtering or no filtering will print internal bridge layer over slightly unsupported internal "
+                     "solid infill. The options below control the sensitivity of the filtering, i.e. they control where internal bridges are "
                      "created.\n\n"
-                     "Filter - enable this option. This is the default behavior and works well in most cases.\n\n"
-                     "Limited filtering - creates internal bridges on heavily slanted surfaces, while avoiding creating "
-                     "unnecessary internal bridges. This works well for most difficult models.\n\n"
-                     "No filtering - creates internal bridges on every potential internal overhang. This option is useful "
-                     "for heavily slanted top surface models. However, in most cases it creates too many unnecessary bridges.");
+                     "1. Filter - enables this option. This is the default behavior and works well in most cases.\n\n"
+                     "2. Limited filtering - creates internal bridges on heavily slanted surfaces while avoiding unnecessary bridges. "
+                     "This works well for most difficult models.\n\n"
+                     "3. No filtering - creates internal bridges on every potential internal overhang. This option is useful for "
+                     "heavily slanted top surface models; however, in most cases, it creates too many unnecessary bridges.");
     def->enum_keys_map = &ConfigOptionEnum<InternalBridgeFilter>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
@@ -2267,6 +2337,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("grid");
+    def->enum_values.push_back("2dlattice");
     def->enum_values.push_back("line");
     def->enum_values.push_back("cubic");
     def->enum_values.push_back("triangles");
@@ -2286,6 +2357,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
+    def->enum_labels.push_back(L("2D Lattice"));
     def->enum_labels.push_back(L("Line"));
     def->enum_labels.push_back(L("Cubic"));
     def->enum_labels.push_back(L("Triangles"));
@@ -2303,6 +2375,26 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("Quarter Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
+
+    def           = this->add("lattice_angle_1", coFloat);
+    def->label    = L("Lattice angle 1");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-45));
+
+    def           = this->add("lattice_angle_2", coFloat);
+    def->label    = L("Lattice angle 2");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(45));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
@@ -2587,15 +2679,27 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("support_material_interface_fan_speed", coInts);
     def->label = L("Support interface fan speed");
-    def->tooltip = L("This fan speed is enforced during all support interfaces, to be able to weaken their bonding with a high fan speed."
-        "\nSet to -1 to disable this override."
-        "\nCan only be overridden by disable_fan_first_layers.");
+    def->tooltip = L("This part cooling fan speed is applied when printing support interfaces. Setting this parameter to a higher than regular speed "
+                     " reduces the layer binding strength between supports and the supported part, making them easier to separate."
+                    "\nSet to -1 to disable it."
+                     "\nThis setting is overridden by disable_fan_first_layers.");
     def->sidetext = L("%");
     def->min = -1;
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts{ -1 });
     
+    // ORCA: Add support for separate internal bridge fan speed control
+    def = this->add("internal_bridge_fan_speed", coInts);
+    def->label = L("Internal bridges fan speed");
+    def->tooltip = L("The part cooling fan speed used for all internal bridges. Set to -1 to use the overhang fan speed settings instead.\n\n"
+                     "Reducing the internal bridges fan speed, compared to your regular fan speed, can help reduce part warping due to excessive "
+                     "cooling applied over a large surface for a prolonged period of time.");
+    def->sidetext = L("%");
+    def->min = -1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{ -1 });
 
     def = this->add("fuzzy_skin", coEnum);
     def->label = L("Fuzzy Skin");

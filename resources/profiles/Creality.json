@@ -1405,6 +1405,10 @@
             "sub_path": "filament/Creality Generic PLA-CF @Hi-all.json"
         },
         {
+            "name": "Creality Generic PLA Wood @Hi-all",
+            "sub_path": "filament/Creality Generic PLA Wood @Hi-all.json"
+        },
+        {
             "name": "Creality Generic TPU @Hi-all",
             "sub_path": "filament/Creality Generic TPU @Hi-all.json"
         }

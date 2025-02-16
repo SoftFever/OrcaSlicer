@@ -310,7 +310,7 @@ void organic_draw_branches(
 
 } // namespace TreeSupport3D
 
-void generate_tree_support_3D(PrintObject &print_object, std::function<void()> throw_on_cancel = []{});
+void generate_tree_support_3D(PrintObject &print_object, TreeSupport* tree_support, std::function<void()> throw_on_cancel = []{});
 
 } // namespace Slic3r
 
