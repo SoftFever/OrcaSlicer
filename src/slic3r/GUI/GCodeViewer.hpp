@@ -697,10 +697,10 @@ public:
             // current visible lines
             std::vector<Line> m_lines;
 
-			EViewType m_view_type = m_view_type;
-
         public:
-            GCodeWindow() = default;
+            const SequentialView& m_sequential_view;
+
+            GCodeWindow(const SequentialView& outer_view): m_sequential_view(outer_view) {}
             ~GCodeWindow() { stop_mapping_file(); }
             void load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends);
             void reset() {
@@ -743,11 +743,14 @@ public:
         Vec3f current_position{ Vec3f::Zero() };
         Vec3f current_offset{ Vec3f::Zero() };
         Marker marker;
-        GCodeWindow gcode_window;
+        GCodeWindow               gcode_window{*this};
+        const GCodeViewer&              m_gcode_viewer;
         std::vector<unsigned int> gcode_ids;
         float m_scale = 1.0;
         bool m_show_marker = false;
         void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type);
+
+        SequentialView(const GCodeViewer& outer_viewer) : m_gcode_viewer(outer_viewer) {}
     };
 
     struct ETools
@@ -811,7 +814,7 @@ private:
     std::vector<float> m_filament_diameters;
     std::vector<float> m_filament_densities;
     Extrusions m_extrusions;
-    SequentialView m_sequential_view;
+    SequentialView              m_sequential_view = SequentialView(*this);
     IMSlider* m_moves_slider;
     IMSlider* m_layers_slider;
     Shells m_shells;

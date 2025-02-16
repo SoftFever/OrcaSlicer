@@ -32,6 +32,7 @@
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <wx/progdlg.h>
@@ -549,7 +550,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render_thermal_index_windows(std:
     static const ImVec4 LINE_NUMBER_COLOR    = ImGuiWrapper::COL_ORANGE_LIGHT;
 
 
-   float previousWindowWidth = right;
+    float previousWindowWidth = right;
 
     auto place_window = [text_height, thermal_indexes, top, wnd_height, f_lines_count, start_id, end_id]
     (std::string heading, size_t index_id, float right) {
@@ -655,6 +656,11 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
                     }
                 }
             }
+
+            boost::trim(command);
+            boost::trim(parameters);
+            boost::trim(comment);
+
             ret.push_back({command, parameters, comment});
         }
         return ret;
@@ -803,13 +809,16 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     imgui.end();
     ImGui::PopStyleVar();
 
-    auto get_thermal_index = [this](uint64_t start_id, uint64_t end_id) {
+    if (m_sequential_view.m_gcode_viewer.m_view_type == EViewType::ThermalIndexMin || 
+        m_sequential_view.m_gcode_viewer.m_view_type == EViewType::ThermalIndexMax ||
+		m_sequential_view.m_gcode_viewer.m_view_type == EViewType::ThermalIndexMean ) {
+        auto get_thermal_index = [this](uint64_t start_id, uint64_t end_id) {
             std::vector<GCodeProcessor::ThermalIndex> ret;
             ret.reserve(end_id - start_id + 1);
             for (uint64_t id = start_id; id <= end_id; ++id) {
                 // read line from file
-                const size_t start        = id == 1 ? 0 : m_lines_ends[id - 2];
-                const size_t len = m_lines_ends[id - 1] - start;
+                const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
+                const size_t len   = m_lines_ends[id - 1] - start;
                 std::string  gline(m_file.data() + start, len);
 
                 std::string command, comment;
@@ -825,9 +834,10 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
             return ret;
         };
 
-    std::vector<GCodeProcessor::ThermalIndex> thermal_indexes = get_thermal_index(start_id, end_id);
+        std::vector<GCodeProcessor::ThermalIndex> thermal_indexes = get_thermal_index(start_id, end_id);
 
-    render_thermal_index_windows(thermal_indexes, top, previousWindowWidth, wnd_height, f_lines_count, start_id, end_id);
+        render_thermal_index_windows(thermal_indexes, top, previousWindowWidth, wnd_height, f_lines_count, start_id, end_id);
+    }
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
