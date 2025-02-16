@@ -5044,14 +5044,14 @@ void GCodeProcessor::run_post_process()
                         if (GCodeReader::GCodeLine::cmd_is(gcode_line, "G0") || GCodeReader::GCodeLine::cmd_is(gcode_line, "G1")) {
                             export_lines.append_line(gcode_line);
                             // add lines M73 where needed
-                            //process_line_G1(g1_lines_counter++);
+                            process_line_G1(g1_lines_counter++);
                             gcode_line.clear();
                         }
                         else if (GCodeReader::GCodeLine::cmd_is(gcode_line, "G2") || GCodeReader::GCodeLine::cmd_is(gcode_line, "G3")) {
                             export_lines.append_line(gcode_line);
                             // add lines M73 where needed
-                            //process_line_G1(g1_lines_counter + internal_g1_lines_counter);
-                            //g1_lines_counter += (1 + internal_g1_lines_counter);
+                            process_line_G1(g1_lines_counter + internal_g1_lines_counter);
+                            g1_lines_counter += (1 + internal_g1_lines_counter);
                             gcode_line.clear();
                         }
                         else if (GCodeReader::GCodeLine::cmd_is(gcode_line, "G28")) {
