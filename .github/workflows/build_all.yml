@@ -28,7 +28,7 @@ on:
       - 'build_release_vs2022.bat'
       - 'build_release_macos.sh'
 
-  workflow_dispatch: # allows for manual dispatch
+  workflow_dispatch:
     inputs:
       build-deps-only:
         description: 'Only build dependencies (bypasses caching)'
@@ -82,6 +82,12 @@ jobs:
         run: rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
 
       - uses: actions/checkout@v4
+
+      - name: Build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ clang libssl-dev
+        shell: bash
 
       - name: Get the version and date
         run: |
