@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm  # or adjust to your environment
+    runs-on: ubuntu-24.04  # or adjust to your environment
 
     steps:
       # Step 1: Checkout the repository
@@ -26,34 +26,32 @@ jobs:
           cmake_version: "~3.28.0"
           ninja_version: "latest"
       
-      # Step 3: Create the deps folder if it doesn't exist
+      # Step 3: Remove any old cache (if necessary)
+      - name: Remove old cache (if exists)
+        run: |
+          rm -rf /home/runner/work/OrcaSlicer/OrcaSlicer/deps/build/
+
+      # Step 4: Create the deps folder if it doesn't exist
       - name: Create deps folder
         run: |
           mkdir -p /home/runner/work/OrcaSlicer/OrcaSlicer/deps/build
 
-      # Step 4: Build dependencies and store them in the deps folder
+      # Step 5: Build dependencies and store them in the deps folder
       - name: Build Dependencies
         run: |
           cd /home/runner/work/OrcaSlicer/OrcaSlicer
-          # Replace this with your actual build commands
           cmake -S . -B deps/build
           cmake --build deps/build
           # Ensure the build output is placed into the deps folder for caching
 
-      # Step 5: Cache the dependencies
+      # Step 6: Cache the dependencies with a new key
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: /home/runner/work/OrcaSlicer/OrcaSlicer/deps/build/
-          key: ubuntu-24.04-arm-x86_64-cache-orcaslicer_deps-build-${{ hashFiles('**/CMakeLists.txt') }}  # Adjust key based on files
+          key: ubuntu-24.04-arm-x86_64-cache-orcaslicer_deps-build-${{ hashFiles('**/CMakeLists.txt') }}-${{ github.sha }}  # New cache key with hash and commit
           restore-keys: |
             ubuntu-24.04-arm-x86_64-cache-orcaslicer_deps-build-
-          
-      # Step 6: Fix the update command not found error (update the system)
-      - name: Update system packages
-        run: |
-          sudo apt update
-          sudo apt upgrade -y  # Update system and install upgrades
 
       # Step 7: Build the main project
       - name: Build the main project
