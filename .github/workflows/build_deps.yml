@@ -37,9 +37,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ inputs.cache-path }}
-          key: deps-${{ inputs.os }}-${{ inputs.arch }}-${{ github.sha }}
+          key: deps-ubuntu-24.04-arm-${{ github.sha }}
           restore-keys: |
-            deps-${{ inputs.os }}-${{ inputs.arch }}-
+            deps-ubuntu-24.04-arm-
 
       - uses: lukka/get-cmake@latest
         with:
@@ -126,7 +126,7 @@ jobs:
         if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
         uses: actions/upload-artifact@v4
         with:
-          name: deps-${{ inputs.os }}-${{ inputs.arch }}-${{ github.sha }}
+          name: deps-ubuntu-24.04-arm-${{ github.sha }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
           overwrite: false
 
