@@ -1143,8 +1143,15 @@ void PlaterPresetComboBox::update()
                             m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection() ? false :
                             i == m_collection->get_selected_idx();
 
-        if (!preset.is_visible || (!preset.is_compatible && !is_selected))
+        if (!is_selected && (!preset.is_visible ||!preset.is_compatible))
+        {
             continue;
+        }
+        else if (is_selected && !preset.is_visible)
+        {
+            Preset& selected_preset = const_cast<Preset&>(preset);
+            selected_preset.is_visible = true;
+        }
 
         bool single_bar = false;
 
