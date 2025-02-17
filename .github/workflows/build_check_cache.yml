@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: 'true'
-      
+
       - name: Set Cache Outputs
         id: set_outputs
         env:
@@ -36,7 +36,7 @@ jobs:
           dep-folder-name: ${{ (inputs.os == 'windows-latest' || inputs.os == 'macos-14') && 'OrcaSlicer_dep' || 'destdir' }}
           output-cmd: ${{ inputs.os == 'windows-latest' && '$env:GITHUB_OUTPUT' || '"$GITHUB_OUTPUT"'}}
         run: |
-          echo "cache-key=${{ inputs.os }}${{ env.dash-arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}" >> ${{ env.output-cmd }}
+          echo "cache-key=${{ inputs.os }}${{ env.dash-arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') || 'nohash' }}" >> ${{ env.output-cmd }}
           echo "cache-path=${{ github.workspace }}/deps/build${{ env.underscore-arch }}/${{ env.dep-folder-name }}${{ env.underscore-arch }}" >> ${{ env.output-cmd }}
 
       - name: Ensure Cache Directory Exists
