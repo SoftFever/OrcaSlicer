@@ -289,7 +289,7 @@ private:
     void        init_bitmaps();
 
 private:
-    SyncInfo & m_input_info;
+    SyncInfo   m_input_info;
     SyncResult m_result;
     Button *   m_button_ok     = nullptr;
     Button *   m_button_cancel = nullptr;
@@ -364,7 +364,7 @@ public:
     void update_info(InputInfo& info);
 
 private:
-    InputInfo& m_input_info;
+    InputInfo m_input_info;
 };
 
 class FinishSyncAmsDialog : public Slic3r::GUI::BaseTransparentDPIFrame
@@ -381,7 +381,7 @@ public:
     void update_info(InputInfo &info);
 
 private:
-    InputInfo& m_input_info;
+    InputInfo m_input_info;
 };
 }}     // namespace Slic3r::GUI
 #endif  // _STEP_MESH_DIALOG_H_
