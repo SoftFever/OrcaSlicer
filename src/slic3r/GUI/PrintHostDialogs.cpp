@@ -626,18 +626,17 @@ bool PrintHostQueueDialog::load_user_data(int udt, std::vector<int>& vector)
     return true;
 }
 
-ElegooPrintHostSendDialog::ElegooPrintHostSendDialog(const fs::path& path,
-    PrintHostPostUploadActions post_actions,
-    const wxArrayString&       groups,
-    const wxArrayString&       storage_paths,
-    const wxArrayString&       storage_names,
-    bool                       switch_to_device_tab)
-    : PrintHostSendDialog(path,post_actions,groups,storage_paths,storage_names,switch_to_device_tab)
-, m_timeLapse(0)
-, m_heatedBedLeveling(0)
-, m_BedType(BedType::btPTE)
-{
-}
+ElegooPrintHostSendDialog::ElegooPrintHostSendDialog(const fs::path&            path,
+                                                     PrintHostPostUploadActions post_actions,
+                                                     const wxArrayString&       groups,
+                                                     const wxArrayString&       storage_paths,
+                                                     const wxArrayString&       storage_names,
+                                                     bool                       switch_to_device_tab)
+    : PrintHostSendDialog(path, post_actions, groups, storage_paths, storage_names, switch_to_device_tab)
+    , m_timeLapse(0)
+    , m_heatedBedLeveling(0)
+    , m_BedType(BedType::btPTE)
+{}
 
 void ElegooPrintHostSendDialog::init() {
 
