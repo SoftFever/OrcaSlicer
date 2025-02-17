@@ -32,7 +32,7 @@ msgid "Reset direction"
 msgstr "Redefinir direção"
 
 msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Roda do Mouse"
+msgstr "Ctrl + Roda do mouse"
 
 msgid "Pen size"
 msgstr "Tamanho da caneta"
@@ -71,18 +71,16 @@ msgid "Gap area"
 msgstr "Área das lacunas"
 
 msgid "Tool type"
-msgstr "Tipo da ferramenta"
+msgstr "Tipo de ferramenta"
 
 msgid "Smart fill angle"
-msgstr ""
-"Ângulo do\n"
-"preench. inteligente"
+msgstr "Ângulo de preenchimento inteligente"
 
 msgid "On overhangs only"
 msgstr "Apenas em 'overhangs'"
 
 msgid "Auto support threshold angle: "
-msgstr "Ângulo max. do suporte automático: "
+msgstr "Ângulo limite de suporte automático: "
 
 msgid "Circle"
 msgstr "Círculo"
@@ -101,7 +99,7 @@ msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "Permite pintura apenas em facetas selecionadas por: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
-msgstr "Realçar faces conforme a inclinação."
+msgstr "Realçar faces conforme o ângulo de saliência."
 
 msgid "No auto support"
 msgstr "Sem suporte automático"
@@ -154,7 +152,7 @@ msgid "Smart fill"
 msgstr "Preenchimento inteligente"
 
 msgid "Bucket fill"
-msgstr "Balde de preenchimento"
+msgstr "Preenchimento de balde"
 
 msgid "Height range"
 msgstr "Intervalo de altura"
@@ -166,7 +164,7 @@ msgid "Toggle Wireframe"
 msgstr "Alternar malha"
 
 msgid "Shortcut Key "
-msgstr "Tecla "
+msgstr "Tecla de atalho "
 
 msgid "Triangle"
 msgstr "Triângulo"
@@ -215,7 +213,7 @@ msgid "Error: Please close all toolbar menus first"
 msgstr "Erro: Por favor, feche todos os menus da barra de ferramentas primeiro"
 
 msgid "in"
-msgstr "in"
+msgstr "pol"
 
 msgid "mm"
 msgstr "mm"
@@ -233,7 +231,7 @@ msgid "Scale ratios"
 msgstr "Proporções de escala"
 
 msgid "Object Operations"
-msgstr "Operações do Objeto"
+msgstr "Operações de Objeto"
 
 msgid "Volume Operations"
 msgstr "Operações de Volume"
@@ -570,7 +568,7 @@ msgid "Simplify"
 msgstr "Simplificar"
 
 msgid "Simplification is currently only allowed when a single part is selected"
-msgstr "A simplificação só é permitida quando uma única peça é selecionada no momento"
+msgstr "A simplificação só é permitida atualmente quando uma única peça está selecionada"
 
 msgid "Error"
 msgstr "Erro"
@@ -605,7 +603,7 @@ msgid "Can't apply when process preview."
 msgstr "Não é possível aplicar quando a visualização do processo está em andamento."
 
 msgid "Operation already cancelling. Please wait few seconds."
-msgstr "Operação já sendo cancelada. Por favor, aguarde alguns segundos."
+msgstr "Operação já está sendo cancelada. Por favor, aguarde alguns segundos."
 
 msgid "Face recognition"
 msgstr "Reconhecimento facial"
@@ -659,7 +657,7 @@ msgid ""
 "depth"
 msgstr ""
 "Profundidade\n"
-"Integrada"
+"embutida"
 
 msgid "Input text"
 msgstr "Texto de entrada"
@@ -1602,7 +1600,7 @@ msgid "Loading user preset"
 msgstr "Carregando preset do usuário"
 
 msgid "Switching application language"
-msgstr "Alterando o idioma do aplicativo"
+msgstr "Alternando o idioma do aplicativo"
 
 msgid "Select the language"
 msgstr "Selecione o idioma"
@@ -1703,43 +1701,43 @@ msgid "Wipe options"
 msgstr "Opções de limpeza"
 
 msgid "Bed adhesion"
-msgstr "Adesão à Mesa"
+msgstr "Adesão à mesa"
 
 msgid "Add part"
-msgstr "Adicionar Peça"
+msgstr "Adicionar peça"
 
 msgid "Add negative part"
-msgstr "Adicionar Peça Negativa"
+msgstr "Adicionar peça negativa"
 
 msgid "Add modifier"
-msgstr "Adicionar Modificador"
+msgstr "Adicionar modificador"
 
 msgid "Add support blocker"
-msgstr "Adicionar Bloqueador de Suporte"
+msgstr "Adicionar bloqueador de suporte"
 
 msgid "Add support enforcer"
-msgstr "Adicionar Reforço de Suporte"
+msgstr "Adicionar reforço de suporte"
 
 msgid "Add text"
-msgstr "Adicionar Texto"
+msgstr "Adicionar texto"
 
 msgid "Add negative text"
-msgstr "Adicionar Texto Negativo"
+msgstr "Adicionar texto negativo"
 
 msgid "Add text modifier"
-msgstr "Adicionar Modificador de Texto"
+msgstr "Adicionar modificador de texto"
 
 msgid "Add SVG part"
-msgstr "Adicionar Peça SVG"
+msgstr "Adicionar peça SVG"
 
 msgid "Add negative SVG"
-msgstr "Adicionar SVG Negativo"
+msgstr "Adicionar SVG negativo"
 
 msgid "Add SVG modifier"
-msgstr "Adicionar Modificador SVG"
+msgstr "Adicionar modificador SVG"
 
 msgid "Select settings"
-msgstr "Selecionar Configurações"
+msgstr "Selecionar configurações"
 
 msgid "Hide"
 msgstr "Ocultar"
@@ -1807,10 +1805,10 @@ msgid "Text"
 msgstr "Texto"
 
 msgid "Height range Modifier"
-msgstr "Modificador em altura"
+msgstr "Modificador de intervalo de altura"
 
 msgid "Add settings"
-msgstr "Adicionar Configurações"
+msgstr "Adicionar configurações"
 
 msgid "Change type"
 msgstr "Alterar tipo"
@@ -1849,7 +1847,7 @@ msgid "Replace with STL"
 msgstr "Substituir por STL"
 
 msgid "Replace the selected part with new STL"
-msgstr "Substituir a peça selecionada por um novo STL"
+msgstr "Substituir a peça selecionada por novo STL"
 
 msgid "Change filament"
 msgstr "Alterar filamento"
@@ -1889,13 +1887,13 @@ msgid "Edit in Parameter Table"
 msgstr "Editar na Tabela de Parâmetros"
 
 msgid "Convert from inch"
-msgstr "Converter de polegada"
+msgstr "Converter de polegadas"
 
 msgid "Restore to inch"
 msgstr "Restaurar para polegadas"
 
 msgid "Convert from meter"
-msgstr "Converter de metro"
+msgstr "Converter de metros"
 
 msgid "Restore to meter"
 msgstr "Restaurar para metros"
@@ -1910,10 +1908,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "Montar os objetos selecionados em um objeto com uma única peça"
 
 msgid "Mesh boolean"
-msgstr "Operações booleanas"
+msgstr "Malha booleana"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr "Operações booleanas incluindo união e subtração"
+msgstr "Operações booleanas de malha, incluindo união e subtração"
 
 msgid "Along X axis"
 msgstr "Ao longo do eixo X"
@@ -1964,13 +1962,13 @@ msgid "Show Labels"
 msgstr "Mostrar Etiquetas"
 
 msgid "To objects"
-msgstr "Para Objetos"
+msgstr "Para objetos"
 
 msgid "Split the selected object into multiple objects"
 msgstr "Dividir o objeto selecionado em vários objetos"
 
 msgid "To parts"
-msgstr "Para Peças"
+msgstr "Para peças"
 
 msgid "Split the selected object into multiple parts"
 msgstr "Dividir o objeto selecionado em várias peças"
@@ -1982,7 +1980,7 @@ msgid "Split the selected object"
 msgstr "Dividir o objeto selecionado"
 
 msgid "Auto orientation"
-msgstr "Orientação Automática"
+msgstr "Orientação automática"
 
 msgid "Auto orient the object to improve print quality."
 msgstr "Orientar automaticamente o objeto para melhorar a qualidade de impressão."
