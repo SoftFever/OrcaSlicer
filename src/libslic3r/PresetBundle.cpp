@@ -2166,14 +2166,20 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
         for (size_t i = 0; i < exist_colors.size(); i++) {
             if (maps.find(i) != maps.end()) {//mapping exist
                 auto valid_index = get_map_index(ams_array_maps, maps[i]);
-                if (valid_index >= 0) {
+                if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
                     exist_colors[i]           = ams_filament_colors[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];
+                } else {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "check error: array bound (mapping exist)";
                 }
             }
         }
         for (size_t i = 0; i < ams_infos.size(); i++) {// check append
             if (ams_infos[i].valid) {
+                if (i >= ams_filament_presets.size()) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "check error: array bound (check append)";
+                    continue;
+                }
                 ams_infos[i].filament_preset = ams_filament_presets[i];
                 if (!ams_infos[i].is_map) {
                     need_append_colors.emplace_back(ams_infos[i]);
