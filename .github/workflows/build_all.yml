@@ -56,6 +56,9 @@ jobs:
           - os: ubuntu-24.04-arm
             arch: arm64
     runs-on: ${{ matrix.os }}
+    outputs:
+      cache-key: deps-${{ matrix.os }}-${{ matrix.arch || 'x86_64' }}-${{ hashFiles('deps/**') }}
+      cache-path: ${{ github.workspace }}/deps/build
     
     steps:
       - name: Checkout
@@ -161,6 +164,8 @@ jobs:
     if: ${{ !cancelled() && !inputs.build-deps-only }}
     uses: ./.github/workflows/build_orca.yml
     with:
+      cache-key: ${{ needs.build_deps.outputs.cache-key }}
+      cache-path: ${{ needs.build_deps.outputs.cache-path }}
       os: ${{ matrix.os }}
       arch: ${{ matrix.arch }}
     secrets: inherit
