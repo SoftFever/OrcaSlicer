@@ -142,6 +142,7 @@ private:
     void auto_generate();
     void first_layer_slicer();
     void get_detection_radius_max();
+    void update_raycasters();
 
 protected:
     void on_set_state() override;
@@ -162,6 +163,8 @@ protected:
     virtual CommonGizmosDataID on_get_requirements() const override;
     void on_load(cereal::BinaryInputArchive& ar) override;
     void on_save(cereal::BinaryOutputArchive& ar) const override;
+    virtual void on_register_raycasters_for_picking() override;
+    virtual void on_unregister_raycasters_for_picking() override;
     void register_single_mesh_pick();
     //void update_single_mesh_pick(GLVolume* v);
     void reset_all_pick();

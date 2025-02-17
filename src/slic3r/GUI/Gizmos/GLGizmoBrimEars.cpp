@@ -162,14 +162,16 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
 
         double radius = (double) brim_point.head_front_radius * RenderPointScale;
         const Transform3d center_matrix =
-            view_matrix 
-            * instance_matrix 
+            instance_matrix 
             * Geometry::translation_transform(brim_point.pos.cast<double>()) 
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
             * instance_scaling_matrix_inverse 
             * q
             * Geometry::scale_transform(Vec3d{radius, radius, .2});
-        shader->set_uniform("view_model_matrix", center_matrix);
+        if (i < m_grabbers.size()) {
+            m_grabbers[i].raycasters[0]->set_transform(center_matrix);
+        }
+        shader->set_uniform("view_model_matrix", view_matrix * center_matrix);
         m_cylinder.model.render();
 
         if (vol->is_left_handed()) glFrontFace(GL_CCW);
@@ -263,13 +265,16 @@ void GLGizmoBrimEars::data_changed(bool is_serializing)
 
 bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
 {
+    if (use_grabbers(mouse_event)) {
+        return true;
+    }
+
     // wxCoord == int --> wx/types.h
     Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d   mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.Moving()) {
-        gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
-        return false;
+        return gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
     }
     
     // when control is down we allow scene pan and rotation even when clicking
@@ -1026,6 +1031,40 @@ bool GLGizmoBrimEars::add_point_to_cache(Vec3f pos, float head_radius, bool sele
     return true;
 }
 
+
+void GLGizmoBrimEars::on_register_raycasters_for_picking() {
+    update_raycasters();
+}
+
+void GLGizmoBrimEars::on_unregister_raycasters_for_picking()
+{
+    m_parent.remove_raycasters_for_picking(SceneRaycaster::EType::Gizmo);
+    m_grabbers.clear();
+}
+
+void GLGizmoBrimEars::update_raycasters()
+{
+    // Remove extra raycasters
+    if (m_editing_cache.size() < m_grabbers.size()) {
+        for (auto it = m_grabbers.begin() + m_editing_cache.size(); it != m_grabbers.end(); ++it) {
+            if (it->picking_id >= 0) {
+                it->unregister_raycasters_for_picking();
+            }
+        }
+        m_grabbers.erase(m_grabbers.begin() + m_editing_cache.size(), m_grabbers.end());
+    } else if (m_editing_cache.size() > m_grabbers.size()) {
+        auto remaining = m_editing_cache.size() - m_grabbers.size();
+        while (remaining > 0) {
+            const auto id   = m_grabbers.size();
+            auto& g = m_grabbers.emplace_back();
+            g.register_raycasters_for_picking(id);
+            g.raycasters[0] = m_parent.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, id,
+                                                                 *m_cylinder.mesh_raycaster, Transform3d::Identity());
+            remaining--;
+        }
+    }
+}
+
 void GLGizmoBrimEars::register_single_mesh_pick()
 {
     Selection                    &selection = m_parent.get_selection();
@@ -1083,6 +1122,8 @@ ExPolygon GLGizmoBrimEars::make_polygon(BrimPoint point, const Geometry::Transfo
 
 void GLGizmoBrimEars::find_single()
 {
+    update_raycasters();
+
     if (m_editing_cache.size() == 0) {
         m_single_brim.clear();
         return;
