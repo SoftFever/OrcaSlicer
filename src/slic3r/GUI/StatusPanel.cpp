@@ -1566,6 +1566,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_fan->SetBorderWidth(0);
     m_switch_fan->SetCornerRadius(0);
     m_switch_fan->SetFont(::Label::Body_10);
+    m_switch_fan->SetLabel(_L("panel"));
     m_switch_fan->SetTextColor(
         StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int)StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int)StateColor::Normal)));
 
