@@ -2550,9 +2550,9 @@ Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) co
     if (check_wipe_tower_existance && (!has_wipe_tower() || m_wipe_tower_data.tool_changes.empty()))
         return corners;
     {
-        double width = m_config.prime_tower_width + 2*m_wipe_tower_data.brim_width;
-        double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
-        Vec2d pt0(-m_wipe_tower_data.brim_width, -m_wipe_tower_data.brim_width);
+        double width = m_wipe_tower_data.bbx.max.x() - m_wipe_tower_data.bbx.min.x();
+        double depth = m_wipe_tower_data.bbx.max.y() -m_wipe_tower_data.bbx.min.y();
+        Vec2d pt0 = m_wipe_tower_data.bbx.min;
         
         // First the corners.
         std::vector<Vec2d> pts = { pt0,

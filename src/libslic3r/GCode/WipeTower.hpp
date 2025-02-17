@@ -191,6 +191,7 @@ public:
     BoundingBoxf get_bbx() const {
         BoundingBox  box = get_extents(m_outer_wall.front());
         BoundingBoxf res = BoundingBoxf(unscale(box.min), unscale(box.max));
+        res.translate(m_rib_offset.cast<double>());
         return res;
     }
     Polylines get_outer_wall() const {
