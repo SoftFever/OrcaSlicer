@@ -1,5 +1,3 @@
-name: Build Dependencies
-
 on:
   workflow_call:
     inputs:
@@ -30,6 +28,8 @@ jobs:
     env:
       date:
     steps:
+
+      # Setup the environment
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -43,7 +43,7 @@ jobs:
 
       - uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "~3.28.0"
+          cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
 
       - name: setup dev on Windows
         if: inputs.os == 'windows-latest'
@@ -59,29 +59,30 @@ jobs:
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
-      # Windows build
+
+      # Build Dependencies
       - name: Build on Windows
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
         run: |
-          choco install strawberryperl
-          .\build_release_vs2022.bat deps
-          .\build_release_vs2022.bat pack
-          cd ${{ github.workspace }}/deps/build
+            choco install strawberryperl
+            .\build_release_vs2022.bat deps
+            .\build_release_vs2022.bat pack
+            cd ${{ github.workspace }}/deps/build
 
-      # macOS build
       - name: Build on Mac ${{ inputs.arch }}
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-          brew install automake texinfo ninja libtool
-          mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
-          mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
-          brew uninstall --ignore-dependencies zstd
-          ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
-          brew install zstd
+            brew install automake texinfo ninja libtool
+            brew list
+            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
+            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
+            brew uninstall --ignore-dependencies zstd
+            ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
+            brew install zstd
 
-      # Ubuntu build (MODIFIED SECTION)
+
       - name: Install Ubuntu Build Dependencies
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
@@ -107,9 +108,10 @@ jobs:
             ./BuildLinux.sh -dr
             cd deps/build
             tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
-            
-      # Artifact uploads
-      - name: Upload Mac artifacts
+
+
+      # Upload Artifacts
+      - name: Upload Mac ${{ inputs.arch }} artifacts
         if: inputs.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
@@ -124,11 +126,13 @@ jobs:
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
-        if: contains(inputs.os, 'ubuntu')
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
+        env:
+          ubuntu-ver: ${{ (inputs.os == 'ubuntu-20.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_dep_ubuntu_${{ inputs.arch }}_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_ubuntu_*.tar.gz
+          name: OrcaSlicer_dep_ubuntu_${{ env.ubuntu-ver }}_${{ env.date }}
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
 
   build_orca:
     name: Build OrcaSlicer
