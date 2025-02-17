@@ -34,7 +34,7 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
     m_browser->Bind(wxEVT_WEBVIEW_LOADED, &JusPrinChatPanel::OnLoaded, this);
     m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &JusPrinChatPanel::OnActionCallReceived, this);
 
-    topsizer->Add(m_browser, 1, wxEXPAND);
+    topsizer->Add(m_browser, 1, wxEXPAND | wxALL, m_radis);
     SetSizer(topsizer);
 
     update_mode();
@@ -46,9 +46,9 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
     Bind(wxEVT_CLOSE_WINDOW, &JusPrinChatPanel::OnClose, this);
 
     // 设置透明的部分会是黑色
-    // CreateBgBitmap();
-    // SetBackgroundStyle(wxBG_STYLE_PAINT);
-    // Bind(wxEVT_PAINT, &JusPrinChatPanel::OnPaint, this);
+    SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+    SetBackgroundColour(wxColour(0, 0, 0, 0));
+    Bind(wxEVT_PAINT, &JusPrinChatPanel::OnPaint, this);
 
     load_url();
 }
@@ -451,51 +451,28 @@ nlohmann::json JusPrinChatPanel::GetAllModelObjectsJson() {
     return j;
 }
 
-void JusPrinChatPanel::CreateBgBitmap(){
-    m_bgbmp.Create(m_radis*2+1, m_radis*2+1, 32);
-    wxMemoryDC dc;
-    dc.SelectObject(m_bgbmp);
-
-     // Fill the entire bitmap with transparent color
-     dc.SetBrush(wxBrush(wxColour(0, 0, 0, 0))); // Transparent brush
-     dc.Clear();
-
-    dc.SetBrush(*wxWHITE_BRUSH);
-    dc.SetPen(wxPen(wxColour(125, 125, 125), 1));//边框颜色
-    dc.DrawRoundedRectangle(0, 0, m_radis * 2 + 1, m_radis * 2 + 1, m_radis);
-    dc.SelectObject(wxNullBitmap);
-
-}
-
-
 void JusPrinChatPanel::OnPaint(wxPaintEvent& event){
     wxAutoBufferedPaintDC dc(this);
     dc.Clear();
 
-    wxSize size = GetClientSize();
+     wxSize size = GetClientSize();
     int width = size.GetWidth();
     int height = size.GetHeight();
-
-    int bmpWidth = m_bgbmp.GetWidth();
-    int bmpHeight = m_bgbmp.GetHeight();
+    int radius = m_radis; // Radius for rounded corners
 
     // Create a graphics context
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
-        // Draw corners
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(0, 0, m_radis, m_radis)), 0, 0, m_radis, m_radis); // Top-left
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(bmpWidth - m_radis, 0, m_radis, m_radis)), width - m_radis, 0, m_radis, m_radis); // Top-right
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(0, bmpHeight - m_radis, m_radis, m_radis)), 0, height - m_radis, m_radis, m_radis); // Bottom-left
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(bmpWidth - m_radis, bmpHeight - m_radis, m_radis, m_radis)), width - m_radis, height - m_radis, m_radis, m_radis); // Bottom-right
-
-        // Draw edges
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(m_radis, 0, bmpWidth - 2 * m_radis, m_radis)), m_radis, 0, width - 2 * m_radis, m_radis); // Top
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(m_radis, bmpHeight - m_radis, bmpWidth - 2 * m_radis, m_radis)), m_radis, height - m_radis, width - 2 * m_radis, m_radis); // Bottom
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(0, m_radis, m_radis, bmpHeight - 2 * m_radis)), 0, m_radis, m_radis, height - 2 * m_radis); // Left
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(bmpWidth - m_radis, m_radis, m_radis, bmpHeight - 2 * m_radis)), width - m_radis, m_radis, m_radis, height - 2 * m_radis); // Right
-
-        // Draw center
-        gc->DrawBitmap(m_bgbmp.GetSubBitmap(wxRect(m_radis, m_radis, bmpWidth - 2 * m_radis, bmpHeight - 2 * m_radis)), m_radis, m_radis, width - 2 * m_radis, height - 2 * m_radis); // Center
+        wxColour transparentColour(255, 255, 255, 0);
+        wxBrush  transparentBrush(transparentColour);
+        gc->SetBrush(transparentBrush);
+        // Clear the background with the transparent brush
+        gc->DrawRectangle(0, 0, width, height);
+        // Draw rounded rectangle
+        gc->SetBrush(wxBrush(*wxWHITE)); // 
+        wxColour co =  wxColour(125, 125, 125);
+        gc->SetPen(wxPen(co, 1)); // Black border
+        gc->DrawRoundedRectangle(0, 0, width, height, radius);
 
         delete gc;
     }
