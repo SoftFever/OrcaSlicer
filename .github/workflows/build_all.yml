@@ -112,7 +112,7 @@ jobs:
 
             arch: arm64
 
-    uses: ./.github/workflows/build_check_cache.yml
+    uses: ./.github/workflows/build_deps.yml
 
     with:
 
@@ -120,7 +120,7 @@ jobs:
 
       arch: ${{ matrix.arch }}
 
-      build-deps-only: ${{ inputs.build-deps-only || false }}
+      build-deps-only: ${{ inputs.build-deps-only || true }}
 
     secrets: inherit
 
