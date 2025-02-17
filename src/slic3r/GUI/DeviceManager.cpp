@@ -1221,7 +1221,8 @@ void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
 
 bool MachineObject::is_main_extruder_on_left() const
 {
-    return printer_type.find("O1D") == std::string::npos;  // not O1D
+    // only means the extruder is on the left hand when extruder id is 0
+    return false;
 }
 
 bool MachineObject::is_multi_extruders() const
