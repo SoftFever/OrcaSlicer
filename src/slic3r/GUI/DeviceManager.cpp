@@ -1569,9 +1569,8 @@ void MachineObject::parse_status(int flag)
 
     sdcard_state = MachineObject::SdcardState(get_flag_bits(flag, 8, 2));
 
-    if (ams_print_option_count > 0)
-        ams_print_option_count--;
-    else {
+    if (time(nullptr) - ams_switch_filament_start > HOLD_TIME_MAX)
+    {
         ams_auto_switch_filament_flag = ((flag >> 10) & 0x1) != 0;
     }
 
@@ -2380,7 +2379,7 @@ int MachineObject::command_ams_switch_filament(bool switch_filament)
 
     ams_auto_switch_filament_flag = switch_filament;
     BOOST_LOG_TRIVIAL(trace) << "command_ams_filament_settings:" << switch_filament;
-    ams_print_option_count = HOLD_COUNT_MAX;
+    ams_switch_filament_start = time(nullptr);
 
     return this->publish_json(j.dump());
 }
@@ -5861,7 +5860,6 @@ void MachineObject::parse_new_info(json print)
         if (xcam_first_layer_hold_count > 0) xcam_first_layer_hold_count--;
         if (xcam_ai_monitoring_hold_count > 0) xcam_ai_monitoring_hold_count--;
         if (xcam_auto_recovery_hold_count > 0) xcam_auto_recovery_hold_count--;
-        if (ams_print_option_count > 0)        ams_print_option_count--;
         if (xcam_prompt_sound_hold_count > 0) xcam_prompt_sound_hold_count--;
         if (xcam_filament_tangle_detect_count > 0)xcam_filament_tangle_detect_count--;
         if (nozzle_setting_hold_count > 0)nozzle_setting_hold_count--;
@@ -5933,7 +5931,11 @@ void MachineObject::parse_new_info(json print)
             ams_calibrate_remain_flag = get_flag_bits(cfg, 17);
         }
 
-        ams_auto_switch_filament_flag = get_flag_bits(cfg, 18);
+        if (time(nullptr) - ams_switch_filament_start > HOLD_TIME_MAX)
+        {
+            ams_auto_switch_filament_flag = get_flag_bits(cfg, 18);
+        }
+
         xcam_allow_prompt_sound = get_flag_bits(cfg, 22);
         xcam_filament_tangle_detect = get_flag_bits(cfg, 23);
         nozzle_blob_detection_enabled = get_flag_bits(cfg, 24);
