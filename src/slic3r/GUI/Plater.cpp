@@ -2294,6 +2294,10 @@ bool  Sidebar::reset_bed_type_combox_choices() {
     auto                               bundle = wxGetApp().preset_bundle;
     const Preset *                     curr   = &bundle->printers.get_selected_preset();
     const VendorProfile::PrinterModel *pm     = PresetUtils::system_printer_model(*curr);
+    if (!pm) {
+        auto curr_parent = bundle->printers.get_selected_preset_parent();
+        pm               = PresetUtils::system_printer_model(*curr_parent);
+    }
     if (m_last_combo_bedtype_count != 0 && pm) {
         auto cur_count = (int) BedType::btCount - 1 - pm->not_support_bed_types.size();
         if (cur_count == m_last_combo_bedtype_count) {//no change
