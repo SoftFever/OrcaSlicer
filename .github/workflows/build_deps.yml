@@ -81,13 +81,14 @@ jobs:
           ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
           brew install zstd
 
-      # Ubuntu build
+      # Ubuntu build (MODIFIED SECTION)
       - name: Install Ubuntu Build Dependencies
         if: contains(inputs.os, 'ubuntu')
         working-directory: ${{ github.workspace }}
         env:
           apt-cmd: 'sudo apt-get'
-          webkit-ver: '4.1'
+          ubuntu-ver: ${{ contains(inputs.os, '20.04') && '20.04' || '24.04' }}
+          webkit-ver: ${{ env.ubuntu-ver == '20.04' && '4.0' || '4.1' }}
         run: |
           ${{ env.apt-cmd }} update
           ${{ env.apt-cmd }} install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
@@ -95,6 +96,12 @@ jobs:
           libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev libwebkit2gtk-${{ env.webkit-ver }}-dev \
           libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
           gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
+
+          # Ubuntu 20.04 specific fixes
+          if [ "${{ env.ubuntu-ver }}" = "20.04" ]; then
+              ${{ env.apt-cmd }} install -y libjavascriptcoregtk-4.0-dev
+              sudo ln -sf /usr/include/webkitgtk-4.0 /usr/include/webkitgtk-4.1 || true
+          fi
 
       - name: Build on Ubuntu ${{ inputs.arch }}
         if: contains(inputs.os, 'ubuntu')
