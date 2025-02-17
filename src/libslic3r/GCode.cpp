@@ -4066,6 +4066,13 @@ LayerResult GCode::process_layer(
         }
         if(!timepals_gcode.empty()){
         m_writer.set_current_position_clear(false);
+
+        double temp_z_after_tool_change;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_tool_change)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2)    = temp_z_after_tool_change;
+            m_writer.set_position(pos);
+        }
         }
         return timepals_gcode;
     };
