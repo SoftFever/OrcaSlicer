@@ -68,7 +68,7 @@ on:
 
         type: boolean
 
-        default: true
+        default: false
 
 
 
@@ -112,7 +112,7 @@ jobs:
 
             arch: arm64
 
-    uses: ./.github/workflows/build_deps.yml
+    uses: ./.github/workflows/build_check_cache.yml
 
     with:
 
@@ -120,7 +120,7 @@ jobs:
 
       arch: ${{ matrix.arch }}
 
-      build-deps-only: ${{ inputs.build-deps-only || true }}
+      build-deps-only: ${{ inputs.build-deps-only || false }}
 
     secrets: inherit
 
