@@ -294,7 +294,6 @@ bool SyncAmsInfoDialog::is_need_show()
     m_result.direct_sync = true;
     m_generate_fix_sizer_ams_mapping = false;
     m_ams_combo_info.clear();
-    m_finish_ams_map_flag = false;
     // init end
     check_empty_project();
     if (m_is_empty_project && !is_dirty_filament()) {
@@ -1345,12 +1344,6 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
     auto tab_index = (MainFrame::TabPosition) dynamic_cast<Notebook *>(wxGetApp().tab_panel())->GetSelection();
     if (tab_index == MainFrame::TabPosition::tp3DEditor || tab_index == MainFrame::TabPosition::tpPreview) {
         updata_thumbnail_data_after_connected_printer();
-        m_finish_ams_map_flag = true;
-        if (m_finish_ams_map_flag) {
-            m_pages->ChangeSelection(1);
-            m_pages->SetMinSize(wxSize(SyncAmsInfoDialogWidth, -1));
-            m_pages->SetMaxSize(wxSize(SyncAmsInfoDialogWidth, -1));
-        }
     }
 }
 
@@ -1401,6 +1394,7 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array2=" << ams_array2;
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_info=" << mapping_info;
         }
+        show_thumbnail_page();
         return obj_->is_valid_mapping_result(m_ams_mapping_result);
     } else {
         // do not support ams mapping try to use order mapping
@@ -1413,10 +1407,18 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
             }
         }
         sync_ams_mapping_result(m_ams_mapping_result);
+        show_thumbnail_page();
         return is_valid;
     }
 
     return true;
+}
+
+void SyncAmsInfoDialog::show_thumbnail_page()
+{
+    m_pages->ChangeSelection(1);
+    m_pages->SetMinSize(wxSize(SyncAmsInfoDialogWidth, -1));
+    m_pages->SetMaxSize(wxSize(SyncAmsInfoDialogWidth, -1));
 }
 
 bool SyncAmsInfoDialog::get_ams_mapping_result(std::string &mapping_array_str, std::string &mapping_array_str2, std::string &ams_mapping_info)
