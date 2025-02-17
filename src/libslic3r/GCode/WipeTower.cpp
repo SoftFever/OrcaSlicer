@@ -3613,15 +3613,30 @@ int WipeTower::get_wall_filament_for_all_layer()
 {
     std::map<int, int> category_counts;
     std::map<int, int> filament_counts;
+    int current_tool = m_current_tool;
     for (const auto &layer : m_plan) {
+        if (layer.tool_changes.empty()){
+            filament_counts[current_tool]++;
+            category_counts[get_filament_category(current_tool)]++;
+            continue;
+        }
+        std::unordered_set<int> used_tools;
+        std::unordered_set<int> used_category;
         for (size_t i = 0; i < layer.tool_changes.size(); ++i) {
             if (i == 0) {
                 filament_counts[layer.tool_changes[i].old_tool]++;
                 category_counts[get_filament_category(layer.tool_changes[i].old_tool)]++;
+                used_tools.insert(layer.tool_changes[i].old_tool);
+                used_category.insert(get_filament_category(layer.tool_changes[i].old_tool));
             }
-            filament_counts[layer.tool_changes[i].new_tool]++;
-            category_counts[get_filament_category(layer.tool_changes[i].new_tool)]++;
+            if (!used_category.count(get_filament_category(layer.tool_changes[i].new_tool)))
+                category_counts[get_filament_category(layer.tool_changes[i].new_tool)]++;
+            if (!used_tools.count(layer.tool_changes[i].new_tool))
+                filament_counts[layer.tool_changes[i].new_tool]++;
+            used_tools.insert(layer.tool_changes[i].new_tool);
+            used_category.insert(get_filament_category(layer.tool_changes[i].new_tool));
         }
+        current_tool = layer.tool_changes.empty()?current_tool:layer.tool_changes.back().new_tool;
     }
 
     // std::vector<std::pair<int, int>> category_counts_vec;
