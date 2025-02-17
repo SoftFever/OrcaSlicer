@@ -1,0 +1,41 @@
+name: Build ARM64 Dependencies
+on:
+  workflow_call:
+    inputs:
+      cache-key:
+        required: true
+        type: string
+      cache-path:
+        required: true
+        type: string
+      os:
+        required: true
+        type: string
+
+jobs:
+  build_deps:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: 'true'
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
+          libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules pkgconf \
+          libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev libwebkit2gtk-4.1-dev \
+          libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
+          gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
+
+      - name: Build Dependencies
+        run: |
+          mkdir -p ${{ github.workspace }}/deps/build
+          mkdir -p ${{ github.workspace }}/deps/build/destdir
+          sudo ./BuildLinux.sh -ur
+          sudo chown $USER -R ./
+          ./BuildLinux.sh -dr
+          cd deps/build
+          tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
+          
