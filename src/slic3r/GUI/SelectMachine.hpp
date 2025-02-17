@@ -507,6 +507,9 @@ public:
     wxString    format_bed_name(std::string plate_name);
     wxString    format_steel_name(NozzleType type);
     PrintDialogStatus  get_status() { return m_print_status; }
+
+private:
+    void EnableEditing(bool enable);
 };
 
 
