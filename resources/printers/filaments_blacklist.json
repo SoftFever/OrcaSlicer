@@ -76,6 +76,13 @@
     },
     {
       "vendor": "Bambu Lab",
+      "type": "PLA",
+      "name": "Bambu PLA Glow",
+      "action": "warning",
+      "description": "PLA-Glow"
+    },
+    {
+      "vendor": "Bambu Lab",
       "type": "PET-CF",
       "action": "prohibition",
       "description": "Bambu CF: not supported"

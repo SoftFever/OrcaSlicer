@@ -2114,18 +2114,24 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
         std::string filament_brand;
+        std::string filament_id;
 
         for (auto fs : m_filaments) {
             if (fs.id == m_ams_mapping_result[i].id) {
                 filament_brand = m_filaments[i].brand;
+                filament_id = m_filaments[i].filament_id;
             }
         }
+
+        PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
+        auto          option        = preset_bundle->get_filament_by_filament_id(filament_id);
+        auto          tag_name      = option ? option->filament_name : "";
 
         bool in_blacklist = false;
         std::string action;
         std::string info;
 
-        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, ams_id, in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, tag_name, ams_id, in_blacklist, action, info);
 
         if (in_blacklist && action == "warning") {
             wxString prohibited_error = wxString::FromUTF8(info);
@@ -2189,17 +2195,23 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
         std::string filament_brand;
+        std::string filament_id;
 
         for (auto fs : m_filaments) {
             if (fs.id == m_ams_mapping_result[i].id) {
                 filament_brand = m_filaments[i].brand;
+                filament_id = m_filaments[i].filament_id;
             }
         }
+
+        PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
+        auto          option        = preset_bundle->get_filament_by_filament_id(filament_id);
+        auto          tag_name      = option ? option->filament_name : "";
 
         bool in_blacklist = false;
         std::string action;
         std::string info;
-        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, ams_id, in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, tag_name, ams_id, in_blacklist, action, info);
 
         if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;

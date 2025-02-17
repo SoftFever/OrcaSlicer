@@ -7472,7 +7472,7 @@ bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, con
     return true;
 }
 
-void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, int ams_id, bool& in_blacklist, std::string& ac, std::string& info)
+void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, std::string tag_name, int ams_id, bool& in_blacklist, std::string& ac, std::string& info)
 {
     if (!check_filaments_printable(tag_vendor, tag_type, ams_id, in_blacklist, ac, info)) {
         return;
@@ -7488,7 +7488,8 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
         {"TPU: not supported", _L("TPU is not supported by AMS.")},
         {"Bambu CF: not supported",  _L("Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS.")},
         {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use.")},
-        {"CF/GF: hard and brittle", _L("CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution.")}
+        {"CF/GF: hard and brittle", _L("CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution.")},
+        {"PLA-Glow", _L("The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite.")}
     };
 
     in_blacklist = false;
@@ -7500,6 +7501,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
             std::string type;
             std::string action;
             std::string description;
+            std::string name = "undefine";
 
             if (prohibited_filament.contains("vendor") &&
                 prohibited_filament.contains("type") &&
@@ -7521,6 +7523,10 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
                 return;
             }
 
+            if (prohibited_filament.contains("name")) {
+                name = prohibited_filament["name"].get<std::string>();
+            }
+
             std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
             std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
             std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
@@ -7528,7 +7534,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
 
             //third party
             if (vendor == "third party") {
-                if ("bambu lab" != tag_vendor && tag_type == type) {
+                if ("bambu lab" != tag_vendor && (tag_type == type || tag_name == name)) {
                     in_blacklist = true;
                     ac = action;
                     info = description;
@@ -7536,7 +7542,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
                 }
             }
             else {
-                if (vendor == tag_vendor && tag_type == type) {
+                if (vendor == tag_vendor && (tag_type == type || tag_name == name)) {
                     in_blacklist = true;
                     ac = action;
                     info = description;
