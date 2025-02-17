@@ -1117,27 +1117,29 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
     }
 
     for (const auto &cali_info : cali_infos.calib_datas) {
+        wxString name = _L("left");
+        if (cali_info.extruder_id == 0) {
+            name = _L("right");
+        }
+
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
-            error_message = _L("The selected filament's nozzle diameter or type does not match the actual printer configuration.\n"
+            if (is_multi_extruder)
+                error_message = wxString::Format(_L("The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
+                               "Please click the Sync button above and restart the calibration."), name);
+            else
+                error_message = _L("The nozzle diameter does not match the actual printer nozzle diameter.\n"
                                "Please click the Sync button above and restart the calibration.");
             return false;
         }
 
         if (is_multi_extruder) {
             if (nozzle_volume_types[cali_info.extruder_id] == NozzleFlowType::NONE_FLOWTYPE) {
-                wxString name = _L("left");
-                if (cali_info.extruder_id == 0) {
-                    name = _L("right");
-                }
+
                 error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
                 return false;
             }
 
             if (NozzleVolumeType(nozzle_volume_types[cali_info.extruder_id] - 1) != cali_info.nozzle_volume_type) {
-                wxString name = _L("left");
-                if (cali_info.extruder_id == 0) {
-                    name = _L("right");
-                }
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                     "Please click the Sync button above and restart the calibration."), name);
                 return false;
@@ -1166,23 +1168,28 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
         }
     }
 
+    wxString name = _L("left");
+    if (cali_info.extruder_id == 0) {
+        name = _L("right");
+    }
+
     if (!is_approx(nozzle_diameter, diameter)) {
-        error_message = _L("The selected filament's nozzle diameter or type does not match the actual printer configuration.\n"
-                           "Please click the Sync button above and restart the calibration.");
+        if (is_multi_extruder)
+            error_message = wxString::Format(_L("The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
+                               "Please click the Sync button above and restart the calibration."), name);
+        else
+            error_message = _L("The nozzle diameter does not match the actual printer nozzle diameter.\n"
+                               "Please click the Sync button above and restart the calibration.");
         return false;
     }
 
     if (is_multi_extruder) {
         if (nozzle_volume_types[cali_info.extruder_id] == NozzleFlowType::NONE_FLOWTYPE) {
-            wxString name = _L("left");
-            if (cali_info.extruder_id == 0) { name = _L("right"); }
             error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
             return false;
         }
 
         if (NozzleVolumeType(nozzle_volume_types[cali_info.extruder_id] - 1) != cali_info.nozzle_volume_type) {
-            wxString name = _L("left");
-            if (cali_info.extruder_id == 0) { name = _L("right"); }
             error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
             return false;
