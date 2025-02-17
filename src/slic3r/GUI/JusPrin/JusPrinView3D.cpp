@@ -47,28 +47,28 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
     wxSize size = GetClientSize();
     int width = size.GetWidth();
     int height = size.GetHeight();
-    int radius = 12; // Radius for rounded corners
+    int radius = 12;
 
-    // Create a graphics context
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
+        // Clear background
         wxColour transparentColour(255, 255, 255, 0);
-        wxBrush  transparentBrush(transparentColour);
-        gc->SetBrush(transparentBrush);
-        // Clear the background with the transparent brush
+        gc->SetBrush(wxBrush(transparentColour));
         gc->DrawRectangle(0, 0, width, height);
-        // Draw the first shadow
-        gc->SetBrush(wxBrush(wxColour(10, 10, 10, 10))); // rgba(3, 3, 3, 0.04)
-        gc->DrawRoundedRectangle(1, 1, width - 2, height - 2, 10);
 
-        // Draw the second shadow
-        gc->SetBrush(wxBrush(wxColour(33, 33, 33, 30))); // rgba(33, 33, 33, 0.12)
-        gc->DrawRoundedRectangle(2, 2, width - 4, height - 4, 10);
- 
-        // Draw rounded rectangle
-        gc->SetBrush(wxBrush(*wxWHITE)); // 
-        wxColour co = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
-        gc->SetPen(wxPen(co, 1)); // Black border
+        // Draw drop shadows with offset
+        // First shadow (larger, more diffuse)
+        gc->SetBrush(wxBrush(wxColour(10, 10, 10, 8)));
+        gc->DrawRoundedRectangle(4, 6, width - 4, height - 4, radius);
+
+        // Second shadow (smaller, more intense)
+        gc->SetBrush(wxBrush(wxColour(33, 33, 33, 15)));
+        gc->DrawRoundedRectangle(4, 5, width - 6, height - 5, radius);
+
+        // Main button
+        gc->SetBrush(wxBrush(*wxWHITE));
+        wxColour borderColor = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
+        gc->SetPen(wxPen(borderColor, 1));
         gc->DrawRoundedRectangle(4, 4, width-8, height-8, radius);
 
         delete gc;
