@@ -589,9 +589,15 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     // Collect the support extruders.
     for (auto support_layer : object.support_layers()) {
         LayerTools   &layer_tools = this->tools_for_layer(support_layer->print_z);
-        ExtrusionRole role = support_layer->support_fills.role();
-        bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
-        bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
+        ExtrusionRole role        = support_layer->support_fills.role();
+        bool          has_support = false;
+        bool          has_interface = false;
+        for (const ExtrusionEntity *ee : support_layer->support_fills.entities) {
+            ExtrusionRole er = ee->role();
+            if (er == erSupportMaterial || er == erSupportTransition) has_support = true;
+            if (er == erSupportMaterialInterface) has_interface = true;
+            if (has_support && has_interface) break;
+        }
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
         if (has_support)
