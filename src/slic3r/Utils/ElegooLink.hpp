@@ -17,13 +17,6 @@ class Http;
 
 class ElegooLink : public OctoPrint
 {
-    struct UploadParams
-    {
-        int timeLapse{0};
-        int heatedBedLeveling{0};
-        int bedType{0};
-    };
-
 public:
     ElegooLink(DynamicPrintConfig *config);
     ~ElegooLink() override = default;

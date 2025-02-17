@@ -566,16 +566,10 @@ namespace Slic3r {
                 std::string timeLapse = "0";
                 std::string heatedBedLeveling = "0";
                 std::string bedType           = "0";
-
-                if (!upload_data.other.has_value()) {
-                    BOOST_LOG_TRIVIAL(error) << "ElegooLink: upload data does not contain other data";
-                } else {
-                    auto s = std::any_cast<std::map<std::string, std::string>>(upload_data.other);
-                   
-                    timeLapse         = s["timeLapse"];
-                    heatedBedLeveling = s["heatedBedLeveling"];
-                    bedType           = s["bedType"];
-                }
+                timeLapse         = upload_data.extended_info["timeLapse"];
+                heatedBedLeveling = upload_data.extended_info["heatedBedLeveling"];
+                bedType           = upload_data.extended_info["bedType"];
+                
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 if (checkResult(client, error_fn)) {
                     // send print command
