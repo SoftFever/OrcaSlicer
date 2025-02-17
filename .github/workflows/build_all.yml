@@ -1,231 +1,156 @@
 name: Build all
 
-
-
 on:
-
   push:
-
     branches:
-
-     - main
-
-     - release/*
-
+      - main
+      - release/*
     paths:
-
-     - 'deps/**'
-
-     - 'src/**'
-
-     - '**/CMakeLists.txt'
-
-     - 'version.inc'
-
-     - 'localization/**'
-
-     - 'resources/**'
-
-     - ".github/workflows/build_*.yml"
-
-
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'localization/**'
+      - 'resources/**'
+      - ".github/workflows/build_*.yml"
 
   pull_request:
-
     branches:
-
-     - main
-
-     - release/*
-
+      - main
+      - release/*
     paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - ".github/workflows/build_*.yml"
+      - 'BuildLinux.sh'
+      - 'build_release_vs2022.bat'
+      - 'build_release_macos.sh'
 
-     - 'deps/**'
-
-     - 'src/**'
-
-     - '**/CMakeLists.txt'
-
-     - 'version.inc'
-
-     - ".github/workflows/build_*.yml"
-
-     - 'BuildLinux.sh'
-
-     - 'build_release_vs2022.bat'
-
-     - 'build_release_macos.sh'
-
-
-
-  workflow_dispatch: # allows for manual dispatch
-
+  workflow_dispatch:
     inputs:
-
       build-deps-only:
-
         description: 'Only build dependencies (bypasses caching)'
-
         type: boolean
-
         default: false
 
-
-
 concurrency:
-
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-
   cancel-in-progress: true
 
-  
-
-
-
 jobs:
-
   build_all:
-
     name: Build All
-
     strategy:
-
       fail-fast: false
-
       matrix:
-
         include:
-
           - os: ubuntu-20.04
-
           - os: ubuntu-24.04
-
           - os: windows-latest
-
           - os: macos-14
-
             arch: x86_64
-
           - os: macos-14
-          
           - os: ubuntu-24.04-arm
-
             arch: arm64
 
-    uses: actions/checkout@v4
-
+    runs-on: ${{ matrix.os }}
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           lfs: 'true'
 
-      - name: load cached deps
+      - name: Load cached deps
         uses: actions/cache@v4
         with:
-          path: ${{ inputs.cache-path }}
-          key: ${{ inputs.cache-key }}
+          path: ${{ github.workspace }}/deps/build
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/CMakeLists.txt', 'deps/**') }}
 
-      - uses: lukka/get-cmake@latest
+      - name: Get CMake
+        uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
+          cmakeVersion: "~3.28.0"
 
-      - name: setup dev on Windows
-        if: inputs.os == 'windows-latest'
+      - name: Setup dev on Windows
+        if: matrix.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v2
 
-      - name: Get the date on Ubuntu and macOS
-        if: inputs.os != 'windows-latest'
-        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
+      - name: Get the date
         shell: bash
-
-      - name: Get the date on Windows
-        if: inputs.os == 'windows-latest'
-        run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
-        shell: pwsh
-
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
       # Build Dependencies
       - name: Build on Windows
-        if: inputs.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
         run: |
-            choco install strawberryperl
-            .\build_release_vs2022.bat deps
-            .\build_release_vs2022.bat pack
-            cd ${{ github.workspace }}/deps/build
+          choco install strawberryperl -y
+          ./build_release_vs2022.bat deps
+          ./build_release_vs2022.bat pack
 
-      - name: Build on Mac ${{ inputs.arch }}
-        if: inputs.os == 'macos-14'
+      - name: Build on Mac
+        if: matrix.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install automake texinfo ninja libtool
-            brew list
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
-            brew uninstall --ignore-dependencies zstd
-            ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
-            brew install zstd
-
+          brew install automake texinfo ninja libtool
+          mkdir -p deps/build_${{ matrix.arch }}
+          mkdir -p deps/build_${{ matrix.arch }}/OrcaSlicer_dep_${{ matrix.arch }}
+          brew uninstall --ignore-dependencies zstd
+          ./build_release_macos.sh -dpx -a ${{ matrix.arch }} -t 10.15 -1
+          brew install zstd
 
       - name: Install Ubuntu Build Dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: contains(matrix.os, 'ubuntu')
         working-directory: ${{ github.workspace }}
-        env:
-          apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
-          webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || '' }}
         run: |
-            ${{ env.apt-cmd }} update
-            ${{ env.apt-cmd }} install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
+          sudo apt-get update
+          sudo apt-get install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
             libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules pkgconf \
-            libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev libwebkit2gtk-${{ env.webkit-ver }}-dev \
+            libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev \
             libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
-            gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
+            gstreamer1.0-plugins-bad libosmesa6-dev wget autoconf curl libunwind-dev texinfo
 
       - name: Build on Ubuntu
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: contains(matrix.os, 'ubuntu')
         working-directory: ${{ github.workspace }}
         run: |
-            mkdir -p ${{ github.workspace }}/deps/build
-            mkdir -p ${{ github.workspace }}/deps/build/destdir
-            sudo ./BuildLinux.sh -ur
-            sudo chown $USER -R ./
-            ./BuildLinux.sh -dr
-            cd deps/build
-            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
-
+          mkdir -p deps/build/destdir
+          sudo ./BuildLinux.sh -ur
+          sudo chown $USER -R ./
+          ./BuildLinux.sh -dr
+          cd deps/build
+          tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
       # Upload Artifacts
-      - name: Upload Mac ${{ inputs.arch }} artifacts
-        if: inputs.os == 'macos-14'
+      - name: Upload Mac artifacts
+        if: matrix.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_dep_mac_${{ inputs.arch }}_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep*.tar.gz
+          name: OrcaSlicer_dep_mac_${{ matrix.arch }}_${{ env.date }}
+          path: deps/build_${{ matrix.arch }}/OrcaSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
-        if: inputs.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_win64_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
+          path: deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
-        env:
-          ubuntu-ver: ${{ (inputs.os == 'ubuntu-20.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
+        if: contains(matrix.os, 'ubuntu')
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_dep_ubuntu_${{ env.ubuntu-ver }}_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
+          name: OrcaSlicer_dep_${{ matrix.os }}_${{ env.date }}
+          path: deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
 
   build_orca:
     name: Build OrcaSlicer
-    needs: [build_deps]
-    if: ${{ !cancelled() && !inputs.build-deps-only && (inputs.valid-cache == true && needs.build_deps.result == 'skipped') || (inputs.valid-cache != true && success()) }}
+    needs: [build_all]
+    if: ${{ !cancelled() && !github.event.inputs.build-deps-only }}
     uses: ./.github/workflows/build_orca.yml
     with:
-      cache-key: ${{ inputs.cache-key }}
-      cache-path: ${{ inputs.cache-path }}
-      os: ${{ inputs.os }}
-      arch: ${{ inputs.arch }}
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
     secrets: inherit
