@@ -164,10 +164,23 @@ jobs:
     name: Build OrcaSlicer
     needs: build_deps
     if: ${{ !cancelled() && !inputs.build-deps-only }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+          - os: ubuntu-24.04
+          - os: windows-latest
+          - os: macos-14
+            arch: x86_64
+          - os: macos-14
+            arch: arm64
+          - os: ubuntu-24.04-arm
+            arch: arm64
     uses: ./.github/workflows/build_orca.yml
     with:
-      cache-key: ${{ needs.build_deps.outputs.cache-key }}
-      cache-path: ${{ needs.build_deps.outputs.cache-path }}
+      cache-key: deps-${{ matrix.os }}-${{ matrix.arch || 'x86_64' }}-${{ github.sha }}
+      cache-path: ${{ github.workspace }}/deps/build
       os: ${{ matrix.os }}
-      arch: ${{ matrix.arch }}
+      arch: ${{ matrix.arch || 'x86_64' }}
     secrets: inherit
