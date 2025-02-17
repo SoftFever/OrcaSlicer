@@ -5205,20 +5205,32 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 if (j.contains("camera")) {
                     if (j["camera"].contains("command")) {
                         if (j["camera"]["command"].get<std::string>() == "ipcam_timelapse") {
-                            if (j["camera"]["control"].get<std::string>() == "enable")
-                                this->camera_timelapse = true;
-                            if (j["camera"]["control"].get<std::string>() == "disable")
-                                this->camera_timelapse = false;
-                            BOOST_LOG_TRIVIAL(info) << "ack of timelapse = " << camera_timelapse;
+                            if (camera_timelapse_hold_count > 0) {
+                                camera_timelapse_hold_count--;
+                            }
+                            else
+                            {
+                                if (j["camera"]["control"].get<std::string>() == "enable") this->camera_timelapse = true;
+                                if (j["camera"]["control"].get<std::string>() == "disable") this->camera_timelapse = false;
+                                BOOST_LOG_TRIVIAL(info) << "ack of timelapse = " << camera_timelapse;
+                            }
                         } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
-                            if (j["camera"]["control"].get<std::string>() == "enable")
-                                this->camera_recording_when_printing = true;
-                            if (j["camera"]["control"].get<std::string>() == "disable")
-                                this->camera_recording_when_printing = false;
-                            BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
+                            if (camera_recording_hold_count > 0) {
+                                camera_recording_hold_count--;
+                            } else {
+                                if (j["camera"]["control"].get<std::string>() == "enable") this->camera_recording_when_printing = true;
+                                if (j["camera"]["control"].get<std::string>() == "disable") this->camera_recording_when_printing = false;
+                                BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
+                            }
                         } else if (j["camera"]["command"].get<std::string>() == "ipcam_resolution_set") {
-                            this->camera_resolution = j["camera"]["resolution"].get<std::string>();
-                            BOOST_LOG_TRIVIAL(info) << "ack of resolution = " << camera_resolution;
+                            if (camera_resolution_hold_count > 0) {
+                                camera_resolution_hold_count--;
+                            }
+                            else
+                            {
+                                this->camera_resolution = j["camera"]["resolution"].get<std::string>();
+                                BOOST_LOG_TRIVIAL(info) << "ack of resolution = " << camera_resolution;
+                            }
                         }
                     }
                 }
@@ -5862,9 +5874,34 @@ void MachineObject::parse_new_info(json print)
         }
 
         upgrade_force_upgrade = get_flag_bits(cfg, 2);
-        camera_recording_when_printing = get_flag_bits(cfg, 3);
-        camera_resolution = get_flag_bits(cfg, 4) == 0 ? "720p" : "1080p";
-        camera_timelapse = get_flag_bits(cfg, 5);
+
+        if (camera_recording_hold_count > 0)
+        {
+            camera_recording_hold_count--;
+        }
+        else
+        {
+            camera_recording_when_printing = get_flag_bits(cfg, 3);
+        }
+
+        if (camera_resolution_hold_count > 0)
+        {
+            camera_resolution_hold_count--;
+        }
+        else
+        {
+            camera_resolution = get_flag_bits(cfg, 4) == 0 ? "720p" : "1080p";
+        }
+
+        if (camera_timelapse_hold_count > 0)
+        {
+            camera_timelapse_hold_count--;
+        }
+        else
+        {
+            camera_timelapse = get_flag_bits(cfg, 5);
+        }
+
         tutk_state = get_flag_bits(cfg, 6) == 1 ? "disable" : "";
         chamber_light = get_flag_bits(cfg, 7) == 1 ? LIGHT_EFFECT::LIGHT_EFFECT_ON : LIGHT_EFFECT::LIGHT_EFFECT_OFF;
         printing_speed_lvl = (PrintingSpeedLevel)get_flag_bits(cfg, 8, 3);
