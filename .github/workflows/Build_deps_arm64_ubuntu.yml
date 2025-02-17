@@ -1,6 +1,22 @@
 name: Build ARM64 Dependencies
 on:
   workflow_dispatch:
+    inputs:
+      cache-key:
+        description: 'Cache key for dependencies'
+        required: true
+        default: 'arm64-deps-v1'
+        type: string
+      cache-path:
+        description: 'Path to cache dependencies'
+        required: true
+        default: 'deps/build'
+        type: string
+      os:
+        description: 'Operating system'
+        required: true
+        default: 'ubuntu-24.04-arm'
+        type: string
   workflow_call:
     inputs:
       cache-key:
