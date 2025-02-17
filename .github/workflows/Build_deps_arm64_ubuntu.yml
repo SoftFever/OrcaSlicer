@@ -1,5 +1,6 @@
 name: Build ARM64 Dependencies
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       cache-key:
@@ -20,6 +21,20 @@ jobs:
         with:
           lfs: 'true'
 
+      - name: load cached deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key }}
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.28.0"
+
+      - name: Get the date
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
+        shell: bash
+
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
@@ -30,6 +45,7 @@ jobs:
           gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
 
       - name: Build Dependencies
+        working-directory: ${{ github.workspace }}
         run: |
           mkdir -p ${{ github.workspace }}/deps/build
           mkdir -p ${{ github.workspace }}/deps/build/destdir
@@ -38,4 +54,10 @@ jobs:
           ./BuildLinux.sh -dr
           cd deps/build
           tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
+
+      - name: Upload Ubuntu artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrcaSlicer_dep_ubuntu_2404_${{ env.date }}
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
           
