@@ -296,9 +296,9 @@ void AppConfig::set_defaults()
     if (get("show_daily_tips").empty()) {
         set_bool("show_daily_tips", true);
     }
-    //true is auto calculate
-    if (get("auto_calculate").empty()) {
-        set_bool("auto_calculate", true);
+
+    if (get("auto_calculate_flush").empty()){
+        set("auto_calculate_flush","all");
     }
 
     if (get("remember_printer_config").empty()) {
@@ -307,10 +307,6 @@ void AppConfig::set_defaults()
 
     if (get("enable_high_low_temp_mixed_printing").empty()){
         set_bool("enable_high_low_temp_mixed_printing", false);
-    }
-
-    if (get("auto_calculate_when_filament_change").empty()){
-        set_bool("auto_calculate_when_filament_change", true);
     }
 
     if (get("ignore_ext_filament_in_filament_map").empty()){

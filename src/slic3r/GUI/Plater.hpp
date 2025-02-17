@@ -225,7 +225,13 @@ public:
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();
-    void                    auto_calc_flushing_volumes(const int modify_id);
+
+    /**
+     * @brief Automatically calculates flushing volumes
+     * @param filament_idx Specifies the filament index to calculate. -1 indicates all filament indices.
+     * @param extruder_id Specifies the extruder id to calculate. -1 indicates all extruders indices.
+     */
+    void                    auto_calc_flushing_volumes(const int filament_idx = -1, const int extruder_id = -1);
     void                    jump_to_object(ObjectDataViewModelNode* item);
     void                    can_search();
 #ifdef _MSW_DARK_MODE
@@ -241,6 +247,9 @@ public:
 
     bool need_auto_sync_after_connect_printer() const { return m_need_auto_sync_after_connect_printer; }
     void set_need_auto_sync_after_connect_printer(bool need_auto_sync) { m_need_auto_sync_after_connect_printer = need_auto_sync; }
+
+private:
+    void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
 
 private:
     struct priv;
