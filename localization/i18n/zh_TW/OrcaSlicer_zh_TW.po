@@ -13249,13 +13249,13 @@ msgid "Normal (auto)"
 msgstr "普通 (自動)"
 
 msgid "Tree (auto)"
-msgstr "樹狀（自動）"
+msgstr "樹狀 (自動)"
 
 msgid "Normal (manual)"
-msgstr "普通（手動）"
+msgstr "普通 (自動)"
 
 msgid "Tree (manual)"
-msgstr "樹狀（手動）"
+msgstr "樹狀 (自動)"
 
 msgid "Support/object xy distance"
 msgstr "支撐/模型 XY 間距"
