@@ -37,9 +37,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ inputs.cache-path }}
-          key: deps-ubuntu-24.04-arm-${{ github.sha }}
+          key: ${{ inputs.os }}${{ inputs.arch }}-cache-orcaslicer_deps-build-${{ github.sha }}
           restore-keys: |
-            deps-ubuntu-24.04-arm-
+            ${{ inputs.os }}${{ inputs.arch }}-cache-orcaslicer_deps-build-
 
       - uses: lukka/get-cmake@latest
         with:
@@ -110,7 +110,7 @@ jobs:
         if: inputs.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
-          name: deps-${{ inputs.os }}-${{ inputs.arch }}-${{ github.sha }}
+          name: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build-${{ github.sha }}
           path: ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep*.tar.gz
           overwrite: false
 
@@ -118,7 +118,7 @@ jobs:
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: deps-${{ inputs.os }}-x86_64-${{ github.sha }}
+          name: ${{ inputs.os }}-cache-orcaslicer_deps-build-${{ github.sha }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
           overwrite: false
 
@@ -126,7 +126,7 @@ jobs:
         if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
         uses: actions/upload-artifact@v4
         with:
-          name: deps-ubuntu-24.04-arm-${{ github.sha }}
+          name: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build-${{ github.sha }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
           overwrite: false
 
