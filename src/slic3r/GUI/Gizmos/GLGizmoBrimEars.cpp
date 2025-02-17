@@ -687,7 +687,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     if (glb_cfg.opt_enum<BrimType>("brim_type") != btPainted) {
         ImGui::SameLine();
         auto link_text = [&]() {
-            ImColor HyperColor = m_link_text_hover ? ImColor(0, 240, 91).Value : ImColor(0, 174, 66).Value;
+            ImColor HyperColor = ImGuiWrapper::COL_ORCA;
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
             float parent_width = ImGui::GetContentRegionAvail().x;
             m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\",the brim ears will not take effect !"), parent_width);
@@ -746,10 +746,10 @@ void GLGizmoBrimEars::show_tooltip_information(float x, float y)
 
     caption_max += m_imgui->calc_text_size(": "sv).x + 35.f;
 
-    float  font_size   = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    float  scale       = m_parent.get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, ImGui::GetStyle().FramePadding.y});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: Dont add padding
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
