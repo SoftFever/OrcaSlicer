@@ -2263,8 +2263,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             break;
         }
     }
-    // TODO adaptive layer height won't work with conflict checker because m_fake_wipe_tower's path is generated using fixed layer height
-    if(!m_no_check && !has_adaptive_layer_height)
+    if(!m_no_check /*&& !has_adaptive_layer_height*/)
     {
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();
@@ -4615,5 +4614,41 @@ int PrintObjectRegions::FuzzySkinPaintedRegion::parent_print_object_region_id(co
 {
     return this->parent_print_object_region(layer_range)->print_object_region_id();
 }
+
+ExtrusionLayers FakeWipeTower::getTrueExtrusionLayersFromWipeTower() const
+{
+    ExtrusionLayers wtels;
+    wtels.type = ExtrusionLayersType::WIPE_TOWER;
+    std::vector<float> layer_heights;
+    layer_heights.reserve(outer_wall.size());
+    auto pre = outer_wall.begin();
+    for (auto it = outer_wall.begin(); it != outer_wall.end(); ++it) {
+        if (it == outer_wall.begin())
+            layer_heights.push_back(it->first);
+        else {
+            layer_heights.push_back(it->first - pre->first);
+            ++pre;
+        }
+    }
+    Point trans = {scale_(pos.x()), scale_(pos.y())};
+    for (auto it = outer_wall.begin(); it != outer_wall.end(); ++it) {
+        int            index = std::distance(outer_wall.begin(), it);
+        ExtrusionLayer el;
+        ExtrusionPaths paths;
+        paths.reserve(it->second.size());
+        for (auto &polyline : it->second) {
+            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_heights[index]);
+            path.polyline = polyline;
+            for (auto &p : path.polyline.points) p += trans;
+            paths.push_back(path);
+        }
+        el.paths    = std::move(paths);
+        el.bottom_z = it->first - layer_heights[index];
+        el.layer    = nullptr;
+        wtels.push_back(el);
+    }
+    return wtels;
+}
+
 
 } // namespace Slic3r

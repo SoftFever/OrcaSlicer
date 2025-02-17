@@ -189,17 +189,18 @@ public:
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width_real; }
     BoundingBoxf get_bbx() const {
-        BoundingBox  box = get_extents(m_outer_wall.front());
+        BoundingBox  box = get_extents(m_outer_wall.begin()->second);
         BoundingBoxf res = BoundingBoxf(unscale(box.min), unscale(box.max));
         res.translate(m_rib_offset.cast<double>());
         return res;
     }
-    Polylines get_outer_wall() const {
-        Polylines res = m_outer_wall;
+    std::map<float, Polylines> get_outer_wall() const
+    {
+        std::map<float, Polylines> res   = m_outer_wall;
         Point trans = scaled(m_rib_offset);
-        for (auto &polyline : res)
-            for (auto &p : polyline.points)
-                p += trans;
+        for (auto &[h,polylines] : res)
+            for (auto &polyline : polylines)
+                polyline.translate(trans.x(), trans.y());
         return res;
     }
     float get_height() const { return m_wipe_tower_height; }
@@ -483,7 +484,7 @@ private:
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
     std::vector<Vec2f> m_wall_skip_points;
-    std::vector<Polyline> m_outer_wall;
+    std::map<float,Polylines> m_outer_wall;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
 
 	// Calculates length of extrusion line to extrude given volume

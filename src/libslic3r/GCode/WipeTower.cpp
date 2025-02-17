@@ -2964,7 +2964,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     //}
     Polygon outer_wall;
     outer_wall = generate_support_wall_new(writer, wt_box, feedrate, first_layer, m_use_rib_wall, extrude_perimeter, m_use_gap_wall);
-
+    if (extrude_perimeter)
+        m_outer_wall[m_z_pos].push_back(to_polyline(outer_wall));
     // brim chamfer
     float spacing = m_perimeter_width - m_layer_height * float(1. - M_PI_4);
     // How many perimeters shall the brim have?
@@ -2987,6 +2988,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         for (size_t i = 0; i < loops_num; ++i) {
             outer_wall = offset(outer_wall, scaled(spacing)).front();
             writer.polygon(outer_wall, feedrate);
+            m_outer_wall[m_z_pos].push_back(to_polyline(outer_wall));
         }
 
             /*for (size_t i = 0; i < loops_num; ++i) {
@@ -3005,10 +3007,6 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
 
     if (extrude_perimeter || loops_num > 0) {
         writer.add_wipe_path(outer_wall, m_filpar[m_current_tool].wipe_dist);
-        if (!extrude_perimeter)
-            m_outer_wall.back() = to_polyline(outer_wall);
-        else
-            m_outer_wall.push_back(to_polyline(outer_wall));
     }
     else {
         // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
@@ -3716,7 +3714,6 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
     int wall_filament = get_wall_filament_for_all_layer();
 
     std::vector<WipeTower::ToolChangeResult> layer_result;
-    m_outer_wall.reserve(m_plan.size());
     int index = 0;
     std::unordered_set<int> solid_blocks_id;// The contact surface of different bonded materials is solid.
     for (auto layer : m_plan) {
@@ -4054,7 +4051,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
     //else
     //    writer.rectangle(wt_box, feedrate);
     outer_wall = generate_support_wall_new(writer, wt_box, feedrate, first_layer, m_use_rib_wall, true, m_use_gap_wall);
-    m_outer_wall.push_back( to_polyline(outer_wall));
+    m_outer_wall[m_z_pos].push_back(to_polyline(outer_wall));
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
 
     // Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
