@@ -8,22 +8,22 @@
             "name": "Geeetech Thunder",
             "sub_path": "machine/Geeetech Thunder.json"
         },
-		{
+        {
             "name": "Geeetech Mizar M",
             "sub_path": "machine/Geeetech Mizar M.json"
         },
-		{
+        {
             "name": "Geeetech Mizar S",
             "sub_path": "machine/Geeetech Mizar S.json"
         },
-		{
+        {
             "name": "Geeetech Mizar Pro",
             "sub_path": "machine/Geeetech Mizar Pro.json"
         },
-       {
+        {
             "name": "Geeetech Mizar Max",
             "sub_path": "machine/Geeetech Mizar Max.json"
-        },		
+        },
         {
             "name": "Geeetech Mizar",
             "sub_path": "machine/Geeetech Mizar.json"
@@ -67,7 +67,7 @@
         {
             "name": "Geeetech M1",
             "sub_path": "machine/Geeetech M1.json"
-        }		
+        }
     ],
     "process_list": [
         {
@@ -221,7 +221,7 @@
         {
             "name": "fdm_process_geeetech_0.56_nozzle_0.8",
             "sub_path": "process/fdm_process_geeetech_0.56_nozzle_0.8.json"
-        },				
+        },
         {
             "name": "0.06mm Fine @Geeetech common 0.2 nozzle",
             "sub_path": "process/0.06mm Fine @Geeetech common 0.2 nozzle.json"
@@ -229,7 +229,7 @@
         {
             "name": "0.08mm Extra Fine @Geeetech common",
             "sub_path": "process/0.08mm Extra Fine @Geeetech common.json"
-        },		
+        },
         {
             "name": "0.08mm Extra Fine @Geeetech Thunder",
             "sub_path": "process/0.08mm Extra Fine @Geeetech Thunder.json"
@@ -373,7 +373,7 @@
         {
             "name": "0.08mm Extra Fine @Geeetech M1",
             "sub_path": "process/0.08mm Extra Fine @Geeetech M1.json"
-        },		
+        },
         {
             "name": "0.08mm Optimal @Geeetech M1 0.2 nozzle",
             "sub_path": "process/0.08mm Optimal @Geeetech M1 0.2 nozzle.json"
@@ -381,7 +381,7 @@
         {
             "name": "0.10mm Fine @Geeetech M1",
             "sub_path": "process/0.10mm Fine @Geeetech M1.json"
-        },		
+        },
         {
             "name": "0.10mm Standard @Geeetech M1 0.2 nozzle",
             "sub_path": "process/0.10mm Standard @Geeetech M1 0.2 nozzle.json"
@@ -389,7 +389,7 @@
         {
             "name": "0.12mm Draft @Geeetech M1 0.2 nozzle",
             "sub_path": "process/0.12mm Draft @Geeetech M1 0.2 nozzle.json"
-        },	
+        },
         {
             "name": "0.14mm Extra Draft @Geeetech M1 0.2 nozzle",
             "sub_path": "process/0.14mm Extra Draft @Geeetech M1 0.2 nozzle.json"
@@ -397,15 +397,15 @@
         {
             "name": "0.16mm Optimal @Geeetech M1",
             "sub_path": "process/0.16mm Optimal @Geeetech M1.json"
-        },		
+        },
         {
             "name": "0.24mm Optimal @Geeetech M1 0.6 nozzle",
             "sub_path": "process/0.24mm Optimal @Geeetech M1 0.6 nozzle.json"
-        },		
+        },
         {
             "name": "0.20mm Standard @Geeetech M1",
             "sub_path": "process/0.20mm Standard @Geeetech M1.json"
-        },		
+        },
         {
             "name": "0.25mm Draft @Geeetech M1",
             "sub_path": "process/0.25mm Draft @Geeetech M1.json"
@@ -413,11 +413,11 @@
         {
             "name": "0.30mm Standard @Geeetech M1 0.6 nozzle",
             "sub_path": "process/0.30mm Standard @Geeetech M1 0.6 nozzle.json"
-        },	
+        },
         {
             "name": "0.36mm Draft @Geeetech M1 0.6 nozzle",
             "sub_path": "process/0.36mm Draft @Geeetech M1 0.6 nozzle.json"
-        },		
+        },
         {
             "name": "0.36mm Optimal @Geeetech M1 0.8 nozzle",
             "sub_path": "process/0.36mm Optimal @Geeetech M1 0.8 nozzle.json"
@@ -425,86 +425,9 @@
         {
             "name": "0.44mm Draft @Geeetech M1 0.8 nozzle",
             "sub_path": "process/0.44mm Draft @Geeetech M1 0.8 nozzle.json"
-        }		
-    ],
-    "filament_list": [
-        {
-            "name": "fdm_filament_common",
-            "sub_path": "filament/fdm_filament_common.json"
-        },
-        {
-            "name": "fdm_filament_abs",
-            "sub_path": "filament/fdm_filament_abs.json"
-        },
-        {
-            "name": "fdm_filament_asa",
-            "sub_path": "filament/fdm_filament_asa.json"
-        },
-        {
-            "name": "fdm_filament_pa",
-            "sub_path": "filament/fdm_filament_pa.json"
-        },
-        {
-            "name": "fdm_filament_pc",
-            "sub_path": "filament/fdm_filament_pc.json"
-        },
-        {
-            "name": "fdm_filament_pet",
-            "sub_path": "filament/fdm_filament_pet.json"
-        },
-        {
-            "name": "fdm_filament_pva",
-            "sub_path": "filament/fdm_filament_pva.json"
-        },
-        {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
-        },
-        {
-            "name": "fdm_filament_tpu",
-            "sub_path": "filament/fdm_filament_tpu.json"
-        },
-        {
-            "name": "Generic ABS @Geeetech",
-            "sub_path": "filament/Generic ABS @Geeetech.json"
-        },
-        {
-            "name": "Generic ASA @Geeetech",
-            "sub_path": "filament/Generic ASA @Geeetech.json"
-        },
-        {
-            "name": "Generic PA @Geeetech",
-            "sub_path": "filament/Generic PA @Geeetech.json"
-        },
-        {
-            "name": "Generic PC @Geeetech",
-            "sub_path": "filament/Generic PC @Geeetech.json"
-        },
-        {
-            "name": "Generic PETG @Geeetech",
-            "sub_path": "filament/Generic PETG @Geeetech.json"
-        },
-        {
-            "name": "Generic PLA @Geeetech",
-            "sub_path": "filament/Generic PLA @Geeetech.json"
-        },
-        {
-            "name": "Generic PLA @Geeetech_FastSpeed",
-            "sub_path": "filament/Generic PLA @Geeetech_FastSpeed.json"
-        },		
-        {
-            "name": "Generic PLA-CF @Geeetech",
-            "sub_path": "filament/Generic PLA-CF @Geeetech.json"
-        },
-        {
-            "name": "Generic PVA @Geeetech",
-            "sub_path": "filament/Generic PVA @Geeetech.json"
-        },
-        {
-            "name": "Generic TPU @Geeetech",
-            "sub_path": "filament/Generic TPU @Geeetech.json"
         }
     ],
+    "filament_list": [],
     "machine_list": [
         {
             "name": "fdm_machine_common",
@@ -689,6 +612,6 @@
         {
             "name": "Geeetech M1 0.8 nozzle",
             "sub_path": "machine/Geeetech M1 0.8 nozzle.json"
-        }		
+        }
     ]
 }

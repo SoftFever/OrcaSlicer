@@ -46,10 +46,10 @@
         "70"
     ],
     "cool_plate_temp": [
-        "35"
+        "90"
     ],
     "cool_plate_temp_initial_layer": [
-        "35"
+        "90"
     ],
     "default_filament_colour": [
         ""
@@ -247,6 +247,6 @@
         "100"
     ],
     "textured_plate_temp_initial_layer": [
-        "55"
+        "90"
     ]
 }

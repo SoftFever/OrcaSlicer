@@ -7,8 +7,6 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "TreeSupport3D.hpp"
-#include "TreeSupportCommon.hpp"
-#include "SupportCommon.hpp"
 
 #include "../AABBTreeIndirect.hpp"
 #include "../BuildVolume.hpp"
@@ -21,6 +19,9 @@
 #include "../Polygon.hpp"
 #include "../Polyline.hpp"
 #include "../MutablePolygon.hpp"
+#include "TreeSupportCommon.hpp"
+#include "SupportCommon.hpp"
+#include "TreeSupport.hpp"
 #include "libslic3r.h"
 
 #include <cassert>
@@ -34,6 +35,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
+#include <tbb/parallel_for_each.h>
 
 #if defined(TREE_SUPPORT_SHOW_ERRORS) && defined(_WIN32)
     #define TREE_SUPPORT_SHOW_ERRORS_WIN32
@@ -4106,13 +4108,14 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
             continue;
 
         // Produce the support G-code.
-        // Used by both classic and tree supports.
-        SupportGeneratorLayersPtr raft_layers = generate_raft_base(print_object, support_params, print_object.slicing_parameters(), 
-            top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
-#if 1 //#ifdef SLIC3R_DEBUG
-        SupportGeneratorLayersPtr layers_sorted =
-#endif // SLIC3R_DEBUG
-            generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+        SupportGeneratorLayersPtr raft_layers = generate_raft_base(print_object, support_params, print_object.slicing_parameters(), top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+        SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+
+        // BBS: This is a hack to avoid the support being generated outside the bed area. See #4769.
+        tbb::parallel_for_each(layers_sorted.begin(), layers_sorted.end(), [&](SupportGeneratorLayer *layer) {
+            if (layer) layer->polygons = intersection(layer->polygons, volumes.m_bed_area);
+        });
+
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
@@ -4363,9 +4366,10 @@ void organic_draw_branches(
                     std::vector<Polygons> slices = slice_mesh(partial_mesh, slice_z, mesh_slicing_params, throw_on_cancel);
                     bottom_contacts.clear();
                     //FIXME parallelize?
-                    for (LayerIndex i = 0; i < LayerIndex(slices.size()); ++ i)
-                        slices[i] = diff_clipped(slices[i], volumes.getCollision(0, layer_begin + i, true)); //FIXME parent_uses_min || draw_area.element->state.use_min_xy_dist);
-
+                    for (LayerIndex i = 0; i < LayerIndex(slices.size()); ++i) {
+                        slices[i] = diff_clipped(slices[i], volumes.getCollision(0, layer_begin + i, true)); // FIXME parent_uses_min || draw_area.element->state.use_min_xy_dist);
+                        slices[i] = intersection(slices[i], volumes.m_bed_area);
+                    }
                     size_t num_empty = 0;
                     if (slices.front().empty()) {
                         // Some of the initial layers are empty.
@@ -4568,7 +4572,7 @@ void organic_draw_branches(
 
 } // namespace TreeSupport3D
 
-void generate_tree_support_3D(PrintObject &print_object, std::function<void()> throw_on_cancel)
+void generate_tree_support_3D(PrintObject &print_object, TreeSupport* tree_support, std::function<void()> throw_on_cancel)
 {
     size_t idx = 0;
     for (const PrintObject *po : print_object.print()->objects()) {
@@ -4576,9 +4580,13 @@ void generate_tree_support_3D(PrintObject &print_object, std::function<void()> t
             break;
         ++idx;
     }
-    TreeSupport3D::generate_support_areas(*print_object.print(), 
-        BuildVolume(Pointfs{ Vec2d{ -300., -300. }, Vec2d{ -300., +300. }, Vec2d{ +300., +300. }, Vec2d{ +300., -300. } }, 0.), { idx }, 
-        throw_on_cancel);
+
+    Points bedpts = tree_support->m_machine_border.contour.points;
+    Pointfs bedptsf;
+    std::transform(bedpts.begin(), bedpts.end(), std::back_inserter(bedptsf), [](const Point &p) { return unscale(p); });
+    BuildVolume build_volume{ bedptsf, tree_support->m_print_config->printable_height };
+
+    TreeSupport3D::generate_support_areas(*print_object.print(), build_volume, { idx }, throw_on_cancel);
 }
 
 } // namespace Slic3r

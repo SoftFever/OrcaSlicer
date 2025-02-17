@@ -527,6 +527,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
     toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"));
+    toggle_line("spiral_starting_flow_ratio", has_spiral_vase);
+    toggle_line("spiral_finishing_flow_ratio", has_spiral_vase);
     bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
@@ -535,7 +537,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, has_solid_infill);
     
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
+        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","internal_bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
         toggle_field(el, have_infill || has_solid_infill);
     
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
@@ -782,6 +784,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
     toggle_line("interlocking_depth", use_beam_interlocking);
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
+
+    bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DLattice;
+    for (auto el : { "lattice_angle_1", "lattice_angle_2"})
+        toggle_line(el, lattice_options);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
