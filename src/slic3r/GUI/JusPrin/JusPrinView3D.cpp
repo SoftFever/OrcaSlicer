@@ -18,8 +18,8 @@ namespace GUI {
 JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL | wxBORDER_NONE)
 {
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
-    SetBackgroundColour(wxColor(231, 231, 231));
+    SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+    SetBackgroundColour(wxColour(0, 0, 0, 0));
     Bind(wxEVT_PAINT, &JustPrinButton::OnPaint, this);
     m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY);
     wxAnimation animation;
@@ -52,6 +52,11 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
     // Create a graphics context
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
+        wxColour transparentColour(255, 255, 255, 0);
+        wxBrush  transparentBrush(transparentColour);
+        gc->SetBrush(transparentBrush);
+        // Clear the background with the transparent brush
+        gc->DrawRectangle(0, 0, width, height);
         // Draw the first shadow
         gc->SetBrush(wxBrush(wxColour(10, 10, 10, 10))); // rgba(3, 3, 3, 0.04)
         gc->DrawRoundedRectangle(1, 1, width - 2, height - 2, 10);

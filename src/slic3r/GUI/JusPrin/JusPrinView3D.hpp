@@ -26,8 +26,6 @@ private:
     void OnMouseLeave(wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent& event);
 
-
-
 private:
     bool                 m_isHovered{false};
     wxAnimationCtrlBase* m_animationCtrl{nullptr};

@@ -98,9 +98,7 @@ private:
     void RunScriptInBrowser(const wxString& script);
 
 private:
-    wxBitmap m_bgbmp;
     int m_radis{12};
-    void CreateBgBitmap();
     void OnPaint(wxPaintEvent& event);
 };
 
