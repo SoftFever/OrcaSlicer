@@ -359,7 +359,7 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
-"Clique para girar o plano de corte\n"
+"Clique para virar o plano de corte\n"
 "Arraste para mover o plano de corte"
 
 msgid ""
@@ -367,7 +367,7 @@ msgid ""
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
-"Clique para girar o plano de corte\n"
+"Clique para virar o plano de corte\n"
 "Arraste para mover o plano de corte\n"
 "Clique com o botão direito em uma peça para atribuí-la ao outro lado"
 
@@ -994,7 +994,7 @@ msgid "Undo rotation"
 msgstr "Desfazer rotação"
 
 msgid "Rotate text Clock-wise."
-msgstr "Girar o texto no sentido horário."
+msgstr "Rotacionar texto no sentido horário."
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
 msgstr ""
@@ -1407,7 +1407,7 @@ msgid "Reverse rotation"
 msgstr "Rotação reversa"
 
 msgid "Rotate around center:"
-msgstr "Girar ao redor do centro:"
+msgstr "Rotacionar ao redor do centro:"
 
 msgid "Parallel distance:"
 msgstr "Distância paralela:"
@@ -2029,10 +2029,10 @@ msgid "reload all from disk"
 msgstr "recarregar tudo do disco"
 
 msgid "Auto Rotate"
-msgstr "Auto-orientação"
+msgstr "Auto Rotação"
 
 msgid "auto rotate current plate"
-msgstr "girar automaticamente a mesa atual"
+msgstr "rotacionar automaticamente a mesa atual"
 
 msgid "Delete Plate"
 msgstr "Apagar Mesa"
@@ -4413,7 +4413,7 @@ msgid "0 means auto spacing."
 msgstr "0 significa auto-espaçamento."
 
 msgid "Auto rotate for arrangement"
-msgstr "Girar automaticamente para arranjar"
+msgstr "Rotacionar automaticamente para arranjar"
 
 msgid "Allow multiple materials on same plate"
 msgstr "Permitir vários materiais na mesma mesa"
@@ -5390,13 +5390,13 @@ msgid "Invert Z axis"
 msgstr "Inverter eixo Z"
 
 msgid "Invert Yaw axis"
-msgstr "Inverter eixo de guinada"
+msgstr "Inverter eixo de Guinada"
 
 msgid "Invert Pitch axis"
-msgstr "Inverter eixo de arfagem"
+msgstr "Inverter eixo de Arfagem"
 
 msgid "Invert Roll axis"
-msgstr "Inverter eixo de rotação"
+msgstr "Inverter eixo de Rolamento"
 
 msgid "Printing Progress"
 msgstr "Progresso da Impressão"
@@ -6779,7 +6779,7 @@ msgid ""
 "Touchpad: Alt+move for rotation, Shift+move for panning."
 msgstr ""
 "Selecione o estilo de navegação da câmera.\n"
-"Padrão: LMB + mover para rotacionar, RMB/MMB + mover para fazer pan.\n"
+"Padrão: LMB+mover para rotacionar, RMB/MMB+mover para fazer pan.\n"
 "Touchpad: Alt+mover para rotacionar, Shift+mover para fazer pan."
 
 msgid "Zoom to mouse position"
@@ -13888,8 +13888,7 @@ msgid "Pattern angle"
 msgstr "Ângulo de padrão"
 
 msgid "Use this setting to rotate the support pattern on the horizontal plane."
-msgstr ""
-"Use esta configuração para girar o padrão de suporte no plano horizontal."
+msgstr "Use esta configuração para rotacionar o padrão de suporte no plano horizontal."
 
 msgid "On build plate only"
 msgstr "Somente na mesa"
@@ -14629,7 +14628,7 @@ msgid "Polyhole twist"
 msgstr "Torção de polifuros"
 
 msgid "Rotate the polyhole every layer."
-msgstr "Girar o polifuro a cada camada."
+msgstr "Rotacionar o polifuro a cada camada."
 
 msgid "G-code thumbnails"
 msgstr "Miniaturas de G-code"
@@ -14860,7 +14859,7 @@ msgid "Rotation angle around the Z axis in degrees."
 msgstr "Ângulo de rotação ao redor do eixo Z em graus."
 
 msgid "Rotate around Y"
-msgstr "Girar ao redor de Y"
+msgstr "Rotacionar ao redor de Y"
 
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "Ângulo de rotação ao redor do eixo Y em graus."
@@ -17343,8 +17342,8 @@ msgid ""
 "printing by a simple click?"
 msgstr ""
 "Auto-orientar\n"
-"Você sabia que pode girar objetos para uma orientação ideal para impressão "
-"com um simples clique?"
+"Você sabia que pode rotacionar objetos para uma orientação ideal para impressão com "
+"um simples clique?"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
