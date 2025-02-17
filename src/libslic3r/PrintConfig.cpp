@@ -4421,6 +4421,26 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
 
+    def = this->add("spiral_starting_flow_ratio", coFloat);
+    def->label = "Spiral starting flow ratio";
+    def->tooltip = L("Sets the starting flow ratio while transitioning from the last bottom layer to the spiral. "
+                    "Normally the spiral transition scales the flow ratio from 0% to 100% during the first loop "
+                    "which can in some cases lead to under extrusion at the start of the spiral.");
+    def->min = 0;
+    def->max = 1;
+    def->set_default_value(new ConfigOptionFloat(0));
+    def->mode = comAdvanced;
+
+    def = this->add("spiral_finishing_flow_ratio", coFloat);
+    def->label = "Spiral finishing flow ratio";
+    def->tooltip = L("Sets the finishing flow ratio while ending the spiral. "
+                    "Normally the spiral transition scales the flow ratio from 100% to 0% during the last loop "
+                    "which can in some cases lead to under extrusion at the end of the spiral.");
+    def->min = 0;
+    def->max = 1;
+    def->set_default_value(new ConfigOptionFloat(0));
+    def->mode = comAdvanced;
+
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
     def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "

@@ -2362,6 +2362,9 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
         optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
+        optgroup->append_single_option_line("spiral_starting_flow_ratio", "spiral-vase#starting-flow-ratio");
+        optgroup->append_single_option_line("spiral_finishing_flow_ratio", "spiral-vase#finishing-flow-ratio");
+
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
 
         optgroup->append_single_option_line("fuzzy_skin");
