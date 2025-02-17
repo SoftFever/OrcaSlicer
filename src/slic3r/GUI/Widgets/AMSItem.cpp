@@ -2018,6 +2018,20 @@ void AMSRoadUpPart::paintEvent(wxPaintEvent& evt)
     render(dc);
 }
 
+static wxColour _get_diff_clr(wxWindow *win, wxColour pen_clr) /*STUDIO-10093 get diff color*/
+{
+    if (!wxGetApp().dark_mode())
+    {
+        if (pen_clr.GetRGB() == wxWHITE->GetRGB())
+        {
+            static int default_distance = 20;
+            pen_clr.Set(pen_clr.Red() - default_distance, pen_clr.Green() - default_distance, pen_clr.Blue() - default_distance);
+        }
+    }
+
+    return pen_clr;
+}
+
 void AMSRoadUpPart::render(wxDC& dc)
 {
 #ifdef __WXMSW__
@@ -2049,7 +2063,7 @@ void AMSRoadUpPart::doRender(wxDC& dc)
     if ((m_ams_model == N3S_AMS || m_ams_model == EXT_AMS) && m_amsinfo.cans.size() != 4){
         dc.DrawLine(((float)size.x / 2), (0), ((float)size.x / 2), (size.y));
         if (m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
-            dc.SetPen(wxPen(m_amsinfo.cans[m_load_slot_index].material_colour, 4, wxPENSTYLE_SOLID));
+            dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
             dc.DrawLine((size.x / 2), (0), (size.x / 2), (size.y));
         }
     }
@@ -2066,7 +2080,7 @@ void AMSRoadUpPart::doRender(wxDC& dc)
         dc.DrawLine((x_start), (height), (x), (height));
         dc.DrawLine((size.x / 2), (height), (size.x / 2), (size.y));
 
-        dc.SetPen(wxPen(m_amsinfo.cans[m_load_slot_index].material_colour, 4, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
         auto temp = m_amsinfo;
         if (m_load_step != AMSPassRoadSTEP::AMS_ROAD_STEP_NONE){
             if (m_amsinfo.cans.size() <= m_load_slot_index || m_load_slot_index < 0){
@@ -2323,7 +2337,7 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     //dc.SetBrush(wxBrush(*wxBLUE));
 
     if (m_pass_road_right_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_pass_road_right_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
-        dc.SetPen(wxPen(m_road_color[0], 4, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(_get_diff_clr(this, m_road_color[0]), 4, wxPENSTYLE_SOLID));
         if (m_right_road_length > 0) {
             if (m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE){
                 /* dc.SetPen(wxPen(*wxRED));
@@ -2359,7 +2373,7 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     }
 
     if (m_pass_road_left_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_pass_road_left_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
-        dc.SetPen(wxPen(m_road_color[1], 4, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(_get_diff_clr(this, m_road_color[1]), 4, wxPENSTYLE_SOLID));
         if (m_left_road_length > 0) {
             if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE){
                 dc.DrawLine(left_nozzle_pos.x, 0, left_nozzle_pos.x, size.y);
