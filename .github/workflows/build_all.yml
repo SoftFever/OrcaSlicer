@@ -50,7 +50,7 @@ jobs:
             arch: x86_64
           - os: ubuntu-24.04
             arch: x86_64
-          - os: ubuntu-24.04
+          - os: ubuntu-24.04-arm
             arch: arm64
           - os: windows-latest
             arch: x86_64
