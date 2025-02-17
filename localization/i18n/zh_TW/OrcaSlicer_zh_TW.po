@@ -13242,7 +13242,7 @@ msgid ""
 "Normal (manual) or Tree (manual) is selected, only support enforcers are "
 "generated"
 msgstr ""
-"選擇「普通（自動）」或「樹狀（自動）」時，系統將自動產生支撐結構。若選擇「普通（手動）」或「樹狀（手動）」，"
+"選擇「普通 (自動)」或「樹狀 (自動)」時，系統將自動產生支撐結構。若選擇「普通 (自動)」或「樹狀 (自動)」，"
 "則僅會生成手動設定的支撐區域。"
 
 msgid "Normal (auto)"
