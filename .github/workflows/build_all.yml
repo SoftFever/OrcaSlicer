@@ -57,7 +57,7 @@ jobs:
             arch: arm64
     runs-on: ${{ matrix.os }}
     outputs:
-      cache-key: deps-${{ matrix.os }}-${{ matrix.arch || 'x86_64' }}-${{ hashFiles('deps/**') }}
+      cache-key: deps-${{ matrix.os }}-${{ matrix.arch || 'x86_64' }}-${{ github.sha }}
       cache-path: ${{ github.workspace }}/deps/build
     
     steps:
@@ -70,7 +70,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/deps/build
-          key: deps-${{ matrix.os }}-${{ matrix.arch || 'x86_64' }}-${{ hashFiles('deps/**') }}
+          key: deps-${{ matrix.os }}-${{ matrix.arch || 'x86_64' }}-${{ github.sha }}
+          restore-keys: |
+            deps-${{ matrix.os }}-${{ matrix.arch || 'x86_64' }}-
 
       - uses: lukka/get-cmake@latest
         with:
