@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04  # or adjust to your environment
+    runs-on: ubuntu-24.04-arm  # or adjust to your environment
 
     steps:
       # Step 1: Checkout the repository
