@@ -141,9 +141,9 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
 
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
-        // Draw with solid color first to debug
+        // Draw with solid color, no border
         gc->SetBrush(wxBrush(m_bgColor));
-        gc->SetPen(*wxBLACK_PEN); // Add border for visibility
+        gc->SetPen(wxPen(m_bgColor)); // Changed to use background color for no visible border
 
         // Draw slightly smaller than the full size to ensure margins
         double margin = 1.0;
@@ -212,7 +212,7 @@ void JusPrinView3D::init_overlay()
 
     // Just create the left badge for now
     m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
-    m_icon_text_right = nullptr; // We'll add this back later
+    m_icon_text_right = new CircularBadge(this, "1", wxColour("#EA3426"));
 
     // Debug: Make the badge bigger initially to see it better
     m_icon_text_left->SetMinSize(wxSize(20, 20));
@@ -248,14 +248,17 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
             image_height
         );
 
-        // Debug: Position just the left badge
-        if (m_icon_text_left) {
-            // Position more visibly for debugging
-            int icon_x = (size.GetWidth() - image_width) / 2 + 200; // Adjusted position
-            int icon_y = chat_height - 60; // Moved up slightly
-            m_icon_text_left->SetPosition({icon_x, icon_y});
-            m_icon_text_left->Raise();
-        }
+        // Position badges relative to button
+        int icon_x = (size.GetWidth() - image_width) / 2 + 210;
+        int icon_y = chat_height - 50 - 5;
+
+        m_icon_text_left->SetPosition({icon_x+3, icon_y+2});
+        m_icon_text_right->SetPosition({icon_x+15, icon_y+2});
+
+        // Ensure proper z-order
+        m_overlay_btn->Raise();
+        m_icon_text_left->Raise();
+        m_icon_text_right->Raise();
     }
 }
 
