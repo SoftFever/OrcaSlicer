@@ -346,8 +346,6 @@ public:
         int              filament_adhesiveness_category{0};
         std::vector<float>      layer_depths;
 		std::vector<bool>       solid_infill;
-		std::vector<bool>       solid_infill_lower_h_nozzlechange;
-		std::vector<bool>       has_nozzle_change;
         std::vector<float>      finish_depth{0}; // the start pos of finish frame for every layer
         float            depth{0};
         float            start_depth{0};

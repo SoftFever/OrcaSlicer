@@ -3468,31 +3468,14 @@ void WipeTower::generate_wipe_tower_blocks()
                 block.layer_depths.resize(all_layer_category_to_depth.size(), 0);
                 block.solid_infill.resize(all_layer_category_to_depth.size(), false);
                 block.finish_depth.resize(all_layer_category_to_depth.size(), 0);
-                block.solid_infill_lower_h_nozzlechange.resize(all_layer_category_to_depth.size(), false);
-                block.has_nozzle_change.resize(all_layer_category_to_depth.size(), false);
             }
             block.depth = std::max(block.depth, iter->second);
             block.layer_depths[layer_id] = iter->second;
         }
     }
 
-    //set block has_nozzle_change
-    for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
-        for(int i = 0; i < m_plan[layer_id].tool_changes.size(); i++) {
-           const WipeTowerInfo::ToolChange &tool_change = m_plan[layer_id].tool_changes[i];
-           size_t                           old_filament = tool_change.old_tool;
-           size_t                           new_filament = tool_change.new_tool;
-           if (!m_filament_map.empty() && new_filament < m_filament_map.size() && m_filament_map[old_filament] != m_filament_map[new_filament]) {
-               auto &block = get_block_by_category(m_filpar[old_filament].category);
-               block.has_nozzle_change[layer_id] = true;
-           }
-        }
-    }
-
     // add solid infill flag
-    // if the upper layer has a lower layer height and has_nozzle_change
     int solid_infill_layer = 4;
-    float lower_layer_height   = 0.2 - WT_EPSILON;
     for (WipeTowerBlock& block : m_wipe_tower_blocks) {
         for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
             std::unordered_map<int, float> &category_to_depth = all_layer_category_to_depth[layer_id];
@@ -3503,27 +3486,6 @@ void WipeTower::generate_wipe_tower_blocks()
                         std::unordered_map<int, float>& up_layer_depth = all_layer_category_to_depth[layer_id + layer_count];
                         if (!is_approx(up_layer_depth[block.filament_adhesiveness_category], 0.f)) {
                             block.solid_infill[layer_id] = true;
-                            break;
-                        }
-                    }
-                    --layer_count;
-                }
-            }
-        }
-    }
-    solid_infill_layer = 2;
-    for (WipeTowerBlock &block : m_wipe_tower_blocks) {
-        for (int layer_id = 0; layer_id < all_layer_category_to_depth.size(); ++layer_id) {
-            std::unordered_map<int, float> &category_to_depth = all_layer_category_to_depth[layer_id];
-            if (is_approx(category_to_depth[block.filament_adhesiveness_category], 0.f)) {
-                int layer_count = solid_infill_layer;
-                while (layer_count > 0) {
-                    if (layer_id + layer_count < all_layer_category_to_depth.size()) {
-                        std::unordered_map<int, float> &up_layer_depth   = all_layer_category_to_depth[layer_id + layer_count];
-                        float                           up_layer_height  = m_plan[layer_id + layer_count].height;
-                        bool                            has_nozzlechange = block.has_nozzle_change[layer_id + layer_count];
-                        if (up_layer_height < lower_layer_height && has_nozzlechange) {
-                            block.solid_infill_lower_h_nozzlechange[layer_id] = true;
                             break;
                         }
                     }
@@ -3662,26 +3624,26 @@ int WipeTower::get_wall_filament_for_all_layer()
         }
     }
 
-    //std::vector<std::pair<int, int>> category_counts_vec;
+    // std::vector<std::pair<int, int>> category_counts_vec;
     int selected_category = -1;
-    int selected_count = 0;
+    int selected_count    = 0;
 
     for (auto iter = category_counts.begin(); iter != category_counts.end(); ++iter) {
         if (iter->second > selected_count) {
             selected_category = iter->first;
-            selected_count = iter->second;
+            selected_count    = iter->second;
         }
     }
 
-    //std::sort(category_counts_vec.begin(), category_counts_vec.end(), [](const std::pair<int, int> &left, const std::pair<int, int>& right) {
-    //    return left.second > right.second;
-    //});
+    // std::sort(category_counts_vec.begin(), category_counts_vec.end(), [](const std::pair<int, int> &left, const std::pair<int, int>& right) {
+    //     return left.second > right.second;
+    // });
 
-    int filament_id = -1;
+    int filament_id    = -1;
     int filament_count = 0;
     for (auto iter = filament_counts.begin(); iter != filament_counts.end(); ++iter) {
         if (m_filament_categories[iter->first] == selected_category && iter->second > filament_count) {
-            filament_id = iter->first;
+            filament_id    = iter->first;
             filament_count = iter->second;
         }
     }
@@ -3762,8 +3724,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         if (wall_idx == -1) {
             bool need_insert_solid_infill = false;
             for (const WipeTowerBlock &block : m_wipe_tower_blocks) {
-                if (block.solid_infill_lower_h_nozzlechange[m_cur_layer_id] ||
-                    (block.solid_infill[m_cur_layer_id] && (block.filament_adhesiveness_category != m_filament_categories[m_current_tool]))) {
+                if (block.solid_infill[m_cur_layer_id] && (block.filament_adhesiveness_category != m_filament_categories[m_current_tool])) {
                     need_insert_solid_infill = true;
                     break;
                 }
@@ -3831,8 +3792,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 }
 
                 ToolChangeResult finish_block_tcr;
-                if (interface_solid || block.solid_infill_lower_h_nozzlechange[m_cur_layer_id] ||
-                    (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx])) {
+                if (interface_solid ||(block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx])) {
                     interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx]));//noly reduce speed when
                     finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill, interface_solid);
                 }
@@ -3870,7 +3830,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         }
 
 
-        // set solid_infill
+        // record the contact layers of different categories
         solid_blocks_id.clear();
         if (wall_idx != -1) {
             for (const WipeTowerBlock &block : m_wipe_tower_blocks) {
