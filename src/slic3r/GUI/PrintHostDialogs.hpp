@@ -12,7 +12,7 @@
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
 #include "../Utils/PrintHost.hpp"
-
+#include "libslic3r/PrintConfig.hpp"
 class wxButton;
 class wxTextCtrl;
 class wxChoice;
