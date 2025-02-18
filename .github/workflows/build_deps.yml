@@ -66,8 +66,6 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
-            mkdir ${{ github.workspace }}/deps/build
-            mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
             .\build_release_vs2022.bat deps
             .\build_release_vs2022.bat pack
             cd ${{ github.workspace }}/deps/build
@@ -84,9 +82,9 @@ jobs:
             ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
             brew install zstd
 
-      # Note for later: may need libtool and libpng++-dev dependencies for arm builds
-      - name: Install Ubuntu ${{ inputs.arch }} Build Dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' && inputs.arch == 'x86_64'
+
+      - name: Install Ubuntu Build Dependencies
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
         env:
           apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
@@ -99,44 +97,17 @@ jobs:
             libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
             gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
 
-      - name: Install Ubuntu ${{ inputs.arch }} Build Dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' && inputs.arch == 'aarch64'
-        working-directory: ${{ github.workspace }}
-        env:
-          apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
-          webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || '' }}
-        run: |
-            ${{ env.apt-cmd }} update
-            ${{ env.apt-cmd }} install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
-            libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules pkgconf \
-            libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev libwebkit2gtk-${{ env.webkit-ver }}-dev \
-            libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
-            gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
-
-
-      - name: Build on Ubuntu ${{ inputs.arch }}
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' && inputs.arch == 'x86_64'
+      - name: Build on Ubuntu
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
         run: |
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/destdir
+            mkdir -p ${{ github.workspace }}/deps/build
+            mkdir -p ${{ github.workspace }}/deps/build/destdir
             sudo ./BuildLinux.sh -ur
             sudo chown $USER -R ./
             ./BuildLinux.sh -dr
-            cd deps/build_${{ inputs.arch }}
-            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d")_${{ inputs.arch }}.tar.gz destdir
-
-      - name: Build on Ubuntu ${{ inputs.arch }}
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' && inputs.arch == 'aarch64'
-        working-directory: ${{ github.workspace }}
-        run: |
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/destdir
-            sudo ./BuildLinux.sh -ur
-            sudo chown $USER -R ./
-            ./BuildLinux.sh -dr
-            cd deps/build_${{ inputs.arch }}
-            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d")_${{ inputs.arch }}.tar.gz destdir
+            cd deps/build
+            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
 
       # Upload Artifacts

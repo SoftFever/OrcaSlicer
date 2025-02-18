@@ -143,7 +143,7 @@ jobs:
 
       - name: Deploy Mac release
         if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
-        uses: WebFreak001/deploy-nightly@v3.1.0
+        uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
@@ -194,7 +194,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Windows_${{ env.ver }}_portable
-          path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
+          path: ${{ github.workspace }}/build/OrcaSlicer
 
       - name: Upload artifacts Win installer
         if: inputs.os == 'windows-latest'
@@ -212,7 +212,7 @@ jobs:
 
       - name: Deploy Windows release portable
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-        uses: WebFreak001/deploy-nightly@v3.1.0
+        uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
@@ -223,7 +223,7 @@ jobs:
 
       - name: Deploy Windows release installer
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-        uses: WebFreak001/deploy-nightly@v3.1.0
+        uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
@@ -234,7 +234,7 @@ jobs:
 
 # Ubuntu
       - name: Install dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         env:
           apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
           webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || '' }}
@@ -248,28 +248,28 @@ jobs:
           libwebkit2gtk-${{ env.webkit-ver }}-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget ${{ env.libfuse2-pkg }}
 
       - name: Install dependencies from BuildLinux.sh
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: sudo ./BuildLinux.sh -ur
 
       - name: Fix permissions
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: sudo chown $USER -R ./
 
       - name: Build slicer
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         run: |
           ./BuildLinux.sh -isr
-          mv -n ./build_${{ inputs.arch }}/OrcaSlicer_Linux_V${{ env.ver_pure }}_${{ inputs.arch }}.AppImage ./build_${{ inputs.arch }}/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}_${{ inputs.arch }}.AppImage
-          chmod +x ./build_${{ inputs.arch }}/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}_${{ inputs.arch }}.AppImage
+          mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
+          chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
 
       - name: Build orca_custom_preset_tests
-        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64'
-        working-directory: ${{ github.workspace }}/build_${{ inputs.arch }}/src
+        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        working-directory: ${{ github.workspace }}/build/src
         shell: bash
         run: |
           ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
@@ -277,31 +277,31 @@ jobs:
           zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64' }}
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
         env:
           ubuntu-ver: ${{ (inputs.os == 'ubuntu-20.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Linux_ubuntu_${{ env.ubuntu-ver }}_${{ env.ver }}
-          path: './build_${{ inputs.arch }}/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}_${{ inputs.arch }}.AppImage'
+          path: './build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
 
       - name: Deploy Ubuntu release
-        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.arch == 'x86_64' || inputs.arch == 'aarch64') }}
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
-        uses: WebFreak001/deploy-nightly@v3.1.0
+        uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
-          asset_path: ./build_${{ inputs.arch }}/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}_${{ inputs.arch }}.AppImage
-          asset_name: OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}_${{ inputs.arch }}.AppImage
+          asset_path: ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
+          asset_name: OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
       - name: Deploy orca_custom_preset_tests
         if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
-        uses: WebFreak001/deploy-nightly@v3.1.0
+        uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
