@@ -567,6 +567,9 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/OAuthJob.hpp
     Utils/SimplyPrint.cpp
     Utils/SimplyPrint.hpp
+    Utils/ElegooLink.hpp
+    Utils/ElegooLink.cpp
+    Utils/WebSocketClient.hpp
 )
 
 if (WIN32)
