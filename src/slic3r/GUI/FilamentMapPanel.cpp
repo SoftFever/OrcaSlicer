@@ -122,7 +122,7 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     icon_disabled = create_scaled_bitmap(icon + "_disabled", nullptr, 20);
 
     m_btn    = new wxBitmapButton(this, wxID_ANY, icon_enabled, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
-    m_btn->SetBackgroundColour(*wxWHITE);
+    m_btn->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     m_label = new wxStaticText(this, wxID_ANY, label);
     m_label->SetFont(Label::Head_14);
@@ -130,7 +130,7 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
 
     auto label_sizer = new wxBoxSizer(wxHORIZONTAL);
     label_sizer->AddStretchSpacer();
-    label_sizer->Add(m_btn, 0, wxALIGN_CENTER | wxEXPAND);
+    label_sizer->Add(m_btn, 0, wxALIGN_CENTER | wxEXPAND | wxLEFT, FromDIP(1));
     label_sizer->Add(m_label, 0, wxALIGN_CENTER | wxEXPAND| wxALL, FromDIP(3));
     label_sizer->AddStretchSpacer();
 
@@ -204,11 +204,13 @@ void FilamentMapBtnPanel::UpdateStatus()
         m_btn->SetBackgroundColour(BgSelectColor);
         m_label->SetBackgroundColour(BgSelectColor);
         m_detail->SetBackgroundColour(BgSelectColor);
+        m_disable_tip->SetBackgroundColour(BgSelectColor);
     }
     else {
         m_btn->SetBackgroundColour(BgNormalColor);
         m_label->SetBackgroundColour(BgNormalColor);
         m_detail->SetBackgroundColour(BgNormalColor);
+        m_disable_tip->SetBackgroundColour(BgNormalColor);
     }
     if (!m_enabled) {
         m_disable_tip->SetLabel(_L("(Sync with printer)"));
@@ -220,6 +222,7 @@ void FilamentMapBtnPanel::UpdateStatus()
     }
     else {
         m_disable_tip->SetLabel("");
+        m_disable_tip->SetForegroundColour(TextNormalBlackColor);
         m_btn->SetBitmap(icon_enabled);
         m_btn->SetForegroundColour(BgNormalColor);
         m_label->SetForegroundColour(TextNormalBlackColor);
