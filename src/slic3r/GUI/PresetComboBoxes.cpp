@@ -1626,6 +1626,8 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
     } else {
         auto &filaments = m_collection->get_presets();
         auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
+            if (!f.is_system) // Only match system preset
+                return false;
             bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
             return is_compatible && f.filament_id == m_filament_id;
             });
