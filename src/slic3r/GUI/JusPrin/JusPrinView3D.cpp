@@ -71,7 +71,7 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
-        wxColour borderColor = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
+        wxColour borderColor = !m_isHovered ? wxColour(0, 0, 0, 0) : *wxBLUE;
         gc->SetPen(wxPen(borderColor, 1));
         gc->DrawRoundedRectangle(3, 3, width-6, height-6, radius);
 #else
@@ -86,7 +86,7 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
-        wxColour borderColor = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
+        wxColour borderColor = !m_isHovered ? wxColour(0, 0, 0, 0) : *wxBLUE;
         gc->SetPen(wxPen(borderColor, 1));
         gc->DrawRectangle(3, 3, width-6, height-6);
 
