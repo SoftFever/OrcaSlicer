@@ -82,7 +82,7 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
 
         // Second shadow (smaller, more intense)
         gc->SetBrush(wxBrush(wxColour(33, 33, 33, 15)));
-        gc->DrawRectangle(2, 2, width - 2, height - 2, radius);
+        gc->DrawRectangle(2, 2, width - 2, height - 2);
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
@@ -180,7 +180,7 @@ void JusPrinView3D::init_overlay()
 
     wxString    two_circle_path = from_u8((boost::filesystem::path(resources_dir()) /"images/two_circle.png").make_preferred().string());
     wxImage icon_img(two_circle_path);
-    m_icon_image = new wxStaticBitmap(this, wxID_ANY, icon_img);
+    m_icon_image      = new wxStaticBitmap(this, wxID_ANY, wxBITMAP(icon_img));
     m_icon_text_left = new wxStaticText(this, wxID_ANY, "1");
     m_icon_text_right = new wxStaticText(this, wxID_ANY, "1");
     wxFont font = m_icon_text_left->GetFont();
