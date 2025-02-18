@@ -18,8 +18,11 @@ namespace GUI {
 JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL | wxBORDER_NONE)
 {
+#ifdef __APPLE__
     SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     SetBackgroundColour(wxColour(0, 0, 0, 0));
+#endif
+
     Bind(wxEVT_PAINT, &JustPrinButton::OnPaint, this);
     m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY);
     wxAnimation animation;
@@ -56,25 +59,38 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
         gc->SetBrush(wxBrush(transparentColour));
         gc->DrawRectangle(0, 0, width, height);
 
+#ifdef __APPLE__
         // Draw drop shadows with offset
         // First shadow (larger, more diffuse)
         gc->SetBrush(wxBrush(wxColour(10, 10, 10, 8)));
-        gc->DrawRoundedRectangle(4, 6, width - 4, height - 4, radius);
+        gc->DrawRoundedRectangle(1, 1, width - 2, height - 2, radius);
 
         // Second shadow (smaller, more intense)
         gc->SetBrush(wxBrush(wxColour(33, 33, 33, 15)));
-        gc->DrawRoundedRectangle(4, 5, width - 6, height - 5, radius);
+        gc->DrawRoundedRectangle(2, 2, width - 4, height - 4, radius);
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
-        // Show border only on hover
-        if (m_isHovered) {
-            gc->SetPen(wxPen(*wxBLUE, 1));
-        } else {
-            gc->SetPen(wxPen(wxColour(0, 0, 0, 0))); // Transparent pen
-        }
-        gc->DrawRoundedRectangle(4, 4, width-8, height-8, radius);
+        wxColour borderColor = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
+        gc->SetPen(wxPen(borderColor, 1));
+        gc->DrawRoundedRectangle(3, 3, width-6, height-6, radius);
+#else
+   // Draw drop shadows with offset
+        // First shadow (larger, more diffuse)
+        gc->SetBrush(wxBrush(wxColour(10, 10, 10, 8)));
+        gc->DrawRectangle(1, 1, width - 2, height - 2);
 
+        // Second shadow (smaller, more intense)
+        gc->SetBrush(wxBrush(wxColour(33, 33, 33, 15)));
+        gc->DrawRectangle(2, 2, width - 2, height - 2, radius);
+
+        // Main button
+        gc->SetBrush(wxBrush(*wxWHITE));
+        wxColour borderColor = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
+        gc->SetPen(wxPen(borderColor, 1));
+        gc->DrawRectangle(3, 3, width-6, height-6);
+
+#endif
         delete gc;
     }
 }
@@ -161,6 +177,23 @@ void JusPrinView3D::init_overlay()
     };
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
     m_overlay_btn->AddJoin(open_chat);
+
+    wxString    two_circle_path = from_u8((boost::filesystem::path(resources_dir()) /"images/two_circle.png").make_preferred().string());
+    wxImage icon_img(two_circle_path);
+    m_icon_image = new wxStaticBitmap(this, wxID_ANY, icon_img);
+    m_icon_text_left = new wxStaticText(this, wxID_ANY, "1");
+    m_icon_text_right = new wxStaticText(this, wxID_ANY, "1");
+    wxFont font = m_icon_text_left->GetFont();
+    font.SetPointSize(12); // 设置字体大小为24
+    m_icon_text_left->SetFont(font);
+    m_icon_text_right->SetFont(font);
+    m_icon_text_left->SetMaxSize(wxSize(9, 12));
+    m_icon_text_right->SetMaxSize(wxSize(9, 12));
+    m_icon_text_left->SetForegroundColour(wxColour(*wxBLACK));
+    m_icon_text_right->SetForegroundColour(wxColour(*wxBLACK));
+    m_icon_text_left->SetBackgroundColour(wxColour("#F7C645"));
+    m_icon_text_right->SetBackgroundColour(wxColour("#EA3426"));
+
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
 
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
@@ -193,6 +226,15 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
             image_height
         );
         m_overlay_btn->Raise();
+        int icon_x = (size.GetWidth() - image_width) / 2 +210;
+        int icon_y = chat_height - 50 - 5;
+        m_icon_image->SetPosition({icon_x, icon_y}	);
+        m_icon_image->Raise();
+        m_icon_text_left->SetPosition({icon_x+3, icon_y+2});
+        m_icon_text_right->SetPosition({icon_x+18, icon_y+2});
+        m_icon_text_left->Raise();
+        m_icon_text_right->Raise();
+
     }
 }
 
