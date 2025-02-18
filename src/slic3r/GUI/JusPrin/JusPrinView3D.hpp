@@ -71,7 +71,6 @@ protected:
 private:
     JusPrinChatPanel* m_chat_panel{nullptr};
     JustPrinButton*   m_overlay_btn{nullptr};
-    wxStaticBitmap*   m_icon_image{nullptr};
     CircularBadge*    m_icon_text_left{nullptr};
     CircularBadge*    m_icon_text_right{nullptr};
 

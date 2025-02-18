@@ -135,21 +135,23 @@ void JustPrinButton::OnMouseMove(wxMouseEvent& event) {
 // Implement the OnPaint method
 void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
     wxPaintDC dc(this);
-    dc.SetBackgroundMode(wxTRANSPARENT);  // Enable transparency
+    dc.SetBackgroundMode(wxTRANSPARENT);
 
     wxSize size = GetClientSize();
 
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
-        // Enable alpha channel
-        gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
-
-        // Draw circular background with slight alpha for better blending
+        // Draw with solid color first to debug
         gc->SetBrush(wxBrush(m_bgColor));
-        gc->SetPen(*wxTRANSPARENT_PEN);
-        gc->DrawEllipse(0, 0, size.GetWidth(), size.GetHeight());
+        gc->SetPen(*wxBLACK_PEN); // Add border for visibility
 
-        // Draw text
+        // Draw slightly smaller than the full size to ensure margins
+        double margin = 1.0;
+        gc->DrawEllipse(margin, margin,
+                       size.GetWidth() - 2*margin,
+                       size.GetHeight() - 2*margin);
+
+        // Draw text in black for maximum contrast
         gc->SetFont(GetFont(), *wxBLACK);
         double textWidth, textHeight;
         gc->GetTextExtent(m_text, &textWidth, &textHeight);
@@ -208,14 +210,14 @@ void JusPrinView3D::init_overlay()
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
     m_overlay_btn->AddJoin(open_chat);
 
-    wxString    two_circle_path = from_u8((boost::filesystem::path(resources_dir()) /"images/two_circle.png").make_preferred().string());
-    wxImage icon_img(two_circle_path);
-    m_icon_image      = new wxStaticBitmap(this, wxID_ANY, wxBitmap(icon_img));
+    // Just create the left badge for now
     m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
-    m_icon_text_right = new CircularBadge(this, "1", wxColour("#EA3426"));
+    m_icon_text_right = nullptr; // We'll add this back later
+
+    // Debug: Make the badge bigger initially to see it better
+    m_icon_text_left->SetMinSize(wxSize(20, 20));
 
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
-
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
 }
 
@@ -246,20 +248,14 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
             image_height
         );
 
-        // Position badges relative to button
-        int icon_x = (size.GetWidth() - image_width) / 2 + 210;
-        int icon_y = chat_height - 50 - 5;
-
-        // Update icon and badge positions
-        m_icon_image->SetPosition({icon_x, icon_y});
-        m_icon_text_left->SetPosition({icon_x+3, icon_y+2});
-        m_icon_text_right->SetPosition({icon_x+18, icon_y+2});
-
-        // Ensure proper z-order
-        m_overlay_btn->Raise();
-        m_icon_image->Raise();
-        m_icon_text_left->Raise();
-        m_icon_text_right->Raise();
+        // Debug: Position just the left badge
+        if (m_icon_text_left) {
+            // Position more visibly for debugging
+            int icon_x = (size.GetWidth() - image_width) / 2 + 200; // Adjusted position
+            int icon_y = chat_height - 60; // Moved up slightly
+            m_icon_text_left->SetPosition({icon_x, icon_y});
+            m_icon_text_left->Raise();
+        }
     }
 }
 
