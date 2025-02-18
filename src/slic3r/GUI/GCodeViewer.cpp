@@ -868,6 +868,9 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 
     m_gl_data_initialized = true;
 
+    if (preset_bundle)
+        m_nozzle_nums = preset_bundle->get_printer_extruder_count();
+
     // set to color print by default if use multi extruders
     if (m_nozzle_nums > 1) {
         m_view_type_sel = (int)EViewType::Summary;
