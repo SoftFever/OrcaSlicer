@@ -278,21 +278,23 @@ void FanSwitchButton::render(wxDC& dc)
 
     if (icon.bmp().IsOk()) {
         dc.DrawBitmap(icon.bmp(), pt);
-        pt.x += icon.GetBmpWidth() + FromDIP(9);
     }
 
-    wxString fan_txt = _L("Fan");
-    dc.SetFont(::Label::Head_15);
-    pt.y = FromDIP(9);
-    dc.DrawText(fan_txt, pt);
-    pt.y = size.y / 2 + FromDIP(3);
-    wxString fan_num_txt = GetLabel();
+    if (!m_text.empty())
+    {
+        if (m_text == _L("Fan")) {
+            dc.SetFont(::Label::Head_15);
+            pt.x += icon.GetBmpWidth() + FromDIP(9);
+        } else if (m_text == _L("Air Condition")) {
+            dc.SetFont(::Label::Head_14);
+            pt.x += icon.GetBmpWidth() + FromDIP(6);
+        }
 
-
-    dc.SetFont(::Label::Body_12);
-    dc.SetTextForeground(0x6b6b6b);
-    dc.DrawText(fan_num_txt, pt);
-
+        auto text_size = dc.GetMultiLineTextExtent(m_text);
+        pt.y           = (size.y - text_size.GetHeight()) / 2;
+        //dc.SetTextForeground(0x6b6b6b);
+        dc.DrawText(m_text, pt);
+    }
 
     //int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
     /*int content_height = m_padding;
@@ -350,6 +352,18 @@ void FanSwitchButton::setFanValue(int val)
 {
     m_speed = val;
     Refresh();
+}
+
+void FanSwitchButton::UseTextFan() { SetText(_L("Fan")); }
+void FanSwitchButton::UseTextAirCondition() { SetText(_L("Air Condition")); }
+
+void FanSwitchButton::SetText(const wxString &text)
+{
+    if (m_text != text)
+    {
+        m_text = text;
+        Refresh();
+    }
 }
 
 void FanSwitchButton::mouseDown(wxMouseEvent& event)
