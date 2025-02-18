@@ -67,6 +67,8 @@
     "machine_max_acceleration_z": [
     "500"
     ],
+    "default_acceleration": "1000",
+    "outer_wall_acceleration": "700",
     "machine_max_speed_e": [
         "50"
     ],
@@ -91,6 +93,10 @@
     "machine_max_jerk_z": [
       "0.2"
     ],
+    "default_jerk": "7",
+    "initial_layer_jerk": "7",
+    "outer_wall_jerk": "7",
+    "top_surface_jerk": "7",
     "max_layer_height": [
       "0.32"
     ],
@@ -115,7 +121,9 @@
     "retract_when_changing_layer": [
         "0"
     ],
+    "travel_speed": "200",
+    "initial_layer_infill_speed": "55",
     "machine_end_gcode": "PRINT_END",
     "machine_pause_gcode": "PAUSE",
-    "machine_start_gcode": "PRINT_START BED_TEMP=[first_layer_bed_temperature] EXTRUDER_TEMP=[first_layer_temperature]\nG0 X65 Y5 Z1 F5000.0                                                   ; Move the probe to the heating position.\nM117 Getting the heaters up to temp!\nM104 S140                                                          ; Set Extruder temperature, no wait\nM140 S60                                                            ; Set Heat Bed temperature\nG4 S90\nM117 Post warming re-home\nG28                                                                      ; Home all axes again after warming\nM117 Z-Dance of my people\nM117 ABL Probing\n;Run Bed leveling\n;BED_MESH_CALIBRATE\n;T1\nT[initial_tool]\nG1 Z2.0 F3000                                        ; Move Z Axis up little to prevent scratching of Heat Bed\nG1 X4.1 Y10 Z0.3 F5000.0                      ; Move to start position\nM117 Getting the extruder up to temp\nM140 S[first_layer_bed_temperature]      ; Set Heat Bed temperature\nM104 S[first_layer_temperature]    ; Set Extruder temperature\nM109 S[first_layer_temperature]    ; Wait for Extruder temperature\nM190 S[first_layer_bed_temperature]      ; Wait for Heat Bed temperature\nG92 E0                                        ; Reset Extruder\nM117 Purging\n;G1 X4.1 Y200.0 Z0.3 F1500.0 E15               ; Draw the first line\n;G1 X4.4 Y200.0 Z0.3 F5000.0                   ; Move to side a little\n;G1 X4.4 Y20 Z0.3 F1500.0 E30                  ; Draw the second line\nG92 E0                                        ; Reset Extruder\nM117 Lets make\n;G1 X8 Y20 Z0.3 F5000.0                        ; Move over to prevent blob squish"
+    "machine_start_gcode": "PRINT_START BED_TEMP=[first_layer_bed_temperature] EXTRUDER_TEMP=[first_layer_temperature]\nG0 X65 Y5 Z1 F5000.0                                                   ; Move the probe to the heating position.\nM117 Getting the heaters up to temp!\nM104 S140                                                          ; Set Extruder temperature, no wait\nM140 S60                                                            ; Set Heat Bed temperature\nG4 S90\nM117 Post warming re-home\nG28                                                                      ; Home all axes again after warming\nM117 Z-Dance of my people\nM117 ABL Probing\n;Run Bed leveling\n;BED_MESH_CALIBRATE ADAPTIVE=1 ADAPTIVE_MARGIN=5 ; adaptive bed leveling\n;T1\nT[initial_tool]\nG1 Z2.0 F3000                                        ; Move Z Axis up little to prevent scratching of Heat Bed\nG1 X4.1 Y10 Z0.3 F5000.0                      ; Move to start position\nM117 Getting the extruder up to temp\nM140 S[first_layer_bed_temperature]      ; Set Heat Bed temperature\nM104 S[first_layer_temperature]    ; Set Extruder temperature\nM109 S[first_layer_temperature]    ; Wait for Extruder temperature\nM190 S[first_layer_bed_temperature]      ; Wait for Heat Bed temperature\nG92 E0                                        ; Reset Extruder\nM117 Purging\n;G1 X4.1 Y200.0 Z0.3 F1500.0 E15               ; Draw the first line\n;G1 X4.4 Y200.0 Z0.3 F5000.0                   ; Move to side a little\n;G1 X4.4 Y20 Z0.3 F1500.0 E30                  ; Draw the second line\nG92 E0                                        ; Reset Extruder\nM117 Lets make\n;G1 X8 Y20 Z0.3 F5000.0                        ; Move over to prevent blob squish"
 }
