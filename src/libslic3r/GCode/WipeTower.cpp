@@ -2383,7 +2383,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     if (!m_filament_map.empty() && m_filament_map[old_tool] != m_filament_map[new_tool]) {
         double e_flow                   = nozzle_change_extrusion_flow(layer_height_par);
         double length                   = m_filaments_change_length[old_tool] / e_flow;
-        int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_perimeter_width) + 1;
+        int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_nozzle_change_perimeter_width) + 1;
         if (has_tpu_filament())
             nozzle_change_depth = m_tpu_fixed_spacing * nozzle_change_line_count * m_nozzle_change_perimeter_width;
         else
@@ -2780,8 +2780,10 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     if (has_tpu_filament() && m_extra_spacing < m_tpu_fixed_spacing)
         dy = m_tpu_fixed_spacing * m_nozzle_change_perimeter_width;
 
-    box_coordinates cleaning_box(Vec2f(m_perimeter_width, block.cur_depth + (m_nozzle_change_perimeter_width - m_perimeter_width) / 2),
-                                 m_wipe_tower_width - 2 * m_perimeter_width, nozzle_change_line_count * dy);
+    float x_offset = m_perimeter_width + (m_nozzle_change_perimeter_width - m_perimeter_width) / 2;
+    box_coordinates cleaning_box(Vec2f(x_offset,block.cur_depth + (m_nozzle_change_perimeter_width - m_perimeter_width) / 2),
+                                 m_wipe_tower_width - 2 * x_offset,
+                                 nozzle_change_line_count * dy - (m_nozzle_change_perimeter_width - m_perimeter_width) / 2);
 
     Vec2f initial_position = cleaning_box.ld;
     writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
@@ -2791,6 +2793,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     dy              = solid_infill ? m_nozzle_change_perimeter_width : dy;
     nozzle_change_line_count = solid_infill ? std::numeric_limits<int>::max() : nozzle_change_line_count;
     m_left_to_right = true;
+    int real_nozzle_change_line_count = 0;
     for (int i = 0; true; ++i) {
 #if 0
         if (need_thick_bridge_flow(writer.pos().y())) {
@@ -2806,22 +2809,22 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
             writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), /*need_change_flow ? bridge_speed :*/ nozzle_change_speed);
         else
             writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), /*need_change_flow ? bridge_speed :*/ nozzle_change_speed);
-
+        real_nozzle_change_line_count++;
         if (i == nozzle_change_line_count - 1)
             break;
-        if (writer.y() + dy - float(EPSILON) > cleaning_box.ru.y() - m_nozzle_change_perimeter_width) break;
+        if ((writer.y() + dy - cleaning_box.ru.y()+(m_nozzle_change_perimeter_width+m_perimeter_width)/2) > (float)EPSILON) break;
         writer.extrude(writer.x(), writer.y() + dy, nozzle_change_speed);
         m_left_to_right = !m_left_to_right;
     }
 
     writer.set_extrusion_flow(nz_extrusion_flow); // Reset the extrusion flow.
-    block.cur_depth += nozzle_change_line_count * dy;
+    block.cur_depth += real_nozzle_change_line_count * dy;
     block.last_nozzle_change_id = old_filament_id;
 
     NozzleChangeResult result;
     if (is_tpu_filament(m_current_tool)) {
         bool   left_to_right     = !m_left_to_right;
-        int  tpu_line_count = (nozzle_change_line_count + 2 - 1) / 2; // nozzle_change_line_count / 2 round up
+        int  tpu_line_count = (real_nozzle_change_line_count + 2 - 1) / 2; // nozzle_change_line_count / 2 round up
 
         writer.travel(writer.x(), writer.y() - m_nozzle_change_perimeter_width);
 
@@ -3300,10 +3303,10 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
             writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
         }
 
-        if (!is_from_up && (writer.y() + dy - float(EPSILON) > cleaning_box.lu.y() - m_perimeter_width))
+        if (!is_from_up && (writer.y() + dy - float(EPSILON) >cleaning_box.lu.y() - m_perimeter_width))
             break; // in case next line would not fit
 
-        if (is_from_up && (writer.y() - dy + float(EPSILON) < cleaning_box.ld.y() + m_perimeter_width))
+        if (is_from_up && (writer.y() - dy+ float(EPSILON))<cleaning_box.ld.y()) // Because the top of the clean box cannot have wiring, but the bottom can have wiring.
             break;
 
         x_to_wipe -= (xr - xl);
@@ -3571,9 +3574,9 @@ void WipeTower::plan_tower_new()
                 float depth               = std::ceil(length_to_extrude / width) * m_perimeter_width;
                 float nozzle_change_depth = 0;
                 if (!m_filament_map.empty() && m_filament_map[toolchange.old_tool] != m_filament_map[toolchange.new_tool]) {
-                    double e_flow                   = extrusion_flow(m_plan[idx].height);
+                    double e_flow                   = nozzle_change_extrusion_flow(m_plan[idx].height);
                     double length                   = m_filaments_change_length[toolchange.old_tool] / e_flow;
-                    int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_perimeter_width) + 1;
+                    int    nozzle_change_line_count = length / (m_wipe_tower_width - 2*m_nozzle_change_perimeter_width) + 1;
                     if (has_tpu_filament())
                         nozzle_change_depth = m_tpu_fixed_spacing * nozzle_change_line_count * m_nozzle_change_perimeter_width;
                     else
@@ -3624,13 +3627,10 @@ void WipeTower::plan_tower_new()
                     x_to_wipe_new       = std::max(x_to_wipe_new, x_to_wipe);
 
                     int line_count = std::ceil((x_to_wipe_new - WT_EPSILON) / line_len);
+                    // nozzle change length
+                    int nozzle_change_line_count = (toolchange.nozzle_change_depth + WT_EPSILON) / m_nozzle_change_perimeter_width;
 
-                    { // nozzle change length
-                        int nozzle_change_line_count = (toolchange.nozzle_change_depth + WT_EPSILON) / m_perimeter_width;
-                        line_count += nozzle_change_line_count;
-                    }
-
-                    toolchange.required_depth = line_count * m_perimeter_width;
+                    toolchange.required_depth = line_count * m_perimeter_width + nozzle_change_line_count * m_nozzle_change_perimeter_width;
                     toolchange.wipe_volume    = x_to_wipe_new / x_to_wipe * toolchange.wipe_volume;
                     toolchange.wipe_length    = x_to_wipe_new;
                 }
