@@ -290,10 +290,13 @@ static void add_msg_content(wxWindow   *parent,
         page_size = wxSize(68 * em, page_height);
     }
     else {
-        Label* wrapped_text = new Label(html, msg);
-        wrapped_text->Wrap(68 * em);
-        msg = wrapped_text->GetLabel();
-        wrapped_text->Destroy();
+// Extra line breaks in message dialog
+//#ifdef __WINDOWS__
+//        Label* wrapped_text = new Label(html, msg);
+//        wrapped_text->Wrap(68 * em);
+//        msg = wrapped_text->GetLabel();
+//        wrapped_text->Destroy();
+//#endif //__WINDOWS__
         wxClientDC dc(parent);
         wxSize msg_sz = dc.GetMultiLineTextExtent(msg);
 
