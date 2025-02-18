@@ -20,6 +20,10 @@ finish-args:
   - --system-talk-name=org.freedesktop.UDisks2
   - --env=SPNAV_SOCKET=/run/spnav.sock
 
+# Prevent OpenH264 codec installation error
+build-options:
+  no-codec-install: true
+
 modules:
 
   # JPEG codec for the liveview
