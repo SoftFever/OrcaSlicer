@@ -20,12 +20,22 @@ public:
     {
         m_text = text;
         m_bgColor = bgColor;
+
+        // Set transparent background
+        SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+        SetBackgroundColour(wxTransparentColour);
+
         Bind(wxEVT_PAINT, &CircularBadge::OnPaint, this);
     }
 
-private:
-    void OnPaint(wxPaintEvent&);  // Declaration only, implementation stays in cpp
+    // Add method to update text
+    void SetText(const wxString& text) {
+        m_text = text;
+        Refresh();
+    }
 
+private:
+    void OnPaint(wxPaintEvent&);
     wxString m_text;
     wxColour m_bgColor;
 };
