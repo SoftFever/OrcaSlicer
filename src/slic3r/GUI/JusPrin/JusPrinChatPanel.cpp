@@ -45,11 +45,13 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
     // Connect the idle events
     Bind(wxEVT_CLOSE_WINDOW, &JusPrinChatPanel::OnClose, this);
 
+
     // 设置透明的部分会是黑色
+#if __APPLE__
     SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     SetBackgroundColour(wxColour(0, 0, 0, 0));
     Bind(wxEVT_PAINT, &JusPrinChatPanel::OnPaint, this);
-
+#endif
     load_url();
 }
 
