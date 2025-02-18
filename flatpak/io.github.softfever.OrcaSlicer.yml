@@ -33,8 +33,8 @@ modules:
       - -Dtests=disabled
     sources:
       - type: archive
-        url: https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.22.8.tar.xz
-        sha256: e305b9f07f52743ca481da0a4e0c76c35efd60adaf1b0694eb3bb021e2137e39
+        url: https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.24.10.tar.xz
+        sha256: fce748fa66d7a8ee1fb261489e59d01e3fa787623d6d5c35068416fe7cd0acb3
 
   # For libOSMesa
   - name: mesa
