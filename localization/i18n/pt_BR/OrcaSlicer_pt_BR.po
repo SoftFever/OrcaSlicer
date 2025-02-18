@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-14 23:42+0800\n"
-"PO-Revision-Date: 2025-02-15 15:57-0300\n"
+"PO-Revision-Date: 2025-02-16 12:19-0300\n"
 "Last-Translator: Alexandre Folle de Menezes <afmenez@terra.com.br>\n"
 "Language-Team: Portuguese, Brazilian\n"
 "Language: pt_BR\n"
@@ -1303,7 +1303,7 @@ msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr ""
+msgstr "Cancelar um recurso até sair"
 
 msgid "Measure"
 msgstr "Medir"
@@ -1312,14 +1312,14 @@ msgid "Please confirm explosion ratio = 1,and please select at least one object"
 msgstr ""
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "Por favor selecione pelo menos um objeto."
 
 msgid "Edit to scale"
 msgstr "Editar para escala"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr ""
+msgstr "Escalar tudo"
 
 msgid "None"
 msgstr "Nenhum"
@@ -1334,7 +1334,7 @@ msgid "Selection"
 msgstr "Seleção"
 
 msgid " (Moving)"
-msgstr ""
+msgstr " (Movendo)"
 
 msgid ""
 "Select 2 faces on objects and \n"
@@ -1347,13 +1347,13 @@ msgid ""
 msgstr ""
 
 msgid "Face"
-msgstr ""
+msgstr "Face"
 
 msgid " (Fixed)"
-msgstr ""
+msgstr " (Fixo)"
 
 msgid "Point"
-msgstr ""
+msgstr "Ponto"
 
 msgid ""
 "Feature 1 has been reset, \n"
@@ -1385,25 +1385,25 @@ msgid "Distance XYZ"
 msgstr "Distância XYZ"
 
 msgid "Parallel"
-msgstr ""
+msgstr "Paralelo"
 
 msgid "Center coincidence"
-msgstr ""
+msgstr "Centralizar coincidência"
 
 msgid "Featue 1"
-msgstr ""
+msgstr "Recurso 1"
 
 msgid "Reverse rotation"
-msgstr ""
+msgstr "Rotação reversa"
 
 msgid "Rotate around center:"
-msgstr ""
+msgstr "Girar ao redor do centro:"
 
 msgid "Parallel distance:"
-msgstr ""
+msgstr "Distância paralela:"
 
 msgid "Flip by Face 2"
-msgstr ""
+msgstr "Virar pela Face 2"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2033,7 +2033,7 @@ msgid "Center"
 msgstr "Centralizar"
 
 msgid "Drop"
-msgstr ""
+msgstr "Descartar"
 
 msgid "Edit Process Settings"
 msgstr "Editar Configurações de Processo"
@@ -2882,11 +2882,11 @@ msgstr "Você precisa selecionar o tipo e a cor do material primeiro."
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr ""
+msgstr "Por favor insira um valor válido (K entre %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr ""
+msgstr "Por favor insira um valor válido (K entre %.1f~%.1f, N entre %.1f~%.1f)"
 
 msgid "Other Color"
 msgstr "Outra Cor"
@@ -3303,11 +3303,11 @@ msgid "Edit multiple printers"
 msgstr "Editar múltiplas impressoras"
 
 msgid "Select connected printers (0/6)"
-msgstr ""
+msgstr "Selecione impressoras conectadas (0/6)"
 
 #, c-format, boost-format
 msgid "Select Connected Printers (%d/6)"
-msgstr ""
+msgstr "Selecione Impressoras Conectadas (%d/6)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
@@ -3370,7 +3370,7 @@ msgid "Printing Failed"
 msgstr "Falha na Impressão"
 
 msgid "Printing Pause"
-msgstr ""
+msgstr "Pausa de Impressão"
 
 msgid "Prepare"
 msgstr "Preparar"
@@ -3469,7 +3469,7 @@ msgid "Send Options"
 msgstr "Opções de envio"
 
 msgid "Send to"
-msgstr ""
+msgstr "Enviar para"
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo heating at the "
@@ -4775,10 +4775,10 @@ msgid "Clone copies of selections"
 msgstr "Clonar cópias das seleções"
 
 msgid "Duplicate Current Plate"
-msgstr ""
+msgstr "Duplicar Mesa Atual"
 
 msgid "Duplicate the current plate"
-msgstr ""
+msgstr "Duplica a mesa atual"
 
 msgid "Select all"
 msgstr "Selecionar tudo"
@@ -4856,16 +4856,16 @@ msgid "Flow rate test - Pass 2"
 msgstr "Teste de fluxo - Passo 2"
 
 msgid "YOLO (Recommended)"
-msgstr ""
+msgstr "YOLO (Recomendado)"
 
 msgid "Orca YOLO flowrate calibration, 0.01 step"
-msgstr ""
+msgstr "Calibração de fluxo YOLO Orca, passo de 0.01"
 
 msgid "YOLO (perfectionist version)"
-msgstr ""
+msgstr "YOLO (versão perfeccionista)"
 
 msgid "Orca YOLO flowrate calibration, 0.005 step"
-msgstr ""
+msgstr "Calibração de fluxo YOLO Orca, passo de 0.005"
 
 msgid "Flow rate"
 msgstr "Fluxo"
@@ -5066,7 +5066,7 @@ msgid "The printer has been logged out and cannot connect."
 msgstr "A impressora foi desconectada e não pode se conectar."
 
 msgid "Video Stopped."
-msgstr ""
+msgstr "Vídeo Parado."
 
 msgid "LAN Connection Failed (Failed to start liveview)"
 msgstr "Falha na conexão da LAN (Falha ao iniciar a visualização ao vivo)"
@@ -5623,7 +5623,7 @@ msgid "Not for now"
 msgstr "Não por enquanto"
 
 msgid "Server Exception"
-msgstr ""
+msgstr "Exceção de Servidor"
 
 msgid ""
 "The server is unable to respond. Please click the link below to check the server "
@@ -5639,7 +5639,7 @@ msgid "How to use LAN only mode"
 msgstr ""
 
 msgid "Don't show this dialog again"
-msgstr ""
+msgstr "Não mostrar esse diálogo novamente"
 
 msgid "3D Mouse disconnected."
 msgstr "Mouse 3D desconectado."
@@ -5860,7 +5860,7 @@ msgid "View all object's settings"
 msgstr "Ver todas as configurações do objeto"
 
 msgid "Material settings"
-msgstr ""
+msgstr "Configurações de material"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Remover a mesa atual (se não for a última)"
@@ -5881,7 +5881,7 @@ msgid "Edit current plate name"
 msgstr "Editar nome da mesa atual"
 
 msgid "Move plate to the front"
-msgstr ""
+msgstr "Mover mesa para frente"
 
 msgid "Customize current plate"
 msgstr "Personalizar a mesa atual"
@@ -5942,7 +5942,7 @@ msgid "Search plate, object and part."
 msgstr "Pesquisar mesa, objeto e peça."
 
 msgid "Pellets"
-msgstr ""
+msgstr "Pellets"
 
 msgid "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
 msgstr ""
@@ -6555,16 +6555,16 @@ msgid "Choose Download Directory"
 msgstr "Escolha o Diretório de Download"
 
 msgid "Associate"
-msgstr ""
+msgstr "Associar"
 
 msgid "with OrcaSlicer so that Orca can open models from"
 msgstr ""
 
 msgid "Current Association: "
-msgstr ""
+msgstr "Associação Atual:"
 
 msgid "Current Instance"
-msgstr ""
+msgstr "Instância Atual"
 
 msgid "Current Instance Path: "
 msgstr ""
@@ -6777,19 +6777,19 @@ msgid "Associate URLs to OrcaSlicer"
 msgstr "Associar URLs ao OrcaSlicer"
 
 msgid "Load All"
-msgstr ""
+msgstr "Carregar Tudo"
 
 msgid "Ask When Relevant"
-msgstr ""
+msgstr "Perguntar Quando Relevante"
 
 msgid "Always Ask"
-msgstr ""
+msgstr "Perguntar Sempre"
 
 msgid "Load Geometry Only"
-msgstr ""
+msgstr "Carregar Apenas Geometria"
 
 msgid "Load Behaviour"
-msgstr ""
+msgstr "Carregar Comportamento"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7658,68 +7658,72 @@ msgid ""
 "A copy of the current system preset will be created, which will be detached from the "
 "system preset."
 msgstr ""
+"Uma cópia do perfil de sistema atual será criada, que será desanexada da perfil de "
+"sistema."
 
 msgid "The current custom preset will be detached from the parent system preset."
-msgstr ""
+msgstr "O perfil customizado atual será desanexado do perfil de sistema pai."
 
 msgid "Modifications to the current profile will be saved."
-msgstr ""
+msgstr "Modificações ao perfil atual serão salvas."
 
 msgid ""
 "This action is not revertible.\n"
 "Do you want to proceed?"
 msgstr ""
+"Esta ação não é reversível.\n"
+"Você quer prosseguir?"
 
 msgid "Detach preset"
-msgstr ""
+msgstr "Desanexar perfil"
 
 msgid "This is a default preset."
-msgstr ""
+msgstr "Esse é um perfil padrão."
 
 msgid "This is a system preset."
-msgstr ""
+msgstr "Esse é um perfil do sistema."
 
 msgid "Current preset is inherited from the default preset."
-msgstr ""
+msgstr "Perfil atual é herdado do perfil padrão."
 
 msgid "Current preset is inherited from"
-msgstr ""
+msgstr "Perfil atual é herdado de"
 
 msgid "It can't be deleted or modified."
-msgstr ""
+msgstr "Não pode ser excluído ou modificado."
 
 msgid "Any modifications should be saved as a new preset inherited from this one."
-msgstr ""
+msgstr "Qualquer modificação deve ser salva como um novo perfil herdade deste."
 
 msgid "To do that please specify a new name for the preset."
-msgstr ""
+msgstr "Para fazer isso, por favor especifique um novo nome para o perfil."
 
 msgid "Additional information:"
-msgstr ""
+msgstr "Informação adicional:"
 
 msgid "vendor"
-msgstr ""
+msgstr "fornecedor"
 
 msgid "printer model"
-msgstr ""
+msgstr "modelo de impressora"
 
 msgid "default print profile"
-msgstr ""
+msgstr "perfil de impressora padrão"
 
 msgid "default filament profile"
-msgstr ""
+msgstr "perfil de filamento padrão"
 
 msgid "default SLA material profile"
-msgstr ""
+msgstr "perfil de material SLA padrão"
 
 msgid "default SLA print profile"
-msgstr ""
+msgstr "perfil de impressora SLA padrão"
 
 msgid "full profile name"
-msgstr ""
+msgstr "nome completo do perfil"
 
 msgid "symbolic profile name"
-msgstr ""
+msgstr "nome simbólico do perfil"
 
 msgid "Line width"
 msgstr "Largura da linha"
@@ -7818,10 +7822,10 @@ msgid "Notes"
 msgstr "Notas"
 
 msgid "Dependencies"
-msgstr ""
+msgstr "Dependências"
 
 msgid "Profile dependencies"
-msgstr ""
+msgstr "Dependências de perfil"
 
 msgid "Frequent"
 msgstr "Frequente"
@@ -8412,10 +8416,10 @@ msgid "The color count should be in range [%d, %d]."
 msgstr ""
 
 msgid "Recommended "
-msgstr ""
+msgstr "Recomendado "
 
 msgid "Current filament colors:"
-msgstr ""
+msgstr "Cores de filamento atuais:"
 
 msgid "Quick set:"
 msgstr ""
@@ -8427,7 +8431,7 @@ msgid "Approximate color matching."
 msgstr ""
 
 msgid "Append"
-msgstr ""
+msgstr "Adicionar"
 
 msgid "Add consumable extruder after existing extruders."
 msgstr ""
@@ -8436,10 +8440,10 @@ msgid "Reset mapped extruders."
 msgstr ""
 
 msgid "Cluster colors"
-msgstr ""
+msgstr "Agrupar cores"
 
 msgid "Map Filament"
-msgstr ""
+msgstr "Mapear Filamento"
 
 msgid ""
 "Note:The color has been selected, you can choose OK \n"
@@ -8927,22 +8931,22 @@ msgid "Access Code"
 msgstr "Código de Acesso"
 
 msgid "Printer model"
-msgstr ""
+msgstr "Modelo de impressora"
 
 msgid "Printer name"
-msgstr ""
+msgstr "Nome da impressora"
 
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Onde encontrar o IP e o Código de Acesso da sua impressora?"
 
 msgid "Connect"
-msgstr ""
+msgstr "Conectar"
 
 msgid "Manual Setup"
 msgstr ""
 
 msgid "connecting..."
-msgstr ""
+msgstr "conectando..."
 
 msgid "Failed to connect to printer."
 msgstr ""
@@ -10420,7 +10424,7 @@ msgstr ""
 "recurso ativado. No entanto, considere desativá-lo se estiver usando bocais grandes."
 
 msgid "Extra bridge layers (beta)"
-msgstr ""
+msgstr "Camadas extra de ponte (beta)"
 
 msgid ""
 "This option enables the generation of an extra bridge layer over internal and/or "
@@ -10457,16 +10461,16 @@ msgid "Disabled"
 msgstr "Desativado"
 
 msgid "External bridge only"
-msgstr ""
+msgstr "Apenas pontes externas"
 
 msgid "Internal bridge only"
-msgstr ""
+msgstr "Apenas pontes internas"
 
 msgid "Apply to all"
-msgstr ""
+msgstr "Aplicar a todos"
 
 msgid "Filter out small internal bridges"
-msgstr ""
+msgstr "Filtrar pontes internas pequenas"
 
 msgid ""
 "This option can help reduce pillowing on top surfaces in heavily slanted or curved "
@@ -10496,7 +10500,7 @@ msgid ""
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "Filtro"
 
 msgid "Limited filtering"
 msgstr "Filtragem limitada"
@@ -11093,7 +11097,7 @@ msgid ""
 msgstr ""
 
 msgid "Shrinkage (XY)"
-msgstr ""
+msgstr "Encolhimento (XY)"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -11110,7 +11114,7 @@ msgstr ""
 "feita após as verificações."
 
 msgid "Shrinkage (Z)"
-msgstr ""
+msgstr "Encolhimento (Z)"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -11608,7 +11612,7 @@ msgstr ""
 "máxima permitida na camada \"close_fan_the_first_x_layers\" + 1."
 
 msgid "layer"
-msgstr ""
+msgstr "camada"
 
 msgid "Support interface fan speed"
 msgstr "Velocidade do ventilador de interface de suporte"
@@ -11689,16 +11693,16 @@ msgid "Classic"
 msgstr "Clássico"
 
 msgid "Perlin"
-msgstr ""
+msgstr "Perlin"
 
 msgid "Billow"
-msgstr ""
+msgstr "Billow"
 
 msgid "Ridged Multifractal"
 msgstr ""
 
 msgid "Voronoi"
-msgstr ""
+msgstr "Voronoi"
 
 msgid "Fuzzy skin feature size"
 msgstr ""
@@ -12689,10 +12693,10 @@ msgstr ""
 "ambiente."
 
 msgid "Printer type"
-msgstr ""
+msgstr "Tipo de impressora"
 
 msgid "Type of the printer"
-msgstr ""
+msgstr "Tipo da impressora"
 
 msgid "Printer notes"
 msgstr "Notas da impressora"
@@ -12701,7 +12705,7 @@ msgid "You can put your notes regarding the printer here."
 msgstr "Você pode inserir suas observações sobre a impressora aqui."
 
 msgid "Printer variant"
-msgstr ""
+msgstr "Variante da impressora"
 
 msgid "Raft contact Z distance"
 msgstr "Distância (Z) de contato da Jangada"
@@ -12810,7 +12814,7 @@ msgstr ""
 "mudança de filamento"
 
 msgid "Z-hop height"
-msgstr ""
+msgstr "Altura de Z-hop"
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create clearance "
@@ -12842,7 +12846,7 @@ msgstr ""
 "parâmetro: \"Limite inferior do Z hop\" e abaixo deste valor"
 
 msgid "Z-hop type"
-msgstr ""
+msgstr "Tipo de Z-hop"
 
 msgid "Z hop type"
 msgstr "Tipo de Z hop"
@@ -13211,16 +13215,18 @@ msgid "Enabled"
 msgstr "Ativado"
 
 msgid "Skirt type"
-msgstr ""
+msgstr "Tipo de saia"
 
 msgid "Combined - single skirt for all objects, Per object - individual object skirt."
 msgstr ""
+"Combinado - saia única para todos os objetos, Por objeto - saias individuais por "
+"objeto"
 
 msgid "Combined"
-msgstr ""
+msgstr "Combinado"
 
 msgid "Per object"
-msgstr ""
+msgstr "Por objeto"
 
 msgid "Skirt loops"
 msgstr "Voltas da saia"
@@ -15431,7 +15437,7 @@ msgid "PETG"
 msgstr "PETG"
 
 msgid "PCTG"
-msgstr ""
+msgstr "PCTG"
 
 msgid "TPU"
 msgstr "TPU"
@@ -16643,7 +16649,7 @@ msgid "Could not connect to SimplyPrint"
 msgstr "Não é possível conectar a SimplyPrint"
 
 msgid "Internal error"
-msgstr ""
+msgstr "Erro interno"
 
 msgid "Unknown error"
 msgstr "Erro desconhecido"
