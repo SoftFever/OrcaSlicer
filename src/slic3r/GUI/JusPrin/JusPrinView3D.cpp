@@ -17,7 +17,7 @@ namespace GUI {
 
 JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL | wxBORDER_NONE)
-{   
+{
 #ifdef __APPLE__
     SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     SetBackgroundColour(wxColour(0, 0, 0, 0));
@@ -71,13 +71,9 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
-        // Show border only on hover
-        if (m_isHovered) {
-            gc->SetPen(wxPen(*wxBLUE, 1));
-        } else {
-            gc->SetPen(wxPen(wxColour(0, 0, 0, 0))); // Transparent pen
-        }
-        gc->DrawRoundedRectangle(4, 4, width-8, height-8, radius);
+        wxColour borderColor = !m_isHovered ? wxColour(0, 0, 0, 0) : *wxBLUE;
+        gc->SetPen(wxPen(borderColor, 1));
+        gc->DrawRoundedRectangle(3, 3, width-6, height-6, radius)
 #else
         // Draw drop shadows with offset
         // First shadow (larger, more diffuse)
@@ -90,7 +86,7 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
-        wxColour borderColor = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
+        wxColour borderColor = !m_isHovered ? wxColour(0, 0, 0, 0) : *wxBLUE;
         gc->SetPen(wxPen(borderColor, 1));
         gc->DrawRectangle(3, 3, width-6, height-6);
 
@@ -238,7 +234,7 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
         m_icon_text_right->SetPosition({icon_x+18, icon_y+2});
         m_icon_text_left->Raise();
         m_icon_text_right->Raise();
-        
+
     }
 }
 
