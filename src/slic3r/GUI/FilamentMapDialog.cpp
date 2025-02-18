@@ -48,6 +48,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     bool sync_plate = true;
 
     std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
+    std::vector<std::string> filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
     FilamentMapMode applied_mode = get_applied_map_mode(full_config, plater_ref,partplate_ref, sync_plate);
     std::vector<int> applied_maps = get_applied_map(full_config, plater_ref, partplate_ref, sync_plate);
     applied_maps.resize(filament_colors.size(), 1);
@@ -66,6 +67,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
 
     FilamentMapDialog map_dlg(plater_ref,
         filament_colors,
+        filament_types,
         applied_maps,
         filament_lists,
         applied_mode,
@@ -127,13 +129,14 @@ static const StateColor btn_text_white(std::pair<wxColour, int>(wxColour(38, 46,
 
 FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      const std::vector<std::string> &filament_color,
+                                     const std::vector<std::string> &filament_type,
                                      const std::vector<int>         &filament_map,
                                      const std::vector<int>         &filaments,
                                      const FilamentMapMode           mode,
                                      bool                            machine_synced,
                                      bool                            show_default,
                                      bool                            with_checkbox)
-    : wxDialog(parent, wxID_ANY, _L("Filament grouping"), wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE), m_filament_color(filament_color), m_filament_map(filament_map)
+    : wxDialog(parent, wxID_ANY, _L("Filament grouping"), wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE), m_filament_color(filament_color), m_filament_type(filament_type), m_filament_map(filament_map)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -175,7 +178,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
         mode == fmmAutoForMatch && !machine_synced ? fmmAutoForFlush :
         mode;
 
-    m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, filaments, filament_map);
+    m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, filament_map);
     m_auto_map_panel                  = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced);
     if (show_default)
         m_default_map_panel = new FilamentMapDefaultPanel(this);

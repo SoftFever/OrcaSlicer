@@ -4519,7 +4519,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
                     filament_group_item_align_width = max(filament_group_item_align_width, text_size.x);
                     text_line_height = max(text_line_height, text_size.y);
                 }
-                container_height += (three_words_width * 1.5f + text_line_height );
+                container_height += (three_words_width * 1.2f + text_line_height );
             }
             container_height += 2 * line_height;
             ams_item_height = std::max(ams_item_height, container_height);

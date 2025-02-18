@@ -40,6 +40,7 @@ class FilamentMapDialog : public wxDialog
 public:
     FilamentMapDialog(wxWindow *parent,
         const std::vector<std::string>& filament_color,
+        const std::vector<std::string>& filament_type,
         const std::vector<int> &filament_map,
         const std::vector<int> &filaments,
         const FilamentMapMode mode,
@@ -83,6 +84,7 @@ private:
 private:
     std::vector<int> m_filament_map;
     std::vector<std::string> m_filament_color;
+    std::vector<std::string> m_filament_type;
 };
 
 }} // namespace Slic3r::GUI

@@ -18,9 +18,10 @@ static const wxColour TextDisableColor = wxColour("#CECECE");
 
 FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *parent,
                                                const std::vector<std::string> &color,
+                                               const std::vector<std::string> &type,
                                                const std::vector<int>         &filament_list,
                                                const std::vector<int>         &filament_map)
-    : wxPanel(parent), m_filament_map(filament_map), m_filament_color(color), m_filament_list(filament_list)
+    : wxPanel(parent), m_filament_map(filament_map), m_filament_color(color), m_filament_type(type), m_filament_list(filament_list)
 {
     SetBackgroundColour(BgNormalColor);
 
@@ -40,15 +41,16 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
         auto iter = std::find(m_filament_list.begin(), m_filament_list.end(), idx + 1);
         if (iter == m_filament_list.end()) continue;
         wxColor color = Hex2Color(m_filament_color[idx]);
+        std::string type = m_filament_type[idx];
         if (m_filament_map[idx] == 1) {
-            m_left_panel->AddColorBlock(color, idx + 1);
+            m_left_panel->AddColorBlock(color, type, idx + 1);
         } else {
             assert(m_filament_map[idx] == 2);
-            m_right_panel->AddColorBlock(color, idx + 1);
+            m_right_panel->AddColorBlock(color, type, idx + 1);
         }
     }
-    m_left_panel->SetMinSize({ FromDIP(220),-1 });
-    m_right_panel->SetMinSize({ FromDIP(220),-1 });
+    m_left_panel->SetMinSize({ FromDIP(260),-1 });
+    m_right_panel->SetMinSize({ FromDIP(260),-1 });
 
     drag_sizer->AddStretchSpacer();
     drag_sizer->Add(m_left_panel, 1, wxALIGN_CENTER | wxEXPAND);
@@ -80,12 +82,12 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     auto right_blocks = m_right_panel->get_filament_blocks();
 
     for (auto &block : left_blocks) {
-        m_right_panel->AddColorBlock(block->GetColor(), block->GetFilamentId(), false);
+        m_right_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
         m_left_panel->RemoveColorBlock(block, false);
     }
 
     for (auto &block : right_blocks) {
-        m_left_panel->AddColorBlock(block->GetColor(), block->GetFilamentId(), false);
+        m_left_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
         m_right_panel->RemoveColorBlock(block, false);
     }
     this->GetParent()->Layout();

@@ -11,7 +11,7 @@ namespace Slic3r { namespace GUI {
 class FilamentMapManualPanel : public wxPanel
 {
 public:
-    FilamentMapManualPanel(wxWindow *parent, const std::vector<std::string> &color, const std::vector<int> &filament_list, const std::vector<int> &filament_map);
+    FilamentMapManualPanel(wxWindow *parent, const std::vector<std::string> &color, const std::vector<std::string> &type, const std::vector<int> &filament_list, const std::vector<int> &filament_map);
 
     std::vector<int> GetFilamentMaps() const { return m_filament_map; }
     std::vector<int> GetLeftFilaments() const { return m_left_panel->GetAllFilaments(); }
@@ -33,6 +33,7 @@ private:
     std::vector<int>         m_filament_map;
     std::vector<int>         m_filament_list;
     std::vector<std::string> m_filament_color;
+    std::vector<std::string> m_filament_type;
 };
 
 class FilamentMapBtnPanel : public wxPanel
