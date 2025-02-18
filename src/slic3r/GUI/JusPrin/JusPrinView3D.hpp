@@ -12,6 +12,23 @@ class wxSizeEvent;
 namespace Slic3r {
 namespace GUI {
 
+// Move CircularBadge class definition to header
+class CircularBadge : public wxPanel {
+public:
+    CircularBadge(wxWindow* parent, const wxString& text, const wxColour& bgColor)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(16, 16))
+    {
+        m_text = text;
+        m_bgColor = bgColor;
+        Bind(wxEVT_PAINT, &CircularBadge::OnPaint, this);
+    }
+
+private:
+    void OnPaint(wxPaintEvent&);  // Declaration only, implementation stays in cpp
+
+    wxString m_text;
+    wxColour m_bgColor;
+};
 
 class JustPrinButton : public wxPanel
 {
@@ -32,7 +49,6 @@ private:
     std::function<void(wxMouseEvent&)> m_do{nullptr};
 };
 
-
 class JusPrinView3D : public View3D {
 public:
     JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
@@ -46,8 +62,8 @@ private:
     JusPrinChatPanel* m_chat_panel{nullptr};
     JustPrinButton*   m_overlay_btn{nullptr};
     wxStaticBitmap*   m_icon_image{nullptr};
-    wxStaticText*     m_icon_text_left{nullptr};
-    wxStaticText*     m_icon_text_right{nullptr};
+    CircularBadge*    m_icon_text_left{nullptr};
+    CircularBadge*    m_icon_text_right{nullptr};
 
     void init_overlay();
 };
