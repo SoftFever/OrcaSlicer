@@ -67,8 +67,12 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
-        wxColour borderColor = !m_isHovered ? wxColour(125, 125, 125) : *wxBLUE;
-        gc->SetPen(wxPen(borderColor, 1));
+        // Show border only on hover
+        if (m_isHovered) {
+            gc->SetPen(wxPen(*wxBLUE, 1));
+        } else {
+            gc->SetPen(wxPen(wxColour(0, 0, 0, 0))); // Transparent pen
+        }
         gc->DrawRoundedRectangle(4, 4, width-8, height-8, radius);
 
         delete gc;
