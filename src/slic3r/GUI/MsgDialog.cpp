@@ -220,7 +220,13 @@ void MsgDialog::finalize()
 
 
 // Text shown as HTML, so that mouse selection and Ctrl-V to copy will work.
-static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxString msg, bool monospaced_font = false, bool is_marked_msg = false)
+static void add_msg_content(wxWindow   *parent,
+                            wxBoxSizer *content_sizer,
+                            wxString    msg,
+                            bool        monospaced_font = false,
+                            bool        is_marked_msg   = false,
+                            const wxString &link_text = "",
+                            std::function<void(const wxString &)> link_callback = nullptr)
 {
     wxHtmlWindow* html = new wxHtmlWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     html->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -302,9 +308,19 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     if (monospaced_font)
         // Code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
+
+    if (!link_text.IsEmpty() && link_callback) {
+        msg_escaped += "<span><a href=\"#\" style=\"color:rgb(8, 153, 46); text-decoration:underline;\">" + std::string(link_text.ToUTF8().data()) + "</a></span>";
+    }
+
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
     content_sizer->Add(html, 1, wxEXPAND|wxRIGHT, 8);
     wxGetApp().UpdateDarkUIWin(html);
+
+    html->Bind(wxEVT_HTML_LINK_CLICKED, [=](wxHtmlLinkEvent& event) {
+        if (link_callback)
+            link_callback(event.GetLinkInfo().GetHref());
+    });
 }
 
 // ErrorDialog
@@ -344,10 +360,12 @@ MessageDialog::MessageDialog(wxWindow* parent,
     const wxString& message,
     const wxString& caption/* = wxEmptyString*/,
     long style /* = wxOK*/,
-    const wxString &forward_str /* = wxEmptyString*/)
+    const wxString &forward_str /* = wxEmptyString*/,
+    const wxString &link_text   /* = wxEmptyString*/,
+    std::function<void(const wxString &)> link_callback /* = nullptr*/)
     : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_FULL_NAME) : caption, wxEmptyString, style, wxBitmap(),forward_str)
 {
-    add_msg_content(this, content_sizer, message);
+    add_msg_content(this, content_sizer, message, false, false, link_text, link_callback);
     SetMaxSize(MSG_DLG_MAX_SIZE);
     finalize();
 }

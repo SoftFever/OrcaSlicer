@@ -1058,6 +1058,9 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
 //BBS: this function is used to check whether multi filament can be printed
 StringObjectException Print::check_multi_filament_valid(const Print& print)
 {
+    if (!print.need_check_multi_filaments_compatibility())
+        return {std::string()};
+
     auto print_config = print.config();
     std::vector<unsigned int> extruders = print.extruders();
     std::vector<std::string> filament_types;

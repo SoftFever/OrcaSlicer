@@ -305,6 +305,10 @@ void AppConfig::set_defaults()
         set_bool("remember_printer_config", true);
     }
 
+    if (get("enable_high_low_temp_mixed_printing").empty()){
+        set_bool("enable_high_low_temp_mixed_printing", false);
+    }
+
     if (get("auto_calculate_when_filament_change").empty()){
         set_bool("auto_calculate_when_filament_change", true);
     }

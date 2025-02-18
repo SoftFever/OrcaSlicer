@@ -155,7 +155,13 @@ class MessageDialog : public MsgDialog
 {
 public:
 	// NOTE! Don't change a signature of contsrucor. It have to  be tha same as for wxMessageDialog
-	MessageDialog(wxWindow *parent,const wxString& message, const wxString &caption = wxEmptyString, long style = wxOK,const wxString& forward_str = "");
+    MessageDialog(wxWindow       *parent,
+                  const wxString &message,
+                  const wxString &caption     = wxEmptyString,
+                  long            style       = wxOK,
+                  const wxString &forward_str = "",
+                  const wxString &link_text   = "",
+                  std::function<void(const wxString &)> link_callback = nullptr);
 	MessageDialog(MessageDialog&&) = delete;
 	MessageDialog(const MessageDialog&) = delete;
 	MessageDialog &operator=(MessageDialog&&) = delete;

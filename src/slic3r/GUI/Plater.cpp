@@ -6670,6 +6670,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
     }
 
+    background_process.fff_print()->set_check_multi_filaments_compatibility(wxGetApp().app_config->get("enable_high_low_temp_mixed_printing") == "false");
+
     Print::ApplyStatus invalidated;
     const auto& preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle->get_printer_extruder_count() > 1) {
@@ -15894,6 +15896,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
         StringObjectException warning;
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
+        p->background_process.fff_print()->set_check_multi_filaments_compatibility(wxGetApp().app_config->get("enable_high_low_temp_mixed_printing") == "false");
         StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
         // update string by type
         post_process_string_object_exception(err);

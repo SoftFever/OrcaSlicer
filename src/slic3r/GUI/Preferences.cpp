@@ -829,6 +829,25 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "enable_high_low_temp_mixed_printing") {
+            if (checkbox->GetValue()) {
+                MessageDialog msg_wingow(nullptr, _L("Printing with multiple filaments that have a large temperature difference can cause the extruder and nozzle to be blocked or dameged during printing.\nPlease enable with caution."),
+                    _L("Warning"), wxICON_WARNING | wxYES | wxYES_DEFAULT | wxCANCEL | wxCENTRE, wxEmptyString,
+                    _L("Click Wiki for help."), [](const wxString){
+                        std::string language = wxGetApp().app_config->get("language");
+                        wxString    region   = L"en";
+                        if (language.find("zh") == 0) region = L"zh";
+                        const wxString wiki_link = wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit", region);
+                        wxGetApp().open_browser_with_warning_dialog(wiki_link);
+                    });
+                if (msg_wingow.ShowModal() != wxID_YES) {
+                    checkbox->SetValue(false);
+                    app_config->set_bool(param, false);
+                    app_config->save();
+                }
+            }
+        }
+
         e.Skip();
     });
 
@@ -1212,6 +1231,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), 50, "remember_printer_config");
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management (Take effect after restarting Orca Slicer)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
+    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on high and low temperature mixed printing."), page, _L("With this option enabled, you can print materials with different chamber temperatures together."), 50, "enable_high_low_temp_mixed_printing");
     auto item_auto_arrange  = create_item_checkbox(_L("Auto arrange plate after cloning"), page, _L("Auto arrange plate after object cloning"), 50, "auto_arrange");
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto title_network = create_item_title(_L("Network"), page, _L("Network"));
@@ -1304,6 +1324,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_arrange, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
