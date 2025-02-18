@@ -132,6 +132,32 @@ void JustPrinButton::OnMouseMove(wxMouseEvent& event) {
      wxPanel::DoSetSize(x, y, width, height, sizeFlags);
  }
 
+// Implement the OnPaint method
+void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
+    wxPaintDC dc(this);
+    wxSize size = GetClientSize();
+
+    // Create graphics context for anti-aliased drawing
+    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+    if (gc) {
+        // Draw circular background
+        gc->SetBrush(wxBrush(m_bgColor));
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->DrawEllipse(0, 0, size.GetWidth(), size.GetHeight());
+
+        // Draw text
+        gc->SetFont(GetFont(), *wxBLACK);
+        double textWidth, textHeight;
+        gc->GetTextExtent(m_text, &textWidth, &textHeight);
+
+        double x = (size.GetWidth() - textWidth) / 2;
+        double y = (size.GetHeight() - textHeight) / 2;
+        gc->DrawText(m_text, x, y);
+
+        delete gc;
+    }
+}
+
 JusPrinView3D::JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : View3D(parent, bed, model, config, process)
 {
@@ -180,19 +206,9 @@ void JusPrinView3D::init_overlay()
 
     wxString    two_circle_path = from_u8((boost::filesystem::path(resources_dir()) /"images/two_circle.png").make_preferred().string());
     wxImage icon_img(two_circle_path);
-    m_icon_image      = new wxStaticBitmap(this, wxID_ANY, wxBITMAP(icon_img));
-    m_icon_text_left = new wxStaticText(this, wxID_ANY, "1");
-    m_icon_text_right = new wxStaticText(this, wxID_ANY, "1");
-    wxFont font = m_icon_text_left->GetFont();
-    font.SetPointSize(12); // 设置字体大小为24
-    m_icon_text_left->SetFont(font);
-    m_icon_text_right->SetFont(font);
-    m_icon_text_left->SetMaxSize(wxSize(9, 12));
-    m_icon_text_right->SetMaxSize(wxSize(9, 12));
-    m_icon_text_left->SetForegroundColour(wxColour(*wxBLACK));
-    m_icon_text_right->SetForegroundColour(wxColour(*wxBLACK));
-    m_icon_text_left->SetBackgroundColour(wxColour("#F7C645"));
-    m_icon_text_right->SetBackgroundColour(wxColour("#EA3426"));
+    m_icon_image      = new wxStaticBitmap(this, wxID_ANY, wxBitmap(icon_img));
+    m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
+    m_icon_text_right = new CircularBadge(this, "1", wxColour("#EA3426"));
 
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
 
