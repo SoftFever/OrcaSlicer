@@ -274,6 +274,7 @@ public:
     }
     std::string   id;
     int           humidity = 5;
+    int           humidity_raw = -1;// the percentage, -1 means invalid. eg. 100 means 100%
     bool          startup_read_opt{true};
     bool          tray_read_opt{false};
     bool          is_exists{false};
@@ -538,7 +539,6 @@ public:
     bool  ams_auto_switch_filament_flag  { false };
     bool  ams_air_print_status { false };
     bool  ams_support_virtual_tray { true };
-    int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;

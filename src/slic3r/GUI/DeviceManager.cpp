@@ -590,7 +590,6 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     ams_insert_flag = false;
     ams_power_on_flag = false;
     ams_calibrate_remain_flag = false;
-    ams_humidity = 5;
 
     /* signals */
     wifi_signal = "";
@@ -3961,16 +3960,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 }
                                 if (jj["ams"].contains("ams_rfid_status"))
                                     ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();
-                                if (jj["ams"].contains("humidity")) {
-                                    if (jj["ams"]["humidity"].is_string()) {
-                                        std::string humidity_str = jj["ams"]["humidity"].get<std::string>();
-                                        try {
-                                            ams_humidity = atoi(humidity_str.c_str());
-                                        } catch (...) {
-                                            ;
-                                        }
-                                    }
-                                }
 
                                 if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")
                                     || jj["ams"].contains("calibrate_remain_flag")) {
@@ -4053,7 +4042,17 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                             ;
                                         }
                                     }
-                                
+
+                                    if (it->contains("humidity_raw"))
+                                    {
+                                        std::string humidity_raw = (*it)["humidity_raw"].get<std::string>();
+
+                                        try {
+                                            curr_ams->humidity_raw = atoi(humidity_raw.c_str());
+                                        } catch (...) {
+                                            ;
+                                        }
+                                    }
 
                                     if (it->contains("tray")) {
                                         std::set<std::string> tray_id_set;

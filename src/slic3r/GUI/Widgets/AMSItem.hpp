@@ -159,6 +159,7 @@ public:
     AMSAction               current_action;
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
+    int                     humidity_raw = -1;
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
 };
@@ -390,8 +391,11 @@ public:
     wxColour                     m_road_color;
     void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
 
-    std::vector<ScalableBitmap> ams_humidity_img;
+    std::vector<ScalableBitmap> ams_humidity_imgs;
+    std::vector<ScalableBitmap> ams_humidity_dark_imgs;
 
+    std::vector<ScalableBitmap> ams_humidity_no_num_imgs;
+    std::vector<ScalableBitmap> ams_humidity_no_num_dark_imgs;
    
     int      m_humidity = { 0 };
     bool     m_show_humidity = { false };
@@ -406,7 +410,8 @@ public:
 
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
-    void doRender(wxDC &dc);
+    void doRender(wxDC& dc);
+    void msw_rescale();
 };
 
 /*************************************************

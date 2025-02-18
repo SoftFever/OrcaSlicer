@@ -44,12 +44,14 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     if (humidity_flag) {
         this->ams_humidity = ams->humidity;
     }
-    else {
+    else{
         this->ams_humidity = -1;
     }
-    
+
+    this->humidity_raw = ams->humidity_raw;
+
     cans.clear();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < ams->trayList.size(); i++) {
         auto    it = ams->trayList.find(std::to_string(i));
         Caninfo info;
         // tray is exists
@@ -74,7 +76,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 } else {
                     info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
                 }
-     
+
                 if (!MachineObject::is_bbl_filament(it->second->tag_uid) || !remain_flag) {
                     info.material_remain = 100;
                 } else {
@@ -1402,13 +1404,11 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_NONE_ANY_ROAD;
     }
 
-    for (int i = 1; i <= 5; i++) {
-        ams_humidity_img.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_light", 32));
-    }
+    for (int i = 1; i <= 5; i++) { ams_humidity_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_light", 32));}
+    for (int i = 1; i <= 5; i++) { ams_humidity_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 32));}
+    for (int i = 1; i <= 5; i++) { ams_humidity_no_num_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_light", 16)); }
+    for (int i = 1; i <= 5; i++) { ams_humidity_no_num_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_dark", 16)); }
 
-    for (int i = 1; i <= 5; i++) {
-        ams_humidity_img.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 32));
-    }
     if (m_rode_mode != AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
         create(parent, id, pos, size);
     }
@@ -1588,15 +1588,52 @@ void AMSRoad::doRender(wxDC &dc)
         if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {m_show_humidity = true;}
         else {m_show_humidity = false;}
 
-        if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {
+        if (m_show_humidity) {
+            wxPoint pot;
+            if (m_amsinfo.humidity_raw != -1) /*image with no number + percentage*/
+            {
+                // hum image
+                ScalableBitmap hum_img;
+                if (!wxGetApp().dark_mode()) {
+                    hum_img = ams_humidity_no_num_imgs[m_amsinfo.ams_humidity - 1];
+                } else {
+                    hum_img = ams_humidity_no_num_dark_imgs[m_amsinfo.ams_humidity - 1];
+                }
 
-            int hum_index = m_amsinfo.ams_humidity - 1;
-            if (wxGetApp().dark_mode()) {
-                hum_index += 5;
+                pot = wxPoint(FromDIP(5), size.y - hum_img.GetBmpSize().y - FromDIP(8));
+                dc.DrawBitmap(hum_img.bmp(), pot);
+
+                // percentage
+                wxString hum_percentage(std::to_string(m_amsinfo.humidity_raw));
+                auto     tsize = dc.GetMultiLineTextExtent(hum_percentage);
+                dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                dc.SetFont(Label::Body_14);
+                dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_BLACK_COLOUR));
+                // pot = wxPoint(FromDIP(size.x * 0.3), FromDIP((size.y - tsize.y) / 2));
+                pot.x = pot.x + hum_img.GetBmpSize().x + FromDIP(3);
+                dc.DrawText(hum_percentage, pot);
+
+                pot.x += (tsize.x + FromDIP(5));
+                dc.SetFont(Label::Body_12);
+                tsize = dc.GetMultiLineTextExtent(_L("%"));
+                pot.y += (tsize.y / 2 - FromDIP(4));
+                dc.DrawText(_L("%"), pot);
+
+                pot.x = pot.x + tsize.x + FromDIP(2);
             }
+            else /*image with number*/
+            {
+                // hum image
+                ScalableBitmap hum_img;
+                if (!wxGetApp().dark_mode()) {
+                    hum_img = ams_humidity_imgs[m_amsinfo.ams_humidity - 1];
+                } else {
+                    hum_img = ams_humidity_dark_imgs[m_amsinfo.ams_humidity - 1];
+                }
 
-            if (hum_index >= 0) {
-                dc.DrawBitmap(ams_humidity_img[hum_index].bmp(), wxPoint(size.x - FromDIP(33), size.y - FromDIP(33)));
+                pot = wxPoint(size.x - FromDIP(33), size.y - FromDIP(33));
+                dc.DrawBitmap(hum_img.bmp(), pot);
+                pot.x = pot.x + hum_img.GetBmpSize().x + FromDIP(3);
             }
         }
         else {
@@ -1656,6 +1693,14 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
             }
         }
     }
+}
+
+void AMSRoad::msw_rescale()
+{
+    for (auto& img : ams_humidity_imgs) { img.msw_rescale();}
+    for (auto& img : ams_humidity_dark_imgs) { img.msw_rescale(); }
+    for (auto &img : ams_humidity_no_num_imgs) { img.msw_rescale(); }
+    for (auto &img : ams_humidity_no_num_dark_imgs) { img.msw_rescale(); }
 }
 
 
@@ -2190,6 +2235,11 @@ void AmsCans::msw_rescale()
     for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
         CanLibs* lib = m_can_lib_list[i];
         lib->canLib->msw_rescale();
+    }
+
+    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+        CanRoads* road = m_can_road_list[i];
+        road->canRoad->msw_rescale();
     }
 }
 
