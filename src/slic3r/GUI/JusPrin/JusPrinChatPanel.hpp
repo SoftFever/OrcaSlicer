@@ -39,10 +39,7 @@ public:
     void UpdateOAuthAccessToken();
     void RefreshPlaterStatus();
 
-
-    static nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
-    static nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items);
-    static nlohmann::json GetAllModelObjectsJson();
+    void AdvertiseSupportedAction();
 
 private:
     void load_url();
@@ -85,8 +82,6 @@ private:
     void handle_refresh_oauth_token(const nlohmann::json& params);
 
     void OnActionCallReceived(wxWebViewEvent& event);
-
-    void AdvertiseSupportedAction();
 
     wxWebView* m_browser;
     long     m_zoomFactor;

@@ -107,14 +107,14 @@ void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
     j["type"] = "autoOrient";
     j["data"] = nlohmann::json::object();
     j["data"]["status"] = canceled ? "canceled" : "completed";
-    j["data"]["modelObjects"] = GetAllModelObjectsJson();
+    j["data"]["modelObjects"] = JusPrinPlateUtils::GetAllModelObjectsJson();
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
 void JusPrinChatPanel::SendModelObjectsChangedEvent() {
     nlohmann::json j = nlohmann::json::object();
     j["type"] = "modelObjectsChanged";
-    j["data"] = GetAllModelObjectsJson();
+    j["data"] = JusPrinPlateUtils::GetAllModelObjectsJson();
 
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
@@ -395,64 +395,6 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
     WebView::RunScript(m_browser, script);
 }
 
-nlohmann::json JusPrinChatPanel::CostItemsToJson(const Slic3r::orientation::CostItems& cost_items) {
-    nlohmann::json j;
-    j["overhang"] = cost_items.overhang;
-    j["bottom"] = cost_items.bottom;
-    j["bottom_hull"] = cost_items.bottom_hull;
-    j["contour"] = cost_items.contour;
-    j["area_laf"] = cost_items.area_laf;
-    j["area_projected"] = cost_items.area_projected;
-    j["volume"] = cost_items.volume;
-    j["area_total"] = cost_items.area_total;
-    j["radius"] = cost_items.radius;
-    j["height_to_bottom_hull_ratio"] = cost_items.height_to_bottom_hull_ratio;
-    j["unprintability"] = cost_items.unprintability;
-    return j;
-}
-
-nlohmann::json JusPrinChatPanel::GetModelObjectFeaturesJson(const ModelObject* obj) {
-    if (!obj || obj->instances.size() != 1) {
-        std::string error_message = "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
-        wxGetApp().sidebar().jusprin_chat_panel()->SendNativeErrorOccurredEvent(error_message);
-        BOOST_LOG_TRIVIAL(error) << error_message;
-        return nlohmann::json::object();
-    }
-
-    Slic3r::orientation::OrientMesh om = OrientJob::get_orient_mesh(obj->instances[0]);
-    Slic3r::orientation::OrientParams params;
-    params.min_volume = false;
-
-    Slic3r::orientation::AutoOrienterDelegate orienter(&om, params, {}, {});
-    Slic3r::orientation::CostItems features = orienter.get_features(om.orientation.cast<float>(), true);
-    return CostItemsToJson(features);
-}
-
-nlohmann::json JusPrinChatPanel::GetAllModelObjectsJson() {
-    nlohmann::json j = nlohmann::json::array();
-    Plater* plater = wxGetApp().plater();
-
-    for (const ModelObject* object : plater->model().objects) {
-        auto object_grid_config = &(object->config);
-
-        nlohmann::json obj;
-        obj["id"] = std::to_string(object->id().id);
-        obj["name"] = object->name;
-        obj["features"] = GetModelObjectFeaturesJson(object);
-
-        int extruder_id = -1;  // Default extruder ID
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            extruder_id = *extruder_id_ptr;
-        }
-        obj["extruderId"] = extruder_id;
-
-        j.push_back(obj);
-    }
-
-    return j;
-}
-
 void JusPrinChatPanel::OnPaint(wxPaintEvent& event){
     wxAutoBufferedPaintDC dc(this);
     dc.Clear();
@@ -471,7 +413,7 @@ void JusPrinChatPanel::OnPaint(wxPaintEvent& event){
         // Clear the background with the transparent brush
         gc->DrawRectangle(0, 0, width, height);
         // Draw rounded rectangle
-        gc->SetBrush(wxBrush(*wxWHITE)); // 
+        gc->SetBrush(wxBrush(*wxWHITE)); //
         wxColour co =  wxColour(125, 125, 125);
         gc->SetPen(wxPen(co, 1)); // Black border
         gc->DrawRoundedRectangle(0, 0, width, height, radius);
