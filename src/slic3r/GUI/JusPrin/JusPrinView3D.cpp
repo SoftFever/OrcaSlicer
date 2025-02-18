@@ -135,12 +135,16 @@ void JustPrinButton::OnMouseMove(wxMouseEvent& event) {
 // Implement the OnPaint method
 void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
     wxPaintDC dc(this);
+    dc.SetBackgroundMode(wxTRANSPARENT);  // Enable transparency
+
     wxSize size = GetClientSize();
 
-    // Create graphics context for anti-aliased drawing
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
-        // Draw circular background
+        // Enable alpha channel
+        gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+
+        // Draw circular background with slight alpha for better blending
         gc->SetBrush(wxBrush(m_bgColor));
         gc->SetPen(*wxTRANSPARENT_PEN);
         gc->DrawEllipse(0, 0, size.GetWidth(), size.GetHeight());
@@ -232,7 +236,7 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
         );
         m_chat_panel->Raise();
 
-        // Resize and reposition image
+        // Resize and reposition overlay button
         int image_height = 38+8;
         int image_width = 238+8;
         m_overlay_btn->SetSize(
@@ -241,16 +245,21 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
             image_width,
             image_height
         );
-        m_overlay_btn->Raise();
-        int icon_x = (size.GetWidth() - image_width) / 2 +210;
+
+        // Position badges relative to button
+        int icon_x = (size.GetWidth() - image_width) / 2 + 210;
         int icon_y = chat_height - 50 - 5;
-        m_icon_image->SetPosition({icon_x, icon_y}	);
-        m_icon_image->Raise();
+
+        // Update icon and badge positions
+        m_icon_image->SetPosition({icon_x, icon_y});
         m_icon_text_left->SetPosition({icon_x+3, icon_y+2});
         m_icon_text_right->SetPosition({icon_x+18, icon_y+2});
+
+        // Ensure proper z-order
+        m_overlay_btn->Raise();
+        m_icon_image->Raise();
         m_icon_text_left->Raise();
         m_icon_text_right->Raise();
-
     }
 }
 
