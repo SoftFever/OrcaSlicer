@@ -294,6 +294,7 @@ void JusPrinPlateUtils::RenderThumbnail(ThumbnailData& thumbnail_data,
 nlohmann::json JusPrinPlateUtils::GetPlates(const nlohmann::json& params) {
     nlohmann::json j = nlohmann::json::array();
 
+    Plater* plater = wxGetApp().plater();  // Get plater instance
     for (const auto& plate : plater->get_partplate_list().get_plate_list()) {
         nlohmann::json plate_info;
         plate_info["name"] = plate->get_plate_name();
