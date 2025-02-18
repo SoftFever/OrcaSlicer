@@ -886,6 +886,7 @@ void SelectMachineDialog::init_bind()
             m_print_plate_idx--;
             update_page_turn_state(true);
             set_default_from_sdcard();
+            Layout();
         }
     });
 
@@ -894,6 +895,7 @@ void SelectMachineDialog::init_bind()
             m_print_plate_idx++;
             update_page_turn_state(true);
             set_default_from_sdcard();
+            Layout();
         }
     });
 }
