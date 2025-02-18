@@ -3010,8 +3010,12 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         }
         for (size_t i = 0; i < sync_ams_badges.size(); i++) {
             if (sync_ams_badges[i] == true) {
-                auto &c = p->combos_filament[i];
-                badge_combox_filament(c);
+                if (i < p->combos_filament.size()) {
+                    auto &c = p->combos_filament[i];
+                    badge_combox_filament(c);
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "check error: p->combos_filament array out of bound";
+                }
             }
         }
     } else {
