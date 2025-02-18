@@ -951,8 +951,15 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
         m_valid_type = NoValid;
     }
 
+    if (m_valid_type == Valid && new_dev_name.length() > 32)
+    {
+        info_line    = _L("The name is not allowed to exceeds 32 characters.");
+        m_valid_type = NoValid;
+    }
+
     if (m_valid_type == NoValid) {
         m_static_valid->SetLabel(info_line);
+        m_static_valid->Wrap(m_static_valid->GetSize().GetWidth());
         Layout();
     }
 
