@@ -1,8 +1,61 @@
 {
     "result": 0,
-    "t": 1739522542,
-    "ver": 202503250214,
+    "t": 1739861606,
+    "ver": 202503250218,
     "data": [
+        {
+            "ecode": "03008021",
+            "image": "",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008048",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500805B",
+            "image": "c77248ef406e975f6daa1df682489654.png",
+            "actions": [
+                22,
+                27
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500807D",
+            "image": "876a5d7dbf4cba916046034817c83349.png",
+            "actions": [
+                22,
+                27
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "05008068",
+            "image": "25c5cfac4fd7542766ec7ddd4ff0debc.png",
+            "actions": [
+                22,
+                27
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "05008064",
+            "image": "5eefa6bcb28ba40e668c3c02fce99c04.png",
+            "actions": [
+                22,
+                27
+            ],
+            "device": "094"
+        },
         {
             "ecode": "05008084",
             "image": "51688cf5b99fa015090a27c56bf326c1.png",
@@ -409,22 +462,6 @@
             "device": "094"
         },
         {
-            "ecode": "0500805B",
-            "image": "c77248ef406e975f6daa1df682489654.png",
-            "actions": [
-                22
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "0500807D",
-            "image": "876a5d7dbf4cba916046034817c83349.png",
-            "actions": [
-                22
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "07FE8013",
             "image": "",
             "actions": [
@@ -715,14 +752,6 @@
             "device": "094"
         },
         {
-            "ecode": "05008068",
-            "image": "25c5cfac4fd7542766ec7ddd4ff0debc.png",
-            "actions": [
-                22
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05008066",
             "image": "957b1e24bcb394ee02661113f7b60f10.png",
             "actions": [
@@ -787,14 +816,6 @@
             "actions": [
                 3,
                 6
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "05008064",
-            "image": "5eefa6bcb28ba40e668c3c02fce99c04.png",
-            "actions": [
-                22
             ],
             "device": "094"
         },

@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522906,
-    "ver": 202503250214,
+    "t": 1739861767,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "pl": [
+                {
+                    "ecode": "03008021",
+                    "intro": "Dysza może być niezamontowana lub zamontowana nieprawidłowo. Upewnij się, że dysza jest prawidłowo zamontowana przed kontynuowaniem."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "Tryb systemu Airflow nie aktywował się; sprawdź stan klapy powietrznej."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "Czas odblokowania modułu lasera wygasł i zadanie nie może być kontynuowane. Proszę zrestartować drukarkę i spróbować ponownie."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Nie udało się rozpocząć nowego zadania: załadunek/rozładunek filamentu nie został zakończony."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "Kamera BirdEye nie jest certyfikowana; urządzenie nie może kontynuować pracy. Proszę używać akcesoriów Bambu Lab."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Błąd ekstrudera filamentu; proszę sprawdzić asystenta w celu rozwiązania problemu. Po rozwiązaniu problemu zdecyduj, czy anulować, czy wznowić zadanie drukowania w zależności od aktualnego statusu druku."
@@ -1775,10 +1795,6 @@
                     "intro": "Wykryto nieznany moduł, spróbuj zaktualizować oprogramowanie do najnowszej wersji."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "Tryb systemu Adaptive Airflow nie został aktywowany; sprawdź stan drzwi powietrznych."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "AMS B jest w trakcie suszenia. Przed załadunkiem/wyładowaniem materiału proszę zatrzymać proces suszenia."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "pl": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "Czułość czujnika siły wytłaczania lewego ekstrudera jest niska; czujnik siły może być zainstalowany niewłaściwie."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Awaria klapy powietrznej przełącznika filtra: może być zablokowana."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "System przepływu powietrza nie włączył trybu chłodzenia; proszę sprawdzić status klapy powietrznej."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "System przepływu powietrza nie włączył trybu grzania; proszę sprawdzić status klapy powietrznej."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Awaria klapy powietrznej automatycznego górnego wentylatora: może być zablokowana."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "System przepływu powietrza nie włączył trybu lasera/ciecia; proszę sprawdzić status klapy powietrznej."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Awaria klapy wydechowej komory aktywnej: może być zablokowana."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "Pomiar grubości nie powiódł się, kamera głowicy roboczej nie była w stanie wykryć powierzchni materiału."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "Wykryto niecertyfikowany AMS-HT E lub oprogramowanie układowe AMS-HT E nie zostało zaktualizowane. Nie można używać tej drukarki."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "Czułość czujnika siły ekstruzji lewego ekstrudera jest niska; czujnik siły może być źle zainstalowany."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "Błąd podawania filamentu do koła ekstrudującego silnika asystującego w AMS-HT B. Może to być spowodowane zablokowaniem w rurce podającej. Proszę sprawdzić, czy rurka podająca i rolka z filamentem są czyste."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Usterka przepustnicy filtra: może być zablokowana."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Usterka czujnika Halla przepustnicy filtra: sprawdź, czy połączenie jest luźne."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "Zbyt wysoka temperatura modułu MC, prawdopodobnie z powodu wysokiej temperatury komory drukarki. Przed użyciem można spróbować obniżyć temperaturę otoczenia."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Usterka wyciągu z komory aktywnej: może być zablokowany."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "Prędkość wentylatora obiegu ciepła komory jest zbyt słaba lub stanęła. Może zostać zablokowany lub wtyczka może być niepoprawnie podłączona."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "Grzałka 1 w AMS B jest odłączona, co może być spowodowane słabym kontaktem złącza."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Usterka automatycznego górnego wlotu powietrza: może być zablokowany."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Nie udało się wycisnąć filamentu rowka 2 AMS C; ekstruder może być zapchany lub filament może być zbyt cienki, co powoduje poślizg ekstrudera."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "System dostosowywania przepływu powietrza nie może aktywować trybu chłodzenia; sprawdź stan drzwi powietrznych."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "System dostosowywania przepływu powietrza nie może aktywować trybu ogrzewania; sprawdź stan drzwi powietrznych."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "System dostosowywania przepływu powietrza nie może aktywować trybu lasera / cięcia; sprawdź stan drzwi powietrznych."
                 },
                 {
                     "ecode": "0703230000020009",

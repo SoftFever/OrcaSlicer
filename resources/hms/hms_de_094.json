@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522907,
-    "ver": 202503250214,
+    "t": 1739861767,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "de": [
+                {
+                    "ecode": "03008021",
+                    "intro": "Die Düse darf nicht installiert sein oder nicht richtig installiert sein. Bitte stellen Sie sicher, dass die Düse korrekt installiert ist, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "Der Modus des Airflow-Systems konnte nicht aktiviert werden; überprüfen Sie den Zustand der Luftklappe."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "Die Entsperrung des Laser-Moduls ist abgelaufen, und die Aufgabe kann nicht fortgesetzt werden. Bitte starten Sie den Drucker neu und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Fehler beim Starten einer neuen Aufgabe: Filamentladen/-entladen nicht abgeschlossen."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "Die BirdsEye-Kamera ist nicht zertifiziert; das Gerät kann nicht weiterarbeiten. Bitte verwenden Sie Zubehör von Bambu Lab."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Filamentextrusionsfehler; bitte überprüfen Sie den Assistenten für die Fehlersuche. Nachdem Sie das Problem behoben haben, entscheiden Sie, ob Sie den Druckauftrag abbrechen oder fortsetzen möchten, je nach aktuellem Druckstatus."
@@ -1775,10 +1795,6 @@
                     "intro": "Unbekanntes Modul erkannt, bitte versuchen Sie die Firmware auf die neueste Version zu aktualisieren."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "Der Modus des Adaptive Airflow Systems konnte nicht aktiviert werden; bitte überprüfen Sie den Zustand der Luftklappe."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "AMS B wird getrocknet. Bitte stellen Sie den Trocknungsprozess ein bevor Sie Material laden/entladen."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "de": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "Die Empfindlichkeit des Extrusionskraftsensors des linken Extruders ist niedrig; der Kraftsensor könnte möglicherweise nicht richtig installiert sein."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Fehler am Filterumschaltklappenluftventil: Es könnte feststecken."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "Das Luftstromsystem konnte den Kühlmodus nicht aktivieren; bitte überprüfen Sie den Status der Luftklappe."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "Das Luftstromsystem konnte den Heizmodus nicht aktivieren; bitte überprüfen Sie den Status der Luftklappe."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Fehler am automatischen Oberluftraumventil: Es könnte feststecken."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "Das Luftstromsystem konnte den Laser-/Schneidemodus nicht aktivieren; bitte überprüfen Sie den Status der Luftklappe."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Fehler am Abluftventil der Aktiven Kammer: Es könnte feststecken."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "Die Dickenmessung ist fehlgeschlagen, die Toolhead-Kamera konnte die Materialoberfläche nicht erkennen."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "Nicht zertifizierter AMS-HT E erkannt oder AMS-HT E-Firmware nicht aktualisiert. Mit diesem Drucker kann nicht gearbeitet werden."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "Die Empfindlichkeit des Extrusionskraftsensors des linken Extruders ist niedrig; der Kraftsensor ist möglicherweise nicht richtig installiert."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "AMS-HT B Das Zuführen des Filaments zum Assist-Motor-Extrusionsrad ist fehlgeschlagen. Dies könnte auf eine Blockade im Zufuhrschlauch zurückzuführen sein. Bitte prüfen Sie, ob der Zufuhrschlauch und die Filamentspule frei sind."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Filter-Schaltklappenfehlfunktion: Es kann festsitzen."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Hall-Sensor der Filter-Schaltklappenfehlfunktion: Bitte prüfen Sie, ob die Verkabelung locker ist."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "Die MC-Modultemperatur ist zu hoch, möglicherweise aufgrund hoher Kammertemperaturen des Druckers. Sie können versuchen, die Umgebungstemperatur vor der Verwendung zu senken."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Fehlerhafte Abgasleitung der aktiven Kammer: möglicherweise blockiert."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "Die Lüftergeschwindigkeit der Kammer-Umluft ist zu langsam oder gestoppt. Es könnte blockiert sein oder der Anschluss ist nicht richtig eingesteckt."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "Die Heizung 1 von AMS B ist nicht angeschlossen, was auf eine schlechte Anschlussverbindung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Automatischer Oberlüftungsfehler: es kann blockiert sein."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Die AMS C Schlitz 2 Filament-Extrusion ist fehlgeschlagen; Der Extruder kann verstopft sein oder das Filament ist möglicherweise zu dünn und verursacht ein Durchrutschen des Extruders."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "Das Adaptive Airflow System kann den Kühlmodus nicht aktivieren. Bitte überprüfen Sie den Status der Luftklappe."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "Das Adaptive Airflow System kann den Heizmodus nicht aktivieren. Bitte überprüfen Sie den Status der Luftklappe."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Das Adaptive Airflow System kann den Laser-/Schneidemodus nicht aktivieren. Bitte überprüfen Sie den Status der Luftklappe."
                 },
                 {
                     "ecode": "0703230000020009",

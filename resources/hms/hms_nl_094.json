@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522908,
-    "ver": 202503250214,
+    "t": 1739861766,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "nl": [
+                {
+                    "ecode": "03008021",
+                    "intro": "De nozzle mag niet geïnstalleerd zijn of niet goed geïnstalleerd zijn. Zorg ervoor dat de nozzle correct is geïnstalleerd voordat je verder gaat."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "De modus van het Airflow-systeem kon niet worden geactiveerd; controleer de staat van de luchtdeur."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "De ontgrendeling van de Laser Module is verlopen, en de taak kan niet doorgaan. Herstart de printer en probeer het opnieuw."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Mislukt om een nieuwe taak te starten: filaments laden/lossen niet voltooid."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "BirdsEye Camera is niet gecertificeerd; het apparaat kan niet blijven werken. Gebruik alstublieft Bambu Lab-accessoires."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Filament extrusiefout; controleer de assistant voor probleemoplossing. Nadat het probleem is opgelost, beslis of je de afdruktaak wilt annuleren of hervatten op basis van de actuele afdrukstatus."
@@ -1775,10 +1795,6 @@
                     "intro": "Onbekende module gedetecteerd, probeer alstublieft de firmware bij te werken naar de nieuwste versie."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "De modus van het Adaptive Airflow System kon niet worden geactiveerd; controleer de luchtdeurconditie."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "AMS B is aan het drogen. Stop alstublieft het droogproces voordat u materiaal laadt/ontlaadt."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "nl": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "De gevoeligheid van de links extruder extrusiekrachtsensor is laag; de krachtsensor is mogelijk niet correct geïnstalleerd."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Filter Switch Flap luchtdeur storing: deze kan vastzitten."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "Luchtstroomsysteem is niet in staat om de koelmodus te activeren; controleer alstublieft de status van de luchtdeur."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "Luchtstroomsysteem is niet in staat om de verwarmingsmodus te activeren; controleer alstublieft de status van de luchtdeur."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Automatische bovenvent luchtdeur storing: deze kan vastzitten."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "Luchtstroomsysteem is niet in staat om de laser/snijdmodus te activeren; controleer alstublieft de status van de luchtdeur."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Actieve kamerafzuig luchtdeur storing: deze kan vastzitten."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "Dikte meting mislukt, de Toolhead Camera kon het oppervlak van het materiaal niet detecteren."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "Niet-gecertificeerde AMS-HT E gedetecteerd of AMS-HT E firmware niet geüpgraded. Kan niet functioneren met deze printer."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "De gevoeligheid van de linker extruder extrusiekracht sensor is laag; de krachtsensor is mogelijk niet correct geïnstalleerd."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "Het invoeren van filament in het hulpmotor extrusiewiel van AMS-HT B is mislukt. Dit kan te wijten zijn aan een verstopping in de toevoerbuis. Controleer alstublieft of de toevoerbuis en filament hub duidelijk zijn."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Filter Schakelaar Klep storing: het kan vastzitten."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Hall-sensor van Filter Schakelaar Klep storing: controleer alstublieft of de bedrading los zit."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "De temperatuur van een MC module is te hoog, mogelijk vanwege de hoge kamertemperatuur van de printer. Probeer de omgevingstemperatuur te verlagen voordat u hem gebruikt."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Fout in actieve kamerafzuiging: deze kan vastzitten."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "De ventilatorsnelheid van de warmtecirculatie in de kamer is te laag of gestopt. Het kan vastzitten, of de connector is mogelijk niet goed ingeplugd."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "AMS B Verwarming 1 is losgekoppeld, mogelijk als gevolg van een slecht contact met de connector."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Automatische Top Vent storing: het kan vastzitten."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Extrusie van AMS C Slot 2 filament mislukt; de extruder kan verstopt zijn of de filament kan te dun zijn, waardoor de extruder wegglijdt."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "Het Adaptive Airflow-systeem kan de koelmodus niet activeren; controleer de status van de luchtdeuren."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "Het Adaptive Airflow-systeem kan de verwarmingsmodus niet activeren; controleer de status van de luchtdeuren."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Het Adaptive Airflow-systeem kan de laser-/snijmodus niet activeren; controleer de status van de luchtdeuren."
                 },
                 {
                     "ecode": "0703230000020009",

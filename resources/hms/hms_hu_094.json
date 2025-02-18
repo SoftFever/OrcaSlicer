@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522906,
-    "ver": 202503250214,
+    "t": 1739861766,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "hu": [
+                {
+                    "ecode": "03008021",
+                    "intro": "A fúvóka lehet, hogy nincs telepítve, vagy nem megfelelően van telepítve. Kérjük, győződjön meg arról, hogy a fúvóka helyesen van telepítve, mielőtt folytatná."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "Az Airflow rendszer módja nem aktiválódott; ellenőrizni kell a levegőajtó állapotát."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "A lézer modul feloldása lejárt, és a feladat nem folytatható. Kérem, indítsa újra a nyomtatót, és próbálja meg újra."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Új feladat indítása nem sikerült: a filament betöltése/kidobása nem fejeződött be."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "A BirdsEye kamera nincs tanúsítva; az eszköz nem folytathatja a működést. Kérem, használjon Bambu Lab kiegészítőket."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Filament extrúziós hiba; kérjük, ellenőrizze a segédletet a hibakereséshez. A probléma megoldása után döntsön arról, hogy törli vagy folytatja a nyomtatási munkát a tényleges nyomtatási állapot alapján."
@@ -1775,10 +1795,6 @@
                     "intro": "Ismeretlen modul észlelve, kérjük frissítse a firmware-t a legújabb verzióra."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "Az Adaptív Légszabályozó rendszer módja nem sikerült aktiválni; ellenőrizze a légajtó állapotát."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "Az AMS B szárítása zajlik. Kérjük, hogy a töltési / ürítési folyamat előtt állítsa le a szárítási folyamatot."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "hu": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "A bal extruder kivonási erőérzékelő érzékenysége alacsony; lehet, hogy az erőérzékelőt nem helyezték fel helyesen."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Szűrőkapcsoló légajtó hibája: lehet, hogy be van ragadva."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "A légáramlási rendszer nem tudta aktiválni a hűtési módot; kérjük, ellenőrizze a légajtó állapotát."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "A légáramlási rendszer nem tudta aktiválni a fűtési módot; kérjük, ellenőrizze a légajtó állapotát."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Automatikus felső szellőző légajtó hibája: lehet, hogy be van ragadva."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "A légáramlási rendszer nem tudta aktiválni a lézer/vágási módot; kérjük, ellenőrizze a légajtó állapotát."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Aktív kamra kipufogó légajtó hibája: lehet, hogy be van ragadva."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "A vastagságmérés meghiúsult, a Szerszámfej Kamera nem tudta észlelni az anyag felületét."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "Nem tanúsított AMS-HT E érzékelve vagy az AMS-HT E firmware nem frissítve. Nem lehet működni ezzel a nyomtatóval."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "A bal extruder extrudáló erőérzékelő érzékenysége alacsony; lehet, hogy az erőérzékelő nincs megfelelően felszerelve."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "Az AMS-HT B filament táplálása az assziszt motor extrúziós kerékhez sikertelen volt. Ez a betápláló cső elzáródására utalhat. Kérjük ellenőrizze a betápláló csövet és a filament csévét, hogy szabadok-e."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Szűrőkapcsoló bilincs meghibásodása: elakadhatott."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Az Szűrőkapcsoló bilincs Hall-érzékelőjének meghibásodása: kérjük, ellenőrizze, hogy a vezetékek lazaak-e."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "Az MC modul hőmérséklete túl magas lehet, a nyomtató kamrájának magas hőmérséklete miatt. A használat előtt megpróbálhatja csökkenteni a környezeti hőmérsékletet."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Aktív kamra szellőző meghibásodása: lehet, hogy beragadt."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "A Kamra Hőkeringető Ventilátor sebessége túl lassú vagy leállt. Lehet, hogy beragadt, vagy a csatlakozó nincs megfelelően bedugva."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "Az AMS B 1. fűtőelem nincs csatlakoztatva, ami a csatlakozó rossz kapcsolatára utalhat."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Az Automatikus Felső Szellőzőhiba lehet, hogy elakadt."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Nem sikerült extrudálni az AMS C 2. sáv filamentet; Az extruder eltömődhetett, vagy a filament túl vékony lehet, ami miatt az extruder csúszik."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "Az Adaptív Légszabályozó Rendszer nem tudja aktiválni a hűtési módot; Kérjük, ellenőrizze a légajtó állapotát."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "Az Adaptív Légszabályozó Rendszer nem tudja aktiválni a fűtési módot; Kérjük, ellenőrizze a légajtó állapotát."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Az Adaptív Légszabályozó Rendszer nem tudja aktiválni a lézer/vágási módot; Kérjük, ellenőrizze a légajtó állapotát."
                 },
                 {
                     "ecode": "0703230000020009",

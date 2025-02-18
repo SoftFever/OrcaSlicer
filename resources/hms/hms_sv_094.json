@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522907,
-    "ver": 202503250214,
+    "t": 1739861767,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "sv": [
+                {
+                    "ecode": "03008021",
+                    "intro": "Dysan kanske inte är installerad eller inte korrekt installerad. Vänligen säkerställ att dysan är korrekt installerad innan du fortsätter."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "Läget för luftflödesystemet kunde inte aktiveras; kontrollera luftdörrens skick."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "Låsningen av lasermodulen har gått ut, och uppgiften kan inte fortsätta. Vänligen starta om skrivaren och försök igen."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Misslyckades med att starta en ny uppgift: filamentladdning/-urladdning inte slutförd."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "BirdsEye-kameran är inte certifierad; enheten kan inte fortsätta arbeta. Vänligen använd Bambu Lab-tillbehör."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Filamentextruderingsfel; vänligen kontrollera assistenten för felsökning. Efter att problemet har lösts, avgör om du ska avbryta eller återuppta utskriftsjobbet baserat på den faktiska utskriftsstatusen."
@@ -1775,10 +1795,6 @@
                     "intro": "Okänt modulidentifierare identifierad, vänligen försök uppdatera firmware till den senaste versionen."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "Adaptive Airflow System-läget misslyckades att aktiveras; kontrollera luftdörrarnas tillstånd."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "AMS B torkar. Vänligen stoppa torkprocessen innan material läggs till/avlägsnas."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "sv": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "Känsligheten hos den vänstra extruderns extruderingskraftsensor är låg; kraftsensorn kanske inte är installerad korrekt."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Filter Switch Flap-luftdörrsfel: den kan vara fast."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "Luftflödesystemet kunde inte aktivera kylläge; vänligen kontrollera luftdörrens status."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "Luftflödesystemet kunde inte aktivera värmeläge; vänligen kontrollera luftdörrens status."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Automatisk toppventil-luftdörrsfel: den kan vara fast."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "Luftflödesystemet kunde inte aktivera laser/skärläge; vänligen kontrollera luftdörrens status."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Aktiv kammartömnings-luftdörrsfel: den kan vara fast."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "Tjockleksmätning misslyckades, Toolhead-kameran kunde inte upptäcka materialytan."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "Ocertifierad AMS-HT E upptäcktes eller AMS-HT E firmware är inte uppgraderad. Kan inte använda denna skrivare."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "Känsligheten hos den vänstra extruderns extruderingskraftsensor är låg; kraftsensorn kanske inte är installerad korrekt."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "AMS-HT B Det gick inte att mata ut filament till hjälp-motorns extruderhjul. Detta kan bero på en blockering i matröret. Kontrollera om mataktivatorns röret och filamentnavet är klara."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Filterbyte: luckan kan vara fastnat."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Hall-sensor för filtrets kopplingslucka fungerar inte korrekt: var vänlig kontrollera om kablarna sitter löst."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "Temperaturavläsningen för MC-modulen är för hög, förmodligen på grund av hög kamertemperatur för skrivaren. Försök sänka omgivningstemperaturen innan du använder skrivaren."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Fel på aktiv kammarluftsutblåsning: den kan vara fast."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "Fläkthastigheten för värmecirkulation i kammaruften är för låg eller har stannat. Den kan vara fast eller så är anslutningen inte korrekt inkopplad."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "AMS B Värmare 1 är frånkopplad, vilket kan bero på dålig kontakt med kontakten."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Automatisk toppventil fungerar inte: den kan vara fast."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Misslyckades med att extrudera AMS C Slot 2 filament; extrudern kan vara igensatt eller filamentet kan vara för tunn vilket gör att extrudern glider."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "Adaptive Airflow System kan inte aktivera kylningsläget; kontrollera luftdörrarnas status."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "Adaptive Airflow System kan inte aktivera uppvärmningsläget; kontrollera luftdörrarnas status."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Adaptive Airflow System kan inte aktivera laser-/skärningsläget; kontrollera luftdörrarnas status."
                 },
                 {
                     "ecode": "0703230000020009",

@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522907,
-    "ver": 202503250214,
+    "t": 1739861767,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "pt-PT": [
+                {
+                    "ecode": "03008021",
+                    "intro": "A nozzle pode não estar instalada ou não estar instalada corretamente. Por favor, assegure-se de que a nozzle está corretamente instalada antes de prosseguir."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "O modo do Sistema de Arrefecimento falhou ao ativar; verifique a condição da porta de ar."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "O desbloqueio do Módulo a Laser expirou, e a tarefa não pode prosseguir. Por favor, reinicie a impressora e tente novamente."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Falha ao iniciar uma nova tarefa: carregamento/descarregamento do filamento não concluído."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "A Câmera BirdsEye não está certificada; o dispositivo não pode continuar a funcionar. Por favor, utilize acessórios da Bambu Lab."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Erro de extrusão de filamento; por favor, verifique o assistente para resolução de problemas. Após resolver a questão, decida se cancelará ou retomar o trabalho de impressão com base no estado real da impressão."
@@ -1775,10 +1795,6 @@
                     "intro": "Módulo desconhecido detetado, por favor tente atualizar o firmware para a versão mais recente."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "O modo do Sistema de Fluxo de Ar Adaptável falhou ao ativar; verifique a condição da porta de ar."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "AMS B está a secar. Por favor pare o processo de secagem antes de carregar/descarregar o material."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "pt-PT": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "A sensibilidade do sensor de força de extrusão do extrusor esquerdo é baixa; o sensor de força pode não estar instalado corretamente."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Falha na porta de ar do Switch Flap: pode estar presa."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "O sistema de fluxo de ar falhou ao ativar o modo de arrefecimento; por favor, verifique o estado da porta de ar."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "O sistema de fluxo de ar falhou ao ativar o modo de aquecimento; por favor, verifique o estado da porta de ar."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Falha na porta de ar do Ventilador Superior Automático: pode estar presa."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "O sistema de fluxo de ar falhou ao ativar o modo laser/corte; por favor, verifique o estado da porta de ar."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Falha na porta de ar do Exaustor da Câmara Ativa: pode estar presa."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "A medição da espessura falhou, a câmara do cabeçote da ferramenta não conseguiu detetar a superfície do material."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "AMS-HT E não certificado detectado ou firmware do AMS-HT E não atualizado. Incapaz de operar com esta impressora."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "A sensibilidade do sensor de força de extrusão do extrusor esquerdo é baixa; o sensor de força pode não estar instalado corretamente."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "A alimentação do filamento AMS-HT B para a roda de extrusão do motor auxiliar falhou. Isso pode ser devido a um bloqueio no tubo de alimentação. Por favor, verifique se o tubo de alimentação e o prato do filamento estão limpos."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Malfuncionamento da aba do interruptor de filtro: pode estar presa."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Malfuncionamento do sensor hall do interruptor de filtro: por favor verifique se a conexão está frouxa."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "A temperatura do módulo MC está demasiado alta, possivelmente devido à elevada temperatura da câmara da impressora. Pode tentar baixar a temperatura ambiente antes de usar."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Malfuncionamento do exaustor da câmara ativa: pode estar preso."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "A velocidade do ventilador de circulação de calor da câmara está demasiado lenta ou parou. Pode estar preso ou o conector pode não estar ligado corretamente."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "O aquecedor 1 do AMS B está desconectado, o que pode ser devido a um mau contato do conector."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Avaria no Ventilador Superior Automático: pode estar preso."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Falha na extrusão de filamento da ranhura AMS C 2, o extrusor pode estar obstruído ou o filamento pode ser demasiado fino, fazendo com que o extrusor deslize."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "O sistema de fluxo de ar adaptativo não consegue activar o modo de arrefecimento; por favor verifique o estado da porta de ar."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "O sistema de fluxo de ar adaptativo não consegue activar o modo de aquecimento; por favor verifique o estado da porta de ar."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "O sistema de fluxo de ar adaptativo não consegue activar o modo laser/corte; por favor verifique o estado da porta de ar."
                 },
                 {
                     "ecode": "0703230000020009",

@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522907,
-    "ver": 202503250214,
+    "t": 1739861767,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "it": [
+                {
+                    "ecode": "03008021",
+                    "intro": "L'ugello potrebbe non essere installato o non essere installato correttamente. Assicurati che l'ugello sia installato correttamente prima di procedere."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "Il modo del sistema Airflow non è riuscito ad attivarsi; controlla la condizione della porta dell'aria."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "Il sblocco del modulo laser è scaduto e il compito non può procedere. Riavvia la stampante e riprova."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Impossibile avviare un nuovo compito: il caricamento/scaricamento del filamento non è stato completato."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "La Camera BirdsEye non è certificata; il dispositivo non può continuare a funzionare. Si prega di utilizzare accessori Bambu Lab."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Errore di estrusione del filamento; controlla l'assistente per la risoluzione dei problemi. Dopo aver risolto il problema, decidi se annullare o riprendere il lavoro di stampa in base allo stato attuale della stampa."
@@ -1775,10 +1795,6 @@
                     "intro": "Modulo sconosciuto rilevato, si prega di provare ad aggiornare il firmware all'ultima versione disponibile."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "La modalità del Sistema di Flusso d'Aria Adattativo non è riuscita ad attivarsi; controllare la condizione della porta d'aria."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "AMS B è in fase di essiccazione. Si prega di interrompere il processo di essiccazione prima di caricare/scaricare il materiale."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "it": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "La sensibilità del sensore di forza di estrusione dell'estrusore sinistro è bassa; il sensore di forza potrebbe non essere installato correttamente."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Malfunzionamento della valvola di deviazione dell'aria: potrebbe essere bloccata."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "Il sistema di flusso d'aria non è riuscito ad attivare la modalità di raffreddamento; controlla lo stato della valvola dell'aria."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "Il sistema di flusso d'aria non è riuscito ad attivare la modalità di riscaldamento; controlla lo stato della valvola dell'aria."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Malfunzionamento della valvola dell'aria del ventilatore superiore automatico: potrebbe essere bloccata."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "Il sistema di flusso d'aria non è riuscito ad attivare la modalità laser/taglio; controlla lo stato della valvola dell'aria."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Malfunzionamento della valvola di scarico della camera attiva: potrebbe essere bloccata."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "La misurazione dello spessore è fallita, la Telecamera del Toolhead non è riuscita a rilevare la superficie del materiale."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "AMS-HT E non certificato rilevato o firmware AMS-HT E non aggiornato. Impossibile utilizzare questa stampante."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "La sensibilità del sensore di forza di estrusione del estrusore sinistro è bassa; il sensore di forza potrebbe non essere installato correttamente."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "L'alimentazione del filamento verso la ruota di estrusione del motore di assistenza con AMS-HT B è fallita. Ciò potrebbe essere causato da un blocco nel tubo di alimentazione. Si prega di verificare se il tubo di alimentazione e il mozzo del filamento sono liberi."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Malfunzionamento del filtro interruttore della falda: potrebbe essere bloccato."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Sensore Hall del malfunzionamento del filtro interruttore della falda: controllare se il cablaggio è allentato."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "La temperatura del modulo MC è troppo elevata, probabilmente a causa della temperatura alta della camera della stampante. Si può provare a ridurre la temperatura ambiente prima dell'uso."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Malfunzionamento dello scarico della camera attiva: potrebbe essere bloccato."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "La velocità della ventola di circolazione del calore della camera è troppo bassa o ferma. Potrebbe essere bloccato, o il connettore potrebbe non essere inserito correttamente."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "La calotta 1 di AMS B risulta disconnessa, ciò potrebbe essere dovuto ad un cattivo contatto del connettore."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Malfunzionamento del ventilatore automatico superiore: potrebbe essere bloccato."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Impossibile estrudere il filamento AMS C dello Slot 2; potrebbe esserci un otturazione dell'estrusore o il filamento potrebbe essere troppo sottile, causando lo slittamento dell'estrusore."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "Sistema di Flusso d'Aria Adattativo non può attivare la modalità di raffreddamento; si prega di controllare lo stato della porta d'aria."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "Sistema di Flusso d'Aria Adattativo non può attivare la modalità riscaldamento; si prega di controllare lo stato della porta d'aria."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Sistema di Flusso d'Aria Adattativo non può attivare la modalità di taglio/laser; si prega di controllare lo stato della porta d'aria."
                 },
                 {
                     "ecode": "0703230000020009",

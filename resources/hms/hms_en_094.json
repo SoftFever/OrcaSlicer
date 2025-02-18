@@ -1,11 +1,31 @@
 {
     "result": 0,
-    "t": 1739522906,
-    "ver": 202503250214,
+    "t": 1739861766,
+    "ver": 202503250218,
     "data": {
         "device_error": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "en": [
+                {
+                    "ecode": "03008021",
+                    "intro": "The nozzle may not be installed or not properly installed. Please ensure the nozzle is correctly installed before proceeding."
+                },
+                {
+                    "ecode": "03008061",
+                    "intro": "The mode of Airflow System failed to activate; check the air door condition."
+                },
+                {
+                    "ecode": "03008048",
+                    "intro": "Laser Module unlock has timed out, and the task cannot proceed. Please restart the printer and try again."
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": "Failed to start a new task: filament loading/unloading not completed."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "BirdsEye Camera is not certified; the device cannot continue working. Please use Bambu Lab accessories."
+                },
                 {
                     "ecode": "0300801A",
                     "intro": "Filament extrusion error; please check the assistant for troubleshooting. After resolving the issue, decide whether to cancel or resume the print job based on the actual print status."
@@ -1775,10 +1795,6 @@
                     "intro": "Unknown module detected, please try updating the firmware to the latest version."
                 },
                 {
-                    "ecode": "03008061",
-                    "intro": "The mode of Adaptive Airflow System failed to activate; check the air door condition."
-                },
-                {
                     "ecode": "07018017",
                     "intro": "AMS B is drying. Please stop drying process before loading/unloading material."
                 },
@@ -2457,8 +2473,76 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250214,
+            "ver": 202503250218,
             "en": [
+                {
+                    "ecode": "0300260000010002",
+                    "intro": "The sensitivity of the left extruder extrusion force sensor is low; the force sensor may not be installed correctly."
+                },
+                {
+                    "ecode": "0300C00000010002",
+                    "intro": "Filter Switch Flap air door malfunction: it may be stuck."
+                },
+                {
+                    "ecode": "0300C10000010001",
+                    "intro": "Airflow System failed to activate cooling mode; please check the air door status."
+                },
+                {
+                    "ecode": "0300C10000010002",
+                    "intro": "Airflow System failed to activate heating mode; please check the air door status."
+                },
+                {
+                    "ecode": "0300C00000010003",
+                    "intro": "Automatic Top Vent air door malfunction: it may be stuck."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "Airflow System failed to activate laser/cutting mode; please check the air door status."
+                },
+                {
+                    "ecode": "0300C00000010001",
+                    "intro": "Active Chamber Exhaust air door malfunction: it may be stuck."
+                },
+                {
+                    "ecode": "0500010000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0C00040000020023",
                     "intro": "Thickness measurement failed, the Toolhead Camera was unable to detect the material surface."
@@ -2470,10 +2554,6 @@
                 {
                     "ecode": "0584050000010010",
                     "intro": "Uncertified AMS-HT E detected or AMS-HT E firmware not upgraded. Unable to operate with this printer."
-                },
-                {
-                    "ecode": "0300260000010002",
-                    "intro": "The sensitivity of the left extruder extrusion force sensor is low; the force sensor may not installed correctly."
                 },
                 {
                     "ecode": "0C00040000020018",
@@ -10416,10 +10496,6 @@
                     "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
                 },
                 {
-                    "ecode": "0300C00000010002",
-                    "intro": "Filter Switch Flap malfunction: it may be stuck."
-                },
-                {
                     "ecode": "0300C20000010002",
                     "intro": "Hall sensor of Filter Switch Flap malfunction: please check if the wiring is loose."
                 },
@@ -11388,10 +11464,6 @@
                     "intro": "MC module temperature is too high, possibly because of high chamber temperature of the printer. You can try lowering the environmental temperature before use."
                 },
                 {
-                    "ecode": "0300C00000010001",
-                    "intro": "Active Chamber Exhaust malfunction: it may be stuck."
-                },
-                {
                     "ecode": "0300360000010001",
                     "intro": "The Chamber Heat Circulation Fan speed is too slow or stopped. It may be stuck, or the connector may not be plugged in properly."
                 },
@@ -11910,10 +11982,6 @@
                 {
                     "ecode": "0701800000010002",
                     "intro": "AMS B The heater 1 is disconnected, which may be due to poor connector contact."
-                },
-                {
-                    "ecode": "0300C00000010003",
-                    "intro": "Automatic Top Vent malfunction: it may be stuck."
                 },
                 {
                     "ecode": "0300C30000010003",
@@ -12614,18 +12682,6 @@
                 {
                     "ecode": "0702210000020009",
                     "intro": "Failed to extrude AMS C Slot 2 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
-                },
-                {
-                    "ecode": "0300C10000010001",
-                    "intro": "Adaptive Airflow System can't activate cooling mode; please check the air door status."
-                },
-                {
-                    "ecode": "0300C10000010002",
-                    "intro": "Adaptive Airflow System can't activate heating mode; please check the air door status."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Adaptive Airflow System can't activate laser/cutting mode; please check the air door status."
                 },
                 {
                     "ecode": "0703230000020009",
