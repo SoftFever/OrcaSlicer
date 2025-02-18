@@ -18,7 +18,7 @@ public:
     static nlohmann::json RenderPlateView(const nlohmann::json& params);
     static nlohmann::json GetPlates(const nlohmann::json& params);
     static nlohmann::json GetAllModelObjectsJson();
-
+    static nlohmann::json GetProjectInfo(const nlohmann::json& params);
 private:
     static void RenderThumbnail(ThumbnailData& thumbnail_data,
         const Vec3d& camera_position, const Vec3d& target);
