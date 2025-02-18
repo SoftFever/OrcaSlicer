@@ -161,6 +161,7 @@ enum FilamentStepType {
 #define AMS_BODY_SIZE wxSize(FromDIP(36), FromDIP(55))
 #define AMS_DOWN_ROAD_SIZE wxSize(FromDIP(568), FromDIP(10))
 #define AMS_HUMIDITY_SIZE wxSize(FromDIP(93), FromDIP(26))
+#define AMS_HUMIDITY_NO_PERCENT_SIZE wxSize(FromDIP(60), FromDIP(26))
 #define AMS_PANEL_SIZE wxSize(FromDIP(264), FromDIP(150))
 
 #define GENERIC_AMS_SLOT_NUM 4
@@ -213,6 +214,7 @@ public:
     AMSAction               current_action;
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
+    int                     humidity_raw = -1;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
     AMSModelOriginType      ext_type = AMSModelOriginType::GENERIC_EXT;
 
@@ -711,7 +713,12 @@ public:
     double                       m_radius = { 12 };
     void                         Update(AMSinfo amsinfo);
 
-    std::vector<ScalableBitmap> ams_humidity_img;
+    std::vector<ScalableBitmap> ams_humidity_imgs;
+    std::vector<ScalableBitmap> ams_humidity_dark_imgs;
+
+    std::vector<ScalableBitmap> ams_humidity_no_num_imgs;
+    std::vector<ScalableBitmap> ams_humidity_no_num_dark_imgs;
+
     ScalableBitmap              ams_sun_img;
 
 
