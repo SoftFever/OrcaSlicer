@@ -69,6 +69,7 @@ private:
     nlohmann::json handle_apply_config(const nlohmann::json& params);
     nlohmann::json handle_add_printers(const nlohmann::json& params);
     nlohmann::json handle_add_filaments(const nlohmann::json& params);
+    nlohmann::json handle_get_project_info(const nlohmann::json& params);
 
     // Actions to trigger events in JusPrin
     void handle_switch_to_classic_mode(const nlohmann::json& params);

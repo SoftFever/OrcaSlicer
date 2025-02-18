@@ -290,61 +290,9 @@ void JusPrinPlateUtils::RenderThumbnail(ThumbnailData& thumbnail_data,
     BOOST_LOG_TRIVIAL(info) << "RenderThumbnail: finished";
 }
 
-nlohmann::json sorted_volumes_json(const Model& model) {
-    nlohmann::json volumes = nlohmann::json::array();
-
-    // Iterate through all objects and their volumes
-    for (const ModelObject* obj : model.objects) {
-        for (const ModelVolume* volume : obj->volumes) {
-            const TriangleMeshStats& stats = volume->mesh().stats();
-            nlohmann::json volume_info = {
-                {"name", volume->name},
-                {"stats", {
-                    {"number_of_facets", stats.number_of_facets},
-                    {"max", {stats.max[0], stats.max[1], stats.max[2]}},
-                    {"min", {stats.min[0], stats.min[1], stats.min[2]}},
-                    {"size", {stats.size[0], stats.size[1], stats.size[2]}},
-                    {"volume", stats.volume},
-                    {"number_of_parts", stats.number_of_parts}
-                }}
-            };
-            volumes.push_back(volume_info);
-        }
-    }
-
-    // Sort by name
-    std::sort(volumes.begin(), volumes.end(),
-        [](const nlohmann::json& a, const nlohmann::json& b) {
-            return a["name"] < b["name"];
-        });
-
-    return volumes;
-}
 
 nlohmann::json JusPrinPlateUtils::GetPlates(const nlohmann::json& params) {
     nlohmann::json j = nlohmann::json::array();
-
-    Plater* plater = wxGetApp().plater();
-    const Model& model = plater->model();  // Get model from plater
-
-    auto sorted_volumes = sorted_volumes_json(model);
-
-    // Convert to compact string (no spaces)
-    std::string json_str = sorted_volumes.dump(-1); // -1 means no indentation
-
-    // Calculate MD5
-    MD5_CTX md5Context;
-    MD5_Init(&md5Context);
-    MD5_Update(&md5Context, json_str.c_str(), json_str.length());
-    unsigned char digest[MD5_DIGEST_LENGTH];
-    MD5_Final(digest, &md5Context);
-
-    // Convert MD5 to hex string
-    std::stringstream md5_ss;
-    for(int i = 0; i < MD5_DIGEST_LENGTH; i++) {
-        md5_ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(digest[i]);
-    }
-    std::string md5_str = md5_ss.str();
 
     for (const auto& plate : plater->get_partplate_list().get_plate_list()) {
         nlohmann::json plate_info;
@@ -432,6 +380,64 @@ nlohmann::json JusPrinPlateUtils::GetAllModelObjectsJson() {
         j.push_back(obj);
     }
 
+    return j;
+}
+
+std::string sorted_volumes_hash_code(const Model& model) {
+    nlohmann::json volumes = nlohmann::json::array();
+
+    // Iterate through all objects and their volumes
+    for (const ModelObject* obj : model.objects) {
+        for (const ModelVolume* volume : obj->volumes) {
+            const TriangleMeshStats& stats = volume->mesh().stats();
+            nlohmann::json volume_info = {
+                {"name", volume->name},
+                {"stats", {
+                    {"number_of_facets", stats.number_of_facets},
+                    {"max", {stats.max[0], stats.max[1], stats.max[2]}},
+                    {"min", {stats.min[0], stats.min[1], stats.min[2]}},
+                    {"size", {stats.size[0], stats.size[1], stats.size[2]}},
+                    {"volume", stats.volume},
+                    {"number_of_parts", stats.number_of_parts}
+                }}
+            };
+            volumes.push_back(volume_info);
+        }
+    }
+
+    // Sort by name
+    std::sort(volumes.begin(), volumes.end(),
+        [](const nlohmann::json& a, const nlohmann::json& b) {
+            return a["name"] < b["name"];
+        });
+
+    // Convert to compact string (no spaces)
+    std::string json_str = volumes.dump(-1); // -1 means no indentation
+
+    // Calculate MD5
+    MD5_CTX md5Context;
+    MD5_Init(&md5Context);
+    MD5_Update(&md5Context, json_str.c_str(), json_str.length());
+    unsigned char digest[MD5_DIGEST_LENGTH];
+    MD5_Final(digest, &md5Context);
+
+    // Convert MD5 to hex string
+    std::stringstream md5_ss;
+    for(int i = 0; i < MD5_DIGEST_LENGTH; i++) {
+        md5_ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(digest[i]);
+    }
+    return md5_ss.str();
+}
+
+nlohmann::json JusPrinPlateUtils::GetProjectInfo(const nlohmann::json& params) {
+
+    Plater* plater = wxGetApp().plater();
+    const Model& model = plater->model();  // Get model from plater
+
+    std::string hash_code = sorted_volumes_hash_code(model);
+
+    nlohmann::json j;
+    j["hash_code"] = hash_code;
     return j;
 }
 
