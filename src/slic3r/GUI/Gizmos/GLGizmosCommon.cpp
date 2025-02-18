@@ -312,6 +312,11 @@ void ObjectClipper::render_cut(const std::vector<size_t>* ignore_idxs) const
     }
 }
 
+void ObjectClipper::set_position_to_init_layer()
+{
+    m_clp.reset(new ClippingPlane({0, 0, 1}, 0.1));
+    get_pool()->get_canvas()->set_as_dirty();
+}
 
 int ObjectClipper::get_number_of_contours() const
 {
@@ -351,17 +356,22 @@ std::vector<Vec3d> ObjectClipper::point_per_contour() const
 }
 
 
-void ObjectClipper::set_position_by_ratio(double pos, bool keep_normal)
+void ObjectClipper::set_position_by_ratio(double pos, bool keep_normal, bool vertical_normal)
 {
     const ModelObject* mo = get_pool()->selection_info()->model_object();
     int active_inst = get_pool()->selection_info()->get_active_instance();
     double z_shift = get_pool()->selection_info()->get_sla_shift();
 
-    //Vec3d camera_dir = wxGetApp().plater()->get_camera().get_dir_forward();
-    //if (abs(camera_dir(0)) > EPSILON || abs(camera_dir(1)) > EPSILON)
-    //    camera_dir(2) = 0;
+    Vec3d normal;
+    if(vertical_normal) {
+        normal = {0, 0, 1};
+    }else {
+        //Vec3d camera_dir = wxGetApp().plater()->get_camera().get_dir_forward();
+        //if (abs(camera_dir(0)) > EPSILON || abs(camera_dir(1)) > EPSILON)
+        //    camera_dir(2) = 0;
 
-    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : /*-camera_dir;*/ -wxGetApp().plater()->get_camera().get_dir_forward();
+        normal = (keep_normal && m_clp) ? m_clp->get_normal() : /*-camera_dir;*/ -wxGetApp().plater()->get_camera().get_dir_forward();
+    }
     Vec3d center;
 
     if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {

@@ -1441,6 +1441,8 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                         && !vol->is_modifier) {
                         vol->force_neutral_color = true;
                     }
+                    else if (gizmo_type == GLGizmosManager::BrimEars)
+                        vol->force_neutral_color = false;
                     else if (gizmo_type == GLGizmosManager::MmuSegmentation)
                         vol->is_active = false;
                     else
@@ -1893,6 +1895,7 @@ void GLCanvas3D::render(bool only_init)
 
     //BBS add partplater rendering logic
     bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
+    bool show_grid = true;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
     if (!m_main_toolbar.is_enabled()) {
         //only_body = true;
@@ -1900,6 +1903,8 @@ void GLCanvas3D::render(bool only_init)
     }
     else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmuSegmentation))
         no_partplate = true;
+    else if (gizmo_type == GLGizmosManager::BrimEars && !camera.is_looking_downward())
+        show_grid = false;
 
     /* view3D render*/
     int hover_id = (m_hover_plate_idxs.size() > 0)?m_hover_plate_idxs.front():-1;
@@ -1911,7 +1916,7 @@ void GLCanvas3D::render(bool only_init)
         if (!no_partplate)
             _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
         if (!no_partplate) //BBS: add outline logic
-            _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true);
+            _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
     }
     /* preview render */
@@ -3519,6 +3524,12 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         m_dirty = true;
                     }
 //                    set_cursor(Standard);
+#ifdef __WXMSW__
+                    if (m_camera_movement && m_is_touchpad_navigation) {
+                        m_camera_movement = false;
+                        m_mouse.set_start_position_3D_as_invalid();
+                    }
+#endif
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
@@ -3873,6 +3884,12 @@ std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
 		out += "RightUp ";
 	if (evt.RightDClick())
 		out += "RightDClick ";
+    if (evt.AltDown())
+        out += "AltDown ";
+    if (evt.ShiftDown())
+        out += "ShiftDown ";
+    if (evt.ControlDown())
+        out += "ControlDown ";
 
 	sprintf(buf, "(%d, %d)", evt.GetX(), evt.GetY());
 	out += buf;
@@ -6767,7 +6784,7 @@ void GLCanvas3D::_picking_pass()
         case SceneRaycaster::EType::Bed:
         {
             // BBS: add plate picking logic
-            int plate_hover_id = PartPlate::PLATE_BASE_ID - hit.raycaster_id;
+            int plate_hover_id = hit.raycaster_id;
             if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
                 wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
                 m_hover_plate_idxs.emplace_back(plate_hover_id);
@@ -7150,9 +7167,9 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
     m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
-void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
+void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
 {
-    wxGetApp().plater()->get_partplate_list().render(view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali);
+    wxGetApp().plater()->get_partplate_list().render(view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid);
 }
 
 void GLCanvas3D::_render_plane() const
@@ -7419,7 +7436,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
         return;
     }
 
-    float scale = wxGetApp().toolbar_icon_scale();
+    float scale = wxGetApp().toolbar_icon_scale() * get_scale();
     Size cnv_size = get_canvas_size();
 
     //BBS: GUI refactor: GLToolbar
@@ -7430,26 +7447,12 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     float size   = size_i;
 
     // Set current size for all top toolbars. It will be used for next calculations
-#if ENABLE_RETINA_GL
-    const float sc = m_retina_helper->get_scale_factor() * scale;
-    //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_scale(sc);
-    m_assemble_view_toolbar.set_scale(sc);
-    m_separator_toolbar.set_scale(sc);
-    collapse_toolbar.set_scale(sc / 2.0);
-    size *= m_retina_helper->get_scale_factor();
-
-    auto* m_notification = wxGetApp().plater()->get_notification_manager();
-    m_notification->set_scale(sc);
-    m_gizmos.set_overlay_scale(sc);
-#else
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(size);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size / 2.0);
     m_gizmos.set_overlay_icon_size(size);
-#endif // ENABLE_RETINA_GL
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
@@ -7486,9 +7489,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     // set minimum scale as a auto scale for the toolbars
     float new_scale = std::min(new_h_scale, new_v_scale);
-#if ENABLE_RETINA_GL
-    new_scale /= m_retina_helper->get_scale_factor();
-#endif
+    new_scale /= get_scale();
     if (fabs(new_scale - scale) > 0.05) // scale is changed by 5% and more
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }

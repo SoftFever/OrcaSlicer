@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "filament_id": "GFU99",
+    "setting_id": "OGFSA04",
+    "name": "Generic TPU @System",
+    "from": "system",
+    "instantiation": "true",
+    "renamed_from": "My Generic TPU",
+    "inherits": "fdm_filament_tpu",
+    "compatible_printers": []
+}

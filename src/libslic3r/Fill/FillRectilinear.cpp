@@ -9,6 +9,7 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #include "../ClipperUtils.hpp"
 #include "../ExPolygon.hpp"
@@ -3001,6 +3002,23 @@ Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &param
     return polylines_out;
 }
 
+Polylines Fill2DLattice::fill_surface(const Surface *surface, const FillParams &params)
+{
+    Polylines polylines_out;
+    coordf_t dx1 = tan(Geometry::deg2rad(params.lattice_angle_1)) * z;
+    coordf_t dx2 = tan(Geometry::deg2rad(params.lattice_angle_2)) * z;
+    if (! this->fill_surface_by_multilines(
+            surface, params,
+            { { float(M_PI / 2.), float(dx1) }, { float(M_PI / 2.), float(dx2) } },
+            polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "Fill2DLattice::fill_surface() failed to fill a region.";
+
+    if (this->layer_id % 2 == 1)
+        for (int i = 0; i < polylines_out.size(); i++)
+            std::reverse(polylines_out[i].begin(), polylines_out[i].end());
+    return polylines_out;
+}
+
 Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
@@ -3033,6 +3051,39 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
             polylines_out))
         BOOST_LOG_TRIVIAL(error) << "FillCubic::fill_surface() failed to fill a region.";
     return polylines_out; 
+}
+
+Polylines FillQuarterCubic::fill_surface(const Surface* surface, const FillParams& params)
+{
+    using namespace boost::math::float_constants;
+
+    Polylines polylines_out;
+
+    coord_t line_width = coord_t(scale_(this->spacing));
+    coord_t period = coord_t(scale_(this->spacing) / params.density) * 4;
+
+    // First half tetrahedral fill
+    double  pattern_z_shift = 0.0;
+    coord_t shift = coord_t(one_div_root_two * (scale_(z) + pattern_z_shift * period * 2)) % period;
+    shift = std::min(shift, period - shift); // symmetry due to the fact that we are applying the shift in both directions
+    shift = std::min(shift, period / 2 - line_width / 2); // don't put lines too close to each other
+    shift = std::max(shift, line_width / 2);              // don't put lines too close to each other
+    float dx1 = unscale_(shift);
+
+    // Second half tetrahedral fill
+    pattern_z_shift = 0.5;
+    shift = coord_t(one_div_root_two * (scale_(z) + pattern_z_shift * period * 2)) % period;
+    shift = std::min(shift, period - shift); // symmetry due to the fact that we are applying the shift in both directions
+    shift = std::min(shift, period / 2 - line_width / 2); // don't put lines too close to each other
+    shift = std::max(shift, line_width / 2);              // don't put lines too close to each other
+    float dx2 = unscale_(shift);
+    if (!this->fill_surface_by_multilines(
+            surface, params, 
+            {{0.f, dx1}, {0.f, -dx1}, {float(M_PI / 2.), dx2}, {float(M_PI / 2.), -dx2}},
+            polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillQuarterCubic::fill_surface() failed to fill a region.";
+
+    return polylines_out;
 }
 
 Polylines FillSupportBase::fill_surface(const Surface *surface, const FillParams &params)

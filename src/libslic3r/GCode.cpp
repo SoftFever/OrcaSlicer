@@ -741,6 +741,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                                  gcodegen.config().filament_multitool_ramming.get_at(tcr.initial_tool));
         const bool should_travel_to_tower = !tcr.priming && (tcr.force_travel     // wipe tower says so
                                                              || !needs_toolchange // this is just finishing the tower with no toolchange
+                                                             || will_go_down // Make sure to move to prime tower before moving down
                                                              || is_ramming);
 
         if (should_travel_to_tower || gcodegen.m_need_change_layer_lift_z) {
@@ -1828,6 +1829,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_max_layer_z  = 0.f;
     m_last_width = 0.f;
     m_is_overhang_fan_on = false;
+    m_is_internal_bridge_fan_on = false;
     m_is_supp_interface_fan_on = false;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_last_mm3_per_mm = 0.;
@@ -3823,10 +3825,16 @@ LayerResult GCode::process_layer(
         return next_extruder;
     };
     
-    if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic) {
-        for (const auto &layer_to_print : layers) {
-            m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
-                                                                layer_to_print.object_layer);
+    for (const auto &layer_to_print : layers) {
+        if (layer_to_print.object_layer) {
+            const auto& regions = layer_to_print.object_layer->regions();
+            const bool  enable_overhang_speed = std::any_of(regions.begin(), regions.end(), [](const LayerRegion* r) {
+                return r->has_extrusions() && r->region().config().enable_overhang_speed && !r->region().config().overhang_speed_classic;
+            });
+            if (enable_overhang_speed) {
+                m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
+                                                                    layer_to_print.object_layer);
+            }
         }
     }
 
@@ -4190,8 +4198,11 @@ LayerResult GCode::process_layer(
                     }
                 }
 
-                if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic)
-                    m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
+                // Orca(#7946): set current obj regardless of the `enable_overhang_speed` value, because
+                // `enable_overhang_speed` is a PrintRegionConfig and here we don't have a region yet.
+                // And no side effect doing this even if `enable_overhang_speed` is off, so don't bother
+                // checking anything here.
+                m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
 
                 // When starting a new object, use the external motion planner for the first travel move.
                 const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
@@ -4264,7 +4275,6 @@ LayerResult GCode::process_layer(
                     m_last_obj_copy = this_object_copy;
                     this->set_origin(unscale(offset));
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
-                    bool is_infill_first =m_config.is_infill_first;
 
                     auto has_infill = [](const std::vector<ObjectByExtruder::Island::Region> &by_region) {
                         for (auto region : by_region) {
@@ -4273,10 +4283,9 @@ LayerResult GCode::process_layer(
                         }
                         return false;
                     };
-
-                    //BBS: for first layer, we always print wall firstly to get better bed adhesive force
-                    //This behaviour is same with cura
-                    if (is_infill_first && !first_layer) {
+                    {
+                        // Print perimeters of regions that has is_infill_first == false
+                        gcode += this->extrude_perimeters(print, by_region_specific, first_layer, false);
                         if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
                             gcode += this->retract(false, false, LiftType::NormalLift);
 
@@ -4293,27 +4302,10 @@ LayerResult GCode::process_layer(
 
                             has_insert_timelapse_gcode = true;
                         }
+                        // Then print infill
                         gcode += this->extrude_infill(print, by_region_specific, false);
-                        gcode += this->extrude_perimeters(print, by_region_specific);
-                    } else {
-                        gcode += this->extrude_perimeters(print, by_region_specific);
-                        if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
-                            gcode += this->retract(false, false, LiftType::NormalLift);
-
-                            std::string timepals_gcode = insert_timelapse_gcode();
-                            gcode += timepals_gcode;
-                            m_writer.set_current_position_clear(false);
-                            //BBS: check whether custom gcode changes the z position. Update if changed
-                            double temp_z_after_timepals_gcode;
-                            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-                                Vec3d pos = m_writer.get_position();
-                                pos(2) = temp_z_after_timepals_gcode;
-                                m_writer.set_position(pos);
-                            }
-
-                            has_insert_timelapse_gcode = true;
-                        }
-                        gcode += this->extrude_infill(print,by_region_specific, false);
+                        // Then print perimeters of regions that has is_infill_first == true
+                        gcode += this->extrude_perimeters(print, by_region_specific, first_layer, true);
                     }
                     // ironing
                     gcode += this->extrude_infill(print,by_region_specific, true);
@@ -4911,12 +4903,17 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
 }
 
 // Extrude perimeters: Decide where to put seams (hide or align seams).
-std::string GCode::extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region)
+std::string GCode::extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, bool is_first_layer, bool is_infill_first)
 {
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
             m_config.apply(print.get_print_region(&region - &by_region.front()).config());
+            // BBS: for first layer, we always print wall firstly to get better bed adhesive force
+            // This behaviour is same with cura
+            const bool should_print = is_first_layer ? !is_infill_first
+                : (m_config.is_infill_first == is_infill_first);
+            if (!should_print) continue;
 
             for (const ExtrusionEntity* ee : region.perimeters)
                 gcode += this->extrude_entity(*ee, "perimeter", -1., region.perimeters);
@@ -5315,11 +5312,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 ref_speed = std::min(ref_speed, m_config.scarf_joint_speed.get_abs_value(ref_speed));
             }
             
-            ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
+            ConfigOptionPercents         overhang_overlap_levels({90, 75, 50, 25, 13, 0});
 
             if (m_config.slowdown_for_curled_perimeters){
                 ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
-                    {(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
+                    {FloatOrPercent{100, true},
+                     (m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
                      (m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
@@ -5328,9 +5326,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                      (m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
-                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                         FloatOrPercent{100, true} :
-                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
                      (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
@@ -5342,7 +5337,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                                                               ref_speed, speed, m_config.slowdown_for_curled_perimeters);
         	}else{
                 ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
-                    {(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
+                                                                     {FloatOrPercent{100, true},
+                     (m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
                      (m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
@@ -5351,10 +5347,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                      (m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
-                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                         FloatOrPercent{100, true} :
-                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
-                     FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true},
+                      (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
+                            FloatOrPercent{100, true} :
+                            FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
                      FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true}});
 
                 new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
@@ -5495,7 +5490,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //    { "75%", Overhang_threshold_4_4 },
     //    { "95%", Overhang_threshold_bridge }
     auto check_overhang_fan = [&overhang_fan_threshold](float overlap, ExtrusionRole role) {
-      if (is_bridge(role)) {
+      if (role == erBridgeInfill || role == erOverhangPerimeter) { // ORCA: Split out bridge infill to internal and external to apply separate fan settings
         return true;
       }
       switch (overhang_fan_threshold) {
@@ -5588,7 +5583,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
                     : overhang_fan_threshold - 1;
                     if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
-                        (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
+                        (path.get_overhang_degree() > overhang_threshold ||
+                         (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter))) { // ORCA: Add support for separate internal bridge fan speed control
                         if (!m_is_overhang_fan_on) {
                             gcode += ";_OVERHANG_FAN_START\n";
                             m_is_overhang_fan_on = true;
@@ -5597,6 +5593,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         if (m_is_overhang_fan_on) {
                             m_is_overhang_fan_on = false;
                             gcode += ";_OVERHANG_FAN_END\n";
+                        }
+                    }
+                    if (path.role() == erInternalBridgeInfill) { // ORCA: Add support for separate internal bridge fan speed control
+                        if (!m_is_internal_bridge_fan_on) {
+                            gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
+                            m_is_internal_bridge_fan_on = true;
+                        }
+                    } else {
+                        if (m_is_internal_bridge_fan_on) {
+                            m_is_internal_bridge_fan_on = false;
+                            gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
                         }
                     }
                 }
@@ -5733,6 +5740,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         bool cur_fan_enabled = false;
         if( m_enable_cooling_markers && enable_overhang_bridge_fan)
             pre_fan_enabled = check_overhang_fan(new_points[0].overlap, path.role());
+        
+        if(path.role() == erInternalBridgeInfill) // ORCA: Add support for separate internal bridge fan speed control
+            pre_fan_enabled = true;
 
         double path_length = 0.;
         for (size_t i = 1; i < new_points.size(); i++) {
@@ -5756,6 +5766,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     }
                     pre_fan_enabled = cur_fan_enabled;
                 }
+                // ORCA: Add support for separate internal bridge fan speed control
+                if (path.role() == erInternalBridgeInfill) {
+                    if (!m_is_internal_bridge_fan_on) {
+                        gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
+                        m_is_internal_bridge_fan_on = true;
+                    }
+                } else {
+                    if (m_is_internal_bridge_fan_on) {
+                        gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
+                        m_is_internal_bridge_fan_on = false;
+                    }
+                }
+                
                 if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
                     if (!m_is_supp_interface_fan_on) {
                         gcode += ";_SUPP_INTERFACE_FAN_START\n";

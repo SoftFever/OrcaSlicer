@@ -1,6 +1,6 @@
 {
     "name": "Custom Printer",
-    "version": "02.02.00.04",
+    "version": "02.02.00.05",
     "force_update": "0",
     "description": "My configurations",
     "machine_model_list": [
@@ -173,120 +173,44 @@
     ],
     "filament_list": [
         {
-            "name": "fdm_filament_common",
-            "sub_path": "filament/fdm_filament_common.json"
+            "name": "Generic PLA @MyToolChanger",
+            "sub_path": "filament/Generic PLA @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
+            "name": "Generic PLA-CF @MyToolChanger",
+            "sub_path": "filament/Generic PLA-CF @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_tpu",
-            "sub_path": "filament/fdm_filament_tpu.json"
+            "name": "Generic PETG @MyToolChanger",
+            "sub_path": "filament/Generic PETG @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_pet",
-            "sub_path": "filament/fdm_filament_pet.json"
+            "name": "Generic ABS @MyToolChanger",
+            "sub_path": "filament/Generic ABS @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_abs",
-            "sub_path": "filament/fdm_filament_abs.json"
+            "name": "Generic TPU @MyToolChanger",
+            "sub_path": "filament/Generic TPU @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_pc",
-            "sub_path": "filament/fdm_filament_pc.json"
+            "name": "Generic ASA @MyToolChanger",
+            "sub_path": "filament/Generic ASA @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_asa",
-            "sub_path": "filament/fdm_filament_asa.json"
+            "name": "Generic PC @MyToolChanger",
+            "sub_path": "filament/Generic PC @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_pva",
-            "sub_path": "filament/fdm_filament_pva.json"
+            "name": "Generic PVA @MyToolChanger",
+            "sub_path": "filament/Generic PVA @MyToolChanger.json"
         },
         {
-            "name": "fdm_filament_pa",
-            "sub_path": "filament/fdm_filament_pa.json"
+            "name": "Generic PA @MyToolChanger",
+            "sub_path": "filament/Generic PA @MyToolChanger.json"
         },
         {
-            "name": "My Generic PLA",
-            "sub_path": "filament/My Generic PLA.json"
-        },
-        {
-            "name": "My Generic PLA-CF",
-            "sub_path": "filament/My Generic PLA-CF.json"
-        },
-        {
-            "name": "My Generic PETG",
-            "sub_path": "filament/My Generic PETG.json"
-        },
-        {
-            "name": "My Generic ABS",
-            "sub_path": "filament/My Generic ABS.json"
-        },
-        {
-            "name": "My Generic TPU",
-            "sub_path": "filament/My Generic TPU.json"
-        },
-        {
-            "name": "My Generic ASA",
-            "sub_path": "filament/My Generic ASA.json"
-        },
-        {
-            "name": "My Generic PC",
-            "sub_path": "filament/My Generic PC.json"
-        },
-        {
-            "name": "My Generic PVA",
-            "sub_path": "filament/My Generic PVA.json"
-        },
-        {
-            "name": "My Generic PA",
-            "sub_path": "filament/My Generic PA.json"
-        },
-        {
-            "name": "My Generic PA-CF",
-            "sub_path": "filament/My Generic PA-CF.json"
-        },
-        {
-            "name": "My Generic PLA @MyToolChanger",
-            "sub_path": "filament/My Generic PLA @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic PLA-CF @MyToolChanger",
-            "sub_path": "filament/My Generic PLA-CF @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic PETG @MyToolChanger",
-            "sub_path": "filament/My Generic PETG @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic ABS @MyToolChanger",
-            "sub_path": "filament/My Generic ABS @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic TPU @MyToolChanger",
-            "sub_path": "filament/My Generic TPU @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic ASA @MyToolChanger",
-            "sub_path": "filament/My Generic ASA @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic PC @MyToolChanger",
-            "sub_path": "filament/My Generic PC @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic PVA @MyToolChanger",
-            "sub_path": "filament/My Generic PVA @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic PA @MyToolChanger",
-            "sub_path": "filament/My Generic PA @MyToolChanger.json"
-        },
-        {
-            "name": "My Generic PA-CF @MyToolChanger",
-            "sub_path": "filament/My Generic PA-CF @MyToolChanger.json"
+            "name": "Generic PA-CF @MyToolChanger",
+            "sub_path": "filament/Generic PA-CF @MyToolChanger.json"
         }
     ],
     "machine_list": [
