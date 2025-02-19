@@ -47,13 +47,13 @@ class HMSPanel : public wxPanel
 protected:
     wxScrolledWindow *m_scrolledWindow;
     wxBoxSizer *      m_top_sizer;
-    HMSNotifyItem *   m_notify_item;
+
     int last_status;
 
     void append_hms_panel(const std::string& dev_id, HMSItem &item);
     void delete_hms_panels();
 
-    
+
 public:
     HMSPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~HMSPanel();

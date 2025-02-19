@@ -188,11 +188,11 @@ HMSPanel::~HMSPanel() {
 }
 
 void HMSPanel::append_hms_panel(const std::string& dev_id, HMSItem& item) {
-    m_notify_item = new HMSNotifyItem(dev_id, m_scrolledWindow, item);
     wxString msg = wxGetApp().get_hms_query()->query_hms_msg(dev_id, item.get_long_error_code());
-    if (!msg.empty())
-        m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
-    else {
+    if (!msg.empty()) {
+        HMSNotifyItem *notify_item = new HMSNotifyItem(dev_id, m_scrolledWindow, item);
+        m_top_sizer->Add(notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+    } else {
         // debug for hms display error info
         // m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
         BOOST_LOG_TRIVIAL(info) << "hms: do not display empty_item";

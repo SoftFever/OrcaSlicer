@@ -425,6 +425,12 @@ void MonitorPanel::update_all()
 void MonitorPanel::update_hms_tag()
 {
     for (auto hmsitem : m_hms_panel->temp_hms_list) {
+
+        if (!obj) { break;}
+
+        const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->dev_id, hmsitem.second.get_long_error_code());
+        if (msg.empty()){ continue;} /*STUDIO-10363 it's hidden message*/
+
         if (!hmsitem.second.already_read) {
             //show HMS new tag
             m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
