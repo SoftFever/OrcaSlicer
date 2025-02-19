@@ -200,12 +200,13 @@ void JusPrinView3D::init_overlay()
 
     // Position the chat panel
     wxSize client_size = GetClientSize();
-    int chat_height = client_size.GetHeight() * 0.95;  // 95% of window height
-    int chat_width = client_size.GetWidth() * 0.7;    // 70% of window width
+    int chat_height = std::max(180, (int)(client_size.GetHeight() * 0.25));  // minimum 180px
+    int chat_width = std::max(326, (int)(client_size.GetWidth() * 0.5));    // minimum 326px
+    int chat_y = client_size.GetHeight() - chat_height - 10;  // 10px from bottom
 
     m_chat_panel->SetSize(
-        (client_size.GetWidth() - chat_width) / 2,  // Center horizontally
-        10,  // 10px from top
+        (client_size.GetWidth() - chat_width) / 2,
+        chat_y,
         chat_width,
         chat_height
     );
@@ -246,41 +247,43 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     if (m_chat_panel && m_overlay_btn) {
         wxSize size = GetClientSize();
 
-        // Resize chat panel
-        int chat_height = size.GetHeight() * 0.95;
-        int chat_width = size.GetWidth() * 0.7;
+        // Resize chat panel with minimum dimensions
+        int chat_height = std::max(180, (int)(size.GetHeight() * 0.25));
+        int chat_width = std::max(326, (int)(size.GetWidth() * 0.5));
+        int chat_y = size.GetHeight() - chat_height - 10;  // 10px from bottom
+
         m_chat_panel->SetSize(
             (size.GetWidth() - chat_width) / 2,
-            10,
+            chat_y,
             chat_width,
             chat_height
         );
         m_chat_panel->Raise();
 
         // Resize and reposition overlay button
-        int image_height = 38+8;
-        int image_width = 238+8;
+        int image_height = 38 + 8;
+        int image_width = 238 + 8;
+        int button_y = size.GetHeight() - image_height - 10;  // 10px above chat panel
+
         m_overlay_btn->SetSize(
             (size.GetWidth() - image_width) / 2,
-            chat_height - 50,
+            button_y,
             image_width,
             image_height
         );
 
         // Position badges relative to button
         int icon_x = (size.GetWidth() - image_width) / 2 + 210;
-        int icon_y = chat_height - 50 - 5;
 
 #ifdef __APPLE__
-        m_icon_text_left->SetPosition({icon_x+3, icon_y+2});
-        m_icon_text_right->SetPosition({icon_x+15, icon_y+2});
- #else
-        m_icon_text_left->SetPosition({icon_x + 3, icon_y -10});
-        m_icon_text_right->SetPosition({icon_x + 15, icon_y -10});
- #endif
+        m_icon_text_left->SetPosition({icon_x + 3, button_y - 5});
+        m_icon_text_right->SetPosition({icon_x + 15, button_y - 5});
+#else
+        m_icon_text_left->SetPosition({icon_x + 3, button_y - 10});
+        m_icon_text_right->SetPosition({icon_x + 15, button_y - 10});
+#endif
         // Ensure proper z-order
         m_overlay_btn->Raise();
-
         m_icon_text_left->Raise();
         m_icon_text_right->Raise();
     }
