@@ -8,4 +8,4 @@
   - run `build_release_macos.sh`
 
 - Ubuntu  
-  - run `BuildLinux.sh -udisr`
+  - run `build_linux.sh -udisr`
