@@ -680,6 +680,8 @@ void FanControlPopupNew::CreateDuct()
 
 void FanControlPopupNew::UpdateParts(int mode_id)
 {
+    Freeze();
+
     m_sizer_fanControl->Clear(true);
     for (const auto& part : m_data.parts) {
 
@@ -698,6 +700,7 @@ void FanControlPopupNew::UpdateParts(int mode_id)
     }
 
     m_sizer_fanControl->Layout();
+    Thaw();
 }
 
 void FanControlPopupNew::UpdateTips(int model)
