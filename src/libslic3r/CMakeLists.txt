@@ -21,6 +21,8 @@ if (TARGET OpenVDB::openvdb)
     set(OpenVDBUtils_SOURCES OpenVDBUtils.cpp OpenVDBUtils.hpp)
 endif()
 
+option(BUILD_SHARED_LIBS "Build shared libs" OFF)
+
 set(lisbslic3r_sources
     ArcFitter.cpp
     ArcFitter.hpp
@@ -52,8 +54,6 @@ set(lisbslic3r_sources
     clipper.hpp
     ClipperUtils.cpp
     ClipperUtils.hpp
-    Clipper2Utils.cpp
-    Clipper2Utils.hpp
     ClipperZUtils.hpp
     Color.cpp
     Color.hpp
@@ -572,7 +572,6 @@ target_link_libraries(libslic3r
     PNG::PNG
     ZLIB::ZLIB
     ${OCCT_LIBS}
-    Clipper2
     mcut
     JPEG::JPEG
     qoi
