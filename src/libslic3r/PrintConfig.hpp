@@ -50,7 +50,7 @@ enum class NoiseType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint, htElegooLink
 };
 
 enum AuthorizationType {
@@ -188,6 +188,11 @@ enum InternalBridgeFilter {
 };
 
 //Orca
+enum EnableExtraBridgeLayer {
+    eblDisabled, eblExternalBridgeOnly, eblInternalBridgeOnly, eblApplyToAll
+};
+
+//Orca
 enum GapFillTarget {
      gftEverywhere, gftTopBottom, gftNowhere
  };
@@ -221,6 +226,7 @@ enum SLAPillarConnectionMode {
 enum BrimType {
     btAutoBrim,  // BBS
     btEar, // Orca
+    btPainted,  // BBS
     btOuterOnly,
     btInnerOnly,
     btOuterAndInner,
@@ -827,6 +833,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionBool,                thick_internal_bridges))
     ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
+    // Orca
+    ((ConfigOptionEnum<EnableExtraBridgeLayer>,  enable_extra_bridge_layer))
+    ((ConfigOptionPercent,              internal_bridge_density))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloatOrPercent,      support_threshold_overlap))
@@ -1282,6 +1291,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionBool,               spiral_mode_smooth))
     ((ConfigOptionFloatOrPercent,     spiral_mode_max_xy_smoothing))
+    ((ConfigOptionFloat,              spiral_finishing_flow_ratio))
+    ((ConfigOptionFloat,              spiral_starting_flow_ratio))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionFloat,                preheat_time))
     ((ConfigOptionInt,                preheat_steps))
