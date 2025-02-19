@@ -643,7 +643,7 @@ void GLGizmoSimplify::on_render()
 
     const Transform3d trafo_matrix = selected_volume->world_matrix();
     auto* gouraud_shader = wxGetApp().get_shader("gouraud_light");
-    glsafe(::glPushAttrib(GL_DEPTH_TEST));
+    bool depth_test_enabled = ::glIsEnabled(GL_DEPTH_TEST);
     glsafe(::glEnable(GL_DEPTH_TEST));
     gouraud_shader->start_using();
     const Camera& camera = wxGetApp().plater()->get_camera();
@@ -664,7 +664,6 @@ void GLGizmoSimplify::on_render()
         contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         const ColorRGBA color = m_glmodel.get_color();
         m_glmodel.set_color(ColorRGBA::WHITE());
-        glsafe(::glLineWidth(1.0f));
         glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
         //ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
         //glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
@@ -674,8 +673,8 @@ void GLGizmoSimplify::on_render()
         m_glmodel.set_color(color);
         contour_shader->stop_using();
     }
-
-    glsafe(::glPopAttrib());
+    if (depth_test_enabled)
+        glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
 
