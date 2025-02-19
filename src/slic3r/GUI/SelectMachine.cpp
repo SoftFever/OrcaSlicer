@@ -2154,7 +2154,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
         else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
-            if (!has_show_traditional_timelapse_waring && obj_->get_printer_arch() == PrinterArch::ARCH_I3 && (m_checkbox_list["timelapse"]->getValue() == "on")) {
+            if (!has_show_traditional_timelapse_waring && (m_checkbox_list["timelapse"]->getValue() == "on")) {
                 confirm_text.push_back(ConfirmBeforeSendInfo(Plater::get_slice_warning_string(warning)));
                 has_show_traditional_timelapse_waring = true;
                 has_slice_warnings = true;
