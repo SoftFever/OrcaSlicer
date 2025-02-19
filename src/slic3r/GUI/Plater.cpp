@@ -214,16 +214,11 @@ wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_PANEL_SIZE_WIDEN (wxSize(FromDIP(136), FromDIP(68)))
 #define PRINTER_PANEL_SIZE (wxSize(FromDIP(98), FromDIP(98)))
 
-static int get_diameter_index(float diameter)
+static string get_diameter_string(float diameter)
 {
-    float eps = 1e-3;
-    std::vector<float> diameters = {0.2, 0.4, 0.6, 0.8};
-    for (int index = 0; index < diameters.size(); ++index) {
-        if (abs(diameters[index] - diameter) < eps) {
-            return index;
-        }
-    }
-    return 0;
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(1) << diameter;
+    return stream.str();
 }
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -1302,8 +1297,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
 
-    left_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[0]));
-    right_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[1]));
+    int left_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
+    int right_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[1]));
+    assert(left_extruder != -1 && right_extruder != -1);
+    left_extruder->combo_diameter->SetSelection(left_index);
+    right_extruder->combo_diameter->SetSelection(right_index);
     is_switching_diameter = true;
     switch_diameter(false);
     is_switching_diameter = false;
