@@ -496,10 +496,12 @@ void GizmoObjectManipulation::reset_scale_value()
     change_scale_value(2, 100.);
 }
 
-static const char* label_values[3][3] = {
+static const char* label_values[5][3] = {
 { "##position_x", "##position_y", "##position_z"},
 { "##rotation_x", "##rotation_y", "##rotation_z"},
 { "##position_x_relative", "##position_y_relative", "##position_z_relative"},
+{ "<##rotate_relative_x_dec", "<##rotate_relative_y_dec", "<##rotate_relative_z_dec"},
+{ ">##rotate_relative_x_inc", ">##rotate_relative_y_inc", ">##rotate_relative_z_inc"},
 };
 
 static const char* label_scale_values[2][3] = {
@@ -827,32 +829,38 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     ImGui::PopStyleVar(2);
 
     ImGui::SameLine(caption_max + space_size);
-    if (ImGui::Button("<###rotate_relative_x_inc", btn_size)) { rotation[0] -= m_rotate_relative;}
-    ImGui::SameLine();
-    if (ImGui::Button(">###rotate_relative_x_dec", btn_size)) { rotation[0] += m_rotate_relative;}
-    ImGui::SameLine(0, space_size);
-    if (ImGui::Button("<###rotate_relative_y_inc", btn_size)) { rotation[1] -= m_rotate_relative;}
-    ImGui::SameLine();
-    if (ImGui::Button(">###rotate_relative_y_dec", btn_size)) { rotation[1] += m_rotate_relative;}
-    ImGui::SameLine(0, space_size);
-    if (ImGui::Button("<###rotate_relative_z_inc", btn_size)) { rotation[2] -= m_rotate_relative;}
-    ImGui::SameLine();
-    if (ImGui::Button(">###rotate_relative_z_dec", btn_size)) { rotation[2] += m_rotate_relative;}
+    for (int j = 0; j < 3; j++) { // add relative rotation buttons
+        if (ImGui::Button(label_values[3][j], btn_size)) { rotation[j] -= m_rotate_relative;}
+        ImGui::SameLine();
+        if (ImGui::Button(label_values[4][j], btn_size)) { rotation[j] += m_rotate_relative;}
+        ImGui::SameLine(0, space_size);
+    }
 
     m_buffered_rotation = rotation;
     update(current_active_id, "rotation", this->m_new_rotation, m_buffered_rotation);
+
+    // Highlight rotation axis while hovering relative rotation buttons
+    ImGuiID hovered_id           = ImGui::GetHoveredID();
+    int     hovered_relative_btn = -1;
+    for (int j = 0; j < 3; j++) { // find index of hovered buttons
+        if (hovered_id == ImGui::GetID(label_values[3][j]) || hovered_id == ImGui::GetID(label_values[4][j])) {
+            hovered_relative_btn= j;
+            break;
+        }
+    }
 
     // send focus to m_glcanvas
     bool focued_on_text = false;
     for (int j = 0; j < 3; j++) {
         unsigned int id = ImGui::GetID(label_values[1][j]);
-        if (current_active_id == id) {
+        j = hovered_relative_btn!= -1 ? hovered_relative_btn : j;
+        if (current_active_id == id || hovered_relative_btn!= -1) {
             m_glcanvas.handle_sidebar_focus_event(label_values[1][j] + 2, true);
             focued_on_text = true;
             break;
         }
     }
-    if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
+    if (!focued_on_text && hovered_relative_btn==-1) m_glcanvas.handle_sidebar_focus_event("", false);
 
     m_last_active_item = current_active_id;
     last_rotate_input_window_width = ImGui::GetWindowWidth();
