@@ -317,11 +317,11 @@ nlohmann::json JusPrinPlateUtils::GetPlates(bool with_model_object_features) {
             if (extruder_id_ptr) {
                 extruder_id = *extruder_id_ptr;
             }
-            object_info["extruderId"] = extruder_id;
+            object_info["extruder_id"] = extruder_id;
 
             objects_info.push_back(object_info);
         }
-        plate_info["modelObjects"] = objects_info;
+        plate_info["model_objects"] = objects_info;
 
         j.push_back(plate_info);
     }
