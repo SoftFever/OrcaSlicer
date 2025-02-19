@@ -1103,6 +1103,16 @@ static ExPolygons outer_inner_brim_area(const Print& print,
     }
     std::vector<int> filament_map = print.get_filament_maps();
 
+    if (print.has_wipe_tower() && !print.get_fake_wipe_tower().outer_wall.empty()) {
+        ExPolygons expolyFromLines{};
+        for (auto polyline : print.get_fake_wipe_tower().outer_wall.begin()->second) {
+            polyline.remove_duplicate_points();
+            expolyFromLines.emplace_back(polyline.points);
+            expolyFromLines.back().translate(Point(scale_(print.get_fake_wipe_tower().pos[0]), scale_(print.get_fake_wipe_tower().pos[1])));
+        }
+        expolygons_append(no_brim_area, expolyFromLines);
+    }
+
     for (const PrintObject* object : print.objects()) {
         ExPolygons extruder_no_brim_area = no_brim_area;
         auto iter = std::find_if(objPrintVec.begin(), objPrintVec.end(), [object](const std::pair<ObjectID, unsigned int>& item) {
