@@ -1299,7 +1299,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 
     int left_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
     int right_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[1]));
-    assert(left_extruder != -1 && right_extruder != -1);
+    assert(left_index != -1 && right_index != -1);
     left_extruder->combo_diameter->SetSelection(left_index);
     right_extruder->combo_diameter->SetSelection(right_index);
     is_switching_diameter = true;
