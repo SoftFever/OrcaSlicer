@@ -82,13 +82,12 @@ void JusPrinChatPanel::init_action_handlers() {
     // Sync actions for the chat page (return json)
     json_action_handlers["get_presets"] = &JusPrinChatPanel::handle_get_presets;
     json_action_handlers["get_edited_presets"] = &JusPrinChatPanel::handle_get_edited_presets;
-    json_action_handlers["get_plates"] = &JusPrinChatPanel::handle_get_plates;
     json_action_handlers["render_plate"] = &JusPrinChatPanel::handle_render_plate;
     json_action_handlers["select_preset"] = &JusPrinChatPanel::handle_select_preset;
     json_action_handlers["apply_config"] = &JusPrinChatPanel::handle_apply_config;
     json_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     json_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
-    json_action_handlers["get_project_info"] = &JusPrinChatPanel::handle_get_project_info;
+    json_action_handlers["get_current_project"] = &JusPrinChatPanel::handle_get_current_project;
 
     // Actions for the chat page (void return)
     void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
@@ -108,14 +107,14 @@ void JusPrinChatPanel::SendAutoOrientEvent(bool canceled) {
     j["type"] = "autoOrient";
     j["data"] = nlohmann::json::object();
     j["data"]["status"] = canceled ? "canceled" : "completed";
-    j["data"]["modelObjects"] = JusPrinPlateUtils::GetAllModelObjectsJson();
+    j["data"]["currentProject"] = JusPrinPlateUtils::GetCurrentProject(true);
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
 void JusPrinChatPanel::SendModelObjectsChangedEvent() {
     nlohmann::json j = nlohmann::json::object();
     j["type"] = "modelObjectsChanged";
-    j["data"] = JusPrinPlateUtils::GetAllModelObjectsJson();
+    j["data"] = JusPrinPlateUtils::GetCurrentProject(true);
 
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
@@ -174,10 +173,6 @@ nlohmann::json JusPrinChatPanel::handle_get_edited_presets(const nlohmann::json&
     return j;
 }
 
-nlohmann::json JusPrinChatPanel::handle_get_plates(const nlohmann::json& params) {
-    return JusPrinPlateUtils::GetPlates(params);
-}
-
 nlohmann::json JusPrinChatPanel::handle_render_plate(const nlohmann::json& params) {
     return JusPrinPlateUtils::RenderPlateView(params);
 }
@@ -192,8 +187,10 @@ nlohmann::json JusPrinChatPanel::handle_add_filaments(const nlohmann::json& para
     return nlohmann::json::object();
 }
 
-nlohmann::json JusPrinChatPanel::handle_get_project_info(const nlohmann::json& params) {
-    return JusPrinPlateUtils::GetProjectInfo(params);
+nlohmann::json JusPrinChatPanel::handle_get_current_project(const nlohmann::json& params) {
+    nlohmann::json payload = params.value("payload", nlohmann::json::object());
+    bool with_model_object_features = payload.value("with_model_object_features", false);
+    return JusPrinPlateUtils::GetCurrentProject(with_model_object_features);
 }
 
 nlohmann::json JusPrinChatPanel::handle_select_preset(const nlohmann::json& params)

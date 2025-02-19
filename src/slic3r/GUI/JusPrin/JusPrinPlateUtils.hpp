@@ -16,12 +16,12 @@ namespace Slic3r { namespace GUI {
 class JusPrinPlateUtils {
 public:
     static nlohmann::json RenderPlateView(const nlohmann::json& params);
-    static nlohmann::json GetPlates(const nlohmann::json& params);
-    static nlohmann::json GetAllModelObjectsJson();
-    static nlohmann::json GetProjectInfo(const nlohmann::json& params);
+    static nlohmann::json GetCurrentProject(const bool with_model_object_features);
 private:
     static void RenderThumbnail(ThumbnailData& thumbnail_data,
         const Vec3d& camera_position, const Vec3d& target);
+
+    static nlohmann::json GetPlates(bool with_model_object_features);
     static nlohmann::json GetModelObjectFeaturesJson(const ModelObject* obj);
     static nlohmann::json CostItemsToJson(const Slic3r::orientation::CostItems& cost_items);
 };
