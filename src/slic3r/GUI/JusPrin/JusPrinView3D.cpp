@@ -71,7 +71,6 @@ JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& p
         }
         event.Skip();
     });
-    //m_animationCtrl->Hide();
 }
 
 void JustPrinButton::OnPaint(wxPaintEvent& event) {
@@ -226,6 +225,8 @@ JusPrinView3D::~JusPrinView3D()
 {
     delete m_chat_panel;
     delete m_overlay_btn;
+    delete m_icon_text_left;
+    delete m_icon_text_right;
 }
 
 void JusPrinView3D::init_overlay()
@@ -258,6 +259,9 @@ void JusPrinView3D::init_overlay()
         if (m_chat_panel) {
             m_chat_panel->Show();
             m_chat_panel->SetFocus();
+            m_overlay_btn->Hide();
+            m_icon_text_left->Hide();
+            m_icon_text_right->Hide();
         }
         evt.Skip();
     };
@@ -322,15 +326,10 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
 void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt)
 {
     if (m_chat_panel && m_chat_panel->IsShown()) {
-        // wxPoint click_pt = evt.GetPosition();
-
-        // wxRect btn_rect = m_overlay_image->GetScreenRect();
-        // wxRect img_rect(this->ScreenToClient(btn_rect.GetTopLeft()),
-        //                this->ScreenToClient(btn_rect.GetBottomRight()));
-
-        // if (!img_rect.Contains(click_pt)) {
-            m_chat_panel->Hide();
-        // }
+        m_chat_panel->Hide();
+        m_overlay_btn->Show();
+        m_icon_text_left->Show();
+        m_icon_text_right->Show();
     }
     evt.Skip();
 }
