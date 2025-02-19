@@ -141,6 +141,7 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
 
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
+#ifdef __APPLE_
         // Draw with solid color, no border
         gc->SetBrush(wxBrush(m_bgColor));
         gc->SetPen(wxPen(m_bgColor)); // Changed to use background color for no visible border
@@ -159,6 +160,22 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
         double x = (size.GetWidth() - textWidth) / 2;
         double y = (size.GetHeight() - textHeight) / 2;
         gc->DrawText(m_text, x, y);
+ #else
+        int width  = size.GetWidth();
+        int height = size.GetHeight();
+        gc->SetBrush(wxBrush(wxColour(m_bgColor)));
+        gc->DrawRectangle(1, 1, width-2, height-2);
+        gc->SetBrush(wxBrush(wxColour(*wxWHITE)));
+        gc->DrawRectangle(2, 2, width - 4, height - 4);
+
+        gc->SetFont(GetFont(), m_bgColor);
+        double textWidth, textHeight;
+        gc->GetTextExtent(m_text, &textWidth, &textHeight);
+
+        double x = (size.GetWidth() - textWidth) / 2;
+        double y = (size.GetHeight() - textHeight) / 2;
+        gc->DrawText(m_text, x, y);
+ #endif
 
         delete gc;
     }
@@ -215,8 +232,6 @@ void JusPrinView3D::init_overlay()
     m_icon_text_right->Raise();
     m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
     m_icon_text_left->Raise();
-    m_icon_text_left->SetBackgroundColour(*wxWHITE);
-    m_icon_text_right->SetBackgroundColour(*wxWHITE);
 
     // Debug: Make the badge bigger initially to see it better
     m_icon_text_left->SetMinSize(wxSize(20, 20));
@@ -263,8 +278,6 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
         m_icon_text_left->SetPosition({icon_x + 3, icon_y -10});
         m_icon_text_right->SetPosition({icon_x + 15, icon_y -10});
  #endif
-
-
         // Ensure proper z-order
         m_overlay_btn->Raise();
 
