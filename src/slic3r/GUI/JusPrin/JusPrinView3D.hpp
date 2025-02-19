@@ -20,11 +20,14 @@ public:
     {
         m_text = text;
         m_bgColor = bgColor;
-
+#ifdef __APPLE__
         // Set transparent background
         SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
         SetBackgroundColour(wxTransparentColour);
-
+#else 
+        SetBackgroundColour(*wxWHITE);
+#endif
+    
         Bind(wxEVT_PAINT, &CircularBadge::OnPaint, this);
     }
 
