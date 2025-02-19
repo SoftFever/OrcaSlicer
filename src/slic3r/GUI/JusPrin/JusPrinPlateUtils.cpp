@@ -291,7 +291,7 @@ void JusPrinPlateUtils::RenderThumbnail(ThumbnailData& thumbnail_data,
 }
 
 
-nlohmann::json JusPrinPlateUtils::GetPlates(const nlohmann::json& params) {
+nlohmann::json JusPrinPlateUtils::GetPlates(bool with_model_object_features) {
     nlohmann::json j = nlohmann::json::array();
 
     Plater* plater = wxGetApp().plater();  // Get plater instance
@@ -307,6 +307,9 @@ nlohmann::json JusPrinPlateUtils::GetPlates(const nlohmann::json& params) {
             nlohmann::json object_info;
             object_info["id"] = std::to_string(obj->id().id);
             object_info["name"] = obj->name;
+            if (with_model_object_features) {
+                object_info["features"] = GetModelObjectFeaturesJson(obj);
+            }
 
             auto object_grid_config = &(obj->config);
             int extruder_id = -1;  // Default extruder ID
@@ -359,31 +362,6 @@ nlohmann::json JusPrinPlateUtils::GetModelObjectFeaturesJson(const ModelObject* 
     return CostItemsToJson(features);
 }
 
-nlohmann::json JusPrinPlateUtils::GetAllModelObjectsJson() {
-    nlohmann::json j = nlohmann::json::array();
-    Plater* plater = wxGetApp().plater();
-
-    for (const ModelObject* object : plater->model().objects) {
-        auto object_grid_config = &(object->config);
-
-        nlohmann::json obj;
-        obj["id"] = std::to_string(object->id().id);
-        obj["name"] = object->name;
-        obj["features"] = GetModelObjectFeaturesJson(object);
-
-        int extruder_id = -1;  // Default extruder ID
-        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid_config->option("extruder"));
-        if (extruder_id_ptr) {
-            extruder_id = *extruder_id_ptr;
-        }
-        obj["extruderId"] = extruder_id;
-
-        j.push_back(obj);
-    }
-
-    return j;
-}
-
 std::string sorted_volumes_hash_code(const Model& model) {
     nlohmann::json volumes = nlohmann::json::array();
 
@@ -430,8 +408,7 @@ std::string sorted_volumes_hash_code(const Model& model) {
     return md5_ss.str();
 }
 
-nlohmann::json JusPrinPlateUtils::GetProjectInfo(const nlohmann::json& params) {
-
+nlohmann::json JusPrinPlateUtils::GetCurrentProject(bool with_model_object_features) {
     Plater* plater = wxGetApp().plater();
     const Model& model = plater->model();  // Get model from plater
 
@@ -439,6 +416,7 @@ nlohmann::json JusPrinPlateUtils::GetProjectInfo(const nlohmann::json& params) {
 
     nlohmann::json j;
     j["hash_code"] = hash_code;
+    j["plates"] = GetPlates(with_model_object_features);
     return j;
 }
 
