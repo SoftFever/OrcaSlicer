@@ -1441,6 +1441,8 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                         && !vol->is_modifier) {
                         vol->force_neutral_color = true;
                     }
+                    else if (gizmo_type == GLGizmosManager::BrimEars)
+                        vol->force_neutral_color = false;
                     else if (gizmo_type == GLGizmosManager::MmuSegmentation)
                         vol->is_active = false;
                     else
@@ -1539,15 +1541,22 @@ void GLCanvas3D::refresh_camera_scene_box()
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool current_plate_only) const
 {
     BoundingBoxf3 bb;
-    PartPlate    *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-
+    BoundingBoxf3 expand_part_plate_list_box;
+    bool          is_limit = m_canvas_type != ECanvasType::CanvasAssembleView;
+    if (is_limit) {
+        auto        plate_list_box = current_plate_only ? wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box() :
+                                                          wxGetApp().plater()->get_partplate_list().get_bounding_box();
+        auto        horizontal_radius = 0.5 * sqrt(std::pow(plate_list_box.min[0] - plate_list_box.max[0], 2) + std::pow(plate_list_box.min[1] - plate_list_box.max[1], 2));
+        const float scale             = 2;
+        expand_part_plate_list_box.merge(plate_list_box.min - scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+        expand_part_plate_list_box.merge(plate_list_box.max + scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+    }
     for (const GLVolume *volume : m_volumes.volumes) {
         if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
-                const auto plate_bb = plate->get_bounding_box();
-                const auto v_bb     = volume->transformed_bounding_box();
-                if (!plate_bb.overlap(v_bb))
-                    continue;
-                bb.merge(v_bb);
+            const auto v_bb     = volume->transformed_bounding_box();
+            if (is_limit && !expand_part_plate_list_box.overlap(v_bb))
+                continue;
+            bb.merge(v_bb);
         }
     }
     return bb;
@@ -1893,6 +1902,7 @@ void GLCanvas3D::render(bool only_init)
 
     //BBS add partplater rendering logic
     bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
+    bool show_grid = true;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
     if (!m_main_toolbar.is_enabled()) {
         //only_body = true;
@@ -1900,6 +1910,8 @@ void GLCanvas3D::render(bool only_init)
     }
     else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmuSegmentation))
         no_partplate = true;
+    else if (gizmo_type == GLGizmosManager::BrimEars && !camera.is_looking_downward())
+        show_grid = false;
 
     /* view3D render*/
     int hover_id = (m_hover_plate_idxs.size() > 0)?m_hover_plate_idxs.front():-1;
@@ -1911,7 +1923,7 @@ void GLCanvas3D::render(bool only_init)
         if (!no_partplate)
             _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
         if (!no_partplate) //BBS: add outline logic
-            _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true);
+            _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
     }
     /* preview render */
@@ -7162,9 +7174,9 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
     m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
-void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
+void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
 {
-    wxGetApp().plater()->get_partplate_list().render(view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali);
+    wxGetApp().plater()->get_partplate_list().render(view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid);
 }
 
 void GLCanvas3D::_render_plane() const

@@ -2362,6 +2362,9 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
         optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
+        optgroup->append_single_option_line("spiral_starting_flow_ratio", "spiral-vase#starting-flow-ratio");
+        optgroup->append_single_option_line("spiral_finishing_flow_ratio", "spiral-vase#finishing-flow-ratio");
+
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
 
         optgroup->append_single_option_line("fuzzy_skin");
@@ -2399,18 +2402,19 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         option.opt.height = 25;//250;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
-        optgroup = page->new_optgroup(L("Profile dependencies"));
+    // Orca: hide the dependencies tab for process for now. The UI is not ready yet.
+    // page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
+    //     optgroup = page->new_optgroup(L("Profile dependencies"));
 
-        create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
-            return compatible_widget_create(parent, m_compatible_printers);
-        });
+    //     create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
+    //         return compatible_widget_create(parent, m_compatible_printers);
+    //     });
     
-        option = optgroup->get_option("compatible_printers_condition");
-        option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
+    //     option = optgroup->get_option("compatible_printers_condition");
+    //     option.opt.full_width = true;
+    //     optgroup->append_single_option_line(option);
 
-        build_preset_description_line(optgroup.get());
+    //     build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -3632,13 +3636,29 @@ void TabFilament::toggle_options()
     {
         bool pa = m_config->opt_bool("enable_pressure_advance", 0);
         toggle_option("pressure_advance", pa);
-        // Orca: Enable the plates that should  be visible when multi bed support is enabled or a BBL printer is selected
-        auto support_multi_bed_types = is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
-        toggle_line("supertack_plate_temp_initial_layer", support_multi_bed_types );
-        toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
-        toggle_line("textured_cool_plate_temp_initial_layer", support_multi_bed_types);
-        toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
-        toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
+
+        //Orca: Enable the plates that should be visible when multi bed support is enabled or a BBL printer is selected; otherwise, enable only the plate visible for the selected bed type.
+        DynamicConfig& proj_cfg               = m_preset_bundle->project_config;
+        std::string    bed_temp_1st_layer_key = "";
+        if (proj_cfg.has("curr_bed_type")) 
+        {
+            bed_temp_1st_layer_key = get_bed_temp_1st_layer_key(proj_cfg.opt_enum<BedType>("curr_bed_type"));
+        }
+
+        const std::vector<std::string> bed_temp_keys = {"supertack_plate_temp_initial_layer", "cool_plate_temp_initial_layer",
+                                                        "textured_cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer",
+                                                        "textured_plate_temp_initial_layer", "hot_plate_temp_initial_layer"};
+
+        bool support_multi_bed_types = std::find(bed_temp_keys.begin(), bed_temp_keys.end(), bed_temp_1st_layer_key) ==
+                                           bed_temp_keys.end() ||
+                                       is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
+
+        for (const auto& key : bed_temp_keys) 
+        {
+            toggle_line(key, support_multi_bed_types || bed_temp_1st_layer_key == key);
+        }
+
+     
         
         // Orca: adaptive pressure advance and calibration model
         // If PA is not enabled, disable adaptive pressure advance and hide the model section
