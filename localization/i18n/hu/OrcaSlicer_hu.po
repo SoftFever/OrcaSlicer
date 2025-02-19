@@ -9654,6 +9654,9 @@ msgstr ""
 "felhasználónevet és a jelszót a következő formátumban beleírod az URL-be: "
 "https://username:password@your-octopi-address/"
 
+msgid "Printer ID"
+msgstr "Nyomtató ID"
+
 msgid "Device UI"
 msgstr "Eszköz UI"
 

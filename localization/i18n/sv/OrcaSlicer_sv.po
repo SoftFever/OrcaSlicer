@@ -9568,6 +9568,9 @@ msgstr ""
 "aktiverad genom att ange användarnamn och lösenord i URL:en i följande "
 "format: https://username:password@your-octopi-address/"
 
+msgid "Printer ID"
+msgstr "Skrivar-ID"
+
 msgid "Device UI"
 msgstr "Enhetens gränssnitt"
 

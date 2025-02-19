@@ -238,7 +238,7 @@ public:
     wxStaticBitmap* curr_humidity_img;
     AmsHumidityLevelList* humidity_level_list{nullptr};
     wxStaticBitmap* m_img;
-    Label* m_staticText;;
+    Label* m_staticText;
     Label* m_staticText_note;
 };
 

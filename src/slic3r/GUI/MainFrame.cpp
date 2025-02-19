@@ -2905,22 +2905,22 @@ void MainFrame::init_menubar_as_editor()
                 m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_temp_calib_dlg->ShowModal();
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     auto flowrate_menu = new wxMenu();
     append_menu_item(
         flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 1); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     flowrate_menu->AppendSeparator();
     append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
         [this](wxCommandEvent&) {
@@ -2928,21 +2928,21 @@ void MainFrame::init_menubar_as_editor()
                 m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_pa_calib_dlg->ShowModal();
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Retraction test"), _L("Retraction test"),
         [this](wxCommandEvent&) {
             if (!m_retraction_calib_dlg)
                 m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_retraction_calib_dlg->ShowModal();
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
         
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Orca Tolerance Test"), _L("Orca Tolerance Test"),
         [this](wxCommandEvent&) {
             m_plater->new_project();
         m_plater->add_model(false, Slic3r::resources_dir() + "/calib/tolerance_test/OrcaToleranceTest.stl");
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     // Advance calibrations
     auto advance_menu = new wxMenu();
 
@@ -2954,7 +2954,7 @@ void MainFrame::init_menubar_as_editor()
             m_vol_test_dlg->ShowModal();
         },
         "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
 
     append_menu_item(
         advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
@@ -2964,7 +2964,7 @@ void MainFrame::init_menubar_as_editor()
             m_vfa_test_dlg->ShowModal();
         },
         "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
 
     // help 
@@ -2977,7 +2977,7 @@ void MainFrame::init_menubar_as_editor()
             }
             wxLaunchDefaultBrowser(url, wxBROWSER_NEW_WINDOW);
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
 
 #else
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
@@ -2998,25 +2998,25 @@ void MainFrame::init_menubar_as_editor()
                 m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_temp_calib_dlg->ShowModal();
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
         
     // Flowrate
     auto flowrate_menu = new wxMenu();
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 1); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 2); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
                    [this]() {return m_plater->is_view3D_shown();; });
     flowrate_menu->AppendSeparator();
     append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (Recommended)"), _L("Orca YOLO flowrate calibration, 0.01 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 1); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("YOLO (perfectionist version)"), _L("Orca YOLO flowrate calibration, 0.005 step"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
 
     // PA
     append_menu_item(calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
@@ -3025,7 +3025,7 @@ void MainFrame::init_menubar_as_editor()
                 m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_pa_calib_dlg->ShowModal();
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
 
     // Retraction
     append_menu_item(calib_menu, wxID_ANY, _L("Retraction test"), _L("Retraction test"),
@@ -3034,7 +3034,7 @@ void MainFrame::init_menubar_as_editor()
                 m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_retraction_calib_dlg->ShowModal();
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
 
     // Tolerance Test
     append_menu_item(calib_menu, wxID_ANY, _L("Orca Tolerance Test"), _L("Orca Tolerance Test"),
@@ -3042,7 +3042,7 @@ void MainFrame::init_menubar_as_editor()
             m_plater->new_project();
             m_plater->add_model(false, Slic3r::resources_dir() + "/calib/tolerance_test/OrcaToleranceTest.stl");
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
 
     // Advance calibrations
     auto advance_menu = new wxMenu();
@@ -3053,7 +3053,7 @@ void MainFrame::init_menubar_as_editor()
                 m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_vol_test_dlg->ShowModal(); 
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     append_menu_item(
         advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
         [this](wxCommandEvent&) { 
@@ -3061,14 +3061,14 @@ void MainFrame::init_menubar_as_editor()
                 m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_vfa_test_dlg->ShowModal();
         }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);    
+        [this]() {return m_plater->is_view3D_shown(); }, this);    
        
     append_submenu(calib_menu, advance_menu, wxID_ANY, _L("More..."), _L("More calibrations"), "",
-        [this]() {return m_plater->is_view3D_shown();; });
+        [this]() {return m_plater->is_view3D_shown(); });
     // help
     append_menu_item(calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
         [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this]() {return m_plater->is_view3D_shown(); }, this);
     
     m_menubar->Append(calib_menu,wxString::Format("&%s", _L("Calibration")));
     if (helpMenu)

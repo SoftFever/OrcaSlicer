@@ -167,7 +167,7 @@ if (0) {
     is scalar(@$polylines), 1, 'medial axis is a single polyline';
     my $polyline = $polylines->[0];
     
-    my $expected_y = $expolygon->bounding_box->center->y; #;;
+    my $expected_y = $expolygon->bounding_box->center->y;
     ok abs(sum(map $_->y, @$polyline) / @$polyline - $expected_y) < scaled_epsilon, #,,
         'medial axis is horizontal and is centered';
     

@@ -187,7 +187,7 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         json j;
         j["model"]["license"] = license;
         j["model"]["name"] = wxGetApp().url_encode(model_name);
-        j["model"]["author"] = wxGetApp().url_encode(model_author);;
+        j["model"]["author"] = wxGetApp().url_encode(model_author);
         j["model"]["cover_img"] = wxGetApp().url_encode(cover_file);
         j["model"]["description"] = wxGetApp().url_encode(description);
         j["model"]["preview_img"] = files["Model Pictures"];

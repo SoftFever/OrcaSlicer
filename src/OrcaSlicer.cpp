@@ -2710,7 +2710,7 @@ int CLI::run(int argc, char **argv)
                     }
                     else {
                         //skip the scalar values
-                        BOOST_LOG_TRIVIAL(info) << boost::format("skip scalar option %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("skip scalar option %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];
                         continue;
                     }
                 }

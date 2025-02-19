@@ -2371,7 +2371,7 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
         IM_ASSERT(font_offset >= 0 && "FontData is incorrect, or FontNo cannot be found.");
         if (!stbtt_InitFont(&src_tmp.FontInfo, (unsigned char*)cfg.FontData, font_offset)) {
             BOOST_LOG_TRIVIAL(info) << "stbtt_InitFont failed, font_name: " << cfg.Name << ", font_data_tag:"
-                << ((unsigned char*)cfg.FontData)[0] << ((unsigned char*)cfg.FontData)[1] << ((unsigned char*)cfg.FontData)[2] << ((unsigned char*)cfg.FontData)[3];;
+                << ((unsigned char*)cfg.FontData)[0] << ((unsigned char*)cfg.FontData)[1] << ((unsigned char*)cfg.FontData)[2] << ((unsigned char*)cfg.FontData)[3];
             return false;
         }
 

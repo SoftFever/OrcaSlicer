@@ -154,7 +154,7 @@ void OrientJob::process(Ctl &ctl)
     static const auto arrangestr = _u8L("Orienting...");
 
     ctl.update_status(0, arrangestr);
-    ctl.call_on_main_thread([this]{ prepare(); }).wait();;
+    ctl.call_on_main_thread([this]{ prepare(); }).wait();
 
     auto start = std::chrono::steady_clock::now();
 

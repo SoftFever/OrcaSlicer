@@ -157,7 +157,7 @@ namespace nowide {
 
         void print_buf(char *b,char *p,char *e)
         {
-            std::cerr << "-- Is Null: " << (b==0) << std::endl;; 
+            std::cerr << "-- Is Null: " << (b==0) << std::endl;
             if(b==0)
                 return;
             if(e != 0)

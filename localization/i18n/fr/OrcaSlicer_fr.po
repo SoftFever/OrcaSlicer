@@ -10083,6 +10083,9 @@ msgstr ""
 "d'utilisateur et le mot de passe dans l'URL au format suivant : https://"
 "username:password@your-octopi-address/"
 
+msgid "Printer ID"
+msgstr "ID de l'imprimante"
+
 msgid "Device UI"
 msgstr "Interface utilisateur de l’appareil"
 

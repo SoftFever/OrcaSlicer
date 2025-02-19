@@ -9890,6 +9890,15 @@ msgstr ""
 "użytkownika i hasło w URL w następującym formacie: https://"
 "username:password@your-octopi-address/"
 
+msgid "Read timeout"
+msgstr "Read timeout"
+
+msgid "Printer ID"
+msgstr "Identyfikator drukarki"
+
+msgid "Printer ID"
+msgstr "Identyfikator drukarki"
+
 msgid "Device UI"
 msgstr "UI urządzenia"
 

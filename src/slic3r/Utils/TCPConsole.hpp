@@ -19,18 +19,18 @@ using boost::asio::ip::tcp;
 class TCPConsole
 {
 public:
-    TCPConsole() : m_resolver(m_io_context), m_socket(m_io_context) { set_defaults(); }
-    TCPConsole(const std::string& host_name, const std::string& port_name) : m_resolver(m_io_context), m_socket(m_io_context)
-        { set_defaults(); set_remote(host_name, port_name); }
+    TCPConsole() : m_resolver(m_io_context), m_socket(m_io_context) { set_defaults(10000); }
+    TCPConsole(const std::string& host_name, const std::string& port_name, int read_timeout = 10000) : m_resolver(m_io_context), m_socket(m_io_context)
+        { set_defaults(read_timeout); set_remote(host_name, port_name); }
     ~TCPConsole() = default;
 
-    void set_defaults()
+    void set_defaults(int read_timeout)
     {
         m_newline = "\n";
         m_done_string = "ok";
         m_connect_timeout = std::chrono::milliseconds(5000);
         m_write_timeout = std::chrono::milliseconds(10000);
-        m_read_timeout = std::chrono::milliseconds(10000);
+        m_read_timeout = std::chrono::milliseconds(read_timeout);
     }
 
     void set_line_delimiter(const std::string& newline) {

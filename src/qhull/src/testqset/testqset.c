@@ -826,11 +826,11 @@ void checkSetContents(const char *name, setT *set, int count, int rangeA, int ra
         prev= *i2;
         if(SETindex_(set, i2)!=i){
             qh_fprintf(stderr, 6311, "%s: Expecting SETIndex_(set, pointer-to-%d) to be %d.  Got %d\n", name, *i2, i, SETindex_(set, i2));
-            error_count++;;
+            error_count++;
         }
         if(i2!=SETref_(i2)){
             qh_fprintf(stderr, 6312, "%s: SETref_(i2) [%p] does not point to i2 (the %d'th element)\n", name, SETref_(i2), i);
-            error_count++;;
+            error_count++;
         }
         i++;
     }
@@ -839,22 +839,22 @@ void checkSetContents(const char *name, setT *set, int count, int rangeA, int ra
         i2T **p= SETelemaddr_(set, i2_i, i2T);
         if(i2!=*p){
             qh_fprintf(stderr, 6320, "%s: SETelemaddr_(set, %d, i2T) [%p] does not point to i2\n", name, i2_i, SETelemaddr_(set, i2_i, int));
-            error_count++;;
+            error_count++;
         }
         if(i2_i==0){
             if(first!=*i2){
                 qh_fprintf(stderr, 6314, "%s: First element is %d instead of SETfirst %d\n", name, *i2, first);
-                error_count++;;
+                error_count++;
             }
             if(rangeA!=*i2){
                 qh_fprintf(stderr, 6315, "%s: starts with %d instead of rangeA %d\n", name, *i2, rangeA);
-                error_count++;;
+                error_count++;
             }
             prev= rangeA;
         }else{
             if(i2_i==1 && second!=*i2){
                 qh_fprintf(stderr, 6316, "%s: Second element is %d instead of SETsecond %d\n", name, *i2, second);
-                error_count++;;
+                error_count++;
             }
             if(prev+1==*i2){
                 prev++;
@@ -876,11 +876,11 @@ void checkSetContents(const char *name, setT *set, int count, int rangeA, int ra
         }
         if(i2!=SETelem_(set, i2_i)){
             qh_fprintf(stderr, 6318, "%s: SETelem_(set, %d) [%p] is not i2 [%p] (the %d'th element)\n", name, i2_i, SETelem_(set, i2_i), i2, i2_i);
-            error_count++;;
+            error_count++;
         }
         if(SETelemt_(set, i2_i, i2T)!=SETelem_(set, i2_i)){   /* Normally SETelemt_ is used for generic sets */
             qh_fprintf(stderr, 6319, "%s: SETelemt_(set, %d, i2T) [%p] is not SETelem_(set, %d) [%p] (the %d'th element)\n", name, i2_i, SETelemt_(set, i2_i, int), i2_i, SETelem_(set, i2_i), i2_i);
-            error_count++;;
+            error_count++;
         }
     }
     if(error_count>=MAXerrorCount){

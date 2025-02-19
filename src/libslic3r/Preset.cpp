@@ -890,7 +890,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_tool_change_time", "time_cost", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types", "travel_slope", "retract_lift_enforce","support_chamber_temp_control","support_air_filtration","printer_structure",
     "best_object_pos","head_wrap_detect_zone",
-    "host_type", "print_host", "printhost_apikey", "bbl_use_printhost",
+    "host_type", "print_host", "printhost_apikey", "bbl_use_printhost", "machine_serial", "printer_id",
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails", "thumbnails_format",
@@ -1872,7 +1872,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     keys.erase(std::remove_if(keys.begin(), keys.end(),
                               [](std::string &val) {
                                 return val == "print_host" || val == "print_host_webui" || val == "printhost_apikey" ||
-                                       val == "printhost_cafile" || val == "printhost_user" || val == "printhost_password" || val == "printhost_port";
+                                       val == "printhost_cafile" || val == "printhost_user" || val == "printhost_password" || val == "printhost_port" || val == "machine_serial" || val == "printer_id";
                               }),
                keys.end());
     cfg.apply_only(combined_config, keys, true);
@@ -3111,6 +3111,8 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "bbl_use_printhost",
     "host_type",
     "print_host",
+    "machine_serial",
+    "printer_id",
     "print_host_webui",
     "printhost_apikey",
     "printhost_cafile",
@@ -3266,9 +3268,11 @@ PhysicalPrinterCollection::PhysicalPrinterCollection( const std::vector<std::str
 {
     // Default config for a physical printer containing all key/value pairs of PhysicalPrinter::printer_options().
     for (const std::string &key : keys) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("[A0vy] Key is -> %1%") % key;
         const ConfigOptionDef *opt = print_config_def.get(key);
         assert(opt);
         assert(opt->default_value);
+        BOOST_LOG_TRIVIAL(info) << boost::format("[A0vy] Key def is -> %1%") % opt->default_value;
         m_default_config.set_key_value(key, opt->default_value->clone());
     }
 }

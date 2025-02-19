@@ -1,5 +1,8 @@
 
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+Trying to add Flashforge Adventurer5M Pro wifi print functionality.
+
+You could buy me a coffee via paypal [@HerbakIstvan](https://paypal.com/paypalme/herbakIstvan) to thank:  :)
+
 
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 <br>Orca Slicer is an open source slicer for FDM printers. 
