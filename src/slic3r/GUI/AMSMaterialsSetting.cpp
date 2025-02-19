@@ -258,7 +258,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Fit();
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly = new Label(parent, _L(""));
+    m_tip_readonly          = new Label(parent, L"");
     m_tip_readonly->SetForegroundColour(*wxBLACK);
     m_tip_readonly->SetBackgroundColour(*wxWHITE);
     m_tip_readonly->SetMinSize(wxSize(FromDIP(380), -1));
