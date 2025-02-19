@@ -42,6 +42,7 @@ export LD_LIBRARY_PATH="\$DIR/bin:\$LD_LIBRARY_PATH"
 # FIXME: OrcaSlicer segfault workarounds
 # 1) OrcaSlicer will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)
 export LC_ALL=C
+
 if [ "\$XDG_SESSION_TYPE" = "wayland" ] && [ "\$ZINK_DISABLE_OVERRIDE" != "1" ]; then
     if command -v glxinfo >/dev/null 2>&1; then
         RENDERER=\$(glxinfo | grep "OpenGL renderer string:" | sed 's/.*: //')
