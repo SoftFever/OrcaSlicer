@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.2.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-14 23:42+0800\n"
+"POT-Creation-Date: 2025-02-19 19:44+0800\n"
 "PO-Revision-Date: 2024-09-25 22:36+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -8074,12 +8074,6 @@ msgstr "Скрипты постобработки"
 msgid "Notes"
 msgstr "Заметки"
 
-msgid "Dependencies"
-msgstr ""
-
-msgid "Profile dependencies"
-msgstr ""
-
 msgid "Frequent"
 msgstr "Частые"
 
@@ -8274,6 +8268,12 @@ msgstr "Настройки рэмминга"
 msgid "Toolchange parameters with multi extruder MM printers"
 msgstr ""
 "Параметры смены инструмента в многоэкструдерных мультиматериальных принтерах"
+
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
 
 msgid "Printable space"
 msgstr "Область печати"
@@ -10748,6 +10748,9 @@ msgstr ""
 "Этот параметр управляет формированием каймы на внешней/внутренней стороне "
 "моделей. Авто означает, что ширина каймы анализируется и рассчитывается "
 "автоматически."
+
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Смещение каймы"
@@ -14158,6 +14161,21 @@ msgstr ""
 "спирали. Если задано в процентах, то значение вычисляться относительно "
 "диаметра сопла."
 
+#, c-format, boost-format
+msgid ""
+"Sets the starting flow ratio while transitioning from the last bottom layer "
+"to the spiral. Normally the spiral transition scales the flow ratio from "
+"0% to 100% during the first loop which can in some cases lead to under "
+"extrusion at the start of the spiral."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Sets the finishing flow ratio while ending the spiral. Normally the spiral "
+"transition scales the flow ratio from 100% to 0% during the last loop which "
+"can in some cases lead to under extrusion at the end of the spiral."
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -16647,6 +16665,23 @@ msgstr "Отмена"
 
 msgid "Error uploading to print host"
 msgstr "Ошибка при отправке на хост печати"
+
+msgid ""
+"The selected bed type does not match the file. Please confirm before "
+"starting the print."
+msgstr ""
+
+msgid "Time-lapse"
+msgstr ""
+
+msgid "Heated Bed Leveling"
+msgstr ""
+
+msgid "Textured Build Plate (Side A)"
+msgstr ""
+
+msgid "Smooth Build Plate (Side B)"
+msgstr ""
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "Невозможно выполнить булевую операцию над выбранными элементами."

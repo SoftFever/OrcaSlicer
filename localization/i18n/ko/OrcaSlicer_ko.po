@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-14 23:42+0800\n"
+"POT-Creation-Date: 2025-02-19 19:44+0800\n"
 "PO-Revision-Date: 2024-11-06 21:10+0900\n"
 "Last-Translator: ElectricalBoy "
 "<15651807+ElectricalBoy@users.noreply.github.com>\n"
@@ -7760,12 +7760,6 @@ msgstr "후처리 스크립트"
 msgid "Notes"
 msgstr "메모"
 
-msgid "Dependencies"
-msgstr ""
-
-msgid "Profile dependencies"
-msgstr ""
-
 msgid "Frequent"
 msgstr "빈도"
 
@@ -7938,6 +7932,12 @@ msgstr "래밍 설정"
 
 msgid "Toolchange parameters with multi extruder MM printers"
 msgstr "다중 재료 프린터의 다중 압출기 툴 체인지 매개변수"
+
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
 
 msgid "Printable space"
 msgstr "출력 가능 공간"
@@ -10291,6 +10291,9 @@ msgid ""
 msgstr ""
 "모델의 외부 그리고/또는 내부에서 브림의 생성을 제어합니다. 자동은 브림너비가 "
 "자동으로 분석 및 계산됨을 의미합니다."
+
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "브림-개체 간격"
@@ -13462,6 +13465,21 @@ msgstr ""
 "부드러운 나선형을 얻기 위해 점을 XY로 이동하는 최대 거리 %로 표시할 경우 노"
 "즐 직경에 대해 계산됩니다"
 
+#, c-format, boost-format
+msgid ""
+"Sets the starting flow ratio while transitioning from the last bottom layer "
+"to the spiral. Normally the spiral transition scales the flow ratio from "
+"0% to 100% during the first loop which can in some cases lead to under "
+"extrusion at the start of the spiral."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Sets the finishing flow ratio while ending the spiral. Normally the spiral "
+"transition scales the flow ratio from 100% to 0% during the last loop which "
+"can in some cases lead to under extrusion at the end of the spiral."
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -15768,6 +15786,23 @@ msgstr "취소 중"
 
 msgid "Error uploading to print host"
 msgstr "출력 호스트에 업로드하는 중 오류가 발생했습니다"
+
+msgid ""
+"The selected bed type does not match the file. Please confirm before "
+"starting the print."
+msgstr ""
+
+msgid "Time-lapse"
+msgstr ""
+
+msgid "Heated Bed Leveling"
+msgstr ""
+
+msgid "Textured Build Plate (Side A)"
+msgstr ""
+
+msgid "Smooth Build Plate (Side B)"
+msgstr ""
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "선택한 부품에서 부울 연산을 수행할 수 없습니다"
