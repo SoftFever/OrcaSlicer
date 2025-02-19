@@ -141,63 +141,31 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
 
     if (label.length() < 5) {
         type = ButtonSizeNormal;
-        btn->SetMinSize(MSG_DIALOG_BUTTON_SIZE); }
+        //btn->SetMinSize(MSG_DIALOG_BUTTON_SIZE); // ?????
+    }
     else if (label.length() >= 5 && label.length() < 8) {
         type = ButtonSizeMiddle;
-        btn->SetMinSize(MSG_DIALOG_MIDDLE_BUTTON_SIZE);
+        //btn->SetMinSize(MSG_DIALOG_MIDDLE_BUTTON_SIZE);
     } 
     else if (label.length() >= 8 && label.length() < 12) {
         type = ButtonSizeMiddle;
-        btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
+        //btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
     } else {
         type = ButtonSizeLong;
-        btn->SetMinSize(MSG_DIALOG_LONGER_BUTTON_SIZE);
+        //btn->SetMinSize(MSG_DIALOG_LONGER_BUTTON_SIZE);
     }
-    
-    btn->SetCornerRadius(FromDIP(12));
-    StateColor btn_bg_green(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor btn_bd_green(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor btn_text_green(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    StateColor btn_bg_white(
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
-
-    StateColor btn_bd_white(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-    StateColor btn_text_white(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
 
     if (btn_id == wxID_OK || btn_id == wxID_YES) {
-        btn->SetBackgroundColor(btn_bg_green);
-        btn->SetBorderColor(btn_bd_green);
-        btn->SetTextColor(btn_text_green);
+        btn->SetStyle("Confirm", "Choice");
     }
 
     if (btn_id == wxID_CANCEL || btn_id == wxID_NO) {
-        btn->SetBackgroundColor(btn_bg_white);
-        btn->SetBorderColor(btn_bd_white);
-        btn->SetTextColor(btn_text_white);
+        btn->SetStyle("Regular", "Choice");
     }
 
     if (set_focus)
         btn->SetFocus();
-    btn_sizer->Add(btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_SPACING);
+    btn_sizer->Add(btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
     btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { EndModal(btn_id); });
 
     MsgButton *mb = new MsgButton;
@@ -501,28 +469,14 @@ DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title
 
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetBackgroundColor(btn_bg_white);
-    m_cancel_btn->SetBorderColor(*wxBLACK);
-    m_cancel_btn->SetTextColor(wxColour(*wxBLACK));
-    m_cancel_btn->SetFont(Label::Body_12);
-    m_cancel_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
+    m_cancel_btn = new Button(this, _L("Cancel"));
+    m_cancel_btn->SetStyle("Regular", "Choice");
+    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
 
     m_del_btn = new Button(this, _L("Delete"));
-    m_del_btn->SetBackgroundColor(*wxRED);
-    m_del_btn->SetBorderColor(*wxWHITE);
-    m_del_btn->SetTextColor(wxColour(0xFFFFFE));
-    m_del_btn->SetFont(Label::Body_12);
-    m_del_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_btn->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
+    m_del_btn->SetStyle("Alert", "Choice");
+    bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
 
     m_main_sizer->Add(bSizer_button, 0, wxEXPAND, 0);
     m_del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_OK); });
@@ -611,21 +565,12 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
 {
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     horizontal_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
     bool       file_version_newer = (*m_file_version) > (*m_cloud_version);
     if (!file_version_newer) {
         m_update_btn = new Button(this, _L("Update"));
-        m_update_btn->SetBackgroundColor(btn_bg_green);
-        m_update_btn->SetBorderColor(*wxWHITE);
-        m_update_btn->SetTextColor(wxColour(0xFFFFFE));
-        m_update_btn->SetFont(Label::Body_12);
-        m_update_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_update_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_update_btn->SetCornerRadius(FromDIP(12));
-        horizontal_sizer->Add(m_update_btn, 0, wxRIGHT, FromDIP(10));
+        m_update_btn->SetStyle("Regular", "Choice");
+        horizontal_sizer->Add(m_update_btn, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
         m_update_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
             EndModal(wxID_OK);
@@ -641,19 +586,12 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
 
     if (!file_version_newer) {
         m_later_btn = new Button(this, _L("Not for now"));
-        m_later_btn->SetBackgroundColor(btn_bg_white);
-        m_later_btn->SetBorderColor(wxColour(38, 46, 48));
+        m_later_btn->SetStyle("Regular", "Choice");
     } else {
         m_later_btn = new Button(this, _L("OK"));
-        m_later_btn->SetBackgroundColor(btn_bg_green);
-        m_later_btn->SetBorderColor(*wxWHITE);
-        m_later_btn->SetTextColor(wxColour(0xFFFFFE));
+        m_later_btn->SetStyle("Confirm", "Choice");
     }
-    m_later_btn->SetFont(Label::Body_12);
-    m_later_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_later_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_later_btn->SetCornerRadius(FromDIP(12));
-    horizontal_sizer->Add(m_later_btn, 0, wxRIGHT, FromDIP(10));
+    horizontal_sizer->Add(m_later_btn, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
     m_later_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_OK);
     });
@@ -729,22 +667,14 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
         e.Skip();
     });
 
-    auto bt_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-
     m_button_confirm = new Button(this, _L("Confirm"));
-    m_button_confirm->SetBackgroundColor(bt_enable);
-    m_button_confirm->SetBorderColor(bt_enable);
-    m_button_confirm->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-    m_button_confirm->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
-    m_button_confirm->SetMinSize(wxSize(FromDIP(68), FromDIP(23)));
-    m_button_confirm->SetCornerRadius(12);
+    m_button_confirm->SetStyle("Confirm", "Choice");
     m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {EndModal(wxCLOSE);});
 
     sizer_button->Add(checkbox, 0, wxALL, 5);
     sizer_button->Add(checkbox_title, 0, wxALL, 5);
     sizer_button->Add(0, 0, 1, wxEXPAND, 5);
-    sizer_button->Add(m_button_confirm, 0, wxALL, 5);
+    sizer_button->Add(m_button_confirm, 0, wxALL, FromDIP(ButtonProps::ChoiceGap()));
 
     sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     sizer_main->Add(0, 0, 0, wxTOP, 20);
