@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-14 23:42+0800\n"
+"POT-Creation-Date: 2025-02-19 19:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -7980,12 +7980,6 @@ msgstr "Skrypty post-processingu"
 msgid "Notes"
 msgstr "Notatki"
 
-msgid "Dependencies"
-msgstr ""
-
-msgid "Profile dependencies"
-msgstr ""
-
 msgid "Frequent"
 msgstr "Cz.używ."
 
@@ -8171,6 +8165,12 @@ msgstr "Ustawienia wyciskania"
 
 msgid "Toolchange parameters with multi extruder MM printers"
 msgstr "Parametry zmiany narzędzia w drukarkach wieloekstruzyjnych MM"
+
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
+msgstr ""
 
 msgid "Printable space"
 msgstr "Przestrzeń do druku"
@@ -10619,6 +10619,9 @@ msgstr ""
 "To kontroluje generowanie Brimu na zewnętrznej i/lub wewnętrznej stronie "
 "modeli. Auto oznacza, że szerokość Brimu jest analizowana i obliczana "
 "automatycznie."
+
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Odstęp Brimu od obiektu"
@@ -13989,6 +13992,21 @@ msgstr ""
 "spróbować uzyskać gładką spiralę. Jeśli wyrażone jako %, będzie obliczane "
 "względem średnicy dyszy."
 
+#, c-format, boost-format
+msgid ""
+"Sets the starting flow ratio while transitioning from the last bottom layer "
+"to the spiral. Normally the spiral transition scales the flow ratio from "
+"0% to 100% during the first loop which can in some cases lead to under "
+"extrusion at the start of the spiral."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Sets the finishing flow ratio while ending the spiral. Normally the spiral "
+"transition scales the flow ratio from 100% to 0% during the last loop which "
+"can in some cases lead to under extrusion at the end of the spiral."
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -16419,6 +16437,23 @@ msgstr "Anulowanie"
 
 msgid "Error uploading to print host"
 msgstr "Błąd podczas ładowania do hosta drukarki"
+
+msgid ""
+"The selected bed type does not match the file. Please confirm before "
+"starting the print."
+msgstr ""
+
+msgid "Time-lapse"
+msgstr ""
+
+msgid "Heated Bed Leveling"
+msgstr ""
+
+msgid "Textured Build Plate (Side A)"
+msgstr ""
+
+msgid "Smooth Build Plate (Side B)"
+msgstr ""
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "Nie można przeprowadzić operacji boolowskich na siatkach modelu"
