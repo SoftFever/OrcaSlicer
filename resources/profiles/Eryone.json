@@ -31,44 +31,7 @@
             "sub_path": "process/0.24mm Standard @Thinker X400.json"
         }
     ],
-    "filament_list": [
-        {
-            "name": "fdm_filament_common",
-            "sub_path": "filament/fdm_filament_common.json"
-        },
-        {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
-        },
-        {
-            "name": "Eryone Standard PLA",
-            "sub_path": "filament/Eryone Standard PLA.json"
-        },
-        {
-            "name": "Eryone Generic PLA",
-            "sub_path": "filament/Eryone Generic PLA.json"
-        },
-        {
-            "name": "Eryone Generic ABS",
-            "sub_path": "filament/Eryone Generic ABS.json"
-        },
-        {
-            "name": "Eryone Generic PETG",
-            "sub_path": "filament/Eryone Generic PETG.json"
-        },
-       {
-            "name": "Eryone Generic ASA",
-            "sub_path": "filament/Eryone Generic ASA.json"
-        },
-       {
-            "name": "Eryone Generic Silk PLA",
-            "sub_path": "filament/Eryone Generic Silk PLA.json"
-        },
-        {
-            "name": "Eryone Generic TPU",
-            "sub_path": "filament/Eryone Generic TPU.json"
-        }
-    ],
+    "filament_list": [],
     "machine_list": [
         {
             "name": "fdm_machine_common",

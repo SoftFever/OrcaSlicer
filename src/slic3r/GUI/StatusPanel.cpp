@@ -2176,9 +2176,9 @@ void StatusPanel::show_recenter_dialog() {
         obj->command_go_home();
 }
 
-void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str, wxString image_url, std::vector<int> used_button)
+void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str, wxString image_url, std::vector<int> used_button)
 {
-    if (msg.IsEmpty()) {
+    if (is_exist && msg.IsEmpty()) {
         error_info_reset();
     } else {
         m_project_task_panel->show_error_msg(msg);
@@ -2190,7 +2190,7 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             }
 
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
-            m_print_error_dlg->update_text_image(msg, image_url);
+            m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
             m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
                 if (obj) {
                     obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
@@ -2212,6 +2212,11 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             auto it_resume = std::find(message_containing_resume.begin(), message_containing_resume.end(), print_error_str);
 
             BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
+
+            wxDateTime now = wxDateTime::Now();
+            wxString show_time = now.Format("%H%M%d");
+            wxString error_code_msg = wxString::Format("%S\n[%S %S]", msg, print_error_str, show_time);
+
             if (m_print_error_dlg_no_action == nullptr) {
                 m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
             }
@@ -2231,7 +2236,7 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             else {
                 m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
             }
-            m_print_error_dlg_no_action->update_text(msg);
+            m_print_error_dlg_no_action->update_text(error_code_msg);
             m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
                 if (obj) {
                     obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
@@ -2254,7 +2259,7 @@ void StatusPanel::update_error_message()
 {
     if (obj->print_error <= 0) {
         before_error_code = obj->print_error;
-        show_error_message(obj, wxEmptyString);
+        show_error_message(obj, true, wxEmptyString);
         return;
     } else if (before_error_code != obj->print_error && obj->print_error != skip_print_error) {
         before_error_code = obj->print_error;
@@ -2263,27 +2268,17 @@ void StatusPanel::update_error_message()
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
             std::string print_error_str = std::string(buf);
-            if (print_error_str.size() > 4) {
-                print_error_str.insert(4, " ");
-            }
+            if (print_error_str.size() > 4) { print_error_str.insert(4, " "); }
 
-            wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
+            wxString error_msg;
+            bool is_errocode_exist = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error, error_msg);
             std::vector<int> used_button;
-            wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error,obj->dev_id, used_button);
+            wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error, obj->dev_id, used_button);
             // special case
-            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A")
+            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A") {
                 used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
-            if (!error_msg.IsEmpty()) {
-                wxDateTime now = wxDateTime::Now();
-                wxString show_time = now.Format("%Y-%m-%d %H:%M:%S");
-
-                error_msg = wxString::Format("%s\n[%s %s]",
-                    error_msg,
-                    print_error_str, show_time);
-                show_error_message(obj, error_msg, print_error_str,error_image_url,used_button);
-            } else {
-                BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
             }
+            show_error_message(obj, is_errocode_exist, error_msg, print_error_str, error_image_url, used_button);
         }
     }
 }
@@ -3127,6 +3122,20 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else {
                  m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
+
+            // update printing stage
+            m_project_task_panel->update_left_time(obj->mc_left_time);
+            if (obj->subtask_) {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
+                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
+
+            } else {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
+                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+            }
+
             if (obj->is_printing_finished()) {
                 obj->update_model_task();
                 m_project_task_panel->enable_abort_button(false);
@@ -3171,19 +3180,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_project_task_panel->market_scoring_hide();
                 m_project_task_panel->get_request_failed_panel()->Hide();
             }
-            // update printing stage
-            
-            m_project_task_panel->update_left_time(obj->mc_left_time);
-            if (obj->subtask_) {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
-                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
-
-            } else {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
-                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
-            }
         }
 
         m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
@@ -3207,7 +3203,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         reset_printing_values();
     }
 
-    this->Layout();
+    Layout();
 }
 
 void StatusPanel::update_cloud_subtask(MachineObject *obj)

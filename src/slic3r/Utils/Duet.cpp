@@ -205,7 +205,7 @@ std::string Duet::get_connect_url(const bool dsfUrl) const
 	} else {
 		return (boost::format("%1%rr_connect?password=%2%&%3%")
 				% get_base_url()
-				% (password.empty() ? "reprap" : password)
+				% Http::url_encode(password.empty() ? "reprap" : password) // url_encode is needed because password can contain special characters like `&`, "#", etc.
 				% timestamp_str()).str();
 	}
 }

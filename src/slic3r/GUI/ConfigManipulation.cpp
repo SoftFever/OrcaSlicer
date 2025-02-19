@@ -527,19 +527,22 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
     toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"));
-    bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
-    bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
-    bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
-    // solid_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "internal_solid_infill_pattern", "solid_infill_filament"})
-        toggle_field(el, has_solid_infill);
+    toggle_line("spiral_starting_flow_ratio", has_spiral_vase);
+    toggle_line("spiral_finishing_flow_ratio", has_spiral_vase);
+    bool has_top_shell    = config->opt_int("top_shell_layers") > 0;
+    bool has_bottom_shell = config->opt_int("bottom_shell_layers") > 0;
+    bool has_solid_infill = has_top_shell || has_bottom_shell;
+    toggle_field("top_surface_pattern", has_top_shell);
+    toggle_field("bottom_surface_pattern", has_bottom_shell);
     
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
+        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","internal_bridge_angle",
+        "solid_infill_direction", "rotate_solid_infill_direction", "internal_solid_infill_pattern", "solid_infill_filament",
+        })
         toggle_field(el, have_infill || has_solid_infill);
     
-    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
-    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_solid_infill);
+    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell);
+    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell);
 
     toggle_field("wall_direction", !has_spiral_vase);
     
@@ -547,7 +550,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("gap_infill_speed", have_perimeters);
     
     for (auto el : { "top_surface_line_width", "top_surface_speed" })
-        toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
+        toggle_field(el, has_top_shell || (has_spiral_vase && has_bottom_shell));
     
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     
@@ -567,7 +570,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim);
     toggle_field("brim_object_gap", have_brim);
-    bool have_brim_width = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim;
+    bool have_brim_width = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim &&
+                           config->opt_enum<BrimType>("brim_type") != btPainted;
     toggle_field("brim_width", have_brim_width);
     // wall_filament uses the same logic as in Print::extruders()
     toggle_field("wall_filament", have_perimeters || have_brim);
@@ -708,8 +712,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
-    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer"})
+    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer", "fuzzy_skin_noise_type"})
         toggle_line(el, has_fuzzy_skin);
+    
+    NoiseType fuzzy_skin_noise_type = config->opt_enum<NoiseType>("fuzzy_skin_noise_type");
+    toggle_line("fuzzy_skin_scale", has_fuzzy_skin && fuzzy_skin_noise_type != NoiseType::Classic);
+    toggle_line("fuzzy_skin_octaves", has_fuzzy_skin && fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi);
+    toggle_line("fuzzy_skin_persistence", has_fuzzy_skin && (fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow));
     
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
@@ -777,6 +786,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
     toggle_line("interlocking_depth", use_beam_interlocking);
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
+
+    bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DLattice;
+    for (auto el : { "lattice_angle_1", "lattice_angle_2"})
+        toggle_line(el, lattice_options);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

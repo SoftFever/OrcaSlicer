@@ -1063,6 +1063,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->sla_support_points          = rhs.sla_support_points;
     this->sla_points_status           = rhs.sla_points_status;
     this->sla_drain_holes             = rhs.sla_drain_holes;
+    this->brim_points                 = rhs.brim_points;
     this->layer_config_ranges         = rhs.layer_config_ranges;
     this->layer_height_profile        = rhs.layer_height_profile;
     this->printable                   = rhs.printable;
@@ -1102,6 +1103,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->sla_support_points          = std::move(rhs.sla_support_points);
     this->sla_points_status           = std::move(rhs.sla_points_status);
     this->sla_drain_holes             = std::move(rhs.sla_drain_holes);
+    this->brim_points                 = std::move(brim_points);
     this->layer_config_ranges         = std::move(rhs.layer_config_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->printable                   = std::move(rhs.printable);
@@ -1736,6 +1738,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
     new_object->sla_support_points.clear();
     new_object->sla_drain_holes.clear();
     new_object->sla_points_status = sla::PointsStatus::NoPoints;
+    new_object->brim_points.clear();
     new_object->clear_volumes();
     new_object->input_file.clear();
 
@@ -2040,6 +2043,7 @@ ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
     upper->sla_support_points.clear();
     upper->sla_drain_holes.clear();
     upper->sla_points_status = sla::PointsStatus::NoPoints;
+    upper->brim_points.clear();
     upper->clear_volumes();
     upper->input_file.clear();
 
@@ -3508,6 +3512,17 @@ bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObjec
     return model_property_changed(mo, mo_new,
         [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; },
         [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.mmu_segmentation_facets.timestamp_matches(mv_new.mmu_segmentation_facets); });
+}
+
+bool model_brim_points_data_changed(const ModelObject& mo, const ModelObject& mo_new)
+{
+    if (mo.brim_points.size() != mo_new.brim_points.size())
+        return true;
+    for (size_t i = 0; i < mo.brim_points.size(); ++i) {
+        if (mo.brim_points[i] != mo_new.brim_points[i])
+            return true;
+    }
+    return false;
 }
 
 bool model_has_multi_part_objects(const Model &model)

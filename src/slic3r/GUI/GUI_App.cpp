@@ -1024,8 +1024,10 @@ void GUI_App::post_init()
            for (auto& it : boost::filesystem::directory_iterator(log_folder)) {
                auto temp_path = it.path();
                try {
-                   std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
-                   files_vec.push_back({ lw_t, temp_path.filename().string() });
+                   if (it.status().type() == boost::filesystem::regular_file) {
+                       std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
+                       files_vec.push_back({ lw_t, temp_path.filename().string() });
+                   }
                } catch (const std::exception &) {
                }
            }
@@ -1569,6 +1571,33 @@ void GUI_App::init_networking_callbacks()
         //    GUI::wxGetApp().request_user_handle(online_login);
         //    });
 
+        m_agent->set_server_callback([this](std::string url, int status) {
+
+            CallAfter([this]() {
+                if (!m_server_error_dialog) {
+                    /*m_server_error_dialog->EndModal(wxCLOSE);
+                    m_server_error_dialog->Destroy();
+                    m_server_error_dialog = nullptr;*/
+                    m_server_error_dialog = new NetworkErrorDialog(mainframe);
+                }
+
+                if(plater()->get_select_machine_dialog() && plater()->get_select_machine_dialog()->IsShown()){
+                    return;
+                }
+
+                if (m_server_error_dialog->m_show_again) {
+                    return;
+                }
+
+                if (m_server_error_dialog->IsShown()) {
+                    return;
+                }
+
+                m_server_error_dialog->ShowModal();
+            });
+        });
+
+
         m_agent->set_on_server_connected_fn([this](int return_code, int reason_code) {
             if (m_is_closing) {
             return;
@@ -1666,11 +1695,11 @@ void GUI_App::init_networking_callbacks()
                                 event.SetString(obj->dev_id);
                                 GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
-                                obj->set_access_code("");
-                                obj->erase_user_access_code();
                                 m_device_manager->set_selected_machine("", true);
                                 wxString text;
                                 if (msg == "5") {
+                                    obj->set_access_code("");
+                                    obj->erase_user_access_code();
                                     text = wxString::Format(_L("Incorrect password"));
                                     wxGetApp().show_dialog(text);
                                 } else {
@@ -1679,9 +1708,6 @@ void GUI_App::init_networking_callbacks()
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
-                                obj->set_access_code("");
-                                obj->erase_user_access_code();
-                                m_device_manager->localMachineList.erase(obj->dev_id);
                                 m_device_manager->set_selected_machine("", true);
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
@@ -3225,6 +3251,23 @@ void GUI_App::link_to_network_check()
     wxLaunchDefaultBrowser(url);
 }
 
+void GUI_App::link_to_lan_only_wiki()
+{
+    std::string url;
+    std::string country_code = app_config->get_country_code();
+
+    if (country_code == "US") {
+        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
+    }
+    else if (country_code == "CN") {
+        url = "https://wiki.bambulab.com/zh/knowledge-sharing/enable-lan-mode";
+    }
+    else {
+        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
+    }
+    wxLaunchDefaultBrowser(url);
+}
+
 bool GUI_App::tabs_as_menu() const
 {
     return false;
@@ -3684,7 +3727,7 @@ void GUI_App::request_user_logout()
 {
     if (m_agent && m_agent->is_user_login()) {
         // Update data first before showing dialogs
-        m_agent->user_logout();
+        m_agent->user_logout(true);
         m_agent->set_user_selected_machine("");
         /* delete old user settings */
         bool     transfer_preset_changes = false;

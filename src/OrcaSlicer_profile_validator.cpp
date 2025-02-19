@@ -43,14 +43,18 @@ void generate_custom_presets(PresetBundle* preset_bundle, AppConfig& app_config)
         for (auto p : custom_preset) {
             // Creating a new preset.
             auto parent = collection->find_preset(p.parent_name);
-            if (type == Preset::TYPE_FILAMENT)
+            auto vendor = collection->get_preset_with_vendor_profile(*parent);
+            if (type == Preset::TYPE_FILAMENT) {
                 parent->config.set_key_value("filament_start_gcode",
-                                                 new ConfigOptionStrings({"this_is_orca_test_filament_start_gcode_mock"}));
-            else if (type == Preset::TYPE_PRINT)
+                                             new ConfigOptionStrings({"this_is_orca_test_filament_start_gcode_mock"}));
+                parent->config.set_key_value("filament_notes", new ConfigOptionString(vendor.vendor->name));
+            } else if (type == Preset::TYPE_PRINT) {
                 parent->config.set_key_value("filename_format", new ConfigOptionString("this_is_orca_test_filename_format_mock"));
-            else if (type == Preset::TYPE_PRINTER)
-                parent->config.set_key_value("machine_start_gcode",
-                                                 new ConfigOptionString("this_is_orca_test_machine_start_gcode_mock"));
+                parent->config.set_key_value("notes", new ConfigOptionString(vendor.vendor->name));
+            } else if (type == Preset::TYPE_PRINTER) {
+                parent->config.set_key_value("machine_start_gcode", new ConfigOptionString("this_is_orca_test_machine_start_gcode_mock"));
+                parent->config.set_key_value("printer_notes", new ConfigOptionString(vendor.vendor->name));
+            }
 
             collection->save_current_preset(p.name, false, false, parent);
 
@@ -83,7 +87,11 @@ int main(int argc, char* argv[])
     po::options_description desc("Orca Profile Validator\nUsage");
     // clang-format off
     desc.add_options()("help,h", "help")
+#ifdef __APPLE__
+    ("path,p", po::value<std::string>()->default_value("../../../../../../resources/profiles"), "profile folder")
+#else
     ("path,p", po::value<std::string>()->default_value("../../../resources/profiles"), "profile folder")
+#endif
     ("vendor,v", po::value<std::string>()->default_value(""), "Vendor name. Optional, all profiles present in the folder will be validated if not specified")
     ("generate_presets,g", po::value<bool>()->default_value(false), "Generate user presets for mock test")
     ("log_level,l", po::value<int>()->default_value(2), "Log level. Optional, default is 2 (warning). Higher values produce more detailed logs.");
