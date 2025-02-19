@@ -21,5 +21,6 @@
   "support_interface_speed": "40",
   "support_object_xy_distance": "0.4",
   "support_speed": "100",
-  "version": "2.0.2.0"
+  "skirt_loops": "0",
+  "version": "2.1.1.0"
 }

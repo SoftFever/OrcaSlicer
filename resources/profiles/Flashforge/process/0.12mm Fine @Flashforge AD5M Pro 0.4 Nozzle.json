@@ -21,5 +21,6 @@
   "support_interface_spacing": "0.3",
   "support_line_width": "0.4",
   "support_top_z_distance": "0.15",
-  "version": "2.0.2.0"
+  "skirt_loops": "0",
+  "version": "2.1.1.0"
 }

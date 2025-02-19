@@ -61,7 +61,7 @@
         "nil"
     ],
     "filament_diameter": [
-        "2.85"
+        "1.75"
     ],
     "filament_max_volumetric_speed": [
         "0"
@@ -112,7 +112,7 @@
         "nil"
     ],
     "bed_type": [
-        "Cool Plate"
+        "Textured PEI Plate"
     ],
     "nozzle_temperature_initial_layer": [
         "200"

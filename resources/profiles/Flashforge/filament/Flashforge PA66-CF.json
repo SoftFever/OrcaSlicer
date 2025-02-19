@@ -1,0 +1,52 @@
+{
+    "type": "filament",
+    "name": "Flashforge PA66-CF",
+    "inherits": "FusRock Generic PET-CF",
+    "from": "system",
+    "setting_id": "GFSA04",
+    "instantiation": "true",
+    "filament_density": [
+        "1.1"
+    ],
+    "filament_max_volumetric_speed": [
+        "5"
+    ],
+    "filament_settings_id": [
+        "Flashforge PA66-CF"
+    ],
+    "filament_type": [
+        "PA-CF"
+    ],
+    "hot_plate_temp": [
+        "100"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "100"
+    ],
+    "is_custom_defined": "0",
+    "nozzle_temperature": [
+        "250"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "250"
+    ],
+    "nozzle_temperature_range_high": [
+        "270"
+    ],
+    "nozzle_temperature_range_low": [
+        "240"
+    ],
+    "pressure_advance": [
+        "0.035"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "support_material_interface_fan_speed": [
+        "20"
+    ],
+    "version": "2.0.2.0"
+}

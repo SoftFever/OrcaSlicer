@@ -1,0 +1,12 @@
+{
+    "filament_settings_id": [
+        "Flashforge PETG-CF"
+    ],
+    "from": "system",
+    "setting_id": "GFSA04",
+    "instantiation": "true",
+    "inherits": "Flashforge Generic PETG-CF10",
+    "is_custom_defined": "0",
+    "name": "Flashforge PETG-CF",
+    "version": "2.1.1.0"
+}

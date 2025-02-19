@@ -18,5 +18,6 @@
   "support_bottom_z_distance": "0.2",
   "support_speed": "100",
   "support_top_z_distance": "0.2",
-  "version": "2.0.2.0"
+  "skirt_loops": "0",
+  "version": "2.1.1.0"
 }
