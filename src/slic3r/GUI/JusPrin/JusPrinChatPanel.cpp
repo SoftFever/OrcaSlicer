@@ -34,7 +34,7 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
     m_browser->Bind(wxEVT_WEBVIEW_LOADED, &JusPrinChatPanel::OnLoaded, this);
     m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &JusPrinChatPanel::OnActionCallReceived, this);
 
-    topsizer->Add(m_browser, 1, wxEXPAND | wxALL, m_radis);
+    topsizer->Add(m_browser, 1, wxEXPAND);
     SetSizer(topsizer);
 
     update_mode();
@@ -45,13 +45,6 @@ JusPrinChatPanel::JusPrinChatPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY,
     // Connect the idle events
     Bind(wxEVT_CLOSE_WINDOW, &JusPrinChatPanel::OnClose, this);
 
-
-    // 设置透明的部分会是黑色
-#if __APPLE__
-    SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
-    SetBackgroundColour(wxColour(0, 0, 0, 0));
-    Bind(wxEVT_PAINT, &JusPrinChatPanel::OnPaint, this);
-#endif
     load_url();
 }
 
@@ -395,33 +388,6 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << script;
     WebView::RunScript(m_browser, script);
-}
-
-void JusPrinChatPanel::OnPaint(wxPaintEvent& event){
-    wxAutoBufferedPaintDC dc(this);
-    dc.Clear();
-
-     wxSize size = GetClientSize();
-    int width = size.GetWidth();
-    int height = size.GetHeight();
-    int radius = m_radis; // Radius for rounded corners
-
-    // Create a graphics context
-    wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
-    if (gc) {
-        wxColour transparentColour(255, 255, 255, 0);
-        wxBrush  transparentBrush(transparentColour);
-        gc->SetBrush(transparentBrush);
-        // Clear the background with the transparent brush
-        gc->DrawRectangle(0, 0, width, height);
-        // Draw rounded rectangle
-        gc->SetBrush(wxBrush(*wxWHITE)); //
-        wxColour co =  wxColour(125, 125, 125);
-        gc->SetPen(wxPen(co, 1)); // Black border
-        gc->DrawRoundedRectangle(0, 0, width, height, radius);
-
-        delete gc;
-    }
 }
 
 }} // namespace Slic3r::GUI
