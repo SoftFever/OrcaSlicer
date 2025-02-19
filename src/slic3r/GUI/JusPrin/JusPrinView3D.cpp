@@ -12,6 +12,37 @@
 #include "../Event.hpp"
 #include "../GUI_App.hpp"
 
+namespace {
+    // Button constants
+    constexpr int BUTTON_RADIUS = 12;
+    constexpr int BUTTON_SHADOW_OFFSET = 3;
+
+    // Chat panel constants
+    constexpr int MIN_CHAT_HEIGHT = 180;
+    constexpr int MIN_CHAT_WIDTH = 326;
+    constexpr double CHAT_HEIGHT_RATIO = 0.25;
+    constexpr double CHAT_WIDTH_RATIO = 0.5;
+    constexpr int CHAT_BOTTOM_MARGIN = 10;
+
+    // Animation/Image constants
+    constexpr int ANIMATION_WIDTH = 227;
+    constexpr int ANIMATION_HEIGHT = 28;
+
+    // Badge constants
+    constexpr int BADGE_SIZE = 20;
+    constexpr int BADGE_OFFSET_X = 210;
+#ifdef __APPLE__
+    constexpr int BADGE_OFFSET_Y = 5;
+#else
+    constexpr int BADGE_OFFSET_Y = 10;
+#endif
+
+    // Overlay button constants
+    constexpr int OVERLAY_IMAGE_HEIGHT = 38;
+    constexpr int OVERLAY_IMAGE_WIDTH = 238;
+    constexpr int OVERLAY_PADDING = 8;
+}
+
 namespace Slic3r {
 namespace GUI {
 
@@ -126,9 +157,13 @@ void JustPrinButton::OnMouseMove(wxMouseEvent& event) {
 }
 
  void JustPrinButton::DoSetSize(int x, int y, int width, int height, int sizeFlags){
-     m_animationCtrl->SetSize((width-227)/2,
-                              (height-28)/2, // 10px from top
-                              227, 28, sizeFlags);
+     m_animationCtrl->SetSize(
+         (width - ANIMATION_WIDTH) / 2,
+         (height - ANIMATION_HEIGHT) / 2,
+         ANIMATION_WIDTH,
+         ANIMATION_HEIGHT,
+         sizeFlags
+     );
      wxPanel::DoSetSize(x, y, width, height, sizeFlags);
  }
 
@@ -244,49 +279,44 @@ void JusPrinView3D::init_overlay()
 void JusPrinView3D::OnSize(wxSizeEvent& evt)
 {
     evt.Skip();
-    if (m_chat_panel && m_overlay_btn) {
-        wxSize size = GetClientSize();
+    if (!m_chat_panel || !m_overlay_btn) return;
 
-        // Resize chat panel with minimum dimensions
-        int chat_height = std::max(180, (int)(size.GetHeight() * 0.25));
-        int chat_width = std::max(326, (int)(size.GetWidth() * 0.5));
-        int chat_y = size.GetHeight() - chat_height - 10;  // 10px from bottom
+    wxSize size = GetClientSize();
 
-        m_chat_panel->SetSize(
-            (size.GetWidth() - chat_width) / 2,
-            chat_y,
-            chat_width,
-            chat_height
-        );
-        m_chat_panel->Raise();
+    // Resize chat panel
+    int chat_height = std::max(MIN_CHAT_HEIGHT, (int)(size.GetHeight() * CHAT_HEIGHT_RATIO));
+    int chat_width = std::max(MIN_CHAT_WIDTH, (int)(size.GetWidth() * CHAT_WIDTH_RATIO));
+    int chat_y = size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN;
 
-        // Resize and reposition overlay button
-        int image_height = 38 + 8;
-        int image_width = 238 + 8;
-        int button_y = size.GetHeight() - image_height - 10;  // 10px above chat panel
+    m_chat_panel->SetSize(
+        (size.GetWidth() - chat_width) / 2,
+        chat_y,
+        chat_width,
+        chat_height
+    );
+    m_chat_panel->Raise();
 
-        m_overlay_btn->SetSize(
-            (size.GetWidth() - image_width) / 2,
-            button_y,
-            image_width,
-            image_height
-        );
+    // Resize and reposition overlay button
+    int image_height = OVERLAY_IMAGE_HEIGHT + OVERLAY_PADDING;
+    int image_width = OVERLAY_IMAGE_WIDTH + OVERLAY_PADDING;
+    int button_y = size.GetHeight() - image_height - CHAT_BOTTOM_MARGIN;
 
-        // Position badges relative to button
-        int icon_x = (size.GetWidth() - image_width) / 2 + 210;
+    m_overlay_btn->SetSize(
+        (size.GetWidth() - image_width) / 2,
+        button_y,
+        image_width,
+        image_height
+    );
 
-#ifdef __APPLE__
-        m_icon_text_left->SetPosition({icon_x + 3, button_y - 5});
-        m_icon_text_right->SetPosition({icon_x + 15, button_y - 5});
-#else
-        m_icon_text_left->SetPosition({icon_x + 3, button_y - 10});
-        m_icon_text_right->SetPosition({icon_x + 15, button_y - 10});
-#endif
-        // Ensure proper z-order
-        m_overlay_btn->Raise();
-        m_icon_text_left->Raise();
-        m_icon_text_right->Raise();
-    }
+    // Position badges
+    int icon_x = (size.GetWidth() - image_width) / 2 + BADGE_OFFSET_X;
+    m_icon_text_left->SetPosition({icon_x + 3, button_y - BADGE_OFFSET_Y});
+    m_icon_text_right->SetPosition({icon_x + 15, button_y - BADGE_OFFSET_Y});
+
+    // Ensure proper z-order
+    m_overlay_btn->Raise();
+    m_icon_text_left->Raise();
+    m_icon_text_right->Raise();
 }
 
 void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt)
