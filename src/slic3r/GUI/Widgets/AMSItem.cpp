@@ -3,6 +3,7 @@
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
+#include "../Utils/WxFontUtils.hpp"
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
@@ -229,9 +230,11 @@ void AMSExtText::doRender(wxDC& dc)
     auto size = GetSize();
 
     dc.SetPen(wxPen(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800), 2, wxPENSTYLE_SOLID));
-    auto tsize = dc.GetMultiLineTextExtent(_L("Ext"));
-    dc.SetFont(Label::Body_13);
     dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800));
+    dc.SetFont(Label::Body_13);
+    WxFontUtils::get_suitable_font_size(0.7 * size.GetHeight(), dc);
+
+    auto    tsize = dc.GetMultiLineTextExtent(_L("Ext"));
     wxPoint pot(FromDIP((size.x - tsize.x) / 2), FromDIP((size.y - tsize.y) / 2));
     dc.DrawText(_L("Ext"), pot);
 }
@@ -2873,24 +2876,28 @@ void AMSHumidity::doRender(wxDC& dc)
 
             pot = wxPoint(FromDIP(5), ((size.y - hum_img.GetBmpSize().y) / 2));
             dc.DrawBitmap(hum_img.bmp(), pot);
+            pot.x += hum_img.GetBmpSize().x + FromDIP(3);
 
             // percentage
             wxString hum_percentage(std::to_string(m_amsinfo.humidity_raw));
-            auto     tsize = dc.GetMultiLineTextExtent(hum_percentage);
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetFont(Label::Body_14);
             dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_BLACK_COLOUR));
-            // pot = wxPoint(FromDIP(size.x * 0.3), FromDIP((size.y - tsize.y) / 2));
-            pot.x = pot.x + hum_img.GetBmpSize().x + FromDIP(3);
-            dc.DrawText(hum_percentage, pot);
 
-            pot.x += (tsize.x + FromDIP(5));
+            WxFontUtils::get_suitable_font_size(0.7 * size.GetHeight(), dc);
+            auto tsize1 = dc.GetMultiLineTextExtent(hum_percentage);
+            pot.y = (size.y - tsize1.y) / 2;
+            dc.DrawText(hum_percentage, pot);
+            pot.x += (tsize1.x + FromDIP(3));
+
+            // percentage sign
             dc.SetFont(Label::Body_12);
-            tsize = dc.GetMultiLineTextExtent(_L("%"));
-            pot.y += (tsize.y / 2 - FromDIP(4));
+            WxFontUtils::get_suitable_font_size(0.5 * size.GetHeight(), dc);
+            auto tsize2 = dc.GetMultiLineTextExtent(_L("%"));
+            pot.y = pot.y + ((tsize1.y - tsize2.y) / 2) + FromDIP(2);
             dc.DrawText(_L("%"), pot);
 
-            pot.x = pot.x + tsize.x + FromDIP(2);
+            pot.x += tsize2.x + FromDIP(3);
         }
         else /*image with number*/
         {
@@ -2916,8 +2923,8 @@ void AMSHumidity::doRender(wxDC& dc)
         //sun image
         /*pot.x = FromDIP(size.x * 0.69);
         pot.y = FromDIP((size.y - ams_sun_img.GetBmpHeight()) / 2);*/
-        pot.x = pot.x + FromDIP(ams_sun_img.GetBmpWidth() / 2);
-        pot.y = FromDIP((size.y - ams_sun_img.GetBmpHeight()) / 2);
+        pot.x = pot.x + (ams_sun_img.GetBmpWidth() / 2);
+        pot.y = (size.y - ams_sun_img.GetBmpHeight()) / 2;
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.DrawBitmap(ams_sun_img.bmp(), pot);
 

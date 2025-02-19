@@ -4,6 +4,7 @@
 
 #include "../wxExtensions.hpp"
 #include "../Utils/MacDarkMode.hpp"
+#include "../Utils/WxFontUtils.hpp"
 
 #include <wx/dcmemory.h>
 #include <wx/dcclient.h>
@@ -239,14 +240,16 @@ void SwitchBoard::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(0, 0, GetSize().x / 2, GetSize().y, 8);
 	}
 
-    auto left_txt_size = dc.GetTextExtent(leftLabel);
-    dc.SetFont(::Label::Body_13);
     if (switch_left) {
 		dc.SetTextForeground(*wxWHITE);
     } else {
         dc.SetTextForeground(0x333333);
 	}
 
+    dc.SetFont(::Label::Body_13);
+    Slic3r::GUI::WxFontUtils::get_suitable_font_size(0.6 * GetSize().GetHeight(), dc);
+
+    auto left_txt_size = dc.GetTextExtent(leftLabel);
     dc.DrawText(leftLabel, wxPoint((GetSize().x / 2 - left_txt_size.x) / 2, (GetSize().y - left_txt_size.y) / 2));
 
 	/*right*/
@@ -257,7 +260,6 @@ void SwitchBoard::doRender(wxDC &dc)
 	}
 
     auto right_txt_size = dc.GetTextExtent(rightLabel);
-    dc.SetFont(::Label::Body_13);
     if (switch_right) {
         dc.SetTextForeground(*wxWHITE);
     } else {

@@ -1029,6 +1029,7 @@ PinCodePanel::PinCodePanel(wxWindow* parent, int type, wxWindowID winid /*= wxID
      if (m_type == 0) {txt = _L("Bind with Pin Code");}
      else if (m_type == 1) {txt = _L("Bind with Access Code");}
 
+     WxFontUtils::get_suitable_font_size(0.5 * size.GetHeight(), dc);
      auto txt_size = dc.GetTextExtent(txt);
      dc.DrawText(txt, wxPoint(FromDIP(28), (size.y - txt_size.y) / 2));
 
