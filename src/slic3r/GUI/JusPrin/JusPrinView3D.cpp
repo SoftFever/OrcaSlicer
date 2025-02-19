@@ -198,6 +198,7 @@ void JusPrinView3D::init_overlay()
     m_overlay_btn = new JustPrinButton(this, wxID_ANY,
         wxPoint((client_size.GetWidth() - 200) / 2, chat_height - 40),
         wxSize(200, 100));
+    m_overlay_btn->Raise();
 
     // Bind click event to show chat panel
     auto open_chat = [this](wxMouseEvent& evt) {
@@ -209,14 +210,17 @@ void JusPrinView3D::init_overlay()
     };
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
     m_overlay_btn->AddJoin(open_chat);
-#ifdef __APPLE__
     // Just create the left badge for now
-    m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
     m_icon_text_right = new CircularBadge(this, "1", wxColour("#EA3426"));
+    m_icon_text_right->Raise();
+    m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
+    m_icon_text_left->Raise();
+    m_icon_text_left->SetBackgroundColour(*wxWHITE);
+    m_icon_text_right->SetBackgroundColour(*wxWHITE);
 
     // Debug: Make the badge bigger initially to see it better
     m_icon_text_left->SetMinSize(wxSize(20, 20));
-#endif
+
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
 }
@@ -251,17 +255,21 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
         // Position badges relative to button
         int icon_x = (size.GetWidth() - image_width) / 2 + 210;
         int icon_y = chat_height - 50 - 5;
+
 #ifdef __APPLE__
         m_icon_text_left->SetPosition({icon_x+3, icon_y+2});
         m_icon_text_right->SetPosition({icon_x+15, icon_y+2});
-#endif
+ #else
+        m_icon_text_left->SetPosition({icon_x + 3, icon_y -10});
+        m_icon_text_right->SetPosition({icon_x + 15, icon_y -10});
+ #endif
+
 
         // Ensure proper z-order
         m_overlay_btn->Raise();
-#ifdef __APPLE__
+
         m_icon_text_left->Raise();
         m_icon_text_right->Raise();
-#endif
     }
 }
 

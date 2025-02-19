@@ -71,10 +71,8 @@ protected:
 private:
     JusPrinChatPanel* m_chat_panel{nullptr};
     JustPrinButton*   m_overlay_btn{nullptr};
-#ifdef __APPLE__
     CircularBadge*    m_icon_text_left{nullptr};
     CircularBadge*    m_icon_text_right{nullptr};
-#endif
 
     void init_overlay();
 };
