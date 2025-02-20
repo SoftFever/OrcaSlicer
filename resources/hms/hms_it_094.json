@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861767,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "it": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Il livellamento automatico del letto è fallito; il task è stato interrotto."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "Impostazione della BirdsEye Camera fallita. Si prega di rimuovere tutti gli oggetti e togliere il tappetino. Assicurarsi che il marker non sia ostruito. Nel frattempo, pulire sia la BirdsEye Camera che la Toolhead Camera e rimuovere eventuali oggetti estranei che bloccano la loro visuale."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "Il marker visivo non è stato rilevato. Si prega di riattaccare il foglio nella posizione corretta. Nel frattempo, pulire la Toolhead Camera per prevenire contaminazioni e rimuovere eventuali oggetti che potrebbero ostacolare la sua visuale."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "L'ugello potrebbe non essere installato o non essere installato correttamente. Assicurati che l'ugello sia installato correttamente prima di procedere."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Il ritorno all'origine dell'asse Z è fallito; il compito è stato interrotto."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "La stampa si è fermata perché il livellamento automatico del piano è fallito."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS non è riuscito a far tornare indietro il filamento. Ciò potrebbe essere dovuto ad un rocchetto bloccato o alla fine del filamento bloccata nel percorso."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "Il marker visuale non è stato rilevato. Si prega di riposizionare correttamente la carta adesiva."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "Il motore di assistenza AMS è sovraccarico. Ciò potrebbe essere dovuto ad un filamento impigliato o ad un rocchetto bloccato."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "La configurazione della fotocamera BirdsEye è fallita. Si prega di verificare se il modulo laser funziona correttamente."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "L'installazione della fotocamera BirdsEye è fallita. Si prega di rimuovere tutti gli oggetti e il tappetino. Assicurarsi che il marker non sia ostruito."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "it": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "La BirdsEye Camera si sta preparando. Per favore, rimuovi tutti gli oggetti e togli il tappeto. Assicurati che il marker non sia ostruito. Nel frattempo, pulisci sia la BirdsEye Camera che la Toolhead Camera, e rimuovi eventuali oggetti estranei che bloccano la loro visuale."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "La misurazione dello spessore è fallita, la Toolhead Camera non è riuscita a rilevare la superficie del materiale. Nel frattempo, per favore pulisci la Toolhead Camera per prevenire contaminazioni e rimuovi eventuali oggetti che possano ostacolare la sua visuale."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Marker visivo non rilevato; per favore, riattacca il materiale nella posizione corretta. Nel frattempo, per favore pulisci la Toolhead Camera per prevenire contaminazioni e rimuovi eventuali oggetti che possano ostacolare la sua visuale."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "La calibrazione Hand-Eye è fallita e l'accuratezza del taglio potrebbe essere diminuita. Per favore, verifica se la punta della lama da taglio è usurata. Nel frattempo, per favore pulisci la Toolhead Camera per prevenire contaminazioni e rimuovi eventuali oggetti che possano ostacolare la sua visuale."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "La stampa ad alta temperatura del piano di lavoro viene eseguita per la prima volta. Per ottenere una migliore qualità di stampa del primo strato, il livellamento del piano a alta temperatura viene eseguito automaticamente."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "La sensibilità del sensore di forza di estrusione dell'estrusore sinistro è bassa; il sensore di forza potrebbe non essere installato correttamente."
@@ -2504,60 +2564,8 @@
                     "intro": "Malfunzionamento della valvola di scarico della camera attiva: potrebbe essere bloccata."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "La misurazione dello spessore è fallita, la Telecamera del Toolhead non è riuscita a rilevare la superficie del materiale."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Marker visivo non rilevato; si prega di riposizionare il materiale nella corretta posizione."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "AMS-HT E non certificato rilevato o firmware AMS-HT E non aggiornato. Impossibile utilizzare questa stampante."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "La calibrazione mano-occhio è fallita e l'accuratezza di taglio potrebbe essere diminuita. Si prega di controllare se la punta della lama da taglio è usurata."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Non c'è abbastanza spazio sull'unità flash USB; per favore liberare dello spazio."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "La stampa ad alta temperatura del piano di stampa viene eseguita per la prima volta. Per ottenere una migliore qualità di stampa del primo strato, viene eseguita automaticamente la calibrazione del calore del piano di stampa ad alta temperatura."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "La calibrazione del offset dell'ugello ad alta precisione è fallita; per favore, ricalibra."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Il motore spazzolato 1 non ha segnale, il che potrebbe essere dovuto a un cattivo contatto nel connettore del motore o a un guasto del motore."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "La fotocamera BirdsEye si sta configurando. Si prega di rimuovere tutti gli oggetti e il tappetino. Assicurarsi che il marker non sia ostruito."
                 },
                 {
                     "ecode": "0700010000010011",

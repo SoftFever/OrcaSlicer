@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861766,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "fr": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Le nivellement automatique du lit a échoué ; la tâche a été arrêtée."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "La configuration de la caméra BirdsEye a échoué. Veuillez enlever tous les objets et retirer le tapis. Assurez-vous que le marqueur n'est pas obstrué. Pendant ce temps, nettoyez à la fois la caméra BirdsEye et la caméra Toolhead, et retirez tous les objets étrangers obstruant leur vue."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "Le marqueur visuel n'a pas été détecté. Veuillez repositionner le papier correctement. Pendant ce temps, veuillez nettoyer la caméra Toolhead pour éviter toute contamination et retirer les objets qui pourraient obstruer sa vue."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "L'aspirateur peut ne pas être installé ou pas correctement installé. Veuillez vous assurer que l'aspirateur est correctement installé avant de continuer."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "L'homming de l'axe Z a échoué ; la tâche a été arrêtée."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "L'impression a été arrêtée car le nivellement automatique du lit a échoué."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS n'a pas réussi à retirer le filament. Cela peut être dû à une bobine bloquée ou à l'extrémité du filament coincée dans le chemin."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "Le marqueur visuel n'a pas été détecté. Veuillez recoller la feuille dans la position correcte."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "Le moteur d'assistance d'AMS est surchargé. Cela peut être dû à un filament emmêlé ou à une bobine bloquée."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "L'installation de la caméra BirdsEye a échoué. Veuillez vérifier si le module laser fonctionne correctement."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "La configuration de la caméra BirdsEye a échoué. Veuillez retirer tous les objets et le tapis. Assurez-vous que le marqueur n'est pas obstrué."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "fr": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "La caméra BirdsEye est en cours de configuration. Veuillez retirer tous les objets et enlever le tapis. Assurez-vous que le marqueur n'est pas obstrué. Pendant ce temps, nettoyez à la fois la caméra BirdsEye et la caméra Toolhead, et retirez tout objet étranger bloquant leur vue."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "La mesure d'épaisseur a échoué, la caméra Toolhead n'a pas pu détecter la surface du matériau. Pendant ce temps, veuillez nettoyer la caméra Toolhead pour éviter toute contamination et retirer les objets pouvant obstruer sa vue."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Marqueur visuel non détecté ; veuillez re-coller le matériau à la bonne position. Pendant ce temps, veuillez nettoyer la caméra Toolhead pour éviter toute contamination et retirer les objets pouvant obstruer sa vue."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "La calibration main-œil a échoué, et la précision de coupe pourrait avoir diminué. Veuillez vérifier si la pointe de la lame de coupe est usée. Pendant ce temps, veuillez nettoyer la caméra Toolhead pour éviter toute contamination et retirer les objets pouvant obstruer sa vue."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "L'impression à température élevée du lit est effectuée pour la première fois. Afin d'obtenir une meilleure qualité d'impression de la première couche, un nivellement à haute température du lit est réalisé automatiquement."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "La sensibilité du capteur de force d'extrusion de l'extrudeuse gauche est faible ; le capteur de force peut ne pas être installé correctement."
@@ -2504,60 +2564,8 @@
                     "intro": "Malfunction de la porte à air d'échappement de la chambre active : elle peut être bloquée."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "La mesure d'épaisseur a échoué, la caméra du tête d'outil n'a pas pu détecter la surface du matériau."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Marqueur visuel non détecté ; veuillez repositionner le matériau correctement."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "AMS-HT E non certifié détecté ou firmware AMS-HT E non mis à jour. Impossible de fonctionner avec cette imprimante."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "La calibration main-œil a échoué, et la précision de coupe peut avoir diminué. Veuillez vérifier si la pointe de la lame de coupe est usée."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "L'espace libre sur la clé USB est insuffisant; veuillez libérer de l'espace."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "L'impression avec une température élevée de plateau est effectuée pour la première fois. Afin d'obtenir une meilleure qualité d'impression de la première couche, l'étalonnage automatique du plateau à haute température est en cours."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "L'étalonnage du décalage de la buse haute précision a échoué ; veuillez recalibrer."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS : Le moteur à balais 1 n'a pas de signal, ce qui peut être dû à un mauvais contact dans le connecteur moteur ou à une défaillance du moteur."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "La caméra BirdsEye est en cours de configuration. Veuillez retirer tous les objets et enlever le tapis. Assurez-vous que le marqueur n'est pas obstrué."
                 },
                 {
                     "ecode": "0700010000010011",

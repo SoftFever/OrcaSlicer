@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861766,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "en": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Auto Bed Leveling failed; the task has been stopped."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "The setup of BirdsEye Camera failed. Please clear all objects and remove the mat. Make sure the marker is not obstructed. Meanwhile, clean both the BirdsEye Camera and Toolhead Camera, and remove any foreign objects blocking their view."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "The visual marker was not detected. Please re-paste the paper in the correct position. Meanwhile, please clean the Toolhead Camera to prevent contamination and remove any objects that may obstruct its view."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "The nozzle may not be installed or not properly installed. Please ensure the nozzle is correctly installed before proceeding."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Z axis homing failed; the task has been stopped."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "Printing stopped because Auto Bed Leveling failed."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS failed to pull back filament. This could be due to a stuck spool or the end of the filament being stuck in the path."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "The visual marker was not detected. Please re-paste the paper in the correct position."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "The AMS assist motor is overloaded. This could be due to entangled filament or a stuck spool."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "The setup of BirdsEye Camera failed.  Please check if the laser module is working properly."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "The setup of BirdsEye Camera failed. Please clear all objects and remove the mat. Make sure the marker is not obstructed."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "en": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "BirdsEye Camera is setting up. Please clear all objects and remove the mat. Make sure the marker is not obstructed. Meanwhile, clean both the BirdsEye Camera and Toolhead Camera, and remove any foreign objects blocking their view."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Thickness measurement failed, the Toolhead Camera was unable to detect the material surface. Meanwhile, please clean the Toolhead Camera to prevent contamination and remove any objects that may obstruct its view."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Visual marker not detected; please re-paste the material in the correct position. Meanwhile, please clean the Toolhead Camera to prevent contamination and remove any objects that may obstruct its view."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "Hand-Eye calibration failed, and cutting accuracy may have decreased. Please check if the cutting blade tip is worn. Meanwhile, please clean the Toolhead Camera to prevent contamination and remove any objects that may obstruct its view."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "High heatbed temperature printing is performed for the first time. In order to obtain better first layer printing quality, high temperature bed leveling is being automatically performed."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "The sensitivity of the left extruder extrusion force sensor is low; the force sensor may not be installed correctly."
@@ -2504,60 +2564,8 @@
                     "intro": "Active Chamber Exhaust air door malfunction: it may be stuck."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Thickness measurement failed, the Toolhead Camera was unable to detect the material surface."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Visual marker not detected; please re-paste the material in the correct position."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "Uncertified AMS-HT E detected or AMS-HT E firmware not upgraded. Unable to operate with this printer."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "Hand-Eye calibration failed, and cutting accuracy may have decreased. Please check if the cutting blade tip is worn."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Not enough space on the USB flash drive; please clear some space."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "High heatbed temperature printing is performed for the first time. In order to obtain better first layer printing quality, high temperature heatbed calibration is being automatically performed."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "The high-precision nozzle offset calibration failed; please recalibrate."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H The brushed motor 1 has no signal, which may be due to poor contact in the motor connector or a motor fault."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "BirdsEye Camera is setting up. Please clear all objects and remove the mat. Make sure the marker is not obstructed."
                 },
                 {
                     "ecode": "0700010000010011",

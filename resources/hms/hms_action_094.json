@@ -1,8 +1,43 @@
 {
     "result": 0,
-    "t": 1739861606,
-    "ver": 202503250218,
+    "t": 1740039331,
+    "ver": 202503250220,
     "data": [
+        {
+            "ecode": "05008074",
+            "image": "bfc449a53ca0deeba7d3f40a563c533c.png",
+            "actions": [
+                22
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "05008064",
+            "image": "d5874f740a26fa71ec7d85f7f89e7e1b.png",
+            "actions": [
+                22,
+                27
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500805B",
+            "image": "",
+            "actions": [
+                21,
+                22
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "05008058",
+            "image": "c77248ef406e975f6daa1df682489654.png",
+            "actions": [
+                22,
+                27
+            ],
+            "device": "094"
+        },
         {
             "ecode": "03008021",
             "image": "",
@@ -21,15 +56,6 @@
             "device": "094"
         },
         {
-            "ecode": "0500805B",
-            "image": "c77248ef406e975f6daa1df682489654.png",
-            "actions": [
-                22,
-                27
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "0500807D",
             "image": "876a5d7dbf4cba916046034817c83349.png",
             "actions": [
@@ -41,15 +67,6 @@
         {
             "ecode": "05008068",
             "image": "25c5cfac4fd7542766ec7ddd4ff0debc.png",
-            "actions": [
-                22,
-                27
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "05008064",
-            "image": "5eefa6bcb28ba40e668c3c02fce99c04.png",
             "actions": [
                 22,
                 27
@@ -586,14 +603,6 @@
             "image": "",
             "actions": [
                 11
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "05008074",
-            "image": "e495ef2e3c8855fadefd1b03225b9cd2.png",
-            "actions": [
-                22
             ],
             "device": "094"
         },

@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861766,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "hu": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Az automatikus ágyszintezés megbukott; a feladat leállt."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "A BirdsEye kamera beállítása megbukott. Kérjük, távolítsa el az összes tárgyat és vegye el a szőnyeget. Ügyeljen arra, hogy a jelölő ne legyen eltakarva. Közben tisztítsa meg a BirdsEye kamerát és a Toolhead kamerát, és távolítsa el az összes idegen tárgyat, ami akadályozza a látásukat."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "A vizuális jelölőt nem észlelték. Kérjük, ragassza vissza a papírt a helyes pozícióba. Közben tisztítsa meg a Toolhead kamerát a szennyeződés elkerülése érdekében, és távolítsa el az összes olyan tárgyat, ami akadályozhatja a látását."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "A fúvóka lehet, hogy nincs telepítve, vagy nem megfelelően van telepítve. Kérjük, győződjön meg arról, hogy a fúvóka helyesen van telepítve, mielőtt folytatná."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Z tengely hazavihető; a feladat leállt."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "A nyomtatás leállt, mert az Automatikus Ágyszintezés megbukott."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "Az AMS-nek nem sikerült visszahúzni a filamentet. Ez előfordulhat a száltekercs beragadása vagy a filament vége elakadása miatt az útvonalban."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "A vizuális jelölőt nem észleltük. Kérjük, ragassza újra a papírt a megfelelő pozícióba."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "Az AMS segéd motor túlterhelt. Ennek oka lehet beakadt vagy elakadni látszó száltekercs."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "A BirdsEye kamera beállítása sikertelen volt. Kérjük, ellenőrizze, hogy a lézerszintező modul megfelelően működik-e."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "A Birdseye Camera telepítése sikertelen volt. Távolítsa el az összes tárgyat és a matot. Ellenőrizze, hogy a jelölő nem akadályozott-e."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "hu": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "A BirdsEye Kamera beállítása folyamatban van. Kérjük, tüntessen el minden tárgyat és vegye el a szőnyeget. Győződjön meg arról, hogy a jelölő nincs akadályozva. Közben tisztítsa meg a BirdsEye Kamarát és a Toolhead Kamarát, és távolítsa el a látómezejüket akadályozó idegen tárgyakat."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "A vastagságmérés meghiúsult, a Toolhead Kamera nem tudta érzékelni a anyagfelületet. Közben kérem, tisztítsa meg a Toolhead Kamarát a szennyeződés elkerülése érdekében, és távolítson el minden olyan tárgyat, amely akadályozhatja a látását."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "A vizuális jelölő nem lett észlelve; kérem, ragassza vissza az anyagot a megfelelő helyre. Közben kérem, tisztítsa meg a Toolhead Kamarát a szennyeződés elkerülése érdekében, és távolítson el minden olyan tárgyat, amely akadályozhatja a látását."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "A kéz-szem kalibráció meghiúsult, és a vágási pontosság csökkenhetett. Kérjük, ellenőrizze, hogy a vágóél hegyének kopása megtörtént-e. Közben kérem, tisztítsa meg a Toolhead Kamarát a szennyeződés elkerülése érdekében, és távolítson el minden olyan tárgyat, amely akadályozhatja a látását."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "Magas hőmérsékletű nyomtatás az első alkalommal zajlik a hőágyon. Annak érdekében, hogy jobb első réteg nyomtatási minőséget érjünk el, a magas hőmérsékletű ágybeállítás automatikusan végrehajtásra kerül."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "A bal extruder kivonási erőérzékelő érzékenysége alacsony; lehet, hogy az erőérzékelőt nem helyezték fel helyesen."
@@ -2504,60 +2564,8 @@
                     "intro": "Aktív kamra kipufogó légajtó hibája: lehet, hogy be van ragadva."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "A vastagságmérés meghiúsult, a Szerszámfej Kamera nem tudta észlelni az anyag felületét."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "A vizuális jelző nem észlelhető; kérjük, ragassza vissza az anyagot a megfelelő helyre."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "Nem tanúsított AMS-HT E érzékelve vagy az AMS-HT E firmware nem frissítve. Nem lehet működni ezzel a nyomtatóval."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "A kéz-szem kalibráció meghiúsult, és a vágási pontosság csökkenhetett. Kérjük, ellenőrizze, hogy a vágóél hegyének kopása megtörtént-e."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Nincs elég hely az USB flash meghajtón; Kérjük, töröljön néhány fájlt a hely felszabadításához."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "Magas ágyhőmérsékletű nyomtatás történik először. Jobb első rétegnyomtatási minőség érdekében automatikus magas hőmérsékletű ágykalibrálás történik."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "A nagy pontosságú fúvóka eltolásának kalibrálása nem sikerült; kérjük, kalibrálja újra."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Az 1. kefés motor nem kap jelzést, ami a motor csatlakozó rossz kapcsolatának vagy a motor hibájának lehet a következménye."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "A BirdsEye kamera beállítása folyamatban van. Kérem távolítsa el az összes tárgyat és vegye le a szőnyeget. Győződjön meg róla, hogy a jelölő nem akadályozott."
                 },
                 {
                     "ecode": "0700010000010011",

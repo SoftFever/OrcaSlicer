@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861767,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "pt-PT": [
+                {
+                    "ecode": "03004002",
+                    "intro": "A nivelagem automática da cama falhou; a tarefa foi interrompida."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "A configuração da câmara BirdsEye falhou. Por favor, remova todos os objetos e retire o tapete. Certifique-se de que o marcador não está obstruído. Entretanto, limpe tanto a câmara BirdsEye como a câmara Toolhead e remova quaisquer objetos estranhos que estejam a bloquear a sua visão."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "O marcador visual não foi detectado. Por favor, cole novamente o papel na posição correta. Entretanto, limpe a câmara Toolhead para prevenir contaminação e remova quaisquer objetos que possam obstruir a sua visão."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "A nozzle pode não estar instalada ou não estar instalada corretamente. Por favor, assegure-se de que a nozzle está corretamente instalada antes de prosseguir."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Falha na homing do eixo Z; a tarefa foi interrompida."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "A impressão foi parada porque o Auto Bed Leveling falhou."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS não conseguiu retirar o filamento. Isto pode ser devido a uma bobina presa ou o fim do filamento estar preso no caminho."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "O marcador visual não foi detetado. Por favor, cole novamente o papel na posição correta."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "O motor de assistência do AMS está sobrecarregado. Isto pode ser devido a filamento emaranhado ou bobina presa."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "A configuração da câmara BirdsEye falhou. Por favor, verifique se o módulo de laser está funcionando corretamente."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "A configuração da câmara BirdsEye falhou. Por favor, remova quaisquer objetos e retire o tapete. Certifique-se de que o marcador não está obstruído."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "pt-PT": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "A câmera BirdsEye está a ser montada. Por favor, remova todos os objetos e retire o tapete. Certifique-se de que o marcador não está obstruído. Entretanto, limpe tanto a câmera BirdsEye como a câmera Toolhead, e remova quaisquer objetos estranhos que obstruam a sua visão."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "A medição de espessura falhou, a câmera Toolhead não conseguiu detectar a superfície do material. Entretanto, por favor, limpe a câmera Toolhead para evitar contaminação e remova quaisquer objetos que possam obstruir a sua visão."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Marcador visual não detetado; por favor, reposicione o material corretamente. Entretanto, limpe a câmera Toolhead para evitar contaminação e remova quaisquer objetos que possam obstruir a sua visão."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "A calibração mão-olho falhou e a precisão de corte pode ter diminuído. Por favor, verifique se a ponta da lâmina de corte está gasta. Entretanto, limpe a câmera Toolhead para evitar contaminação e remova quaisquer objetos que possam obstruir a sua visão."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "A impressão a alta temperatura da plataforma de aquecimento está a ser realizada pela primeira vez. Para obter uma melhor qualidade de impressão na primeira camada, o nivelamento da cama a alta temperatura está a ser realizado automaticamente."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "A sensibilidade do sensor de força de extrusão do extrusor esquerdo é baixa; o sensor de força pode não estar instalado corretamente."
@@ -2504,60 +2564,8 @@
                     "intro": "Falha na porta de ar do Exaustor da Câmara Ativa: pode estar presa."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "A medição da espessura falhou, a câmara do cabeçote da ferramenta não conseguiu detetar a superfície do material."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Marcador visual não detetado; por favor, reposicione o material na posição correta."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "AMS-HT E não certificado detectado ou firmware do AMS-HT E não atualizado. Incapaz de operar com esta impressora."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "A calibração mão-olho falhou e a precisão do corte pode ter diminuído. Por favor, verifique se a ponta da lâmina de corte está gasta."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Não há espaço suficiente na unidade flash USB; por favor, liberte algum espaço."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "A impressão com alta temperatura na mesa aquecida será realizada pela primeira vez. A fim de obter uma melhor qualidade de impressão na primeira camada, a calibração automática da mesa aquecida com temperatura elevada está sendo realizada."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "A calibração do offset do bico de alta precisão falhou; por favor, recalibre."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H O motor escovado 1 não tem sinal, o que pode dever-se a um mau contato no conector do motor ou uma falha do motor."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "A câmera BirdsEye está a iniciar. Por favor, remova todos os objetos e retire o tapete. Certifique-se de que o marcador não está obstruído."
                 },
                 {
                     "ecode": "0700010000010011",

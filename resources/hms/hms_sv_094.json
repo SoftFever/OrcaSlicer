@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861767,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "sv": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Auto Bed Leveling misslyckades; uppgiften har stoppats."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "Inställningen av BirdsEye-kameran misslyckades. Vänligen ta bort alla föremål och ta bort mattan. Se till att markören inte är blockerad. Under tiden, rengör både BirdsEye-kameran och Toolhead-kameran, och ta bort eventuella främmande objekt som blockerar deras sikt."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "Den visuella markören kunde inte upptäckas. Vänligen klistra papperet på rätt plats igen. Under tiden, vänligen rengör Toolhead-kameran för att förhindra kontaminering och ta bort eventuella föremål som kan blockera dess sikt."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "Dysan kanske inte är installerad eller inte korrekt installerad. Vänligen säkerställ att dysan är korrekt installerad innan du fortsätter."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Z-axens hemning misslyckades; uppgiften har stoppats."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "Utskriften stoppades eftersom automatisk sängnivellering misslyckades."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS misslyckades med att dra tillbaka filamentet. Det kan bero på att rullen är fastklämd eller att änden av filamentet är fastklämd i banan."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "Visuell markör hittades inte. Vänligen klistra om pappret på rätt position."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "AMS-assistansmotorn är överbelastad. Det kan bero på att filamentet är trasslat eller att rullen är fastklämd."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "Installationen av BirdsEye-kameran misslyckades. Kontrollera om lasermodulet fungerar korrekt."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "Installationen av BirdsEye-kameran misslyckades. Rensa alla objekt och ta bort mattan. Se till att markören inte är hindrad."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "sv": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "BirdsEye-kameran sätts upp. Vänligen ta bort alla föremål och ta bort mattan. Se till att markören inte blockeras. Under tiden, rengör både BirdsEye-kameran och Toolhead-kameran, och ta bort eventuella främmande föremål som blockerar deras sikt."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Tjockleksmätningen misslyckades, Toolhead-kameran kunde inte upptäcka materialytan. Under tiden, vänligen rengör Toolhead-kameran för att förhindra kontaminering och ta bort eventuella föremål som kan blockera dess sikt."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Visuellt märke inte påträffat; vänligen klistra om materialet i rätt position. Under tiden, vänligen rengör Toolhead-kameran för att förhindra kontaminering och ta bort eventuella föremål som kan blockera dess sikt."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "Hand-Eye-kalibreringen misslyckades, och skärnoggrannheten kan ha minskat. Vänligen kontrollera om skäretoppen är sliten. Under tiden, vänligen rengör Toolhead-kameran för att förhindra kontaminering och ta bort eventuella föremål som kan blockera dess sikt."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "Hög värmebäddstemperatur utskrift utförs för första gången. För att uppnå bättre utskriftskvalitet för första lagret utförs automatisk nivåinställning av hög temperatur."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "Känsligheten hos den vänstra extruderns extruderingskraftsensor är låg; kraftsensorn kanske inte är installerad korrekt."
@@ -2504,60 +2564,8 @@
                     "intro": "Aktiv kammartömnings-luftdörrsfel: den kan vara fast."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Tjockleksmätning misslyckades, Toolhead-kameran kunde inte upptäcka materialytan."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Visuell markör detekterades inte; vänligen återmontera materialet i rätt position."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "Ocertifierad AMS-HT E upptäcktes eller AMS-HT E firmware är inte uppgraderad. Kan inte använda denna skrivare."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "Hand-öga kalibrering misslyckades, och skärnoggrannheten kan ha minskat. Vänligen kontrollera om skärbladets spets är sliten."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Inte tillräckligt med utrymme på USB-minnet; vänligen rensa ut lite utrymme."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "Utskrift med hög temperatur på uppvärmd säng görs för första gången. För att få bättre kvalitet på första lagrets utskrift görs en automatisk kalibrering av hög temperatur på uppvärmd säng."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "Kalibreringen av den högprecisionsdysen offset misslyckades; vänligen kalibrera om."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Borstmotorn 1 har ingen signal, vilket kan bero på dålig kontakt i motoranslutningen eller fel på motorn."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "BirdsEye-kameran installeras. Vänligen ta bort alla objekt och ta bort mattan. Se till att markören inte är blockerad."
                 },
                 {
                     "ecode": "0700010000010011",

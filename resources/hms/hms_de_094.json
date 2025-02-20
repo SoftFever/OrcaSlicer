@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861767,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "de": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Auto Bed Leveling fehlgeschlagen; die Aufgabe wurde gestoppt."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "Die Einrichtung der BirdsEye-Kamera ist fehlgeschlagen. Bitte alle Objekte entfernen und die Matte abnehmen. Stellen Sie sicher, dass der Marker nicht blockiert ist. Reinigen Sie meanwhile sowohl die BirdsEye-Kamera als auch die Toolhead-Kamera und entfernen Sie alle Fremdkörper, die ihre Sicht behindern."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "Der visuelle Marker wurde nicht erkannt. Bitte das Papier wieder in die richtige Position kleben. Reinigen Sie meanwhile die Toolhead-Kamera, um Kontamination zu vermeiden, und entfernen Sie alle Objekte, die ihre Sicht behindern könnten."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "Die Düse darf nicht installiert sein oder nicht richtig installiert sein. Bitte stellen Sie sicher, dass die Düse korrekt installiert ist, bevor Sie fortfahren."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Z-Achse-Homing fehlgeschlagen; die Aufgabe wurde gestoppt."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "Drucken gestoppt, da das automatische Nivellieren der Bauplatte fehlgeschlagen ist."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS konnte den Faden nicht zurückziehen. Dies könnte auf eine blockierte Spule oder das Ende des Filaments, das im Weg steckt, zurückzuführen sein."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "Der Visuelle Marker wurde nicht erkannt. Bitte kleben Sie das Papier in der richtigen Position erneut auf."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "Der AMS-Hilfsmotor ist überlastet. Dies könnte auf verheddertes Filament oder auf eine blockierte Spule zurückzuführen sein."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "Die Einrichtung der BirdsEye-Kamera ist fehlgeschlagen. Bitte überprüfen Sie, ob das Lasermodul ordnungsgemäß funktioniert."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "Die Einrichtung der BirdsEye-Kamera ist fehlgeschlagen. Bitte entfernen Sie alle Gegenstände und entfernen Sie die Unterlage. Stellen Sie sicher, dass der Marker nicht blockiert ist."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "de": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "Die BirdsEye Kamera wird eingerichtet. Bitte alle Objekte entfernen und die Matte wegnehmen. Stellen Sie sicher, dass der Marker nicht verdeckt ist. Reinigen Sie in der Zwischenzeit sowohl die BirdsEye Kamera als auch die Toolhead Kamera und entfernen Sie alle fremden Objekte, die ihre Sicht behindern."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Die Dickenmessung ist fehlgeschlagen, die Toolhead Kamera konnte die Materialoberfläche nicht erkennen. Bitte reinigen Sie in der Zwischenzeit die Toolhead Kamera, um Kontamination zu vermeiden, und entfernen Sie alle Objekte, die ihre Sicht behindern könnten."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Visueller Marker nicht erkannt; bitte das Material an der richtigen Position erneut anbringen. Bitte reinigen Sie in der Zwischenzeit die Toolhead Kamera, um Kontamination zu verhindern, und entfernen Sie alle Objekte, die ihre Sicht behindern könnten."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "Die Hand-Auge-Kalibrierung ist fehlgeschlagen, und die Schneidegenauigkeit könnte vermindert sein. Bitte überprüfen Sie, ob die Schneidklinge abgenutzt ist. Bitte reinigen Sie in der Zwischenzeit die Toolhead Kamera, um Kontamination zu verhindern, und entfernen Sie alle Objekte, die ihre Sicht behindern könnten."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "Das Drucken bei hoher Heizbett-Temperatur wird zum ersten Mal durchgeführt. Um eine bessere Druckqualität der ersten Schicht zu erzielen, erfolgt die Höhenanpassung des Bettes automatisch bei hoher Temperatur."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "Die Empfindlichkeit des Extrusionskraftsensors des linken Extruders ist niedrig; der Kraftsensor könnte möglicherweise nicht richtig installiert sein."
@@ -2504,60 +2564,8 @@
                     "intro": "Fehler am Abluftventil der Aktiven Kammer: Es könnte feststecken."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Die Dickenmessung ist fehlgeschlagen, die Toolhead-Kamera konnte die Materialoberfläche nicht erkennen."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Visueller Marker nicht erkannt; bitte das Material an der richtigen Position neu anbringen."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "Nicht zertifizierter AMS-HT E erkannt oder AMS-HT E-Firmware nicht aktualisiert. Mit diesem Drucker kann nicht gearbeitet werden."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "Hand-Auge-Kalibrierung fehlgeschlagen, und die Schneidgenauigkeit könnte gesunken sein. Bitte überprüfen Sie, ob die Schneidklinge abgenutzt ist."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Nicht genügend Speicherplatz auf dem USB-Flash-Laufwerk; bitte schaffen Sie etwas Platz."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "Der Druck mit hoher Heizbetttemperatur wird zum ersten Mal durchgeführt. Um eine bessere Druckqualität der ersten Schicht zu erhalten, wird die Kalibrierung des Heizbetts bei hoher Temperatur automatisch durchgeführt."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "Die Hochpräzisionsdüsenversatzkalibrierung ist fehlgeschlagen; bitte kalibrieren Sie erneut."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Der Bürstenmotor 1 hat kein Signal, was auf schlechten Kontakt im Motorkonnektor oder eine Motorstörung zurückzuführen sein kann."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "Die BirdsEye-Kamera wird eingerichtet. Bitte entfernen Sie alle Objekte und nehmen Sie die Matte weg. Stellen Sie sicher, dass der Marker nicht behindert wird."
                 },
                 {
                     "ecode": "0700010000010011",

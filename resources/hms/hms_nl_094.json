@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861766,
-    "ver": 202503250218,
+    "t": 1740039700,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "nl": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Auto Bed Leveling is mislukt; de taak is gestopt."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "De installatie van de BirdsEye Camera is mislukt. Verwijder alle objecten en haal de mat weg. Zorg ervoor dat de marker niet wordt obstructeerd. Maak ondertussen zowel de BirdsEye Camera als de Toolhead Camera schoon en verwijder eventuele vreemde objecten die hun zicht blokkeren."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "De visuele marker is niet gedetecteerd. Plak het papier opnieuw in de juiste positie. Maak ondertussen de Toolhead Camera schoon om verontreiniging te voorkomen en verwijder eventuele objecten die het zicht blokkeren."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "De nozzle mag niet geïnstalleerd zijn of niet goed geïnstalleerd zijn. Zorg ervoor dat de nozzle correct is geïnstalleerd voordat je verder gaat."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Z-as-homing mislukt; de taak is gestopt."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "Afdrukken gestopt omdat Auto Bed Leveling is mislukt."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS slaagde er niet in om het filament terug te trekken. Dit kan komen doordat de spoel vastzit of omdat het einde van het filament vastzit in de baan."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "De visuele marker is niet gedetecteerd. Plak het papier opnieuw op de juiste positie."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "De AMS-assistentmotor is overbelast. Dit kan komen door verward filament of een vastzittende spoel."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "De installatie van de BirdsEye Camera is mislukt. Controleer of de laser module goed werkt."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "De installatie van de BirdsEye Camera is mislukt. Verwijder alle objecten en plaats de mat weg. Zorg ervoor dat de marker niet geblokkeerd wordt."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "nl": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "BirdsEye Camera wordt ingesteld. Verwijder al het meubilair en haal de mat weg. Zorg ervoor dat de marker niet wordt belemmerd. Maak ondertussen zowel de BirdsEye Camera als de Toolhead Camera schoon en verwijder eventuele vreemde objecten die hun zicht belemmeren."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Dikte meting is mislukt, de Toolhead Camera kon het materiaaloppervlak niet detecteren. Maak ondertussen de Toolhead Camera schoon om verontreiniging te voorkomen en verwijder eventuele objecten die het zicht belemmeren."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Visuele marker niet gedetecteerd; plak het materiaal opnieuw op de juiste positie. Maak ondertussen de Toolhead Camera schoon om verontreiniging te voorkomen en verwijder eventuele objecten die het zicht belemmeren."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "Hand-Oog calibratie mislukt, en de snijprecisie kan zijn afgenomen. Controleer of de snijbladpunt versleten is. Maak ondertussen de Toolhead Camera schoon om verontreiniging te voorkomen en verwijder eventuele objecten die het zicht belemmeren."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "Er wordt voor het eerst hoogwarmtebedprinting uitgevoerd. Om een betere kwaliteit van de eerste laag te krijgen, wordt automatisch het bedniveau op hoge temperatuur ingesteld."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "De gevoeligheid van de links extruder extrusiekrachtsensor is laag; de krachtsensor is mogelijk niet correct geïnstalleerd."
@@ -2504,60 +2564,8 @@
                     "intro": "Actieve kamerafzuig luchtdeur storing: deze kan vastzitten."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Dikte meting mislukt, de Toolhead Camera kon het oppervlak van het materiaal niet detecteren."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Visuele marker niet gedetecteerd; gelieve het materiaal opnieuw op de juiste positie te plakken."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "Niet-gecertificeerde AMS-HT E gedetecteerd of AMS-HT E firmware niet geüpgraded. Kan niet functioneren met deze printer."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "Hand-Oog calibratie mislukt, en de snijnauwkeurigheid kan zijn afgenomen. Controleer alstublieft of de snijmespunt versleten is."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Niet genoeg ruimte op de USB-flashdrive; maak wat ruimte vrij."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "Voor het eerst wordt er bij hoge temperaturen op het printbed geprint. Om betere kwaliteit voor de eerste laag te krijgen, vindt er automatisch een kalibratie van het verhittingsbed op hoge temperatuur plaats."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "De kalibratie van de hoge precisie spuitmondoffset is mislukt; gelieve opnieuw te kalibreren."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Geborstelde motor 1 heeft geen signaal, dit kan te wijten zijn aan slecht contact in de motorverbinding of een motorstoring."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "BirdsEye-camera wordt opgezet. Verwijder alle objecten en verwijder de mat. Zorg ervoor dat de marker niet geblokkeerd is."
                 },
                 {
                     "ecode": "0700010000010011",

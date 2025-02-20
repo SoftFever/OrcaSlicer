@@ -1,11 +1,23 @@
 {
     "result": 0,
-    "t": 1739861767,
-    "ver": 202503250218,
+    "t": 1740039701,
+    "ver": 202503250220,
     "data": {
         "device_error": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "pl": [
+                {
+                    "ecode": "03004002",
+                    "intro": "Automatyczne poziomowanie stołu nie powiodło się; zadanie zostało zatrzymane."
+                },
+                {
+                    "ecode": "0C004020",
+                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Proszę usunąć wszystkie obiekty i zdjąć matę. Upewnij się, że znacznik nie jest zasłonięty. W międzyczasie oczyść zarówno kamerę BirdsEye, jak i kamerę Toolhead oraz usuń wszelkie obce przedmioty blokujące ich widok."
+                },
+                {
+                    "ecode": "0C00402A",
+                    "intro": "Wizualny znacznik nie został wykryty. Proszę ponownie nakleić papier w odpowiedniej pozycji. W międzyczasie proszę oczyścić kamerę Toolhead, aby zapobiec zanieczyszczeniu, i usunąć wszelkie obiekty, które mogą zasłaniać jej widok."
+                },
                 {
                     "ecode": "03008021",
                     "intro": "Dysza może być niezamontowana lub zamontowana nieprawidłowo. Upewnij się, że dysza jest prawidłowo zamontowana przed kontynuowaniem."
@@ -313,10 +325,6 @@
                 {
                     "ecode": "03004000",
                     "intro": "Z oś homing nie powiódł się; zadanie zostało zatrzymane."
-                },
-                {
-                    "ecode": "03004002",
-                    "intro": "Drukowanie zatrzymane, ponieważ automatyczne poziomowanie łóżka nie powiodło się."
                 },
                 {
                     "ecode": "0300800A",
@@ -1615,10 +1623,6 @@
                     "intro": "AMS nie mógł wciągnąć filamentu. Może to być spowodowane przyciętą rolką lub końcem filamentu utkniętym na drodze."
                 },
                 {
-                    "ecode": "0C00402A",
-                    "intro": "Znak wizualny nie został wykryty. Proszę wkleić ponownie papier w prawidłowej pozycji."
-                },
-                {
                     "ecode": "07058010",
                     "intro": "Silnik pomocniczy AMS jest przeciążony. Może to być spowodowane splątanym filamentem lub przyciętą rolką."
                 },
@@ -1985,10 +1989,6 @@
                 {
                     "ecode": "0C004022",
                     "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Proszę sprawdzić, czy moduł laserowy działa prawidłowo."
-                },
-                {
-                    "ecode": "0C004020",
-                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Proszę usunąć wszystkie przedmioty i zdjąć matę. Upewnij się, że znacznik nie jest przesłonięty."
                 },
                 {
                     "ecode": "18058023",
@@ -2473,8 +2473,68 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250218,
+            "ver": 202503250220,
             "pl": [
+                {
+                    "ecode": "0C00040000020007",
+                    "intro": "Kamera BirdsEye się przygotowuje. Proszę usunąć wszystkie obiekty i zdjąć matę. Upewnij się, że znacznik nie jest zasłonięty. W międzyczasie oczyść zarówno Kamerę BirdsEye, jak i Kamerę Toolhead, oraz usuń wszelkie obce przedmioty blokujące ich widok."
+                },
+                {
+                    "ecode": "0C00040000020023",
+                    "intro": "Pomiar grubości nie powiódł się, Kamera Toolhead nie była w stanie wykryć powierzchni materiału. W międzyczasie proszę oczyścić Kamerę Toolhead, aby zapobiec zanieczyszczeniu, oraz usunąć wszelkie obiekty, które mogą zasłaniać jej widok."
+                },
+                {
+                    "ecode": "0C00040000020017",
+                    "intro": "Znacznik wizualny nie został wykryty; proszę ponownie przykleić materiał w odpowiednim miejscu. W międzyczasie proszę oczyścić Kamerę Toolhead, aby zapobiec zanieczyszczeniu, oraz usunąć wszelkie obiekty, które mogą zasłaniać jej widok."
+                },
+                {
+                    "ecode": "0C00040000020018",
+                    "intro": "Kalibracja ręka-oko nie powiodła się, a dokładność cięcia może się zmniejszyć. Proszę sprawdzić, czy końcówka ostrza tnącego jest zużyta. W międzyczasie proszę oczyścić Kamerę Toolhead, aby zapobiec zanieczyszczeniu, oraz usunąć wszelkie obiekty, które mogą zasłaniać jej widok."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "Wysoka temperatura stołu grzewczego jest wykorzystywana do druku po raz pierwszy. Aby uzyskać lepszą jakość wydruku pierwszej warstwy, automatycznie przeprowadzana jest regulacja poziomu stołu przy wysokiej temperaturze."
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020042",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020052",
+                    "intro": ""
+                },
                 {
                     "ecode": "0300260000010002",
                     "intro": "Czułość czujnika siły wytłaczania lewego ekstrudera jest niska; czujnik siły może być zainstalowany niewłaściwie."
@@ -2504,60 +2564,8 @@
                     "intro": "Awaria klapy wydechowej komory aktywnej: może być zablokowana."
                 },
                 {
-                    "ecode": "0500010000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020043",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020042",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020053",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020052",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00040000020023",
-                    "intro": "Pomiar grubości nie powiódł się, kamera głowicy roboczej nie była w stanie wykryć powierzchni materiału."
-                },
-                {
-                    "ecode": "0C00040000020017",
-                    "intro": "Nie wykryto znacznika wizualnego; proszę ponownie przykleić materiał w odpowiedniej pozycji."
-                },
-                {
                     "ecode": "0584050000010010",
                     "intro": "Wykryto niecertyfikowany AMS-HT E lub oprogramowanie układowe AMS-HT E nie zostało zaktualizowane. Nie można używać tej drukarki."
-                },
-                {
-                    "ecode": "0C00040000020018",
-                    "intro": "Kalibracja ręka-oko nie powiodła się, a dokładność cięcia może się zmniejszyć. Proszę sprawdzić, czy końcówka ostrza jest zużyta."
                 },
                 {
                     "ecode": "0582050000010010",
@@ -11092,10 +11100,6 @@
                     "intro": "Brak miejsca na pendrive'ie; proszę zwolnić trochę miejsca."
                 },
                 {
-                    "ecode": "0300180000030009",
-                    "intro": "Drukowanie przy wysokiej temperaturze stołu drukującego jest wykonywane po raz pierwszy. Aby uzyskać lepszą jakość druku pierwszej warstwy, automatycznie wykonywana jest kalibracja stołu drukującego przy wysokiej temperaturze."
-                },
-                {
                     "ecode": "0C00030000020011",
                     "intro": "Kalibracja offsetu dyszy o wysokiej precyzji nie powiodła się; proszę przeprowadzić kalibrację ponownie."
                 },
@@ -13710,10 +13714,6 @@
                 {
                     "ecode": "0707100000020004",
                     "intro": "AMS H Silnik szczotkowy nr 1 nie otrzymuje sygnału, co może być spowodowane słabym kontaktem w złączu silnika lub usterką silnika."
-                },
-                {
-                    "ecode": "0C00040000020007",
-                    "intro": "Kamera BirdsEye jest konfigurowana. Proszę usunąć wszystkie przedmioty i zdjąć matę. Upewnij się, że znacznik nie jest przysłonięty."
                 },
                 {
                     "ecode": "0700010000010011",
