@@ -63,6 +63,10 @@ jobs:
   flatpak:
     name: "Flatpak"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+      fail-fast: false
     env:
       date:
       ver:
@@ -97,6 +101,7 @@ jobs:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
+        arch: ${{ matrix.arch }}
         upload-artifact: false
     - name: Deploy Flatpak to nightly release
       if: ${{github.ref == 'refs/heads/main'}}
