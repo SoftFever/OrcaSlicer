@@ -3637,7 +3637,7 @@ void GUI_App::update_oauth_access_token() {
 }
 
 void GUI_App::set_classic_mode(bool use_classic_mode) {
-    app_config->set_bool("use_classic_mode", use_classic_mode);
+    app_config->set_bool("use_classic_mode", true);
     app_config->save();
     update_ui_from_settings();
     sidebar().jusprin_chat_panel()->SendClassicModeChangedEvent(use_classic_mode);
