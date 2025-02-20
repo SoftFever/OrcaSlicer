@@ -24,10 +24,10 @@ public:
         // Set transparent background
         SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
         SetBackgroundColour(wxTransparentColour);
-#else 
+#else
         SetBackgroundColour(*wxWHITE);
 #endif
-    
+
         Bind(wxEVT_PAINT, &CircularBadge::OnPaint, this);
     }
 
@@ -66,6 +66,9 @@ class JusPrinView3D : public View3D {
 public:
     JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     virtual ~JusPrinView3D();
+
+    void showChatPanel();
+    void hideChatPanel();
 
 protected:
     void OnSize(wxSizeEvent& evt);

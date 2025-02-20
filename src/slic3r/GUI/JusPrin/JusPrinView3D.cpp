@@ -256,13 +256,7 @@ void JusPrinView3D::init_overlay()
 
     // Bind click event to show chat panel
     auto open_chat = [this](wxMouseEvent& evt) {
-        if (m_chat_panel) {
-            m_chat_panel->Show();
-            m_chat_panel->SetFocus();
-            m_overlay_btn->Hide();
-            m_icon_text_left->Hide();
-            m_icon_text_right->Hide();
-        }
+        showChatPanel();
         evt.Skip();
     };
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
@@ -323,13 +317,28 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     m_icon_text_right->Raise();
 }
 
-void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt)
-{
+void JusPrinView3D::showChatPanel() {
+    if (!m_chat_panel) return;
+
+    m_chat_panel->Show();
+    m_chat_panel->SetFocus();
+    m_overlay_btn->Hide();
+    m_icon_text_left->Hide();
+    m_icon_text_right->Hide();
+}
+
+void JusPrinView3D::hideChatPanel() {
+    if (!m_chat_panel) return;
+
+    m_chat_panel->Hide();
+    m_overlay_btn->Show();
+    m_icon_text_left->Show();
+    m_icon_text_right->Show();
+}
+
+void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt) {
     if (m_chat_panel && m_chat_panel->IsShown()) {
-        m_chat_panel->Hide();
-        m_overlay_btn->Show();
-        m_icon_text_left->Show();
-        m_icon_text_right->Show();
+        hideChatPanel();
     }
     evt.Skip();
 }
