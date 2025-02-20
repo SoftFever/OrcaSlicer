@@ -857,12 +857,18 @@ public:
     WipeTowerWriter &line(const WipeTower *wipe_tower, Vec2f p0, Vec2f p1,const float f = 0.f)
     {
         bool need_change_flow = wipe_tower->need_thick_bridge_flow(p0.y());
-        if (need_change_flow) set_extrusion_flow(wipe_tower->extrusion_flow(0.2));
+        if (need_change_flow) {
+            set_extrusion_flow(wipe_tower->extrusion_flow(0.2));
+            append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+        }
         if (abs(x() - p0.x()) > abs(x() - p1.x())) std::swap(p0, p1);
         travel(p0.x(), y());
         travel(x(), p0.y());
         extrude(p1, f);
-        set_extrusion_flow(wipe_tower->get_extrusion_flow());
+        if (need_change_flow) {
+            set_extrusion_flow(wipe_tower->get_extrusion_flow());
+            append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
+        }
         return (*this);
     }
 
@@ -2797,10 +2803,8 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     for (int i = 0; true; ++i) {
         if (need_thick_bridge_flow(writer.pos().y())) {
             writer.set_extrusion_flow(nozzle_change_extrusion_flow(0.2));
+            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
             need_change_flow = true;
-        } else {
-            writer.set_extrusion_flow(nozzle_change_extrusion_flow(m_layer_height));
-            need_change_flow = false;
         }
         if (m_left_to_right)
             writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), need_change_flow ? bridge_speed : nozzle_change_speed);
@@ -2810,10 +2814,17 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
         if (i == nozzle_change_line_count - 1)
             break;
         if ((writer.y() + dy - cleaning_box.ru.y()+(m_nozzle_change_perimeter_width+m_perimeter_width)/2) > (float)EPSILON) break;
-        writer.extrude(writer.x(), writer.y() + dy, need_change_flow ? bridge_speed : nozzle_change_speed);
+        if (need_change_flow) {
+            writer.set_extrusion_flow(nozzle_change_extrusion_flow(m_layer_height));
+            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
+            need_change_flow = false;
+        }
+        writer.extrude(writer.x(), writer.y() + dy, nozzle_change_speed);
         m_left_to_right = !m_left_to_right;
     }
-
+    if (need_change_flow) {
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
+    }
     writer.set_extrusion_flow(nz_extrusion_flow); // Reset the extrusion flow.
     block.cur_depth += real_nozzle_change_line_count * dy;
     block.last_nozzle_change_id = old_filament_id;
@@ -3752,6 +3763,9 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                     timelapse_wall = only_generate_out_wall(true);
                 }
                 finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, layer.extruder_fill);
+                std::for_each(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [this](WipeTowerBlock &block) {
+                    block.finish_depth[this->m_cur_layer_id] = block.start_depth;
+                });
             }
         }
 
@@ -3794,6 +3808,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             }
 
             for (WipeTowerBlock& block : m_wipe_tower_blocks) {
+                block.finish_depth[m_cur_layer_id] = block.start_depth + block.depth;
                 if (block.cur_depth + EPSILON >= block.start_depth + block.layer_depths[m_cur_layer_id]-m_perimeter_width) {
                     continue;
                 }
@@ -3810,6 +3825,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 if (interface_solid ||(block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx])) {
                     interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx]));//noly reduce speed when
                     finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill, interface_solid);
+                    block.finish_depth[m_cur_layer_id] = block.start_depth + block.depth;
                 }
                 else {
                     finish_block_tcr = finish_block(block, finish_layer_filament, layer.extruder_fill);
