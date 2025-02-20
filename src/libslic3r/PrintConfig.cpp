@@ -6055,7 +6055,8 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("prime_tower_extra_rib_length", coFloat);
     def->label    = L("Extra rib length");
-    def->tooltip  = L("Extra rib length");
+    def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size."
+                       "However, the size of the rib wall can not be smaller than that determined by the cleaning volume.");
     def->sidetext = L("mm");
     def->mode     = comAdvanced;
     def->min      = 0;
