@@ -1,0 +1,22 @@
+{
+  "cool_plate_temp": ["75"],
+  "cool_plate_temp_initial_layer": ["75"],
+  "eng_plate_temp": ["75"],
+  "eng_plate_temp_initial_layer": ["75"],
+  "filament_load_time": ["29"],
+  "filament_settings_id": ["Flashforge PETG Pro @FF AD5X 0.6 nozzle"],
+  "filament_unload_time": ["29"],
+  "from": "system",
+  "setting_id": "GFSA04",
+  "instantiation": "true",
+  "compatible_printers": ["Flashforge AD5X 0.6 nozzle"],
+  "hot_plate_temp": ["75"],
+  "hot_plate_temp_initial_layer": ["75"],
+  "inherits": "Flashforge Generic PETG",
+  "is_custom_defined": "0",
+  "name": "Flashforge PETG Pro @FF AD5X 0.6 nozzle",
+  "pressure_advance": ["0.04"],
+  "textured_plate_temp": ["75"],
+  "textured_plate_temp_initial_layer": ["75"],
+  "version": "2.1.1.0"
+}
