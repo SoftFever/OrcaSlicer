@@ -35,14 +35,14 @@ public:
                                              std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
     void push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
-    void push_delayed_notification(NotificationType type, std::function<bool(void)> condition_callback,
-                                 int64_t initial_delay, int64_t delay_interval);
 
     static std::string get_notification_type_name(NotificationType type);
     static std::string get_notification_level_name(NotificationLevel level);
 
 private:
-    void push_notification_to_chat(const std::string& text, const std::string& type, const std::string& level);
+    void push_notification_to_chat(const std::string& text,
+                                 const std::string& type = "",
+                                 const std::string& level = "");
 
 };
 
