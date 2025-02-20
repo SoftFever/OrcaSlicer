@@ -2721,7 +2721,7 @@ void MainFrame::init_menubar_as_editor()
             this, [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->is_view3D_overhang_shown(); }, this);
 
         append_menu_check_item(
-            viewMenu, wxID_ANY, _L("Show Selected Outline (Experimental)"), _L("Show outline around selected object in 3D scene"),
+            viewMenu, wxID_ANY, _L("Show Selected Outline (beta)"), _L("Show outline around selected object in 3D scene"),
             [this](wxCommandEvent&) {
                 wxGetApp().toggle_show_outline();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));

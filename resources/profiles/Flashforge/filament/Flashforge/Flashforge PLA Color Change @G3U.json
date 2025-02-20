@@ -1,0 +1,11 @@
+{
+  "type": "filament",
+  "filament_settings_id": ["Flashforge PLA Color Change @G3U"],
+  "from": "system",
+  "setting_id": "GFSA04",
+  "instantiation": "true",
+  "inherits": "Flashforge Generic PLA @G3U",
+  "is_custom_defined": "0",
+  "name": "Flashforge PLA Color Change @G3U",
+  "version": "2.1.1.0"
+}

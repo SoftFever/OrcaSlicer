@@ -50,7 +50,7 @@ enum class NoiseType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint, htElegooLink
 };
 
 enum AuthorizationType {
@@ -226,6 +226,7 @@ enum SLAPillarConnectionMode {
 enum BrimType {
     btAutoBrim,  // BBS
     btEar, // Orca
+    btPainted,  // BBS
     btOuterOnly,
     btInnerOnly,
     btOuterAndInner,
@@ -267,12 +268,12 @@ enum OverhangFanThreshold {
 // BBS
 enum BedType {
     btDefault = 0,
-    btSuperTack,
     btPC,
     btEP,
     btPEI,
     btPTE,
     btPCT,
+    btSuperTack,
     btCount
 };
 
@@ -1290,6 +1291,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionBool,               spiral_mode_smooth))
     ((ConfigOptionFloatOrPercent,     spiral_mode_max_xy_smoothing))
+    ((ConfigOptionFloat,              spiral_finishing_flow_ratio))
+    ((ConfigOptionFloat,              spiral_starting_flow_ratio))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionFloat,                preheat_time))
     ((ConfigOptionInt,                preheat_steps))

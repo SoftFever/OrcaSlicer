@@ -32,6 +32,7 @@ class ImGuiWrapper;
 class GLCanvas3D;
 enum class CommonGizmosDataID;
 class CommonGizmosDataPool;
+class Selection;
 
 class GLGizmoBase
 {

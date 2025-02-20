@@ -457,6 +457,7 @@ inline ExPolygons expolygons_simplify(const ExPolygons &expolys, double toleranc
 bool expolygons_match(const ExPolygon &l, const ExPolygon &r);
 
 bool overlaps(const ExPolygons& expolys1, const ExPolygons& expolys2);
+bool overlaps(const ExPolygons& expolys, const ExPolygon& expoly);
 
 Point projection_onto(const ExPolygons& expolys, const Point& pt);
 

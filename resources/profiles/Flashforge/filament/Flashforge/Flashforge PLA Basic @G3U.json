@@ -1,0 +1,12 @@
+{
+  "type": "filament",
+  "filament_settings_id": ["Flashforge PLA Basic @G3U"],
+  "from": "system",
+  "filament_id": "FFF01",
+  "setting_id": "FFFP03",
+  "instantiation": "true",
+  "inherits": "Flashforge Generic PLA @G3U",
+  "is_custom_defined": "0",
+  "name": "Flashforge PLA Basic @G3U",
+  "version": "2.1.1.0"
+}

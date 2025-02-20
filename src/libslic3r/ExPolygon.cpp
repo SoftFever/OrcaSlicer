@@ -185,6 +185,15 @@ bool overlaps(const ExPolygons& expolys1, const ExPolygons& expolys2)
     return false;
 }
 
+bool overlaps(const ExPolygons& expolys, const ExPolygon& expoly)
+{
+    for (const ExPolygon& el : expolys) {
+        if (el.overlaps(expoly))
+                return true;
+    }
+    return false;
+}
+
 Point projection_onto(const ExPolygons& polygons, const Point& from)
 {
     Point projected_pt;

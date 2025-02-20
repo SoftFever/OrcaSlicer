@@ -269,7 +269,16 @@ void PrintJob::process(Ctl &ctl)
         auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
         if (model_name != model_info->metadata_items.end()) {
             try {
-                params.project_name = model_name->second;
+
+                std::string mall_model_name = model_name->second;
+                std::replace(mall_model_name.begin(), mall_model_name.end(), ' ', '_');
+                const char* unusable_symbols = "<>[]:/\\|?*\" ";
+                for (const char* symbol = unusable_symbols; *symbol != '\0'; ++symbol) {
+                    std::replace(mall_model_name.begin(), mall_model_name.end(), *symbol, '_');
+                }
+
+                std::regex pattern("_+");
+                params.project_name = std::regex_replace(mall_model_name, pattern, "_");
             }
             catch (...) {}
         }

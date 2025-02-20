@@ -1,0 +1,21 @@
+{
+  "cool_plate_temp": ["50"],
+  "cool_plate_temp_initial_layer": ["50"],
+  "eng_plate_temp": ["50"],
+  "eng_plate_temp_initial_layer": ["50"],
+  "filament_load_time": ["29"],
+  "filament_max_volumetric_speed": ["5"],
+  "filament_settings_id": ["Flashforge TPU 64D @FF AD5X"],
+  "filament_unload_time": ["29"],
+  "from": "system",
+  "hot_plate_temp": ["50"],
+  "hot_plate_temp_initial_layer": ["50"],
+  "compatible_printers": ["Flashforge AD5X 0.4 nozzle"],
+  "inherits": "Flashforge Generic TPU",
+  "is_custom_defined": "0",
+  "name": "Flashforge TPU 64D @FF AD5X",
+  "instantiation": "true",
+  "textured_plate_temp": ["50"],
+  "textured_plate_temp_initial_layer": ["50"],
+  "version": "2.1.1.0"
+}

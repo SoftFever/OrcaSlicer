@@ -43,6 +43,7 @@ set(lisbslic3r_sources
     FaceDetector.hpp
     Brim.cpp
     Brim.hpp
+    BrimEarsPoint.hpp
     BuildVolume.cpp
     BuildVolume.hpp
     Circle.cpp

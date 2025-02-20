@@ -88,6 +88,7 @@ public:
         Measure,
         Assembly,
         Simplify,
+        BrimEars,
         //SlaSupports,
         // BBS
         //FaceRecognition,

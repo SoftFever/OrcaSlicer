@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-04 17:35+0100\n"
+"POT-Creation-Date: 2025-02-20 21:21+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1275,7 +1275,7 @@ msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr ""
+msgstr "Cancel a feature until exit"
 
 msgid "Measure"
 msgstr "Measure"
@@ -1283,16 +1283,17 @@ msgstr "Measure"
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
 msgstr ""
+"Please confirm explosion ratio = 1, and please select at least one object"
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "Please select at least one object."
 
 msgid "Edit to scale"
 msgstr "Edit to scale"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr ""
+msgstr "Scale all"
 
 msgid "None"
 msgstr "Ingen"
@@ -1307,40 +1308,46 @@ msgid "Selection"
 msgstr "Selection"
 
 msgid " (Moving)"
-msgstr ""
+msgstr " (Moving)"
 
 msgid ""
 "Select 2 faces on objects and \n"
 " make objects assemble together."
 msgstr ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
 
 msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
 msgstr ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
 
 msgid "Face"
-msgstr ""
+msgstr "Face"
 
 msgid " (Fixed)"
-msgstr ""
+msgstr " (Fixed)"
 
 msgid "Point"
-msgstr ""
+msgstr "Point"
 
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
 
 msgid "Warning:please select Plane's feature."
-msgstr ""
+msgstr "Warning: please select Plane's feature."
 
 msgid "Warning:please select Point's or Circle's feature."
-msgstr ""
+msgstr "Warning: please select Point's or Circle's feature."
 
 msgid "Warning:please select two different mesh."
-msgstr ""
+msgstr "Warning: please select two different meshes."
 
 msgid "Copy to clipboard"
 msgstr "Kopiera till urklipp"
@@ -1358,25 +1365,25 @@ msgid "Distance XYZ"
 msgstr "Distance XYZ"
 
 msgid "Parallel"
-msgstr ""
+msgstr "Parallel"
 
 msgid "Center coincidence"
-msgstr ""
+msgstr "Center coincidence"
 
 msgid "Featue 1"
-msgstr ""
+msgstr "Feature 1"
 
 msgid "Reverse rotation"
-msgstr ""
+msgstr "Reverse rotation"
 
 msgid "Rotate around center:"
-msgstr ""
+msgstr "Rotate around center:"
 
 msgid "Parallel distance:"
 msgstr ""
 
 msgid "Flip by Face 2"
-msgstr ""
+msgstr "Flip by Face 2"
 
 msgid "Ctrl+"
 msgstr "Ctrl +"
@@ -2778,9 +2785,6 @@ msgstr ""
 msgid "About %s"
 msgstr "Om %s"
 
-msgid "Orca Slicer"
-msgstr ""
-
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr ""
 
@@ -2833,9 +2837,6 @@ msgstr "Inmatningsvärdet ska vara större än %1% och mindre än %2%"
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Inställning av AMS-facks information under utskrift stöds inte"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Faktorer för kalibrering av flödesdynamik"
 
@@ -2847,6 +2848,9 @@ msgstr "Faktor K"
 
 msgid "Factor N"
 msgstr "Faktor N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "Inställning av AMS-facks information under utskrift stöds inte"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "Inställning av information om virtuell plats under utskrift stöds inte"
@@ -2969,8 +2973,8 @@ msgstr "Inaktivera AMS"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Skriv ut med filament på en extern spole"
 
-msgid "Current Cabin humidity"
-msgstr "Current Cabin humidity"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3594,9 +3598,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "Current chamber temperature is higher than the material's safe temperature; "
 "this may result in material softening and nozzle clogs.The maximum safe "
@@ -4371,7 +4375,7 @@ msgstr "Volym:"
 msgid "Size:"
 msgstr "Storlek:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4795,7 +4799,7 @@ msgstr "Visa & Överhäng"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Visa objektets överhäng i 3D-scen"
 
-msgid "Show Selected Outline (Experimental)"
+msgid "Show Selected Outline (beta)"
 msgstr ""
 
 msgid "Show outline around selected object in 3D scene"
@@ -5028,8 +5032,8 @@ msgstr ""
 msgid "The printer has been logged out and cannot connect."
 msgstr "Printern har loggats ut och kan inte anslutas."
 
-msgid "Stopped."
-msgstr "Avbruten."
+msgid "Video Stopped."
+msgstr ""
 
 msgid "LAN Connection Failed (Failed to start liveview)"
 msgstr "LAN-anslutning misslyckades (Det gick inte att starta liveview)"
@@ -5120,10 +5124,6 @@ msgstr "Reload file list from printer."
 msgid "No printers."
 msgstr "Ingen printer."
 
-#, c-format, boost-format
-msgid "Connect failed [%d]!"
-msgstr "Sammankoppling misslyckades [%d]"
-
 msgid "Loading file list..."
 msgstr "Laddar fil lista..."
 
@@ -5133,9 +5133,6 @@ msgstr "Inga filer"
 msgid "Load failed"
 msgstr "Load failed"
 
-msgid "Initialize failed (Device connection not ready)!"
-msgstr "Initieringen misslyckades (Enhets anslutningen är inte klar)!"
-
 msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
@@ -5143,18 +5140,18 @@ msgstr ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 
-msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgid ""
+"Please check if the SD card is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the SD card."
 msgstr ""
+"Kontrollera om SD-kortet är sitter i printern. \n"
+"Om det fortfarande inte går att läsa kan du försöka formatera SD kortet."
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "LAN Connection Failed (Failed to view sdcard)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
 msgstr "Browsing file in SD card is not supported in LAN Only Mode."
-
-#, c-format, boost-format
-msgid "Initialize failed (%s)!"
-msgstr "Initieringen misslyckades (%s)!"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -5586,6 +5583,25 @@ msgstr "Senaste versionen: "
 
 msgid "Not for now"
 msgstr "Not for now"
+
+msgid "Server Exception"
+msgstr ""
+
+msgid ""
+"The server is unable to respond. Please click the link below to check the "
+"server status."
+msgstr ""
+
+msgid ""
+"If the server is in a fault state, you can temporarily use offline printing "
+"or local network printing."
+msgstr ""
+
+msgid "How to use LAN only mode"
+msgstr ""
+
+msgid "Don't show this dialog again"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D mus bortkopplad."
@@ -6296,6 +6312,10 @@ msgstr "Öppna som projekt"
 msgid "Import geometry only"
 msgstr "Importera endast geometrin"
 
+msgid ""
+"This option can be changed later in preferences, under 'Load Behaviour'."
+msgstr ""
+
 msgid "Only one G-code file can be opened at the same time."
 msgstr "Endast en G-kod kan öppnas åt gången."
 
@@ -6711,6 +6731,24 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
+msgstr ""
+
+msgid "Load All"
+msgstr ""
+
+msgid "Ask When Relevant"
+msgstr ""
+
+msgid "Always Ask"
+msgstr ""
+
+msgid "Load Geometry Only"
+msgstr ""
+
+msgid "Load Behaviour"
+msgstr ""
+
+msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7204,8 +7242,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per "
-"objekt\"."
+"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per objekt"
+"\"."
 
 msgid "Errors"
 msgstr "Fel"
@@ -7285,6 +7323,9 @@ msgstr "Ändra enhetens namn"
 
 msgid "Bind with Pin Code"
 msgstr "Bind with Pin Code"
+
+msgid "Bind with Access Code"
+msgstr ""
 
 msgid "Send to Printer SD card"
 msgstr "Skicka till skrivarens MicroSD-kort"
@@ -7577,13 +7618,82 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
 "till ett \"Timelapse Wipe Tower\".\n"
 "genom att högerklicka på den tomma positionen på byggplattan och välja "
 "\"Lägg till Primitiv\"->\"Timelapse Wipe Tower\"."
+
+msgid ""
+"A copy of the current system preset will be created, which will be detached "
+"from the system preset."
+msgstr ""
+
+msgid ""
+"The current custom preset will be detached from the parent system preset."
+msgstr ""
+
+msgid "Modifications to the current profile will be saved."
+msgstr ""
+
+msgid ""
+"This action is not revertible.\n"
+"Do you want to proceed?"
+msgstr ""
+
+msgid "Detach preset"
+msgstr ""
+
+msgid "This is a default preset."
+msgstr ""
+
+msgid "This is a system preset."
+msgstr ""
+
+msgid "Current preset is inherited from the default preset."
+msgstr ""
+
+msgid "Current preset is inherited from"
+msgstr ""
+
+msgid "It can't be deleted or modified."
+msgstr ""
+
+msgid ""
+"Any modifications should be saved as a new preset inherited from this one."
+msgstr ""
+
+msgid "To do that please specify a new name for the preset."
+msgstr ""
+
+msgid "Additional information:"
+msgstr ""
+
+msgid "vendor"
+msgstr ""
+
+msgid "printer model"
+msgstr ""
+
+msgid "default print profile"
+msgstr ""
+
+msgid "default filament profile"
+msgstr ""
+
+msgid "default SLA material profile"
+msgstr ""
+
+msgid "default SLA print profile"
+msgstr ""
+
+msgid "full profile name"
+msgstr ""
+
+msgid "symbolic profile name"
+msgstr ""
 
 msgid "Line width"
 msgstr "Linjebredd"
@@ -7817,10 +7927,9 @@ msgid ""
 "maximum fan speed according to layer printing time"
 msgstr ""
 "Del kylfläktens hastigheten kommer att börja gå med min hastighet när den "
-"beräknade lagringstiden inte är längre än lagringstiden i "
-"inställningarna.När lager tiden är kortare än gräns värdet, ställer "
-"fläkthastigheten sig mellan lägsta och högsta fläkthastighet enligt lagrets "
-"utskriftstid"
+"beräknade lagringstiden inte är längre än lagringstiden i inställningarna."
+"När lager tiden är kortare än gräns värdet, ställer fläkthastigheten sig "
+"mellan lägsta och högsta fläkthastighet enligt lagrets utskriftstid"
 
 msgid "Max fan speed threshold"
 msgstr "Max fläkt hastighets gräns"
@@ -7860,6 +7969,12 @@ msgid "Ramming settings"
 msgstr ""
 
 msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
 msgstr ""
 
 msgid "Printable space"
@@ -8760,19 +8875,22 @@ msgstr "View Liveview"
 msgid "Confirm and Update Nozzle"
 msgstr "Bekräfta och uppdatera nozzeln"
 
-msgid "LAN Connection Failed (Sending print file)"
-msgstr "LAN-anslutning misslyckades (skickar utskriftsfil)"
+msgid "Connect the printer using IP and access code"
+msgstr ""
 
 msgid ""
-"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-msgstr "Steg 1: Bekräfta att Orca Slicer och din skrivare finns på samma LAN."
+"Step 1. Please confirm Orca Slicer and your printer are in the same LAN."
+msgstr ""
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Steg 2, om IP- och åtkomst koden nedan skiljer sig från de faktiska värdena "
-"på skrivaren, korrigera dem."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "IP"
 msgstr "IP"
@@ -8780,17 +8898,38 @@ msgstr "IP"
 msgid "Access Code"
 msgstr "Behörighetskod: "
 
+msgid "Printer model"
+msgstr ""
+
+msgid "Printer name"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Var hittar du skrivarens IP- och åtkomstkod?"
 
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "Steg 3: Pinga IP-adressen för att kontrollera paketförlust och latens."
+msgid "Connect"
+msgstr ""
 
-msgid "Test"
-msgstr "Test"
+msgid "Manual Setup"
+msgstr ""
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP- och åtkomstkoder verifierade! Du kan stänga fönstret"
+msgid "connecting..."
+msgstr ""
+
+msgid "Failed to connect to printer."
+msgstr ""
+
+msgid "Failed to publish login request."
+msgstr ""
+
+msgid "The printer has already been bound."
+msgstr ""
+
+msgid "The printer mode is incorrect, please switch to LAN Only."
+msgstr ""
+
+msgid "Connecting to printer... The dialog will close later"
+msgstr ""
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr "Anslutningen misslyckades, kontrollera IP och åtkomstkod"
@@ -9704,47 +9843,47 @@ msgstr ""
 msgid "Nowhere"
 msgstr ""
 
-msgid "Force cooling for overhang and bridge"
-msgstr "Tvinga kylning av överhäng och bridge/bryggor"
+msgid "Force cooling for overhangs and bridges"
+msgstr ""
 
 msgid ""
-"Enable this option to optimize part cooling fan speed for overhang and "
-"bridge to get better cooling"
+"Enable this option to allow adjustment of the part cooling fan speed for "
+"specifically for overhangs, internal and external bridges. Setting the fan "
+"speed specifically for these features can improve overall print quality and "
+"reduce warping."
 msgstr ""
-"Aktivera detta val för att optimisera del kylningens hastighet för överhäng "
-"och bridge/bryggor"
 
-msgid "Fan speed for overhang"
-msgstr "Fläkthastighet för överhäng"
+msgid "Overhangs and external bridges fan speed"
+msgstr ""
 
 msgid ""
-"Force part cooling fan to be this speed when printing bridge or overhang "
-"wall which has large overhang degree. Forcing cooling for overhang and "
-"bridge can get better quality for these part"
+"Use this part cooling fan speed when printing bridges or overhang walls with "
+"an overhang threshold that exceeds the value set in the 'Overhangs cooling "
+"threshold' parameter above. Increasing the cooling specifically for "
+"overhangs and bridges can improve the overall print quality of these "
+"features.\n"
+"\n"
+"Please note, this fan speed is clamped on the lower end by the minimum fan "
+"speed threshold set above. It is also adjusted upwards up to the maximum fan "
+"speed threshold when the minimum layer time threshold is not met."
 msgstr ""
-"Tvinga del kylningsfläkten att hålla denna hastighet när utskrift av bridge/"
-"bryggor eller överhäng som är större än överhängs graderna skrivs ut. "
-"Tvingande kylning för överhäng och bridge/bryggor kan ge bättre kvalitet på "
-"dessa delar"
 
-msgid "Cooling overhang threshold"
-msgstr "Överhängs kylningens tröskel"
+msgid "Overhang cooling activation threshold"
+msgstr ""
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid ""
-"Force cooling fan to be specific speed when overhang degree of printed part "
-"exceeds this value. Expressed as percentage which indicates how much width "
-"of the line without support from lower layer. 0% means forcing cooling for "
-"all outer wall no matter how much overhang degree"
-msgstr ""
-"Tvinga kylfläkten att vara en specifik hastighet när överhängs graden av "
-"objektets del överstiger detta värde. Detta uttrycks som en procentsats som "
-"anger hur mycket bredden på linjen utan stöd från det nedre lagret. 0%% "
-"betyder tvinga kylning för all yttervägg oavsett överhängs grad."
-
-msgid "Bridge infill direction"
+"When the overhang exceeds this specified threshold, force the cooling fan to "
+"run at the 'Overhang Fan Speed' set below. This threshold is expressed as a "
+"percentage, indicating the portion of each line's width that is unsupported "
+"by the layer beneath it. Setting this value to 0% forces the cooling fan to "
+"run for all outer walls, regardless of the overhang degree."
 msgstr ""
 
+msgid "External bridge infill direction"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for "
@@ -9754,10 +9893,44 @@ msgstr ""
 "automatiskt. Annars kommer den medföljande vinkeln att användas för extern "
 "bridging. Använd 180° för noll vinkel."
 
-msgid "Bridge density"
+msgid "Internal bridge infill direction"
 msgstr ""
 
-msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
+msgid ""
+"Internal bridging angle override. If left to zero, the bridging angle will "
+"be calculated automatically. Otherwise the provided angle will be used for "
+"internal bridges. Use 180°for zero angle.\n"
+"\n"
+"It is recommended to leave it at 0 unless there is a specific model need not "
+"to."
+msgstr ""
+
+msgid "External bridge density"
+msgstr ""
+
+msgid ""
+"Controls the density (spacing) of external bridge lines. 100% means solid "
+"bridge. Default is 100%.\n"
+"\n"
+"Lower density external bridges can help improve reliability as there is more "
+"space for air to circulate around the extruded bridge, improving its cooling "
+"speed."
+msgstr ""
+
+msgid "Internal bridge density"
+msgstr ""
+
+msgid ""
+"Controls the density (spacing) of internal bridge lines. 100% means solid "
+"bridge. Default is 100%.\n"
+"\n"
+" Lower density internal bridges can help reduce top surface pillowing and "
+"improve internal bridge reliability as there is more space for air to "
+"circulate around the extruded bridge, improving its cooling speed. \n"
+"\n"
+"This option works particularly well when combined with the second internal "
+"bridge over infill option, further improving internal bridging structure "
+"before solid infill is extruded."
 msgstr ""
 
 msgid "Bridge flow ratio"
@@ -9810,9 +9983,7 @@ msgstr ""
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency.\n"
-"Note: This setting will only take effect if the wall sequence is configured "
-"to Inner-Outer"
+"layer consistency."
 msgstr ""
 
 msgid "Only one wall on top surfaces"
@@ -10000,6 +10171,9 @@ msgstr ""
 "Detta styr genereringen av brim på modellens yttre och/eller inre sida. Auto "
 "innebär att brim bredd analyseras och beräknas automatiskt."
 
+msgid "Painted"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr "Avstånd mellan brim och modell"
 
@@ -10043,11 +10217,23 @@ msgstr "uppåt kompatibel maskin"
 msgid "Compatible machine condition"
 msgstr "Kompatibel maskin status"
 
+msgid ""
+"A boolean expression using the configuration values of an active printer "
+"profile. If this expression evaluates to true, this profile is considered "
+"compatible with the active printer profile."
+msgstr ""
+
 msgid "Compatible process profiles"
 msgstr "Kompatibla process profiler"
 
 msgid "Compatible process profiles condition"
 msgstr "Kompatibla process profilers status"
+
+msgid ""
+"A boolean expression using the configuration values of an active print "
+"profile. If this expression evaluates to true, this profile is considered "
+"compatible with the active print profile."
+msgstr ""
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "Utskrifts sekvens, lager för lager eller objekt för objekt"
@@ -10077,9 +10263,9 @@ msgid ""
 "quality for needle and small details"
 msgstr ""
 "Aktivera detta val för att sänka utskifts hastigheten för att göra den sista "
-"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets "
-"tröskel\", detta så att lager kan kylas under en längre tid. Detta kan "
-"förbättra kylnings kvaliteten för små detaljer"
+"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets tröskel"
+"\", detta så att lager kan kylas under en längre tid. Detta kan förbättra "
+"kylnings kvaliteten för små detaljer"
 
 msgid "Normal printing"
 msgstr "Normal utskrift"
@@ -10146,8 +10332,8 @@ msgstr ""
 "support. Bridges/Bryggor kan vanligtvis skrivas ut utan support om de inte "
 "är för långa avstånd"
 
-msgid "Thick bridges"
-msgstr "Tjocka bridges"
+msgid "Thick external bridges"
+msgstr ""
 
 msgid ""
 "If enabled, bridges are more reliable, can bridge longer distances, but may "
@@ -10167,36 +10353,86 @@ msgid ""
 "using large nozzles."
 msgstr ""
 
-msgid "Filter out small internal bridges (beta)"
+msgid "Extra bridge layers (beta)"
 msgstr ""
 
 msgid ""
-"This option can help reducing pillowing on top surfaces in heavily slanted "
-"or curved models.\n"
+"This option enables the generation of an extra bridge layer over internal "
+"and/or external bridges.\n"
+"\n"
+"Extra bridge layers help improve bridge appearance and reliability, as the "
+"solid infill is better supported. This is especially useful in fast "
+"printers, where the bridge and solid infill speeds vary greatly. The extra "
+"bridge layer results in reduced pillowing on top surfaces, as well as "
+"reduced separation of the external bridge layer from its surrounding "
+"perimeters.\n"
+"\n"
+"It is generally recommended to set this to at least 'External bridge only', "
+"unless specific issues with the sliced model are found.\n"
+"\n"
+"Options:\n"
+"1. Disabled - does not generate second bridge layers. This is the default "
+"and is set for compatibility purposes.\n"
+"2. External bridge only - generates second bridge layers for external-facing "
+"bridges only. Please note that small bridges that are shorter or narrower "
+"than the set number of perimeters will be skipped as they would not benefit "
+"from a second bridge layer. If generated, the second bridge layer will be "
+"extruded parallel to the first bridge layer to reinforce the bridge "
+"strength.\n"
+"3. Internal bridge only - generates second bridge layers for internal "
+"bridges over sparse infill only. Please note that the internal bridges count "
+"towards the top shell layer count of your model. The second internal bridge "
+"layer will be extruded as close to perpendicular to the first as possible. "
+"If multiple regions in the same island, with varying bridge angles are "
+"present, the last region of that island will be selected as the angle "
+"reference.\n"
+"4. Apply to all - generates second bridge layers for both internal and "
+"external-facing bridges\n"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "External bridge only"
+msgstr ""
+
+msgid "Internal bridge only"
+msgstr ""
+
+msgid "Apply to all"
+msgstr ""
+
+msgid "Filter out small internal bridges"
+msgstr ""
+
+msgid ""
+"This option can help reduce pillowing on top surfaces in heavily slanted or "
+"curved models.\n"
 "\n"
 "By default, small internal bridges are filtered out and the internal solid "
 "infill is printed directly over the sparse infill. This works well in most "
 "cases, speeding up printing without too much compromise on top surface "
 "quality. \n"
 "\n"
-"However, in heavily slanted or curved models especially where too low sparse "
-"infill density is used, this may result in curling of the unsupported solid "
-"infill, causing pillowing.\n"
+"However, in heavily slanted or curved models, especially where too low a "
+"sparse infill density is used, this may result in curling of the unsupported "
+"solid infill, causing pillowing.\n"
 "\n"
-"Disabling this option will print internal bridge layer over slightly "
-"unsupported internal solid infill. The options below control the amount of "
-"filtering, i.e. the amount of internal bridges created.\n"
+"Enabling limited filtering or no filtering will print internal bridge layer "
+"over slightly unsupported internal solid infill. The options below control "
+"the sensitivity of the filtering, i.e. they control where internal bridges "
+"are created.\n"
 "\n"
-"Filter - enable this option. This is the default behavior and works well in "
-"most cases.\n"
+"1. Filter - enables this option. This is the default behavior and works well "
+"in most cases.\n"
 "\n"
-"Limited filtering - creates internal bridges on heavily slanted surfaces, "
-"while avoiding creating unnecessary internal bridges. This works well for "
-"most difficult models.\n"
+"2. Limited filtering - creates internal bridges on heavily slanted surfaces "
+"while avoiding unnecessary bridges. This works well for most difficult "
+"models.\n"
 "\n"
-"No filtering - creates internal bridges on every potential internal "
-"overhang. This option is useful for heavily slanted top surface models. "
-"However, in most cases it creates too many unnecessary bridges."
+"3. No filtering - creates internal bridges on every potential internal "
+"overhang. This option is useful for heavily slanted top surface models; "
+"however, in most cases, it creates too many unnecessary bridges."
 msgstr ""
 
 msgid "Filter"
@@ -10971,6 +11207,9 @@ msgstr "Linjemönster för sparsam ifyllnad"
 msgid "Grid"
 msgstr "Grid"
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Line"
 msgstr "Linje"
 
@@ -11000,6 +11239,25 @@ msgstr "Blixt"
 
 msgid "Cross Hatch"
 msgstr "Cross Hatch"
+
+msgid "Quarter Cubic"
+msgstr ""
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid ""
+"The angle of the first set of 2D lattice elements in the Z direction. Zero "
+"is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid ""
+"The angle of the second set of 2D lattice elements in the Z direction. Zero "
+"is vertical."
+msgstr ""
 
 msgid "Sparse infill anchor length"
 msgstr ""
@@ -11070,8 +11328,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Acceleration av gles utfyllnad. Om värdet uttrycks som en procentsats (t.ex. "
 "100%) kommer det att beräknas baserat på standard accelerationen."
@@ -11171,10 +11429,10 @@ msgstr "Full fläkthastighet vid lager"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "layer"
@@ -11184,10 +11442,24 @@ msgid "Support interface fan speed"
 msgstr ""
 
 msgid ""
-"This fan speed is enforced during all support interfaces, to be able to "
-"weaken their bonding with a high fan speed.\n"
-"Set to -1 to disable this override.\n"
-"Can only be overridden by disable_fan_first_layers."
+"This part cooling fan speed is applied when printing support interfaces. "
+"Setting this parameter to a higher than regular speed  reduces the layer "
+"binding strength between supports and the supported part, making them easier "
+"to separate.\n"
+"Set to -1 to disable it.\n"
+"This setting is overridden by disable_fan_first_layers."
+msgstr ""
+
+msgid "Internal bridges fan speed"
+msgstr ""
+
+msgid ""
+"The part cooling fan speed used for all internal bridges. Set to -1 to use "
+"the overhang fan speed settings instead.\n"
+"\n"
+"Reducing the internal bridges fan speed, compared to your regular fan speed, "
+"can help reduce part warping due to excessive cooling applied over a large "
+"surface for a prolonged period of time."
 msgstr ""
 
 msgid ""
@@ -11231,6 +11503,59 @@ msgid "Apply fuzzy skin to first layer"
 msgstr ""
 
 msgid "Whether to apply fuzzy skin on the first layer"
+msgstr ""
+
+msgid "Fuzzy skin noise type"
+msgstr ""
+
+msgid ""
+"Noise type to use for fuzzy skin generation.\n"
+"Classic: Classic uniform random noise.\n"
+"Perlin: Perlin noise, which gives a more consistent texture.\n"
+"Billow: Similar to perlin noise, but clumpier.\n"
+"Ridged Multifractal: Ridged noise with sharp, jagged features. Creates "
+"marble-like textures.\n"
+"Voronoi: Divides the surface into voronoi cells, and displaces each one by a "
+"random amount. Creates a patchwork texture."
+msgstr ""
+
+msgid "Classic"
+msgstr "Klassisk"
+
+msgid "Perlin"
+msgstr ""
+
+msgid "Billow"
+msgstr ""
+
+msgid "Ridged Multifractal"
+msgstr ""
+
+msgid "Voronoi"
+msgstr ""
+
+msgid "Fuzzy skin feature size"
+msgstr ""
+
+msgid ""
+"The base size of the coherent noise features, in mm. Higher values will "
+"result in larger features."
+msgstr ""
+
+msgid "Fuzzy Skin Noise Octaves"
+msgstr ""
+
+msgid ""
+"The number of octaves of coherent noise to use. Higher values increase the "
+"detail of the noise, but also increase computation time."
+msgstr ""
+
+msgid "Fuzzy skin noise persistence"
+msgstr ""
+
+msgid ""
+"The decay rate for higher octaves of the coherent noise. Lower values will "
+"result in smoother noise."
 msgstr ""
 
 msgid "Filter out tiny gaps"
@@ -11642,6 +11967,14 @@ msgstr "Strykning linjens mellanrum"
 msgid "The distance between the lines of ironing"
 msgstr "Avståndet mellan linjerna när strykning utförs"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep from the edges. A value of 0 sets this to half of the "
+"nozzle diameter"
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Stryknings hastighet"
 
@@ -11871,7 +12204,17 @@ msgid ""
 "Default value of 3 works well for most cases. If your printer is stuttering, "
 "increase this value to reduce the number of adjustments made\n"
 "\n"
-"Allowed values: 1-5"
+"Allowed values: 0.5-5"
+msgstr ""
+
+msgid "Apply only on external features"
+msgstr ""
+
+msgid ""
+"Applies extrusion rate smoothing only on external perimeters and overhangs. "
+"This can help reduce artefacts due to sharp speed transitions on externally "
+"visible overhangs without impacting the print speed of features that will "
+"not be visible to the user."
 msgstr ""
 
 msgid "Minimum speed for part cooling fan"
@@ -11899,9 +12242,9 @@ msgid "Min print speed"
 msgstr "Min utskrifts hastighet"
 
 msgid ""
-"The minimum printing speed that the printer will slow down to to attempt to "
-"maintain the minimum layer time above, when slow down for better layer "
-"cooling is enabled."
+"The minimum print speed to which the printer slows down to maintain the "
+"minimum layer time defined above when the slowdown for better layer cooling "
+"is enabled."
 msgstr ""
 
 msgid "Diameter of nozzle"
@@ -12178,8 +12521,8 @@ msgstr ""
 "En del av materialet i extrudern dras tillbaka för att undvika dropp under "
 "långa förflyttningar. Sätt på 0 för att inaktivera retraktion"
 
-msgid "Long retraction when cut(experimental)"
-msgstr "Long retraction when cut (experimental)"
+msgid "Long retraction when cut(beta)"
+msgstr "Long retraction when cut (beta)"
 
 msgid ""
 "Experimental feature.Retracting and cutting off the filament at a longer "
@@ -12556,9 +12899,6 @@ msgid ""
 "with them. To avoid this, increase the skirt distance value.\n"
 msgstr ""
 
-msgid "Disabled"
-msgstr ""
-
 msgid "Enabled"
 msgstr ""
 
@@ -12661,6 +13001,21 @@ msgid ""
 msgstr ""
 "Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
+
+#, c-format, boost-format
+msgid ""
+"Sets the starting flow ratio while transitioning from the last bottom layer "
+"to the spiral. Normally the spiral transition scales the flow ratio from "
+"0% to 100% during the first loop which can in some cases lead to under "
+"extrusion at the start of the spiral."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Sets the finishing flow ratio while ending the spiral. Normally the spiral "
+"transition scales the flow ratio from 100% to 0% during the last loop which "
+"can in some cases lead to under extrusion at the end of the spiral."
+msgstr ""
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -12813,25 +13168,22 @@ msgid "Enable support generation."
 msgstr "Aktivera support generering."
 
 msgid ""
-"normal(auto) and tree(auto) is used to generate support automatically. If "
-"normal(manual) or tree(manual) is selected, only support enforcers are "
+"Normal (auto) and Tree (auto) is used to generate support automatically. If "
+"Normal (manual) or Tree (manual) is selected, only support enforcers are "
 "generated"
 msgstr ""
-"normal(auto) och tree(auto) används för att generera support automatiskt. Om "
-"normal(manual) eller tree(manual) väljs, genereras endast support "
-"förstärkare."
 
-msgid "normal(auto)"
-msgstr "normal (auto)"
+msgid "Normal (auto)"
+msgstr ""
 
-msgid "tree(auto)"
-msgstr "träd(auto)"
+msgid "Tree (auto)"
+msgstr ""
 
-msgid "normal(manual)"
-msgstr "normal (manuell)"
+msgid "Normal (manual)"
+msgstr ""
 
-msgid "tree(manual)"
-msgstr "tree (manuell)"
+msgid "Tree (manual)"
+msgstr ""
 
 msgid "Support/object xy distance"
 msgstr "Support/objekt xy distans"
@@ -13048,6 +13400,15 @@ msgid ""
 "threshold."
 msgstr "Support skapas för överhäng vars sluttning är under denna gräns."
 
+msgid "Threshold overlap"
+msgstr ""
+
+msgid ""
+"If threshold angle is zero, support will be generated for overhangs whose "
+"overlap is below the threshold. The smaller this value is, the steeper the "
+"overhang that can be printed without support."
+msgstr ""
+
 msgid "Tree support branch angle"
 msgstr "Tree support grenarnas vinkel"
 
@@ -13168,8 +13529,8 @@ msgstr ""
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the "
-"\"machine_start_gcode\"\n"
+"activates the emitting of an M191 command before the \"machine_start_gcode"
+"\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -13432,9 +13793,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool "
-"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
-"Set to 0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -13526,9 +13887,6 @@ msgstr ""
 "Den klassiska vägg generatorn producerar väggar med konstant extruderings "
 "bredd och för mycket tunna områden används gap-fill. Arachne-motorn "
 "producerar väggar med variabel extruderings bredd."
-
-msgid "Classic"
-msgstr "Klassisk"
 
 msgid "Arachne"
 msgstr "Arachne"
@@ -14843,6 +15201,23 @@ msgstr "Avbryter"
 msgid "Error uploading to print host"
 msgstr ""
 
+msgid ""
+"The selected bed type does not match the file. Please confirm before "
+"starting the print."
+msgstr ""
+
+msgid "Time-lapse"
+msgstr ""
+
+msgid "Heated Bed Leveling"
+msgstr ""
+
+msgid "Textured Build Plate (Side A)"
+msgstr ""
+
+msgid "Smooth Build Plate (Side B)"
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "Kan inte utföra boolean operationer på valda delar"
 
@@ -15024,8 +15399,8 @@ msgstr ""
 "Vill du skriva om det?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -15450,6 +15825,9 @@ msgstr "Fysisk printer"
 
 msgid "Print Host upload"
 msgstr "Uppladdning utskriftsvärd"
+
+msgid "Test"
+msgstr "Test"
 
 msgid "Could not get a valid Printer Host reference"
 msgstr "Det gick inte att hämta en giltig printer värdreferens"
@@ -16268,84 +16646,106 @@ msgstr ""
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
 
-#: src/slic3r/GUI/Tab.cpp: 
-msgid "Dependencies"
-msgstr ""
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Current Cabin humidity"
 
-msgid "Profile dependencies"
-msgstr ""
+#~ msgid "Stopped."
+#~ msgstr "Avbruten."
 
-msgid "This is a default preset."
-msgstr ""
+#, c-format, boost-format
+#~ msgid "Connect failed [%d]!"
+#~ msgstr "Sammankoppling misslyckades [%d]"
 
-msgid "This is a system preset."
-msgstr ""
+#~ msgid "Initialize failed (Device connection not ready)!"
+#~ msgstr "Initieringen misslyckades (Enhets anslutningen är inte klar)!"
 
-msgid "Current preset is inherited from the default preset."
-msgstr ""
+#, c-format, boost-format
+#~ msgid "Initialize failed (%s)!"
+#~ msgstr "Initieringen misslyckades (%s)!"
 
-msgid "Current preset is inherited from"
-msgstr ""
+#~ msgid "LAN Connection Failed (Sending print file)"
+#~ msgstr "LAN-anslutning misslyckades (skickar utskriftsfil)"
 
-msgid "It can't be deleted or modified."
-msgstr ""
+#~ msgid ""
+#~ "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Steg 1: Bekräfta att Orca Slicer och din skrivare finns på samma LAN."
 
-msgid "Any modifications should be saved as a new preset inherited from this one."
-msgstr ""
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Steg 2, om IP- och åtkomst koden nedan skiljer sig från de faktiska "
+#~ "värdena på skrivaren, korrigera dem."
 
-msgid "To do that please specify a new name for the preset."
-msgstr ""
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Steg 3: Pinga IP-adressen för att kontrollera paketförlust och latens."
 
-msgid "Additional information:"
-msgstr ""
+#~ msgid "IP and Access Code Verified! You may close the window"
+#~ msgstr "IP- och åtkomstkoder verifierade! Du kan stänga fönstret"
 
-msgid "vendor"
-msgstr ""
+#~ msgid "Force cooling for overhang and bridge"
+#~ msgstr "Tvinga kylning av överhäng och bridge/bryggor"
 
-msgid ", ver: "
-msgstr ""
+#~ msgid ""
+#~ "Enable this option to optimize part cooling fan speed for overhang and "
+#~ "bridge to get better cooling"
+#~ msgstr ""
+#~ "Aktivera detta val för att optimisera del kylningens hastighet för "
+#~ "överhäng och bridge/bryggor"
 
-msgid "printer model"
-msgstr ""
+#~ msgid "Fan speed for overhang"
+#~ msgstr "Fläkthastighet för överhäng"
 
-msgid "default print profile"
-msgstr ""
+#~ msgid ""
+#~ "Force part cooling fan to be this speed when printing bridge or overhang "
+#~ "wall which has large overhang degree. Forcing cooling for overhang and "
+#~ "bridge can get better quality for these part"
+#~ msgstr ""
+#~ "Tvinga del kylningsfläkten att hålla denna hastighet när utskrift av "
+#~ "bridge/bryggor eller överhäng som är större än överhängs graderna skrivs "
+#~ "ut. Tvingande kylning för överhäng och bridge/bryggor kan ge bättre "
+#~ "kvalitet på dessa delar"
 
-msgid "default filament profile"
-msgstr ""
+#~ msgid "Cooling overhang threshold"
+#~ msgstr "Överhängs kylningens tröskel"
 
-msgid "default SLA material profile"
-msgstr ""
+#, c-format
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicates how much "
+#~ "width of the line without support from lower layer. 0% means forcing "
+#~ "cooling for all outer wall no matter how much overhang degree"
+#~ msgstr ""
+#~ "Tvinga kylfläkten att vara en specifik hastighet när överhängs graden av "
+#~ "objektets del överstiger detta värde. Detta uttrycks som en procentsats "
+#~ "som anger hur mycket bredden på linjen utan stöd från det nedre lagret. "
+#~ "0%% betyder tvinga kylning för all yttervägg oavsett överhängs grad."
 
-msgid "default SLA print profile"
-msgstr ""
+#~ msgid "Thick bridges"
+#~ msgstr "Tjocka bridges"
 
-msgid "full profile name"
-msgstr ""
+#~ msgid ""
+#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
+#~ "normal(manual) or tree(manual) is selected, only support enforcers are "
+#~ "generated"
+#~ msgstr ""
+#~ "normal(auto) och tree(auto) används för att generera support automatiskt. "
+#~ "Om normal(manual) eller tree(manual) väljs, genereras endast support "
+#~ "förstärkare."
 
-msgid "symbolic profile name"
-msgstr ""
+#~ msgid "normal(auto)"
+#~ msgstr "normal (auto)"
 
-msgid ""
-"A copy of the current system preset will be created, which will be detached from the system preset."
-msgstr ""
+#~ msgid "tree(auto)"
+#~ msgstr "träd(auto)"
 
-msgid ""
-"The current custom preset will be detached from the parent system preset."
-msgstr ""
+#~ msgid "normal(manual)"
+#~ msgstr "normal (manuell)"
 
-msgid ""
-"Modifications to the current profile will be saved."
-msgstr ""
-
-msgid ""
-"This action is not revertible.\nDo you want to proceed?"
-msgstr ""
-
-msgid ""
-"Detach preset"
-msgstr ""
-
+#~ msgid "tree(manual)"
+#~ msgstr "tree (manuell)"
 
 #~ msgctxt "Verb"
 #~ msgid "Scale"
@@ -16958,11 +17358,11 @@ msgstr ""
 #~ msgstr "Felsökningsnivå"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-#~ "5:trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
 #~ msgstr ""
-#~ "Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, "
-#~ "5:spåra\n"
+#~ "Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, 5:"
+#~ "spåra\n"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"

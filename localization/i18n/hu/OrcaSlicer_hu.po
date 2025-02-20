@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-04 17:35+0100\n"
+"POT-Creation-Date: 2025-02-20 21:21+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1276,7 +1276,7 @@ msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr ""
+msgstr "Cancel a feature until exit"
 
 msgid "Measure"
 msgstr "Measure"
@@ -1284,16 +1284,17 @@ msgstr "Measure"
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
 msgstr ""
+"Please confirm explosion ratio = 1, and please select at least one object"
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "Please select at least one object."
 
 msgid "Edit to scale"
 msgstr "Edit to scale"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr ""
+msgstr "Scale all"
 
 msgid "None"
 msgstr "Sehol"
@@ -1308,40 +1309,46 @@ msgid "Selection"
 msgstr "Selection"
 
 msgid " (Moving)"
-msgstr ""
+msgstr " (Moving)"
 
 msgid ""
 "Select 2 faces on objects and \n"
 " make objects assemble together."
 msgstr ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
 
 msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
 msgstr ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
 
 msgid "Face"
-msgstr ""
+msgstr "Face"
 
 msgid " (Fixed)"
-msgstr ""
+msgstr " (Fixed)"
 
 msgid "Point"
-msgstr ""
+msgstr "Point"
 
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
 
 msgid "Warning:please select Plane's feature."
-msgstr ""
+msgstr "Warning: please select Plane's feature."
 
 msgid "Warning:please select Point's or Circle's feature."
-msgstr ""
+msgstr "Warning: please select Point's or Circle's feature."
 
 msgid "Warning:please select two different mesh."
-msgstr ""
+msgstr "Warning: please select two different meshes."
 
 msgid "Copy to clipboard"
 msgstr "Másolás a vágólapra"
@@ -1359,25 +1366,25 @@ msgid "Distance XYZ"
 msgstr "Distance XYZ"
 
 msgid "Parallel"
-msgstr ""
+msgstr "Parallel"
 
 msgid "Center coincidence"
-msgstr ""
+msgstr "Center coincidence"
 
 msgid "Featue 1"
-msgstr ""
+msgstr "Feature 1"
 
 msgid "Reverse rotation"
-msgstr ""
+msgstr "Reverse rotation"
 
 msgid "Rotate around center:"
-msgstr ""
+msgstr "Rotate around center:"
 
 msgid "Parallel distance:"
 msgstr ""
 
 msgid "Flip by Face 2"
-msgstr ""
+msgstr "Flip by Face 2"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -2790,9 +2797,6 @@ msgstr ""
 msgid "About %s"
 msgstr "%s névjegye"
 
-msgid "Orca Slicer"
-msgstr ""
-
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr ""
 
@@ -2846,9 +2850,6 @@ msgstr ""
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Nyomtatás közben nem változtathatóak meg a AMS férőhelyek adatai"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Anyagáramlás kalibrálásának faktorai"
 
@@ -2860,6 +2861,9 @@ msgstr "K-tényező"
 
 msgid "Factor N"
 msgstr "N-tényező"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "Nyomtatás közben nem változtathatóak meg a AMS férőhelyek adatai"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "Setting Virtual slot information while printing is not supported"
@@ -2983,8 +2987,8 @@ msgstr "AMS kikapcsolása"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Nyomtatás külső tartón lévő filamenttel"
 
-msgid "Current Cabin humidity"
-msgstr "Current Cabin humidity"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3619,9 +3623,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "Current chamber temperature is higher than the material's safe temperature; "
 "this may result in material softening and nozzle clogs.The maximum safe "
@@ -4400,7 +4404,7 @@ msgstr "Térfogat:"
 msgid "Size:"
 msgstr "Méret:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4825,7 +4829,7 @@ msgstr "Show &Overhang"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Show object overhang highlight in 3D scene"
 
-msgid "Show Selected Outline (Experimental)"
+msgid "Show Selected Outline (beta)"
 msgstr ""
 
 msgid "Show outline around selected object in 3D scene"
@@ -5061,8 +5065,8 @@ msgstr ""
 msgid "The printer has been logged out and cannot connect."
 msgstr "A nyomtató ki van jelentkezve, és nem tud csatlakozni."
 
-msgid "Stopped."
-msgstr "Megállítva."
+msgid "Video Stopped."
+msgstr ""
 
 msgid "LAN Connection Failed (Failed to start liveview)"
 msgstr "Sikertelen LAN csatlakozás (Nem sikerült elindítani az élő videót)"
@@ -5153,10 +5157,6 @@ msgstr "Reload file list from printer."
 msgid "No printers."
 msgstr "No printers."
 
-#, c-format, boost-format
-msgid "Connect failed [%d]!"
-msgstr "Connection failed [%d]!"
-
 msgid "Loading file list..."
 msgstr "Loading file list..."
 
@@ -5166,9 +5166,6 @@ msgstr "Nincs fájl"
 msgid "Load failed"
 msgstr "Load failed"
 
-msgid "Initialize failed (Device connection not ready)!"
-msgstr "Initialization failed (Device connection not ready)!"
-
 msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
@@ -5176,18 +5173,18 @@ msgstr ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 
-msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgid ""
+"Please check if the SD card is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the SD card."
 msgstr ""
+"Kérjük, ellenőrizd az SD-kártyát a nyomtatóban.\n"
+"Ha továbbra sem olvasható, próbáld meg formázni az SD-kártyát."
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "LAN Connection Failed (Failed to view sdcard)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
 msgstr "Browsing file in SD card is not supported in LAN Only Mode."
-
-#, c-format, boost-format
-msgid "Initialize failed (%s)!"
-msgstr "Sikertelen inicializálás (%s)!"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -5618,6 +5615,25 @@ msgstr "Legújabb verzió: "
 
 msgid "Not for now"
 msgstr "Not for now"
+
+msgid "Server Exception"
+msgstr ""
+
+msgid ""
+"The server is unable to respond. Please click the link below to check the "
+"server status."
+msgstr ""
+
+msgid ""
+"If the server is in a fault state, you can temporarily use offline printing "
+"or local network printing."
+msgstr ""
+
+msgid "How to use LAN only mode"
+msgstr ""
+
+msgid "Don't show this dialog again"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D Mouse csatlakoztatva."
@@ -6330,6 +6346,10 @@ msgstr "Megnyitás projektként"
 msgid "Import geometry only"
 msgstr "Csak a geometria importálása"
 
+msgid ""
+"This option can be changed later in preferences, under 'Load Behaviour'."
+msgstr ""
+
 msgid "Only one G-code file can be opened at the same time."
 msgstr "Egyszerre csak egy G-kód fájl nyitható meg."
 
@@ -6760,6 +6780,24 @@ msgid "Associate web links to OrcaSlicer"
 msgstr ""
 
 msgid "Associate URLs to OrcaSlicer"
+msgstr ""
+
+msgid "Load All"
+msgstr ""
+
+msgid "Ask When Relevant"
+msgstr ""
+
+msgid "Always Ask"
+msgstr ""
+
+msgid "Load Geometry Only"
+msgstr ""
+
+msgid "Load Behaviour"
+msgstr ""
+
+msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7334,6 +7372,9 @@ msgstr "Eszköz nevének módosítása"
 msgid "Bind with Pin Code"
 msgstr "Bind with Pin Code"
 
+msgid "Bind with Access Code"
+msgstr ""
+
 msgid "Send to Printer SD card"
 msgstr "Küldés a nyomtatóban lévő MicroSD kártyára"
 
@@ -7626,13 +7667,82 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
 "gombbal a tálca egy üres részére, majd válaszd a „Primitív hozzáadása“ -> "
 "„Timelapse törlőtorony“ lehetőséget."
+
+msgid ""
+"A copy of the current system preset will be created, which will be detached "
+"from the system preset."
+msgstr ""
+
+msgid ""
+"The current custom preset will be detached from the parent system preset."
+msgstr ""
+
+msgid "Modifications to the current profile will be saved."
+msgstr ""
+
+msgid ""
+"This action is not revertible.\n"
+"Do you want to proceed?"
+msgstr ""
+
+msgid "Detach preset"
+msgstr ""
+
+msgid "This is a default preset."
+msgstr ""
+
+msgid "This is a system preset."
+msgstr ""
+
+msgid "Current preset is inherited from the default preset."
+msgstr ""
+
+msgid "Current preset is inherited from"
+msgstr ""
+
+msgid "It can't be deleted or modified."
+msgstr ""
+
+msgid ""
+"Any modifications should be saved as a new preset inherited from this one."
+msgstr ""
+
+msgid "To do that please specify a new name for the preset."
+msgstr ""
+
+msgid "Additional information:"
+msgstr ""
+
+msgid "vendor"
+msgstr ""
+
+msgid "printer model"
+msgstr ""
+
+msgid "default print profile"
+msgstr ""
+
+msgid "default filament profile"
+msgstr ""
+
+msgid "default SLA material profile"
+msgstr ""
+
+msgid "default SLA print profile"
+msgstr ""
+
+msgid "full profile name"
+msgstr ""
+
+msgid "symbolic profile name"
+msgstr ""
 
 msgid "Line width"
 msgstr "Nyomtatott vonal szélessége"
@@ -7911,6 +8021,12 @@ msgid "Ramming settings"
 msgstr "Tömörítési beállítások"
 
 msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
+msgid "Dependencies"
+msgstr ""
+
+msgid "Profile dependencies"
 msgstr ""
 
 msgid "Printable space"
@@ -8822,21 +8938,22 @@ msgstr "View Liveview"
 msgid "Confirm and Update Nozzle"
 msgstr "Fúvóka lecserélésének megerősítése"
 
-msgid "LAN Connection Failed (Sending print file)"
-msgstr "LAN kapcsolódás sikertelen (nyomtatási fájl küldése)"
-
-msgid ""
-"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
+msgid "Connect the printer using IP and access code"
 msgstr ""
-"1. lépés: Ellenőrizd, hogy a Orca Slicer és a nyomtató ugyanazon a helyi "
-"hálózaton van."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 1. Please confirm Orca Slicer and your printer are in the same LAN."
+msgstr ""
+
+msgid ""
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"2. lépés: Ha az alábbi IP és hozzáférési kód eltér a nyomtatón láthatótól, "
-"kérjük, javítsd ki őket."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "IP"
 msgstr "IP"
@@ -8844,19 +8961,38 @@ msgstr "IP"
 msgid "Access Code"
 msgstr "Hozzáférési kód"
 
+msgid "Printer model"
+msgstr ""
+
+msgid "Printer name"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Hol találom a nyomtató IP címét és a hozzáférési kódot?"
 
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
+msgid "Connect"
 msgstr ""
-"3. lépés: Pingeld meg az IP-címet a csomagveszteség és késleltetés "
-"ellenőrzéséhez."
 
-msgid "Test"
-msgstr "Teszt"
+msgid "Manual Setup"
+msgstr ""
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP és hozzáférési kód leellenőrizve! Bezárhatod az ablakot"
+msgid "connecting..."
+msgstr ""
+
+msgid "Failed to connect to printer."
+msgstr ""
+
+msgid "Failed to publish login request."
+msgstr ""
+
+msgid "The printer has already been bound."
+msgstr ""
+
+msgid "The printer mode is incorrect, please switch to LAN Only."
+msgstr ""
+
+msgid "Connecting to printer... The dialog will close later"
+msgstr ""
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr ""
@@ -9797,48 +9933,47 @@ msgstr ""
 msgid "Nowhere"
 msgstr ""
 
-msgid "Force cooling for overhang and bridge"
-msgstr "Hűtés kényszerítése túlnyúlásoknál és áthidalásoknál"
+msgid "Force cooling for overhangs and bridges"
+msgstr ""
 
 msgid ""
-"Enable this option to optimize part cooling fan speed for overhang and "
-"bridge to get better cooling"
+"Enable this option to allow adjustment of the part cooling fan speed for "
+"specifically for overhangs, internal and external bridges. Setting the fan "
+"speed specifically for these features can improve overall print quality and "
+"reduce warping."
 msgstr ""
-"Engedélyezd ezt az opciót a tárgyhűtő ventilátor fordulatszámának "
-"optimalizálásához a jobb hűtés érdekében túlnyúlásoknál és áthidalásoknál"
 
-msgid "Fan speed for overhang"
-msgstr "Ventilátor fordulatszám túlnyúlásnál"
+msgid "Overhangs and external bridges fan speed"
+msgstr ""
 
 msgid ""
-"Force part cooling fan to be this speed when printing bridge or overhang "
-"wall which has large overhang degree. Forcing cooling for overhang and "
-"bridge can get better quality for these part"
+"Use this part cooling fan speed when printing bridges or overhang walls with "
+"an overhang threshold that exceeds the value set in the 'Overhangs cooling "
+"threshold' parameter above. Increasing the cooling specifically for "
+"overhangs and bridges can improve the overall print quality of these "
+"features.\n"
+"\n"
+"Please note, this fan speed is clamped on the lower end by the minimum fan "
+"speed threshold set above. It is also adjusted upwards up to the maximum fan "
+"speed threshold when the minimum layer time threshold is not met."
 msgstr ""
-"A nagy túlnyúlású áthidalások vagy túlnyúló falak nyomtatásakor a tárgyhűtő "
-"ventilátor kényszerítve lesz, hogy ezt a fordulatszámot használja. A "
-"túlnyúlások és áthidalások hűtésének kikényszerítésével jobb minőség érhető "
-"el ezeken a részeken."
 
-msgid "Cooling overhang threshold"
-msgstr "Túlnyúlás hűtésének küszöbértéke"
+msgid "Overhang cooling activation threshold"
+msgstr ""
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid ""
-"Force cooling fan to be specific speed when overhang degree of printed part "
-"exceeds this value. Expressed as percentage which indicates how much width "
-"of the line without support from lower layer. 0% means forcing cooling for "
-"all outer wall no matter how much overhang degree"
-msgstr ""
-"Kényszeríti a hűtőventilátort, hogy egy adott fordulatszámot használjon, ha "
-"a túlnyúlás mértéke meghaladja ezt az értéket. Százalékban van kifejezve, "
-"ami azt jelzi, hogy a nyomtatott vonal hány százaléka maradhat az alsóbb "
-"rétegek alátámasztása nélkül. A 0%%-os érték bekapcsolja a hűtést a külső "
-"fal teljes szélességén, függetlenül a túlnyúlás mértékétől."
-
-msgid "Bridge infill direction"
+"When the overhang exceeds this specified threshold, force the cooling fan to "
+"run at the 'Overhang Fan Speed' set below. This threshold is expressed as a "
+"percentage, indicating the portion of each line's width that is unsupported "
+"by the layer beneath it. Setting this value to 0% forces the cooling fan to "
+"run for all outer walls, regardless of the overhang degree."
 msgstr ""
 
+msgid "External bridge infill direction"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for "
@@ -9849,10 +9984,44 @@ msgstr ""
 "érték kerül alkalmazásra. Ha az áthidalást a falakkal párhuzamosra szeretnéd "
 "állítani, használj 180°-os értéket."
 
-msgid "Bridge density"
+msgid "Internal bridge infill direction"
 msgstr ""
 
-msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
+msgid ""
+"Internal bridging angle override. If left to zero, the bridging angle will "
+"be calculated automatically. Otherwise the provided angle will be used for "
+"internal bridges. Use 180°for zero angle.\n"
+"\n"
+"It is recommended to leave it at 0 unless there is a specific model need not "
+"to."
+msgstr ""
+
+msgid "External bridge density"
+msgstr ""
+
+msgid ""
+"Controls the density (spacing) of external bridge lines. 100% means solid "
+"bridge. Default is 100%.\n"
+"\n"
+"Lower density external bridges can help improve reliability as there is more "
+"space for air to circulate around the extruded bridge, improving its cooling "
+"speed."
+msgstr ""
+
+msgid "Internal bridge density"
+msgstr ""
+
+msgid ""
+"Controls the density (spacing) of internal bridge lines. 100% means solid "
+"bridge. Default is 100%.\n"
+"\n"
+" Lower density internal bridges can help reduce top surface pillowing and "
+"improve internal bridge reliability as there is more space for air to "
+"circulate around the extruded bridge, improving its cooling speed. \n"
+"\n"
+"This option works particularly well when combined with the second internal "
+"bridge over infill option, further improving internal bridging structure "
+"before solid infill is extruded."
 msgstr ""
 
 msgid "Bridge flow ratio"
@@ -9905,9 +10074,7 @@ msgstr ""
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency.\n"
-"Note: This setting will only take effect if the wall sequence is configured "
-"to Inner-Outer"
+"layer consistency."
 msgstr ""
 
 msgid "Only one wall on top surfaces"
@@ -10096,6 +10263,9 @@ msgstr ""
 "This controls the generation of the brim at outer and/or inner side of "
 "models. Auto means the brim width is analyzed and calculated automatically."
 
+msgid "Painted"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr "Perem-tárgy közötti rés"
 
@@ -10139,11 +10309,23 @@ msgstr "felfelé kompatibilis gép"
 msgid "Compatible machine condition"
 msgstr "Kompatibilis gépállapot"
 
+msgid ""
+"A boolean expression using the configuration values of an active printer "
+"profile. If this expression evaluates to true, this profile is considered "
+"compatible with the active printer profile."
+msgstr ""
+
 msgid "Compatible process profiles"
 msgstr "Kompatibilis folyamatprofilok"
 
 msgid "Compatible process profiles condition"
 msgstr "Kompatibilis folyamatprofil állapot"
+
+msgid ""
+"A boolean expression using the configuration values of an active print "
+"profile. If this expression evaluates to true, this profile is considered "
+"compatible with the active print profile."
+msgstr ""
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "Nyomtatási sorrend, rétegenként vagy tárgyanként"
@@ -10242,8 +10424,8 @@ msgstr ""
 "Nem támasztja alá az áthidalásokat, ezáltal támaszanyagot spórolva. Az "
 "áthidalások általában támasz nélkül is jól nyomtathatók, ha nem túl hosszúak"
 
-msgid "Thick bridges"
-msgstr "Vastag áthidalások"
+msgid "Thick external bridges"
+msgstr ""
 
 msgid ""
 "If enabled, bridges are more reliable, can bridge longer distances, but may "
@@ -10264,36 +10446,86 @@ msgid ""
 "using large nozzles."
 msgstr ""
 
-msgid "Filter out small internal bridges (beta)"
+msgid "Extra bridge layers (beta)"
 msgstr ""
 
 msgid ""
-"This option can help reducing pillowing on top surfaces in heavily slanted "
-"or curved models.\n"
+"This option enables the generation of an extra bridge layer over internal "
+"and/or external bridges.\n"
+"\n"
+"Extra bridge layers help improve bridge appearance and reliability, as the "
+"solid infill is better supported. This is especially useful in fast "
+"printers, where the bridge and solid infill speeds vary greatly. The extra "
+"bridge layer results in reduced pillowing on top surfaces, as well as "
+"reduced separation of the external bridge layer from its surrounding "
+"perimeters.\n"
+"\n"
+"It is generally recommended to set this to at least 'External bridge only', "
+"unless specific issues with the sliced model are found.\n"
+"\n"
+"Options:\n"
+"1. Disabled - does not generate second bridge layers. This is the default "
+"and is set for compatibility purposes.\n"
+"2. External bridge only - generates second bridge layers for external-facing "
+"bridges only. Please note that small bridges that are shorter or narrower "
+"than the set number of perimeters will be skipped as they would not benefit "
+"from a second bridge layer. If generated, the second bridge layer will be "
+"extruded parallel to the first bridge layer to reinforce the bridge "
+"strength.\n"
+"3. Internal bridge only - generates second bridge layers for internal "
+"bridges over sparse infill only. Please note that the internal bridges count "
+"towards the top shell layer count of your model. The second internal bridge "
+"layer will be extruded as close to perpendicular to the first as possible. "
+"If multiple regions in the same island, with varying bridge angles are "
+"present, the last region of that island will be selected as the angle "
+"reference.\n"
+"4. Apply to all - generates second bridge layers for both internal and "
+"external-facing bridges\n"
+msgstr ""
+
+msgid "Disabled"
+msgstr "Letiltva"
+
+msgid "External bridge only"
+msgstr ""
+
+msgid "Internal bridge only"
+msgstr ""
+
+msgid "Apply to all"
+msgstr ""
+
+msgid "Filter out small internal bridges"
+msgstr ""
+
+msgid ""
+"This option can help reduce pillowing on top surfaces in heavily slanted or "
+"curved models.\n"
 "\n"
 "By default, small internal bridges are filtered out and the internal solid "
 "infill is printed directly over the sparse infill. This works well in most "
 "cases, speeding up printing without too much compromise on top surface "
 "quality. \n"
 "\n"
-"However, in heavily slanted or curved models especially where too low sparse "
-"infill density is used, this may result in curling of the unsupported solid "
-"infill, causing pillowing.\n"
+"However, in heavily slanted or curved models, especially where too low a "
+"sparse infill density is used, this may result in curling of the unsupported "
+"solid infill, causing pillowing.\n"
 "\n"
-"Disabling this option will print internal bridge layer over slightly "
-"unsupported internal solid infill. The options below control the amount of "
-"filtering, i.e. the amount of internal bridges created.\n"
+"Enabling limited filtering or no filtering will print internal bridge layer "
+"over slightly unsupported internal solid infill. The options below control "
+"the sensitivity of the filtering, i.e. they control where internal bridges "
+"are created.\n"
 "\n"
-"Filter - enable this option. This is the default behavior and works well in "
-"most cases.\n"
+"1. Filter - enables this option. This is the default behavior and works well "
+"in most cases.\n"
 "\n"
-"Limited filtering - creates internal bridges on heavily slanted surfaces, "
-"while avoiding creating unnecessary internal bridges. This works well for "
-"most difficult models.\n"
+"2. Limited filtering - creates internal bridges on heavily slanted surfaces "
+"while avoiding unnecessary bridges. This works well for most difficult "
+"models.\n"
 "\n"
-"No filtering - creates internal bridges on every potential internal "
-"overhang. This option is useful for heavily slanted top surface models. "
-"However, in most cases it creates too many unnecessary bridges."
+"3. No filtering - creates internal bridges on every potential internal "
+"overhang. This option is useful for heavily slanted top surface models; "
+"however, in most cases, it creates too many unnecessary bridges."
 msgstr ""
 
 msgid "Filter"
@@ -11080,6 +11312,9 @@ msgstr "Ez a belső ritkás kitöltés mintája."
 msgid "Grid"
 msgstr "Rács"
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Line"
 msgstr "Vonal"
 
@@ -11109,6 +11344,25 @@ msgstr "Világítás"
 
 msgid "Cross Hatch"
 msgstr "Cross Hatch"
+
+msgid "Quarter Cubic"
+msgstr ""
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid ""
+"The angle of the first set of 2D lattice elements in the Z direction. Zero "
+"is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid ""
+"The angle of the second set of 2D lattice elements in the Z direction. Zero "
+"is vertical."
+msgstr ""
 
 msgid "Sparse infill anchor length"
 msgstr ""
@@ -11181,8 +11435,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Gyorsulás a ritkás kitöltéseknél. Ha az érték százalékban van megadva (pl. "
 "100%), akkor az alapértelmezett gyorsulás alapján kerül kiszámításra."
@@ -11282,10 +11536,10 @@ msgstr "Teljes ventilátor fordulatszám ennél a rétegnél"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "layer"
@@ -11295,10 +11549,24 @@ msgid "Support interface fan speed"
 msgstr ""
 
 msgid ""
-"This fan speed is enforced during all support interfaces, to be able to "
-"weaken their bonding with a high fan speed.\n"
-"Set to -1 to disable this override.\n"
-"Can only be overridden by disable_fan_first_layers."
+"This part cooling fan speed is applied when printing support interfaces. "
+"Setting this parameter to a higher than regular speed  reduces the layer "
+"binding strength between supports and the supported part, making them easier "
+"to separate.\n"
+"Set to -1 to disable it.\n"
+"This setting is overridden by disable_fan_first_layers."
+msgstr ""
+
+msgid "Internal bridges fan speed"
+msgstr ""
+
+msgid ""
+"The part cooling fan speed used for all internal bridges. Set to -1 to use "
+"the overhang fan speed settings instead.\n"
+"\n"
+"Reducing the internal bridges fan speed, compared to your regular fan speed, "
+"can help reduce part warping due to excessive cooling applied over a large "
+"surface for a prolonged period of time."
 msgstr ""
 
 msgid ""
@@ -11340,6 +11608,59 @@ msgid "Apply fuzzy skin to first layer"
 msgstr ""
 
 msgid "Whether to apply fuzzy skin on the first layer"
+msgstr ""
+
+msgid "Fuzzy skin noise type"
+msgstr ""
+
+msgid ""
+"Noise type to use for fuzzy skin generation.\n"
+"Classic: Classic uniform random noise.\n"
+"Perlin: Perlin noise, which gives a more consistent texture.\n"
+"Billow: Similar to perlin noise, but clumpier.\n"
+"Ridged Multifractal: Ridged noise with sharp, jagged features. Creates "
+"marble-like textures.\n"
+"Voronoi: Divides the surface into voronoi cells, and displaces each one by a "
+"random amount. Creates a patchwork texture."
+msgstr ""
+
+msgid "Classic"
+msgstr "Klasszikus"
+
+msgid "Perlin"
+msgstr ""
+
+msgid "Billow"
+msgstr ""
+
+msgid "Ridged Multifractal"
+msgstr ""
+
+msgid "Voronoi"
+msgstr ""
+
+msgid "Fuzzy skin feature size"
+msgstr ""
+
+msgid ""
+"The base size of the coherent noise features, in mm. Higher values will "
+"result in larger features."
+msgstr ""
+
+msgid "Fuzzy Skin Noise Octaves"
+msgstr ""
+
+msgid ""
+"The number of octaves of coherent noise to use. Higher values increase the "
+"detail of the noise, but also increase computation time."
+msgstr ""
+
+msgid "Fuzzy skin noise persistence"
+msgstr ""
+
+msgid ""
+"The decay rate for higher octaves of the coherent noise. Lower values will "
+"result in smoother noise."
 msgstr ""
 
 msgid "Filter out tiny gaps"
@@ -11754,6 +12075,14 @@ msgstr "Vasalási vonalak közötti távolság"
 msgid "The distance between the lines of ironing"
 msgstr "A vasaláshoz használt vonalak közötti távolság."
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep from the edges. A value of 0 sets this to half of the "
+"nozzle diameter"
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Vasalás sebessége"
 
@@ -11986,7 +12315,17 @@ msgid ""
 "Default value of 3 works well for most cases. If your printer is stuttering, "
 "increase this value to reduce the number of adjustments made\n"
 "\n"
-"Allowed values: 1-5"
+"Allowed values: 0.5-5"
+msgstr ""
+
+msgid "Apply only on external features"
+msgstr ""
+
+msgid ""
+"Applies extrusion rate smoothing only on external perimeters and overhangs. "
+"This can help reduce artefacts due to sharp speed transitions on externally "
+"visible overhangs without impacting the print speed of features that will "
+"not be visible to the user."
 msgstr ""
 
 msgid "Minimum speed for part cooling fan"
@@ -12015,9 +12354,9 @@ msgid "Min print speed"
 msgstr "Min. nyomtatási sebesség"
 
 msgid ""
-"The minimum printing speed that the printer will slow down to to attempt to "
-"maintain the minimum layer time above, when slow down for better layer "
-"cooling is enabled."
+"The minimum print speed to which the printer slows down to maintain the "
+"minimum layer time defined above when the slowdown for better layer cooling "
+"is enabled."
 msgstr ""
 
 msgid "Diameter of nozzle"
@@ -12308,8 +12647,8 @@ msgstr ""
 "hosszabb mozgás során történő szivárgást. A visszahúzás kikapcsolásához "
 "állítsd nullára"
 
-msgid "Long retraction when cut(experimental)"
-msgstr "Long retraction when cut (experimental)"
+msgid "Long retraction when cut(beta)"
+msgstr "Long retraction when cut (beta)"
 
 msgid ""
 "Experimental feature.Retracting and cutting off the filament at a longer "
@@ -12690,9 +13029,6 @@ msgid ""
 "with them. To avoid this, increase the skirt distance value.\n"
 msgstr ""
 
-msgid "Disabled"
-msgstr "Letiltva"
-
 msgid "Enabled"
 msgstr "Engedélyezve"
 
@@ -12803,6 +13139,21 @@ msgid ""
 msgstr ""
 "Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
+
+#, c-format, boost-format
+msgid ""
+"Sets the starting flow ratio while transitioning from the last bottom layer "
+"to the spiral. Normally the spiral transition scales the flow ratio from "
+"0% to 100% during the first loop which can in some cases lead to under "
+"extrusion at the start of the spiral."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Sets the finishing flow ratio while ending the spiral. Normally the spiral "
+"transition scales the flow ratio from 100% to 0% during the last loop which "
+"can in some cases lead to under extrusion at the end of the spiral."
+msgstr ""
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -12967,25 +13318,22 @@ msgid "Enable support generation."
 msgstr "Engedélyezi a támasz generálását."
 
 msgid ""
-"normal(auto) and tree(auto) is used to generate support automatically. If "
-"normal(manual) or tree(manual) is selected, only support enforcers are "
+"Normal (auto) and Tree (auto) is used to generate support automatically. If "
+"Normal (manual) or Tree (manual) is selected, only support enforcers are "
 "generated"
 msgstr ""
-"A normál (auto) és a fa (auto) a támaszok automatikus generálásához van "
-"használva. Ha a normál (kézi) vagy a fa (kézi) van kiválasztva, akkor csak a "
-"kényszerített támaszok kerülnek generálásra."
 
-msgid "normal(auto)"
-msgstr "normál (auto)"
+msgid "Normal (auto)"
+msgstr ""
 
-msgid "tree(auto)"
-msgstr "fa (auto)"
+msgid "Tree (auto)"
+msgstr ""
 
-msgid "normal(manual)"
-msgstr "normál (manuális)"
+msgid "Normal (manual)"
+msgstr ""
 
-msgid "tree(manual)"
-msgstr "fa (manuális)"
+msgid "Tree (manual)"
+msgstr ""
 
 msgid "Support/object xy distance"
 msgstr "Támasz/tárgy XY távolság"
@@ -13206,6 +13554,15 @@ msgstr ""
 "Az olyan túlnyúlásoknál, amelynek dőlésszöge ez alatt az érték alatt van, "
 "támasz fog generálódni."
 
+msgid "Threshold overlap"
+msgstr ""
+
+msgid ""
+"If threshold angle is zero, support will be generated for overhangs whose "
+"overlap is below the threshold. The smaller this value is, the steeper the "
+"overhang that can be printed without support."
+msgstr ""
+
 msgid "Tree support branch angle"
 msgstr "Fa típusú támasz ágainak szöge"
 
@@ -13327,8 +13684,8 @@ msgstr ""
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the "
-"\"machine_start_gcode\"\n"
+"activates the emitting of an M191 command before the \"machine_start_gcode"
+"\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -13592,9 +13949,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool "
-"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
-"Set to 0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -13687,9 +14044,6 @@ msgstr ""
 "A klasszikus falgenerátor állandó szélességű falakat generál, és a nagyon "
 "vékony területeknél hézagkitöltést használ. Az Arachne engine változó "
 "szélességű falakat generál."
-
-msgid "Classic"
-msgstr "Klasszikus"
 
 msgid "Arachne"
 msgstr "Arachne"
@@ -15004,6 +15358,23 @@ msgstr "Megszakítás"
 msgid "Error uploading to print host"
 msgstr ""
 
+msgid ""
+"The selected bed type does not match the file. Please confirm before "
+"starting the print."
+msgstr ""
+
+msgid "Time-lapse"
+msgstr ""
+
+msgid "Heated Bed Leveling"
+msgstr ""
+
+msgid "Textured Build Plate (Side A)"
+msgstr ""
+
+msgid "Smooth Build Plate (Side B)"
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "Nem lehet logikai műveletet végrehajtani a kiválasztott tárgyakon"
 
@@ -15184,8 +15555,8 @@ msgstr ""
 "Szeretnéd felülírni?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -15608,6 +15979,9 @@ msgstr "Fizikai nyomtató"
 
 msgid "Print Host upload"
 msgstr "Feltöltés a nyomtatóra"
+
+msgid "Test"
+msgstr "Teszt"
 
 msgid "Could not get a valid Printer Host reference"
 msgstr "Nem sikerült érvényes nyomtató hivatkozást lekérni"
@@ -16426,84 +16800,109 @@ msgstr ""
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
-#: src/slic3r/GUI/Tab.cpp: 
-msgid "Dependencies"
-msgstr ""
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Current Cabin humidity"
 
-msgid "Profile dependencies"
-msgstr ""
+#~ msgid "Stopped."
+#~ msgstr "Megállítva."
 
-msgid "This is a default preset."
-msgstr ""
+#, c-format, boost-format
+#~ msgid "Connect failed [%d]!"
+#~ msgstr "Connection failed [%d]!"
 
-msgid "This is a system preset."
-msgstr ""
+#~ msgid "Initialize failed (Device connection not ready)!"
+#~ msgstr "Initialization failed (Device connection not ready)!"
 
-msgid "Current preset is inherited from the default preset."
-msgstr ""
+#, c-format, boost-format
+#~ msgid "Initialize failed (%s)!"
+#~ msgstr "Sikertelen inicializálás (%s)!"
 
-msgid "Current preset is inherited from"
-msgstr ""
+#~ msgid "LAN Connection Failed (Sending print file)"
+#~ msgstr "LAN kapcsolódás sikertelen (nyomtatási fájl küldése)"
 
-msgid "It can't be deleted or modified."
-msgstr ""
+#~ msgid ""
+#~ "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
+#~ msgstr ""
+#~ "1. lépés: Ellenőrizd, hogy a Orca Slicer és a nyomtató ugyanazon a helyi "
+#~ "hálózaton van."
 
-msgid "Any modifications should be saved as a new preset inherited from this one."
-msgstr ""
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "2. lépés: Ha az alábbi IP és hozzáférési kód eltér a nyomtatón "
+#~ "láthatótól, kérjük, javítsd ki őket."
 
-msgid "To do that please specify a new name for the preset."
-msgstr ""
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "3. lépés: Pingeld meg az IP-címet a csomagveszteség és késleltetés "
+#~ "ellenőrzéséhez."
 
-msgid "Additional information:"
-msgstr ""
+#~ msgid "IP and Access Code Verified! You may close the window"
+#~ msgstr "IP és hozzáférési kód leellenőrizve! Bezárhatod az ablakot"
 
-msgid "vendor"
-msgstr ""
+#~ msgid "Force cooling for overhang and bridge"
+#~ msgstr "Hűtés kényszerítése túlnyúlásoknál és áthidalásoknál"
 
-msgid ", ver: "
-msgstr ""
+#~ msgid ""
+#~ "Enable this option to optimize part cooling fan speed for overhang and "
+#~ "bridge to get better cooling"
+#~ msgstr ""
+#~ "Engedélyezd ezt az opciót a tárgyhűtő ventilátor fordulatszámának "
+#~ "optimalizálásához a jobb hűtés érdekében túlnyúlásoknál és áthidalásoknál"
 
-msgid "printer model"
-msgstr ""
+#~ msgid "Fan speed for overhang"
+#~ msgstr "Ventilátor fordulatszám túlnyúlásnál"
 
-msgid "default print profile"
-msgstr ""
+#~ msgid ""
+#~ "Force part cooling fan to be this speed when printing bridge or overhang "
+#~ "wall which has large overhang degree. Forcing cooling for overhang and "
+#~ "bridge can get better quality for these part"
+#~ msgstr ""
+#~ "A nagy túlnyúlású áthidalások vagy túlnyúló falak nyomtatásakor a "
+#~ "tárgyhűtő ventilátor kényszerítve lesz, hogy ezt a fordulatszámot "
+#~ "használja. A túlnyúlások és áthidalások hűtésének kikényszerítésével jobb "
+#~ "minőség érhető el ezeken a részeken."
 
-msgid "default filament profile"
-msgstr ""
+#~ msgid "Cooling overhang threshold"
+#~ msgstr "Túlnyúlás hűtésének küszöbértéke"
 
-msgid "default SLA material profile"
-msgstr ""
+#, c-format
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicates how much "
+#~ "width of the line without support from lower layer. 0% means forcing "
+#~ "cooling for all outer wall no matter how much overhang degree"
+#~ msgstr ""
+#~ "Kényszeríti a hűtőventilátort, hogy egy adott fordulatszámot használjon, "
+#~ "ha a túlnyúlás mértéke meghaladja ezt az értéket. Százalékban van "
+#~ "kifejezve, ami azt jelzi, hogy a nyomtatott vonal hány százaléka maradhat "
+#~ "az alsóbb rétegek alátámasztása nélkül. A 0%%-os érték bekapcsolja a "
+#~ "hűtést a külső fal teljes szélességén, függetlenül a túlnyúlás mértékétől."
 
-msgid "default SLA print profile"
-msgstr ""
+#~ msgid "Thick bridges"
+#~ msgstr "Vastag áthidalások"
 
-msgid "full profile name"
-msgstr ""
+#~ msgid ""
+#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
+#~ "normal(manual) or tree(manual) is selected, only support enforcers are "
+#~ "generated"
+#~ msgstr ""
+#~ "A normál (auto) és a fa (auto) a támaszok automatikus generálásához van "
+#~ "használva. Ha a normál (kézi) vagy a fa (kézi) van kiválasztva, akkor "
+#~ "csak a kényszerített támaszok kerülnek generálásra."
 
-msgid "symbolic profile name"
-msgstr ""
+#~ msgid "normal(auto)"
+#~ msgstr "normál (auto)"
 
-msgid ""
-"A copy of the current system preset will be created, which will be detached from the system preset."
-msgstr ""
+#~ msgid "tree(auto)"
+#~ msgstr "fa (auto)"
 
-msgid ""
-"The current custom preset will be detached from the parent system preset."
-msgstr ""
+#~ msgid "normal(manual)"
+#~ msgstr "normál (manuális)"
 
-msgid ""
-"Modifications to the current profile will be saved."
-msgstr ""
-
-msgid ""
-"This action is not revertible.\nDo you want to proceed?"
-msgstr ""
-
-msgid ""
-"Detach preset"
-msgstr ""
-
+#~ msgid "tree(manual)"
+#~ msgstr "fa (manuális)"
 
 #~ msgctxt "Verb"
 #~ msgid "Scale"
@@ -17141,11 +17540,11 @@ msgstr ""
 #~ msgstr "Hibakeresés szintje"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-#~ "5:trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
 #~ msgstr ""
-#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, "
-#~ "3:info, 4:debug, 5:trace\n"
+#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, 3:"
+#~ "info, 4:debug, 5:trace\n"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"
