@@ -16,9 +16,7 @@
   "support_interface_speed": "40",
   "support_speed": "100",
   "support_top_z_distance": "0.15",
-  "compatible_printers": [
-    "Flashforge Adventurer 5M 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Adventurer 5M 0.4 Nozzle"],
   "filename_format": "{input_filename_base}.gcode",
   "post_process": "",
   "skirt_loops": "0",

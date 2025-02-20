@@ -5,9 +5,7 @@
   "filter_out_gap_fill": "0.1",
   "from": "system",
   "instantiation": "true",
-  "compatible_printers": [
-    "Flashforge Guider4 Pro 0.4 HF nozzle"
-  ],
+  "compatible_printers": ["Flashforge Guider4 Pro 0.4 HF nozzle"],
   "gap_fill_target": "topbottom",
   "gap_infill_speed": "250",
   "infill_wall_overlap": "50%",

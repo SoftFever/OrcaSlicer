@@ -5,9 +5,7 @@
   "from": "system",
   "setting_id": "GP001",
   "instantiation": "true",
-  "compatible_printers": [
-    "Flashforge Adventurer 5M 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Adventurer 5M 0.4 Nozzle"],
   "filename_format": "{input_filename_base}.gcode",
   "post_process": "",
   "only_one_wall_top": "0",
@@ -17,5 +15,3 @@
   "skirt_loops": "0",
   "version": "2.1.1.0"
 }
-    
-

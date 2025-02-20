@@ -9,9 +9,7 @@
   "flush_into_support": "1",
   "from": "system",
   "instantiation": "true",
-  "compatible_printers": [
-    "Flashforge Guider4 Pro 0.8 HF nozzle"
-  ],
+  "compatible_printers": ["Flashforge Guider4 Pro 0.8 HF nozzle"],
   "infill_wall_overlap": "15%",
   "inherits": "0.30mm Standard @Flashforge G3U 0.6 Nozzle",
   "initial_layer_acceleration": "800",

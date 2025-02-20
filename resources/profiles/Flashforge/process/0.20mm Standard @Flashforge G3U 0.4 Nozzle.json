@@ -20,9 +20,7 @@
   "brim_object_gap": "0.1",
   "brim_type": "no_brim",
   "brim_width": "5",
-  "compatible_printers": [
-    "Flashforge Guider 3 Ultra 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Guider 3 Ultra 0.4 Nozzle"],
   "compatible_printers_condition": "",
   "default_acceleration": "10000",
   "default_jerk": "0",
