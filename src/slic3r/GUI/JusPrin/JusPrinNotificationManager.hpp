@@ -23,6 +23,7 @@ public:
                          std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(),
                          int timestamp = 0);
 
+    void push_validate_error_notification(StringObjectException const& error);
     void push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage = 0);
     void push_slicing_error_notification(const std::string& text, std::vector<ModelObject const*> objs);
     void push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const* obj, ObjectID oid,

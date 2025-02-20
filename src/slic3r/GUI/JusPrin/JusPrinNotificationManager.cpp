@@ -33,6 +33,15 @@ void JusPrinNotificationManager::push_notification(NotificationType type, Notifi
     push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(type), JusPrinNotificationManager::get_notification_level_name(level));
 }
 
+void JusPrinNotificationManager::push_validate_error_notification(StringObjectException const& error)
+{
+    push_notification_to_chat(
+        error.string,
+        get_notification_type_name(NotificationType::ValidateError),
+        get_notification_level_name(NotificationLevel::ErrorNotificationLevel)
+    );
+}
+
 void JusPrinNotificationManager::push_upload_job_notification(int id, float filesize, const std::string& filename,
                                                             const std::string& host, float percentage)
 {
