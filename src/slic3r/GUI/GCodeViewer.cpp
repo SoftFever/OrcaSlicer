@@ -4363,7 +4363,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     //BBS: GUI refactor: move to the right
-    imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 4.0f * m_scale, ImGuiCond_Always, 1.0f, 0.0f); // ORCA add a small gap to top to creare seperation with main toolbar
+    imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 4.0f * m_scale, ImGuiCond_Always, 1.0f, 0.0f); // ORCA add a small gap to top to create seperation with main toolbar
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * m_scale); // ORCA add window rounding to modernize / match style
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0,0.0));
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
