@@ -70,17 +70,19 @@ public:
     void showChatPanel();
     void hideChatPanel();
 
+    JusPrinChatPanel* jusprinChatPanel() const { return m_chat_panel; }
+
 protected:
     void OnSize(wxSizeEvent& evt);
     void OnCanvasMouseDown(SimpleEvent& evt);
 
 private:
+    void init_overlay();
+
     JusPrinChatPanel* m_chat_panel{nullptr};
     JustPrinButton*   m_overlay_btn{nullptr};
     CircularBadge*    m_icon_text_left{nullptr};
     CircularBadge*    m_icon_text_right{nullptr};
-
-    void init_overlay();
 };
 
 } // namespace GUI

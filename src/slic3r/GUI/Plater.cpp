@@ -4915,7 +4915,7 @@ void Plater::priv::object_list_changed()
 
     // TODO: This callback is not triggered when a plate is added or removed
     // Note: This callback is not triggered an object is cloned. But we don't need to address it until we have a use case for why cloning should trigger a refresh
-    wxGetApp().sidebar().jusprin_chat_panel()->SendModelObjectsChangedEvent();
+    wxGetApp().plater()->jusprinChatPanel()->SendModelObjectsChangedEvent();
 }
 
 void Plater::priv::select_curr_plate_all()
@@ -5147,6 +5147,14 @@ void Plater::find_new_position(const ModelInstancePtrs &instances)
 
     for (auto & m : movable)
         m.apply();
+}
+
+GUI::JusPrinChatPanel* Plater::jusprinChatPanel() const
+{
+    if (auto jusprin_view = dynamic_cast<GUI::JusPrinView3D*>(p->view3D)) {
+        return jusprin_view->jusprinChatPanel();
+    }
+    return nullptr;
 }
 
 void Plater::priv::split_object()
