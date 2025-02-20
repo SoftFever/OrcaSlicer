@@ -4,9 +4,7 @@
   "setting_id": "GP001",
   "instantiation": "true",
   "inherits": "0.12mm Standard @Flashforge AD5M Pro 0.25 Nozzle",
-  "compatible_printers": [
-    "Flashforge Adventurer 5M Pro 0.25 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Adventurer 5M Pro 0.25 Nozzle"],
   "filename_format": "{input_filename_base}.gcode",
   "post_process": "",
   "is_custom_defined": "0",
