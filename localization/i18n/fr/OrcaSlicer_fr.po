@@ -14435,7 +14435,6 @@ msgstr ""
 "spirale lisse. Si elle est exprimée en %, elle sera calculée par rapport au "
 "diamètre de la buse."
 
-#, c-format, boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -14448,7 +14447,6 @@ msgstr ""
 "qui peut dans certains cas entraîner une sous-extrusion au début de la "
 "spirale."
 
-#, c-format, boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
