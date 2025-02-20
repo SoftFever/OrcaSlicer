@@ -15,6 +15,9 @@ wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
 static std::string float_to_string_with_precision(float value, int precision = 3)
 {
+    if (value < 0)
+        return std::string();
+
     std::stringstream stream;
     stream << std::fixed << std::setprecision(precision) << value;
     return stream.str();
@@ -1242,7 +1245,15 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         PACalibResult default_item;
         default_item.cali_idx = -1;
         default_item.filament_id = ams_filament_id;
-        get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
+        std::vector<std::string> machine_list = {"N1", "N2S", "C11", "C12", "C13", "BL-P001", "BL-P002"};
+        auto iter = std::find(machine_list.begin(), machine_list.end(), obj->printer_type);
+        if (iter == machine_list.end()) {
+            default_item.k_value = -1;
+            default_item.n_coef  = -1;
+        }
+        else {
+            get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
+        }
         m_pa_profile_items.emplace_back(default_item);
         items.push_back(_L("Default"));
 
