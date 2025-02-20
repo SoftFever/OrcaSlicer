@@ -2762,7 +2762,7 @@ void SyncAmsInfoDialog::update_show_status()
 
     // the nozzle type of preset and machine are different
     if (nozzle_nums > 1) {
-        if (!obj_->is_nozzle_data_invalid()) {
+        if (obj_->is_nozzle_data_invalid()) {
             show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
             return;
         }

@@ -1970,6 +1970,35 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     return false;
 }
 
+bool SelectMachineDialog::is_nozzle_data_valid(const ExtderData &ext_data) const
+{
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return false;
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) return false;
+
+    PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
+
+    try {
+        PartPlate *cur_plate          = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        auto       used_filament_idxs = cur_plate->get_used_filaments(); /*the index is started from 1*/
+        for (int used_filament_idx : used_filament_idxs)
+        {
+            int used_nozzle_idx = cur_plate->get_physical_extruder_by_filament_id(preset_bundle->full_config(), used_filament_idx);
+            if (ext_data.extders[used_nozzle_idx].current_nozzle_type == NozzleType::ntUndefine ||
+                ext_data.extders[used_nozzle_idx].current_nozzle_diameter <= 0.0f ||
+                ext_data.extders[used_nozzle_idx].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+                return false;
+            }
+        }
+    } catch (const std::exception &) {
+        return false;
+    }
+
+    return true;
+}
+
 
 /**************************************************************//*
  * @param tag_nozzle_type -- return the mismatch nozzle type
@@ -3340,7 +3369,7 @@ void SelectMachineDialog::update_show_status()
 
     //the nozzle type of preset and machine are different
     if (nozzle_nums > 1 && m_print_type == FROM_NORMAL) {
-        if (!obj_->is_nozzle_data_invalid()) {
+        if (!is_nozzle_data_valid(obj_->m_extder_data)) {
             show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
             return;
         }

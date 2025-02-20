@@ -486,6 +486,7 @@ public:
     void update_timelapse_enable_status();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
+    bool is_nozzle_data_valid(const ExtderData& ext_data) const;
     bool is_same_nozzle_diameters(float& tag_nozzle_diameter, int& mismatch_nozzle_id) const;
     bool is_same_nozzle_type(const Extder& extruder, std::string& filament_type) const;
     bool has_tips(MachineObject* obj);
