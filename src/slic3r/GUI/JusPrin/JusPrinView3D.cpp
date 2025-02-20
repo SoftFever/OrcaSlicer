@@ -90,20 +90,22 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
         gc->DrawRectangle(0, 0, width, height);
 
 #ifdef __APPLE__
+
         // Draw drop shadows with offset
         // First shadow (larger, more diffuse)
         gc->SetBrush(wxBrush(wxColour(10, 10, 10, 8)));
-        gc->DrawRoundedRectangle(1, 1, width - 2, height - 2, radius);
+        gc->DrawRoundedRectangle(4, 6, width - 4, height - 4, radius);
 
         // Second shadow (smaller, more intense)
         gc->SetBrush(wxBrush(wxColour(33, 33, 33, 15)));
-        gc->DrawRoundedRectangle(2, 2, width - 4, height - 4, radius);
+        gc->DrawRoundedRectangle(4, 5, width - 6, height - 5, radius);
 
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
         wxColour borderColor = !m_isHovered ? wxColour(0, 0, 0, 0) : *wxBLUE;
         gc->SetPen(wxPen(borderColor, 1));
         gc->DrawRoundedRectangle(3, 3, width-6, height-6, radius);
+
 #else
    // Draw drop shadows with offset
         // First shadow (larger, more diffuse)
