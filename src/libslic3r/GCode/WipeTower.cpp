@@ -1477,7 +1477,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         m_filpar[idx].max_e_speed = (max_vol_speed / filament_area());
 
     m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
-    m_nozzle_change_perimeter_width = m_perimeter_width;
+    m_nozzle_change_perimeter_width = 2*m_perimeter_width;
     // BBS: remove useless config
 #if 0
     if (m_semm) {
@@ -2759,13 +2759,12 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
 
     float nz_extrusion_flow = nozzle_change_extrusion_flow(m_layer_height);
     float nozzle_change_speed = 60.0f * m_filpar[m_current_tool].max_e_speed / nz_extrusion_flow;
-    nozzle_change_speed       = solid_infill ? 40.f * 60.f : nozzle_change_speed;
-    //float bridge_speed = 60.f * 50;  // limit the bridge speed to 50 for nozzle change
-    //float       nozzle_change_speed = is_first_layer() ? std::min(m_first_layer_speed * 60.f, 4800.f) : 4800.f;
+    nozzle_change_speed       = solid_infill ? 40.f * 60.f : nozzle_change_speed;//If the contact layers belong to different categories, then reduce the speed.
+
     if (is_tpu_filament(m_current_tool)) {
         nozzle_change_speed *= 0.25;
     }
-    //bridge_speed = nozzle_change_speed;
+    float bridge_speed = std::min(60.0f * m_filpar[m_current_tool].max_e_speed / nozzle_change_extrusion_flow(0.2), nozzle_change_speed); // limit the bridge speed by add flow
 
     WipeTowerWriter writer(m_layer_height, m_nozzle_change_perimeter_width, m_gcode_flavor, m_filpar);
     writer.set_extrusion_flow(nz_extrusion_flow)
@@ -2794,26 +2793,24 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     nozzle_change_line_count = solid_infill ? std::numeric_limits<int>::max() : nozzle_change_line_count;
     m_left_to_right = true;
     int real_nozzle_change_line_count = 0;
+    bool need_change_flow              = false;
     for (int i = 0; true; ++i) {
-#if 0
         if (need_thick_bridge_flow(writer.pos().y())) {
-            writer.set_extrusion_flow(extrusion_flow(0.2));
-            nozzle_change_speed = 60.0f * m_filpar[m_current_tool].max_e_speed / extrusion_flow(0.2);
+            writer.set_extrusion_flow(nozzle_change_extrusion_flow(0.2));
+            need_change_flow = true;
         } else {
-            writer.set_extrusion_flow(get_extrusion_flow());
-            nozzle_change_speed = 60.0f * m_filpar[m_current_tool].max_e_speed / get_extrusion_flow();
+            writer.set_extrusion_flow(nozzle_change_extrusion_flow(m_layer_height));
+            need_change_flow = false;
         }
-#endif
-        //bool need_change_flow  = need_thick_bridge_flow(writer.y());
         if (m_left_to_right)
-            writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), /*need_change_flow ? bridge_speed :*/ nozzle_change_speed);
+            writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), need_change_flow ? bridge_speed : nozzle_change_speed);
         else
-            writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), /*need_change_flow ? bridge_speed :*/ nozzle_change_speed);
+            writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), need_change_flow ? bridge_speed : nozzle_change_speed);
         real_nozzle_change_line_count++;
         if (i == nozzle_change_line_count - 1)
             break;
         if ((writer.y() + dy - cleaning_box.ru.y()+(m_nozzle_change_perimeter_width+m_perimeter_width)/2) > (float)EPSILON) break;
-        writer.extrude(writer.x(), writer.y() + dy, nozzle_change_speed);
+        writer.extrude(writer.x(), writer.y() + dy, need_change_flow ? bridge_speed : nozzle_change_speed);
         m_left_to_right = !m_left_to_right;
     }
 
@@ -4278,7 +4275,7 @@ bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
 }
 
 bool WipeTower::need_thick_bridge_flow(float pos_y) const {
-    if (m_extrusion_flow >= extrusion_flow(0.2))
+    if (m_layer_height >= 0.2)
         return false;
 
     float y_min = 0., y_max = 0.;
