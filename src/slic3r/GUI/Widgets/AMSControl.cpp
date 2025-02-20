@@ -1141,7 +1141,7 @@ void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSi
             else{
                 auto ext_image = new AMSExtImage(book_panel, pos, &m_extder_data);
                 book_sizer->Add(ams1, 0, wxLEFT, FromDIP(30));
-                book_sizer->Add(ext_image, 0, wxEXPAND | wxLEFT, FromDIP(30));
+                book_sizer->Add(ext_image, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(30));
                 m_ext_image_list[infos[0].ams_id] = ext_image;
             }
         }

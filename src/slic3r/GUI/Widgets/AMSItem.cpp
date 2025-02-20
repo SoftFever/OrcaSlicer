@@ -561,12 +561,17 @@ AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, ExtderData *data
 {
     if (data == nullptr)
     {
-        wxWindow::Create(parent, id, pos, AMS_HUMIDITY_SIZE);
+        wxWindow::Create(parent, id, pos);
+        SetMinSize(AMS_HUMIDITY_SIZE);
+        SetMaxSize(AMS_HUMIDITY_SIZE);
         m_show_ams_ext = true;
     }
     else
     {
-        wxWindow::Create(parent, id, pos, wxSize(FromDIP(98), FromDIP(99)));
+        wxWindow::Create(parent, id, pos);
+        SetMinSize(wxSize(FromDIP(98), FromDIP(99)));
+        SetMaxSize(wxSize(FromDIP(98), FromDIP(99)));
+
         m_show_ext = true;
         total_ext_num = data->total_extder_count;
     }
@@ -591,13 +596,13 @@ void AMSExtImage::msw_rescale()
 {
     //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     //auto image     = m_ams_extruder.ConvertToImage();
-    m_ext_left = ScalableBitmap(this, "ext_image_left", 98);
-    m_ext_right = ScalableBitmap(this, "ext_image_right", 98);
-    m_ext_single_nozzle = ScalableBitmap(this, "ext_image_single_nozzle", 98);
+    m_ext_left.msw_rescale();
+    m_ext_right.msw_rescale();
+    m_ext_single_nozzle.msw_rescale();
 
-    m_ams_single_ext    = ScalableBitmap(this, "ams_ext_image", 25);
-    m_ams_ext_left      = ScalableBitmap(this, "ext_image_left", 25);
-    m_ams_ext_right     = ScalableBitmap(this, "ext_image_right", 25);
+    m_ams_single_ext.msw_rescale();
+    m_ams_ext_left.msw_rescale();
+    m_ams_ext_right.msw_rescale();
 
     Layout();
     Fit();
@@ -680,17 +685,17 @@ void AMSExtImage::doRender(wxDC& dc)
     {
         if (total_ext_num < 2)
         {
-            dc.DrawBitmap(m_ext_single_nozzle.bmp(), wxPoint((size.x - m_ext_right.GetBmpSize().x) / 2, (size.y - m_ext_right.GetBmpSize().y) / 2));
+            dc.DrawBitmap(m_ext_single_nozzle.bmp(), wxPoint((size.x - m_ext_right.GetBmpSize().x) / 2, (size.y - m_ext_right.GetBmpSize().GetHeight())));
         }
         else
         {
             if (m_ext_pos == AMSPanelPos::LEFT_PANEL)
             {
-                dc.DrawBitmap(m_ext_left.bmp(), wxPoint((size.x - m_ext_left.GetBmpSize().x) / 2, (size.y - m_ext_left.GetBmpSize().y) / 2));
+                dc.DrawBitmap(m_ext_left.bmp(), wxPoint((size.x - m_ext_left.GetBmpSize().x) / 2, (size.y - m_ext_right.GetBmpSize().GetHeight())));
             }
             else
             {
-                dc.DrawBitmap(m_ext_right.bmp(), wxPoint((size.x - m_ext_right.GetBmpSize().x) / 2, (size.y - m_ext_right.GetBmpSize().y) / 2));
+                dc.DrawBitmap(m_ext_right.bmp(), wxPoint((size.x - m_ext_right.GetBmpSize().x) / 2, (size.y - m_ext_right.GetBmpSize().GetHeight())));
             }
         }
 
@@ -3008,7 +3013,7 @@ void AmsItem::create(wxWindow *parent)
         else{
             if (m_ams_model == EXT_AMS){
                 m_ext_image = new AMSExtImage(this, m_panel_pos);
-                sizer_item->Add(m_ext_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+                sizer_item->Add(m_ext_image, 0, wxALIGN_CENTER, 0);
             }
         }
         m_panel_road = new AMSRoadUpPart(this, wxID_ANY, m_info, m_ams_model);
