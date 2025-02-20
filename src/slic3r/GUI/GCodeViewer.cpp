@@ -4421,7 +4421,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         switch (type) {
         default:
         case EItemType::Rect: {
-            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 2.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 2.0f * m_scale},
+            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
                                      ImGuiWrapper::to_ImU32(color));
             break;
         }
@@ -4643,7 +4643,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnessary spacing if window_padding used on X
+    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnecessary spacing if window_padding used on X
     ImGui::SameLine();
     std::wstring btn_name;
     if (m_fold)
@@ -4656,7 +4656,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f * m_scale, 3.0f * m_scale)); // ORCA Center icon with frame padding
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f); // ORCA Match button style with combo box
 
-    float button_width = ImGui::GetFrameHeight(); // ORCA use GetFrameHeight for button sizes to match buttons with combo box
+    float button_width = ImGui::GetFrameHeight(); // ORCA use FrameHeight to match buttons height with combo box
     if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, button_width))) {
         m_fold = !m_fold;
     }
@@ -4699,11 +4699,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     pop_combo_style();
     ImGui::SameLine();
-    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnessary spacing if window_padding used on X 
-    ImGui::Dummy({ window_padding, window_padding }); // ORCA Adds spacing after toolbar while folded
+    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnecessary spacing if window_padding used on X 
+    ImGui::Dummy({ window_padding, window_padding }); // ORCA Adds spacing after toolbar while its folded
 
     if (m_fold) {
-        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar size while toolbar folded
+        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar size while its folded
         imgui.end();
         ImGui::PopStyleColor(6);
         ImGui::PopStyleVar(2);
