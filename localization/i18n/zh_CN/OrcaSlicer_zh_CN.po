@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-19 19:44+0800\n"
+"POT-Creation-Date: 2025-02-20 21:21+0800\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -1105,7 +1105,7 @@ msgid "Radial gradient"
 msgstr "径向渐变"
 
 msgid "Open filled path"
-msgstr ""
+msgstr "打开填充路径"
 
 msgid "Undefined stroke type"
 msgstr "未定义的描边类型"
@@ -1125,7 +1125,7 @@ msgstr "形状已被标记为不可见 (%1%)."
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "形状填充（%1%）包含不受支持的：%2%。"
 
 #, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
@@ -1133,7 +1133,7 @@ msgstr "形状 (%1%) 的描边太细了（不小于 %2% mm）。"
 
 #, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "形状笔划（%1%）包含不受支持的：%2%。"
 
 msgid "Face the camera"
 msgstr "面向摄像机"
@@ -1150,10 +1150,10 @@ msgid "Reload SVG file from disk."
 msgstr "从磁盘重新加载SVG文件。"
 
 msgid "Change file"
-msgstr ""
+msgstr "改变文件"
 
 msgid "Change to another .svg file"
-msgstr ""
+msgstr "更改为另一个.svg文件"
 
 msgid "Forget the file path"
 msgstr ""
@@ -1169,7 +1169,7 @@ msgstr ""
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr ""
+msgstr "将模型烘焙为不可编辑的部分"
 
 msgid "Save as"
 msgstr "另存为"
@@ -1181,36 +1181,36 @@ msgid "Save as '.svg' file"
 msgstr "另存为“.svg”文件"
 
 msgid "Size in emboss direction."
-msgstr ""
+msgstr "浮雕方向上的大小"
 
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr ""
+msgstr "缩放也会改变曲线样本的数量（%1%）"
 
 msgid "Width of SVG."
-msgstr ""
+msgstr "SVG宽度"
 
 msgid "Height of SVG."
-msgstr ""
+msgstr "SVG高度"
 
 msgid "Lock/unlock the aspect ratio of the SVG."
-msgstr ""
+msgstr "锁定/解锁SVG的宽高比。"
 
 msgid "Reset scale"
 msgstr "重置缩放"
 
 msgid "Distance of the center of the SVG to the model surface."
-msgstr ""
+msgstr "SVG中心到模型表面的距离。"
 
 msgid "Reset distance"
-msgstr ""
+msgstr "重置距离"
 
 msgid "Reset rotation"
 msgstr "重置旋转"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
-msgstr ""
+msgstr "在曲面上方拖动时锁定/解锁旋转角度。"
 
 msgid "Mirror vertically"
 msgstr "垂直镜像"
@@ -1220,7 +1220,7 @@ msgstr "水平镜像"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
-msgstr ""
+msgstr "改变SVG类型"
 
 #. TRN - Input label. Be short as possible
 msgid "Mirror"
@@ -1285,24 +1285,24 @@ msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr ""
+msgstr "取消一个特征直到退出"
 
 msgid "Measure"
 msgstr "测量"
 
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
-msgstr ""
+msgstr "请确保爆炸比例为1，且至少选择一个对象"
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "请至少选中一个对象。"
 
 msgid "Edit to scale"
 msgstr "编辑比例"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr ""
+msgstr "缩放全部"
 
 msgid "None"
 msgstr "无"
@@ -1317,40 +1317,44 @@ msgid "Selection"
 msgstr "选中"
 
 msgid " (Moving)"
-msgstr ""
+msgstr "(活动的)"
 
 msgid ""
 "Select 2 faces on objects and \n"
 " make objects assemble together."
 msgstr ""
+"在两个物体上选择两个面 \n"
+"并将物体组合在一起。"
 
 msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
 msgstr ""
+"在两个物体上选择两个点或圆 \n"
+"并指定它们之间的距离。"
 
 msgid "Face"
-msgstr ""
+msgstr "面"
 
 msgid " (Fixed)"
-msgstr ""
+msgstr "(固定的)"
 
 msgid "Point"
-msgstr ""
+msgstr "点"
 
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
-msgstr ""
+msgstr "特征1已经被重置，特征2变成特征1"
 
 msgid "Warning:please select Plane's feature."
-msgstr ""
+msgstr "警告:请选择面特征。"
 
 msgid "Warning:please select Point's or Circle's feature."
-msgstr ""
+msgstr "警告:请选择点或圆特征。"
 
 msgid "Warning:please select two different mesh."
-msgstr ""
+msgstr "警告:请选择两个不同的网格。"
 
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
@@ -1368,25 +1372,25 @@ msgid "Distance XYZ"
 msgstr "距离 XYZ"
 
 msgid "Parallel"
-msgstr ""
+msgstr "平行"
 
 msgid "Center coincidence"
-msgstr ""
+msgstr "中心重合"
 
 msgid "Featue 1"
-msgstr ""
+msgstr "特征1"
 
 msgid "Reverse rotation"
-msgstr ""
+msgstr "反转方向"
 
 msgid "Rotate around center:"
-msgstr ""
+msgstr "绕中心旋转:"
 
 msgid "Parallel distance:"
 msgstr ""
 
 msgid "Flip by Face 2"
-msgstr ""
+msgstr "通过面2翻转"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -1697,13 +1701,13 @@ msgid "Add text modifier"
 msgstr "添加文本修改器"
 
 msgid "Add SVG part"
-msgstr ""
+msgstr "添加svg零件"
 
 msgid "Add negative SVG"
-msgstr ""
+msgstr "添加负零件SVG"
 
 msgid "Add SVG modifier"
-msgstr ""
+msgstr "添加SVG修改器"
 
 msgid "Select settings"
 msgstr "选择设置"
@@ -2926,7 +2930,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
 
 msgid "Current AMS humidity"
-msgstr ""
+msgstr "当前AMS湿度"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3521,9 +3525,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温"
 "度为 %d。"
@@ -4287,7 +4291,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4711,7 +4715,7 @@ msgstr "显示悬空高亮"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "在3D场景中显示悬空高亮"
 
-msgid "Show Selected Outline (Experimental)"
+msgid "Show Selected Outline (beta)"
 msgstr ""
 
 msgid "Show outline around selected object in 3D scene"
@@ -4939,7 +4943,7 @@ msgid "The printer has been logged out and cannot connect."
 msgstr "打印机已注销，无法连接。"
 
 msgid "Video Stopped."
-msgstr ""
+msgstr "视频已停止。"
 
 msgid "LAN Connection Failed (Failed to start liveview)"
 msgstr "局域网连接失败（无法启动直播）"
@@ -5045,7 +5049,7 @@ msgstr "当前固件暂不支持查看SD卡中文件。请更新打印机固件�
 msgid ""
 "Please check if the SD card is inserted into the printer.\n"
 "If it still cannot be read, you can try formatting the SD card."
-msgstr ""
+msgstr "请检查打印机中SD卡是否已经插入，如果仍然不能读取，您可尝试格式化SD卡。"
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "局域网连接失败（无法查看SD卡）"
@@ -5082,8 +5086,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
 "and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf文件中不包含G-code数据。请使用Orca Slicer进行切片并导出新"
-"的.gcode.3mf文件。"
+".gcode.3mf文件中不包含G-code数据。请使用Orca Slicer进行切片并导出新的."
+"gcode.3mf文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -5470,23 +5474,23 @@ msgid "Not for now"
 msgstr "暂不"
 
 msgid "Server Exception"
-msgstr ""
+msgstr "服务器异常"
 
 msgid ""
 "The server is unable to respond. Please click the link below to check the "
 "server status."
-msgstr ""
+msgstr "服务器无法响应。请单击下面的链接检查服务器状态。"
 
 msgid ""
 "If the server is in a fault state, you can temporarily use offline printing "
 "or local network printing."
-msgstr ""
+msgstr "如果服务器处于故障状态，您可以暂时使用离线打印或本地网络打印。"
 
 msgid "How to use LAN only mode"
-msgstr ""
+msgstr "如何使用仅局域网模式"
 
 msgid "Don't show this dialog again"
-msgstr ""
+msgstr "不再显示此对话框？"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -7136,7 +7140,7 @@ msgid "Bind with Pin Code"
 msgstr "通过Pin码绑定"
 
 msgid "Bind with Access Code"
-msgstr ""
+msgstr "通过访问码绑定"
 
 msgid "Send to Printer SD card"
 msgstr "发送到打印机的SD卡"
@@ -7408,8 +7412,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -7435,53 +7439,53 @@ msgid "Detach preset"
 msgstr ""
 
 msgid "This is a default preset."
-msgstr ""
+msgstr "这是默认预设。"
 
 msgid "This is a system preset."
-msgstr ""
+msgstr "这是一个系统预设。"
 
 msgid "Current preset is inherited from the default preset."
-msgstr ""
+msgstr "当前预设从默认预设继承。"
 
 msgid "Current preset is inherited from"
-msgstr ""
+msgstr "当前预设继承自"
 
 msgid "It can't be deleted or modified."
-msgstr ""
+msgstr "无法删除或修改它。"
 
 msgid ""
 "Any modifications should be saved as a new preset inherited from this one."
-msgstr ""
+msgstr "任何修改都应保存为从此修改继承的新预设。"
 
 msgid "To do that please specify a new name for the preset."
-msgstr ""
+msgstr "为此，请为预设指定新名称。"
 
 msgid "Additional information:"
-msgstr ""
+msgstr "附加信息："
 
 msgid "vendor"
-msgstr ""
+msgstr "供应商"
 
 msgid "printer model"
-msgstr ""
+msgstr "打印机型号"
 
 msgid "default print profile"
-msgstr ""
+msgstr "默认打印配置文件"
 
 msgid "default filament profile"
-msgstr ""
+msgstr "默认耗材丝配置"
 
 msgid "default SLA material profile"
-msgstr ""
+msgstr "默认 SLA 材料配置文件"
 
 msgid "default SLA print profile"
-msgstr ""
+msgstr "默认 SLA 打印配置文件"
 
 msgid "full profile name"
-msgstr ""
+msgstr "配置全称"
 
 msgid "symbolic profile name"
-msgstr ""
+msgstr "配置名昵称"
 
 msgid "Line width"
 msgstr "线宽"
@@ -7561,7 +7565,7 @@ msgid "Filament for Features"
 msgstr ""
 
 msgid "Ooze prevention"
-msgstr ""
+msgstr "Ooze 预防"
 
 msgid "Skirt"
 msgstr "裙边"
@@ -7742,10 +7746,10 @@ msgid "Toolchange parameters with multi extruder MM printers"
 msgstr "多挤出机多材料打印机的换色参数"
 
 msgid "Dependencies"
-msgstr ""
+msgstr "依赖"
 
 msgid "Profile dependencies"
-msgstr ""
+msgstr "配置依赖"
 
 msgid "Printable space"
 msgstr "可打印区域"
@@ -7825,7 +7829,7 @@ msgid "Single extruder multi-material setup"
 msgstr "设置单挤出机多材料"
 
 msgid "Number of extruders of the printer."
-msgstr ""
+msgstr "打印机的挤出机数。"
 
 msgid ""
 "Single Extruder Multi Material is selected, \n"
@@ -7833,6 +7837,9 @@ msgid ""
 "Do you want to change the diameter for all extruders to first extruder "
 "nozzle diameter value?"
 msgstr ""
+"选择单挤出机多材料,\n"
+"和所有挤出机必须具有相同的直径。\n"
+"是否要将所有挤出机的直径更改为第一挤出机喷嘴直径值？"
 
 msgid "Nozzle diameter"
 msgstr "喷嘴直径"
@@ -8639,7 +8646,7 @@ msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
 
 msgid "Connect the printer using IP and access code"
-msgstr ""
+msgstr "使用IP和访问代码连接打印"
 
 msgid ""
 "Step 1. Please confirm Orca Slicer and your printer are in the same LAN."
@@ -8648,12 +8655,13 @@ msgstr ""
 msgid ""
 "Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr ""
+msgstr "步骤2，如果下面的IP和访问代码与打印机上的实际值不同，请重新输入。"
 
 msgid ""
 "Step 3. Please obtain the device SN from the printer side; it is usually "
 "found in the device information on the printer screen."
 msgstr ""
+"步骤3，请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。"
 
 msgid "IP"
 msgstr ""
@@ -8662,7 +8670,7 @@ msgid "Access Code"
 msgstr "访问码"
 
 msgid "Printer model"
-msgstr ""
+msgstr "打印机模型"
 
 msgid "Printer name"
 msgstr ""
@@ -8671,28 +8679,28 @@ msgid "Where to find your printer's IP and Access Code?"
 msgstr "在哪里可以找到打印机的IP和访问码?"
 
 msgid "Connect"
-msgstr ""
+msgstr "连接"
 
 msgid "Manual Setup"
 msgstr ""
 
 msgid "connecting..."
-msgstr ""
+msgstr "连接中..."
 
 msgid "Failed to connect to printer."
-msgstr ""
+msgstr "无法连接到打印机"
 
 msgid "Failed to publish login request."
-msgstr ""
+msgstr "发布登录请求失败"
 
 msgid "The printer has already been bound."
-msgstr ""
+msgstr "打印机已绑定。"
 
 msgid "The printer mode is incorrect, please switch to LAN Only."
-msgstr ""
+msgstr "打印机模式不正确，请切换到仅局域网。"
 
 msgid "Connecting to printer... The dialog will close later"
-msgstr ""
+msgstr "连接打印机中… 对话框稍后将自动关闭。"
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr "连接失败，请再次检查IP地址和访问码。"
@@ -9567,7 +9575,7 @@ msgid "Nowhere"
 msgstr "不填充"
 
 msgid "Force cooling for overhangs and bridges"
-msgstr ""
+msgstr "悬垂/桥接强制冷却"
 
 msgid ""
 "Enable this option to allow adjustment of the part cooling fan speed for "
@@ -9575,9 +9583,11 @@ msgid ""
 "speed specifically for these features can improve overall print quality and "
 "reduce warping."
 msgstr ""
+"启用此选项以允许单独针对悬垂、内部桥接和外部桥接调整部件冷却风扇的速度。针对"
+"这些特性设置风扇速度可以提高整体打印质量并减少翘曲。"
 
 msgid "Overhangs and external bridges fan speed"
-msgstr ""
+msgstr "悬垂和外部桥接风扇速度"
 
 msgid ""
 "Use this part cooling fan speed when printing bridges or overhang walls with "
@@ -9590,11 +9600,17 @@ msgid ""
 "speed threshold set above. It is also adjusted upwards up to the maximum fan "
 "speed threshold when the minimum layer time threshold is not met."
 msgstr ""
+"当打印桥接结构或悬垂墙体时，如果悬垂程度超过上述“悬垂冷却阈值”所设定的值，则"
+"使用此部件冷却风扇速度。专门针对悬垂和桥接加大冷却力度，有助于提升这些特征整"
+"体的打印质量。\n"
+"\n"
+"请注意，此风扇速度的下限受前面设置的最小风扇速度阈值限制；当打印层时间未达到"
+"最小层时间阈值时，会相应上调至最大风扇速度阈值。"
 
 msgid "Overhang cooling activation threshold"
-msgstr ""
+msgstr "悬垂冷却激活阈值"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "When the overhang exceeds this specified threshold, force the cooling fan to "
 "run at the 'Overhang Fan Speed' set below. This threshold is expressed as a "
@@ -9602,10 +9618,14 @@ msgid ""
 "by the layer beneath it. Setting this value to 0% forces the cooling fan to "
 "run for all outer walls, regardless of the overhang degree."
 msgstr ""
+"当悬垂超过此指定阈值时，强制部件冷却风扇按照下方设置的“悬垂风扇速度”运转。该"
+"阈值以百分比表示，指示每条走线宽度中未被下层支撑的部分。将此值设置为0%即使在"
+"任何悬垂条件下也会使风扇运转于所有外壁。"
 
 msgid "External bridge infill direction"
-msgstr ""
+msgstr "外部桥接填充方向"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for "
@@ -9615,7 +9635,7 @@ msgstr ""
 "180°表示0度。"
 
 msgid "Internal bridge infill direction"
-msgstr ""
+msgstr "内部桥接填充方向"
 
 msgid ""
 "Internal bridging angle override. If left to zero, the bridging angle will "
@@ -9625,9 +9645,13 @@ msgid ""
 "It is recommended to leave it at 0 unless there is a specific model need not "
 "to."
 msgstr ""
+"内部桥接角度覆盖。如果设置为0，则桥接角度将自动计算；否则将采用所提供的角度用"
+"于内部桥接。使用180°表示0角度。\n"
+"\n"
+"建议保持此值为0，除非有特殊模型要求。"
 
 msgid "External bridge density"
-msgstr ""
+msgstr "外部桥接密度"
 
 msgid ""
 "Controls the density (spacing) of external bridge lines. 100% means solid "
@@ -9637,9 +9661,13 @@ msgid ""
 "space for air to circulate around the extruded bridge, improving its cooling "
 "speed."
 msgstr ""
+"控制外部桥接线的密度（间距）。100% 表示实心桥接，默认值为 100%。\n"
+"\n"
+"较低密度的外部桥接可提高可靠性，因为桥梁周围有更多空间供空气循环，从而增强冷"
+"却效果。"
 
 msgid "Internal bridge density"
-msgstr ""
+msgstr "内部桥接密度"
 
 msgid ""
 "Controls the density (spacing) of internal bridge lines. 100% means solid "
@@ -9653,6 +9681,13 @@ msgid ""
 "bridge over infill option, further improving internal bridging structure "
 "before solid infill is extruded."
 msgstr ""
+"控制内部桥接线的密度（间距）。100% 表示实心桥接，默认值为 100%。\n"
+"\n"
+"较低密度的内部桥接有助于减少顶面起鼓现象，并提高内部桥接的可靠性，因为挤出桥"
+"梁周围有更多空间供空气循环，加快冷却速度。\n"
+"\n"
+"此选项与第二层内部桥接覆盖填充功能结合使用时尤为有效，可在挤出实心填充前进一"
+"步改善内部桥接结构。"
 
 msgid "Bridge flow ratio"
 msgstr "桥接流量"
@@ -9913,7 +9948,7 @@ msgstr ""
 "该参数控制在模型的外侧和/或内侧生成brim。自动是指自动分析和计算边框的宽度。"
 
 msgid "Painted"
-msgstr ""
+msgstr "绘制"
 
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
@@ -9966,6 +10001,8 @@ msgid ""
 "profile. If this expression evaluates to true, this profile is considered "
 "compatible with the active printer profile."
 msgstr ""
+"使用活动打印机配置文件的配置值的布尔表达式。如果此表达式计算为 true,则此配置"
+"文件将被视为与活动打印机配置文件兼容。"
 
 msgid "Compatible process profiles"
 msgstr "兼容的切片配置"
@@ -9978,6 +10015,8 @@ msgid ""
 "profile. If this expression evaluates to true, this profile is considered "
 "compatible with the active print profile."
 msgstr ""
+"使用活动打印配置文件的配置值的布尔表达式。如果此表达式计算为 true,则此配置文"
+"件将被视为与活动打印配置文件兼容。"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "打印顺序，逐层打印或者逐件打印"
@@ -10070,7 +10109,7 @@ msgstr ""
 "印。"
 
 msgid "Thick external bridges"
-msgstr ""
+msgstr "外部搭桥用厚桥"
 
 msgid ""
 "If enabled, bridges are more reliable, can bridge longer distances, but may "
@@ -10092,7 +10131,7 @@ msgstr ""
 "虑关闭它。"
 
 msgid "Extra bridge layers (beta)"
-msgstr ""
+msgstr "额外桥层（测试版）"
 
 msgid ""
 "This option enables the generation of an extra bridge layer over internal "
@@ -10132,16 +10171,16 @@ msgid "Disabled"
 msgstr "禁用"
 
 msgid "External bridge only"
-msgstr ""
+msgstr "仅外部桥接"
 
 msgid "Internal bridge only"
-msgstr ""
+msgstr "仅内部桥接"
 
 msgid "Apply to all"
-msgstr ""
+msgstr "全部应用"
 
 msgid "Filter out small internal bridges"
-msgstr ""
+msgstr "过滤掉小的内部桥接"
 
 msgid ""
 "This option can help reduce pillowing on top surfaces in heavily slanted or "
@@ -10174,7 +10213,7 @@ msgid ""
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "过滤"
 
 msgid "Limited filtering"
 msgstr "有限保留"
@@ -10813,19 +10852,21 @@ msgid ""
 msgstr "耗材丝通过在喉管中来回移动来冷却。指定所需的移动次数。"
 
 msgid "Stamping loading speed"
-msgstr ""
+msgstr "尖端成型加载速度"
 
 msgid "Speed used for stamping."
-msgstr ""
+msgstr "用于尖端成型的速度"
 
 msgid "Stamping distance measured from the center of the cooling tube"
-msgstr ""
+msgstr "从冷却管中心测量的尖端成型距离"
 
 msgid ""
 "If set to nonzero value, filament is moved toward the nozzle between the "
 "individual cooling moves (\"stamping\"). This option configures how long "
 "this movement should be before the filament is retracted again."
 msgstr ""
+"如果设置为非零值，则在各个冷却移动之间耗材会向喷嘴方向移动（“印模”）。该选项"
+"用于配置耗材在重新回抽前应移动多长时间。"
 
 msgid "Speed of the first cooling move"
 msgstr "第一次冷却移动的速度"
@@ -11109,8 +11150,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² 或 %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "稀疏填充的加速度。如果该值表示为百分比（例如100%），则将根据默认加速度进行计"
 "算。"
@@ -11207,17 +11248,17 @@ msgstr "满速风扇在"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "风扇速度将从“禁用第一层”的零线性上升到“全风扇速度层”的最大。如果低于“禁用风扇"
 "第一层”，则“全风扇速度第一层”将被忽略，在这种情况下，风扇将在“禁用风扇第一"
 "层”+1层以最大允许速度运行。"
 
 msgid "layer"
-msgstr ""
+msgstr "层"
 
 msgid "Support interface fan speed"
 msgstr "支撐接触面风扇"
@@ -11230,9 +11271,13 @@ msgid ""
 "Set to -1 to disable it.\n"
 "This setting is overridden by disable_fan_first_layers."
 msgstr ""
+"在打印支撑接触面时使用此部件冷却风扇的转速。将此参数设置为高于正常速度可以降"
+"低支撑与被支撑零件之间的层粘结强度，使它们更易分离。\n"
+"设置为 -1 表示禁用该功能。\n"
+"该设置会被 disable_fan_first_layers 选项覆盖。"
 
 msgid "Internal bridges fan speed"
-msgstr ""
+msgstr "内部桥接风扇速度"
 
 msgid ""
 "The part cooling fan speed used for all internal bridges. Set to -1 to use "
@@ -11242,6 +11287,10 @@ msgid ""
 "can help reduce part warping due to excessive cooling applied over a large "
 "surface for a prolonged period of time."
 msgstr ""
+"用于所有内部桥接的部件冷却风扇转速。设置为 -1 时，将采用悬垂风扇转速设置。\n"
+"\n"
+"与常规风扇转速相比，降低内部桥接风扇转速可以帮助减少因长时间在大面积区域施加"
+"过度冷却而引起的零件变形。"
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
@@ -11740,7 +11789,7 @@ msgid "The distance between the lines of ironing"
 msgstr "熨烫走线的间距"
 
 msgid "Ironing inset"
-msgstr ""
+msgstr "熨烫内缩"
 
 msgid ""
 "The distance to keep from the edges. A value of 0 sets this to half of the "
@@ -12173,7 +12222,7 @@ msgstr ""
 "检测悬空相对于线宽的百分比，并应用不同的速度打印。100%%的悬空将使用桥接速度。"
 
 msgid "Filament to print walls"
-msgstr ""
+msgstr "打印外墙的耗材丝"
 
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
@@ -12219,10 +12268,10 @@ msgstr ""
 "对路径，并支持脚本通过全局变量来读取 Orca Slicer 的设置。"
 
 msgid "Printer type"
-msgstr ""
+msgstr "打印机类型"
 
 msgid "Type of the printer"
-msgstr ""
+msgstr "打印机类型"
 
 msgid "Printer notes"
 msgstr "打印机注释"
@@ -12231,7 +12280,7 @@ msgid "You can put your notes regarding the printer here."
 msgstr "你可以把你关于打印机的注释放在这里。"
 
 msgid "Printer variant"
-msgstr ""
+msgstr "打印机变种"
 
 msgid "Raft contact Z distance"
 msgstr "筏层Z间距"
@@ -12296,7 +12345,7 @@ msgid "Force a retraction when changes layer"
 msgstr "强制在换层时回抽。"
 
 msgid "Retract on top layer"
-msgstr ""
+msgstr "顶层回抽"
 
 msgid ""
 "Force a retraction on top layer. Disabling could prevent clog on very slow "
@@ -12313,7 +12362,7 @@ msgstr ""
 "挤出机中的一些材料会被拉回特定长度，避免空驶较长时材料渗出。设置为0表示关闭回"
 "抽。"
 
-msgid "Long retraction when cut(experimental)"
+msgid "Long retraction when cut(beta)"
 msgstr "切料时回抽（实验）"
 
 msgid ""
@@ -12334,7 +12383,7 @@ msgid ""
 msgstr "实验性选项。在更换耗材丝时，切断前的回抽长度"
 
 msgid "Z-hop height"
-msgstr ""
+msgstr "Z抬升高度"
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -12361,7 +12410,7 @@ msgid ""
 msgstr "如果该值为正，则Z抬升仅在Z高于参数(Z抬升下边界)且低于该值时才会生效"
 
 msgid "Z-hop type"
-msgstr ""
+msgstr "Z抬升类型"
 
 msgid "Z hop type"
 msgstr "抬Z类型"
@@ -12754,7 +12803,7 @@ msgid ""
 msgstr "小于这个阈值的稀疏填充区域将会被内部实心填充替代。"
 
 msgid "Solid infill"
-msgstr ""
+msgstr "实心填充"
 
 msgid "Filament to print solid infill"
 msgstr ""
@@ -13184,7 +13233,7 @@ msgid ""
 msgstr "将会为悬垂角度低于阈值的模型表面生成支撑。"
 
 msgid "Threshold overlap"
-msgstr ""
+msgstr "阈值支撑比例"
 
 msgid ""
 "If threshold angle is zero, support will be generated for overhangs whose "
@@ -13316,8 +13365,8 @@ msgstr "激活温度控制"
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the "
-"\"machine_start_gcode\"\n"
+"activates the emitting of an M191 command before the \"machine_start_gcode"
+"\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -13579,7 +13628,7 @@ msgid "Spacing of purge lines on the wipe tower."
 msgstr "擦拭塔上冲刷线的间距"
 
 msgid "Extra flow for purging"
-msgstr ""
+msgstr "额外冲刷量"
 
 msgid ""
 "Extra flow used for the purging lines on the wipe tower. This makes the "
@@ -13591,9 +13640,9 @@ msgid "Idle temperature"
 msgstr "待机温度"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool "
-"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
-"Set to 0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool setups."
+"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
+"0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -14452,10 +14501,10 @@ msgid ""
 msgstr ""
 "请从我们的wiki中找到动态流量校准的详细信息。\n"
 "\n"
-"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选了"
-"“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/多"
-"材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产生"
-"良好的效果。\n"
+"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选"
+"了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
+"多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
+"生良好的效果。\n"
 "\n"
 "有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使"
 "用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
@@ -15169,8 +15218,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "我们将会把预设重命名为“供应商类型名 @ 您选择的打印机”\n"
@@ -16399,9 +16448,6 @@ msgstr ""
 #~ msgid "IP and Access Code Verified! You may close the window"
 #~ msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
 
-#~ msgid "Force cooling for overhang and bridge"
-#~ msgstr "悬垂/桥接强制冷却"
-
 #~ msgid ""
 #~ "Enable this option to optimize part cooling fan speed for overhang and "
 #~ "bridge to get better cooling"
@@ -17031,12 +17077,9 @@ msgstr ""
 #~ msgid "Configuration package updated to "
 #~ msgstr "配置包已更新到"
 
-#~ msgid "No sparse layers (EXPERIMENTAL)"
-#~ msgstr "无稀疏层（实验）"
-
 #~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you "
-#~ "selected\". \n"
+#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
+#~ "\". \n"
 #~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
 #~ "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -17384,11 +17427,11 @@ msgstr ""
 #~ msgstr "调试等级"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-#~ "5:trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
 #~ msgstr ""
-#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， "
-#~ "5:trace\n"
+#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
+#~ "trace\n"
 
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."
