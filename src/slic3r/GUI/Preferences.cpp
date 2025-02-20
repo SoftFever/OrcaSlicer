@@ -831,16 +831,34 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
         if (param == "enable_high_low_temp_mixed_printing") {
             if (checkbox->GetValue()) {
-                MessageDialog msg_wingow(nullptr, _L("Printing with multiple filaments that have a large temperature difference can cause the extruder and nozzle to be blocked or dameged during printing.\nPlease enable with caution."),
-                    _L("Warning"), wxICON_WARNING | wxYES | wxYES_DEFAULT | wxCANCEL | wxCENTRE, wxEmptyString,
-                    _L("Click Wiki for help."), [](const wxString){
-                        std::string language = wxGetApp().app_config->get("language");
-                        wxString    region   = L"en";
-                        if (language.find("zh") == 0) region = L"zh";
-                        const wxString wiki_link = wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit", region);
-                        wxGetApp().open_browser_with_warning_dialog(wiki_link);
-                    });
-                if (msg_wingow.ShowModal() != wxID_YES) {
+                const wxString warning_title = _L("Bed Temperature Difference Warning");
+                const wxString warning_message = 
+                    _L("Using filaments with significantly different temperatures may cause:\n"
+                        "• Extruder clogging\n"
+                        "• Nozzle damage\n"
+                        "• Layer adhesion issues\n\n"
+                        "Continue with enabling this feature?");
+                std::function<void(const wxString&)> link_callback = [](const wxString&) {
+                            const std::string lang_code = wxGetApp().app_config->get("language");
+                            const wxString region = (lang_code.find("zh") != std::string::npos) ? L"zh" : L"en";
+                            const wxString wiki_url = wxString::Format(
+                                L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit",
+                                region
+                            );
+                            wxGetApp().open_browser_with_warning_dialog(wiki_url);
+                            };
+
+                MessageDialog msg_dialog(
+                    nullptr,
+                    warning_message,
+                    warning_title,
+                    wxICON_WARNING | wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE,
+                    wxEmptyString,
+                    _L("Click Wiki for help."),
+                    link_callback
+                );
+
+                if (msg_dialog.ShowModal() != wxID_YES) {
                     checkbox->SetValue(false);
                     app_config->set_bool(param, false);
                     app_config->save();

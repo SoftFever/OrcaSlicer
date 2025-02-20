@@ -981,6 +981,12 @@ public:
     void set_geometric_unprintable_filaments(const std::vector<std::set<int>> &unprintables_filament_ids) { m_geometric_unprintable_filaments = unprintables_filament_ids; }
     std::vector<std::set<int>> get_geometric_unprintable_filaments() const { return m_geometric_unprintable_filaments;}
 
+    void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
+        m_slice_used_filaments_first_layer = first_layer_used_filaments;
+        m_slice_used_filaments = used_filaments;
+    }
+    std::vector<unsigned int> get_slice_used_filaments(bool first_layer) const { return first_layer ? m_slice_used_filaments_first_layer : m_slice_used_filaments;}
+
     /**
     * @brief Determines the unprintable filaments for each extruder based on its physical attributes
     *
@@ -1130,6 +1136,9 @@ private:
     PrintStatistics                         m_print_statistics;
     bool                                    m_support_used {false};
     StatisticsByExtruderCount               m_statistics_by_extruder_count;
+
+    std::vector<unsigned int> m_slice_used_filaments;
+    std::vector<unsigned int> m_slice_used_filaments_first_layer;
 
     //BBS: plate's origin
     Vec3d   m_origin;

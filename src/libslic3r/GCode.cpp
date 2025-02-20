@@ -3507,8 +3507,15 @@ void GCode::_print_first_layer_bed_temperature(GCodeOutputStream &file, Print &p
     // Initial bed temperature based on the first extruder.
     // BBS
     std::vector<int> temps_per_bed;
-    int bed_temp = get_bed_temperature(first_printing_extruder_id, true, print.config().curr_bed_type);
-
+    int bed_temp = 0;
+    if (m_config.bed_temperature_formula.value == BedTempFormula::btfHighestTemp) {
+        for (auto fidx : print.get_slice_used_filaments(true)) {
+            bed_temp = std::max(bed_temp, get_bed_temperature(fidx, true, print.config().curr_bed_type));
+        }
+    }
+    else {
+        bed_temp = get_bed_temperature(first_printing_extruder_id, true, print.config().curr_bed_type);
+    }
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
     bool temp_set_by_gcode = custom_gcode_sets_temperature(gcode, 140, 190, false, temp_by_gcode);
@@ -4186,7 +4193,7 @@ LayerResult GCode::process_layer(
         }
     }
 
-    if (! first_layer && ! m_second_layer_things_done) {
+    if (!first_layer && !m_second_layer_things_done) {
       if (print.is_BBL_printer()) {
         // BBS: open powerlost recovery
         {
@@ -4214,7 +4221,7 @@ LayerResult GCode::process_layer(
 
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // nozzle_temperature_initial_layer vs. temperature settings.
-        for (const Extruder &extruder : m_writer.extruders()) {
+        for (const Extruder& extruder : m_writer.extruders()) {
             if ((print.config().single_extruder_multi_material.value || m_ooze_prevention.enable) &&
                 extruder.id() != m_writer.filament()->id())
                 // In single extruder multi material mode, set the temperature for the current extruder only.
@@ -4225,7 +4232,14 @@ LayerResult GCode::process_layer(
         }
 
         // BBS
-        int bed_temp = get_bed_temperature(first_extruder_id, false, print.config().curr_bed_type);
+        int bed_temp = 0;
+        if (m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp) {
+            for (auto fidx : print.get_slice_used_filaments(false)) {
+                bed_temp = std::max(bed_temp, get_bed_temperature(fidx, false, m_config.curr_bed_type));
+            }
+        }
+        else
+            bed_temp = get_bed_temperature(first_extruder_id, false, m_config.curr_bed_type);
         gcode += m_writer.set_bed_temperature(bed_temp);
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;

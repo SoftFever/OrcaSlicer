@@ -126,6 +126,12 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
+static t_config_enum_values s_keys_map_BedTempFormula {
+    { "by_first_filament",int(BedTempFormula::btfFirstFilament) },
+    { "by_highest_temp", int(BedTempFormula::btfHighestTemp)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedTempFormula)
+
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
@@ -2217,6 +2223,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat { 0. });
 
+
+    def = this->add("bed_temperature_formula", coEnum);
+    def->label = L("Bed temperature type");
+    def->tooltip = L("With this option enabled, you can print filaments with significant bed temperature differentials.");
+    def->mode = comDevelop;
+    def->enum_keys_map = &ConfigOptionEnum<BedTempFormula>::get_enum_values();
+    def->enum_values.push_back("first_filament");
+    def->enum_values.push_back("highest_filament");
+    def->enum_labels.push_back("First filament");
+    def->enum_labels.push_back("Highest temp filament");
+    def->set_default_value(new ConfigOptionEnum<BedTempFormula>(BedTempFormula::btfFirstFilament));
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");

@@ -95,6 +95,12 @@ enum class WallInfillOrder {
     Count,
 };
 
+enum class BedTempFormula {
+    btfFirstFilament,
+    btfHighestTemp,
+    count,
+};
+
 // BBS
 enum class WallSequence {
     InnerOuter,
@@ -1235,6 +1241,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionIntsGroups,          unprintable_filament_map))
     //((ConfigOptionInts,                filament_extruder_id))
     ((ConfigOptionStrings,             filament_extruder_variant))
+    ((ConfigOptionEnum<BedTempFormula>, bed_temperature_formula))
     ((ConfigOptionInts,                physical_extruder_map))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))

@@ -142,6 +142,29 @@ T get_max_element(const std::vector<T> &vec)
 }
 
 
+template <typename From, typename To>
+std::vector<To> convert_vector(const std::vector<From>& src) {
+    std::vector<To> dst;
+    dst.reserve(src.size());
+    for (const auto& elem : src) {
+        if constexpr (std::is_signed_v<To>) {
+            if (elem > static_cast<From>(std::numeric_limits<To>::max())) {
+                throw std::overflow_error("Source value exceeds destination maximum");
+            }
+            if (elem < static_cast<From>(std::numeric_limits<To>::min())) {
+                throw std::underflow_error("Source value below destination minimum");
+            }
+        }
+        else {
+            if (elem < 0) {
+                throw std::invalid_argument("Negative value in source for unsigned destination");
+            }
+        }
+        dst.push_back(static_cast<To>(elem));
+    }
+    return dst;
+}
+
 // Set a path with GUI localization files.
 void set_local_dir(const std::string &path);
 // Return a full path to the localization directory.

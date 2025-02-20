@@ -219,7 +219,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retraction_distances_when_cut",
         "filament_long_retractions_when_cut",
         "filament_retraction_distances_when_cut",
-        "grab_length"
+        "grab_length",
+        "bed_temperature_formula"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -2156,15 +2157,21 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         if (this->config().print_sequence == PrintSequence::ByObject) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
+            std::vector<unsigned int> first_layer_used_filaments;
             std::vector<std::vector<unsigned int>> all_filaments;
             for (print_object_instance_sequential_active = print_object_instances_ordering.begin(); print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
                 tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                for (const auto& layer_tool : tool_ordering.layer_tools()) {
-                    all_filaments.emplace_back(layer_tool.extruders);
+                for (size_t idx = 0; idx < tool_ordering.layer_tools().size(); ++idx) {
+                    auto& layer_filament = tool_ordering.layer_tools()[idx].extruders;
+                    all_filaments.emplace_back(layer_filament);
+                    if (idx == 0)
+                        first_layer_used_filaments.insert(first_layer_used_filaments.end(), layer_filament.begin(), layer_filament.end());
                 }
             }
-
+            sort_remove_duplicates(first_layer_used_filaments);
             auto used_filaments = collect_sorted_used_filaments(all_filaments);
+            this->set_slice_used_filaments(first_layer_used_filaments,used_filaments);
+
             auto physical_unprintables = this->get_physical_unprintable_filaments(used_filaments);
             auto geometric_unprintables = this->get_geometric_unprintable_filaments();
             std::vector<int>filament_maps = this->get_filament_maps();
@@ -2197,6 +2204,12 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         else {
             tool_ordering = this->tool_ordering();
             tool_ordering.assign_custom_gcodes(*this);
+
+            std::vector<unsigned int> first_layer_used_filaments;
+            if (!tool_ordering.layer_tools().empty())
+                first_layer_used_filaments = tool_ordering.layer_tools().front().extruders;
+
+            this->set_slice_used_filaments(first_layer_used_filaments, tool_ordering.all_extruders());
             has_wipe_tower = this->has_wipe_tower() && tool_ordering.has_wipe_tower();
             initial_extruder_id = tool_ordering.first_extruder();
             print_object_instances_ordering = chain_print_object_instances(*this);
