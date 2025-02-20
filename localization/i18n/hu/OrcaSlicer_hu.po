@@ -4939,12 +4939,12 @@ msgid "&Help"
 msgstr "&Segítség"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
-msgstr "A file exists with the same name: %s. Do you want to override it?"
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
+msgstr ""
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
-msgstr "A config exists with the same name: %s. Do you want to override it?"
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
+msgstr ""
 
 msgid "Overwrite file"
 msgstr "Overwrite file"

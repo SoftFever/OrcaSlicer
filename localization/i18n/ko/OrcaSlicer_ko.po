@@ -4908,11 +4908,11 @@ msgid "&Help"
 msgstr "도움말 (&H)"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "같은 이름을 가진 파일이 존재합니다: %s, 덮어 쓰겠습니까."
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "같은 이름을 가진 설정이 존재합니다: %s, 덮어 쓰겠습니까."
 
 msgid "Overwrite file"

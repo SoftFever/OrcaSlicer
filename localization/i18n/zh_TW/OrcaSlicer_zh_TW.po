@@ -4832,12 +4832,12 @@ msgstr "視角"
 msgid "&Help"
 msgstr "幫助"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "檔案名稱為 %s 的檔案已存在，是否要覆蓋它？"
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "已存在名稱為 %s 的設定檔，是否要覆蓋它？"
 
 msgid "Overwrite file"

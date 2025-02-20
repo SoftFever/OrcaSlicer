@@ -4978,12 +4978,12 @@ msgstr "&Görünüm"
 msgid "&Help"
 msgstr "&Yardım"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Aynı adda bir dosya var: %s, üzerine yazmak istiyor musunuz."
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Aynı adda bir yapılandırma mevcut: %s, üzerine yazmak istiyor musunuz."
 
 msgid "Overwrite file"

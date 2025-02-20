@@ -5063,12 +5063,12 @@ msgid "&Help"
 msgstr "&Aide"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr ""
 "Il existe un fichier portant le même nom : %s. Voulez-vous le remplacer ?"
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr ""
 "Il existe une configuration portant le même nom : %s. Voulez-vous la "
 "remplacer ?"

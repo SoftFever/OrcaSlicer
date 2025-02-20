@@ -5021,12 +5021,12 @@ msgstr "&Vista"
 msgid "&Help"
 msgstr "&Ajuda"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Existeix un fitxer amb el mateix nom: %s, el voleu sobreescriure."
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Hi ha una configuració amb el mateix nom: %s, la voleu sobreescriure."
 
 msgid "Overwrite file"
