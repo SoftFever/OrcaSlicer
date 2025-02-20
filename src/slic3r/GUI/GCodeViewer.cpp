@@ -4643,7 +4643,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnecessary spacing if window_padding used on X
+    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnecessary spacing before fold/unfold button if window_padding used on X
     ImGui::SameLine();
     std::wstring btn_name;
     if (m_fold)
@@ -4699,12 +4699,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     pop_combo_style();
     ImGui::SameLine();
-    ImGui::Dummy({ 0, window_padding });                // ORCA Adds unnecessary spacing if window_padding used on X
+    ImGui::Dummy({ 0, window_padding });                // ORCA Adds unnecessary spacing after combo box if window_padding used on X
     ImGui::Dummy({ window_padding, window_padding });   // ORCA Adds spacing after toolbar while its folded / or below combo box
     float window_width = ImGui::GetWindowWidth();       // ORCA Store window width
 
     if (m_fold) {
-        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar size while its folded
+        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar margins while its folded
         ImGui::SameLine(window_width);                  // ORCA use stored window width while folded. This prevents annoying position change on fold/expand button
         ImGui::Dummy({ 0, 0 });
         imgui.end();
