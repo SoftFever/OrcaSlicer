@@ -186,30 +186,30 @@ public:
 	// init is called after canvas3d is created. Notifications added before init are not showed or updated
 	void init() { m_initialized = true; }
 	// Push a prefabricated notification from basic_notifications (see the table at the end of this file).
-	void push_notification(const NotificationType type, int timestamp = 0);
+	virtual void push_notification(const NotificationType type, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with NotificationLevel::RegularNotificationLevel and 10s fade out interval.
-	void push_notification(const std::string& text, int timestamp = 0);
+	virtual void push_notification(const std::string& text, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotificationLevel.
 	// ErrorNotificationLevel are never faded out.
-    void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
+    virtual void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
                            std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
 	// Pushes basic_notification with delay. See push_delayed_notification_data.
 	void push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval);
 	// Removes all notifications of type from m_waiting_notifications
 	void stop_delayed_notifications_of_type(const NotificationType type);
 	// Creates Validate Error notification with a custom text and no fade out.
-	void push_validate_error_notification(StringObjectException const & error);
+	virtual void push_validate_error_notification(StringObjectException const & error);
 		// print host upload
-	void push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage = 0);
+	virtual void push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage = 0);
 	void set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage);
 	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
-    void push_slicing_serious_warning_notification(const std::string &text, std::vector<ModelObject const *> objs);
-    void close_slicing_serious_warning_notification(const std::string &text);
+    virtual void push_slicing_serious_warning_notification(const std::string &text, std::vector<ModelObject const *> objs);
+    virtual void close_slicing_serious_warning_notification(const std::string &text);
 	// Creates Slicing Error notification with a custom text and no fade out.
-    void push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs);
+    virtual void push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs);
 	// Creates Slicing Warning notification with a custom text and no fade out.
-    void push_slicing_warning_notification(const std::string &text, bool gray, ModelObject const *obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level = NotificationLevel::WarningNotificationLevel);
+    virtual void push_slicing_warning_notification(const std::string &text, bool gray, ModelObject const *obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level = NotificationLevel::WarningNotificationLevel);
 	// marks slicing errors as gray
 	void set_all_slicing_errors_gray(bool g);
 	// marks slicing warings as gray
@@ -222,16 +222,16 @@ public:
 	// living_oids is expected to be sorted.
 	void remove_slicing_warnings_of_released_objects(const std::vector<ObjectID>& living_oids);
 	// Object partially outside of the printer working space, cannot print. No fade out.
-	void push_plater_error_notification(const std::string& text);
+	virtual void push_plater_error_notification(const std::string& text);
 	// Object fully out of the printer working space and such. No fade out.
-	void push_plater_warning_notification(const std::string& text);
+	virtual void push_plater_warning_notification(const std::string& text);
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
 	// Object warning with ObjectID, closes when object is deleted. ID used is of object not print like in slicing warning.
-	void push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
+	virtual void push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
 		std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
-    void set_simplify_suggestion_multiline(const ObjectID oid, bool bMulti);
+    virtual void set_simplify_suggestion_multiline(const ObjectID oid, bool bMulti);
 	// Close object warnings, whose ObjectID is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_simplify_suggestion_of_released_objects(const std::vector<ObjectID>& living_oids);
@@ -244,8 +244,8 @@ public:
 	void set_fdm(bool b) { set_fff(b); }
 	void set_sla(bool b) { set_fff(!b); }
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
-	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
-	void push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
+	virtual void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
+	virtual void push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 
     // Download URL progress notif
     void push_download_URL_progress_notification(size_t id, const std::string& text, std::function<bool(DownloaderUserAction, int)> user_action_callback);
@@ -288,7 +288,7 @@ public:
 	// finds ExportFinished notification and closes it if it was to removable device
 	void device_ejected();
 	// renders notifications in queue and deletes expired ones
-    void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
+    virtual void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
 	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
@@ -298,7 +298,7 @@ public:
 	// Move to left to avoid colision with variable layer height gizmo.
 	void set_move_from_overlay(bool move) { m_move_from_overlay = move; }
 	// perform update_state on each notification and ask for more frames if needed, return true for render needed
-	bool update_notifications(GLCanvas3D& canvas);
+	virtual bool update_notifications(GLCanvas3D& canvas);
 	// returns number of all notifications shown
 	size_t get_notification_count() const;
 
