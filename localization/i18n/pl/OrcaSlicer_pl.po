@@ -5032,6 +5032,9 @@ msgstr "Istnieje plik o tej samej nazwie: %s. Czy chcesz go nadpisać ?."
 msgid "Overwrite file"
 msgstr "Nadpisz plik"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "Tak dla wszystkich"
 

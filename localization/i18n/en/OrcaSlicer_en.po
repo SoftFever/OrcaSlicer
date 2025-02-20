@@ -4908,6 +4908,9 @@ msgstr "A config exists with the same name: %s. Do you want to overwrite it?"
 msgid "Overwrite file"
 msgstr "Overwrite file"
 
+msgid "Overwrite config"
+msgstr "Overwrite config"
+
 msgid "Yes to All"
 msgstr "Yes to All"
 
