@@ -2100,6 +2100,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
+        optgroup->append_single_option_line("outer_perimeter_layer_divider");
 
         optgroup->append_single_option_line("small_area_infill_flow_compensation", "small-area-infill-flow-compensation");
         Option option = optgroup->get_option("small_area_infill_flow_compensation_model");

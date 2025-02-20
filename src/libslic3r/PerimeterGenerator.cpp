@@ -64,11 +64,15 @@ public:
     bool is_smaller_width_perimeter;
     // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
     unsigned short                      depth;
+    // Z-offset relative to current height
+    float                               z_offset;
+    // Z index from bottom to top perimeter
+    int                                 z_index;
     // Children contour, may be both CCW and CW oriented (outer contours or holes).
     std::vector<PerimeterGeneratorLoop> children;
     
-    PerimeterGeneratorLoop(const Polygon &polygon, unsigned short depth, bool is_contour, bool is_small_width_perimeter = false) :
-        polygon(polygon), is_contour(is_contour), is_smaller_width_perimeter(is_small_width_perimeter), depth(depth) {}
+    PerimeterGeneratorLoop(const Polygon &polygon, unsigned short depth, float z_offset, int z_index, bool is_contour, bool is_small_width_perimeter = false) :
+        polygon(polygon), is_contour(is_contour), is_smaller_width_perimeter(is_small_width_perimeter), depth(depth), z_offset(z_offset), z_index(z_index) {}
     // External perimeter. It may be CCW or CW oriented (outer contour or hole contour).
     bool is_external() const { return this->depth == 0; }
     // An island, which may have holes, but it does not have another internal island.
@@ -577,6 +581,22 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             extrusion_mm3_per_mm = perimeter_generator.mm3_per_mm();
             extrusion_width = perimeter_generator.perimeter_flow.width();
         }
+        float layer_height = perimeter_generator.layer_height;
+        float z_offset = 0.f;
+        const int layer_divider = perimeter_generator.object_config->outer_perimeter_layer_divider;
+        if (loop.depth == 0 && layer_divider > 1) {
+            // set z-offset and apply perimeter divider to extrusion rate and layer height
+            layer_height /= layer_divider;
+            extrusion_mm3_per_mm = perimeter_generator.sub_slice_mm3_per_mm();
+            z_offset = loop.z_offset;
+
+            // select lower polygon series from sub slices
+            int lower_idx = loop.z_index - 1;
+            if (!(lower_idx < 0 && perimeter_generator.layer_id == 0)) {
+                lower_polygons_series = &perimeter_generator.m_lower_sub_polygons_series.at(lower_idx);
+            }
+        }
+
         const Polygon& polygon = *([&perimeter_generator, &loop, &fuzzified]() ->const Polygon* {
             const auto& regions = perimeter_generator.regions_by_fuzzify;
             if (regions.size() == 1) { // optimization
@@ -717,7 +737,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                         role,
                         extrusion_mm3_per_mm,
                         extrusion_width,
-                        (float)perimeter_generator.layer_height);
+                        layer_height, z_offset);
             } else {
                 Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_polygons_series->front(), bbox);
 
@@ -733,7 +753,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                         role,
                         extrusion_mm3_per_mm,
                         extrusion_width,
-                        (float)perimeter_generator.layer_height);
+                        layer_height, z_offset);
                 //BBS: detect middle line overhang
                 if (!middle_overhang_polyines.empty()) {
                     Polylines                      too_short_polylines;
@@ -750,7 +770,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                                                role,
                                                extrusion_mm3_per_mm,
                                                extrusion_width,
-                                               (float) perimeter_generator.layer_height);
+                                               layer_height, z_offset);
                     // BBS: add path with overhang degree
                     for (PolylineWithDegree polylines_collection : polylines_degree_collection) {
                         extrusion_paths_append(paths,
@@ -759,7 +779,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                                                int(0),
                                                role,
                                                extrusion_mm3_per_mm,
-                                               extrusion_width, (float) perimeter_generator.layer_height);
+                                               extrusion_width, layer_height, z_offset);
                     }
                 }
 
@@ -769,9 +789,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // the loop centerline and original lower slices is >= half nozzle diameter
             if (remain_polines.size() != 0) {
                 extrusion_paths_append(paths, std::move(remain_polines), overhang_sampling_number - 1, int(0),
-                                       erOverhangPerimeter, perimeter_generator.mm3_per_mm_overhang(),
+                                       erOverhangPerimeter, perimeter_generator.mm3_per_mm_overhang() * 1.0f / layer_divider,
                                        perimeter_generator.overhang_flow.width(),
-                                       perimeter_generator.overhang_flow.height());
+                                       layer_height, z_offset);
             }
 
             // Reapply the nearest point search for starting point.
@@ -792,7 +812,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             path.curve_degree = 0;
             path.mm3_per_mm = extrusion_mm3_per_mm;
             path.width = extrusion_width;
-            path.height     = (float)perimeter_generator.layer_height;
+            path.height     = layer_height;
+            path.z_offset   = z_offset;
             paths.emplace_back(std::move(path));
         }
 
@@ -1334,7 +1355,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 }
 
 void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExPolygons &top_fills,
-                                            ExPolygons &non_top_polygons, ExPolygons &fill_clip) const {
+                                            ExPolygons &non_top_polygons, ExPolygons &fill_clip,
+                                            const ExPolygons *lower_slices, const ExPolygons *upper_slices) const {
     // other perimeters
     coord_t perimeter_width = this->perimeter_flow.scaled_width();
     coord_t perimeter_spacing = this->perimeter_flow.scaled_spacing();
@@ -1368,7 +1390,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2. + 10), scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width))));
 
     // get the Polygons upper the polygon this layer
-    Polygons upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
+    Polygons upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*upper_slices, last_box);
     upper_polygons_series_clipped          = offset(upper_polygons_series_clipped, min_width_top_surface);
 
     // set the clip to a virtual "second perimeter"
@@ -1381,7 +1403,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     if (this->lower_slices != NULL) {
         // BBS: get the Polygons below the polygon this layer
         Polygons lower_polygons_series_clipped =
-            ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, last_box);
+            ClipperUtils::clip_clipper_polygons_with_subject_bbox(*lower_slices, last_box);
         double bridge_offset = std::max(double(ext_perimeter_spacing), (double(perimeter_width)));
         // SoftFever: improve bridging
         const float bridge_margin =
@@ -1946,6 +1968,9 @@ void PerimeterGenerator::process_classic()
     m_ext_mm3_per_mm           		= this->ext_perimeter_flow.mm3_per_mm();
     coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
 
+    // subslice perimeters
+    m_mm3_per_mm_sub_slice          = this->sub_slice_flow.mm3_per_mm();
+
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2;
     // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
@@ -1983,6 +2008,14 @@ void PerimeterGenerator::process_classic()
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
     bool    has_gap_fill 		= this->config->gap_infill_speed.value > 0;
 
+    // Perimeter divider parameters
+    const int perimeter_divider = this->object_config->outer_perimeter_layer_divider;
+    const int elefant_layers       = this->object_config->elefant_foot_compensation_layers.value;
+    float     elefant_compensation = 0.f;
+    if (this->layer_id == elefant_layers - 1) {
+        elefant_compensation = this->object_config->elefant_foot_compensation.value / perimeter_divider / elefant_layers;
+    }
+
     // BBS: this flow is for smaller external perimeter for small area
     coord_t ext_min_spacing_smaller = coord_t(ext_perimeter_spacing * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE));
     this->smaller_ext_perimeter_flow = this->ext_perimeter_flow;
@@ -2003,6 +2036,21 @@ void PerimeterGenerator::process_classic()
     }
     m_smaller_external_lower_polygons_series = generate_lower_polygons_series(this->smaller_ext_perimeter_flow.width());
     m_smaller_external_overhang_dist_boundary = dist_boundary(this->smaller_ext_perimeter_flow.width());
+
+    if (perimeter_divider > 1) {
+        // generate lower sub slice polygons for more precise overhang detection
+        if (this->lower_slices != nullptr) {
+            const ExPolygons&     lower_slices   = this->lower_sub_slices->back().second;
+            std::vector<Polygons> lower_polygons = generate_polygons_series(lower_slices, this->ext_perimeter_flow.width());
+            m_lower_sub_polygons_series.emplace(-1, std::move(lower_polygons));
+        }
+        for (int i = 0; i < this->lsub_slices->size() - 1; i++) {
+            const ExPolygons&     slices   = this->lsub_slices->at(i).second;
+            std::vector<Polygons> polygons = generate_polygons_series(slices, this->ext_perimeter_flow.width());
+            m_lower_sub_polygons_series.emplace(i, std::move(polygons));
+        }
+    }
+
     // we need to process each island separately because we might have different
     // extra perimeters for each one
     Surfaces all_surfaces = this->slices->surfaces;
@@ -2032,6 +2080,24 @@ void PerimeterGenerator::process_classic()
         ExPolygons gaps;
         ExPolygons top_fills;
         ExPolygons fill_clip;
+
+        // select matching sub slices for this surface
+        std::vector<std::pair<float, ExPolygons>> sub_slices;
+        if (perimeter_divider > 1) {
+            for (auto& [z, slices] : *this->sub_slices) {
+                ExPolygons z_slices;
+                std::vector<size_t> order = chain_expolygons(slices);
+                for (int j = 0; j < order.size(); j++) {
+                    const ExPolygon& slice = slices[order[j]];
+                    ExPolygons z_slice = union_ex(slice.simplify_p(surface_simplify_resolution));
+                    if (!intersection_ex(last, z_slice).empty()) {
+                        append(z_slices, z_slice);
+                    }
+                }
+                sub_slices.emplace_back(z, std::move(z_slices));
+            }
+        }
+
         if (loop_number >= 0) {
             // In case no perimeters are to be generated, loop_number will equal to -1.
             std::vector<PerimeterGeneratorLoops> contours(loop_number+1);    // depth => loops
@@ -2042,56 +2108,87 @@ void PerimeterGenerator::process_classic()
                 // Calculate next onion shell of perimeters.
                 ExPolygons offsets;
                 ExPolygons offsets_with_smaller_width;
+                std::vector<std::pair<float, ExPolygons>> z_offsets;
                 if (i == 0) {
-                    // look for thin walls
-                    if (this->config->detect_thin_wall) {
-                        // the minimum thickness of a single loop is:
-                        // ext_width/2 + ext_spacing/2 + spacing/2 + width/2
-                        offsets = offset2_ex(last,
-                            -float(ext_perimeter_width / 2. + ext_min_spacing / 2. - 1),
-                            +float(ext_min_spacing / 2. - 1));
-                        // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
-                        // (actually, something larger than that still may exist due to mitering or other causes)
-                        coord_t min_width = coord_t(scale_(this->ext_perimeter_flow.nozzle_diameter() / 3));
-                        ExPolygons expp = opening_ex(
-                            // medial axis requires non-overlapping geometry
-                            diff_ex(last, offset(offsets, float(ext_perimeter_width / 2.) + ClipperSafetyOffset)),
-                            float(min_width / 2.));
-                        // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
-                        for (ExPolygon &ex : expp)
-                            ex.medial_axis(min_width, ext_perimeter_width + ext_perimeter_spacing2, &thin_walls);
-                    } else {
-                        coord_t ext_perimeter_smaller_width = this->smaller_ext_perimeter_flow.scaled_width();
-                        for (const ExPolygon& expolygon : last) {
-                            // BBS: judge whether it's narrow but not too long island which is hard to place two line
-                            ExPolygons expolys;
-                            expolys.push_back(expolygon);
-                            ExPolygons offset_result = offset2_ex(expolys,
-                                -float(ext_perimeter_width / 2. + ext_min_spacing_smaller / 2.),
-                                +float(ext_min_spacing_smaller / 2.));
-                            if (offset_result.empty() &&
-                                expolygon.area() < (double)(ext_perimeter_width + ext_min_spacing_smaller) * scale_(narrow_loop_length_threshold)) {
-                                // BBS: for narrow external loop, use smaller line width
-                                ExPolygons temp_result = offset_ex(expolygon, -float(ext_perimeter_smaller_width / 2.));
-                                offsets_with_smaller_width.insert(offsets_with_smaller_width.end(), temp_result.begin(), temp_result.end());
-                            }
-                            else {
-                                //BBS: for not narrow loop, use normal external perimeter line width
-                                ExPolygons temp_result = offset_ex(expolygon, -float(ext_perimeter_width / 2.));
-                                offsets.insert(offsets.end(), temp_result.begin(), temp_result.end());
+                    if (perimeter_divider == 1) {
+                        // look for thin walls
+                        if (this->config->detect_thin_wall) {
+                            // the minimum thickness of a single loop is:
+                            // ext_width/2 + ext_spacing/2 + spacing/2 + width/2
+                            offsets = offset2_ex(last,
+                                -float(ext_perimeter_width / 2. + ext_min_spacing / 2. - 1),
+                                +float(ext_min_spacing / 2. - 1));
+                            // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
+                            // (actually, something larger than that still may exist due to mitering or other causes)
+                            coord_t min_width = coord_t(scale_(this->ext_perimeter_flow.nozzle_diameter() / 3));
+                            ExPolygons expp = opening_ex(
+                                // medial axis requires non-overlapping geometry
+                                diff_ex(last, offset(offsets, float(ext_perimeter_width / 2.) + ClipperSafetyOffset)),
+                                float(min_width / 2.));
+                            // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
+                            for (ExPolygon &ex : expp)
+                                ex.medial_axis(min_width, ext_perimeter_width + ext_perimeter_spacing2, &thin_walls);
+                        } else {
+                            coord_t ext_perimeter_smaller_width = this->smaller_ext_perimeter_flow.scaled_width();
+                            for (const ExPolygon& expolygon : last) {
+                                // BBS: judge whether it's narrow but not too long island which is hard to place two line
+                                ExPolygons expolys;
+                                expolys.push_back(expolygon);
+                                ExPolygons offset_result = offset2_ex(expolys,
+                                    -float(ext_perimeter_width / 2. + ext_min_spacing_smaller / 2.),
+                                    +float(ext_min_spacing_smaller / 2.));
+                                if (offset_result.empty() &&
+                                    expolygon.area() < (double)(ext_perimeter_width + ext_min_spacing_smaller) * scale_(narrow_loop_length_threshold)) {
+                                    // BBS: for narrow external loop, use smaller line width
+                                    ExPolygons temp_result = offset_ex(expolygon, -float(ext_perimeter_smaller_width / 2.));
+                                    offsets_with_smaller_width.insert(offsets_with_smaller_width.end(), temp_result.begin(), temp_result.end());
+                                }
+                                else {
+                                    //BBS: for not narrow loop, use normal external perimeter line width
+                                    ExPolygons temp_result = offset_ex(expolygon, -float(ext_perimeter_width / 2.));
+                                    offsets.insert(offsets.end(), temp_result.begin(), temp_result.end());
+                                }
                             }
                         }
+                        if (m_spiral_vase && (offsets.size() > 1 || offsets_with_smaller_width.size() > 1)) {
+                            // Remove all but the largest area polygon.
+                            keep_largest_contour_only(offsets);
+                            //BBS
+                            if (offsets.empty())
+                                //BBS: only have small width loop, then keep the largest in spiral vase mode
+                                keep_largest_contour_only(offsets_with_smaller_width);
+                            else
+                                //BBS: have large area, clean the small width loop
+                                offsets_with_smaller_width.clear();
+                        }
                     }
-                    if (m_spiral_vase && (offsets.size() > 1 || offsets_with_smaller_width.size() > 1)) {
-                        // Remove all but the largest area polygon.
-                        keep_largest_contour_only(offsets);
-                        //BBS
-                        if (offsets.empty())
-                            //BBS: only have small width loop, then keep the largest in spiral vase mode
-                            keep_largest_contour_only(offsets_with_smaller_width);
-                        else
-                            //BBS: have large area, clean the small width loop
-                            offsets_with_smaller_width.clear();
+                    // offset sub slices
+                    if (perimeter_divider > 1) {
+                        // TODO: thin/smaller width wall detection
+                        thin_walls.clear();
+                        offsets_with_smaller_width.clear();
+                        // smooth transition for elephant foot compensation
+                        float comp = 0.f;
+                        for (auto& [z, slices] : sub_slices) {
+                            ExPolygons slices_offset = offset_ex(slices, -float(ext_perimeter_width / 2.));
+                            if (elefant_compensation > 0.f) {
+                                slices_offset = offset_ex(slices_offset, +float(scale_(comp)));
+                                comp += elefant_compensation;
+                            }
+                            if (!slices_offset.empty()) {
+                                z_offsets.emplace_back(z, slices_offset);
+                            }
+                        }
+                        if (z_offsets.size() > 0) {
+                            // compensate slopes by intersecting all sub slices
+                            // to avoid inner perimeters colliding with outer perimeter
+                            // TODO: maybe too aggressive and bottom/top surface will suffer
+                            ExPolygons z_offsets_merged = z_offsets.front().second;
+                            for (auto it = z_offsets.begin() + 1; it != z_offsets.end(); it++) {
+                                z_offsets_merged = intersection_ex(z_offsets_merged, it->second, ApplySafetyOffset::Yes);
+                            }
+                            offsets = std::move(z_offsets_merged);
+                        }
                     }
                 } else {
                     //FIXME Is this offset correct if the line width of the inner perimeters differs
@@ -2138,29 +2235,48 @@ void PerimeterGenerator::process_classic()
                     break;
                 }
                 {
-                    for (const ExPolygon& expolygon : offsets) {
-                        // Outer contour may overlap with an inner contour,
-                        // inner contour may overlap with another inner contour,
-                        // outer contour may overlap with itself.
-                        //FIXME evaluate the overlaps, annotate each point with an overlap depth,
-                        // compensate for the depth of intersection.
-                        contours[i].emplace_back(expolygon.contour, i, true);
+                    if (perimeter_divider > 1 && i == 0) {
+                        // add lowest sub slice only, upper sub slices will be appended at the end
+                        auto& [z_offset, offsets] = z_offsets.front();
+                        const int z_index = 0;
+                        for (const ExPolygon& expolygon : offsets) {
+                            contours[i].emplace_back(expolygon.contour, i, z_offset, z_index, true);
+                            if (!expolygon.holes.empty()) {
+                                holes[i].reserve(holes[i].size() + expolygon.holes.size());
+                                for (const Polygon& hole : expolygon.holes)
+                                    holes[i].emplace_back(hole, i, z_offset, z_index, false);
+                            }
+                        }
 
-                        if (!expolygon.holes.empty()) {
-                            holes[i].reserve(holes[i].size() + expolygon.holes.size());
-                            for (const Polygon& hole : expolygon.holes)
-                                holes[i].emplace_back(hole, i, false);
+                    } else {
+                        for (const ExPolygon& expolygon : offsets) {
+                            const float z_offset = 0.f;
+                            const int z_index = 0;
+                            // Outer contour may overlap with an inner contour,
+                            // inner contour may overlap with another inner contour,
+                            // outer contour may overlap with itself.
+                            //FIXME evaluate the overlaps, annotate each point with an overlap depth,
+                            // compensate for the depth of intersection.
+                            contours[i].emplace_back(expolygon.contour, i, z_offset, z_index, true);
+
+                            if (!expolygon.holes.empty()) {
+                                holes[i].reserve(holes[i].size() + expolygon.holes.size());
+                                for (const Polygon& hole : expolygon.holes)
+                                    holes[i].emplace_back(hole, i, z_offset, z_index, false);
+                            }
                         }
                     }
 
                     //BBS: save perimeter loop which use smaller width
                     if (i == 0) {
+                        const float z_offset = 0.f;
+                        const int z_index = 0;
                         for (const ExPolygon& expolygon : offsets_with_smaller_width) {
-                            contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, true));
+                            contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, z_offset, z_index, true, true));
                             if (!expolygon.holes.empty()) {
                                 holes[i].reserve(holes[i].size() + expolygon.holes.size());
                                 for (const Polygon& hole : expolygon.holes)
-                                    holes[i].emplace_back(PerimeterGeneratorLoop(hole, i, false, true));
+                                    holes[i].emplace_back(PerimeterGeneratorLoop(hole, i, z_offset, z_index, false, true));
                             }
                         }
                     }
@@ -2171,7 +2287,40 @@ void PerimeterGenerator::process_classic()
                 //BBS: refer to superslicer
                 //store surface for top infill if only_one_wall_top
                 if (i == 0 && i!=loop_number && config->only_one_wall_top && !surface.is_bridge() && this->upper_slices != NULL) {
-                    this->split_top_surfaces(last, top_fills, last, fill_clip);
+                    if (z_offsets.size() > 0) {
+                        // create top surface for each sub slice
+                        for (size_t idx = 0; idx < z_offsets.size(); idx++) {
+                            const ExPolygons& input_slices = z_offsets[idx].second;
+                            ExPolygons polys;
+                            ExPolygons fills;
+                            ExPolygons clips;
+                            if (idx == 0) {
+                                // first
+                                const ExPolygons* upper_slices = &this->lsub_slices->at(idx + 1).second;
+                                if (this->lower_sub_slices == nullptr) {
+                                    this->split_top_surfaces(input_slices, fills, polys, clips, nullptr, upper_slices);
+                                } else {
+                                    const ExPolygons* lower_slices = &this->lower_sub_slices->back().second;
+                                    this->split_top_surfaces(input_slices, fills, polys, clips, lower_slices, upper_slices);
+                                }
+                            } else if (idx == z_offsets.size() - 1) {
+                                // last
+                                const ExPolygons* upper_slices = &this->upper_sub_slices->front().second;
+                                const ExPolygons* lower_slices = &this->lsub_slices->at(idx - 1).second;
+                                this->split_top_surfaces(input_slices, fills, polys, clips, lower_slices, upper_slices);
+                            } else {
+                                const ExPolygons* upper_slices = &this->lsub_slices->at(idx + 1).second;
+                                const ExPolygons* lower_slices = &this->lsub_slices->at(idx - 1).second;
+                                this->split_top_surfaces(input_slices, fills, polys, clips, lower_slices, upper_slices);
+                            }
+                            // combine results of all sub slices
+                            fill_clip = union_ex(fill_clip, clips, true);
+                            top_fills = union_ex(top_fills, fills, true);
+                            last      = intersection_ex(last, polys, ApplySafetyOffset::Yes);
+                        }
+                    } else {
+                        this->split_top_surfaces(last, top_fills, last, fill_clip, this->lower_slices, this->upper_slices);
+                    }
                 }
 
                 if (i == loop_number && (! has_gap_fill || this->config->sparse_infill_density.value == 0)) {
@@ -2486,6 +2635,53 @@ void PerimeterGenerator::process_classic()
         }
 
     } // for each island
+
+    if (perimeter_divider > 1) {
+        // append upper sub slices to loops
+        // we add them at the end because there is no efficient way of sorting upper sub slices correctly
+        // main issue is multiple surfaces/islands merging into single surface/island in upper slices
+        float          comp    = elefant_compensation;
+        int            z_index = 1;
+        ThickPolylines thin_walls;
+        for (auto it = this->sub_slices->begin() + 1; it != this->sub_slices->end(); it++) {
+            PerimeterGeneratorLoops contours;
+            PerimeterGeneratorLoops holes;
+
+            // create offsets
+            auto& [z, slices]        = *it;
+            ExPolygons slices_offset = offset_ex(slices, -float(ext_perimeter_width / 2.));
+            if (elefant_compensation > 0.f) {
+                // smooth transition for elephant foot compensation
+                slices_offset = offset_ex(slices_offset, +float(scale_(comp)));
+                comp += elefant_compensation;
+            }
+            if (!slices_offset.empty()) {
+                // create loops
+                std::vector<size_t> order = chain_expolygons(slices_offset);
+                for (int i = 0; i < order.size(); i++) {
+                    ExPolygon& slice = slices_offset[order[i]];
+                    PerimeterGeneratorLoop& loop = contours.emplace_back(slice.contour, 0, z, z_index, true);
+                    if (!slice.holes.empty()) {
+                        for (auto& hole : slice.holes) {
+                            loop.children.emplace_back(hole, 0, z, z_index, false);
+                        }
+                    }
+                }
+            }
+            const WallDirection wall_direction = config->wall_direction;
+            bool steep_overhang_contour = wall_direction != WallDirection::Auto ? true : false;
+            bool steep_overhang_hole = steep_overhang_contour;
+            ExtrusionEntityCollection entities = traverse_loops(*this, contours, thin_walls, steep_overhang_contour, steep_overhang_hole);
+            if (wall_direction != WallDirection::CounterClockwise) {
+                reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole,
+                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
+            }
+            if (!entities.empty())
+                this->loops->append(entities);
+            z_index++;
+        }
+    }
+
 }
 
 //BBS:
@@ -3351,7 +3547,7 @@ bool PerimeterGeneratorLoop::is_internal_contour() const
     return true;
 }
 
-std::vector<Polygons> PerimeterGenerator::generate_lower_polygons_series(float width)
+std::vector<Polygons> PerimeterGenerator::generate_polygons_series(const ExPolygons& slices, float width)
 {
     float nozzle_diameter = print_config->nozzle_diameter.get_at(config->wall_filament - 1);
     float start_offset = -0.5 * width;
@@ -3365,15 +3561,20 @@ std::vector<Polygons> PerimeterGenerator::generate_lower_polygons_series(float w
      offset_series.push_back(start_offset + 0.5 * (end_offset - start_offset) / (overhang_sampling_number - 1));
      offset_series.push_back(end_offset);
     std::vector<Polygons> lower_polygons_series;
-    if (this->lower_slices == NULL) {
-        return lower_polygons_series;
-    }
 
     // offset expolygon to generate series of polygons
     for (int i = 0; i < offset_series.size(); i++) {
-        lower_polygons_series.emplace_back(offset(*this->lower_slices, float(scale_(offset_series[i]))));
+        lower_polygons_series.emplace_back(offset(slices, float(scale_(offset_series[i]))));
     }
     return lower_polygons_series;
+}
+
+std::vector<Polygons> PerimeterGenerator::generate_lower_polygons_series(float width)
+{
+    if (this->lower_slices == NULL) {
+        return std::vector<Polygons>();
+    }
+    return generate_polygons_series(*this->lower_slices, width);
 }
 
 }
