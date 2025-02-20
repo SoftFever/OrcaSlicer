@@ -6587,13 +6587,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Plate% d: %s is not suggested for use printing filament %s(%s). If you still "
-"want to do this print job, please set this filament's bed temperature to a "
-"number that is not zero."
 
 msgid "Switching the language requires application restart.\n"
 msgstr ""

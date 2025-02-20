@@ -6595,11 +6595,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Plaka% d: %s'nin %s(%s) filamentinı yazdırmak için kullanılması önerilmez. "
+"Plaka %d: %s'nin %s(%s) filamentinı yazdırmak için kullanılması önerilmez. "
 "Eğer yine de bu baskıyı yapmak istiyorsanız, lütfen bu filamentin yatak "
 "sıcaklığını sıfır olmayan bir değere ayarlayın."
 
