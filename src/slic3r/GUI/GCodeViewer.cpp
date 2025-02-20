@@ -598,7 +598,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f); // ORCA add window rounding to modernize / match style
     ImGui::SetNextWindowBgAlpha(0.8f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
@@ -4364,7 +4364,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     //BBS: GUI refactor: move to the right
     imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * m_scale); // ORCA add window rounding to modernize / match style
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0,0.0));
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
@@ -4466,23 +4466,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (checkbox) {
 				//ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
                 ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - window_padding);
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0, 1.0)); // Allows eye icon rendered bigger
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0)); // Allows eye icon rendered bigger
                 //ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
-
-				// ORCA replace checkboxes with eye icon
-                ImVec2  p = ImGui::GetCursorScreenPos();
-                int		h = ImGui::GetFrameHeight();
-                auto    eye_color = visible ? IM_COL32(0, 150, 136, 255) : IM_COL32(120, 120, 120, 255);
-                int     eye_line_width = 1.0f * m_scale;
-                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.9f},{p.x + h*.7f,p.y + h*.9f},{p.x + h*.9f,p.y + h*.5f},eye_color,eye_line_width,24);
-                draw_list->AddBezierCurve({p.x + h*.1f,p.y + h*.5f},{p.x + h*.3f,p.y + h*.1f},{p.x + h*.7f,p.y + h*.1f},{p.x + h*.9f,p.y + h*.5f},eye_color,eye_line_width,24);
-                draw_list->AddCircleFilled({p.x + h*.5f,p.y + h*.5f},h*.2f,eye_color);
-                if (!visible) {
-                    draw_list->AddLine({p.x + h*.1f,p.y + h*.15f},{p.x + h*.9f,p.y + h*.85f},IM_COL32(120, 120, 120, 255),eye_line_width);
-                }
-
-                //ImGui::PopStyleColor(1);
+                // ORCA replace checkboxes with eye icon
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
+                ImGui::Button(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16, 16));
+                ImGui::PopStyleColor(1);
                 ImGui::PopStyleVar(1);
             }
         }
@@ -4652,28 +4642,25 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({0, window_padding}); // Adds unnessary spacing if window_padding used on X 
+    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnessary spacing if window_padding used on X 
     ImGui::SameLine();
-    const wchar_t btn_name = m_fold ? ImGui::UnfoldButtonIcon : ImGui::FoldButtonIcon;
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
+    std::wstring btn_name;
+    if (m_fold)
+        btn_name = ImGui::UnfoldButtonIcon;
+    else
+        btn_name = ImGui::FoldButtonIcon;
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
-    //ImGui::PushItemWidth(
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f); // Match style with combo box
+
     if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(21, 21))) { // ORCA give exact resolution to fix non square icon. 16x16 icon and +2 padding
         m_fold = !m_fold;
     }
-    ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(2);
 
-	ImGui::SameLine();
+    ImGui::SameLine();
     const wchar_t gCodeToggle = ImGui::gCodeButtonIcon;
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
     if (ImGui::Button(into_u8(gCodeToggle).c_str(), ImVec2(21, 21))) { // ORCA give exact resolution to fix non square icon. 16x16 icon and +2 padding
         wxGetApp().toggle_show_gcode_window();
         wxGetApp().plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
@@ -4712,7 +4699,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     pop_combo_style();
 
     ImGui::SameLine();
-    ImGui::Dummy({ 0, window_padding }); // Adds unnessary spacing if window_padding used on X 
+    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnessary spacing if window_padding used on X 
 
     ImGui::Dummy({window_padding, window_padding}); // Adds spacing after toolbar
 
