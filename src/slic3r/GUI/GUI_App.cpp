@@ -3636,13 +3636,6 @@ void GUI_App::update_oauth_access_token() {
     }
 }
 
-void GUI_App::set_classic_mode(bool use_classic_mode) {
-    app_config->set_bool("use_classic_mode", true);
-    app_config->save();
-    update_ui_from_settings();
-    sidebar().jusprin_chat_panel()->SendClassicModeChangedEvent(use_classic_mode);
-}
-
 // TODO: Remove BBL login
 //BBS
 void GUI_App::request_login(bool show_user_info)
@@ -3931,13 +3924,6 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         wxString realurl = from_u8(url_decode(path.value()));
                         wxGetApp().request_model_download(realurl);
                     }
-                }
-            }
-            else if (command_str.compare("homepage_set_classic_mode") == 0) {
-                if (root.get_child_optional("data") != boost::none) {
-                    pt::ptree data_node = root.get_child("data");
-                    bool      use_classic_mode = data_node.get<std::string>("classic_mode") == "true";
-                    set_classic_mode(use_classic_mode);
                 }
             }
         }

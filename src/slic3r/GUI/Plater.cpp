@@ -2013,14 +2013,8 @@ void Sidebar::update_ui_from_settings()
     p->plater->set_current_canvas_as_dirty();
     p->plater->get_current_canvas3D()->request_extra_frame();
 
-    if (!wxGetApp().app_config->get_bool("use_classic_mode")) {
-        p->size_top->Hide(p->config_sizer, true);
-        p->size_top->Show(p->jusprin_chat_panel, true);
-    }
-    else{
-        p->size_top->Hide(p->jusprin_chat_panel, true);
-        p->size_top->Show(p->config_sizer, true);
-    }
+    p->size_top->Hide(p->jusprin_chat_panel, true);
+    p->size_top->Show(p->config_sizer, true);
 
 #if 0
     p->object_list->apply_volumes_order();

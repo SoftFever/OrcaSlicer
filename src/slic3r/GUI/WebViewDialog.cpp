@@ -535,13 +535,6 @@ void WebViewPanel::update_mode()
     GetSizer()->Layout();
 }
 
-void WebViewPanel::update_ui_from_settings()
-{
-    wxString strJS = wxString::Format("SetClassicMode(%s)", wxGetApp().app_config->get("use_classic_mode"));
-    RunScript(strJS);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << strJS;
-}
-
 void WebViewPanel::update_oauth_access_token()
 {
     wxString strJS = wxString::Format("SetLoginStatus(%s)", wxGetApp().app_config->get_with_default("jusprin_server", "access_token", "").empty() ? "false" : "true");

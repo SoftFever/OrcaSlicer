@@ -31,7 +31,6 @@ public:
     // Agent events that are processed by the chat panel
     void SendAutoOrientEvent(bool canceled);
     void SendModelObjectsChangedEvent();
-    void SendClassicModeChangedEvent(bool use_classic_mode);
     void SendNativeErrorOccurredEvent(const std::string& error_message);
     void SendNotificationPushedEvent(
         const std::string& notification_text,
@@ -75,7 +74,6 @@ private:
     nlohmann::json handle_get_current_project(const nlohmann::json& params);
 
     // Actions to trigger events in JusPrin
-    void handle_switch_to_classic_mode(const nlohmann::json& params);
     void handle_show_login(const nlohmann::json& params);
     void handle_start_slicer_all(const nlohmann::json& params);
     void handle_export_gcode(const nlohmann::json& params);
