@@ -786,6 +786,8 @@ public:
 
     bool is_loading_project() const { return m_loading_project; }
 
+    GUI::JusPrinChatPanel* jusprinChatPanel() const;
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
