@@ -143,6 +143,40 @@ public:
     ~ExtruderImage();
 };
 
+class ExtruderSwithingStatus : public wxPanel
+{
+public:
+    ExtruderSwithingStatus(wxWindow *parent);
+    ~ExtruderSwithingStatus() = default;
+
+public:
+    void updateBy(MachineObject *obj);
+    bool has_content_shown() const;
+
+    void msw_rescale();
+
+private:
+    void updateSwitchingLabel(const ExtruderSwitchState &state);
+
+    void updateBy(const ExtderData& ext_data);
+    void updateBtnGroup(const ExtderData &ext_data);
+    void showQuitBtn(bool show);
+    void showRetryBtn(bool show);
+
+    void on_quit(wxCommandEvent &event);
+    void on_retry(wxCommandEvent &event);
+
+private:
+    MachineObject *m_obj = nullptr;
+
+    Label  *m_switching_status_label = nullptr;
+    Button *m_button_quit      = nullptr;
+    Button *m_button_retry     = nullptr;
+
+    /*the last control time*/
+    time_t m_last_ctrl_time = 0;
+};
+
 class ScoreDialog : public GUI::DPIDialog
 {
 public:
@@ -447,6 +481,8 @@ protected:
     Label *         m_extruder_label;
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
+    ExtruderSwithingStatus *m_extruder_switching_status;
+
     wxPanel *       m_temp_temp_line;
     wxPanel *       m_temp_extruder_line;
     wxBoxSizer*     m_ams_list;

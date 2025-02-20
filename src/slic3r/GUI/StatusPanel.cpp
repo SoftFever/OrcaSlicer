@@ -361,6 +361,164 @@ void ExtruderImage::doRender(wxDC& dc)
 }
 
 
+#define SWITCHING_STATUS_BTN_SIZE wxSize(FromDIP(25), FromDIP(26))
+ExtruderSwithingStatus::ExtruderSwithingStatus(wxWindow *parent)
+    : wxPanel(parent)
+{
+    m_switching_status_label = new Label(this);
+    m_switching_status_label->SetFont(::Label::Body_13);
+    if (parent)
+    { m_switching_status_label->SetBackgroundColour(parent->GetBackgroundColour());
+    }
+
+    StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
+    StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
+
+    m_button_quit = new Button(this, L_CONTEXT("Quit", "Quit_Switching"), "", 0, FromDIP(22));
+    m_button_quit->SetFont(::Label::Body_13);
+    m_button_quit->Bind(wxEVT_BUTTON, &ExtruderSwithingStatus::on_quit, this);
+    m_button_quit->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_quit->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_quit->SetBackgroundColor(e_ctrl_bg);
+    m_button_quit->SetBorderColor(e_ctrl_bd);
+    m_button_quit->SetBorderWidth(2);
+    if (parent) { m_button_quit->SetBackgroundColour(parent->GetBackgroundColour()); }
+
+    m_button_retry = new Button(this, _L("Retry"), "", 0, FromDIP(22));
+    m_button_retry->SetFont(::Label::Body_13);
+    m_button_retry->Bind(wxEVT_BUTTON, &ExtruderSwithingStatus::on_retry, this);
+    m_button_retry->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_retry->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_retry->SetBackgroundColor(e_ctrl_bg);
+    m_button_retry->SetBorderColor(e_ctrl_bd);
+    m_button_retry->SetBorderWidth(2);
+    if (parent) { m_button_retry->SetBackgroundColour(parent->GetBackgroundColour()); }
+
+    wxBoxSizer *btn_sizer  = new wxBoxSizer(wxHORIZONTAL);
+    btn_sizer->Add(m_button_quit, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
+    btn_sizer->Add(m_button_retry, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_switching_status_label, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(10));
+    main_sizer->Add(btn_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(10));
+    SetSizer(main_sizer);
+
+    Layout();
+}
+
+void ExtruderSwithingStatus::updateBy(MachineObject *obj)
+{
+    m_obj = obj;
+    Show(m_obj != nullptr);
+    if (m_obj && (time(nullptr) - m_last_ctrl_time) > HOLD_TIME_MAX)
+    {
+        updateBy(obj->m_extder_data);
+    }
+}
+
+void ExtruderSwithingStatus::updateBy(const ExtderData& ext_data)
+{
+    Show(ext_data.total_extder_count > 1);
+    if (!IsShown()) { return; }
+
+    updateSwitchingLabel(ext_data.switch_extder_state);
+    updateBtnGroup(ext_data);
+}
+
+void ExtruderSwithingStatus::updateSwitchingLabel(const ExtruderSwitchState &state)
+{
+    if (state == ExtruderSwitchState::ES_SWITCHING)
+    {
+        m_switching_status_label->SetLabel(_L("Switching..."));
+        m_switching_status_label->SetForegroundColour(StateColor::darkModeColorFor("#262E30"));
+        m_switching_status_label->Show(true);
+    }
+    else if (state == ExtruderSwitchState::ES_SWITCHING_FAILED)
+    {
+        m_switching_status_label->SetLabel(_L("Switching failed"));
+        m_switching_status_label->SetForegroundColour(StateColor::darkModeColorFor(*wxRED));
+        m_switching_status_label->Show(true);
+    }
+    else
+    {
+        m_switching_status_label->Show(false);
+    }
+}
+
+void ExtruderSwithingStatus::updateBtnGroup(const ExtderData &ext_data)
+{
+    if (ext_data.switch_extder_state != ExtruderSwitchState::ES_SWITCHING_FAILED)
+    {
+        showQuitBtn(false);
+        showRetryBtn(false);
+        return;
+    }
+
+    /*can not quit if it's printing*/
+    if (m_obj && !m_obj->is_in_printing() && !m_obj->is_in_printing_pause())
+    {
+        showQuitBtn(true);
+    }
+
+    showRetryBtn(true);
+}
+
+void ExtruderSwithingStatus::showQuitBtn(bool show)
+{
+    if (m_button_quit->IsShown() != show)
+    {
+        m_button_quit->Show(show);
+        Layout();
+    }
+}
+
+void ExtruderSwithingStatus::showRetryBtn(bool show)
+{
+    if (m_button_retry->IsShown() != show) {
+        m_button_retry->Show(show);
+        Layout();
+    }
+}
+
+bool ExtruderSwithingStatus::has_content_shown() const
+{
+    if (!IsShown()) { return false; }
+    if (!m_switching_status_label->IsShown() && !m_button_quit->IsShown() && !m_button_retry->IsShown()) { return false; }
+
+    return true;
+}
+
+void ExtruderSwithingStatus::msw_rescale()
+{
+    m_button_quit->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_quit->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_retry->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_retry->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
+    Layout();
+}
+
+void ExtruderSwithingStatus::on_quit(wxCommandEvent &event)
+{
+    Show(false);
+
+    if (m_obj)
+    {
+        m_obj->command_ams_control("abort");
+        m_last_ctrl_time = time(nullptr);
+    }
+}
+
+void ExtruderSwithingStatus::on_retry(wxCommandEvent &event)
+{
+    Show(false);
+
+    if (m_obj)
+    {
+        m_obj->command_ams_control("resume");
+        m_last_ctrl_time = time(nullptr);
+    }
+}
+
 PrintingTaskPanel::PrintingTaskPanel(wxWindow* parent, PrintingTaskType type)
     : wxPanel(parent, wxID_ANY,wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
 {
@@ -1742,6 +1900,9 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
 
+    m_extruder_switching_status = new ExtruderSwithingStatus(panel);
+    m_extruder_switching_status->SetForegroundColour(TEXT_LIGHT_FONT_COL);
+
     m_extruder_label = new ::Label(panel, _L("Extruder"));
     m_extruder_label->SetFont(::Label::Body_13);
     m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
@@ -1755,8 +1916,8 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     bSizer_e_ctrl->Add(0, 0, 0, wxTOP, FromDIP(7));
     bSizer_e_ctrl->Add(m_bpButton_e_down_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
-    bSizer_e_ctrl->Add(m_extruder_label, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-    bSizer_e_ctrl->Add(0, 0, 0, wxTOP, FromDIP(8));
+    bSizer_e_ctrl->Add(m_extruder_switching_status, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_e_ctrl->Add(m_extruder_label, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, FromDIP(10));
 
     panel->SetSizer(bSizer_e_ctrl);
     panel->Layout();
@@ -2940,11 +3101,8 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     /*for (auto i = 0; i < obj->m_extder_data.extders.size(); i++) {
         obj->m_extder_data.extders[i].ams_stat;
     }*/
-
-
-
-
-    //m_extruder_label = new ::Label(panel, _L("Extruder"));
+    m_extruder_switching_status->updateBy(obj);
+    m_extruder_label->Show(!m_extruder_switching_status->has_content_shown());/*hide the label if there are shown infos from m_extruder_switching_status*/
 
     /*other*/
     if (obj->is_core_xy()) {
@@ -4929,6 +5087,7 @@ void StatusPanel::set_default()
     m_parts_btn->Show();
 
     reset_temp_misc_control();
+    m_extruder_switching_status->Hide();
     m_ams_control->Hide();
     m_ams_control_box->Hide();
     m_ams_control->Reset();
@@ -5099,6 +5258,7 @@ void StatusPanel::msw_rescale()
     m_bpButton_z_1->Rescale();
     m_bpButton_z_down_1->Rescale();
     m_bpButton_z_down_10->Rescale();
+    m_extruder_switching_status->msw_rescale();
 
     m_ams_control->msw_rescale();
     // m_filament_step->Rescale();

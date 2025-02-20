@@ -2185,7 +2185,7 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
 int MachineObject::command_ams_control(std::string action)
 {
     //valid actions
-    if (action == "resume" || action == "reset" || action == "pause" || action == "done") {
+    if (action == "resume" || action == "reset" || action == "pause" || action == "done" || action == "abort") {
         json j;
         j["print"]["command"] = "ams_control";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
