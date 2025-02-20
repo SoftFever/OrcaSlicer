@@ -596,7 +596,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
 
     //BBS: GUI refactor: move to right
     //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
-    imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
+    imgui.set_next_window_pos(right, top + 6, ImGuiCond_Always, 1.0f, 0.0f); // ORCA add a small gap between legend and code viewer
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f); // ORCA add window rounding to modernize / match style
     ImGui::SetNextWindowBgAlpha(0.8f);
@@ -4363,7 +4363,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     //BBS: GUI refactor: move to the right
-    imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
+    imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 4.0f * m_scale, ImGuiCond_Always, 1.0f, 0.0f); // ORCA add a small gap to top to creare seperation with main toolbar
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * m_scale); // ORCA add window rounding to modernize / match style
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0,0.0));
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
@@ -4699,11 +4699,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     pop_combo_style();
     ImGui::SameLine();
-    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnecessary spacing if window_padding used on X 
-    ImGui::Dummy({ window_padding, window_padding }); // ORCA Adds spacing after toolbar while its folded
+    ImGui::Dummy({ 0, window_padding });                // ORCA Adds unnecessary spacing if window_padding used on X
+    ImGui::Dummy({ window_padding, window_padding });   // ORCA Adds spacing after toolbar while its folded / or below combo box
+    float window_width = ImGui::GetWindowWidth();       // ORCA Store window width
 
     if (m_fold) {
         legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar size while its folded
+        ImGui::SameLine(window_width);                  // ORCA use stored window width while folded. This prevents annoying position change on fold/expand button
+        ImGui::Dummy({ 0, 0 });
         imgui.end();
         ImGui::PopStyleColor(6);
         ImGui::PopStyleVar(2);
