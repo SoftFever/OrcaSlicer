@@ -111,22 +111,24 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     wxPaintDC dc(this);
     wxSize   size  = GetSize();
     // If it matches the parent's width, it will not be displayed completely
-    int svg_size = size.GetWidth() - FromDIP(3);
+    int svg_size = size.GetWidth();
     int type_label_height = FromDIP(10);
     wxString type_label(m_type);
-    int type_label_margin = FromDIP(6);
+    int type_label_margin = FromDIP(3);
 
     std::string replace_color = m_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
     std::string svg_name = "outlined_rect";
     if (replace_color == "#FFFFFF00") {
         svg_name = "outlined_rect_transparent";
     }
-    wxBitmap bmp = ScalableBitmap(this, svg_name, svg_size, false, false, false, { replace_color }).bmp();
+    static Slic3r::GUI::BitmapCache cache;
+    wxBitmap* bmp = cache.load_svg(svg_name, 0, svg_size, false, false, replace_color, 0.f);
+    //wxBitmap bmp = ScalableBitmap(this, svg_name, svg_size, false, false, false, { replace_color }).bmp();
     // ScalableBitmap is not drawn at position (0, 0) by default, why?
-    dc.DrawBitmap(bmp, wxPoint(-FromDIP(3), -FromDIP(3)));
+    dc.DrawBitmap(*bmp, wxPoint(0,0));
 
     //dc.SetPen(wxPen(*wxBLACK, 1));
-    //dc.DrawRectangle(0, 0, FromDIP(25), FromDIP(25));
+    //dc.DrawRectangle(0, 0, svg_size, svg_size);
 
     wxString label = wxString::Format(wxT("%d"), m_filament_id);
     dc.SetTextForeground(m_color.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);  // set text color

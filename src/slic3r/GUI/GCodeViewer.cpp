@@ -4519,7 +4519,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
                     filament_group_item_align_width = max(filament_group_item_align_width, text_size.x);
                     text_line_height = max(text_line_height, text_size.y);
                 }
-                container_height += (three_words_width * 1.2f + text_line_height );
+                container_height += (three_words_width * 1.3f + text_line_height );
             }
             container_height += 2 * line_height;
             ams_item_height = std::max(ams_item_height, container_height);
@@ -4539,7 +4539,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
 
-    ImGui::Dummy({window_padding, window_padding});
+    // ImGui::Dummy({window_padding, window_padding});
     ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
     {
         float available_width   = ImGui::GetContentRegionAvail().x;
@@ -6030,7 +6030,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (auto item : options_items)
             append_option_item(item, offsets);
     }
-
+    ImGui::Dummy({ window_padding, window_padding });
     if (m_nozzle_nums > 1)
         render_legend_color_arr_recommen(window_padding);
 
