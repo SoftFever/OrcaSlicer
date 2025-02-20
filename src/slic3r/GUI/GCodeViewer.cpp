@@ -693,7 +693,7 @@ void GCodeViewer::SequentialView::render(const bool has_render_path, float legen
         gcode_window.render(legend_height + 2, std::max(10.f, (float)canvas_height - 40), (float)canvas_width - (float)right_margin, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
-const std::vector<ColorRGBA> GCodeViewer::Extrusion_Role_Colors{ {
+const std::vector<ColorRGBA> GCodeViewer::Extrusion_Role_Colors{ { // GCODE VIEWER - TYPE COLORS
     { 0.90f, 0.70f, 0.70f, 1.0f },   // erNone
     { 1.00f, 0.90f, 0.30f, 1.0f },   // erPerimeter
     { 1.00f, 0.49f, 0.22f, 1.0f },   // erExternalPerimeter
@@ -733,7 +733,7 @@ const std::vector<ColorRGBA> GCodeViewer::Travel_Colors{ {
 
 // Normal ranges
 // blue to red
-const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ {
+const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ { // GCODE VIEWER - HEATMAP COLORS
     decode_color_to_float_array("#0b2c7a"),  // bluish
     decode_color_to_float_array("#135985"),
     decode_color_to_float_array("#1c8891"),
