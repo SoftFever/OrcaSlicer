@@ -90,6 +90,17 @@ void JusPrinNotificationManager::push_import_finished_notification(const std::st
     push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::ExportFinished), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::RegularNotificationLevel));
 }
 
+void JusPrinNotificationManager::push_notification_to_chat(const std::string& text, const std::string& type, const std::string& level) {
+    if (wxGetApp().plater() && wxGetApp().plater()->jusprinChatPanel()) {
+        wxGetApp().plater()->jusprinChatPanel()->SendNotificationPushedEvent(text, type, level);
+    }
+}
+
+void JusPrinNotificationManager::bbl_show_objectsinfo_notification(const std::string& text, bool is_warning, bool is_hidden) {
+    std::string level = is_warning ? "warning" : "regular";
+    push_notification_to_chat(text, "BBLObjectInfo", level);
+}
+
 std::string JusPrinNotificationManager::get_notification_type_name(NotificationType type) {
     switch (type) {
         case NotificationType::CustomNotification: return "CustomNotification";
@@ -121,12 +132,6 @@ std::string JusPrinNotificationManager::get_notification_level_name(Notification
         case NotificationLevel::HintNotificationLevel: return "hint";
         case NotificationLevel::ProgressBarNotificationLevel: return "progress";
         default: return "unknown";
-    }
-}
-
-void JusPrinNotificationManager::push_notification_to_chat(const std::string& text, const std::string& type, const std::string& level) {
-    if (wxGetApp().plater() && wxGetApp().plater()->jusprinChatPanel()) {
-        wxGetApp().plater()->jusprinChatPanel()->SendNotificationPushedEvent(text, type, level);
     }
 }
 
