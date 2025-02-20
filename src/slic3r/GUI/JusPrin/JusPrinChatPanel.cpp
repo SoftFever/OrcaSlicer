@@ -84,7 +84,6 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["get_current_project"] = &JusPrinChatPanel::handle_get_current_project;
 
     // Actions for the chat page (void return)
-    void_action_handlers["switch_to_classic_mode"] = &JusPrinChatPanel::handle_switch_to_classic_mode;
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
     void_action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
     void_action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
@@ -111,14 +110,6 @@ void JusPrinChatPanel::SendModelObjectsChangedEvent() {
     j["type"] = "modelObjectsChanged";
     j["data"] = JusPrinPlateUtils::GetCurrentProject(true);
 
-    CallEmbeddedChatMethod("processAgentEvent", j.dump());
-}
-
-void JusPrinChatPanel::SendClassicModeChangedEvent(bool use_classic_mode) {
-    nlohmann::json j = nlohmann::json::object();
-    j["type"] = "classicModeChanged";
-    j["data"] = nlohmann::json::object();
-    j["data"]["useClassicMode"] = use_classic_mode;
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
@@ -163,11 +154,6 @@ void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json&
         wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io/jusprin"),
         isDeveloperMode ? "true" : "false");
     WebView::RunScript(m_browser, strJS);
-}
-
-// Actions for the chat page
-void JusPrinChatPanel::handle_switch_to_classic_mode(const nlohmann::json& params) {
-    wxGetApp().set_classic_mode(true);
 }
 
 void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
@@ -412,10 +398,6 @@ void JusPrinChatPanel::OnActionCallReceived(wxWebViewEvent& event)
 }
 
 void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
-    if (wxGetApp().app_config->get_bool("use_classic_mode")) {
-        return;
-    }
-
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << script;
     WebView::RunScript(m_browser, script);
 }
