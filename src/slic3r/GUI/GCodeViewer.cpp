@@ -4465,8 +4465,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (b_menu_item)
                 callback();
             if (checkbox) {
-				//ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
-                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - window_padding);
+                //ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
+                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - window_padding - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0)); // ORCA
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0)); // Allows eye icon rendered bigger
                 //ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
