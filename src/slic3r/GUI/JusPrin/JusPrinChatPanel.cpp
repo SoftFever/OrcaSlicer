@@ -14,6 +14,7 @@
 
 #include "JusPrinPresetConfigUtils.hpp"
 #include "JusPrinPlateUtils.hpp"
+#include "JusPrinView3D.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -89,6 +90,7 @@ void JusPrinChatPanel::init_action_handlers() {
     void_action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
     void_action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
     void_action_handlers["plater_undo"] = &JusPrinChatPanel::handle_plater_undo;
+    void_action_handlers["show_chatpanel"] = &JusPrinChatPanel::handle_show_chatpanel;
     void_action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
 }
 
@@ -252,6 +254,12 @@ void JusPrinChatPanel::handle_plater_undo(const nlohmann::json& params) {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
         plater->undo();
     });
+}
+
+void JusPrinChatPanel::handle_show_chatpanel(const nlohmann::json& params) {
+    if (auto* view3d = dynamic_cast<JusPrinView3D*>(GetParent())) {
+        view3d->showChatPanel();
+    }
 }
 
 void JusPrinChatPanel::load_url()
