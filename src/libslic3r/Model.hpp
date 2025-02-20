@@ -1325,6 +1325,8 @@ public:
         this->object->invalidate_bounding_box();
     }
 
+    ModelInstanceEPrintVolumeState calc_print_volume_state(const BuildVolume& build_volume) const;
+
 protected:
     friend class Print;
     friend class SLAPrint;
@@ -1333,6 +1335,12 @@ protected:
 
     explicit ModelInstance(const ModelInstance &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
+
+    ModelInstanceEPrintVolumeState update_print_volume_state(const BuildVolume& build_volume)
+    {
+        print_volume_state = calc_print_volume_state(build_volume);
+        return print_volume_state;
+    }
 
 private:
     // Parent object, owning this instance.
