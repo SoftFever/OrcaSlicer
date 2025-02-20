@@ -4403,9 +4403,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImVec2 pos_rect = ImGui::GetCursorScreenPos();
     float window_padding = 4.0f * m_scale;
 
+    // ORCA dont use background on top bar to give modern look
     //draw_list->AddRectFilled(ImVec2(pos_rect.x,pos_rect.y - ImGui::GetStyle().WindowPadding.y),
-    //    ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
-    //    ImGui::GetColorU32(ImVec4(0,0,0,0.3))); // Hiding gives much more modern look
+    //ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
+    //ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
 
     auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](
         EItemType type,
@@ -4420,7 +4421,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         switch (type) {
         default:
         case EItemType::Rect: {
-            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 2.0f * m_scale }, { pos.x + int(icon_size*.8f - 1.0f * m_scale), pos.y + icon_size + 2.0f * m_scale},
+            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 2.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 2.0f * m_scale},
                                      ImGuiWrapper::to_ImU32(color));
             break;
         }
@@ -4481,7 +4482,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         {
             if(callback && !checkbox && !visible)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));
-            float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + int(icon_size*.8f - 1.0f * m_scale);
+            float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size;
             ImGui::SameLine(dummy_size);
             imgui.text(columns_offsets[0].first);
 
@@ -4642,7 +4643,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnessary spacing if window_padding used on X 
+    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnessary spacing if window_padding used on X
     ImGui::SameLine();
     std::wstring btn_name;
     if (m_fold)
@@ -4652,23 +4653,23 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f); // Match style with combo box
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f * m_scale, 3.0f * m_scale)); // ORCA Center icon with frame padding
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f); // ORCA Match button style with combo box
 
-    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(21, 21))) { // ORCA give exact resolution to fix non square icon. 16x16 icon and +2 padding
+    float button_width = ImGui::GetFrameHeight(); // ORCA use GetFrameHeight for button sizes to match buttons with combo box
+    if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, button_width))) {
         m_fold = !m_fold;
     }
 
     ImGui::SameLine();
     const wchar_t gCodeToggle = ImGui::gCodeButtonIcon;
-    if (ImGui::Button(into_u8(gCodeToggle).c_str(), ImVec2(21, 21))) { // ORCA give exact resolution to fix non square icon. 16x16 icon and +2 padding
+    if (ImGui::Button(into_u8(gCodeToggle).c_str(), ImVec2(button_width, button_width))) {
         wxGetApp().toggle_show_gcode_window();
         wxGetApp().plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
     }
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(2);
 
-    //ImGui::SameLine();
     //imgui.bold_text(_u8L("Color Scheme"));
     push_combo_style();
 
@@ -4697,14 +4698,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::EndCombo();
     }
     pop_combo_style();
-
     ImGui::SameLine();
     ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnessary spacing if window_padding used on X 
-
-    ImGui::Dummy({window_padding, window_padding}); // Adds spacing after toolbar
+    ImGui::Dummy({ window_padding, window_padding }); // ORCA Adds spacing after toolbar while folded
 
     if (m_fold) {
-        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4;
+        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar size while toolbar folded
         imgui.end();
         ImGui::PopStyleColor(6);
         ImGui::PopStyleVar(2);
@@ -4849,7 +4848,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (percent == 0)
                 ::sprintf(buffer, "0");
             else
-				percent > 0.001 ? ::sprintf(buffer, "%.1f", percent * 100) : ::sprintf(buffer, "<0.1");
+            percent > 0.001 ? ::sprintf(buffer, "%.1f", percent * 100) : ::sprintf(buffer, "<0.1");
             travel_percent = buffer;
         }
 
