@@ -6060,7 +6060,6 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->max      = 300;
     def->mode     = comAdvanced;
-    def->min      = 0;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def           = this->add("prime_tower_rib_width", coFloat);
