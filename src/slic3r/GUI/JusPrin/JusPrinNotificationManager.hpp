@@ -37,6 +37,9 @@ public:
     void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
     void push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 
+    // Override BBL notification methods
+    void bbl_show_objectsinfo_notification(const std::string& text, bool is_warning, bool is_hidden);
+
     static std::string get_notification_type_name(NotificationType type);
     static std::string get_notification_level_name(NotificationLevel level);
 
