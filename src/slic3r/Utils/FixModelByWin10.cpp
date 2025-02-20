@@ -14,7 +14,7 @@
 #include <winrt/windows.storage.provider.h>
 #include <winrt/windows.graphics.printing3d.h>
 
-#include "FixModelByWin10.hpp"
+#include "FixModel.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -440,6 +440,21 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	}
 	worker_thread.join();
 	return !canceled;
+}
+
+char const * repair_not_available_reason()
+{
+    return "Windows 10 required";
+}
+
+bool is_repair_available()
+{
+    return is_windows10();
+}
+
+bool fix_model(ModelObject &model_object, int volume_idx, GUI::ProgressDialog& progress_dialog, const wxString& msg_header, std::string& fix_result)
+{
+    return fix_model_by_win10_sdk_gui(model_object, volume_idx, progress_dialog, msg_header, fix_result);
 }
 
 } // namespace Slic3r

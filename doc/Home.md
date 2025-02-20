@@ -32,6 +32,9 @@ The guide below takes you through the key calibration tests in Orca - flow rate,
 - [Calibration Guide](./Calibration)
 - [Adaptive Pressure Advance Guide](adaptive-pressure-advance)
 
+## Genecal topics
+- [Fix broken model](Fix-Model)
+
 ## Developer Section
 - [How to build Orca Slicer](./How-to-build)
 - [Localization and translation guide](Localization_guide)
