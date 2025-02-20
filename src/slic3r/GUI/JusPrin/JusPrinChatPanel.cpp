@@ -130,6 +130,28 @@ void JusPrinChatPanel::SendNativeErrorOccurredEvent(const std::string& error_mes
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
+void JusPrinChatPanel::SendNotificationPushedEvent(
+    const std::string& notification_text,
+    const std::string& notification_type,
+    const std::string& notification_level)
+{
+    nlohmann::json params = {
+        {"type", "notificationPushed"},
+        {"data", {
+            {"text", notification_text}
+        }}
+    };
+
+    if (!notification_type.empty()) {
+        params["data"]["type"] = notification_type;
+    }
+    if (!notification_level.empty()) {
+        params["data"]["level"] = notification_level;
+    }
+
+    CallEmbeddedChatMethod("processAgentEvent", params.dump());
+}
+
 // End of Agent events that are processed by the chat panel
 
 
