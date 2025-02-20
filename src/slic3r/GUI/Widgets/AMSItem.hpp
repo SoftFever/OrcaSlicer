@@ -160,8 +160,11 @@ enum FilamentStepType {
 #define AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE wxSize(FromDIP(18), FromDIP(36))
 #define AMS_BODY_SIZE wxSize(FromDIP(36), FromDIP(55))
 #define AMS_DOWN_ROAD_SIZE wxSize(FromDIP(568), FromDIP(10))
+
 #define AMS_HUMIDITY_SIZE wxSize(FromDIP(93), FromDIP(26))
 #define AMS_HUMIDITY_NO_PERCENT_SIZE wxSize(FromDIP(60), FromDIP(26))
+#define AMS_HUMIDITY_DRY_WIDTH FromDIP(35)
+
 #define AMS_PANEL_SIZE wxSize(FromDIP(264), FromDIP(150))
 
 #define GENERIC_AMS_SLOT_NUM 4
@@ -215,6 +218,7 @@ public:
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
     int                     humidity_raw = -1;
+    int                     left_dray_time = 0;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
     AMSModelOriginType      ext_type = AMSModelOriginType::GENERIC_EXT;
 
@@ -229,6 +233,7 @@ public:
             current_action == other.current_action &&
             curreent_filamentstep == other.curreent_filamentstep &&
             ams_humidity == other.ams_humidity &&
+            left_dray_time == other.left_dray_time &&
             ams_type == other.ams_type &&
             ext_type == other.ext_type)
         {
@@ -250,6 +255,8 @@ public:
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
     void parse_ext_info(MachineObject* obj, AmsTray tray);
+
+    bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
 };
 
 /*************************************************
@@ -719,7 +726,8 @@ public:
     std::vector<ScalableBitmap> ams_humidity_no_num_imgs;
     std::vector<ScalableBitmap> ams_humidity_no_num_dark_imgs;
 
-    ScalableBitmap              ams_sun_img;
+    ScalableBitmap ams_sun_img;
+    ScalableBitmap ams_drying_img;
 
 
     int      m_humidity = { 0 };
@@ -731,6 +739,9 @@ public:
     void render(wxDC& dc);
     void doRender(wxDC& dc);
     void msw_rescale();
+
+private:
+    void update_size();
 };
 
 

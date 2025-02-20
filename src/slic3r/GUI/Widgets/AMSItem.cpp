@@ -48,12 +48,13 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
 
     if (ams->type == 1 || ams->type == 3){
         this->ams_humidity = ams->humidity;
-        this->humidity_raw = ams->humidity_raw;
     }
     else{
         this->ams_humidity = -1;
-        this->humidity_raw = -1;
     }
+
+    this->humidity_raw = ams->humidity_raw;
+    this->left_dray_time = ams->left_dry_time;
     this->ams_type = AMSModel(ams->type);
 
     nozzle_id = ams->nozzle;
@@ -2762,13 +2763,15 @@ AMSHumidity::AMSHumidity() {}
 AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wxPoint& pos, const wxSize& size)
     : AMSHumidity()
 {
+    create(parent, id, pos, wxDefaultSize);
+
     for (int i = 1; i <= 5; i++) { ams_humidity_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_light", 16));}
     for (int i = 1; i <= 5; i++) { ams_humidity_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 16));}
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_light", 16)); }
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_dark", 16)); }
 
     ams_sun_img = ScalableBitmap(this, "ams_drying", 16);
-    create(parent, id, pos, wxDefaultSize);
+    ams_drying_img = ScalableBitmap(this, "ams_is_drying", 16);
 
     Bind(wxEVT_PAINT, &AMSHumidity::paintEvent, this);
     //wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_HUMIDITY_BK_COLOUR);
@@ -2807,21 +2810,25 @@ void AMSHumidity::Update(AMSinfo amsinfo)
     if (m_amsinfo != amsinfo)
     {
         m_amsinfo = amsinfo;
-        if (m_amsinfo.humidity_raw != -1)
-        {
-            SetSize(AMS_HUMIDITY_SIZE);
-            SetMinSize(AMS_HUMIDITY_SIZE);
-            SetMaxSize(AMS_HUMIDITY_SIZE);
-        }
-        else
-        {
-            SetSize(AMS_HUMIDITY_NO_PERCENT_SIZE);
-            SetMinSize(AMS_HUMIDITY_NO_PERCENT_SIZE);
-            SetMaxSize(AMS_HUMIDITY_NO_PERCENT_SIZE);
-        }
-
+        update_size();
         Refresh();
     }
+}
+
+void AMSHumidity::update_size()
+{
+    wxSize size;
+    if (m_amsinfo.humidity_raw != -1) {
+        size = AMS_HUMIDITY_SIZE;
+    } else {
+        size = AMS_HUMIDITY_NO_PERCENT_SIZE;
+    }
+
+    if (!m_amsinfo.support_drying()) { size.x -= AMS_HUMIDITY_DRY_WIDTH; }
+
+    SetMaxSize(size);
+    SetMinSize(size);
+    SetSize(size);
 }
 
 
@@ -2919,20 +2926,25 @@ void AMSHumidity::doRender(wxDC& dc)
             pot.x = pot.x + hum_img.GetBmpSize().x + FromDIP(3);
         }
 
-        //vertical line
-        dc.SetPen(wxPen(wxColour(194, 194, 194)));
-        dc.SetBrush(wxBrush(wxColour(194, 194, 194)));
-        //dc.DrawLine(FromDIP(GetSize().x * 0.64), FromDIP(GetSize().y / 2 - 10), FromDIP(GetSize().x * 0.64), FromDIP(GetSize().y / 2 + 10));
-        dc.DrawLine(pot.x, GetSize().y / 2 - FromDIP(10), pot.x, GetSize().y / 2 + FromDIP(10));
+        if (m_amsinfo.support_drying())
+        {
+            // vertical line
+            dc.SetPen(wxPen(wxColour(194, 194, 194)));
+            dc.SetBrush(wxBrush(wxColour(194, 194, 194)));
+            dc.DrawLine(pot.x, GetSize().y / 2 - FromDIP(10), pot.x, GetSize().y / 2 + FromDIP(10));
 
-        //sun image
-        /*pot.x = FromDIP(size.x * 0.69);
-        pot.y = FromDIP((size.y - ams_sun_img.GetBmpHeight()) / 2);*/
-        pot.x = pot.x + (ams_sun_img.GetBmpWidth() / 2);
-        pot.y = (size.y - ams_sun_img.GetBmpHeight()) / 2;
-        dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-        dc.DrawBitmap(ams_sun_img.bmp(), pot);
-
+            // sun image
+            dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+            if (m_amsinfo.left_dray_time > 0) {
+                pot.x = pot.x + (ams_drying_img.GetBmpWidth() / 2);
+                pot.y = (size.y - ams_drying_img.GetBmpHeight()) / 2;
+                dc.DrawBitmap(ams_drying_img.bmp(), pot);
+            } else {
+                pot.x = pot.x + (ams_sun_img.GetBmpWidth() / 2);
+                pot.y = (size.y - ams_sun_img.GetBmpHeight()) / 2;
+                dc.DrawBitmap(ams_sun_img.bmp(), pot);
+            }
+        }
     }
     else {
         //to do ...
@@ -2945,6 +2957,7 @@ void AMSHumidity::msw_rescale() {
     for (auto &img : ams_humidity_no_num_imgs) { img.msw_rescale(); }
     for (auto &img : ams_humidity_no_num_dark_imgs) { img.msw_rescale(); }
     ams_sun_img.msw_rescale();
+    ams_drying_img.msw_rescale();
 
     Layout();
     Refresh();
