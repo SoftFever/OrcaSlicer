@@ -1,0 +1,79 @@
+name: Build ARM64 Dependencies
+on:
+  workflow_dispatch:
+    inputs:
+      cache-key:
+        description: 'Cache key for dependencies'
+        required: true
+        default: 'arm64-deps-v1'
+        type: string
+      cache-path:
+        description: 'Path to cache dependencies'
+        required: true
+        default: 'deps/build'
+        type: string
+      os:
+        description: 'Operating system'
+        required: true
+        default: 'ubuntu-24.04-arm'
+        type: string
+  workflow_call:
+    inputs:
+      cache-key:
+        required: true
+        type: string
+      cache-path:
+        required: true
+        type: string
+      os:
+        required: true
+        type: string
+
+jobs:
+  build_deps:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: 'true'
+
+      - name: load cached deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key }}
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.28.0"
+
+      - name: Get the date
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
+          libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules pkgconf \
+          libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev libwebkit2gtk-4.1-dev \
+          libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
+          gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
+
+      - name: Build Dependencies
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p ${{ github.workspace }}/deps/build
+          mkdir -p ${{ github.workspace }}/deps/build/destdir
+          sudo ./BuildLinux.sh -ur
+          sudo chown $USER -R ./
+          ./BuildLinux.sh -dr
+          cd deps/build
+          tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
+
+      - name: Upload Ubuntu artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrcaSlicer_dep_ubuntu_2404_${{ env.date }}
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
+          
