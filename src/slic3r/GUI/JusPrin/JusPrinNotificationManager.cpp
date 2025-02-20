@@ -6,23 +6,23 @@ namespace GUI {
 
 void JusPrinNotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width, float bottom_margin, float right_margin)
 {
-    // Empty implementation for now
+    // Surpress rendering
 }
 
 bool JusPrinNotificationManager::update_notifications(GLCanvas3D& canvas)
 {
-    // Empty implementation for now
+    // Surpress updating
     return false;
 }
 
 void JusPrinNotificationManager::push_notification(const NotificationType type, int timestamp)
 {
-    // Empty implementation for now
+    push_notification_to_chat("Something happened", JusPrinNotificationManager::get_notification_type_name(type), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::RegularNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_notification(const std::string& text, int timestamp)
 {
-    // Empty implementation for now
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::CustomNotification), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::RegularNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_notification(NotificationType type, NotificationLevel level, const std::string& text,
@@ -36,52 +36,49 @@ void JusPrinNotificationManager::push_notification(NotificationType type, Notifi
 void JusPrinNotificationManager::push_upload_job_notification(int id, float filesize, const std::string& filename,
                                                             const std::string& host, float percentage)
 {
-    // Empty implementation for now
+    std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::PrintHostUpload));
 }
 
 void JusPrinNotificationManager::push_slicing_error_notification(const std::string& text, std::vector<ModelObject const*> objs)
 {
-    // Empty implementation for now
+   push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::SlicingError), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::ErrorNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const* obj,
                                                                  ObjectID oid, int warning_step, int warning_msg_id,
                                                                  NotificationLevel level)
 {
-    // Empty implementation for now
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::SlicingWarning), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::WarningNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_plater_error_notification(const std::string& text)
 {
-    // Empty implementation for now
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::PlaterError), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::ErrorNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_plater_warning_notification(const std::string& text)
 {
-    // Empty implementation for now
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::PlaterWarning), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::WarningNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_simplify_suggestion_notification(const std::string& text, ObjectID object_id,
                                                                      const std::string& hypertext,
                                                                      std::function<bool(wxEvtHandler*)> callback)
 {
-    // Empty implementation for now
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::SimplifySuggestion), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::PrintInfoNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
-    // Empty implementation for now
+    std::string text = _u8L("Export successfully.") + "\n" + path;
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::ExportFinished), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::RegularNotificationLevel));
 }
 
 void JusPrinNotificationManager::push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
-    // Empty implementation for now
-}
-
-void JusPrinNotificationManager::push_delayed_notification(NotificationType type, std::function<bool(void)> condition_callback,
-                                                         int64_t initial_delay, int64_t delay_interval)
-{
-    // Empty implementation for now
+    std::string text = _u8L("Model file downloaded.") + "\n" + path;
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(NotificationType::ExportFinished), JusPrinNotificationManager::get_notification_level_name(NotificationLevel::RegularNotificationLevel));
 }
 
 std::string JusPrinNotificationManager::get_notification_type_name(NotificationType type) {

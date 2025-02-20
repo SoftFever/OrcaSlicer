@@ -679,6 +679,7 @@ private:
         std::string						m_error_message;
     };
 
+protected:
 	class PrintHostUploadNotification : public ProgressBarNotification
 	{
 	public:
@@ -722,6 +723,7 @@ private:
 		UploadJobState		m_uj_state{ UploadJobState::PB_PROGRESS };
 	};
 
+private:
 	class ProgressIndicatorNotification : public ProgressBarNotification
 	{
 	public:
