@@ -232,7 +232,7 @@ static t_config_enum_values s_keys_map_SupportMaterialStyle {
     { "tree_slim",      smsTreeSlim },
     { "tree_strong",    smsTreeStrong },
     { "tree_hybrid",    smsTreeHybrid },
-    { "organic",        smsOrganic }
+    { "organic",        smsTreeOrganic }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 
@@ -4626,6 +4626,17 @@ void PrintConfigDef::init_fff_params()
     //Support with too small spacing may touch the object and difficult to remove.
     def->set_default_value(new ConfigOptionFloat(0.35));
 
+    def = this->add("support_object_first_layer_gap", coFloat);
+    def->label = L("Support/object first layer gap");
+    def->category = L("Support");
+    def->tooltip = L("XY separation between an object and its support at the first layer.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comAdvanced;
+    //Support with too small spacing may touch the object and difficult to remove.
+    def->set_default_value(new ConfigOptionFloat(0.2));
+
     def = this->add("support_angle", coFloat);
     def->label = L("Pattern angle");
     def->category = L("Support");
@@ -4931,7 +4942,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(50., true));
 
     def = this->add("tree_support_branch_angle", coFloat);
-    def->label = L("Tree support branch angle");
+    def->label = L("Branch angle");
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
@@ -4965,7 +4976,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(25));
 
     def           = this->add("tree_support_branch_distance", coFloat);
-    def->label    = L("Tree support branch distance");
+    def->label    = L("Branch distance");
     def->category = L("Support");
     def->tooltip  = L("This setting determines the distance between neighboring tree support nodes.");
     def->sidetext = L("mm");
@@ -5029,7 +5040,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.8));
 
     def           = this->add("tree_support_branch_diameter", coFloat);
-    def->label    = L("Tree support branch diameter");
+    def->label    = L("Branch diameter");
     def->category = L("Support");
     def->tooltip  = L("This setting determines the initial diameter of support nodes.");
     def->sidetext = L("mm");
@@ -5037,16 +5048,6 @@ void PrintConfigDef::init_fff_params()
     def->max      = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
-
-    def           = this->add("tree_support_branch_diameter_organic", coFloat);
-    def->label    = L("Tree support branch diameter");
-    def->category = L("Support");
-    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
-    def->sidetext = L("mm");
-    def->min      = 1.0;
-    def->max      = 10;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_branch_diameter_angle", coFloat);
     // TRN PrintSettings: #lmFIXME 
@@ -5062,23 +5063,22 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
-    def = this->add("tree_support_branch_diameter_double_wall", coFloat);
-    def->label = L("Branch Diameter with double walls");
+    def           = this->add("tree_support_branch_diameter_organic", coFloat);
+    def->label    = L("Tree support branch diameter");
     def->category = L("Support");
-    // TRN PrintSettings: "Organic supports" > "Branch Diameter"
-    def->tooltip = L("Branches with area larger than the area of a circle of this diameter will be printed with double walls for stability. "
-                     "Set this value to zero for no double walls.");
+    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
     def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 100.f;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(3.));
+    def->min      = 1.0;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Support wall loops");
     def->category = L("Support");
-    def->tooltip = L("This setting specify the count of walls around support");
+    def->tooltip = L("This setting specifies the count of support walls in the range of [0,2]. 0 means auto.");
     def->min = 0;
+    def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 

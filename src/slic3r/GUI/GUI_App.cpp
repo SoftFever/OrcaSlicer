@@ -2125,7 +2125,8 @@ bool GUI_App::OnInit()
 {
     try {
         return on_init_inner();
-    } catch (const std::exception&) {
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(fatal) << "OnInit Got Fatal error: " << e.what();
         generic_exception_handle();
         return false;
     }
