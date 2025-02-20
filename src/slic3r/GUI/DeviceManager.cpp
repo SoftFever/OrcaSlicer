@@ -4056,6 +4056,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     }
                                     if (!curr_ams) continue;
 
+                                    if (it->contains("dry_time") && (*it)["dry_time"].is_number())
+                                    {
+                                        curr_ams->left_dry_time = (*it)["dry_time"].get<int>();
+                                    }
+
                                     if (it->contains("humidity")) {
                                         std::string humidity = (*it)["humidity"].get<std::string>();
 

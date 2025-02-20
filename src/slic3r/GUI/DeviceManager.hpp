@@ -273,6 +273,7 @@ public:
         type = type_id;
     }
     std::string   id;
+    int           left_dry_time = 0;
     int           humidity = 5;
     int           humidity_raw = -1;// the percentage, -1 means invalid. eg. 100 means 100%
     bool          startup_read_opt{true};

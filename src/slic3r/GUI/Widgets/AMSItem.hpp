@@ -137,6 +137,9 @@ enum FilamentStepType {
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(86), FromDIP(72))
 #define AMS_EXTRUDER_BITMAP_SIZE wxSize(FromDIP(36), FromDIP(55))
 
+#define AMS_HUMIDITY_DRY_WIDTH FromDIP(35)
+
+
 struct Caninfo
 {
     std::string     can_id;
@@ -161,9 +164,12 @@ public:
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
     int                     humidity_raw = -1;
+    int                     left_dray_time = 0;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
+
+    bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
 };
 
 /*************************************************
@@ -400,6 +406,7 @@ public:
     std::vector<ScalableBitmap> ams_humidity_no_num_dark_imgs;
 
     ScalableBitmap ams_sun_img;
+    ScalableBitmap ams_drying_img;
 
     int      m_humidity = { 0 };
     bool     m_show_humidity = { false };

@@ -49,6 +49,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     }
 
     this->humidity_raw = ams->humidity_raw;
+    this->left_dray_time = ams->left_dry_time;
     this->ams_type = AMSModel(ams->type);
 
     cans.clear();
@@ -1410,6 +1411,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_light", 16)); }
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_dark", 16)); }
     ams_sun_img = ScalableBitmap(this, "ams_drying", 16);
+    ams_drying_img = ScalableBitmap(this, "ams_is_drying", 16);
     if (m_rode_mode != AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
         create(parent, id, pos, size);
     }
@@ -1636,6 +1638,27 @@ void AMSRoad::doRender(wxDC &dc)
                 dc.DrawBitmap(hum_img.bmp(), pot);
                 pot.x = pot.x + hum_img.GetBmpSize().x + FromDIP(3);
             }
+
+            if (m_amsinfo.support_drying())
+            {
+                pot.x += FromDIP(2);// spacing
+
+                // vertical line
+                dc.SetPen(wxPen(wxColour(194, 194, 194)));
+                dc.SetBrush(wxBrush(wxColour(194, 194, 194)));
+                dc.DrawLine(pot.x, GetSize().y / 2 - FromDIP(10), pot.x, GetSize().y / 2 + FromDIP(10));
+
+                // sun image
+                dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                pot.x += ((size.GetWidth() - pot.x) - ams_drying_img.GetBmpWidth()) / 2;// spacing
+                if (m_amsinfo.left_dray_time > 0) {
+                    pot.y = (size.y - ams_drying_img.GetBmpHeight()) / 2;
+                    dc.DrawBitmap(ams_drying_img.bmp(), pot);
+                } else {
+                    pot.y = (size.y - ams_sun_img.GetBmpHeight()) / 2;
+                    dc.DrawBitmap(ams_sun_img.bmp(), pot);
+                }
+            }
         }
         else {
             //to do ...
@@ -1703,6 +1726,7 @@ void AMSRoad::msw_rescale()
     for (auto &img : ams_humidity_no_num_imgs) { img.msw_rescale(); }
     for (auto &img : ams_humidity_no_num_dark_imgs) { img.msw_rescale(); }
     ams_sun_img.msw_rescale();
+    ams_drying_img.msw_rescale();
 }
 
 
