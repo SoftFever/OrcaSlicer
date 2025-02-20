@@ -90,7 +90,6 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
         gc->DrawRectangle(0, 0, width, height);
 
 #ifdef __APPLE__
-
         // Draw drop shadows with offset
         // First shadow (larger, more diffuse)
         gc->SetBrush(wxBrush(wxColour(10, 10, 10, 8)));
@@ -177,7 +176,7 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
 
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (gc) {
-#ifdef __APPLE_
+#ifdef __APPLE__
         // Draw with solid color, no border
         gc->SetBrush(wxBrush(m_bgColor));
         gc->SetPen(wxPen(m_bgColor)); // Changed to use background color for no visible border
