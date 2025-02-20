@@ -106,21 +106,11 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
         gc->DrawRoundedRectangle(3, 3, width-6, height-6, radius);
 
 #else
-   // Draw drop shadows with offset
-        // First shadow (larger, more diffuse)
-        gc->SetBrush(wxBrush(wxColour(10, 10, 10, 8)));
-        gc->DrawRectangle(1, 1, width - 2, height - 2);
-
-        // Second shadow (smaller, more intense)
-        gc->SetBrush(wxBrush(wxColour(33, 33, 33, 15)));
-        gc->DrawRectangle(2, 2, width - 2, height - 2);
-
         // Main button
         gc->SetBrush(wxBrush(*wxWHITE));
         wxColour borderColor = !m_isHovered ? wxColour(0, 0, 0, 0) : *wxBLUE;
         gc->SetPen(wxPen(borderColor, 1));
-        gc->DrawRectangle(3, 3, width-6, height-6);
-
+        gc->DrawRectangle(0, 0, width-2, height-2);
 #endif
         delete gc;
     }
@@ -198,10 +188,9 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
  #else
         int width  = size.GetWidth();
         int height = size.GetHeight();
-        gc->SetBrush(wxBrush(wxColour(m_bgColor)));
-        gc->DrawRectangle(1, 1, width-2, height-2);
+        gc->SetPen(wxPen(m_bgColor, 1));
         gc->SetBrush(wxBrush(wxColour(*wxWHITE)));
-        gc->DrawRectangle(2, 2, width - 4, height - 4);
+        gc->DrawRectangle(0, 0, width-1, height-1);
 
         gc->SetFont(GetFont(), m_bgColor);
         double textWidth, textHeight;
@@ -308,9 +297,18 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     );
 
     // Position badges
+ #ifdef __APPLE__
     int icon_x = (size.GetWidth() - image_width) / 2 + BADGE_OFFSET_X;
     m_icon_text_left->SetPosition({icon_x + 3, button_y - BADGE_OFFSET_Y});
     m_icon_text_right->SetPosition({icon_x + 15, button_y - BADGE_OFFSET_Y});
+#else 
+    auto m_overlay_btn_rect = m_overlay_btn->GetRect();
+    auto badges_size = m_icon_text_left->GetClientSize();
+    auto badges_position_x  = m_overlay_btn_rect.GetRight() - 2 * badges_size.GetWidth();
+    auto badges_position_y  = m_overlay_btn_rect.GetTop() - badges_size.GetHeight();
+    m_icon_text_left->SetPosition({badges_position_x, badges_position_y});
+    m_icon_text_right->SetPosition({badges_position_x + badges_size.GetWidth(), badges_position_y});
+#endif
 
     // Ensure proper z-order
     m_overlay_btn->Raise();
