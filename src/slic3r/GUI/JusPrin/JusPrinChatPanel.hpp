@@ -33,6 +33,10 @@ public:
     void SendModelObjectsChangedEvent();
     void SendClassicModeChangedEvent(bool use_classic_mode);
     void SendNativeErrorOccurredEvent(const std::string& error_message);
+    void SendNotificationPushedEvent(
+        const std::string& notification_text,
+        const std::string& notification_type = "",
+        const std::string& notification_level = "");
 
     // End of Agent events that are processed by the chat panel
 

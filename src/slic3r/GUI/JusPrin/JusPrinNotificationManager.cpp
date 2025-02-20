@@ -1,4 +1,5 @@
 #include "JusPrinNotificationManager.hpp"
+#include "JusPrinChatPanel.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -29,12 +30,7 @@ void JusPrinNotificationManager::push_notification(NotificationType type, Notifi
                                                  std::function<bool(wxEvtHandler*)> callback,
                                                  int timestamp)
 {
-    // Empty implementation for now
-}
-
-void JusPrinNotificationManager::push_validate_error_notification(StringObjectException const& error)
-{
-    // Empty implementation for now
+    push_notification_to_chat(text, JusPrinNotificationManager::get_notification_type_name(type), JusPrinNotificationManager::get_notification_level_name(level));
 }
 
 void JusPrinNotificationManager::push_upload_job_notification(int id, float filesize, const std::string& filename,
@@ -86,6 +82,46 @@ void JusPrinNotificationManager::push_delayed_notification(NotificationType type
                                                          int64_t initial_delay, int64_t delay_interval)
 {
     // Empty implementation for now
+}
+
+std::string JusPrinNotificationManager::get_notification_type_name(NotificationType type) {
+    switch (type) {
+        case NotificationType::CustomNotification: return "CustomNotification";
+        case NotificationType::ExportFinished: return "ExportFinished";
+        case NotificationType::Mouse3dDisconnected: return "Mouse3dDisconnected";
+        case NotificationType::NewAppAvailable: return "NewAppAvailable";
+        case NotificationType::NewAlphaAvailable: return "NewAlphaAvailable";
+        case NotificationType::NewBetaAvailable: return "NewBetaAvailable";
+        case NotificationType::PresetUpdateAvailable: return "PresetUpdateAvailable";
+        case NotificationType::PresetUpdateFinished: return "PresetUpdateFinished";
+        case NotificationType::ValidateError: return "ValidateError";
+        case NotificationType::ValidateWarning: return "ValidateWarning";
+        case NotificationType::SlicingError: return "SlicingError";
+        case NotificationType::SlicingSeriousWarning: return "SlicingSeriousWarning";
+        case NotificationType::SlicingWarning: return "SlicingWarning";
+        case NotificationType::PlaterError: return "PlaterError";
+        case NotificationType::PlaterWarning: return "PlaterWarning";
+        case NotificationType::ProgressBar: return "ProgressBar";
+        default: return "UnknownNotificationType";
+    }
+}
+
+std::string JusPrinNotificationManager::get_notification_level_name(NotificationLevel level) {
+    switch (level) {
+        case NotificationLevel::RegularNotificationLevel: return "regular";
+        case NotificationLevel::ImportantNotificationLevel: return "important";
+        case NotificationLevel::ErrorNotificationLevel: return "error";
+        case NotificationLevel::WarningNotificationLevel: return "warning";
+        case NotificationLevel::HintNotificationLevel: return "hint";
+        case NotificationLevel::ProgressBarNotificationLevel: return "progress";
+        default: return "unknown";
+    }
+}
+
+void JusPrinNotificationManager::push_notification_to_chat(const std::string& text, const std::string& type, const std::string& level) {
+    if (wxGetApp().plater() && wxGetApp().plater()->jusprinChatPanel()) {
+        wxGetApp().plater()->jusprinChatPanel()->SendNotificationPushedEvent(text, type, level);
+    }
 }
 
 }//namespace GUI
