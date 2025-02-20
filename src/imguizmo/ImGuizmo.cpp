@@ -31,6 +31,10 @@
 #include <imgui/imgui_internal.h>
 #include "ImGuizmo.h"
 
+#include <algorithm>
+#include <math.h>
+#include <cmath>
+
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <malloc.h>
 #endif
@@ -678,16 +682,19 @@ namespace IMGUIZMO_NAMESPACE
 
    struct Context
    {
+#if 0
       Context() : mbUsing(false), mbEnable(true), mbUsingBounds(false)
       {
       }
-
+#endif
       ImDrawList* mDrawList;
       Style mStyle;
-
+#if 0
       MODE mMode;
+#endif
       matrix_t mViewMat;
       matrix_t mProjectionMat;
+#if 0
       matrix_t mModel;
       matrix_t mModelLocal; // orthonormalized model
       matrix_t mModelInverse;
@@ -702,9 +709,10 @@ namespace IMGUIZMO_NAMESPACE
       vec_t mCameraRight;
       vec_t mCameraDir;
       vec_t mCameraUp;
+#endif
       vec_t mRayOrigin;
       vec_t mRayVector;
-
+#if 0
       float  mRadiusSquareCenter;
       ImVec2 mScreenSquareCenter;
       ImVec2 mScreenSquareMin;
@@ -715,9 +723,10 @@ namespace IMGUIZMO_NAMESPACE
 
       bool mbUsing;
       bool mbEnable;
+#endif
       bool mbMouseOver;
       bool mReversed; // reversed projection matrix
-
+#if 0
       // translation
       vec_t mTranslationPlan;
       vec_t mTranslationPlanOrigin;
@@ -773,11 +782,13 @@ namespace IMGUIZMO_NAMESPACE
 
       bool mAllowAxisFlip = true;
       float mGizmoSizeClipSpace = 0.1f;
+#endif
    };
 
    static Context gContext;
 
    static const vec_t directionUnary[3] = { makeVect(1.f, 0.f, 0.f), makeVect(0.f, 1.f, 0.f), makeVect(0.f, 0.f, 1.f) };
+#if 0
    static const char* translationInfoMask[] = { "X : %5.3f", "Y : %5.3f", "Z : %5.3f",
       "Y : %5.3f Z : %5.3f", "X : %5.3f Z : %5.3f", "X : %5.3f Y : %5.3f",
       "X : %5.3f Y : %5.3f Z : %5.3f" };
@@ -795,7 +806,7 @@ namespace IMGUIZMO_NAMESPACE
    static int GetMoveType(OPERATION op, vec_t* gizmoHitProportion);
    static int GetRotateType(OPERATION op);
    static int GetScaleType(OPERATION op);
-
+#endif
    Style& GetStyle()
    {
       return gContext.mStyle;
@@ -807,7 +818,7 @@ namespace IMGUIZMO_NAMESPACE
       return ImGui::ColorConvertFloat4ToU32(gContext.mStyle.Colors[idx]);
    }
 
-   static ImVec2 worldToPos(const vec_t& worldPos, const matrix_t& mat, ImVec2 position = ImVec2(gContext.mX, gContext.mY), ImVec2 size = ImVec2(gContext.mWidth, gContext.mHeight))
+   static ImVec2 worldToPos(const vec_t& worldPos, const matrix_t& mat, ImVec2 position = ImVec2(0, 0), ImVec2 size = ImVec2(0, 0))
    {
       vec_t trans;
       trans.TransformPoint(worldPos, mat);
@@ -821,7 +832,7 @@ namespace IMGUIZMO_NAMESPACE
       return ImVec2(trans.x, trans.y);
    }
 
-   static void ComputeCameraRay(vec_t& rayOrigin, vec_t& rayDir, ImVec2 position = ImVec2(gContext.mX, gContext.mY), ImVec2 size = ImVec2(gContext.mWidth, gContext.mHeight))
+   static void ComputeCameraRay(vec_t& rayOrigin, vec_t& rayDir, ImVec2 position = ImVec2(0, 0), ImVec2 size = ImVec2(0, 0))
    {
       ImGuiIO& io = ImGui::GetIO();
 
@@ -841,7 +852,7 @@ namespace IMGUIZMO_NAMESPACE
       rayEnd *= 1.f / rayEnd.w;
       rayDir = Normalized(rayEnd - rayOrigin);
    }
-
+#if 0
    static float GetSegmentLengthClipSpace(const vec_t& start, const vec_t& end, const bool localCoordinates = false)
    {
       vec_t startOfSegment = start;
@@ -911,7 +922,7 @@ namespace IMGUIZMO_NAMESPACE
 
       return vertPos1 + V * t;
    }
-
+#endif
    static float IntersectRayPlane(const vec_t& rOrigin, const vec_t& rVector, const vec_t& plan)
    {
       const float numer = plan.Dot3(rOrigin) - plan.w;
@@ -924,7 +935,7 @@ namespace IMGUIZMO_NAMESPACE
 
       return -(numer / denom);
    }
-
+#if 0
    static float DistanceToPlane(const vec_t& point, const vec_t& plan)
    {
       return plan.Dot3(point) + plan.w;
@@ -934,7 +945,7 @@ namespace IMGUIZMO_NAMESPACE
    {
       return IsWithin(p.x, gContext.mX, gContext.mXMax) && IsWithin(p.y, gContext.mY, gContext.mYMax);
    }
-
+#endif
    static bool IsHoveringWindow()
    {
       ImGuiContext& g = *ImGui::GetCurrentContext();
@@ -947,7 +958,7 @@ namespace IMGUIZMO_NAMESPACE
          return true;
       return false;
    }
-
+#if 0
    void SetRect(float x, float y, float width, float height)
    {
       gContext.mX = x;
@@ -973,7 +984,7 @@ namespace IMGUIZMO_NAMESPACE
    {
       ImGui::SetCurrentContext(ctx);
    }
-
+#endif
    void BeginFrame()
    {
       const ImU32 flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -997,7 +1008,7 @@ namespace IMGUIZMO_NAMESPACE
       ImGui::PopStyleVar();
       ImGui::PopStyleColor(2);
    }
-
+#if 0
    bool IsUsing()
    {
       return (gContext.mbUsing && (gContext.mActualID == -1 || gContext.mActualID == gContext.mEditingID)) || gContext.mbUsingBounds;
@@ -1045,14 +1056,16 @@ namespace IMGUIZMO_NAMESPACE
          gContext.mbUsingBounds = false;
       }
    }
-
+#endif
    static void ComputeContext(const float* view, const float* projection, float* matrix, MODE mode)
    {
+#if 0
       gContext.mMode = mode;
+#endif
       gContext.mViewMat = *(matrix_t*)view;
       gContext.mProjectionMat = *(matrix_t*)projection;
       gContext.mbMouseOver = IsHoveringWindow();
-
+#if 0
       gContext.mModelLocal = *(matrix_t*)matrix;
       gContext.mModelLocal.OrthoNormalize();
 
@@ -1079,14 +1092,14 @@ namespace IMGUIZMO_NAMESPACE
       gContext.mCameraEye = viewInverse.v.position;
       gContext.mCameraRight = viewInverse.v.right;
       gContext.mCameraUp = viewInverse.v.up;
-
+#endif
       // projection reverse
        vec_t nearPos, farPos;
        nearPos.Transform(makeVect(0, 0, 1.f, 1.f), gContext.mProjectionMat);
        farPos.Transform(makeVect(0, 0, 2.f, 1.f), gContext.mProjectionMat);
 
        gContext.mReversed = (nearPos.z/nearPos.w) > (farPos.z / farPos.w);
-
+#if 0
       // compute scale from the size of camera right vector projected on screen at the matrix position
       vec_t pointRight = viewInverse.v.right;
       pointRight.TransformPoint(gContext.mViewProjection);
@@ -1101,10 +1114,10 @@ namespace IMGUIZMO_NAMESPACE
       gContext.mScreenSquareCenter = centerSSpace;
       gContext.mScreenSquareMin = ImVec2(centerSSpace.x - 10.f, centerSSpace.y - 10.f);
       gContext.mScreenSquareMax = ImVec2(centerSSpace.x + 10.f, centerSSpace.y + 10.f);
-
+#endif
       ComputeCameraRay(gContext.mRayOrigin, gContext.mRayVector);
    }
-
+#if 0
    static void ComputeColors(ImU32* colors, int type, OPERATION operation)
    {
       if (gContext.mbEnable)
@@ -2775,8 +2788,8 @@ namespace IMGUIZMO_NAMESPACE
          }
       }
    }
-
-   bool ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
+#endif
+   ViewManipulateResult ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       // Scale is always local or matrix will be skewed when applying world scale or oriented matrix
       ComputeContext(view, projection, matrix, (operation & SCALE) ? LOCAL : mode);
@@ -2803,7 +2816,7 @@ namespace IMGUIZMO_NAMESPACE
        m16[15] = 1.0f;
    }
 
-   bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
+   ViewManipulateResult ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       static bool isDraging = false;
       static bool isClicking = false;
@@ -2933,6 +2946,7 @@ namespace IMGUIZMO_NAMESPACE
                         overBox = boxCoordInt;
                         isClicking = true;
                         isDraging  = true;
+                        interpolationFrames = 0;
                      }
                   }
                }
@@ -3039,7 +3053,7 @@ namespace IMGUIZMO_NAMESPACE
          }
       }
 
-      bool viewUpdated = false;
+      ViewManipulateResult result;
       if (interpolationFrames)
       {
          interpolationFrames--;
@@ -3053,7 +3067,7 @@ namespace IMGUIZMO_NAMESPACE
          newUp = interpolationUp;
          vec_t newEye = camTarget + newDir * length;
          LookAt(&newEye.x, &camTarget.x, &newUp.x, view);
-         viewUpdated = true;
+         result.changed = true;
       }
       isInside = gContext.mbMouseOver && ImRect(position, position + size).Contains(io.MousePos);
 
@@ -3081,68 +3095,70 @@ namespace IMGUIZMO_NAMESPACE
 
             if (fabsf(Dot(interpolationDir, referenceUp)) > 1.0f - 0.01f)
             {
-               vec_t right = viewInverse.v.right;
-               if (fabsf(right.x) > fabsf(right.z))
-               {
-                  right.z = 0.f;
-               }
-               else
-               {
-                  right.x = 0.f;
-               }
-               right.Normalize();
-               interpolationUp = Cross(interpolationDir, right);
-               interpolationUp.Normalize();
+               interpolationUp = overBox == 10 ? makeVect(1.f, 0.f, 0.f) : makeVect(-1.f, 0.f, 0.f);
             }
             else
             {
                interpolationUp = referenceUp;
             }
             interpolationFrames = 40;
-
+            result.changed = true;
+            result.clicked_box = overBox;
          }
          isClicking = false;
          isDraging = false;
       }
 
 
-      if (isDraging)
+      if (isDraging && (fabsf(io.MouseDelta[0]) || fabsf(io.MouseDelta[1])))
       {
-         matrix_t rx, ry, roll;
+         auto delta_x = io.MouseDelta.y * 0.01f;
+         auto delta_y = io.MouseDelta.x * 0.01f;
 
-         rx.RotationAxis(referenceUp, -io.MouseDelta.x * 0.01f);
-         ry.RotationAxis(viewInverse.v.right, -io.MouseDelta.y * 0.01f);
+         matrix_t vvv = *(matrix_t*)view;
+         // Calculate the rotation along x-axis
+         auto rot_x_deg = std::acos(std::clamp(Dot(vvv.v.up, referenceUp), -1.0f, 1.0f));
+         if (vvv.v.up.z < 0) rot_x_deg *= -1;
+
+         const vec_t referenceRight = makeVect(1.f, 0.f, 0.f);
+         const vec_t referenceForward = makeVect(0.f, 0.f, 1.f);
+         matrix_t rx2;
+         rx2.RotationAxis(referenceRight, rot_x_deg);
+         vec_t f2;
+         f2.TransformVector(referenceForward, rx2);
+
+         // Then calculate the rotation along y-axis
+         auto rot_y_deg = std::acos(std::clamp(Dot(vvv.v.dir, f2), -1.0f, 1.0f));
+         if (vvv.v.dir.x < 0) rot_y_deg *= -1;
+
+         // Apply deltas
+         rot_x_deg += delta_x;
+         rot_y_deg += delta_y;
+         // Clamp
+         if (rot_x_deg > 0.5 * M_PI) rot_x_deg = 0.5 * M_PI;
+         else if (rot_x_deg < -0.5 * M_PI) rot_x_deg = -0.5 * M_PI;
+
+         matrix_t rx, ry, roll;
+         // Calculate new rotation matrix
+         rx.RotationAxis(referenceRight, rot_x_deg);
+         f2.TransformVector(referenceUp, rx);
+         ry.RotationAxis(f2, rot_y_deg);
 
          roll = rx * ry;
 
-         vec_t newDir = viewInverse.v.dir;
-         newDir.TransformVector(roll);
-         newDir.Normalize();
-
-         // clamp
-         vec_t planDir = Cross(viewInverse.v.right, referenceUp);
-         planDir.y = 0.f;
-         planDir.Normalize();
-         float dt = Dot(planDir, newDir);
-         if (dt < 0.0f)
-         {
-            newDir += planDir * dt;
-            newDir.Normalize();
-         }
-
-         vec_t newEye = camTarget + newDir * length;
-         LookAt(&newEye.x, &camTarget.x, &referenceUp.x, view);
+         *(matrix_t*)view = roll;
 #if IMGUI_VERSION_NUM >= 18723
          ImGui::SetNextFrameWantCaptureMouse(true);
 #else
          ImGui::CaptureMouseFromApp();
 #endif
-         viewUpdated = true;
+         result.changed = true;
+         result.dragging = true;
       }
 
       // restore view/projection because it was used to compute ray
-      ComputeContext(svgView.m16, svgProjection.m16, gContext.mModelSource.m16, gContext.mMode);
+      ComputeContext(svgView.m16, svgProjection.m16, nullptr/*gContext.mModelSource.m16*/, WORLD/*gContext.mMode*/);
 
-      return viewUpdated;
+      return result;
    }
 };
