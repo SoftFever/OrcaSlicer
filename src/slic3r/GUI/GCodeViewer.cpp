@@ -4472,7 +4472,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
                 // ORCA replace checkboxes with eye icon
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-                ImGui::Button(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16, 16));
+                ImGui::Button(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16 * m_scale, 16 * m_scale));
                 ImGui::PopStyleColor(1);
                 ImGui::PopStyleVar(1);
             }
@@ -4653,10 +4653,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f * m_scale, 3.0f * m_scale)); // ORCA Center icon with frame padding
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f); // ORCA Match button style with combo box
+    float calc_padding = (ImGui::GetFrameHeight() - 16 * m_scale) / 2;                      // ORCA calculated padding for 16x16 icon
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(calc_padding, calc_padding));    // ORCA Center icon with frame padding
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);                                 // ORCA Match button style with combo box
 
-    float button_width = ImGui::GetFrameHeight(); // ORCA use FrameHeight to match buttons height with combo box
+    float button_width = 16 * m_scale + calc_padding * 2;                                   // ORCA match buttons height with combo box
     if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, button_width))) {
         m_fold = !m_fold;
     }
