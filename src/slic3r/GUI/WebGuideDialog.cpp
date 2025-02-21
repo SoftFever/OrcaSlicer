@@ -437,7 +437,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
                     wxString s1 = TmpModel["model"];
                     wxString s2 = OneSelect["model"];
                     if (s1.compare(s2) == 0) {
-                        m_ProfileJson["model"][m]["nozzle_selected"] = OneSelect["nozzle_diameter"];
+                        m_ProfileJson["model"][m]["nozzle_selected"] = m_ProfileJson["model"][m]["nozzle_diameter"];
                         break;
                     }
                 }
@@ -517,7 +517,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
     }
 
-    //wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
+    wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
 }
 
 void GuideFrame::RunScript(const wxString &javascript)
