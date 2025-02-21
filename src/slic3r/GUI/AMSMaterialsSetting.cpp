@@ -552,13 +552,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
                     auto vendor = dynamic_cast<ConfigOptionStrings *>(it->config.option("filament_vendor"));
 
-                    PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
-                    auto          option        = preset_bundle->get_filament_by_filament_id(filament_id);
-                    auto          tag_name      = option ? option->filament_name : "";
-
                     if (vendor && (vendor->values.size() > 0)) {
                         std::string vendor_name = vendor->values[0];
-                        DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, tag_name, ams_id, in_blacklist, action, info);
+                        DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, ams_id, slot_id, in_blacklist, action, info);
                     }
 
                     if (in_blacklist) {

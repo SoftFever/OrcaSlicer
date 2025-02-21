@@ -7485,6 +7485,32 @@ bool DeviceManager::is_virtual_slot(int ams_id)
     return false;
 }
 
+std::string DeviceManager::get_filament_name_from_ams(int ams_id, int slot_id)
+{
+    std::string name;
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) { return name; }
+
+    MachineObject *obj = dev->get_selected_machine();
+    if (obj == nullptr || !obj->is_multi_extruders()) { return name; }
+
+    if (ams_id < 0 || slot_id < 0 ) {
+        return name;
+    }
+
+
+    if (obj->amsList.find(std::to_string(ams_id)) == obj->amsList.end()) {return name;}
+
+    if (obj->amsList[std::to_string(ams_id)]->trayList.find(std::to_string(slot_id)) == obj->amsList[std::to_string(ams_id)]->trayList.end()) { return name; }
+
+    std::string filament_id = obj->amsList[std::to_string(ams_id)]->trayList[std::to_string(slot_id)]->setting_id;
+
+    PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
+    auto          option        = preset_bundle->get_filament_by_filament_id(filament_id);
+    name      = option ? option->filament_name : "";
+    return name;
+}
+
 bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -7527,8 +7553,12 @@ bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, con
     return true;
 }
 
-void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, std::string tag_name, int ams_id, bool& in_blacklist, std::string& ac, std::string& info)
+void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, int ams_id, int slot_id, bool& in_blacklist, std::string& ac, std::string& info)
 {
+    if (ams_id < 0 || slot_id < 0) {
+        return;
+    }
+
     if (!check_filaments_printable(tag_vendor, tag_type, ams_id, in_blacklist, ac, info)) {
         return;
     }
@@ -7537,6 +7567,8 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
         check_filaments_for_vt_slot(tag_vendor, tag_type, ams_id, in_blacklist, ac, info);
         return;
     }
+
+    std::string tag_name = get_filament_name_from_ams(ams_id, slot_id);
 
     std::unordered_map<std::string, wxString> blacklist_prompt =
     {
@@ -7571,8 +7603,6 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
                     action = prohibited_filament["action"].get<std::string>();
                 }
                 description = prohibited_filament["description"].get<std::string>();
-
-                description = blacklist_prompt[description].ToUTF8().data();
             }
             else {
                 return;
@@ -7589,19 +7619,23 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
 
             //third party
             if (vendor == "third party") {
-                if ("bambu lab" != tag_vendor && (tag_type == type || tag_name == name)) {
-                    in_blacklist = true;
-                    ac = action;
-                    info = description;
-                    return;
+                if ("bambu lab" != tag_vendor && tag_type == type) {
+                    if (name == "undefine" || (tag_name.find(name) != std::string::npos)) {
+                        in_blacklist = true;
+                        ac           = action;
+                        info         = blacklist_prompt[description].ToUTF8().data();
+                        return;
+                    }
                 }
             }
             else {
-                if (vendor == tag_vendor && (tag_type == type || tag_name == name)) {
-                    in_blacklist = true;
-                    ac = action;
-                    info = description;
-                    return;
+                if (vendor == tag_vendor && tag_type == type) {
+                    if (name == "undefine" || (tag_name.find(name) != std::string::npos)) {
+                        in_blacklist = true;
+                        ac           = action;
+                        info         = blacklist_prompt[description].ToUTF8().data();
+                        return;
+                    }
                 }
             }
         }

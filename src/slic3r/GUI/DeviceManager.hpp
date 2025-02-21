@@ -1394,12 +1394,12 @@ public:
     static bool load_filaments_blacklist_config();
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
-    static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, std::string tag_name, int ams_id, bool &in_blacklist, std::string &ac, std::string &info);
+    static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, int ams_id, int slot_id, bool &in_blacklist, std::string &ac, std::string &info);
     static bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info);
     static boost::bimaps::bimap<std::string, std::string> get_all_model_id_with_name();
     static std::string load_gcode(std::string type_str, std::string gcode_file);
     static bool is_virtual_slot(int ams_id);
-
+    static std::string get_filament_name_from_ams(int ams_id, int slot_id);
     static void update_local_machine(const MachineObject& m);
 };
 

@@ -1466,14 +1466,10 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         std::string filamnt_type;
         preset->get_filament_type(filamnt_type);
 
-        PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
-        auto          option        = preset_bundle->get_filament_by_filament_id(preset->filament_id);
-        auto          tag_name      = option ? option->filament_name : "";
-
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
             std::string vendor_name = vendor->values[0];
-            DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, tag_name, ams_id, in_blacklist, action, info);
+            DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, ams_id, slot_id, in_blacklist, action, info);
         }
 
         if (in_blacklist) {

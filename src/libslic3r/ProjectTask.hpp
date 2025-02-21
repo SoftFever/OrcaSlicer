@@ -55,7 +55,7 @@ struct FilamentInfo
     std::string slot_id;
 
 public:
-    int get_amd_id() const
+    int get_ams_id() const
     {
         if (ams_id.empty()) { return -1; };
 
@@ -64,6 +64,17 @@ public:
             return stoi(ams_id);
         }
         catch (...) {};
+
+        return -1;
+    };
+
+    int get_slot_id() const
+    {
+        if (slot_id.empty()) { return -1; };
+
+        try {
+            return stoi(slot_id);
+        } catch (...) {};
 
         return -1;
     };
