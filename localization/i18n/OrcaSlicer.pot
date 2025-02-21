@@ -11874,26 +11874,23 @@ msgid ""
 "print when travel move. Using spiral line to lift z can prevent stringing"
 msgstr ""
 
-msgid "Z hop lower boundary"
+msgid "Z-hop lower boundary"
 msgstr ""
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\""
 msgstr ""
 
-msgid "Z hop upper boundary"
+msgid "Z-hop upper boundary"
 msgstr ""
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value"
 msgstr ""
 
 msgid "Z-hop type"
-msgstr ""
-
-msgid "Z hop type"
 msgstr ""
 
 msgid "Slope"
@@ -11906,7 +11903,7 @@ msgid "Traveling angle"
 msgstr ""
 
 msgid ""
-"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results "
 "in Normal Lift"
 msgstr ""
 
@@ -11930,7 +11927,7 @@ msgid "On surfaces"
 msgstr ""
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
 

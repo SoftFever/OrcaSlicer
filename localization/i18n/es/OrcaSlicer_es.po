@@ -13637,30 +13637,27 @@ msgstr ""
 "boquilla golpee la pieza cuando se desplaza. El uso de la línea espiral para "
 "levantar z puede evitar la aparción de hilos"
 
-msgid "Z hop lower boundary"
+msgid "Z-hop lower boundary"
 msgstr "Límite inferior de salto Z"
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\""
 msgstr ""
 "El salto en Z sólo se usará cuando Z esté por encima de este valor y se "
 "encuentre por debajo del parámetro: \"Límite superior de salto Z\""
 
-msgid "Z hop upper boundary"
+msgid "Z-hop upper boundary"
 msgstr "Límite superior de salto Z"
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value"
 msgstr ""
-"Si este valor es positivo, Z hop sólo se usará cuando Z esté por encima del "
+"Si este valor es positivo, Z-hop sólo se usará cuando Z esté por encima del "
 "parámetro \"Límite inferior de salto Z\" y por debajo de este valor"
 
 msgid "Z-hop type"
-msgstr "Tipo de Salto en Z"
-
-msgid "Z hop type"
 msgstr "Tipo de salto Z"
 
 msgid "Slope"
@@ -13673,7 +13670,7 @@ msgid "Traveling angle"
 msgstr "Ángulo de desplazamiento"
 
 msgid ""
-"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results "
 "in Normal Lift"
 msgstr ""
 "Ángulo de desplazamiento para el tipo de salto Z de Pendiente y Espiral. Si "
@@ -13703,7 +13700,7 @@ msgid "On surfaces"
 msgstr "En las superficies"
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
 "Forzar el comportamiento de Salto Z. Este ajuste se ve afectado por los "
@@ -18841,7 +18838,7 @@ msgstr ""
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Forzar elevación Z"
 
-#~ msgid "Z hop when retract"
+#~ msgid "Z-hop when retract"
 #~ msgstr "Salto en Z al retraer"
 
 #, no-c-format, no-boost-format
@@ -20685,7 +20682,7 @@ msgstr ""
 #~ "semicolon. Scripts will be passed via the absolute path to the G-code "
 #~ "file as the first argument, and variables of settings can also be read"
 
-#~ msgid "Z Hop Type"
+#~ msgid "Z-Hop Type"
 #~ msgstr "Tipo de salto Z"
 
 #~ msgid "The brim width around tree support. 0 means auto."
