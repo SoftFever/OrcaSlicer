@@ -1182,8 +1182,11 @@ void PrintErrorDialog::msw_rescale() {
 
 void PrintErrorDialog::rescale()
 {
-    for(auto used_button:m_used_button)
-        m_button_list[used_button]->Rescale();
+    for (auto used_button : m_used_button) {
+        if (m_button_list.find(used_button) != m_button_list.end()) {
+            m_button_list[used_button]->Rescale();
+        }
+     }
 }
 
 ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
