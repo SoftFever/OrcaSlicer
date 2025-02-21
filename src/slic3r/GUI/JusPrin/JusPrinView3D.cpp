@@ -15,7 +15,7 @@
 namespace {
 
     // Chat panel size constants
-    constexpr int MIN_CHAT_HEIGHT = 220;
+    constexpr int MIN_CHAT_HEIGHT = 340;
     constexpr int MIN_CHAT_WIDTH = 420;
 
     constexpr double CHAT_HEIGHT_RATIO_SMALL = 0.25;
