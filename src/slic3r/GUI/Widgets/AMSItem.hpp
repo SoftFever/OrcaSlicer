@@ -219,6 +219,7 @@ public:
     int                     ams_humidity = 0;
     int                     humidity_raw = -1;
     int                     left_dray_time = 0;
+    float                   current_temperature = INVALID_AMS_TEMPERATURE;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
     AMSModelOriginType      ext_type = AMSModelOriginType::GENERIC_EXT;
 
@@ -234,6 +235,7 @@ public:
             curreent_filamentstep == other.curreent_filamentstep &&
             ams_humidity == other.ams_humidity &&
             left_dray_time == other.left_dray_time &&
+            current_temperature == other.current_temperature &&
             ams_type == other.ams_type &&
             ext_type == other.ext_type)
         {

@@ -4,6 +4,8 @@
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
 
+#include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
+
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
@@ -21,6 +23,7 @@ namespace Slic3r { namespace GUI {
 AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
     : wxSimplebook(parent, wxID_ANY, pos, size)
     , m_Humidity_tip_popup(AmsHumidityTipPopup(this))
+    , m_percent_humidity_dry_popup(new uiAmsPercentHumidityDryPopup(this))
     , m_ams_introduce_popup(AmsIntroducePopup(this))
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -270,15 +273,31 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     });
 
     Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this](wxCommandEvent& evt) {
+        uiAmsHumidityInfo *info    = (uiAmsHumidityInfo *) evt.GetClientData();
+        if (info)
+        {
+            if (info->humidity_percent >= 0)
+            {
+                m_percent_humidity_dry_popup->Update(info);
 
-        wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
-        m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
-        int humidity_value = evt.GetInt();
-        if (humidity_value > 0 && humidity_value <= 5) {
-            m_Humidity_tip_popup.set_humidity_level(humidity_value);
+                wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
+                wxPoint popup_pos(img_pos.x - m_percent_humidity_dry_popup->GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
+                m_percent_humidity_dry_popup->Position(popup_pos, wxSize(0, 0));
+                m_percent_humidity_dry_popup->Popup();
+            }
+            else
+            {
+                wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
+                wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
+                m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
+
+                int humidity_value = info->humidity_level;
+                if (humidity_value > 0 && humidity_value <= 5) { m_Humidity_tip_popup.set_humidity_level(humidity_value); }
+                m_Humidity_tip_popup.Popup();
+            }
         }
-        m_Humidity_tip_popup.Popup();
+
+        delete info;
     });
     Bind(EVT_AMS_ON_SELECTED, &AMSControl::AmsSelectedSwitch, this);
 }
@@ -494,6 +513,10 @@ void AMSControl::msw_rescale()
     }
     if (m_down_road){
         m_down_road->msw_rescale();
+    }
+
+    if (m_percent_humidity_dry_popup){
+        m_percent_humidity_dry_popup->msw_rescale();
     }
 
     Layout();
