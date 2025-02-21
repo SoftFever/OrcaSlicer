@@ -17,11 +17,6 @@ namespace {
     constexpr int BUTTON_RADIUS = 12;
     constexpr int BUTTON_SHADOW_OFFSET = 3;
 
-    // Chat panel constants
-    constexpr int MIN_CHAT_HEIGHT = 180;
-    constexpr int MIN_CHAT_WIDTH = 326;
-    constexpr double CHAT_HEIGHT_RATIO = 0.25;
-    constexpr double CHAT_WIDTH_RATIO = 0.5;
     constexpr int CHAT_BOTTOM_MARGIN = 10;
 
     // Animation/Image constants
@@ -209,7 +204,7 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
 JusPrinView3D::JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : View3D(parent, bed, model, config, process)
 {
-    init_overlay();
+    initOverlay();
 }
 
 JusPrinView3D::~JusPrinView3D()
@@ -220,16 +215,16 @@ JusPrinView3D::~JusPrinView3D()
     delete m_icon_text_right;
 }
 
-void JusPrinView3D::init_overlay()
+void JusPrinView3D::initOverlay()
 {
     // Create chat panel overlay
     m_chat_panel = new JusPrinChatPanel(this);
 
     // Position the chat panel
     wxSize client_size = GetClientSize();
-    int chat_height = std::max(180, (int)(client_size.GetHeight() * 0.25));  // minimum 180px
-    int chat_width = std::max(326, (int)(client_size.GetWidth() * 0.5));    // minimum 326px
-    int chat_y = client_size.GetHeight() - chat_height - 10;  // 10px from bottom
+    int chat_height = std::max(m_min_chat_height, (int)(client_size.GetHeight() * m_chat_height_ratio));
+    int chat_width = std::max(m_min_chat_width, (int)(client_size.GetWidth() * m_chat_width_ratio));
+    int chat_y = client_size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN;
 
     m_chat_panel->SetSize(
         (client_size.GetWidth() - chat_width) / 2,
@@ -247,7 +242,7 @@ void JusPrinView3D::init_overlay()
 
     // Bind click event to show chat panel
     auto open_chat = [this](wxMouseEvent& evt) {
-        showChatPanel();
+        wxGetApp().plater()->jusprinChatPanel()->SendChatPanelFocusEvent("in_focus");
         evt.Skip();
     };
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
@@ -260,9 +255,11 @@ void JusPrinView3D::init_overlay()
 
     m_icon_text_right->SetSize(BADGE_SIZE, BADGE_SIZE);
     m_icon_text_left->SetSize(BADGE_SIZE, BADGE_SIZE);
-    
+
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
+
+    changeChatPanelDisplay("large");
 }
 
 void JusPrinView3D::OnSize(wxSizeEvent& evt)
@@ -273,8 +270,8 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     wxSize size = GetClientSize();
 
     // Resize chat panel
-    int chat_height = std::max(MIN_CHAT_HEIGHT, (int)(size.GetHeight() * CHAT_HEIGHT_RATIO));
-    int chat_width = std::max(MIN_CHAT_WIDTH, (int)(size.GetWidth() * CHAT_WIDTH_RATIO));
+    int chat_height = std::max(m_min_chat_height, (int)(size.GetHeight() * m_chat_height_ratio));
+    int chat_width = std::max(m_min_chat_width, (int)(size.GetWidth() * m_chat_width_ratio));
     int chat_y = size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN;
 
     m_chat_panel->SetSize(
@@ -336,9 +333,36 @@ void JusPrinView3D::hideChatPanel() {
     m_icon_text_right->Show();
 }
 
+void JusPrinView3D::changeChatPanelDisplay(const std::string& display) {
+    if (!m_chat_panel) return;
+
+    if (display == "none") {
+        hideChatPanel();
+        return;
+    }
+
+    if (display == "small") {
+        this->m_min_chat_height = MIN_CHAT_HEIGHT_SMALL;
+        this->m_min_chat_width = MIN_CHAT_WIDTH_SMALL;
+        this->m_chat_height_ratio = CHAT_HEIGHT_RATIO_SMALL;
+        this->m_chat_width_ratio = CHAT_WIDTH_RATIO_SMALL;
+        showChatPanel();
+        return;
+    }
+
+    if (display == "large") {
+        this->m_min_chat_height = MIN_CHAT_HEIGHT_LARGE;
+        this->m_min_chat_width = MIN_CHAT_WIDTH_LARGE;
+        this->m_chat_height_ratio = CHAT_HEIGHT_RATIO_LARGE;
+        this->m_chat_width_ratio = CHAT_WIDTH_RATIO_LARGE;
+        showChatPanel();
+        return;
+    }
+}
+
 void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt) {
     if (m_chat_panel && m_chat_panel->IsShown()) {
-        hideChatPanel();
+        wxGetApp().plater()->jusprinChatPanel()->SendChatPanelFocusEvent("out_of_focus");
     }
     evt.Skip();
 }
