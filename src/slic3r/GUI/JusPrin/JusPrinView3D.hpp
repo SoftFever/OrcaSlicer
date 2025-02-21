@@ -90,6 +90,7 @@ private:
     void initOverlay();
     void showChatPanel();
     void hideChatPanel();
+    void updateChatPanelSize();
 
     // Chat panel size configuration
     int m_min_chat_height{MIN_CHAT_HEIGHT_LARGE};
