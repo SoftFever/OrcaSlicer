@@ -351,27 +351,19 @@ void JusPrinView3D::hideChatPanel() {
     m_icon_text_right->Show();
 }
 
-void JusPrinView3D::changeChatPanelDisplay(const std::string& display) {
-    if (!m_chat_panel) return;
+std::string JusPrinView3D::changeChatPanelDisplay(const std::string& display) {
+    if (!m_chat_panel) return "none";
 
     if (display == "none") {
         hideChatPanel();
-        return;
+        return "none";
     }
 
-    if (display == "small") {
-        m_display_mode = "small";
-        updateChatPanelSize();
-        showChatPanel();
-        return;
-    }
+    m_display_mode = display;
+    updateChatPanelSize();
+    showChatPanel();
 
-    if (display == "large") {
-        m_display_mode = "large";
-        updateChatPanelSize();
-        showChatPanel();
-        return;
-    }
+    return m_display_mode;
 }
 
 void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt) {

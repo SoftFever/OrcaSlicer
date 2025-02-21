@@ -67,7 +67,7 @@ public:
     JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     virtual ~JusPrinView3D();
 
-    void changeChatPanelDisplay(const std::string& display);
+    std::string changeChatPanelDisplay(const std::string& display);
 
     JusPrinChatPanel* jusprinChatPanel() const { return m_chat_panel; }
 
