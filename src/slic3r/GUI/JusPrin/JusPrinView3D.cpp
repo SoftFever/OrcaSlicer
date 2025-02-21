@@ -29,8 +29,8 @@ namespace {
     constexpr int ANIMATION_HEIGHT = 28;
 
     // Badge constants
-    constexpr int BADGE_SIZE = 20;
-    constexpr int BADGE_OFFSET_X = 210;
+    constexpr int BADGE_SIZE = 18;
+    constexpr int BADGE_OFFSET_X = 205;
 #ifdef __APPLE__
     constexpr int BADGE_OFFSET_Y = 5;
 #else
@@ -178,7 +178,8 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
                        size.GetHeight() - 2*margin);
 
         // Draw text in black for maximum contrast
-        gc->SetFont(GetFont(), *wxBLACK);
+        auto font = GetFont().Scale(0.8);
+        gc->SetFont(font, *wxBLACK);
         double textWidth, textHeight;
         gc->GetTextExtent(m_text, &textWidth, &textHeight);
 
@@ -252,14 +253,14 @@ void JusPrinView3D::init_overlay()
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
     m_overlay_btn->AddJoin(open_chat);
     // Just create the left badge for now
-    m_icon_text_right = new CircularBadge(this, "1", wxColour("#EA3426"));
+    m_icon_text_right = new CircularBadge(this, "9+", wxColour("#EA3426"));
     m_icon_text_right->Raise();
     m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
     m_icon_text_left->Raise();
 
-    // Debug: Make the badge bigger initially to see it better
-    m_icon_text_left->SetMinSize(wxSize(20, 20));
-
+    m_icon_text_right->SetSize(BADGE_SIZE, BADGE_SIZE);
+    m_icon_text_left->SetSize(BADGE_SIZE, BADGE_SIZE);
+    
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
 }
@@ -299,9 +300,9 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     // Position badges
  #ifdef __APPLE__
     int icon_x = (size.GetWidth() - image_width) / 2 + BADGE_OFFSET_X;
-    m_icon_text_left->SetPosition({icon_x + 3, button_y - BADGE_OFFSET_Y});
-    m_icon_text_right->SetPosition({icon_x + 15, button_y - BADGE_OFFSET_Y});
-#else 
+    m_icon_text_left->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
+    m_icon_text_right->SetPosition({icon_x + BADGE_SIZE - BADGE_SIZE/4 , button_y - BADGE_OFFSET_Y});
+#else
     auto m_overlay_btn_rect = m_overlay_btn->GetRect();
     auto badges_size = m_icon_text_left->GetClientSize();
     auto badges_position_x  = m_overlay_btn_rect.GetRight() - 2 * badges_size.GetWidth();
