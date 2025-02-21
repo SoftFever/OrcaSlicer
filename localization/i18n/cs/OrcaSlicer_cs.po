@@ -16861,7 +16861,7 @@ msgstr ""
 msgid ""
 "How to use keyboard shortcuts\n"
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
-"3D scene operations."
+"3D scene operations?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Reverse on odd]
@@ -17130,7 +17130,7 @@ msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of "
 "extruder/hotend clogging when printing lower temperature filament with a "
-"higher enclosure temperature. More info about this in the Wiki."
+"higher enclosure temperature? More info about this in the Wiki."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Avoid warping]
@@ -17138,7 +17138,7 @@ msgid ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
-"probability of warping."
+"probability of warping?"
 msgstr ""
 
 #~ msgid ""
