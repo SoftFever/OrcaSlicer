@@ -1298,8 +1298,10 @@ void Sidebar::update_all_preset_comboboxes()
                                                                            "curr_bed_type");
             if (!str_bed_type.empty()) {
                 int bed_type_value = atoi(str_bed_type.c_str());
-                if (bed_type_value == 0)
-                    bed_type_value = 1;
+                if (bed_type_value <= 0 || bed_type_value >= btCount) {
+                    bed_type_value = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+                }
+
                 m_bed_type_list->SelectAndNotify(bed_type_value - 1);
             } else {
                 BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
