@@ -18431,11 +18431,12 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door
 #: opened]
+#, fuzzy
 msgid ""
-"When need to print with the printer door opened\n"
+"When do you need to print with the printer door opened?\n"
 "Did you know that opening the printer door can reduce the probability of "
 "extruder/hotend clogging when printing lower temperature filament with a "
-"higher enclosure temperature. More info about this in the Wiki."
+"higher enclosure temperature? More info about this in the Wiki."
 msgstr ""
 "Kai reikia spausdinti atidarius spausdintuvo dureles\n"
 "Ar žinojote, kad atidarius spausdintuvo dureles gali sumažėti ekstruderio ir "

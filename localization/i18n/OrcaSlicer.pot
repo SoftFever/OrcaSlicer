@@ -15544,7 +15544,7 @@ msgid "Switch workspaces\nYou can switch between <b>Prepare</b> and <b>Preview</
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
-msgid "How to use keyboard shortcuts\nDid you know that Orca Slicer offers a wide range of keyboard shortcuts and 3D scene operations."
+msgid "How to use keyboard shortcuts\nDid you know that Orca Slicer offers a wide range of keyboard shortcuts and 3D scene operations?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Reverse on odd]
@@ -15564,11 +15564,11 @@ msgid "Timelapse\nDid you know that you can generate a timelapse video during ea
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid "Auto-Arrange\nDid you know that you can auto-arrange all objects in your project?"
+msgid "Auto-Arrange\nDid you know that you can auto-arrange all the objects in your project?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Auto-Orient]
-msgid "Auto-Orient\nDid you know that you can rotate objects to an optimal orientation for printing by a simple click?"
+msgid "Auto-Orient\nDid you know that you can rotate objects to an optimal orientation for printing with a simple click?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Lay on Face]
@@ -15636,7 +15636,7 @@ msgid "Brim for better adhesion\nDid you know that when printed models have a sm
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid "Set parameters for multiple objects\nDid you know that you can set slicing parameters for all selected objects at one time?"
+msgid "Set parameters for multiple objects\nDid you know that you can set slicing parameters for all selected objects at once?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Stack objects]
@@ -15644,17 +15644,17 @@ msgid "Stack objects\nDid you know that you can stack objects as a whole one?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid "Flush into support/objects/infill\nDid you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
+msgid "Flush into support/objects/infill\nDid you know that you can save wasted filament by flushing it into support/objects/infill during filament change?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid "Improve strength\nDid you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
-msgid "When need to print with the printer door opened\nDid you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
+#: resources/data/hints.ini: [hint:When do you need to print with the printer door opened]
+msgid "When do you need to print with the printer door opened?\nDid you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature? More info about this in the Wiki."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Avoid warping]
-msgid "Avoid warping\nDid you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
+msgid "Avoid warping\nDid you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
 msgstr ""
