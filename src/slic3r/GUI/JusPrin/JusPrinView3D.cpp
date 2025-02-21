@@ -288,7 +288,9 @@ void JusPrinView3D::initOverlay()
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
 
-    changeChatPanelDisplay("large");
+    if (wxGetApp().app_config->get_bool("developer_mode")) {    // Make sure chat can display in dev mode so that we can bring out javascript console
+        changeChatPanelDisplay("large");
+    }
 }
 
 void JusPrinView3D::OnSize(wxSizeEvent& evt)
