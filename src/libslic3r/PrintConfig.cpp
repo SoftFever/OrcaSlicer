@@ -2732,7 +2732,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0.3));
+    def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("fuzzy_skin_point_distance", coFloat);
     def->label = L("Fuzzy skin point distance");
@@ -2742,7 +2742,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 5;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0.8));
+    def->set_default_value(new ConfigOptionFloat(0.3));
 
     def = this->add("fuzzy_skin_first_layer", coBool);
     def->label = L("Apply fuzzy skin to first layer");
