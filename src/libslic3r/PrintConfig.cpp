@@ -2138,7 +2138,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_stamping_distance", coFloats);
     def->label = L("Stamping distance measured from the center of the cooling tube");
-    def->tooltip = L("If set to nonzero value, filament is moved toward the nozzle between the individual cooling moves (\"stamping\"). "
+    def->tooltip = L("If set to non-zero value, filament is moved toward the nozzle between the individual cooling moves (\"stamping\"). "
                      "This option configures how long this movement should be before the filament is retracted again.");
     def->min = 0;
     def->mode = comAdvanced;
@@ -4371,8 +4371,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Skirt minimum extrusion length");
     def->full_label = L("Skirt minimum extrusion length");
     def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
-                     "Using a non zero value is useful if the printer is set up to print without a prime line.\n"
-                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case.");
+                     "Using a non-zero value is useful if the printer is set up to print without a prime line.\n"
+                     "Final number of loops is not taking into account while arranging or validating objects distance. Increase loop number in such case.");
     def->min = 0;
     def->sidetext = L("mm");
     def->mode = comAdvanced;
@@ -4499,7 +4499,7 @@ void PrintConfigDef::init_fff_params()
     // TRN PrintSettings : "Ooze prevention" > "Temperature variation"
     def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
                      "The value is not used when 'idle_temperature' in filament settings "
-                     "is set to non zero value.");
+                     "is set to non-zero value.");
     def->sidetext = "∆°C";
     def->min = -max_temp;
     def->max = max_temp;
