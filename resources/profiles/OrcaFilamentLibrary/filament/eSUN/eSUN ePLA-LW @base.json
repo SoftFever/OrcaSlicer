@@ -1,0 +1,26 @@
+{
+    "type": "filament",
+    "name": "eSUN ePLA-LW @base",
+    "inherits": "fdm_filament_pla",
+    "from": "system",
+    "filament_id": "GFL03",
+    "instantiation": "false",
+    "filament_cost": [
+        "33.99"
+    ],
+    "filament_density": [
+        "1.2"
+    ],
+    "filament_flow_ratio": [
+        "0.51"
+    ],
+    "filament_max_volumetric_speed": [
+        "6"
+    ],
+    "filament_vendor": [
+        "eSUN"
+    ],
+    "slow_down_layer_time": [
+        "6"
+    ]
+}

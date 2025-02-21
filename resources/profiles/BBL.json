@@ -743,7 +743,11 @@
         },
         {
             "name": "eSUN PLA+ @base",
-            "sub_path": "filament/eSUN PLA+ @base.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @base.json"
+        },
+        {
+            "name": "eSUN ePLA-LW @base",
+            "sub_path": "filament/eSUN/eSUN ePLA-LW @base.json"
         },
         {
             "name": "PolyTerra PLA @base",
@@ -1551,39 +1555,47 @@
         },
         {
             "name": "eSUN PLA+ @BBL X1C",
-            "sub_path": "filament/eSUN PLA+ @BBL X1C.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL X1C.json"
         },
         {
             "name": "eSUN PLA+ @BBL X1",
-            "sub_path": "filament/eSUN PLA+ @BBL X1.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL X1.json"
         },
         {
             "name": "eSUN PLA+ @BBL X1C 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL X1C 0.2 nozzle.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL X1C 0.2 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL P1P",
-            "sub_path": "filament/P1P/eSUN PLA+ @BBL P1P.json"
+            "sub_path": "filament/P1P/eSUN/eSUN PLA+ @BBL P1P.json"
         },
         {
             "name": "eSUN PLA+ @BBL P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/eSUN PLA+ @BBL P1P 0.2 nozzle.json"
+            "sub_path": "filament/P1P/eSUN/eSUN PLA+ @BBL P1P 0.2 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1M",
-            "sub_path": "filament/eSUN PLA+ @BBL A1M.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1M.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1M 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL A1M 0.2 nozzle.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1M 0.2 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1",
-            "sub_path": "filament/eSUN PLA+ @BBL A1.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL A1 0.2 nozzle.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "eSUN ePLA-LW @BBL A1",
+            "sub_path": "filament/eSUN/eSUN ePLA-LW @BBL A1.json"
+        },
+        {
+            "name": "eSUN ePLA-LW @BBL A1 0.4 nozzle",
+            "sub_path": "filament/eSUN/eSUN ePLA-LW @BBL A1 0.4 nozzle.json"
         },
         {
             "name": "PolyTerra PLA @BBL X1C",

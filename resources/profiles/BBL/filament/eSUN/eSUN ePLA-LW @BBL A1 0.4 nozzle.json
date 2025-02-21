@@ -1,0 +1,80 @@
+{
+    "type": "filament",
+    "name": "eSUN ePLA-LW @BBL A1 0.4 nozzle",
+    "inherits": "eSUN ePLA-LW @base",
+    "from": "system",
+    "setting_id": "GFSA11_04",
+    "instantiation": "true",
+    "filament_diameter": [
+        "1.75"
+    ],
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
+    "fan_cooling_layer_time": [
+        "40"
+    ],
+    "fan_max_speed": [
+        "70"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
+    "hot_plate_temp": [
+        "60"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "60"
+    ],
+    "slow_down_layer_time": [
+        "1"
+    ],
+    "textured_plate_temp": [
+        "55"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "55"
+    ],
+    "compatible_printers": [
+        "Bambu Lab A1 0.4 nozzle"
+    ],
+    "enable_pressure_advance": [
+        "1"
+    ],
+    "enable_overhang_bridge_fan": [
+        "1"
+    ],
+    "default_filament_colour": [
+        "#F6F5F4"
+    ],
+    "filament_retract_restart_extra": [
+        "0.9"
+    ],
+    "filament_retract_when_changing_layer": [
+        "1"
+    ],
+    "filament_retraction_length": [
+        "1"
+    ],
+    "filament_retraction_speed": [
+        "40"
+    ],
+    "filament_wipe_distance": [
+        "1.8"
+    ],
+    "nozzle_temperature": [
+        "243"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "243"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "overhang_fan_threshold": [
+        "50%"
+    ],
+    "pressure_advance": [
+        "0.04"
+    ],
+}
