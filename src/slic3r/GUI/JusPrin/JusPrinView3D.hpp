@@ -4,17 +4,6 @@
 #include "../../GUI/GUI_Preview.hpp"
 #include "JusPrinChatPanel.hpp"
 
-// Chat panel size constants
-constexpr int MIN_CHAT_HEIGHT_SMALL = 220;
-constexpr int MIN_CHAT_WIDTH_SMALL = 420;
-constexpr double CHAT_HEIGHT_RATIO_SMALL = 0.25;
-constexpr double CHAT_WIDTH_RATIO_SMALL = 0.5;
-
-constexpr int MIN_CHAT_HEIGHT_LARGE = 520;
-constexpr int MIN_CHAT_WIDTH_LARGE = 520;
-constexpr double CHAT_HEIGHT_RATIO_LARGE = 0.75;
-constexpr double CHAT_WIDTH_RATIO_LARGE = 0.85;
-
 // Forward declarations
 class wxStaticBitmap;
 class wxWindow;
@@ -92,11 +81,7 @@ private:
     void hideChatPanel();
     void updateChatPanelSize();
 
-    // Chat panel size configuration
-    int m_min_chat_height{MIN_CHAT_HEIGHT_LARGE};
-    int m_min_chat_width{MIN_CHAT_WIDTH_LARGE};
-    double m_chat_height_ratio{CHAT_HEIGHT_RATIO_LARGE};
-    double m_chat_width_ratio{CHAT_WIDTH_RATIO_LARGE};
+    std::string m_display_mode{"large"};
 
     JusPrinChatPanel* m_chat_panel{nullptr};
     JustPrinButton*   m_overlay_btn{nullptr};
