@@ -5,6 +5,8 @@
 #include "../GUI_App.hpp"
 #include "../Utils/WxFontUtils.hpp"
 
+#include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
+
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
@@ -50,6 +52,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
 
     this->humidity_raw = ams->humidity_raw;
     this->left_dray_time = ams->left_dry_time;
+    this->current_temperature = ams->current_temperature;
     this->ams_type = AMSModel(ams->type);
 
     cans.clear();
@@ -2198,13 +2201,12 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
                 mouse_pos.y > rect.y) {
                 wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
 
-                //uiAmsHumidityInfo *info = new uiAmsHumidityInfo;
-                //info->ams_id            = m_amsinfo.ams_id;
-                //info->humidity_level    = m_amsinfo.ams_humidity;
-                //info->humidity_percent  = m_amsinfo.humidity_raw;
-                //info->left_dry_time     = m_amsinfo.left_dray_time;
-                //info->current_temperature = m_amsinfo.current_temperature;
-                //show_event.SetClientData(info);
+                uiAmsHumidityInfo *info = new uiAmsHumidityInfo;
+                info->humidity_level    = m_amsinfo.ams_humidity;
+                info->humidity_percent  = m_amsinfo.humidity_raw;
+                info->left_dry_time     = m_amsinfo.left_dray_time;
+                info->current_temperature = m_amsinfo.current_temperature;
+                show_event.SetClientData(info);
                 wxPostEvent(GetParent()->GetParent(), show_event);
 
 #ifdef __WXMSW__

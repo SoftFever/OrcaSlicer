@@ -4127,6 +4127,20 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         }
                                     }
 
+
+                                    if (it->contains("temp"))
+                                    {
+                                        std::string temp = (*it)["temp"].get<std::string>();
+                                        try
+                                        {
+                                            curr_ams->current_temperature = string_to_float(temp);
+                                        }
+                                        catch (...)
+                                        {
+                                            curr_ams->current_temperature = INVALID_AMS_TEMPERATURE;
+                                        }
+                                    }
+
                                     if (it->contains("tray")) {
                                         std::set<std::string> tray_id_set;
                                         for (auto it = curr_ams->trayList.begin(); it != curr_ams->trayList.end(); it++) {

@@ -264,6 +264,7 @@ public:
     std::string get_filament_type();
 };
 
+#define INVALID_AMS_TEMPERATURE std::numeric_limits<float>::min()
 
 class Ams {
 public:
@@ -276,6 +277,7 @@ public:
     int           left_dry_time = 0;
     int           humidity = 5;
     int           humidity_raw = -1;// the percentage, -1 means invalid. eg. 100 means 100%
+    float         current_temperature   = INVALID_AMS_TEMPERATURE; // the temperature
     bool          startup_read_opt{true};
     bool          tray_read_opt{false};
     bool          is_exists{false};
