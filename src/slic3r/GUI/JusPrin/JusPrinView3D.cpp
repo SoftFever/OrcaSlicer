@@ -13,6 +13,16 @@
 #include "../GUI_App.hpp"
 
 namespace {
+
+    // Chat panel size constants
+    constexpr int MIN_CHAT_HEIGHT = 220;
+    constexpr int MIN_CHAT_WIDTH = 420;
+
+    constexpr double CHAT_HEIGHT_RATIO_SMALL = 0.25;
+    constexpr double CHAT_WIDTH_RATIO_SMALL = 0.5;
+    constexpr double CHAT_HEIGHT_RATIO_LARGE = 0.75;
+    constexpr double CHAT_WIDTH_RATIO_LARGE = 0.85;
+
     // Button constants
     constexpr int BUTTON_RADIUS = 12;
     constexpr int BUTTON_SHADOW_OFFSET = 3;
@@ -36,6 +46,21 @@ namespace {
     constexpr int OVERLAY_IMAGE_HEIGHT = 38;
     constexpr int OVERLAY_IMAGE_WIDTH = 238;
     constexpr int OVERLAY_PADDING = 8;
+
+    struct ChatPanelConfig {
+        double height_ratio;
+        double width_ratio;
+    };
+
+    const ChatPanelConfig SMALL_CONFIG {
+        CHAT_HEIGHT_RATIO_SMALL,
+        CHAT_WIDTH_RATIO_SMALL
+    };
+
+    const ChatPanelConfig LARGE_CONFIG {
+        CHAT_HEIGHT_RATIO_LARGE,
+        CHAT_WIDTH_RATIO_LARGE
+    };
 }
 
 namespace Slic3r {
@@ -218,14 +243,15 @@ JusPrinView3D::~JusPrinView3D()
 void JusPrinView3D::updateChatPanelSize() {
     if (!m_chat_panel) return;
 
+    const auto& config = m_display_mode == "large" ? LARGE_CONFIG : SMALL_CONFIG;
     wxSize size = GetClientSize();
-    int chat_height = std::max(m_min_chat_height, (int)(size.GetHeight() * m_chat_height_ratio));
-    int chat_width = std::max(m_min_chat_width, (int)(size.GetWidth() * m_chat_width_ratio));
-    int chat_y = size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN;
+
+    int chat_width = std::max(MIN_CHAT_WIDTH, (int)(size.GetWidth() * config.width_ratio));
+    int chat_height = std::max(MIN_CHAT_HEIGHT, (int)(size.GetHeight() * config.height_ratio));
 
     m_chat_panel->SetSize(
         (size.GetWidth() - chat_width) / 2,
-        chat_y,
+        size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN,
         chat_width,
         chat_height
     );
@@ -332,19 +358,15 @@ void JusPrinView3D::changeChatPanelDisplay(const std::string& display) {
     }
 
     if (display == "small") {
-        this->m_min_chat_height = MIN_CHAT_HEIGHT_SMALL;
-        this->m_min_chat_width = MIN_CHAT_WIDTH_SMALL;
-        this->m_chat_height_ratio = CHAT_HEIGHT_RATIO_SMALL;
-        this->m_chat_width_ratio = CHAT_WIDTH_RATIO_SMALL;
+        m_display_mode = "small";
+        updateChatPanelSize();
         showChatPanel();
         return;
     }
 
     if (display == "large") {
-        this->m_min_chat_height = MIN_CHAT_HEIGHT_LARGE;
-        this->m_min_chat_width = MIN_CHAT_WIDTH_LARGE;
-        this->m_chat_height_ratio = CHAT_HEIGHT_RATIO_LARGE;
-        this->m_chat_width_ratio = CHAT_WIDTH_RATIO_LARGE;
+        m_display_mode = "large";
+        updateChatPanelSize();
         showChatPanel();
         return;
     }
