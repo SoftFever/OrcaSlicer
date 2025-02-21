@@ -215,28 +215,31 @@ JusPrinView3D::~JusPrinView3D()
     delete m_icon_text_right;
 }
 
-void JusPrinView3D::initOverlay()
-{
-    // Create chat panel overlay
-    m_chat_panel = new JusPrinChatPanel(this);
+void JusPrinView3D::updateChatPanelSize() {
+    if (!m_chat_panel) return;
 
-    // Position the chat panel
-    wxSize client_size = GetClientSize();
-    int chat_height = std::max(m_min_chat_height, (int)(client_size.GetHeight() * m_chat_height_ratio));
-    int chat_width = std::max(m_min_chat_width, (int)(client_size.GetWidth() * m_chat_width_ratio));
-    int chat_y = client_size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN;
+    wxSize size = GetClientSize();
+    int chat_height = std::max(m_min_chat_height, (int)(size.GetHeight() * m_chat_height_ratio));
+    int chat_width = std::max(m_min_chat_width, (int)(size.GetWidth() * m_chat_width_ratio));
+    int chat_y = size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN;
 
     m_chat_panel->SetSize(
-        (client_size.GetWidth() - chat_width) / 2,
+        (size.GetWidth() - chat_width) / 2,
         chat_y,
         chat_width,
         chat_height
     );
+}
+
+void JusPrinView3D::initOverlay()
+{
+    m_chat_panel = new JusPrinChatPanel(this);
+    updateChatPanelSize();
     m_chat_panel->Hide();
 
     // Create image overlay using resources directory
     m_overlay_btn = new JustPrinButton(this, wxID_ANY,
-        wxPoint((client_size.GetWidth() - 200) / 2, chat_height - 40),
+        wxPoint((GetClientSize().GetWidth() - 200) / 2, GetClientSize().GetHeight() - 40),
         wxSize(200, 100));
     m_overlay_btn->Raise();
 
@@ -267,28 +270,15 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     evt.Skip();
     if (!m_chat_panel || !m_overlay_btn) return;
 
-    wxSize size = GetClientSize();
-
-    // Resize chat panel
-    int chat_height = std::max(m_min_chat_height, (int)(size.GetHeight() * m_chat_height_ratio));
-    int chat_width = std::max(m_min_chat_width, (int)(size.GetWidth() * m_chat_width_ratio));
-    int chat_y = size.GetHeight() - chat_height - CHAT_BOTTOM_MARGIN;
-
-    m_chat_panel->SetSize(
-        (size.GetWidth() - chat_width) / 2,
-        chat_y,
-        chat_width,
-        chat_height
-    );
-    m_chat_panel->Raise();
+    updateChatPanelSize();
 
     // Resize and reposition overlay button
     int image_height = OVERLAY_IMAGE_HEIGHT + OVERLAY_PADDING;
     int image_width = OVERLAY_IMAGE_WIDTH + OVERLAY_PADDING;
-    int button_y = size.GetHeight() - image_height - CHAT_BOTTOM_MARGIN;
+    int button_y = GetClientSize().GetHeight() - image_height - CHAT_BOTTOM_MARGIN;
 
     m_overlay_btn->SetSize(
-        (size.GetWidth() - image_width) / 2,
+        (GetClientSize().GetWidth() - image_width) / 2,
         button_y,
         image_width,
         image_height
@@ -296,7 +286,7 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
 
     // Position badges
  #ifdef __APPLE__
-    int icon_x = (size.GetWidth() - image_width) / 2 + BADGE_OFFSET_X;
+    int icon_x = (GetClientSize().GetWidth() - image_width) / 2 + BADGE_OFFSET_X;
     m_icon_text_left->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
     m_icon_text_right->SetPosition({icon_x + BADGE_SIZE - BADGE_SIZE/4 , button_y - BADGE_OFFSET_Y});
 #else
