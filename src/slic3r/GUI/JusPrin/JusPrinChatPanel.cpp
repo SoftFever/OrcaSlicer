@@ -82,6 +82,7 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     json_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     json_action_handlers["get_current_project"] = &JusPrinChatPanel::handle_get_current_project;
+    json_action_handlers["change_chatpanel_display"] = &JusPrinChatPanel::handle_change_chatpanel_display;
 
     // Actions for the chat page (void return)
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
@@ -89,7 +90,6 @@ void JusPrinChatPanel::init_action_handlers() {
     void_action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
     void_action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
     void_action_handlers["plater_undo"] = &JusPrinChatPanel::handle_plater_undo;
-    void_action_handlers["change_chatpanel_display"] = &JusPrinChatPanel::handle_change_chatpanel_display;
     void_action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
 }
 
@@ -243,6 +243,21 @@ nlohmann::json JusPrinChatPanel::handle_apply_config(const nlohmann::json& param
     return nlohmann::json::object();
 }
 
+nlohmann::json JusPrinChatPanel::handle_change_chatpanel_display(const nlohmann::json& params) {
+    nlohmann::json payload = params.value("payload", nlohmann::json::object());
+
+    std::string display = payload.value("display", "");
+    if (auto* view3d = dynamic_cast<JusPrinView3D*>(GetParent())) {
+        display = view3d->changeChatPanelDisplay(display);
+    } else {
+        display = "none";
+    }
+
+    return nlohmann::json::object({
+        {"display", display}
+    });
+}
+
 void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         wxGetApp().mainframe->start_slicer_all();
@@ -269,15 +284,6 @@ void JusPrinChatPanel::handle_plater_undo(const nlohmann::json& params) {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
         plater->undo();
     });
-}
-
-void JusPrinChatPanel::handle_change_chatpanel_display(const nlohmann::json& params) {
-    nlohmann::json payload = params.value("payload", nlohmann::json::object());
-
-    std::string display = payload.value("display", "");
-    if (auto* view3d = dynamic_cast<JusPrinView3D*>(GetParent())) {
-        view3d->changeChatPanelDisplay(display);
-    }
 }
 
 void JusPrinChatPanel::load_url()
