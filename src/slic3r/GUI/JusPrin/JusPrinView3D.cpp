@@ -192,8 +192,8 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
         gc->SetPen(wxPen(m_bgColor, 1));
         gc->SetBrush(wxBrush(wxColour(*wxWHITE)));
         gc->DrawRectangle(0, 0, width-1, height-1);
-
-        gc->SetFont(GetFont(), m_bgColor);
+        auto font = GetFont().Scale(0.8);
+        gc->SetFont(font, m_bgColor);
         double textWidth, textHeight;
         gc->GetTextExtent(m_text, &textWidth, &textHeight);
 
