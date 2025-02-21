@@ -12732,30 +12732,27 @@ msgstr ""
 "nagyobb mozgás közben a tárgynak ütközzön. A Z tengely emelésekor használt "
 "körkörös mozgás megelőzheti a szálazást."
 
-msgid "Z hop lower boundary"
+msgid "Z-hop lower boundary"
 msgstr "Z-emelés alsó határa"
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\""
 msgstr ""
 "A Z-tengely emelése csak akkor történik meg, ha az emelés mértéke nagyobb "
 "ennél az értéknél, de kisebb a „Z-emelés felső határánál“"
 
-msgid "Z hop upper boundary"
+msgid "Z-hop upper boundary"
 msgstr "Z-emelés felső határa"
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value"
 msgstr ""
 "Ha ez az érték pozitív, a Z-emelés csak akkor történik meg, ha az emelés "
 "mértéke a „Z-emelés alsó határánál“ nagyobb, de kisebb ennél az értéknél"
 
 msgid "Z-hop type"
-msgstr ""
-
-msgid "Z hop type"
 msgstr ""
 
 msgid "Slope"
@@ -12768,7 +12765,7 @@ msgid "Traveling angle"
 msgstr ""
 
 msgid ""
-"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results "
 "in Normal Lift"
 msgstr ""
 
@@ -12792,7 +12789,7 @@ msgid "On surfaces"
 msgstr ""
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
 
@@ -17311,7 +17308,7 @@ msgstr ""
 #~ msgid "Cool plate"
 #~ msgstr "Cool plate"
 
-#~ msgid "Z hop when retract"
+#~ msgid "Z-hop when retract"
 #~ msgstr "Z-tengely emelés visszahúzáskor"
 
 #~ msgid ""

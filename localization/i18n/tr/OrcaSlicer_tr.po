@@ -13534,22 +13534,22 @@ msgstr ""
 "çarpmasını önler. Z'yi kaldırmak için spiral çizgi kullanmak çekmeyi "
 "önleyebilir"
 
-msgid "Z hop lower boundary"
+msgid "Z-hop lower boundary"
 msgstr "Z sıçrama alt sınırı"
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\""
 msgstr ""
 "Z sıçraması yalnızca Z bu değerin üzerinde ve parametrenin altında olduğunda "
 "devreye girer: \"Z sıçraması üst sınırı\""
 
-msgid "Z hop upper boundary"
+msgid "Z-hop upper boundary"
 msgstr "Z sıçrama üst sınırı"
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value"
 msgstr ""
 "Bu değer pozitifse, Z sıçraması yalnızca Z parametresinin üzerinde olduğunda "
 "etkinleşir: \"Z sıçrama alt sınırı\" parametresinin üzerinde ve bu değerin "
@@ -13557,9 +13557,6 @@ msgstr ""
 
 msgid "Z-hop type"
 msgstr "Z-Sıçrama türü"
-
-msgid "Z hop type"
-msgstr "Z sıçraması türü"
 
 msgid "Slope"
 msgstr "Eğim"
@@ -13601,10 +13598,10 @@ msgid "On surfaces"
 msgstr "Yüzeyler"
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
-"Z Hop davranışını zorunlu kılın. Bu ayar yukarıdaki ayarlardan etkilenir "
+"Z-Hop davranışını zorunlu kılın. Bu ayar yukarıdaki ayarlardan etkilenir "
 "(Z'yi yalnızca yukarıya/aşağıya kaldırın)."
 
 msgid "All Surfaces"
@@ -18666,7 +18663,7 @@ msgstr ""
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Z Kaldırma Uygulaması"
 
-#~ msgid "Z hop when retract"
+#~ msgid "Z-hop when retract"
 #~ msgstr "Geri çekme esnasında Z sıçraması"
 
 #, no-c-format, no-boost-format

@@ -12442,27 +12442,24 @@ msgstr ""
 "回抽完成之后，喷嘴轻微抬升，和打印件之间产生一定间隙。这能够避免空驶时喷嘴和"
 "打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝。"
 
-msgid "Z hop lower boundary"
+msgid "Z-hop lower boundary"
 msgstr "Z抬升下边界"
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\""
 msgstr "只有当Z高于此值且低于参数(Z抬升上边界)时，Z抬升才会生效"
 
-msgid "Z hop upper boundary"
+msgid "Z-hop upper boundary"
 msgstr "Z抬升上边界"
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value"
 msgstr "如果该值为正，则Z抬升仅在Z高于参数(Z抬升下边界)且低于该值时才会生效"
 
 msgid "Z-hop type"
 msgstr "Z抬升类型"
-
-msgid "Z hop type"
-msgstr "抬Z类型"
 
 msgid "Slope"
 msgstr "梯形"
@@ -12474,7 +12471,7 @@ msgid "Traveling angle"
 msgstr "空驶抬高角度"
 
 msgid ""
-"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results "
 "in Normal Lift"
 msgstr ""
 
@@ -12498,7 +12495,7 @@ msgid "On surfaces"
 msgstr "仅表面抬Z"
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
 "强制Z抬升行为。此设置受上述设置的影响（仅在高度以下抬Z/仅在高度以上抬Z）。"
@@ -16943,7 +16940,7 @@ msgstr ""
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "强化抬Z策略"
 
-#~ msgid "Z hop when retract"
+#~ msgid "Z-hop when retract"
 #~ msgstr "回抽时抬升Z"
 
 #~ msgid "Reverse on odd"

@@ -13852,30 +13852,27 @@ msgstr ""
 "bei der Verfahrbewegung gegen den Druck stößt. Die Verwendung einer "
 "Spirallinie zum Anheben von z kann Fadenbildung verhindern."
 
-msgid "Z hop lower boundary"
+msgid "Z-hop lower boundary"
 msgstr "Z-Hub untere Grenze"
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\""
 msgstr ""
 "Z-Hub wird nur wirksam, wenn Z über diesem Wert liegt und unter dem "
 "Parameter: \"Z-Hub obere Grenze\" liegt"
 
-msgid "Z hop upper boundary"
+msgid "Z-hop upper boundary"
 msgstr "Z-Hub obere Grenze"
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value"
 msgstr ""
 "Wenn dieser Wert positiv ist, wird der Z-Hub nur wirksam, wenn Z über dem "
 "Parameter: \"Z-Hub untere Grenze\" liegt und unter diesem Wert liegt"
 
 msgid "Z-hop type"
-msgstr "Z-Hub Typ"
-
-msgid "Z hop type"
 msgstr "Z-Hub Typ"
 
 msgid "Slope"
@@ -13888,7 +13885,7 @@ msgid "Traveling angle"
 msgstr "Bewegungswinkel"
 
 msgid ""
-"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
+"Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results "
 "in Normal Lift"
 msgstr ""
 "Bewegungswinkel für den Z-Hub-Typ \"Steigung\" und \"Spirale\". Wenn Sie es "
@@ -13918,7 +13915,7 @@ msgid "On surfaces"
 msgstr "Auf Oberflächen"
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
 "Verhalten des Z-Hops erzwingen. Diese Einstellung wird von den oben "
@@ -19103,7 +19100,7 @@ msgstr ""
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Z-Höhe einhalten"
 
-#~ msgid "Z hop when retract"
+#~ msgid "Z-hop when retract"
 #~ msgstr "Z-Hop beim Rückzug"
 
 #, no-c-format, no-boost-format
