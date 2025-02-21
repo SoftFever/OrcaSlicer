@@ -12684,29 +12684,26 @@ msgstr ""
 "回抽完成之後，噴嘴輕微抬升，和列印物件之間產生一定間隙。這能夠避免空駛時噴嘴"
 "和列印物件剮蹭和碰撞。使用螺旋線抬升z能夠減少拉絲"
 
-msgid "Z hop lower boundary"
+msgid "Z-hop lower boundary"
 msgstr "Z 抬升下邊界"
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\"."
 msgstr ""
 "只有當 Z 值高於此設定值且低於「Z 抬升上邊界」參數時，Z 抬升功能才會啟用。"
 
-msgid "Z hop upper boundary"
+msgid "Z-hop upper boundary"
 msgstr "Z 抬升上邊界"
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value."
 msgstr ""
 "若此值為正，Z 抬升功能僅在 Z 值高於「Z 抬升下邊界」參數且低於此設定值時才會啟"
 "用"
 
 msgid "Z-hop type"
-msgstr "Z 抬升類型"
-
-msgid "Z hop type"
 msgstr "Z 抬升類型"
 
 msgid "Slope"
@@ -12719,8 +12716,8 @@ msgid "Traveling angle"
 msgstr "移動角度"
 
 msgid ""
-"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
-"in Normal Lift"
+"Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results "
+"in Normal Lift."
 msgstr "適用於坡度和螺旋 Z 抬升類型的移動角度。將其設為 90° 可執行正常抬升"
 
 msgid "Only lift Z above"
@@ -12743,7 +12740,7 @@ msgid "On surfaces"
 msgstr "僅在表面"
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
 "強制啟用 Z 抬升行為。此功能受前述設定（僅在 Z 值高於/低於時啟用）的影響。"
@@ -14529,10 +14526,10 @@ msgstr "新增至 3MF 檔案的中繼資料值清單"
 msgid "Allow 3mf with newer version to be sliced"
 msgstr "允許對較新版本的 3MF 進行切片處理"
 
-msgid "Current z-hop"
+msgid "Current Z-hop"
 msgstr "目前 Z 抬升高度"
 
-msgid "Contains z-hop present at the beginning of the custom G-code block."
+msgid "Contains Z-hop present at the beginning of the custom G-code block."
 msgstr "包含在自定義 G-code 區塊開頭的 Z 抬升動作。"
 
 msgid ""

@@ -12509,30 +12509,23 @@ msgstr ""
 "リトラクション時に、ノズルを少し上げてから移動します。この動作でモデルとの衝"
 "突を回避できます。"
 
-msgid "Z hop lower boundary"
-msgstr "Z hop lower boundary"
+msgid "Z-hop lower boundary"
+msgstr ""
 
 msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
+"Z-hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z-hop upper boundary\"."
 msgstr ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
 
-msgid "Z hop upper boundary"
-msgstr "Z hop upper boundary"
+msgid "Z-hop upper boundary"
+msgstr ""
 
 msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
+"If this value is positive, Z-hop will only come into effect when Z is above "
+"the parameter: \"Z-hop lower boundary\" and is below this value."
 msgstr ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
 
 msgid "Z-hop type"
-msgstr ""
-
-msgid "Z hop type"
 msgstr ""
 
 msgid "Slope"
@@ -12545,8 +12538,8 @@ msgid "Traveling angle"
 msgstr ""
 
 msgid ""
-"Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results "
-"in Normal Lift"
+"Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results "
+"in Normal Lift."
 msgstr ""
 
 msgid "Only lift Z above"
@@ -12569,7 +12562,7 @@ msgid "On surfaces"
 msgstr ""
 
 msgid ""
-"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"Enforce Z-Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
 
@@ -14299,10 +14292,10 @@ msgstr ""
 msgid "Allow 3mf with newer version to be sliced"
 msgstr ""
 
-msgid "Current z-hop"
+msgid "Current Z-hop"
 msgstr "現在のz-hop"
 
-msgid "Contains z-hop present at the beginning of the custom G-code block."
+msgid "Contains Z-hop present at the beginning of the custom G-code block."
 msgstr "カスタムGコードブロックの先頭に存在するz-hopを含む。"
 
 msgid ""
@@ -17080,7 +17073,7 @@ msgstr ""
 #~ msgid "Cool plate"
 #~ msgstr "常温プレート"
 
-#~ msgid "Z hop when retract"
+#~ msgid "Z-hop when retract"
 #~ msgstr "リトラクト時にZ方向調整"
 
 #~ msgid ""
