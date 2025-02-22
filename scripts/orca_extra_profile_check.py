@@ -3,6 +3,14 @@ import json
 import argparse
 from pathlib import Path
 
+# Add helper function for duplicate key detection.
+def no_duplicates_object_pairs_hook(pairs):
+    seen = {}
+    for key, value in pairs:
+        if key in seen:
+            raise ValueError(f"Duplicate key detected: {key}")
+        seen[key] = value
+    return seen
 
 def check_filament_compatible_printers(vendor_folder):
     """
@@ -23,14 +31,22 @@ def check_filament_compatible_printers(vendor_folder):
     for file_path in vendor_path.rglob("*.json"):
         try:
             with open(file_path, 'r') as fp:
-                data = json.load(fp)
-            instantiation = str(data.get("instantiation", "")).lower() == "true"
-            compatible_printers = data.get("compatible_printers")
-            if instantiation and (not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers)):
-                print(file_path)
-                error += 1
+                # Use custom hook to detect duplicates.
+                data = json.load(fp, object_pairs_hook=no_duplicates_object_pairs_hook)
+        except ValueError as ve:
+            print(f"Duplicate key error in {file_path}: {ve}")
+            error += 1
+            continue
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
+            error += 1
+            continue
+
+        instantiation = str(data.get("instantiation", "")).lower() == "true"
+        compatible_printers = data.get("compatible_printers")
+        if instantiation and (not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers)):
+            print(file_path)
+            error += 1
     return error
 
 def main():
