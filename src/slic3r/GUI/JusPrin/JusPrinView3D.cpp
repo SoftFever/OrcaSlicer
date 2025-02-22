@@ -18,11 +18,6 @@ namespace {
     constexpr int MIN_CHAT_HEIGHT = 340;
     constexpr int MIN_CHAT_WIDTH = 420;
 
-    constexpr double CHAT_HEIGHT_RATIO_SMALL = 0.25;
-    constexpr double CHAT_WIDTH_RATIO_SMALL = 0.5;
-    constexpr double CHAT_HEIGHT_RATIO_LARGE = 0.75;
-    constexpr double CHAT_WIDTH_RATIO_LARGE = 0.85;
-
     // Button constants
     constexpr int BUTTON_RADIUS = 12;
     constexpr int BUTTON_SHADOW_OFFSET = 3;
@@ -46,17 +41,19 @@ namespace {
     constexpr int OVERLAY_IMAGE_WIDTH = 238;
     constexpr int OVERLAY_PADDING = 8;
 
-    struct ChatPanelConfig {
-        double height_ratio;
-        double width_ratio;
-    };
+    // Move these constants to namespace scope since they're used in static config
+    constexpr double CHAT_HEIGHT_RATIO_SMALL = 0.25;
+    constexpr double CHAT_WIDTH_RATIO_SMALL = 0.5;
+    constexpr double CHAT_HEIGHT_RATIO_LARGE = 0.75;
+    constexpr double CHAT_WIDTH_RATIO_LARGE = 0.85;
 
-    const ChatPanelConfig SMALL_CONFIG {
+    // Define static configs
+    const Slic3r::GUI::ChatPanelConfig SMALL_CONFIG {
         CHAT_HEIGHT_RATIO_SMALL,
         CHAT_WIDTH_RATIO_SMALL
     };
 
-    const ChatPanelConfig LARGE_CONFIG {
+    const Slic3r::GUI::ChatPanelConfig LARGE_CONFIG {
         CHAT_HEIGHT_RATIO_LARGE,
         CHAT_WIDTH_RATIO_LARGE
     };
@@ -65,7 +62,7 @@ namespace {
 namespace Slic3r {
 namespace GUI {
 
-JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+ChatActivationButton::ChatActivationButton(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL | wxBORDER_NONE)
 {
 #ifdef __APPLE__
@@ -73,7 +70,7 @@ JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& p
     SetBackgroundColour(wxColour(0, 0, 0, 0));
 #endif
 
-    Bind(wxEVT_PAINT, &JustPrinButton::OnPaint, this);
+    Bind(wxEVT_PAINT, &ChatActivationButton::OnPaint, this);
     m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY);
     wxAnimation animation;
     wxString    gif_url = from_u8((boost::filesystem::path(resources_dir()) /"images/prin_login.gif").make_preferred().string());
@@ -81,9 +78,9 @@ JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& p
         m_animationCtrl->SetAnimation(animation);
         m_animationCtrl->Play();
     }
-    Bind(wxEVT_ENTER_WINDOW, &JustPrinButton::OnMouseEnter, this);
-    Bind(wxEVT_LEAVE_WINDOW, &JustPrinButton::OnMouseLeave, this);
-    Bind(wxEVT_MOTION, &JustPrinButton::OnMouseMove, this);
+    Bind(wxEVT_ENTER_WINDOW, &ChatActivationButton::OnMouseEnter, this);
+    Bind(wxEVT_LEAVE_WINDOW, &ChatActivationButton::OnMouseLeave, this);
+    Bind(wxEVT_MOTION, &ChatActivationButton::OnMouseMove, this);
     m_animationCtrl->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
         if (m_do) {
             m_do(event);
@@ -92,7 +89,7 @@ JustPrinButton::JustPrinButton(wxWindow* parent, wxWindowID id, const wxPoint& p
     });
 }
 
-void JustPrinButton::OnPaint(wxPaintEvent& event) {
+void ChatActivationButton::OnPaint(wxPaintEvent& event) {
     wxAutoBufferedPaintDC dc(this);
     dc.Clear();
 
@@ -135,12 +132,12 @@ void JustPrinButton::OnPaint(wxPaintEvent& event) {
     }
 }
 
-void JustPrinButton::OnMouseEnter(wxMouseEvent& event){
+void ChatActivationButton::OnMouseEnter(wxMouseEvent& event){
     m_isHovered = true;
     Refresh();
 }
 
-void JustPrinButton::OnMouseLeave(wxMouseEvent& event)  {
+void ChatActivationButton::OnMouseLeave(wxMouseEvent& event)  {
     wxPoint mousePos   = ScreenToClient(wxGetMousePosition());
     wxRect  clientRect = GetClientRect();
     if (!clientRect.Contains(mousePos)) {
@@ -149,7 +146,7 @@ void JustPrinButton::OnMouseLeave(wxMouseEvent& event)  {
     }
 }
 
-void JustPrinButton::OnMouseMove(wxMouseEvent& event) {
+void ChatActivationButton::OnMouseMove(wxMouseEvent& event) {
     wxPoint mousePos   = event.GetPosition();
     wxRect  clientRect = GetClientRect();
     if (!clientRect.Contains(mousePos)) {
@@ -165,7 +162,7 @@ void JustPrinButton::OnMouseMove(wxMouseEvent& event) {
     }
 }
 
- void JustPrinButton::DoSetSize(int x, int y, int width, int height, int sizeFlags){
+ void ChatActivationButton::DoSetSize(int x, int y, int width, int height, int sizeFlags){
      m_animationCtrl->SetSize(
          (width - ANIMATION_WIDTH) / 2,
          (height - ANIMATION_HEIGHT) / 2,
@@ -177,7 +174,7 @@ void JustPrinButton::OnMouseMove(wxMouseEvent& event) {
  }
 
 // Implement the OnPaint method
-void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
+void Slic3r::GUI::ActivationButtonNotificationBadge::OnPaint(wxPaintEvent&) {
     wxPaintDC dc(this);
     dc.SetBackgroundMode(wxTRANSPARENT);
 
@@ -225,8 +222,20 @@ void Slic3r::GUI::CircularBadge::OnPaint(wxPaintEvent&) {
     }
 }
 
+// Define the static configurations
+static const ChatPanelConfig SMALL_CONFIG = {
+    CHAT_HEIGHT_RATIO_SMALL,
+    CHAT_WIDTH_RATIO_SMALL
+};
+
+static const ChatPanelConfig LARGE_CONFIG = {
+    CHAT_HEIGHT_RATIO_LARGE,
+    CHAT_WIDTH_RATIO_LARGE
+};
+
 JusPrinView3D::JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : View3D(parent, bed, model, config, process)
+    , m_cur_chatpanel_size_config(LARGE_CONFIG)
 {
     initOverlay();
 }
@@ -240,14 +249,12 @@ JusPrinView3D::~JusPrinView3D()
     delete m_green_badge;
 }
 
-void JusPrinView3D::updateChatPanelSize() {
-    if (!m_chat_panel || m_display_mode == "none") return;
+void JusPrinView3D::updateChatPanelBounds() {
+    if (!m_chat_panel) return;
 
-    const auto& config = m_display_mode == "large" ? LARGE_CONFIG : SMALL_CONFIG;
     wxSize size = GetClientSize();
-
-    int chat_width = std::max(MIN_CHAT_WIDTH, (int)(size.GetWidth() * config.width_ratio));
-    int chat_height = std::max(MIN_CHAT_HEIGHT, (int)(size.GetHeight() * config.height_ratio));
+    int chat_width = std::max(MIN_CHAT_WIDTH, (int)(size.GetWidth() * m_cur_chatpanel_size_config.width_ratio));
+    int chat_height = std::max(MIN_CHAT_HEIGHT, (int)(size.GetHeight() * m_cur_chatpanel_size_config.height_ratio));
 
     m_chat_panel->SetSize(
         (size.GetWidth() - chat_width) / 2,
@@ -257,17 +264,7 @@ void JusPrinView3D::updateChatPanelSize() {
     );
 }
 
-void JusPrinView3D::updateJusPrinButtonAndBadges() {
-    if (!m_red_badge || !m_orange_badge || !m_green_badge) return;
-
-    auto formatBadgeText = [](int count) {
-        return count > 9 ? "9+" : std::to_string(count);
-    };
-
-    m_red_badge->SetText(formatBadgeText(m_red_badge_count));
-    m_orange_badge->SetText(formatBadgeText(m_orange_badge_count));
-    m_green_badge->SetText(formatBadgeText(m_green_badge_count));
-
+void JusPrinView3D::updateActivationButtonBounds() {
     // Resize and reposition overlay button
     int image_height = OVERLAY_IMAGE_HEIGHT + OVERLAY_PADDING;
     int image_width = OVERLAY_IMAGE_WIDTH + OVERLAY_PADDING;
@@ -279,6 +276,22 @@ void JusPrinView3D::updateJusPrinButtonAndBadges() {
         image_width,
         image_height
     );
+}
+
+void JusPrinView3D::showBadgesIfNecessary() {
+    if (!m_red_badge || !m_orange_badge || !m_green_badge) return;
+
+    auto formatBadgeText = [](int count) {
+        return count > 9 ? "9+" : std::to_string(count);
+    };
+
+    m_red_badge->SetText(formatBadgeText(m_red_badge_count));
+    m_orange_badge->SetText(formatBadgeText(m_orange_badge_count));
+    m_green_badge->SetText(formatBadgeText(m_green_badge_count));
+
+    int image_width = OVERLAY_IMAGE_WIDTH + OVERLAY_PADDING;
+    wxRect btn_rect = m_overlay_btn->GetRect();
+    int button_y = btn_rect.GetY();
 
     const int num_visible_badges = (m_red_badge_count > 0) +
            (m_orange_badge_count > 0) +
@@ -291,31 +304,19 @@ void JusPrinView3D::updateJusPrinButtonAndBadges() {
     } else if (num_visible_badges > 1) {
         icon_x -= BADGE_SIZE + BADGE_SIZE * (num_visible_badges - 1) * 0.75 + 10;
     }
+
     if (m_green_badge_count > 0) {
         m_green_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
         icon_x += BADGE_SIZE*0.75;
-        if (m_display_mode == "none") {
-            m_green_badge->Show();
-        }
-    } else {
-        m_green_badge->Hide();
     }
+
     if (m_orange_badge_count > 0) {
         m_orange_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
         icon_x += BADGE_SIZE*0.75;
-        if (m_display_mode == "none") {
-            m_orange_badge->Show();
-        }
-    } else {
-        m_orange_badge->Hide();
     }
+
     if (m_red_badge_count > 0) {
         m_red_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
-        if (m_display_mode == "none") {
-            m_red_badge->Show();
-        }
-    } else {
-        m_red_badge->Hide();
     }
 #else
     auto m_overlay_btn_rect = m_overlay_btn->GetRect();
@@ -326,28 +327,34 @@ void JusPrinView3D::updateJusPrinButtonAndBadges() {
     m_icon_text_right->SetPosition({badges_position_x + badges_size.GetWidth(), badges_position_y});
 #endif
 
-    // Ensure proper z-order
-    m_overlay_btn->Raise();
-    m_green_badge->Raise();
-    m_orange_badge->Raise();
-    m_red_badge->Raise();
-
     m_red_badge->Refresh();
     m_orange_badge->Refresh();
     m_green_badge->Refresh();
+
+    bool show_badges = m_overlay_btn->IsShown();
+    // Handle all badge visibility
+    if (show_badges) {
+        // Show badges with positive counts
+        if (m_green_badge_count > 0) m_green_badge->Show();
+        if (m_orange_badge_count > 0) m_orange_badge->Show();
+        if (m_red_badge_count > 0) m_red_badge->Show();
+    }
+    // Hide badges with zero counts
+    if (m_green_badge_count <= 0) m_green_badge->Hide();
+    if (m_orange_badge_count <= 0) m_orange_badge->Hide();
+    if (m_red_badge_count <= 0) m_red_badge->Hide();
+
 }
 
 void JusPrinView3D::initOverlay()
 {
     m_chat_panel = new JusPrinChatPanel(this);
-    updateChatPanelSize();
     m_chat_panel->Hide();
 
     // Create image overlay using resources directory
-    m_overlay_btn = new JustPrinButton(this, wxID_ANY,
+    m_overlay_btn = new ChatActivationButton(this, wxID_ANY,
         wxPoint((GetClientSize().GetWidth() - 200) / 2, GetClientSize().GetHeight() - 40),
         wxSize(200, 100));
-    m_overlay_btn->Raise();
 
     // Bind click event to show chat panel
     auto open_chat = [this](wxMouseEvent& evt) {
@@ -357,22 +364,32 @@ void JusPrinView3D::initOverlay()
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
     m_overlay_btn->AddJoin(open_chat);
 
-    m_red_badge = new CircularBadge(this, "", wxColour("#E65C5C"));
-    m_orange_badge = new CircularBadge(this, "", wxColour("#FDB074"));
-    m_green_badge = new CircularBadge(this, "", wxColour("#009685"));
-    m_green_badge->Raise();
-    m_orange_badge->Raise();
-    m_red_badge->Raise();
+    m_red_badge = new ActivationButtonNotificationBadge(this, "", wxColour("#E65C5C"));
+    m_orange_badge = new ActivationButtonNotificationBadge(this, "", wxColour("#FDB074"));
+    m_green_badge = new ActivationButtonNotificationBadge(this, "", wxColour("#009685"));
     m_red_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
     m_orange_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
     m_green_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
 
+    // Ensure proper z-order
+    m_overlay_btn->Raise();
+    m_green_badge->Raise();
+    m_orange_badge->Raise();
+    m_red_badge->Raise();
+
+    m_overlay_btn->Hide();
+    m_red_badge->Hide();
+    m_orange_badge->Hide();
+    m_green_badge->Hide();
+
+    if (wxGetApp().app_config->get_bool("developer_mode")) {    // Make sure chat can display in dev mode so that we can bring out javascript console
+        changeChatPanelView("large");
+        showChatPanel();
+    }
+
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
 
-    if (wxGetApp().app_config->get_bool("developer_mode")) {    // Make sure chat can display in dev mode so that we can bring out javascript console
-        changeChatPanelDisplay("large");
-    }
 }
 
 void JusPrinView3D::OnSize(wxSizeEvent& evt)
@@ -380,8 +397,9 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     evt.Skip();
     if (!m_chat_panel || !m_overlay_btn) return;
 
-    updateChatPanelSize();
-    updateJusPrinButtonAndBadges();
+    updateChatPanelBounds();
+    updateActivationButtonBounds();
+    showBadgesIfNecessary();
 }
 
 void JusPrinView3D::showChatPanel() {
@@ -390,39 +408,40 @@ void JusPrinView3D::showChatPanel() {
     m_chat_panel->Show();
     m_chat_panel->SetFocus();
     m_overlay_btn->Hide();
-    m_red_badge->Hide();
-    m_orange_badge->Hide();
-    m_green_badge->Hide();
+    showBadgesIfNecessary();
 }
 
 void JusPrinView3D::hideChatPanel() {
     if (!m_chat_panel) return;
 
     m_chat_panel->Hide();
-    updateJusPrinButtonAndBadges();
     m_overlay_btn->Show();
+    showBadgesIfNecessary();
 }
 
-std::string JusPrinView3D::changeChatPanelDisplay(const std::string& display) {
-    if (!m_chat_panel) return "none";
 
-    m_display_mode = display;
-    updateChatPanelSize();
-    updateJusPrinButtonAndBadges();
-    if (display == "none") {
-        hideChatPanel();
-    } else {
+std::string JusPrinView3D::changeChatPanelView(const std::string& viewMode) {
+    if (!m_chat_panel) return "";
+
+    m_cur_chatpanel_size_config = (viewMode == "large") ? LARGE_CONFIG : SMALL_CONFIG;
+
+    updateChatPanelBounds();
+    return viewMode;
+}
+
+void JusPrinView3D::setChatPanelVisibility(bool is_visible) {
+    if (is_visible) {
         showChatPanel();
+    } else {
+        hideChatPanel();
     }
-
-    return m_display_mode;
 }
 
 void JusPrinView3D::setChatPanelNotificationBadges(int red_badge, int orange_badge, int green_badge) {
     m_red_badge_count = red_badge;
     m_orange_badge_count = orange_badge;
     m_green_badge_count = green_badge;
-    updateJusPrinButtonAndBadges();
+    showBadgesIfNecessary();
 }
 
 void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt) {
