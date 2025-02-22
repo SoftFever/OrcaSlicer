@@ -14,7 +14,7 @@
   "compatible_printers": ["Flashforge Guider4 Pro 0.25 nozzle"],
   "hot_plate_temp": ["80"],
   "hot_plate_temp_initial_layer": ["80"],
-  "inherits": "Flashforge HS PETG @FF G4P",
+  "inherits": "Flashforge PETG @FF AD5M 0.25 Nozzle",
   "is_custom_defined": "0",
   "name": "Flashforge HS PETG @FF G4P 0.25 nozzle",
   "nozzle_temperature": ["230"],
