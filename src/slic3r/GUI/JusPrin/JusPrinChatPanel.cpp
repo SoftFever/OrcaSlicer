@@ -91,6 +91,7 @@ void JusPrinChatPanel::init_action_handlers() {
     void_action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
     void_action_handlers["plater_undo"] = &JusPrinChatPanel::handle_plater_undo;
     void_action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
+    void_action_handlers["set_btn_notification_badges"] = &JusPrinChatPanel::handle_set_btn_notification_badges;
 }
 
 
@@ -283,6 +284,19 @@ void JusPrinChatPanel::handle_plater_undo(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
         plater->undo();
+    });
+}
+
+void JusPrinChatPanel::handle_set_btn_notification_badges(const nlohmann::json& params) {
+    nlohmann::json payload = params.value("payload", nlohmann::json::object());
+    int red_badge = payload.value("red_badge", 0);
+    int orange_badge = payload.value("orange_badge", 0);
+    int green_badge = payload.value("green_badge", 0);
+
+    wxGetApp().CallAfter([this, red_badge, orange_badge, green_badge] {
+        if (auto* view3d = dynamic_cast<JusPrinView3D*>(GetParent())) {
+            view3d->setChatPanelNotificationBadges(red_badge, orange_badge, green_badge);
+        }
     });
 }
 
