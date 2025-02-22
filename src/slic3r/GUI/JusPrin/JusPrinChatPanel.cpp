@@ -82,7 +82,8 @@ void JusPrinChatPanel::init_action_handlers() {
     json_action_handlers["add_printers"] = &JusPrinChatPanel::handle_add_printers;
     json_action_handlers["add_filaments"] = &JusPrinChatPanel::handle_add_filaments;
     json_action_handlers["get_current_project"] = &JusPrinChatPanel::handle_get_current_project;
-    json_action_handlers["change_chatpanel_display"] = &JusPrinChatPanel::handle_change_chatpanel_display;
+    json_action_handlers["change_chatpanel_view"] = &JusPrinChatPanel::handle_change_chatpanel_view;
+    json_action_handlers["set_chatpanel_visibility"] = &JusPrinChatPanel::handle_set_chatpanel_visibility;
 
     // Actions for the chat page (void return)
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
@@ -244,18 +245,29 @@ nlohmann::json JusPrinChatPanel::handle_apply_config(const nlohmann::json& param
     return nlohmann::json::object();
 }
 
-nlohmann::json JusPrinChatPanel::handle_change_chatpanel_display(const nlohmann::json& params) {
+nlohmann::json JusPrinChatPanel::handle_change_chatpanel_view(const nlohmann::json& params) {
     nlohmann::json payload = params.value("payload", nlohmann::json::object());
 
-    std::string display = payload.value("display", "");
+    std::string mode = payload.value("mode", "");
     if (auto* view3d = dynamic_cast<JusPrinView3D*>(GetParent())) {
-        display = view3d->changeChatPanelDisplay(display);
-    } else {
-        display = "none";
+        mode = view3d->changeChatPanelView(mode);
     }
 
     return nlohmann::json::object({
-        {"display", display}
+        {"mode", mode}
+    });
+}
+
+nlohmann::json JusPrinChatPanel::handle_set_chatpanel_visibility(const nlohmann::json& params) {
+    nlohmann::json payload = params.value("payload", nlohmann::json::object());
+    bool is_visible = payload.value("is_visible", false);
+
+    if (auto* view3d = dynamic_cast<JusPrinView3D*>(GetParent())) {
+        view3d->setChatPanelVisibility(is_visible);
+    }
+
+    return nlohmann::json::object({
+        {"is_visible", is_visible}
     });
 }
 
