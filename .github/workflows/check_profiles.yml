@@ -23,7 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run vendor JSON check
+      - name: Run extra JSON check
         run: |
           python3 ./scripts/orca_extra_profile_check.py
 
