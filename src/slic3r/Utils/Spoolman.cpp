@@ -24,13 +24,19 @@ static std::string get_spoolman_api_url()
     std::string spoolman_host = wxGetApp().app_config->get("spoolman", "host");
     std::string spoolman_port = Spoolman::DEFAULT_PORT;
 
+    // Remove http(s) designator from the string as it interferes with the next step
+    spoolman_host = boost::regex_replace(spoolman_host, boost::regex("https?://"), "");
+
     // If the host contains a port, use that rather than the default
-    if (const auto idx = spoolman_host.find_last_of(':'); idx != string::npos) {
-        static const boost::regex pattern("(?<host>[a-zA-Z0-9.]+):(?<port>[0-9]+)");
+    if (spoolman_host.find_last_of(':') != string::npos) {
+        static const boost::regex pattern(R"((?<host>[a-z0-9.\-_]+):(?<port>[0-9]+))", boost::regex_constants::icase);
         boost::smatch result;
-        boost::regex_search(spoolman_host, result, pattern);
-        spoolman_port = result["port"]; // get port value first since it is overwritten when setting the host value in the next line
-        spoolman_host = result["host"];
+        if (boost::regex_match(spoolman_host, result, pattern)) {
+            spoolman_port = result["port"]; // get port value first since it is overwritten when setting the host value in the next line
+            spoolman_host = result["host"];
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "Failed to parse host string. Host: " << spoolman_host << ", Port: " << spoolman_port;
+        }
     }
 
     return spoolman_host + ":" + spoolman_port + "/api/v1/";
