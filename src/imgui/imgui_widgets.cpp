@@ -1160,7 +1160,7 @@ bool ImGui::ImageButtonEx2(ImGuiID id, ImTextureID texture_id, const ImVec2& siz
     const float border_size = g.Style.FrameBorderSize;
     if (border_size > 0.0f)
     {
-        window->DrawList->AddRect(bb.Min + ImVec2(1, 1), bb.Max + ImVec2(1, 1), col, g.Style.FrameRounding, 0, border_size);
+        //window->DrawList->AddRect(bb.Min + ImVec2(1, 1), bb.Max + ImVec2(1, 1), col, g.Style.FrameRounding, 0, border_size); // ORCA adds a secondary border without reason that causes wrong framesize
         window->DrawList->AddRect(bb.Min, bb.Max, col, g.Style.FrameRounding, 0, border_size);
     }
 
