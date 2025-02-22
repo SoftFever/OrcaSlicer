@@ -141,6 +141,10 @@ inline bool operator & (SaveStrategy & lhs, SaveStrategy rhs)
     return ((static_cast<T>(lhs) & static_cast<T>(rhs))) == static_cast<T>(rhs);
 }
 
+enum {
+    brim_points_format_version = 0
+};
+
 enum class LoadStrategy
 {
     Default = 0,
