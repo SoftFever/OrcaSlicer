@@ -11,7 +11,7 @@
   "instantiation": "true",
   "hot_plate_temp": ["60"],
   "hot_plate_temp_initial_layer": ["60"],
-  "inherits": "Flashforge PLA Basic",
+  "inherits": "Flashforge Generic PLA",
   "is_custom_defined": "0",
   "name": "Flashforge PLA Basic @FF AD5X",
   "compatible_printers": ["Flashforge AD5X 0.4 nozzle"],
