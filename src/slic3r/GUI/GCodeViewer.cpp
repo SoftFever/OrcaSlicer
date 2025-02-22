@@ -4053,7 +4053,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     }
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * m_scale); // ORCA add window rounding to modernize / match style
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0, 10.0 * m_scale));
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f, 1.0f, 1.0f, 0.6f));
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
