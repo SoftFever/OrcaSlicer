@@ -34,10 +34,9 @@ namespace {
     constexpr int ANIMATION_HEIGHT = 28;
 
     // Badge constants
-    constexpr int BADGE_SIZE = 18;
-    constexpr int BADGE_OFFSET_X = 205;
+    constexpr int BADGE_SIZE = 22;
 #ifdef __APPLE__
-    constexpr int BADGE_OFFSET_Y = 5;
+    constexpr int BADGE_OFFSET_Y = 8;
 #else
     constexpr int BADGE_OFFSET_Y = 10;
 #endif
@@ -236,12 +235,13 @@ JusPrinView3D::~JusPrinView3D()
 {
     delete m_chat_panel;
     delete m_overlay_btn;
-    delete m_icon_text_left;
-    delete m_icon_text_right;
+    delete m_red_badge;
+    delete m_orange_badge;
+    delete m_green_badge;
 }
 
 void JusPrinView3D::updateChatPanelSize() {
-    if (!m_chat_panel) return;
+    if (!m_chat_panel || m_display_mode == "none") return;
 
     const auto& config = m_display_mode == "large" ? LARGE_CONFIG : SMALL_CONFIG;
     wxSize size = GetClientSize();
@@ -255,6 +255,86 @@ void JusPrinView3D::updateChatPanelSize() {
         chat_width,
         chat_height
     );
+}
+
+void JusPrinView3D::updateJusPrinButtonAndBadges() {
+    if (!m_red_badge || !m_orange_badge || !m_green_badge) return;
+
+    auto formatBadgeText = [](int count) {
+        return count > 9 ? "9+" : std::to_string(count);
+    };
+
+    m_red_badge->SetText(formatBadgeText(m_red_badge_count));
+    m_orange_badge->SetText(formatBadgeText(m_orange_badge_count));
+    m_green_badge->SetText(formatBadgeText(m_green_badge_count));
+
+    // Resize and reposition overlay button
+    int image_height = OVERLAY_IMAGE_HEIGHT + OVERLAY_PADDING;
+    int image_width = OVERLAY_IMAGE_WIDTH + OVERLAY_PADDING;
+    int button_y = GetClientSize().GetHeight() - image_height - CHAT_BOTTOM_MARGIN;
+
+    m_overlay_btn->SetSize(
+        (GetClientSize().GetWidth() - image_width) / 2,
+        button_y,
+        image_width,
+        image_height
+    );
+
+    const int num_visible_badges = (m_red_badge_count > 0) +
+           (m_orange_badge_count > 0) +
+           (m_green_badge_count > 0);
+
+#ifdef __APPLE__
+    int icon_x = (GetClientSize().GetWidth() + image_width) / 2;
+    if (num_visible_badges == 1) {
+        icon_x -= BADGE_SIZE + 10;
+    } else if (num_visible_badges > 1) {
+        icon_x -= BADGE_SIZE + BADGE_SIZE * (num_visible_badges - 1) * 0.75 + 10;
+    }
+    if (m_green_badge_count > 0) {
+        m_green_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
+        icon_x += BADGE_SIZE*0.75;
+        if (m_display_mode == "none") {
+            m_green_badge->Show();
+        }
+    } else {
+        m_green_badge->Hide();
+    }
+    if (m_orange_badge_count > 0) {
+        m_orange_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
+        icon_x += BADGE_SIZE*0.75;
+        if (m_display_mode == "none") {
+            m_orange_badge->Show();
+        }
+    } else {
+        m_orange_badge->Hide();
+    }
+    if (m_red_badge_count > 0) {
+        m_red_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
+        if (m_display_mode == "none") {
+            m_red_badge->Show();
+        }
+    } else {
+        m_red_badge->Hide();
+    }
+#else
+    auto m_overlay_btn_rect = m_overlay_btn->GetRect();
+    auto badges_size = m_icon_text_left->GetClientSize();
+    auto badges_position_x  = m_overlay_btn_rect.GetRight() - 2 * badges_size.GetWidth();
+    auto badges_position_y  = m_overlay_btn_rect.GetTop() - badges_size.GetHeight();
+    m_icon_text_left->SetPosition({badges_position_x, badges_position_y});
+    m_icon_text_right->SetPosition({badges_position_x + badges_size.GetWidth(), badges_position_y});
+#endif
+
+    // Ensure proper z-order
+    m_overlay_btn->Raise();
+    m_green_badge->Raise();
+    m_orange_badge->Raise();
+    m_red_badge->Raise();
+
+    m_red_badge->Refresh();
+    m_orange_badge->Refresh();
+    m_green_badge->Refresh();
 }
 
 void JusPrinView3D::initOverlay()
@@ -276,14 +356,16 @@ void JusPrinView3D::initOverlay()
     };
     m_overlay_btn->Bind(wxEVT_LEFT_DOWN, open_chat);
     m_overlay_btn->AddJoin(open_chat);
-    // Just create the left badge for now
-    m_icon_text_right = new CircularBadge(this, "9+", wxColour("#EA3426"));
-    m_icon_text_right->Raise();
-    m_icon_text_left = new CircularBadge(this, "1", wxColour("#F7C645"));
-    m_icon_text_left->Raise();
 
-    m_icon_text_right->SetSize(BADGE_SIZE, BADGE_SIZE);
-    m_icon_text_left->SetSize(BADGE_SIZE, BADGE_SIZE);
+    m_red_badge = new CircularBadge(this, "", wxColour("#E65C5C"));
+    m_orange_badge = new CircularBadge(this, "", wxColour("#FDB074"));
+    m_green_badge = new CircularBadge(this, "", wxColour("#009685"));
+    m_green_badge->Raise();
+    m_orange_badge->Raise();
+    m_red_badge->Raise();
+    m_red_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
+    m_orange_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
+    m_green_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
 
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
@@ -299,37 +381,7 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     if (!m_chat_panel || !m_overlay_btn) return;
 
     updateChatPanelSize();
-
-    // Resize and reposition overlay button
-    int image_height = OVERLAY_IMAGE_HEIGHT + OVERLAY_PADDING;
-    int image_width = OVERLAY_IMAGE_WIDTH + OVERLAY_PADDING;
-    int button_y = GetClientSize().GetHeight() - image_height - CHAT_BOTTOM_MARGIN;
-
-    m_overlay_btn->SetSize(
-        (GetClientSize().GetWidth() - image_width) / 2,
-        button_y,
-        image_width,
-        image_height
-    );
-
-    // Position badges
- #ifdef __APPLE__
-    int icon_x = (GetClientSize().GetWidth() - image_width) / 2 + BADGE_OFFSET_X;
-    m_icon_text_left->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
-    m_icon_text_right->SetPosition({icon_x + BADGE_SIZE - BADGE_SIZE/4 , button_y - BADGE_OFFSET_Y});
-#else
-    auto m_overlay_btn_rect = m_overlay_btn->GetRect();
-    auto badges_size = m_icon_text_left->GetClientSize();
-    auto badges_position_x  = m_overlay_btn_rect.GetRight() - 2 * badges_size.GetWidth();
-    auto badges_position_y  = m_overlay_btn_rect.GetTop() - badges_size.GetHeight();
-    m_icon_text_left->SetPosition({badges_position_x, badges_position_y});
-    m_icon_text_right->SetPosition({badges_position_x + badges_size.GetWidth(), badges_position_y});
-#endif
-
-    // Ensure proper z-order
-    m_overlay_btn->Raise();
-    m_icon_text_left->Raise();
-    m_icon_text_right->Raise();
+    updateJusPrinButtonAndBadges();
 }
 
 void JusPrinView3D::showChatPanel() {
@@ -338,32 +390,39 @@ void JusPrinView3D::showChatPanel() {
     m_chat_panel->Show();
     m_chat_panel->SetFocus();
     m_overlay_btn->Hide();
-    m_icon_text_left->Hide();
-    m_icon_text_right->Hide();
+    m_red_badge->Hide();
+    m_orange_badge->Hide();
+    m_green_badge->Hide();
 }
 
 void JusPrinView3D::hideChatPanel() {
     if (!m_chat_panel) return;
 
     m_chat_panel->Hide();
+    updateJusPrinButtonAndBadges();
     m_overlay_btn->Show();
-    m_icon_text_left->Show();
-    m_icon_text_right->Show();
 }
 
 std::string JusPrinView3D::changeChatPanelDisplay(const std::string& display) {
     if (!m_chat_panel) return "none";
 
-    if (display == "none") {
-        hideChatPanel();
-        return "none";
-    }
-
     m_display_mode = display;
     updateChatPanelSize();
-    showChatPanel();
+    updateJusPrinButtonAndBadges();
+    if (display == "none") {
+        hideChatPanel();
+    } else {
+        showChatPanel();
+    }
 
     return m_display_mode;
+}
+
+void JusPrinView3D::setChatPanelNotificationBadges(int red_badge, int orange_badge, int green_badge) {
+    m_red_badge_count = red_badge;
+    m_orange_badge_count = orange_badge;
+    m_green_badge_count = green_badge;
+    updateJusPrinButtonAndBadges();
 }
 
 void JusPrinView3D::OnCanvasMouseDown(SimpleEvent& evt) {
