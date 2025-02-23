@@ -235,7 +235,7 @@ static const ChatPanelConfig LARGE_CONFIG = {
 
 JusPrinView3D::JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : View3D(parent, bed, model, config, process)
-    , m_cur_chatpanel_size_config(LARGE_CONFIG)
+    , m_chatpanel_view_mode("large") // Initialize with large view
 {
     initOverlay();
 }
@@ -252,9 +252,11 @@ JusPrinView3D::~JusPrinView3D()
 void JusPrinView3D::updateChatPanelBounds() {
     if (!m_chat_panel) return;
 
+    const auto& config = m_chatpanel_view_mode == "large" ? LARGE_CONFIG : SMALL_CONFIG;
+
     wxSize size = GetClientSize();
-    int chat_width = std::max(MIN_CHAT_WIDTH, (int)(size.GetWidth() * m_cur_chatpanel_size_config.width_ratio));
-    int chat_height = std::max(MIN_CHAT_HEIGHT, (int)(size.GetHeight() * m_cur_chatpanel_size_config.height_ratio));
+    int chat_width = std::max(MIN_CHAT_WIDTH, (int)(size.GetWidth() * config.width_ratio));
+    int chat_height = std::max(MIN_CHAT_HEIGHT, (int)(size.GetHeight() * config.height_ratio));
 
     m_chat_panel->SetSize(
         (size.GetWidth() - chat_width) / 2,
@@ -420,13 +422,11 @@ void JusPrinView3D::hideChatPanel() {
 }
 
 
-std::string JusPrinView3D::changeChatPanelView(const std::string& viewMode) {
-    if (!m_chat_panel) return "";
+void JusPrinView3D::changeChatPanelView(const std::string& viewMode) {
+    if (!m_chat_panel) return;
 
-    m_cur_chatpanel_size_config = (viewMode == "large") ? LARGE_CONFIG : SMALL_CONFIG;
-
+    m_chatpanel_view_mode = viewMode;
     updateChatPanelBounds();
-    return viewMode;
 }
 
 void JusPrinView3D::setChatPanelVisibility(bool is_visible) {

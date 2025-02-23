@@ -73,9 +73,11 @@ public:
     JusPrinView3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     virtual ~JusPrinView3D();
 
-    std::string changeChatPanelView(const std::string& viewMode);
+    void changeChatPanelView(const std::string& viewMode);
     void setChatPanelVisibility(bool is_visible);
     void setChatPanelNotificationBadges(int red_badge, int orange_badge, int green_badge);
+    std::string getChatPanelViewMode() const { return m_chatpanel_view_mode; }
+    bool getChatPanelVisibility() const { return m_chat_panel->IsShown(); }
 
     JusPrinChatPanel* jusprinChatPanel() const { return m_chat_panel; }
 
@@ -94,7 +96,7 @@ private:
     JusPrinChatPanel* m_chat_panel{nullptr};
     ChatActivationButton*   m_overlay_btn{nullptr};
 
-    ChatPanelConfig m_cur_chatpanel_size_config;
+    std::string m_chatpanel_view_mode{"large"}; // Default to large view
 
     // Badges
     int m_red_badge_count{0};

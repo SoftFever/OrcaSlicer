@@ -73,8 +73,7 @@ private:
     nlohmann::json handle_add_printers(const nlohmann::json& params);
     nlohmann::json handle_add_filaments(const nlohmann::json& params);
     nlohmann::json handle_get_current_project(const nlohmann::json& params);
-    nlohmann::json handle_change_chatpanel_view(const nlohmann::json& params);
-    nlohmann::json handle_set_chatpanel_visibility(const nlohmann::json& params);
+    nlohmann::json handle_change_chatpanel_display(const nlohmann::json& params);
 
     // Actions to trigger events in JusPrin
     void handle_show_login(const nlohmann::json& params);
