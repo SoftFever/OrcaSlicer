@@ -1,7 +1,7 @@
 {
   "name": "Flashforge",
   "url": "",
-  "version": "02.02.00.04",
+  "version": "02.03.00.00",
   "force_update": "0",
   "description": "Flashforge configurations",
   "machine_model_list": [
@@ -488,7 +488,7 @@
       "sub_path": "machine/Flashforge Adventurer 5M Pro 0.8 Nozzle.json"
     },
     {
-      "name": "fdm_flashforge_common",
+      "name": "fdm_adventurer3_common",
       "sub_path": "machine/fdm_adventurer3_common.json"
     },
     {
