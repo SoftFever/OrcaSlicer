@@ -397,6 +397,10 @@
             "sub_path": "filament/eSUN/eSUN ePLA-LW @base.json"
         },
         {
+            "name": "eSUN ePLA-LW @System",
+            "sub_path": "filament/eSUN/eSUN ePLA-LW @System.json"
+        },
+        {
             "name": "fdm_filament_pla_silk",
             "sub_path": "filament/base/fdm_filament_pla_silk.json"
         },
