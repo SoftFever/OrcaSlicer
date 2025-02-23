@@ -2461,7 +2461,7 @@ const Preset *PresetCollection::get_preset_base(const Preset &child) const
     // Handle user preset
     if (child.inherits().empty())
         return &child; // this is user root
-    auto inherits = find_preset(child.inherits());
+    auto inherits = find_preset2(child.inherits(),true);
     return inherits ? get_preset_base(*inherits) : nullptr;
 }
 
