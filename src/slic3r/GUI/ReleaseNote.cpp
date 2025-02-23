@@ -1577,6 +1577,18 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_input_modelID_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
     m_input_modelID_area->Add(m_input_modelID, 0, wxALIGN_CENTER, 0);
 
+    auto* tips_printer_name = new Label(ip_input_bot_panel, _L("Printer name"));
+
+    m_input_printer_name = new TextInput(ip_input_bot_panel, wxEmptyString, wxEmptyString);
+    m_input_printer_name->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
+    m_input_printer_name->SetMinSize(wxSize(FromDIP(352), FromDIP(28)));
+    m_input_printer_name->SetMaxSize(wxSize(FromDIP(352), FromDIP(28)));
+
+    m_input_bot_sizer->Add(tips_printer_name, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_input_bot_sizer->Add(m_input_printer_name, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+
     m_input_bot_sizer->Add(m_input_sn_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
     m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_input_bot_sizer->Add(m_input_modelID_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
@@ -1623,6 +1635,24 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
+    m_button_manual_setup = new Button(this, _L("Manual Setup"));
+    m_button_manual_setup->SetBackgroundColor(btn_bg_green);
+    m_button_manual_setup->SetBorderColor(*wxWHITE);
+    m_button_manual_setup->SetTextColor(wxColour(0xFFFFFE));
+    m_button_manual_setup->SetFont(Label::Body_12);
+    m_button_manual_setup->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_manual_setup->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_manual_setup->SetCornerRadius(FromDIP(12));
+    m_button_manual_setup->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+        wxCommandEvent event(EVT_CHECK_IP_ADDRESS_LAYOUT);
+        event.SetEventObject(this);
+        event.SetInt(1);
+        wxPostEvent(this, event);
+    });
+    m_button_manual_setup->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_manual_setup->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    m_button_manual_setup->Hide();
+
     /*auto m_button_cancel = new Button(this, _L("Close"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
@@ -1636,6 +1666,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     });*/
 
     m_sizer_button->AddStretchSpacer();
+    m_sizer_button->Add(m_button_manual_setup, 0, wxALL, FromDIP(5));
     m_sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     // m_sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     m_sizer_button->Layout();
@@ -1760,6 +1791,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     Bind(EVT_UPDATE_TEXT_MSG, &InputIpAddressDialog::update_test_msg_event, this);
     Bind(EVT_CHECK_IP_ADDRESS_LAYOUT, [this](auto& e) {
         int mode = e.GetInt();
+        update_test_msg(wxEmptyString, true);
         switch_input_panel(mode);
         Layout();
         Fit();
@@ -1768,6 +1800,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
 void InputIpAddressDialog::switch_input_panel(int index) 
 {
+    m_button_manual_setup->Hide();
     if (index == 0) {
         ip_input_top_panel->Show();
         ip_input_bot_panel->Hide();
@@ -1809,6 +1842,7 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     m_obj = obj;
     m_input_ip->GetTextCtrl()->SetLabelText(m_obj->dev_ip);
     m_input_access_code->GetTextCtrl()->SetLabelText(m_obj->get_access_code());
+    m_input_printer_name->GetTextCtrl()->SetLabelText(m_obj->dev_name);
 
     std::string img_str = DeviceManager::get_printer_diagram_img(m_obj->printer_type);
     auto diagram_bmp = create_scaled_bitmap(img_str + "_en", this, 198);
@@ -1852,6 +1886,12 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              m_test_wrong_msg->SetLabelText(msg);
              m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
              m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+             if (current_input_index == 0) {
+                 m_button_manual_setup->Show();
+                 m_button_manual_setup->Enable();
+             }
+             wxCommandEvent e;
+             on_text(e);
          } 
     }
 
@@ -1882,7 +1922,10 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_trouble_shoot->Hide();
     std::string str_ip = m_input_ip->GetTextCtrl()->GetValue().ToStdString();
     std::string str_access_code = m_input_access_code->GetTextCtrl()->GetValue().ToStdString();
-    std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().ToStdString();
+    std::string str_name = m_input_printer_name->GetTextCtrl()->GetValue().Strip(wxString::both).ToStdString();
+    // Serial number should not contain lower case letters, and bambu_network plugin crashes
+    // if user entered the wrong serial number, so we call `Upper()` here.
+    std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().Strip(wxString::both).Upper().ToStdString();
     std::string str_model_id = "";
 
     auto it = m_models_map.right.find(m_input_modelID->GetStringSelection().ToStdString());
@@ -1890,6 +1933,9 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         str_model_id = it->get_left();
     }
 
+    m_button_manual_setup->Enable(false);
+    m_button_manual_setup->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_manual_setup->SetBorderColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
@@ -1897,7 +1943,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     Refresh();
     Layout();
     Fit();
-    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id));
+    m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id, str_name));
 }
 
 void InputIpAddressDialog::update_test_msg_event(wxCommandEvent& evt)
@@ -1918,7 +1964,7 @@ void InputIpAddressDialog::post_update_test_msg(wxString text, bool beconnect)
     wxPostEvent(this, event);
 }
 
-void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id)
+void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id, std::string name)
 {
     post_update_test_msg(_L("connecting..."), true);
 
@@ -1934,10 +1980,11 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 
     } else {
         result = 0;
-        detectData.dev_name = sn;
+        detectData.model_id = model_id;
+        detectData.dev_name = name;
         detectData.dev_id = sn;
         detectData.connect_type = "lan";
-        detectData.connect_type = "free";
+        detectData.bind_state   = "free";
     }
 
     if (result < 0) {
@@ -1969,27 +2016,34 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         return;
     }
 
-    DeviceManager* dev = wxGetApp().getDeviceManager();
-    m_obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
+    CallAfter([this, detectData, str_ip, str_access_code]() {
+        DeviceManager* dev = wxGetApp().getDeviceManager();
+        BBLocalMachine machine;
+        machine.dev_name = detectData.dev_name;
+        machine.dev_ip = str_ip;
+        machine.dev_id = detectData.dev_id;
+        machine.printer_type = detectData.model_id;
+        m_obj = dev->insert_local_device(machine, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
 
 
-    if (m_obj) {
-        m_obj->set_user_access_code(str_access_code);
-        wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
-    }
+        if (m_obj) {
+            m_obj->set_user_access_code(str_access_code);
+            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id, true);
+        }
 
 
-    closeCount = 1;
+        closeCount = 1;
 
-    post_update_test_msg(wxEmptyString, true);
-    post_update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
+        post_update_test_msg(wxEmptyString, true);
+        post_update_test_msg(wxString::Format(_L("Connecting to printer... The dialog will close later"), closeCount), true);
 
 #ifdef __APPLE__
-    wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
-    wxPostEvent(this, event);
+        wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
+        wxPostEvent(this, event);
 #else
-    closeTimer->Start(1000);
+        closeTimer->Start(1000);
 #endif
+    });
 }
 
 void InputIpAddressDialog::OnTimer(wxTimerEvent& event) {
@@ -2032,7 +2086,8 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
 {
     auto str_ip              = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code     = m_input_access_code->GetTextCtrl()->GetValue();
-    auto str_sn     = m_input_sn->GetTextCtrl()->GetValue();
+    auto str_name            = m_input_printer_name->GetTextCtrl()->GetValue().Strip(wxString::both);
+    auto str_sn              = m_input_sn->GetTextCtrl()->GetValue().Strip(wxString::both);
     bool invalid_access_code = true;
 
     for (char c : str_access_code) {
@@ -2042,29 +2097,32 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
         }
     }
 
+    const auto enable_btn = [](Button* btn, bool enabled) {
+        btn->Enable(enabled);
+        if (enabled) {
+            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                                    std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+            btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+            btn->SetBackgroundColor(btn_bg_green);
+        } else {
+            btn->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            btn->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        }
+    };
+
     if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8 && invalid_access_code) {
-        m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                                std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-        m_button_ok->SetBackgroundColor(btn_bg_green);
+        enable_btn(m_button_manual_setup, true);
+        enable_btn(m_button_ok, true);
     } else {
-        m_button_ok->Enable(false);
-        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        enable_btn(m_button_manual_setup, false);
+        enable_btn(m_button_ok, false);
     }
 
     if (current_input_index == 1){
-        if (str_sn.length() == 15) {
-            m_button_ok->Enable(true);
-            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                                    std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-            m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-            m_button_ok->SetBackgroundColor(btn_bg_green);
+        if (!str_name.IsEmpty() && str_sn.length() == 15) {
+            enable_btn(m_button_ok, true);
         } else {
-            m_button_ok->Enable(false);
-            m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+            enable_btn(m_button_ok, false);
         }
     }
 }
