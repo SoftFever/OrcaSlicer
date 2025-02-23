@@ -89,9 +89,9 @@ private:
     void initOverlay();
     void showChatPanel();
     void hideChatPanel();
-    void updateChatPanelBounds();
-    void updateActivationButtonBounds();
-    void showBadgesIfNecessary(); // This method depends on the bounds of the activation button. Needs to be called after updateActivationButtonBounds()
+    void updateChatPanelRect();
+    void updateActivationButtonRect();
+    void showBadgesIfNecessary(); // This method depends on the bounds of the activation button. Needs to be called after updateActivationButtonRect()
 
     JusPrinChatPanel* m_chat_panel{nullptr};
     ChatActivationButton*   m_overlay_btn{nullptr};
