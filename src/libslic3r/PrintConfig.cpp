@@ -88,6 +88,7 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "obico",          htObico },
     { "flashforge",     htFlashforge },
     { "simplyprint",    htSimplyPrint },
+    { "elegoolink",     htElegooLink }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
@@ -136,6 +137,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "concentric",         ipConcentric },
     { "zig-zag",            ipRectilinear },
     { "grid",               ipGrid },
+    { "2dlattice",          ip2DLattice },
     { "line",               ipLine },
     { "cubic",              ipCubic },
     { "triangles",          ipTriangles },
@@ -284,6 +286,14 @@ static t_config_enum_values s_keys_map_InternalBridgeFilter {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InternalBridgeFilter)
 
+static t_config_enum_values s_keys_map_EnableExtraBridgeLayer {
+    { "disabled",        eblDisabled },
+    { "external_bridge_only",        eblExternalBridgeOnly },
+    { "internal_bridge_only",        eblInternalBridgeOnly },
+    { "apply_to_all",           eblApplyToAll },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(EnableExtraBridgeLayer)
+
 // Orca
 static t_config_enum_values s_keys_map_GapFillTarget {
     { "everywhere",        gftEverywhere },
@@ -318,6 +328,7 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"outer_and_inner", btOuterAndInner},
     {"auto_brim", btAutoBrim},  // BBS
     {"brim_ears", btEar},     // Orca
+    {"painted", btPainted},  // BBS
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
@@ -454,9 +465,8 @@ void PrintConfigDef::init_common_params()
     ConfigOptionDef* def;
 
     def = this->add("printer_technology", coEnum);
-    //def->label = L("Printer technology");
-    def->label = "Printer technology";
-    //def->tooltip = L("Printer technology");
+    def->label = L("Printer technology");
+    def->tooltip = L("Printer technology");
     def->enum_keys_map = &ConfigOptionEnum<PrinterTechnology>::get_enum_values();
     def->enum_values.push_back("FFF");
     def->enum_values.push_back("SLA");
@@ -793,18 +803,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
     // Orca: make sure the order of the values is the same as the BedType enum 
-    def->enum_values.emplace_back("Supertack Plate");
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_values.emplace_back("Textured Cool Plate");
-    def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
+    def->enum_values.emplace_back("Supertack Plate");
     def->enum_labels.emplace_back(L("Smooth Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->enum_labels.emplace_back(L("Textured Cool Plate"));
+    def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS
@@ -908,15 +918,19 @@ void PrintConfigDef::init_fff_params()
     
 
     def = this->add("enable_overhang_bridge_fan", coBools);
-    def->label = L("Force cooling for overhang and bridge");
-    def->tooltip = L("Enable this option to optimize part cooling fan speed for overhang and bridge to get better cooling");
+    def->label = L("Force cooling for overhangs and bridges");
+    def->tooltip = L("Enable this option to allow adjustment of the part cooling fan speed for specifically for overhangs, internal and external "
+                     "bridges. Setting the fan speed specifically for these features can improve overall print quality and reduce warping.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBools{ true });
 
     def = this->add("overhang_fan_speed", coInts);
-    def->label = L("Fan speed for overhang");
-    def->tooltip = L("Force part cooling fan to be this speed when printing bridge or overhang wall which has large overhang degree. "
-                     "Forcing cooling for overhang and bridge can get better quality for these part");
+    def->label = L("Overhangs and external bridges fan speed");
+    def->tooltip = L("Use this part cooling fan speed when printing bridges or overhang walls with an overhang threshold that exceeds "
+                     "the value set in the 'Overhangs cooling threshold' parameter above. Increasing the cooling specifically for overhangs "
+                     "and bridges can improve the overall print quality of these features.\n\n"
+                     "Please note, this fan speed is clamped on the lower end by the minimum fan speed threshold set above. It is also adjusted "
+                     "upwards up to the maximum fan speed threshold when the minimum layer time threshold is not met.");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
@@ -924,10 +938,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 100 });
 
     def = this->add("overhang_fan_threshold", coEnums);
-    def->label = L("Cooling overhang threshold");
-    def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
-                     "Expressed as percentage which indicates how much width of the line without support from lower layer. "
-                     "0% means forcing cooling for all outer wall no matter how much overhang degree");
+    def->label = L("Overhang cooling activation threshold");
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip = L("When the overhang exceeds this specified threshold, force the cooling fan to run at the 'Overhang Fan Speed' set below. "
+                     "This threshold is expressed as a percentage, indicating the portion of each line's width that is unsupported by the layer "
+                     "beneath it. Setting this value to 0% forces the cooling fan to run for all outer walls, regardless of the overhang degree.");
     def->sidetext = "";
     def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
     def->mode = comAdvanced;
@@ -946,8 +961,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
 
     def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridge infill direction");
+    def->label = L("External bridge infill direction");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
         "Use 180°for zero angle.");
@@ -955,11 +971,39 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
+    
+    // ORCA: Internal bridge angle override
+    def = this->add("internal_bridge_angle", coFloat);
+    def->label = L("Internal bridge infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Internal bridging angle override. If left to zero, the bridging angle will be calculated "
+        "automatically. Otherwise the provided angle will be used for internal bridges. "
+        "Use 180°for zero angle.\n\nIt is recommended to leave it at 0 unless there is a specific model need not to.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("bridge_density", coPercent);
-    def->label = L("Bridge density");
+    def->label = L("External bridge density");
     def->category = L("Strength");
-    def->tooltip = L("Density of external bridges. 100% means solid bridge. Default is 100%.");
+    def->tooltip = L("Controls the density (spacing) of external bridge lines. 100% means solid bridge. Default is 100%.\n\n"
+                     "Lower density external bridges can help improve reliability as there is more space for air to circulate "
+                     "around the extruded bridge, improving its cooling speed.");
+    def->sidetext = L("%");
+    def->min = 10;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
+    
+    def = this->add("internal_bridge_density", coPercent);
+    def->label = L("Internal bridge density");
+    def->category = L("Strength");
+    def->tooltip = L("Controls the density (spacing) of internal bridge lines. 100% means solid bridge. Default is 100%.\n\n "
+                     "Lower density internal bridges can help reduce top surface pillowing and improve internal bridge reliability as there is more space for "
+                     "air to circulate around the extruded bridge, improving its cooling speed. \n\n"
+                     "This option works particularly well when combined with the second internal bridge over infill option, "
+                     "further improving internal bridging structure before solid infill is extruded.");
     def->sidetext = L("%");
     def->min = 10;
     def->max = 100;
@@ -1216,12 +1260,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
     def->enum_values.emplace_back("brim_ears");
+    def->enum_values.emplace_back("painted");
     def->enum_values.emplace_back("outer_only");
     def->enum_values.emplace_back("inner_only");
     def->enum_values.emplace_back("outer_and_inner");
     def->enum_values.emplace_back("no_brim");
     def->enum_labels.emplace_back(L("Auto"));
     def->enum_labels.emplace_back(L("Mouse ear"));
+    def->enum_labels.emplace_back(L("Painted"));
     def->enum_labels.emplace_back(L("Outer brim only"));
     def->enum_labels.emplace_back(L("Inner brim only"));
     def->enum_labels.emplace_back(L("Outer and inner brim"));
@@ -1415,7 +1461,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("thick_bridges", coBool);
-    def->label = L("Thick bridges");
+    def->label = L("Thick external bridges");
     def->category = L("Quality");
     def->tooltip = L("If enabled, bridges are more reliable, can bridge longer distances, but may look worse. "
         "If disabled, bridges look better but are reliable just for shorter bridged distances.");
@@ -1429,23 +1475,53 @@ void PrintConfigDef::init_fff_params()
                        "consider turning it off if you are using large nozzles.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+    
+    def = this->add("enable_extra_bridge_layer", coEnum);
+    def->label = L("Extra bridge layers (beta)");
+    def->category = L("Quality");
+    def->tooltip = L("This option enables the generation of an extra bridge layer over internal and/or external bridges.\n\n"
+                     "Extra bridge layers help improve bridge appearance and reliability, as the solid infill is better supported. "
+                     "This is especially useful in fast printers, where the bridge and solid infill speeds vary greatly. "
+                     "The extra bridge layer results in reduced pillowing on top surfaces, as well as reduced separation of the external bridge layer from its surrounding perimeters.\n\n"
+                     "It is generally recommended to set this to at least 'External bridge only', unless specific issues with the sliced model are found.\n\n"
+                     "Options:\n"
+                     "1. Disabled - does not generate second bridge layers. This is the default and is set for compatibility purposes.\n"
+                     "2. External bridge only - generates second bridge layers for external-facing bridges only. Please note that small bridges that are shorter "
+                     "or narrower than the set number of perimeters will be skipped as they would not benefit from a second bridge layer. If generated, the second bridge layer will be extruded "
+                     "parallel to the first bridge layer to reinforce the bridge strength.\n"
+                     "3. Internal bridge only - generates second bridge layers for internal bridges over sparse infill only. Please note that the internal "
+                     "bridges count towards the top shell layer count of your model. The second internal bridge layer will be extruded as close to perpendicular to the first as possible. If multiple regions "
+                     "in the same island, with varying bridge angles are present, the last region of that island will be selected as the angle reference.\n"
+                     "4. Apply to all - generates second bridge layers for both internal and external-facing bridges\n");
+
+    def->enum_keys_map = &ConfigOptionEnum<EnableExtraBridgeLayer>::get_enum_values();
+    def->enum_values.push_back("disabled");
+    def->enum_values.push_back("external_bridge_only");
+    def->enum_values.push_back("internal_bridge_only");
+    def->enum_values.push_back("apply_to_all");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("External bridge only"));
+    def->enum_labels.push_back(L("Internal bridge only"));
+    def->enum_labels.push_back(L("Apply to all"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<EnableExtraBridgeLayer>(eblDisabled));
 
     def = this->add("dont_filter_internal_bridges", coEnum);
-    def->label = L("Filter out small internal bridges (beta)");
+    def->label = L("Filter out small internal bridges");
     def->category = L("Quality");
-    def->tooltip = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\n"
-                      "By default, small internal bridges are filtered out and the internal solid infill is printed directly"
-                      " over the sparse infill. This works well in most cases, speeding up printing without too much compromise"
-                      " on top surface quality. \n\nHowever, in heavily slanted or curved models especially where too low sparse"
-                     " infill density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\n"
-                      "Disabling this option will print internal bridge layer over slightly unsupported internal"
-                      " solid infill. The options below control the amount of filtering, i.e. the amount of internal bridges "
+    def->tooltip = L("This option can help reduce pillowing on top surfaces in heavily slanted or curved models.\n\n"
+                     "By default, small internal bridges are filtered out and the internal solid infill is printed directly "
+                     "over the sparse infill. This works well in most cases, speeding up printing without too much compromise "
+                     "on top surface quality. \n\nHowever, in heavily slanted or curved models, especially where too low a sparse "
+                     "infill density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\n"
+                     "Enabling limited filtering or no filtering will print internal bridge layer over slightly unsupported internal "
+                     "solid infill. The options below control the sensitivity of the filtering, i.e. they control where internal bridges are "
                      "created.\n\n"
-                     "Filter - enable this option. This is the default behavior and works well in most cases.\n\n"
-                     "Limited filtering - creates internal bridges on heavily slanted surfaces, while avoiding creating "
-                     "unnecessary internal bridges. This works well for most difficult models.\n\n"
-                     "No filtering - creates internal bridges on every potential internal overhang. This option is useful "
-                     "for heavily slanted top surface models. However, in most cases it creates too many unnecessary bridges.");
+                     "1. Filter - enables this option. This is the default behavior and works well in most cases.\n\n"
+                     "2. Limited filtering - creates internal bridges on heavily slanted surfaces while avoiding unnecessary bridges. "
+                     "This works well for most difficult models.\n\n"
+                     "3. No filtering - creates internal bridges on every potential internal overhang. This option is useful for "
+                     "heavily slanted top surface models; however, in most cases, it creates too many unnecessary bridges.");
     def->enum_keys_map = &ConfigOptionEnum<InternalBridgeFilter>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
@@ -2266,6 +2342,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("grid");
+    def->enum_values.push_back("2dlattice");
     def->enum_values.push_back("line");
     def->enum_values.push_back("cubic");
     def->enum_values.push_back("triangles");
@@ -2285,6 +2362,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
+    def->enum_labels.push_back(L("2D Lattice"));
     def->enum_labels.push_back(L("Line"));
     def->enum_labels.push_back(L("Cubic"));
     def->enum_labels.push_back(L("Triangles"));
@@ -2302,6 +2380,26 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("Quarter Cubic"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
+
+    def           = this->add("lattice_angle_1", coFloat);
+    def->label    = L("Lattice angle 1");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-45));
+
+    def           = this->add("lattice_angle_2", coFloat);
+    def->label    = L("Lattice angle 2");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(45));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
@@ -2470,7 +2568,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Top surface");
     def->tooltip = L("Jerk for top surface");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(9));
 
@@ -2478,7 +2576,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Infill");
     def->tooltip = L("Jerk for infill");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(9));
 
@@ -2486,7 +2584,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->tooltip = L("Jerk for initial layer");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(9));
 
@@ -2494,7 +2592,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Travel");
     def->tooltip = L("Jerk for travel");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(12));
 
@@ -2586,15 +2684,27 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("support_material_interface_fan_speed", coInts);
     def->label = L("Support interface fan speed");
-    def->tooltip = L("This fan speed is enforced during all support interfaces, to be able to weaken their bonding with a high fan speed."
-        "\nSet to -1 to disable this override."
-        "\nCan only be overridden by disable_fan_first_layers.");
+    def->tooltip = L("This part cooling fan speed is applied when printing support interfaces. Setting this parameter to a higher than regular speed "
+                     " reduces the layer binding strength between supports and the supported part, making them easier to separate."
+                    "\nSet to -1 to disable it."
+                     "\nThis setting is overridden by disable_fan_first_layers.");
     def->sidetext = L("%");
     def->min = -1;
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts{ -1 });
     
+    // ORCA: Add support for separate internal bridge fan speed control
+    def = this->add("internal_bridge_fan_speed", coInts);
+    def->label = L("Internal bridges fan speed");
+    def->tooltip = L("The part cooling fan speed used for all internal bridges. Set to -1 to use the overhang fan speed settings instead.\n\n"
+                     "Reducing the internal bridges fan speed, compared to your regular fan speed, can help reduce part warping due to excessive "
+                     "cooling applied over a large surface for a prolonged period of time.");
+    def->sidetext = L("%");
+    def->min = -1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{ -1 });
 
     def = this->add("fuzzy_skin", coEnum);
     def->label = L("Fuzzy Skin");
@@ -2621,7 +2731,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0.3));
+    def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("fuzzy_skin_point_distance", coFloat);
     def->label = L("Fuzzy skin point distance");
@@ -2631,7 +2741,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 5;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0.8));
+    def->set_default_value(new ConfigOptionFloat(0.3));
 
     def = this->add("fuzzy_skin_first_layer", coBool);
     def->label = L("Apply fuzzy skin to first layer");
@@ -3000,10 +3110,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("inherits", coString);
-    //def->label = L("Inherits profile");
-    def->label = "Inherits profile";
-    //def->tooltip = L("Name of parent profile");
-    def->tooltip = "Name of parent profile";
+    def->label = L("Inherits profile");
+    def->tooltip = L("Name of parent profile");
     def->full_width = true;
     def->height = 5;
     def->set_default_value(new ConfigOptionString());
@@ -3017,7 +3125,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("interface_shells", coBool);
     def->label = L("Interface shells");
-    def->label = "Interface shells";
     def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
                   "Useful for multi-extruder prints with translucent materials or manual soluble "
                   "support material");
@@ -3510,6 +3617,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("obico");
     def->enum_values.push_back("flashforge");
     def->enum_values.push_back("simplyprint");
+    def->enum_values.push_back("elegoolink");
     def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
@@ -3523,6 +3631,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("Obico");
     def->enum_labels.push_back("Flashforge");
     def->enum_labels.push_back("SimplyPrint");
+    def->enum_labels.push_back("Elegoo Link");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
@@ -3704,8 +3813,6 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     
     def = this->add("printer_model", coString);
-    //def->label = L("Printer type");
-    //def->tooltip = L("Type of the printer");
     def->label = L("Printer type");
     def->tooltip = L("Type of the printer");
     def->set_default_value(new ConfigOptionString());
@@ -3721,7 +3828,6 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
     
     def = this->add("printer_variant", coString);
-    //def->label = L("Printer variant");
     def->label = L("Printer variant");
     //def->tooltip = L("Name of the printer variant. For example, the printer variants may be differentiated by a nozzle diameter.");
     def->set_default_value(new ConfigOptionString());
@@ -3835,7 +3941,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt {0});
 
     def = this->add("long_retractions_when_cut", coBools);
-    def->label = L("Long retraction when cut(experimental)");
+    def->label = L("Long retraction when cut(beta)");
     def->tooltip = L("Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge."
                      "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
     def->mode = comDevelop;
@@ -4177,7 +4283,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("skirt_height", coInt);
     def->label = L("Skirt height");
-    //def->label = "Skirt height";
     def->tooltip = L("How many layers of skirt. Usually only one layer");
     def->sidetext = L("layers");
     def->mode = comSimple;
@@ -4315,6 +4420,26 @@ void PrintConfigDef::init_fff_params()
     def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
+
+    def = this->add("spiral_starting_flow_ratio", coFloat);
+    def->label = L("Spiral starting flow ratio");
+    def->tooltip = L("Sets the starting flow ratio while transitioning from the last bottom layer to the spiral. "
+                    "Normally the spiral transition scales the flow ratio from 0% to 100% during the first loop "
+                    "which can in some cases lead to under extrusion at the start of the spiral.");
+    def->min = 0;
+    def->max = 1;
+    def->set_default_value(new ConfigOptionFloat(0));
+    def->mode = comAdvanced;
+
+    def = this->add("spiral_finishing_flow_ratio", coFloat);
+    def->label = L("Spiral finishing flow ratio");
+    def->tooltip = L("Sets the finishing flow ratio while ending the spiral. "
+                    "Normally the spiral transition scales the flow ratio from 100% to 0% during the last loop "
+                    "which can in some cases lead to under extrusion at the end of the spiral.");
+    def->min = 0;
+    def->max = 1;
+    def->set_default_value(new ConfigOptionFloat(0));
+    def->mode = comAdvanced;
 
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
@@ -6380,7 +6505,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "retraction_distance_when_cut",
         "extruder_type",
         "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time",
-        "smooth_coefficient", "overhang_totally_speed"
+        "smooth_coefficient", "overhang_totally_speed", "silent_mode"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -7081,20 +7206,20 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("export_3mf", coString);
-    def->label = "Export 3MF";
-    def->tooltip = "Export project as 3MF.";
+    def->label = L("Export 3MF");
+    def->tooltip = L("Export project as 3MF.");
     def->cli_params = "filename.3mf";
     def->set_default_value(new ConfigOptionString("output.3mf"));
 
     def = this->add("export_slicedata", coString);
-    def->label = "Export slicing data";
-    def->tooltip = "Export slicing data to a folder.";
+    def->label = L("Export slicing data");
+    def->tooltip = L("Export slicing data to a folder.");
     def->cli_params = "slicing_data_directory";
     def->set_default_value(new ConfigOptionString("cached_data"));
 
     def = this->add("load_slicedata", coStrings);
-    def->label = "Load slicing data";
-    def->tooltip = "Load cached slicing data from directory";
+    def->label = L("Load slicing data");
+    def->tooltip = L("Load cached slicing data from directory");
     def->cli_params = "slicing_data_directory";
     def->set_default_value(new ConfigOptionString("cached_data"));
 
@@ -7104,13 +7229,13 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("export_stl", coBool);
-    def->label = "Export STL";
-    def->tooltip = "Export the objects as single STL.";
+    def->label = L("Export STL");
+    def->tooltip = L("Export the objects as single STL.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("export_stls", coString);
-    def->label = "Export multiple STLs";
-    def->tooltip = "Export the objects as multiple STLs to directory";
+    def->label = L("Export multiple STLs");
+    def->tooltip = L("Export the objects as multiple STLs to directory");
     def->set_default_value(new ConfigOptionString("stl_path"));
 
     /*def = this->add("export_gcode", coBool);
@@ -7121,45 +7246,39 @@ CLIActionsConfigDef::CLIActionsConfigDef()
 
     /*def = this->add("gcodeviewer", coBool);
     // BBS: remove _L()
-    def->label = ("G-code viewer");
-    def->tooltip = ("Visualize an already sliced and saved G-code");
+    def->label = L("G-code viewer");
+    def->tooltip = L("Visualize an already sliced and saved G-code");
     def->cli = "gcodeviewer";
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("slice", coInt);
-    def->label = "Slice";
-    def->tooltip = "Slice the plates: 0-all plates, i-plate i, others-invalid";
+    def->label = L("Slice");
+    def->tooltip = L("Slice the plates: 0-all plates, i-plate i, others-invalid");
     def->cli = "slice";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("help", coBool);
-    def->label = "Help";
-    def->tooltip = "Show command help.";
+    def->label = L("Help");
+    def->tooltip = L("Show command help.");
     def->cli = "help|h";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("uptodate", coBool);
-    def->label = "UpToDate";
-    def->tooltip = "Update the configs values of 3mf to latest.";
+    def->label = L("UpToDate");
+    def->tooltip = L("Update the configs values of 3mf to latest.");
     def->cli = "uptodate";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("downward_check", coStrings);
-    def->label = "downward machines check";
-    def->tooltip = "check whether current machine downward compatible with the machines in the list";
+    def->label = L("downward machines check");
+    def->tooltip = L("check whether current machine downward compatible with the machines in the list");
     def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("load_defaultfila", coBool);
-    def->label = "Load default filaments";
-    def->tooltip = "Load first filament as default for those not loaded";
-    def->cli_params = "option";
-    def->set_default_value(new ConfigOptionBool(false));
-
-    def = this->add("min_save", coBool);
-    def->label = "Minimum save";
-    def->tooltip = "export 3mf with minimum size.";
+    def->label = L("Load default filaments");
+    def->tooltip = L("Load first filament as default for those not loaded");
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -7170,15 +7289,15 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("mtcpp", coInt);
-    def->label = "mtcpp";
-    def->tooltip = "max triangle count per plate for slicing.";
+    def->label = L("mtcpp");
+    def->tooltip = L("max triangle count per plate for slicing.");
     def->cli = "mtcpp";
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1000000));
 
     def = this->add("mstpp", coInt);
-    def->label = "mstpp";
-    def->tooltip = "max slicing time per plate in seconds.";
+    def->label = L("mstpp");
+    def->tooltip = L("max slicing time per plate in seconds.");
     def->cli = "mstpp";
     def->cli_params = "time";
     def->set_default_value(new ConfigOptionInt(300));
@@ -7190,8 +7309,8 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("normative_check", coBool);
-    def->label = "Normative check";
-    def->tooltip = "Check the normative items.";
+    def->label = L("Normative check");
+    def->tooltip = L("Check the normative items.");
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -7206,19 +7325,19 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("info", coBool);
-    def->label = "Output Model Info";
-    def->tooltip = "Output the model's information.";
+    def->label = L("Output Model Info");
+    def->tooltip = L("Output the model's information.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("export_settings", coString);
-    def->label = "Export Settings";
-    def->tooltip = "Export settings to a file.";
+    def->label = L("Export Settings");
+    def->tooltip = L("Export settings to a file.");
     def->cli_params = "settings.json";
     def->set_default_value(new ConfigOptionString("output.json"));
 
     def = this->add("pipe", coString);
-    def->label = "Send progress to pipe";
-    def->tooltip = "Send progress to pipe.";
+    def->label = L("Send progress to pipe");
+    def->tooltip = L("Send progress to pipe.");
     def->cli_params = "pipename";
     def->set_default_value(new ConfigOptionString(""));
 }
@@ -7262,15 +7381,15 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionPoint(Vec2d(100,100)));*/
 
     def = this->add("arrange", coInt);
-    def->label = "Arrange Options";
-    def->tooltip = "Arrange options: 0-disable, 1-enable, others-auto";
+    def->label = L("Arrange Options");
+    def->tooltip = L("Arrange options: 0-disable, 1-enable, others-auto");
     def->cli_params = "option";
     //def->cli = "arrange|a";
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("repetitions", coInt);
-    def->label = "Repetions count";
-    def->tooltip = "Repetions count of the whole model";
+    def->label = L("Repetions count");
+    def->tooltip = L("Repetions count of the whole model");
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -7290,14 +7409,14 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->tooltip = L("Multiply copies by creating a grid.");*/
 
     def = this->add("assemble", coBool);
-    def->label = "Assemble";
-    def->tooltip = "Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.";
+    def->label = L("Assemble");
+    def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
     //def->cli = "merge|m";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("convert_unit", coBool);
-    def->label = "Convert Unit";
-    def->tooltip = "Convert the units of model";
+    def->label = L("Convert Unit");
+    def->tooltip = L("Convert the units of model");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("orient", coInt);
@@ -7327,8 +7446,8 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("scale", coFloat);
-    def->label = "Scale";
-    def->tooltip = "Scale the model by a float factor";
+    def->label = L("Scale");
+    def->tooltip = L("Scale the model by a float factor");
     def->cli_params = "factor";
     def->set_default_value(new ConfigOptionFloat(1.f));
 
@@ -7369,55 +7488,55 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");*/
 
     def = this->add("load_settings", coStrings);
-    def->label = "Load General Settings";
-    def->tooltip = "Load process/machine settings from the specified file";
+    def->label = L("Load General Settings");
+    def->tooltip = L("Load process/machine settings from the specified file");
     def->cli_params = "\"setting1.json;setting2.json\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("load_filaments", coStrings);
-    def->label = "Load Filament Settings";
-    def->tooltip = "Load filament settings from the specified file list";
+    def->label = L("Load Filament Settings");
+    def->tooltip = L("Load filament settings from the specified file list");
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("skip_objects", coInts);
-    def->label = "Skip Objects";
-    def->tooltip = "Skip some objects in this print";
+    def->label = L("Skip Objects");
+    def->tooltip = L("Skip some objects in this print");
     def->cli_params = "\"3,5,10,77\"";
     def->set_default_value(new ConfigOptionInts());
 
     def = this->add("clone_objects", coInts);
-    def->label = "Clone Objects";
-    def->tooltip = "Clone objects in the load list";
+    def->label = L("Clone Objects");
+    def->tooltip = L("Clone objects in the load list");
     def->cli_params = "\"1,3,1,10\"";
     def->set_default_value(new ConfigOptionInts());
 
     def = this->add("uptodate_settings", coStrings);
-    def->label = "load uptodate process/machine settings when using uptodate";
-    def->tooltip = "load uptodate process/machine settings from the specified file when using uptodate";
+    def->label = L("load uptodate process/machine settings when using uptodate");
+    def->tooltip = L("load uptodate process/machine settings from the specified file when using uptodate");
     def->cli_params = "\"setting1.json;setting2.json\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("uptodate_filaments", coStrings);
-    def->label = "load uptodate filament settings when using uptodate";
-    def->tooltip = "load uptodate filament settings from the specified file when using uptodate";
+    def->label = L("load uptodate filament settings when using uptodate");
+    def->tooltip = L("load uptodate filament settings from the specified file when using uptodate");
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("downward_check", coBool);
-    def->label = "downward machines check";
-    def->tooltip = "if enabled, check whether current machine downward compatible with the machines in the list";
+    def->label = L("downward machines check");
+    def->tooltip = L("if enabled, check whether current machine downward compatible with the machines in the list");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("downward_settings", coStrings);
-    def->label = "downward machines settings";
-    def->tooltip = "the machine settings list need to do downward checking";
+    def->label = L("downward machines settings");
+    def->tooltip = L("the machine settings list need to do downward checking");
     def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
     
     def = this->add("load_assemble_list", coString);
-    def->label = "Load assemble list";
-    def->tooltip = "Load assemble object list from config file";
+    def->label = L("Load assemble list");
+    def->tooltip = L("Load assemble object list from config file");
     def->cli_params = "assemble_list.json";
     def->set_default_value(new ConfigOptionString());
 
@@ -7444,21 +7563,21 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
 
     def = this->add("outputdir", coString);
-    def->label = "Output directory";
-    def->tooltip = "Output directory for the exported files.";
+    def->label = L("Output directory");
+    def->tooltip = L("Output directory for the exported files.");
     def->cli_params = "dir";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("debug", coInt);
-    def->label = "Debug level";
-    def->tooltip = "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n";
+    def->label = L("Debug level");
+    def->tooltip = L("Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n");
     def->min = 0;
     def->cli_params = "level";
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("enable_timelapse", coBool);
-    def->label = "Enable timeplapse for print";
-    def->tooltip = "If enabled, this slicing will be considered using timelapse";
+    def->label = L("Enable timeplapse for print");
+    def->tooltip = L("If enabled, this slicing will be considered using timelapse");
     def->set_default_value(new ConfigOptionBool(false));
 
 #if (defined(_MSC_VER) || defined(__MINGW32__)) && defined(SLIC3R_GUI)
@@ -7475,59 +7594,59 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("load_filament_ids", coInts);
-    def->label = "Load filament ids";
-    def->tooltip = "Load filament ids for each object";
+    def->label = L("Load filament ids");
+    def->tooltip = L("Load filament ids for each object");
     def->cli_params = "\"1,2,3,1\"";
     def->set_default_value(new ConfigOptionInts());
 
     def = this->add("allow_multicolor_oneplate", coBool);
-    def->label = "Allow multiple color on one plate";
-    def->tooltip = "If enabled, the arrange will allow multiple color on one plate";
+    def->label = L("Allow multiple color on one plate");
+    def->tooltip = L("If enabled, the arrange will allow multiple color on one plate");
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("allow_rotations", coBool);
-    def->label = "Allow rotatations when arrange";
-    def->tooltip = "If enabled, the arrange will allow rotations when place object";
+    def->label = L("Allow rotatations when arrange");
+    def->tooltip = L("If enabled, the arrange will allow rotations when place object");
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("avoid_extrusion_cali_region", coBool);
-    def->label = "Avoid extrusion calibrate region when doing arrange";
-    def->tooltip = "If enabled, the arrange will avoid extrusion calibrate region when place object";
+    def->label = L("Avoid extrusion calibrate region when doing arrange");
+    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when place object");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("skip_modified_gcodes", coBool);
-    def->label = "Skip modified gcodes in 3mf";
-    def->tooltip = "Skip the modified gcodes in 3mf from Printer or filament Presets";
+    def->label = L("Skip modified gcodes in 3mf");
+    def->tooltip = L("Skip the modified gcodes in 3mf from Printer or filament Presets");
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("makerlab_name", coString);
-    def->label = "MakerLab name";
-    def->tooltip = "MakerLab name to generate this 3mf";
+    def->label = L("MakerLab name");
+    def->tooltip = L("MakerLab name to generate this 3mf");
     def->cli_params = "name";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("makerlab_version", coString);
-    def->label = "MakerLab version";
-    def->tooltip = "MakerLab version to generate this 3mf";
+    def->label = L("MakerLab version");
+    def->tooltip = L("MakerLab version to generate this 3mf");
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("metadata_name", coStrings);
-    def->label = "metadata name list";
-    def->tooltip = "matadata name list added into 3mf";
+    def->label = L("metadata name list");
+    def->tooltip = L("metadata name list added into 3mf");
     def->cli_params = "\"name1;name2;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("metadata_value", coStrings);
-    def->label = "metadata value list";
-    def->tooltip = "matadata value list added into 3mf";
+    def->label = L("metadata value list");
+    def->tooltip = L("metadata value list added into 3mf");
     def->cli_params = "\"value1;value2;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("allow_newer_file", coBool);
-    def->label = "Allow 3mf with newer version to be sliced";
-    def->tooltip = "Allow 3mf with newer version to be sliced";
+    def->label = L("Allow 3mf with newer version to be sliced");
+    def->tooltip = L("Allow 3mf with newer version to be sliced");
     def->cli_params = "option";
     def->set_default_value(new  ConfigOptionBool(false));
 }
