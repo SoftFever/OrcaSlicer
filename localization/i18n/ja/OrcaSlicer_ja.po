@@ -13355,7 +13355,7 @@ msgid ""
 msgstr ""
 
 msgid "Auto brim width"
-msgstr ""
+msgstr "オートブリム幅"
 
 msgid ""
 "Enabling this option means the width of the brim for tree support will be "
@@ -13363,7 +13363,7 @@ msgid ""
 msgstr ""
 
 msgid "Tree support brim width"
-msgstr "Tree support brim width"
+msgstr "ツリーサポートブリム幅"
 
 msgid "Distance from tree branch to the outermost brim line"
 msgstr ""
@@ -13410,7 +13410,7 @@ msgstr ""
 "ます。"
 
 msgid "Support wall loops"
-msgstr "Support wall loops"
+msgstr "サポートのウォール数"
 
 msgid "This setting specify the count of walls around support"
 msgstr "This setting specify the count of walls around support"
@@ -13441,7 +13441,7 @@ msgid ""
 msgstr ""
 
 msgid "Chamber temperature"
-msgstr "Chamber temperature"
+msgstr "庫内温度"
 
 msgid ""
 "For high-temperature materials like ABS, ASA, PC, and PA, a higher chamber "
@@ -14933,16 +14933,16 @@ msgstr ""
 "使用するIPアドレスを1つ選んでください。"
 
 msgid "PA Calibration"
-msgstr "PA Calibration"
+msgstr "PAキャリブレーション"
 
 msgid "DDE"
-msgstr ""
+msgstr "ダイレクトドライブ"
 
 msgid "Bowden"
-msgstr "Bowden"
+msgstr "ボーデン"
 
 msgid "Extruder type"
-msgstr ""
+msgstr "押出機タイプ"
 
 msgid "PA Tower"
 msgstr "PA Tower"
@@ -14954,10 +14954,10 @@ msgid "PA Pattern"
 msgstr "PA Pattern"
 
 msgid "Start PA: "
-msgstr "Start PA:"
+msgstr "開始PA:"
 
 msgid "End PA: "
-msgstr "End PA: "
+msgstr "終了PA: "
 
 msgid "PA step: "
 msgstr "PA step:"
@@ -15076,14 +15076,14 @@ msgid "Upload to storage"
 msgstr "ストレージへのアップロード"
 
 msgid "Switch to Device tab after upload."
-msgstr ""
+msgstr "アップロード後、デバイスタブに切り替える。"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Filename to upload doesn't end with \"%s\". Do you want to continue?"
 
 msgid "Upload"
-msgstr "Upload"
+msgstr "アップロード"
 
 msgid "Print host upload queue"
 msgstr "Print host upload queue"
@@ -15095,14 +15095,14 @@ msgid "Progress"
 msgstr "Progress"
 
 msgid "Host"
-msgstr "Host"
+msgstr "ホスト"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr "Size of file"
+msgstr "ファイルサイズ"
 
 msgid "Filename"
-msgstr "Filename"
+msgstr "ファイル名"
 
 msgid "Cancel selected"
 msgstr "Cancel selected"
@@ -15117,7 +15117,7 @@ msgid "Uploading"
 msgstr "アップロード中"
 
 msgid "Cancelling"
-msgstr "Canceling"
+msgstr "キャンセル中"
 
 msgid "Error uploading to print host"
 msgstr "プリントホストへのアップロードに失敗"
@@ -15218,10 +15218,10 @@ msgid "Select filament preset"
 msgstr "Select filament preset"
 
 msgid "Create Filament"
-msgstr "Create Filament"
+msgstr "フィラメントを作成"
 
 msgid "Create Based on Current Filament"
-msgstr "Create Based on Current Filament"
+msgstr "現在のフィラメントを元に作成"
 
 msgid "Copy Current Filament Preset "
 msgstr "Copy Current Filament Preset "
@@ -15327,10 +15327,10 @@ msgid "Create Printer/Nozzle"
 msgstr "Create Printer/Nozzle"
 
 msgid "Create Printer"
-msgstr "Create Printer"
+msgstr "プリンターを作成"
 
 msgid "Create Nozzle for Existing Printer"
-msgstr "Create Nozzle for Existing Printer"
+msgstr "既存のプリンターに別サイズのノズル径を作成"
 
 msgid "Create from Template"
 msgstr "Create from Template"
@@ -15634,7 +15634,7 @@ msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "Failed to create temporary folder, please try Export Configs again."
 
 msgid "Edit Filament"
-msgstr "Edit Filament"
+msgstr "フィラメントを編集"
 
 msgid "Filament presets under this filament"
 msgstr "Filament presets under this filament"
@@ -15666,7 +15666,7 @@ msgid "+ Add Preset"
 msgstr "+ Add Preset"
 
 msgid "Delete Filament"
-msgstr "Delete Filament"
+msgstr "フィラメントを削除"
 
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
@@ -15678,7 +15678,7 @@ msgstr ""
 "information for that slot."
 
 msgid "Delete filament"
-msgstr "Delete filament"
+msgstr "フィラメントを削除"
 
 msgid "Add Preset"
 msgstr "Add Preset"
@@ -15696,7 +15696,7 @@ msgid "[Delete Required]"
 msgstr "[Delete Required]"
 
 msgid "Edit Preset"
-msgstr "Edit Preset"
+msgstr "プリセットを編集"
 
 msgid "For more information, please check out Wiki"
 msgstr "For more information, please check out our Wiki"
@@ -15705,7 +15705,7 @@ msgid "Collapse"
 msgstr "Collapse"
 
 msgid "Daily Tips"
-msgstr "Daily Tips"
+msgstr "今日のヒント"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
@@ -15723,7 +15723,7 @@ msgid "*Printing %s material with %s may cause nozzle damage"
 msgstr "*Printing %s material with %s may cause nozzle damage"
 
 msgid "Need select printer"
-msgstr "Need select printer"
+msgstr "プリンターを選ぶ必要があります"
 
 msgid "The start, end or step is not valid value."
 msgstr "The start, end or step is not valid value."
@@ -15745,13 +15745,13 @@ msgid "Test"
 msgstr "テスト"
 
 msgid "Could not get a valid Printer Host reference"
-msgstr "Could not get a valid Printer Host reference"
+msgstr "有効なプリンタホスト参照を取得できませんでした"
 
 msgid "Success!"
-msgstr "Success!"
+msgstr "成功!"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "本当にログアウトしますか？"
 
 msgid "Refresh Printers"
 msgstr "Refresh Printers"
@@ -16149,9 +16149,9 @@ msgid ""
 "height, and results in very apparent layer lines and much lower printing "
 "quality, but shorter printing time in some printing cases."
 msgstr ""
-"Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
-"height. This results in very apparent layer lines and much lower print "
-"quality but shorter print time in some cases."
+"0.8mmノズルのデフォルト・プロファイルと比較すると、レイヤーの高さが大きくなっています。"
+"その結果、レイヤーラインが非常に目立ち、印刷品質が大幅に低下しますが、"
+"場合によっては印刷時間が短縮されます。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
@@ -16247,18 +16247,25 @@ msgid ""
 "Did you know that calibrating your printer can do wonders? Check out our "
 "beloved calibration solution in OrcaSlicer."
 msgstr ""
+"キャリブレーション\n"
+"プリンターを校正することで、素晴らしい効果が得られることをご存知ですか？"
+"オルカスライサーの校正（キャリブレーション）ソリューションをご覧ください。"
 
 #: resources/data/hints.ini: [hint:Auxiliary fan]
 msgid ""
 "Auxiliary fan\n"
 "Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
 msgstr ""
+"補助部品冷却ファン\n"
+"OrcaSlicerが補助部品冷却ファンをサポートしていることをご存知ですか？"
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
 "Air filtration/Exhaust Fan\n"
 "Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
+"空気ろ過/排気ファン\n"
+"OrcaSlicerが空気ろ過/排気ファンに対応していることをご存知ですか？"
 
 #: resources/data/hints.ini: [hint:G-code window]
 msgid ""
@@ -16524,10 +16531,10 @@ msgid ""
 "extruder/hotend clogging when printing lower temperature filament with a "
 "higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
-"When do you need to print with the printer door opened?\n"
-"Did you know that opening the printer door can reduce the probability of "
-"extruder/hotend clogging when printing lower temperature filament with a "
-"higher enclosure temperature? There is more info about this in the Wiki."
+"プリンターのドアを開けたまま印刷する必要があるのはどんなときですか？\n"
+"エンクロージャーの温度が高い状態で低温のフィラメントをプリントする場合、"
+"プリンターのドアを開けると、エクストルーダーやホットエンドが"
+"詰まる確率が下がることをご存知ですか？これについてはWikiに詳しい情報があります。"
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -16536,13 +16543,13 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
-"Avoid warping\n"
-"Did you know that when printing materials that are prone to warping such as "
-"ABS, appropriately increasing the heatbed temperature can reduce the "
-"probability of warping?"
+"反りを避ける\n"
+"ABSのような反りやすい素材を印刷する場合、"
+"ヒートベッドの温度を適切に上げることで、"
+"反りが発生する確率を下げることができることをご存知ですか？"
 
 #~ msgid "Current Cabin humidity"
-#~ msgstr "Current Cabin humidity"
+#~ msgstr "現在の庫内湿度"
 
 #~ msgid "Stopped."
 #~ msgstr "中止しました"
@@ -16552,7 +16559,7 @@ msgstr ""
 #~ msgstr "接続に失敗しました (%d)"
 
 #~ msgid "Initialize failed (Device connection not ready)!"
-#~ msgstr "Initialization failed (Device connection not ready)!"
+#~ msgstr "初期化に失敗しました（デバイス接続の準備ができていません)!"
 
 #, c-format, boost-format
 #~ msgid "Initialize failed (%s)!"
@@ -16578,7 +16585,7 @@ msgstr ""
 #~ "pingを実行します。"
 
 #~ msgid "IP and Access Code Verified! You may close the window"
-#~ msgstr "IP and Access Code Verified! You may close the window"
+#~ msgstr "IPとアクセスコードが確認されました！ウィンドウを閉じてください"
 
 #~ msgid "Force cooling for overhang and bridge"
 #~ msgstr "ｵｰﾊﾞｰﾊﾝｸﾞとﾌﾞﾘｯｼﾞの冷却"
@@ -16744,10 +16751,10 @@ msgstr ""
 #~ msgstr "ワイプタワーエクストルーダー"
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
-#~ msgstr "Please input a valid value (K in 0~0.3)"
+#~ msgstr "有効な値を入力してください (K in 0~0.3)"
 
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-#~ msgstr "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr "有効な値を入力してください (K in 0~0.3, N in 0.6~2.0)"
 
 #~ msgid "Printer local connection failed, please try again."
 #~ msgstr "Printer local connection failed; please try again."
@@ -16931,7 +16938,7 @@ msgstr ""
 
 #, c-format, boost-format
 #~ msgid "Load failed [%d]"
-#~ msgstr "Load failed [%d]"
+#~ msgstr "ロード失敗 [%d]"
 
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Failed to fetch model information from printer."
@@ -17005,7 +17012,7 @@ msgstr ""
 #~ "No one part is selected to keep after cut"
 
 #~ msgid "Edit Text"
-#~ msgstr "Edit Text"
+#~ msgstr "テキストを編集"
 
 #~ msgid "Error! Unable to create thread!"
 #~ msgstr "エラー：スレッドを作成できません"
@@ -17017,25 +17024,25 @@ msgstr ""
 #~ msgstr "Choose SLA archive:"
 
 #~ msgid "Import file"
-#~ msgstr "Import file"
+#~ msgstr "ファイルインポート"
 
 #~ msgid "Import model and profile"
-#~ msgstr "Import model and profile"
+#~ msgstr "モデルとプロファイルを取り込む"
 
 #~ msgid "Import profile only"
-#~ msgstr "Import profile only"
+#~ msgstr "プロファイルのみ取り込む"
 
 #~ msgid "Import model only"
-#~ msgstr "Import model only"
+#~ msgstr "モデルのみ取り込む"
 
 #~ msgid "Accurate"
-#~ msgstr "Accurate"
+#~ msgstr "緻密"
 
 #~ msgid "Balanced"
-#~ msgstr "Balanced"
+#~ msgstr "バランス"
 
 #~ msgid "Quick"
-#~ msgstr "Quick"
+#~ msgstr "高速"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"
@@ -17052,7 +17059,7 @@ msgstr ""
 #~ "右クリックし、メニューで選択できます。"
 
 #~ msgid "Filling bed "
-#~ msgstr "Filling bed"
+#~ msgstr "ベッドをこのオブジェクトで満たす"
 
 #, boost-format
 #~ msgid "%1% infill pattern doesn't support 100%% density."
@@ -17084,7 +17091,7 @@ msgstr ""
 
 #, c-format, boost-format
 #~ msgid " doesn't work at 100%% density "
-#~ msgstr " doesn't work at 100%% density "
+#~ msgstr "100%% の密度では使用できません"
 
 #~ msgid "Ctrl + Shift + Enter"
 #~ msgstr "Ctrl + Shift + Enter"
@@ -17245,7 +17252,7 @@ msgstr ""
 #~ msgstr "指定したファイルリストからフィラメント設定を読込む"
 
 #~ msgid "Skip Objects"
-#~ msgstr "Skip Objects"
+#~ msgstr "オブジェクトスキップ"
 
 #~ msgid "Skip some objects in this print"
 #~ msgstr "Skip some objects in this print"
@@ -17286,7 +17293,7 @@ msgstr ""
 #~ msgstr "Embedded"
 
 #~ msgid "Online Models"
-#~ msgstr "Online Models"
+#~ msgstr "オンラインモデル"
 
 #~ msgid "Show online staff-picked models on the home page"
 #~ msgstr "Show online staff-picked models on the home page"
@@ -17324,7 +17331,7 @@ msgstr ""
 #~ msgstr "底面との隙間があります、レイヤーを入れ替えました"
 
 #~ msgid "The model has too many empty layers."
-#~ msgstr "このモデルには空層があります。"
+#~ msgstr "このモデルには空の層があります。"
 
 #~ msgid "Cali"
 #~ msgstr "標定"
@@ -17333,7 +17340,7 @@ msgstr ""
 #~ msgstr "押出のキャリブレーション"
 
 #~ msgid "Push new filament into the extruder"
-#~ msgstr "Push new filament into the extruder"
+#~ msgstr "新しいフィラメントを押出機に挿入してください"
 
 #, c-format, boost-format
 #~ msgid ""
@@ -17356,7 +17363,7 @@ msgstr ""
 #~ "ドアを開いて換気を良くするか、ベッド温度を下げてください。"
 
 #~ msgid "Total Time Estimation"
-#~ msgstr "Total Time Estimation"
+#~ msgstr "予想合計時間"
 
 #~ msgid "Resonance frequency identification"
 #~ msgstr "共振特性測定"
