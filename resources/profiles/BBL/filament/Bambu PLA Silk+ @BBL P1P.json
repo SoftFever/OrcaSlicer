@@ -1,0 +1,34 @@
+{
+    "type": "filament",
+    "name": "Bambu PLA Silk+ @BBL P1P",
+    "inherits": "Bambu PLA Silk+ @base",
+    "from": "system",
+    "setting_id": "GFSA06_03",
+    "instantiation": "true",
+    "hot_plate_temp": [
+        "65"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "65"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "supertack_plate_temp": [
+        "35"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "35"
+    ],
+    "textured_plate_temp": [
+        "65"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "65"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle"
+    ]
+}

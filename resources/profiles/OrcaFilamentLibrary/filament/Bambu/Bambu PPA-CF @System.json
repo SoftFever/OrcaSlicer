@@ -1,0 +1,9 @@
+{
+    "type": "filament",
+    "setting_id": "OGFSN06_00",
+    "name": "Bambu PPA-CF @System",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PPA-CF @base",
+    "compatible_printers": []
+}

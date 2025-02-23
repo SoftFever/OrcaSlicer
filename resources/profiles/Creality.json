@@ -1,6 +1,6 @@
 {
     "name": "Creality",
-    "version": "02.02.00.04",
+    "version": "02.03.00.00",
     "force_update": "0",
     "description": "Creality configurations",
     "machine_model_list": [
@@ -399,6 +399,10 @@
             "sub_path": "process/0.12mm Fine @Creality K1 (0.4 nozzle).json"
         },
         {
+            "name": "0.12mm Fine @Creality K1 SE",
+            "sub_path": "process/0.12mm Fine @Creality K1 SE 0.4 nozzle.json"
+        },
+        {
             "name": "0.12mm Fine @Creality K1C",
             "sub_path": "process/0.12mm Fine @Creality K1C 0.4 nozzle.json"
         },
@@ -581,6 +585,10 @@
         {
             "name": "0.16mm Optimal @Creality K1 (0.4 nozzle)",
             "sub_path": "process/0.16mm Optimal @Creality K1 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality K1 SE",
+            "sub_path": "process/0.16mm Optimal @Creality K1 SE 0.4 nozzle.json"
         },
         {
             "name": "0.16mm Optimal @Creality K1C",
@@ -795,8 +803,8 @@
             "sub_path": "process/0.40mm Standard @Creality K2 Plus 0.8 nozzle.json"
         },
         {
-            "name": "0.20mm Fast @Creality K1 SE 0.4",
-            "sub_path": "process/0.20mm Fast @Creality K1 SE 0.4.json"
+            "name": "0.20mm Standard @Creality K1 SE 0.4",
+            "sub_path": "process/0.20mm Standard @Creality K1 SE 0.4.json"
         },
         {
             "name": "0.20mm Standard @Creality Hi",
@@ -1093,6 +1101,10 @@
         {
             "name": "0.24mm Draft @Creality K1 (0.4 nozzle)",
             "sub_path": "process/0.24mm Draft @Creality K1 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Creality K1 SE",
+            "sub_path": "process/0.24mm Draft @Creality K1 SE 0.4 nozzle.json"
         },
         {
             "name": "0.24mm Draft @Creality K1C",
@@ -1403,6 +1415,10 @@
         {
             "name": "Creality Generic PLA-CF @Hi-all",
             "sub_path": "filament/Creality Generic PLA-CF @Hi-all.json"
+        },
+        {
+            "name": "Creality Generic PLA Wood @Hi-all",
+            "sub_path": "filament/Creality Generic PLA Wood @Hi-all.json"
         },
         {
             "name": "Creality Generic TPU @Hi-all",

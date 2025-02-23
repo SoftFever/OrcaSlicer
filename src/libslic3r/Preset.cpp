@@ -767,6 +767,8 @@ BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
         return BedType::btPC;
     } else if (model_id == "C11") {
         return BedType::btPEI;
+    }else if (model_id == "Elegoo-CC" || model_id == "Elegoo-C") {//set default bed type to PTE for Elegoo-CC
+        return BedType::btPTE;
     }
     return BedType::btPEI;
 }
@@ -781,10 +783,10 @@ bool Preset::has_cali_lines(PresetBundle* preset_bundle)
 }
 
 static std::vector<std::string> s_Preset_print_options {
-    "layer_height", "initial_layer_print_height", "wall_loops", "alternate_extra_wall", "slice_closing_radius", "spiral_mode", "spiral_mode_smooth", "spiral_mode_max_xy_smoothing", "slicing_mode",
+    "layer_height", "initial_layer_print_height", "wall_loops", "alternate_extra_wall", "slice_closing_radius", "spiral_mode", "spiral_mode_smooth", "spiral_mode_max_xy_smoothing", "spiral_starting_flow_ratio", "spiral_finishing_flow_ratio", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall", "overhang_reverse", "overhang_reverse_threshold","overhang_reverse_internal_only", "wall_direction",
-    "seam_position", "staggered_inner_seams", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
+    "seam_position", "staggered_inner_seams", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "lattice_angle_1", "lattice_angle_2", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction", "solid_infill_direction", "rotate_solid_infill_direction",  "counterbore_hole_bridging",
     "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern","gap_fill_target",
     "ironing_type", "ironing_pattern", "ironing_flow", "ironing_speed", "ironing_spacing", "ironing_angle", "ironing_inset",
@@ -801,7 +803,7 @@ static std::vector<std::string> s_Preset_print_options {
     "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
-    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges", "max_bridge_length", "print_sequence", "print_order", "support_remove_small_overhang",
+    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges","enable_extra_bridge_layer", "max_bridge_length", "print_sequence", "print_order", "support_remove_small_overhang",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
     "ooze_prevention", "standby_temperature_delta", "preheat_time","preheat_steps", "interface_shells", "line_width", "initial_layer_line_width",
@@ -820,11 +822,11 @@ static std::vector<std::string> s_Preset_print_options {
      "timelapse_type",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
      "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process", "min_length_factor",
-     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "travel_acceleration","inner_wall_acceleration", "min_width_top_surface",
+     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle","internal_bridge_angle", "filter_out_gap_fill", "travel_acceleration","inner_wall_acceleration", "min_width_top_surface",
      "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
      "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio","only_one_wall_first_layer", "print_flow_ratio", "seam_gap",
      "role_based_wipe_speed", "wipe_speed", "accel_to_decel_enable", "accel_to_decel_factor", "wipe_on_loops", "wipe_before_external_loop",
-     "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
+     "bridge_density","internal_bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
      "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
      "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max","initial_layer_min_bead_width",
@@ -860,7 +862,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
-    "enable_pressure_advance", "pressure_advance","adaptive_pressure_advance","adaptive_pressure_advance_model","adaptive_pressure_advance_overhangs", "adaptive_pressure_advance_bridges","chamber_temperature", "filament_shrink","filament_shrinkage_compensation_z", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
+    "enable_pressure_advance", "pressure_advance","adaptive_pressure_advance","adaptive_pressure_advance_model","adaptive_pressure_advance_overhangs", "adaptive_pressure_advance_bridges","chamber_temperature", "filament_shrink","filament_shrinkage_compensation_z", "support_material_interface_fan_speed","internal_bridge_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
     "filament_loading_speed", "filament_loading_speed_start",
     "filament_unloading_speed", "filament_unloading_speed_start", "filament_toolchange_delay", "filament_cooling_moves", "filament_stamping_loading_speed", "filament_stamping_distance",
     "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters",
@@ -1163,13 +1165,9 @@ void PresetCollection::load_presets(
                     if (inherits_config) {
                         ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
                         std::string inherits_value = option_str->value;
-                        inherit_preset = this->find_preset(inherits_value, false, true);
                         // Orca: try to find if the parent preset has been renamed
-                        if (inherit_preset == nullptr) {
-                            auto it = this->find_preset_renamed(inherits_value);
-                            if (it != m_presets.end())
-                                inherit_preset = &(*it);
-                        }
+                        inherit_preset = this->find_preset2(inherits_value);
+
                     } else {
                         ;
                     }
@@ -2463,7 +2461,7 @@ const Preset *PresetCollection::get_preset_base(const Preset &child) const
     // Handle user preset
     if (child.inherits().empty())
         return &child; // this is user root
-    auto inherits = find_preset(child.inherits());
+    auto inherits = find_preset2(child.inherits(),true);
     return inherits ? get_preset_base(*inherits) : nullptr;
 }
 
@@ -2535,23 +2533,38 @@ const std::string& PresetCollection::get_suffix_modified() {
 
 // Return a preset by its name. If the preset is active, a temporary copy is returned.
 // If a preset is not found by its name, null is returned.
-Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found, bool real)
+Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found, bool real, bool only_from_library)
 {
     Preset key(m_type, name, false);
-    auto it = this->find_preset_internal(name);
+    auto it = this->find_preset_internal(name, only_from_library);
     // Ensure that a temporary copy is returned if the preset found is currently selected.
     return (it != m_presets.end() && it->name == key.name) ? &this->preset(it - m_presets.begin(), real) :
         first_visible_if_not_found ? &this->first_visible() : nullptr;
 }
 
-const Preset* PresetCollection::find_preset2(const std::string& name) const
+Preset* PresetCollection::find_preset2(const std::string& name, bool auto_match)
 {
-    auto preset = const_cast<PresetCollection*>(this)->find_preset(name, false, true);
+    auto preset = find_preset(name,false,true);
     if (preset == nullptr) {
         auto _name = get_preset_name_renamed(name);
-        if(_name != nullptr) 
-            preset     = const_cast<PresetCollection*>(this)->find_preset(*_name, false, true);
+        if (_name != nullptr)
+            preset = find_preset(*_name,false,true);
+        if (auto_match && preset == nullptr) {
+            //Orca: one more try, find the most likely preset in OrcaFilamentLibrary
+            if (name.find("Generic") != std::string::npos) {
+                // The regex pattern matches an optional prefix ending in '_' then "Generic" followed by the material name.
+                std::regex re(R"(^(?:.*?\b(?:\w+_)?)(Generic)\b\s+([^@]+?)\s*(?:@.*)?$)");
+                auto       alter_name = std::regex_replace(name, re, "Generic $2 @System");
+                preset                = find_preset2(alter_name, false);
+                // print preset file name
+                if (preset != nullptr) {
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " " << "Failed to find: " << name
+                                               << ". fallback to library preset: " << preset->file;
+                }
+            }
+        }
     }
+
     return preset;
 }
 
