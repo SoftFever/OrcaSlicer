@@ -1,7 +1,6 @@
 {
     "type": "filament",
     "setting_id": "AliZPX1FSA04",
-    "filament_id": "AliZ001",
     "name": "AliZ PETG @P1-X1",
     "from": "system",
     "instantiation": "true",
