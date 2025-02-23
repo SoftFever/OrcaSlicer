@@ -712,6 +712,8 @@
         {
             "name": "eSUN ePLA-LW @base",
             "sub_path": "filament/eSUN/eSUN ePLA-LW @base.json"
+        },
+        {
             "name": "Bambu ASA-CF @base",
             "sub_path": "filament/Bambu ASA-CF @base.json"
         },
