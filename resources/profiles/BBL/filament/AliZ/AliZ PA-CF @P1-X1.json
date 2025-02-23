@@ -1,6 +1,7 @@
 {
     "type": "filament",
     "setting_id": "AliZPX1FSA04",
+    "filament_id": "AliZ003",
     "name": "AliZ PA-CF @P1-X1",
     "from": "system",
     "instantiation": "true",
