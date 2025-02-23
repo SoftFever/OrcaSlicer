@@ -1,6 +1,6 @@
 {
     "name": "OrcaFilamentLibrary",
-    "version": "02.02.00.04",
+    "version": "02.03.00.00",
     "force_update": "0",
     "description": "Orca Filament Library",
     "filament_list": [
@@ -133,6 +133,10 @@
             "sub_path": "filament/Generic HIPS @System.json"
         },
         {
+            "name": "AliZ PA-CF @base",
+            "sub_path": "filament/AliZ/AliZ PA-CF @base.json"
+        },
+        {
             "name": "Bambu PA-CF @base",
             "sub_path": "filament/Bambu/Bambu PA-CF @base.json"
         },
@@ -205,6 +209,10 @@
             "sub_path": "filament/Generic PE-CF @System.json"
         },
         {
+            "name": "AliZ PETG @base",
+            "sub_path": "filament/AliZ/AliZ PETG @base.json"
+        },
+        {
             "name": "Bambu PET-CF @base",
             "sub_path": "filament/Bambu/Bambu PET-CF @base.json"
         },
@@ -259,6 +267,10 @@
         {
             "name": "Generic PHA @System",
             "sub_path": "filament/Generic PHA @System.json"
+        },
+        {
+            "name": "AliZ PLA @base",
+            "sub_path": "filament/AliZ/AliZ PLA @base.json"
         },
         {
             "name": "Bambu PLA Aero @base",
@@ -481,6 +493,10 @@
             "sub_path": "filament/Polymaker/PolyLite ASA @System.json"
         },
         {
+            "name": "AliZ PA-CF @System",
+            "sub_path": "filament/AliZ/AliZ PA-CF @System.json"
+        },
+        {
             "name": "Bambu PA-CF @System",
             "sub_path": "filament/Bambu/Bambu PA-CF @System.json"
         },
@@ -529,6 +545,18 @@
             "sub_path": "filament/Bambu/Bambu PC FR @System.json"
         },
         {
+            "name": "AliZ PETG @System",
+            "sub_path": "filament/AliZ/AliZ PETG @System.json"
+        },
+        {
+            "name": "AliZ PETG-CF @base",
+            "sub_path": "filament/AliZ/AliZ PETG-CF @base.json"
+        },
+        {
+            "name": "AliZ PETG-Metal @base",
+            "sub_path": "filament/AliZ/AliZ PETG-Metal @base.json"
+        },
+        {
             "name": "Bambu PET-CF @System",
             "sub_path": "filament/Bambu/Bambu PET-CF @System.json"
         },
@@ -567,6 +595,10 @@
         {
             "name": "SUNLU PETG @System",
             "sub_path": "filament/SUNLU/SUNLU PETG @System.json"
+        },
+        {
+            "name": "AliZ PLA @System",
+            "sub_path": "filament/AliZ/AliZ PLA @System.json"
         },
         {
             "name": "Bambu PLA Aero @System",
@@ -711,6 +743,14 @@
         {
             "name": "Bambu TPU 95A HF @System",
             "sub_path": "filament/Bambu/Bambu TPU 95A HF @System.json"
+        },
+        {
+            "name": "AliZ PETG-CF @System",
+            "sub_path": "filament/AliZ/AliZ PETG-CF @System.json"
+        },
+        {
+            "name": "AliZ PETG-Metal @System",
+            "sub_path": "filament/AliZ/AliZ PETG-Metal @System.json"
         }
     ]
 }

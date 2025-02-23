@@ -1,6 +1,6 @@
 {
     "name": "Creality",
-    "version": "02.02.00.04",
+    "version": "02.03.00.00",
     "force_update": "0",
     "description": "Creality configurations",
     "machine_model_list": [
@@ -1403,6 +1403,10 @@
         {
             "name": "Creality Generic PLA-CF @Hi-all",
             "sub_path": "filament/Creality Generic PLA-CF @Hi-all.json"
+        },
+        {
+            "name": "Creality Generic PLA Wood @Hi-all",
+            "sub_path": "filament/Creality Generic PLA Wood @Hi-all.json"
         },
         {
             "name": "Creality Generic TPU @Hi-all",
