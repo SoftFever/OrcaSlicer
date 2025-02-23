@@ -1567,11 +1567,11 @@
         },
         {
             "name": "eSUN PLA+ @BBL P1P",
-            "sub_path": "filament/P1P/eSUN/eSUN PLA+ @BBL P1P.json"
+            "sub_path": "filament/P1P/eSUN PLA+ @BBL P1P.json"
         },
         {
             "name": "eSUN PLA+ @BBL P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/eSUN/eSUN PLA+ @BBL P1P 0.2 nozzle.json"
+            "sub_path": "filament/P1P/eSUN PLA+ @BBL P1P 0.2 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1M",
