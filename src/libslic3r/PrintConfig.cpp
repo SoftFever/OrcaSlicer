@@ -6513,7 +6513,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "retraction_distance_when_cut",
         "extruder_type",
         "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time",
-        "smooth_coefficient", "overhang_totally_speed"
+        "smooth_coefficient", "overhang_totally_speed", "silent_mode"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
