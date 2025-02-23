@@ -30,11 +30,6 @@ namespace {
 
     // Badge constants
     constexpr int BADGE_SIZE = 22;
-#ifdef __APPLE__
-    constexpr int BADGE_OFFSET_Y = 8;
-#else
-    constexpr int BADGE_OFFSET_Y = 10;
-#endif
 
     // Overlay button constants
     constexpr int OVERLAY_IMAGE_HEIGHT = 38;
@@ -300,34 +295,35 @@ void JusPrinView3D::showBadgesIfNecessary() {
            (m_green_badge_count > 0);
 
 #ifdef __APPLE__
+    constexpr int BADGE_OFFSET_Y = 8;
+    constexpr int RIGHT_MARGIN = 10;
+    constexpr double BADGE_OVERLAP = 0.75;
+#else
+    constexpr int BADGE_OFFSET_Y = BADGE_SIZE;
+    constexpr int RIGHT_MARGIN = 0;
+    constexpr double BADGE_OVERLAP = 1.0;
+#endif
+
     int icon_x = (GetClientSize().GetWidth() + image_width) / 2;
     if (num_visible_badges == 1) {
-        icon_x -= BADGE_SIZE + 10;
+        icon_x -= BADGE_SIZE + RIGHT_MARGIN;
     } else if (num_visible_badges > 1) {
-        icon_x -= BADGE_SIZE + BADGE_SIZE * (num_visible_badges - 1) * 0.75 + 10;
+        icon_x -= BADGE_SIZE + BADGE_SIZE * (num_visible_badges - 1) * BADGE_OVERLAP + RIGHT_MARGIN;
     }
 
     if (m_green_badge_count > 0) {
         m_green_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
-        icon_x += BADGE_SIZE*0.75;
+        icon_x += BADGE_SIZE*BADGE_OVERLAP;
     }
 
     if (m_orange_badge_count > 0) {
         m_orange_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
-        icon_x += BADGE_SIZE*0.75;
+        icon_x += BADGE_SIZE*BADGE_OVERLAP;
     }
 
     if (m_red_badge_count > 0) {
         m_red_badge->SetPosition({icon_x, button_y - BADGE_OFFSET_Y});
     }
-#else
-    auto m_overlay_btn_rect = m_overlay_btn->GetRect();
-    auto badges_size = m_icon_text_left->GetClientSize();
-    auto badges_position_x  = m_overlay_btn_rect.GetRight() - 2 * badges_size.GetWidth();
-    auto badges_position_y  = m_overlay_btn_rect.GetTop() - badges_size.GetHeight();
-    m_icon_text_left->SetPosition({badges_position_x, badges_position_y});
-    m_icon_text_right->SetPosition({badges_position_x + badges_size.GetWidth(), badges_position_y});
-#endif
 
     m_red_badge->Refresh();
     m_orange_badge->Refresh();
