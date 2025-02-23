@@ -88,6 +88,7 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "obico",          htObico },
     { "flashforge",     htFlashforge },
     { "simplyprint",    htSimplyPrint },
+    { "elegoolink",     htElegooLink }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
@@ -327,6 +328,7 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"outer_and_inner", btOuterAndInner},
     {"auto_brim", btAutoBrim},  // BBS
     {"brim_ears", btEar},     // Orca
+    {"painted", btPainted},  // BBS
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
@@ -802,18 +804,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
     // Orca: make sure the order of the values is the same as the BedType enum 
-    def->enum_values.emplace_back("Supertack Plate");
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_values.emplace_back("Textured Cool Plate");
-    def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
+    def->enum_values.emplace_back("Supertack Plate");
     def->enum_labels.emplace_back(L("Smooth Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->enum_labels.emplace_back(L("Textured Cool Plate"));
+    def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS
@@ -938,6 +940,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Overhang cooling activation threshold");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("When the overhang exceeds this specified threshold, force the cooling fan to run at the 'Overhang Fan Speed' set below. "
                      "This threshold is expressed as a percentage, indicating the portion of each line's width that is unsupported by the layer "
                      "beneath it. Setting this value to 0% forces the cooling fan to run for all outer walls, regardless of the overhang degree.");
@@ -961,6 +964,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bridge_angle", coFloat);
     def->label = L("External bridge infill direction");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
         "Use 180°for zero angle.");
@@ -1257,12 +1261,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
     def->enum_values.emplace_back("brim_ears");
+    def->enum_values.emplace_back("painted");
     def->enum_values.emplace_back("outer_only");
     def->enum_values.emplace_back("inner_only");
     def->enum_values.emplace_back("outer_and_inner");
     def->enum_values.emplace_back("no_brim");
     def->enum_labels.emplace_back(L("Auto"));
     def->enum_labels.emplace_back(L("Mouse ear"));
+    def->enum_labels.emplace_back(L("Painted"));
     def->enum_labels.emplace_back(L("Outer brim only"));
     def->enum_labels.emplace_back(L("Inner brim only"));
     def->enum_labels.emplace_back(L("Outer and inner brim"));
@@ -2563,7 +2569,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Top surface");
     def->tooltip = L("Jerk for top surface");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(9));
 
@@ -2571,7 +2577,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Infill");
     def->tooltip = L("Jerk for infill");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(9));
 
@@ -2579,7 +2585,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->tooltip = L("Jerk for initial layer");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(9));
 
@@ -2587,7 +2593,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Travel");
     def->tooltip = L("Jerk for travel");
     def->sidetext = L("mm/s");
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(12));
 
@@ -2726,7 +2732,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0.3));
+    def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("fuzzy_skin_point_distance", coFloat);
     def->label = L("Fuzzy skin point distance");
@@ -2736,7 +2742,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 5;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0.8));
+    def->set_default_value(new ConfigOptionFloat(0.3));
 
     def = this->add("fuzzy_skin_first_layer", coBool);
     def->label = L("Apply fuzzy skin to first layer");
@@ -3615,6 +3621,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("obico");
     def->enum_values.push_back("flashforge");
     def->enum_values.push_back("simplyprint");
+    def->enum_values.push_back("elegoolink");
     def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
@@ -3628,6 +3635,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("Obico");
     def->enum_labels.push_back("Flashforge");
     def->enum_labels.push_back("SimplyPrint");
+    def->enum_labels.push_back("Elegoo Link");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
@@ -3940,7 +3948,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt {0});
 
     def = this->add("long_retractions_when_cut", coBools);
-    def->label = L("Long retraction when cut(experimental)");
+    def->label = L("Long retraction when cut(beta)");
     def->tooltip = L("Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge."
                      "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
     def->mode = comDevelop;
@@ -4420,6 +4428,26 @@ void PrintConfigDef::init_fff_params()
     def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
+
+    def = this->add("spiral_starting_flow_ratio", coFloat);
+    def->label = "Spiral starting flow ratio";
+    def->tooltip = L("Sets the starting flow ratio while transitioning from the last bottom layer to the spiral. "
+                    "Normally the spiral transition scales the flow ratio from 0% to 100% during the first loop "
+                    "which can in some cases lead to under extrusion at the start of the spiral.");
+    def->min = 0;
+    def->max = 1;
+    def->set_default_value(new ConfigOptionFloat(0));
+    def->mode = comAdvanced;
+
+    def = this->add("spiral_finishing_flow_ratio", coFloat);
+    def->label = "Spiral finishing flow ratio";
+    def->tooltip = L("Sets the finishing flow ratio while ending the spiral. "
+                    "Normally the spiral transition scales the flow ratio from 100% to 0% during the last loop "
+                    "which can in some cases lead to under extrusion at the end of the spiral.");
+    def->min = 0;
+    def->max = 1;
+    def->set_default_value(new ConfigOptionFloat(0));
+    def->mode = comAdvanced;
 
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");

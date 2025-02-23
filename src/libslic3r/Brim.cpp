@@ -806,8 +806,8 @@ double configBrimWidthByVolumeGroups(double adhesion, double maxSpeed, const std
 
 // Generate ears
 // Ported from SuperSlicer: https://github.com/supermerill/SuperSlicer/blob/45d0532845b63cd5cefe7de7dc4ef0e0ed7e030a/src/libslic3r/Brim.cpp#L1116
-static ExPolygons make_brim_ears(ExPolygons& obj_expoly, coord_t size_ear, coord_t ear_detection_length,
-                                 coordf_t brim_ears_max_angle, bool is_outer_brim) {
+static ExPolygons make_brim_ears_auto(const ExPolygons& obj_expoly, coord_t size_ear, coord_t ear_detection_length,
+                                      coordf_t brim_ears_max_angle, bool is_outer_brim) {
     ExPolygons mouse_ears_ex;
     if (size_ear <= 0) {
         return mouse_ears_ex;
@@ -815,7 +815,7 @@ static ExPolygons make_brim_ears(ExPolygons& obj_expoly, coord_t size_ear, coord
     // Detect places to put ears
     const coordf_t angle_threshold = (180 - brim_ears_max_angle) * PI / 180.0;
     Points pt_ears;
-    for (ExPolygon &poly : obj_expoly) {
+    for (const ExPolygon &poly : obj_expoly) {
         Polygon decimated_polygon = poly.contour;
         if (ear_detection_length > 0) {
             // decimate polygon
@@ -835,8 +835,8 @@ static ExPolygons make_brim_ears(ExPolygons& obj_expoly, coord_t size_ear, coord
     // Then add ears
     // create ear pattern
     Polygon point_round;
-    for (size_t i = 0; i < POLY_SIDES; i++) {
-        double angle = (2.0 * PI * i) / POLY_SIDES;
+    for (size_t i = 0; i < POLY_SIDE_COUNT; i++) {
+        double angle = (2.0 * PI * i) / POLY_SIDE_COUNT;
         point_round.points.emplace_back(size_ear * cos(angle), size_ear * sin(angle));
     }
 
@@ -847,6 +847,41 @@ static ExPolygons make_brim_ears(ExPolygons& obj_expoly, coord_t size_ear, coord
         mouse_ears_ex.back().contour.translate(pt);
     }
 
+    return mouse_ears_ex;
+}
+
+static ExPolygons make_brim_ears(const PrintObject* object, const double& flowWidth, float brim_offset, Flow &flow, bool is_outer_brim)
+{
+    ExPolygons mouse_ears_ex;
+    BrimPoints brim_ear_points = object->model_object()->brim_points;
+    if (brim_ear_points.size() <= 0) {
+        return mouse_ears_ex;
+    }
+    const Geometry::Transformation& trsf = object->model_object()->instances[0]->get_transformation();
+    Transform3d model_trsf = trsf.get_matrix_no_offset();
+    const Point &center_offset = object->center_offset();
+    model_trsf = model_trsf.pretranslate(Vec3d(- unscale<double>(center_offset.x()), - unscale<double>(center_offset.y()), 0));
+    for (auto &pt : brim_ear_points) {
+        Vec3f world_pos = pt.transform(trsf.get_matrix());
+        if ( world_pos.z() > 0) continue;
+        Polygon point_round;
+        float brim_width = floor(scale_(pt.head_front_radius) / flowWidth / 2) * flowWidth * 2;
+        if (is_outer_brim) {
+            double flowWidthScale = flowWidth / SCALING_FACTOR;
+            brim_width = floor(brim_width / flowWidthScale / 2) * flowWidthScale * 2;
+        }
+        coord_t size_ear = (brim_width - brim_offset - flow.scaled_spacing());
+        for (size_t i = 0; i < POLY_SIDE_COUNT; i++) {
+            double angle = (2.0 * PI * i) / POLY_SIDE_COUNT;
+            point_round.points.emplace_back(size_ear * cos(angle), size_ear * sin(angle));
+        }
+        mouse_ears_ex.emplace_back();
+        mouse_ears_ex.back().contour = point_round;
+        Vec3f pos = pt.transform(model_trsf);
+        int32_t pt_x = scale_(pos.x());
+        int32_t pt_y = scale_(pos.y());
+        mouse_ears_ex.back().contour.translate(Point(pt_x, pt_y));
+    }
     return mouse_ears_ex;
 }
 
@@ -888,9 +923,10 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             const float        scaled_additional_brim_width = scale_(floor(5 / flowWidth / 2) * flowWidth * 2);
             const float        scaled_half_min_adh_length = scale_(1.1);
             bool               has_brim_auto = object->config().brim_type == btAutoBrim;
-            const bool         use_brim_ears = object->config().brim_type == btEar;
-            const bool         has_inner_brim = brim_type == btInnerOnly || brim_type == btOuterAndInner || use_brim_ears;
-            const bool         has_outer_brim = brim_type == btOuterOnly || brim_type == btOuterAndInner || brim_type == btAutoBrim || use_brim_ears;
+            const bool         use_auto_brim_ears = object->config().brim_type == btEar;
+            const bool         use_brim_ears = object->config().brim_type == btPainted;
+            const bool         has_inner_brim = brim_type == btInnerOnly || brim_type == btOuterAndInner || use_auto_brim_ears || use_brim_ears;
+            const bool         has_outer_brim = brim_type == btOuterOnly || brim_type == btOuterAndInner || brim_type == btAutoBrim || use_auto_brim_ears || use_brim_ears;
             coord_t            ear_detection_length = scale_(object->config().brim_ears_detection_length.value);
             coordf_t           brim_ears_max_angle = object->config().brim_ears_max_angle.value;
 
@@ -951,27 +987,30 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         if (has_outer_brim) {
                             // BBS: inner and outer boundary are offset from the same polygon incase of round off error.
                             auto innerExpoly = offset_ex(ex_poly.contour, brim_offset, jtRound, SCALED_RESOLUTION);
-                            auto &clipExpoly = innerExpoly;
-
+                            ExPolygons outerExpoly;
                             if (use_brim_ears) {
+                                outerExpoly = make_brim_ears(object, flowWidth, brim_offset, flow, true);
+                                //outerExpoly = offset_ex(outerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION);
+                            } else if (use_auto_brim_ears) {
                                 coord_t size_ear = (brim_width_mod - brim_offset - flow.scaled_spacing());
-                                append(brim_area_object, diff_ex(make_brim_ears(innerExpoly, size_ear, ear_detection_length, brim_ears_max_angle, true), clipExpoly));
-                            } else {
-                                // Normal brims
-                                append(brim_area_object, diff_ex(offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION), clipExpoly));
+                                outerExpoly = make_brim_ears_auto(innerExpoly, size_ear, ear_detection_length, brim_ears_max_angle, true);
+                            }else {
+                                outerExpoly = offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION);
                             }
+                            append(brim_area_object, diff_ex(outerExpoly, innerExpoly));
                         }
                         if (has_inner_brim) {
-                            auto outerExpoly = offset_ex(ex_poly_holes_reversed, -brim_offset);
-                            auto clipExpoly = offset_ex(ex_poly_holes_reversed, -brim_width - brim_offset);
-
+                            ExPolygons outerExpoly;
+                            auto innerExpoly = offset_ex(ex_poly_holes_reversed, -brim_width - brim_offset);
                             if (use_brim_ears) {
+                                outerExpoly = make_brim_ears(object, flowWidth, brim_offset, flow, false);
+                            } else if (use_auto_brim_ears) {
                                 coord_t size_ear = (brim_width - brim_offset - flow.scaled_spacing());
-                                append(brim_area_object, diff_ex(make_brim_ears(outerExpoly, size_ear, ear_detection_length, brim_ears_max_angle, false), clipExpoly));
-                            } else {
-                                // Normal brims
-                                append(brim_area_object, diff_ex(outerExpoly, clipExpoly));
+                                outerExpoly = make_brim_ears_auto(offset_ex(ex_poly_holes_reversed, -brim_offset), size_ear, ear_detection_length, brim_ears_max_angle, false);
+                            }else {
+                                outerExpoly = offset_ex(ex_poly_holes_reversed, -brim_offset);
                             }
+                            append(brim_area_object, diff_ex(outerExpoly, innerExpoly));
                         }
                         if (!has_inner_brim) {
                             // BBS: brim should be apart from holes
