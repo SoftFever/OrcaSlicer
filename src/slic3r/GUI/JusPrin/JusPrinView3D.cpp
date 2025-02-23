@@ -244,7 +244,7 @@ JusPrinView3D::~JusPrinView3D()
     delete m_green_badge;
 }
 
-void JusPrinView3D::updateChatPanelBounds() {
+void JusPrinView3D::updateChatPanelRect() {
     if (!m_chat_panel) return;
 
     const auto& config = m_chatpanel_view_mode == "large" ? LARGE_CONFIG : SMALL_CONFIG;
@@ -261,7 +261,7 @@ void JusPrinView3D::updateChatPanelBounds() {
     );
 }
 
-void JusPrinView3D::updateActivationButtonBounds() {
+void JusPrinView3D::updateActivationButtonRect() {
     // Resize and reposition overlay button
     int image_height = OVERLAY_IMAGE_HEIGHT + OVERLAY_PADDING;
     int image_width = OVERLAY_IMAGE_WIDTH + OVERLAY_PADDING;
@@ -395,8 +395,8 @@ void JusPrinView3D::OnSize(wxSizeEvent& evt)
     evt.Skip();
     if (!m_chat_panel || !m_overlay_btn) return;
 
-    updateChatPanelBounds();
-    updateActivationButtonBounds();
+    updateChatPanelRect();
+    updateActivationButtonRect();
     showBadgesIfNecessary();
 }
 
@@ -421,7 +421,7 @@ void JusPrinView3D::changeChatPanelView(const std::string& viewMode) {
     if (!m_chat_panel) return;
 
     m_chatpanel_view_mode = viewMode;
-    updateChatPanelBounds();
+    updateChatPanelRect();
 }
 
 void JusPrinView3D::setChatPanelVisibility(bool is_visible) {
