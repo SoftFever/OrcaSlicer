@@ -408,7 +408,6 @@ void JusPrinView3D::showChatPanel() {
     if (!m_chat_panel) return;
 
     m_chat_panel->Show();
-    m_chat_panel->SetFocus();
     m_overlay_btn->Hide();
     showBadgesIfNecessary();
 }
