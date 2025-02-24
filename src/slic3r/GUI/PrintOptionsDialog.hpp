@@ -16,6 +16,9 @@
 #include "Widgets/StaticLine.hpp"
 #include "Widgets/ComboBox.hpp"
 
+// Previous definitions
+class SwitchBoard;
+
 namespace Slic3r { namespace GUI {
 
 class PrinterPartsDialog : public DPIDialog
@@ -75,6 +78,7 @@ protected:
     CheckBox* m_cb_ai_monitoring;
     CheckBox* m_cb_plate_mark;
     CheckBox* m_cb_auto_recovery;
+    CheckBox* m_cb_open_door;
     CheckBox* m_cb_sup_sound;
     CheckBox* m_cb_filament_tangle;
     CheckBox* m_cb_nozzle_blob;
@@ -85,6 +89,7 @@ protected:
     Label* text_plate_mark;
     Label* text_plate_mark_caption;
     Label* text_auto_recovery;
+    Label* text_open_door;
     Label* text_sup_sound;
     Label* text_filament_tangle;
     Label* text_nozzle_blob;
@@ -96,6 +101,8 @@ protected:
     StaticLine* line5;
     StaticLine* line6;
     StaticLine* line7;
+    StaticLine* open_door_line;
+    SwitchBoard* open_door_switch_board;
     wxBoxSizer* create_settings_group(wxWindow* parent);
 
     bool print_halt = false;
@@ -123,6 +130,9 @@ public:
     wxString sensitivity_level_to_label_string(enum AiMonitorSensitivityLevel level);
     std::string sensitivity_level_to_msg_string(enum AiMonitorSensitivityLevel level);
     void set_ai_monitor_sensitivity(wxCommandEvent& evt);
+
+private:
+    void UpdateOptionOpenDoorCheck(MachineObject *obj);
 };
 
 }} // namespace Slic3r::GUI

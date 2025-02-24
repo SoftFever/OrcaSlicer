@@ -943,6 +943,14 @@ public:
         FR_Agora,
         FR_TutkAgora
     } file_remote{ FR_None };
+
+    enum DoorOpenCheckState : int
+    {
+        DOOR_OPEN_CHECK_DISABLE            = 0,/*do nothing*/
+        DOOR_OPEN_CHECK_ENABLE_WARNING     = 1,/*warning*/
+        DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT = 2,/*pause print*/
+    };
+
     bool        file_model_download{false};
     bool        virtual_camera{false};
 
@@ -1260,6 +1268,18 @@ public:
     void check_ams_filament_valid();
 
     int command_handle_response(const json &response);
+
+    /* xcam door open check*/
+    bool               support_door_open_check() const { return is_support_door_open_check;};
+    DoorOpenCheckState get_door_open_check_state() const { return xcam_door_open_check;};
+    void               command_set_door_open_check(DoorOpenCheckState state);
+
+private:
+
+    /* xcam door open check*/
+    bool is_support_door_open_check = false;
+    DoorOpenCheckState xcam_door_open_check  = DoorOpenCheckState::DOOR_OPEN_CHECK_DISABLE;
+    time_t xcam_door_open_check_start_time   = 0;
 };
 
 class DeviceManager

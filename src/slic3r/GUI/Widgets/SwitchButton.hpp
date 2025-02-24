@@ -8,7 +8,7 @@
 #include "Label.hpp"
 #include "Button.hpp"
 
-wxDECLARE_EVENT(wxCUSTOMEVT_SELECT_NOZZLE_POS, wxCommandEvent);
+wxDECLARE_EVENT(wxCUSTOMEVT_SWITCH_POS, wxCommandEvent);
 
 class SwitchButton : public wxBitmapToggleButton
 {

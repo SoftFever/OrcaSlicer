@@ -5936,6 +5936,11 @@ void MachineObject::parse_new_info(json print)
             ams_auto_switch_filament_flag = get_flag_bits(cfg, 18);
         }
 
+        if (time(nullptr) - xcam_door_open_check_start_time > HOLD_TIME_MAX)
+        {
+            xcam_door_open_check = (DoorOpenCheckState) get_flag_bits(cfg, 20, 2);
+        }
+
         xcam_allow_prompt_sound = get_flag_bits(cfg, 22);
         xcam_filament_tangle_detect = get_flag_bits(cfg, 23);
         nozzle_blob_detection_enabled = get_flag_bits(cfg, 24);
@@ -5958,6 +5963,7 @@ void MachineObject::parse_new_info(json print)
         is_support_filament_tangle_detect = get_flag_bits(fun, 9);
         is_support_motor_noise_cali = get_flag_bits(fun, 10);
         is_support_user_preset = get_flag_bits(fun, 11);
+        is_support_door_open_check = get_flag_bits(fun, 12);
         is_support_nozzle_blob_detection = get_flag_bits(fun, 13);
         is_support_upgrade_kit = get_flag_bits(fun, 14);
         is_support_internal_timelapse = get_flag_bits(fun, 28);
@@ -6519,6 +6525,26 @@ int MachineObject::command_handle_response(const json &response)
     }
 
     return 0;
+}
+
+void MachineObject::command_set_door_open_check(DoorOpenCheckState state)
+{
+    json j;
+    j["system"]["command"]       = "set_door_stat";
+    j["system"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    switch (state)
+    {
+         case Slic3r::MachineObject::DOOR_OPEN_CHECK_DISABLE:            j["system"]["config"] = 0; break;
+         case Slic3r::MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING:     j["system"]["config"] = 1; break;
+         case Slic3r::MachineObject::DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT: j["system"]["config"] = 2; break;
+         default: assert(0); return;
+    }
+
+    if (publish_json(j.dump()) == 0)
+    {
+        xcam_door_open_check = state;
+        xcam_door_open_check_start_time = time(nullptr);
+    }
 }
 
 bool DeviceManager::EnableMultiMachine = false;

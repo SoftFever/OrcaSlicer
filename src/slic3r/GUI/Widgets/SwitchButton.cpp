@@ -10,7 +10,7 @@
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
-wxDEFINE_EVENT(wxCUSTOMEVT_SELECT_NOZZLE_POS, wxCommandEvent);
+wxDEFINE_EVENT(wxCUSTOMEVT_SWITCH_POS, wxCommandEvent);
 
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)
@@ -294,7 +294,7 @@ void SwitchBoard::on_left_down(wxMouseEvent &evt)
     }
     Refresh();
 
-    wxCommandEvent event(wxCUSTOMEVT_SELECT_NOZZLE_POS);
+    wxCommandEvent event(wxCUSTOMEVT_SWITCH_POS);
     event.SetInt(index);
     wxPostEvent(this, event);
 }

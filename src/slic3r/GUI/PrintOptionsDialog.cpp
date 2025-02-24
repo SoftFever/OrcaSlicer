@@ -2,6 +2,8 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
+#include "Widgets/SwitchButton.hpp"
+#include "MsgDialog.hpp"
 
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
@@ -44,6 +46,33 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         if (obj) {
             obj->command_xcam_control_auto_recovery_step_loss(m_cb_auto_recovery->GetValue());
         }
+        evt.Skip();
+    });
+
+    m_cb_open_door->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+        if (m_cb_open_door->GetValue())
+        {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_DISABLE); }
+        }
+        else
+        {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING); }
+        }
+
+        evt.Skip();
+    });
+
+    open_door_switch_board->Bind(wxCUSTOMEVT_SWITCH_POS, [this](wxCommandEvent &evt)
+    {
+        if (evt.GetInt() == 0)
+        {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT); }
+        }
+        else if (evt.GetInt() == 1)
+        {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING); }
+        }
+
         evt.Skip();
     });
 
@@ -98,6 +127,7 @@ void PrintOptionsDialog::update_ai_monitor_status()
 void PrintOptionsDialog::update_options(MachineObject* obj_)
 {
     if (!obj_) return;
+
     if (obj_->is_support_ai_monitoring) {
         text_ai_monitoring->Show();
         m_cb_ai_monitoring->Show();
@@ -180,6 +210,8 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line7->Hide();
     }
 
+    UpdateOptionOpenDoorCheck(obj_);
+
     this->Freeze();
 
     m_cb_first_layer->SetValue(obj_->xcam_first_layer_inspector);
@@ -200,6 +232,33 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     update_ai_monitor_status();
     this->Thaw();
     Layout();
+}
+
+void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj) {
+    if (!obj || !obj->support_door_open_check()) {
+        m_cb_open_door->Hide();
+        text_open_door->Hide();
+        open_door_line->Hide();
+        open_door_switch_board->Hide();
+        return;
+    }
+
+    if (obj->get_door_open_check_state() != MachineObject::DOOR_OPEN_CHECK_DISABLE) {
+        m_cb_open_door->SetValue(true);
+        open_door_switch_board->Enable();
+
+        if (obj->get_door_open_check_state() == MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING) {
+            open_door_switch_board->updateState("left");
+            open_door_switch_board->Refresh();
+        } else if (obj->get_door_open_check_state() == MachineObject::DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT) {
+            open_door_switch_board->updateState("right");
+            open_door_switch_board->Refresh();
+        }
+
+    } else {
+        m_cb_open_door->SetValue(false);
+        open_door_switch_board->Disable();
+    }
 }
 
 wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
@@ -301,14 +360,31 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_auto_recovery, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_auto_recovery, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0,0,0,wxTOP, FromDIP(15));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line4 = new StaticLine(parent, false);
     line4->SetLineColour(wxColour(255,255,255));
     sizer->Add(line4, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    sizer->Add(0,0,0,wxTOP, FromDIP(20));
+
+    //Open Door Detection
+    line_sizer         = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_open_door     = new CheckBox(parent);
+    text_open_door     = new Label(parent, _L("Open Door Dectection"));
+    text_open_door->SetFont(Label::Body_14);
+    open_door_switch_board = new SwitchBoard(parent, _L("Notification"), _L("Pause printing"), wxSize(FromDIP(200), FromDIP(26)));
+    open_door_switch_board->Disable();
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_open_door, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_open_door, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+
+    open_door_line = new StaticLine(parent, false);
+    open_door_line->SetLineColour(wxColour(255, 255, 255));
+    sizer->Add(open_door_line, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
     //Allow prompt sound
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
