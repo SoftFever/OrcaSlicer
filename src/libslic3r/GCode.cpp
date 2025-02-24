@@ -4044,13 +4044,16 @@ LayerResult GCode::process_layer(
     }
 
     PrinterStructure printer_structure           = m_config.printer_structure.value;
+    PrintSequence print_sequence = m_config.print_sequence;
+    bool sequence_by_layer = print_sequence == PrintSequence::ByLayer;
+    bool is_i3_printer = printer_structure == PrinterStructure::psI3;
+    bool is_multi_extruder = m_config.nozzle_diameter.size() > 1;
+
     bool need_insert_timelapse_gcode_for_traditional = false;
-    if (!m_spiral_vase && (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print())) {
-        if (printer_structure == PrinterStructure::psI3 && print.config().print_sequence == PrintSequence::ByLayer)
-            need_insert_timelapse_gcode_for_traditional = true;
-        else if (m_config.nozzle_diameter.values.size() == 2 && print.config().print_sequence == PrintSequence::ByLayer)
-            need_insert_timelapse_gcode_for_traditional = true;
+    if (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) {
+        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase)|| is_multi_extruder);
     }
+
     bool has_insert_timelapse_gcode = false;
     bool has_wipe_tower             = (layer_tools.has_wipe_tower && m_wipe_tower);
 
