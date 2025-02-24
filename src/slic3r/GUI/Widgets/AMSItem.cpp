@@ -2039,8 +2039,13 @@ static wxColour _get_diff_clr(wxWindow *win, wxColour pen_clr) /*STUDIO-10093 ge
         if (pen_clr.GetRGB() == wxWHITE->GetRGB())
         {
             static int default_distance = 20;
-            pen_clr.Set(pen_clr.Red() - default_distance, pen_clr.Green() - default_distance, pen_clr.Blue() - default_distance);
+            pen_clr.Set(pen_clr.Red() - default_distance, pen_clr.Green() - default_distance, pen_clr.Blue() - default_distance, pen_clr.Alpha());
         }
+    }
+
+    if (pen_clr.Alpha() == 0)/*STUDIO-10249 Make the color visible*/
+    {
+        pen_clr.Set(pen_clr.Red(), pen_clr.Green(), pen_clr.Blue(), 150);
     }
 
     return pen_clr;
