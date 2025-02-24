@@ -7858,7 +7858,7 @@ msgid ""
 "Do you want to proceed?"
 msgstr ""
 "Цю дію неможливо відмінити.\n"
-"\\vХочете продовжити?"
+"Хочете продовжити?"
 
 msgid "Detach preset"
 msgstr "Від'єднати пресет"
