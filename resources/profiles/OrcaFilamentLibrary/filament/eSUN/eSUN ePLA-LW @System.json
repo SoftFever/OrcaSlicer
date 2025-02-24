@@ -22,5 +22,23 @@
     "filament_vendor": [
         "eSUN"
     ],
+    "filament_scarf_seam_type": [
+        "none"
+    ],
+    "nozzle_temperature": [
+        "243"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "243"
+    ],
+    "nozzle_temperature_range_low": [
+        "190"
+    ],
+    "nozzle_temperature_range_high": [
+        "270"
+    ],
+    "temperature_vitrification": [
+        "53"
+    ],
     "compatible_printers": []
 }
