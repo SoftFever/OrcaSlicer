@@ -14944,7 +14944,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
                 continue;
             }
         }
-        if (opt_key == "material_colour" || opt_key == "filament_type") {
+        if (opt_key == "filament_type") {
+            update_filament_colors_in_full_config();
+            continue;
+        }
+        if (opt_key == "material_colour") {
             update_scheduled = true; // update should be scheduled (for update 3DScene)
         }
 

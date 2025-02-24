@@ -136,6 +136,12 @@ std::string& get_right_extruder_unprintable_text() {
     return right_unprintable_text;
 }
 
+static std::string format_number(float value)
+{
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision((static_cast<int>(value * 10) % 10 == 0) ? 0 : 1) << value;
+    return oss.str();
+}
 
 wxString filament_printable_error_msg;
 
@@ -1475,9 +1481,13 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
 
         tips[idx] += (boost::format(_u8L(" Please check and adjust the part's position or size to fit the printable range:\n"))).str();
         if (idx == 0)
-            tips[idx] += (boost::format(_u8L("Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"))%left_x_min %left_x_max %left_y_min %left_y_max %left_z_min %left_z_max).str();
+            tips[idx] += (boost::format(_u8L("Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"))
+                         % format_number(left_x_min) % format_number(left_x_max) % format_number(left_y_min)
+                         % format_number(left_y_max) % format_number(left_z_min) % format_number(left_z_max)).str();
         else
-            tips[idx] += (boost::format(_u8L("Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"))%right_x_min %right_x_max %right_y_min %right_y_max %right_z_min %right_z_max).str();
+            tips[idx] += (boost::format(_u8L("Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"))
+                         %format_number(right_x_min) %format_number(right_x_max) %format_number(right_y_min)
+                         %format_number(right_y_max) %format_number(right_z_min) %format_number(right_z_max)).str();
         output_text = tips[idx];
     }
 

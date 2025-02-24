@@ -153,8 +153,8 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
                 }
                 //always ignore z
                 extruder_volume.bboxf.min.z() = -std::numeric_limits<double>::max();
-                m_extruder_volumes.push_back(std::move(extruder_volume));
             }
+            m_extruder_volumes.push_back(std::move(extruder_volume));
 
             if (m_shared_volume.data[0] < extruder_volume.bboxf.min.x())
                 m_shared_volume.data[0] = extruder_volume.bboxf.min.x();
