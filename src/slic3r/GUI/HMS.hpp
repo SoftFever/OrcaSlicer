@@ -42,6 +42,8 @@ public:
     // query
     wxString  query_hms_msg(const MachineObject* obj, const std::string& long_error_code);
     wxString  query_hms_msg(const std::string& dev_id, const std::string& long_error_code);
+
+    bool      is_internal_error(const MachineObject *obj, int print_error);
     wxString  query_print_error_msg(const MachineObject* obj, int print_error);
     wxString  query_print_error_msg(const std::string& dev_id, int print_error);
     wxString  query_print_image_action(const MachineObject* obj, int print_error, std::vector<int>& button_action);
@@ -65,6 +67,8 @@ private:
     // internal query
     string    get_dev_id_type(const MachineObject* obj) const;
     wxString _query_hms_msg(const string& dev_id_type, const string& long_error_code, const string& lang_code = std::string("en"));
+
+    bool     _is_internal_error(const string &dev_id_type, const string &long_error_code, const string &lang_code = std::string("en"));
     wxString _query_error_msg(const string& dev_id_type, const std::string& long_error_code, const std::string& lang_code = std::string("en"));
     wxString _query_error_image_action(const string& dev_id_type, const std::string& long_error_code, std::vector<int>& button_action);
 };

@@ -401,7 +401,40 @@ wxString HMSQuery::_query_hms_msg(const string& dev_id_type, const string& long_
     return wxEmptyString;
 }
 
-wxString HMSQuery::_query_error_msg(const std::string& dev_id_type,
+bool HMSQuery::_is_internal_error(const string &dev_id_type,
+                                  const string &error_code,
+                                  const string &lang_code)
+{
+    init_hms_info(dev_id_type);
+    auto iter = m_hms_info_jsons.find(dev_id_type);
+    if (iter == m_hms_info_jsons.end()) { return false; }
+
+    const json &m_hms_info_json = iter->second;
+    if (m_hms_info_json.contains("device_error")) {
+        if (m_hms_info_json["device_error"].contains(lang_code)) {
+            for (auto item = m_hms_info_json["device_error"][lang_code].begin(); item != m_hms_info_json["device_error"][lang_code].end(); item++) {
+                if (item->contains("ecode") && boost::to_upper_copy((*item)["ecode"].get<std::string>()) == error_code) {
+                    if (item->contains("intro")) { return wxString::FromUTF8((*item)["intro"].get<std::string>()).IsEmpty(); }
+                }
+            }
+        } else {
+            // return first language
+            if (!m_hms_info_json["device_error"].empty()) {
+                for (auto lang : m_hms_info_json["device_error"]) {
+                    for (auto item = lang.begin(); item != lang.end(); item++) {
+                        if (item->contains("ecode") && boost::to_upper_copy((*item)["ecode"].get<std::string>()) == error_code) {
+                            if (item->contains("intro")) { return wxString::FromUTF8((*item)["intro"].get<std::string>()).IsEmpty(); }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+wxString HMSQuery::_query_error_msg(const std::string &dev_id_type,
                                     const std::string& error_code,
                                     const std::string& lang_code)
 {
@@ -483,7 +516,15 @@ wxString HMSQuery::_query_error_image_action(const std::string& dev_id_type, con
 }
 
 
-wxString HMSQuery::query_print_error_msg(const MachineObject* obj, int print_error)
+bool HMSQuery::is_internal_error(const MachineObject *obj, int print_error)
+{
+    char buf[32];
+    ::sprintf(buf, "%08X", print_error);
+    std::string lang_code = HMSQuery::hms_language_code();
+    return _is_internal_error(get_dev_id_type(obj), std::string(buf), lang_code);
+}
+
+wxString HMSQuery::query_print_error_msg(const MachineObject *obj, int print_error)
 {
     if (!obj)
     {

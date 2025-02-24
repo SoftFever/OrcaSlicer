@@ -2793,6 +2793,11 @@ void StatusPanel::update_error_message()
             if (print_error_str.size() > 4) { print_error_str.insert(4, " "); }
 
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj, obj->print_error);
+            if (wxGetApp().get_hms_query()->is_internal_error(obj, obj->print_error))
+            {
+                return;
+            }
+
             std::vector<int> used_button;
             wxString error_image_url = wxGetApp().get_hms_query()->query_print_image_action(obj, obj->print_error, used_button);
             // special case
