@@ -19,7 +19,6 @@ var MousePosX=0;
 var MousePosY=0;
 var sImages = {};
 
-var ClassicMode = false;
 var IsLogin = false;
 
 function Set_RecentFile_MouseRightBtn_Event()
@@ -76,20 +75,12 @@ function Set_RecentFile_MouseRightBtn_Event()
 function UpdateBoardsLayout() {
   var loginArea = document.getElementById("LeftBoard");
   var projectArea = document.getElementById("RightBoard");
-	var switchToClassicView = document.getElementById("switchToClassicView");
 	if (IsLogin) {
 		loginArea.style.display = "none";
 		projectArea.style.display = "block";
 	} else {
-		if (ClassicMode) {
-			loginArea.style.display = "block";
-			projectArea.style.display = "block";
-			switchToClassicView.textContent = "Switch to AI-assisted mode";
-		} else {
-			loginArea.style.display = "block";
-			projectArea.style.display = "none";
-			switchToClassicView.textContent = "Switch to classic mode";
-		}
+		loginArea.style.display = "block";
+		projectArea.style.display = "none";
 	}
 }
 
@@ -525,18 +516,6 @@ function OpenOneStaffPickModel( ModelID )
 
 	SendWXMessage( JSON.stringify(tSend) );
 }
-
-
-function ToggleClassicMode() {
-	var tSend={};
-	tSend['sequence_id']=Math.round(new Date() / 1000);
-	tSend['command']="homepage_set_classic_mode";
-	tSend['data']={};
-	tSend['data']['classic_mode']=!ClassicMode;
-
-	SendWXMessage( JSON.stringify(tSend) );
-}
-
 
 //---------------Global-----------------
 window.postMessage = HandleStudio;
