@@ -88,10 +88,10 @@ void uiAmsPercentHumidityDryPopup::doRender(wxDC &dc)
 {
     // background
     {
-        dc.SetPen(StateColor::darkModeColorFor(*wxWHITE));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+        dc.SetBrush(StateColor::darkModeColorFor(*wxWHITE));
+        dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), 0);
     }
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
     wxPoint p;
 
