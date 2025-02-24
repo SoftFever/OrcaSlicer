@@ -571,6 +571,24 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             msg_dlg.ShowModal();
             return;
         }
+        BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - machine object status:"
+                                << " dev_id = " << curr_obj->dev_id
+                                << ", print_type = " << curr_obj->printer_type
+                                << ", printer_status = " << curr_obj->print_status
+                                << ", cali_finished = " << curr_obj->cali_finished
+                                << ", cali_version = " << curr_obj->cali_version
+                                << ", cache_flow_ratio = " << curr_obj->cache_flow_ratio
+                                << ", sub_task_name = " << curr_obj->subtask_name
+                                << ", gcode_file_name = " << curr_obj->m_gcode_file;
+
+        for (const CaliPresetInfo &preset_info : curr_obj->selected_cali_preset) {
+            BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - selected preset: "
+                                    << "tray_id = " << preset_info.tray_id
+                                    << ", nozzle_diameter = " << preset_info.nozzle_diameter
+                                    << ", filament_id = " << preset_info.filament_id
+                                    << ", settring_id = " << preset_info.setting_id
+                                    << ", name = " << preset_info.name;
+        }
         on_device_connected(curr_obj);
     });
 
