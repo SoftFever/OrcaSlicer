@@ -369,11 +369,12 @@ void JusPrinView3D::initOverlay()
     m_orange_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
     m_green_badge->SetSize(BADGE_SIZE, BADGE_SIZE);
 
-    // Ensure proper z-order
+    // Important: Ensure proper z-order. Wrong order can cause the chat panel to not receive events on Windows
     m_overlay_btn->Raise();
     m_green_badge->Raise();
     m_orange_badge->Raise();
     m_red_badge->Raise();
+    m_chat_panel->Raise();
 
     m_overlay_btn->Hide();
     m_red_badge->Hide();
@@ -387,6 +388,7 @@ void JusPrinView3D::initOverlay()
 
     this->get_canvas3d()->get_wxglcanvas()->Bind(EVT_GLCANVAS_MOUSE_DOWN, &JusPrinView3D::OnCanvasMouseDown, this);
     Bind(wxEVT_SIZE, &JusPrinView3D::OnSize, this);
+
 
 }
 

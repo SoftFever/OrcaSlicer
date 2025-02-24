@@ -443,4 +443,11 @@ void JusPrinChatPanel::RunScriptInBrowser(const wxString& script) {
     WebView::RunScript(m_browser, script);
 }
 
+void JusPrinChatPanel::Raise() {
+    wxPanel::Raise();
+    if (m_browser) {
+        m_browser->Raise();
+    }
+}
+
 }} // namespace Slic3r::GUI
