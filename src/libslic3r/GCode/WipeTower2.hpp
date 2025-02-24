@@ -192,6 +192,7 @@ private:
     float  m_travel_speed       = 0.f;
 	float  m_infill_speed       = 0.f;
     float  m_wipe_tower_max_purge_speed   = 90.f;
+    float  m_wipe_tower_additional_volume   = 0.f;
 	float  m_perimeter_speed    = 0.f;
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);

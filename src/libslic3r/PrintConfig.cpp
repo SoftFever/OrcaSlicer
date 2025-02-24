@@ -5341,6 +5341,15 @@ void PrintConfigDef::init_fff_params()
     def->min = 10;
     def->set_default_value(new ConfigOptionFloat(90.));
 
+    def = this->add("wipe_tower_additional_volume", coFloat);
+    def->label = L("Additional wipe tower purged volume");
+    def->tooltip = L("A constant volume added to wipe tower to offset additional material left in melt zone."
+                     "When changing material, in certain cases, such as hotends with long melt zones, a significant amount of filament may need to be purged in addition to the volume calculated between colors.");
+    def->sidetext = L("mm³");
+    def->mode = comAdvanced;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("wipe_tower_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Wipe tower");

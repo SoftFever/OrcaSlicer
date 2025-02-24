@@ -303,6 +303,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_cone_angle"
             || opt_key == "wipe_tower_extra_spacing"
             || opt_key == "wipe_tower_max_purge_speed"
+            || opt_key == "wipe_tower_additional_volume"
             || opt_key == "wipe_tower_filament"
             || opt_key == "wiping_volumes_extruders"
             || opt_key == "enable_filament_ramming"
@@ -2661,6 +2662,15 @@ void Print::_make_wipe_tower()
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
         return;
+
+    // add additional constant purge volume if needed
+    if (m_config.wipe_tower_additional_volume > 0) {
+    	for (unsigned int i = 0; i < number_of_extruders; ++i) {
+            for (unsigned int j = 0; j < number_of_extruders; ++j) {
+                 wipe_volumes[i][j] += m_config.wipe_tower_additional_volume;
+            }
+        }
+    }
 
     // Check whether there are any layers in m_tool_ordering, which are marked with has_wipe_tower,
     // they print neither object, nor support. These layers are above the raft and below the object, and they

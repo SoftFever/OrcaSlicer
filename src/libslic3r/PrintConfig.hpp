@@ -1317,6 +1317,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
 
     // Orca: mmu support
     ((ConfigOptionFloat,              wipe_tower_cone_angle))
+    ((ConfigOptionFloat,              wipe_tower_additional_volume))
     ((ConfigOptionPercent,            wipe_tower_extra_spacing))
     ((ConfigOptionFloat,              wipe_tower_max_purge_speed))
     ((ConfigOptionInt,                wipe_tower_filament))

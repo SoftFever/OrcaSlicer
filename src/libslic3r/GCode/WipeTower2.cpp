@@ -557,7 +557,8 @@ WipeTower2::WipeTower2(const PrintConfig& config, const PrintRegionConfig& defau
     m_perimeter_speed(default_region_config.inner_wall_speed),
     m_current_tool(initial_tool),
     wipe_volumes(wiping_matrix),
-    m_wipe_tower_max_purge_speed(float(config.wipe_tower_max_purge_speed))
+    m_wipe_tower_max_purge_speed(float(config.wipe_tower_max_purge_speed)),
+    m_wipe_tower_additional_volume(float(config.wipe_tower_additional_volume))
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
