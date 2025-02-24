@@ -45,6 +45,8 @@ public:
 
     void AdvertiseSupportedAction();
 
+    virtual void Raise() override;
+
 private:
     void load_url();
     void update_mode();
