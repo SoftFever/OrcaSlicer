@@ -1274,12 +1274,22 @@ public:
     DoorOpenCheckState get_door_open_check_state() const { return xcam_door_open_check;};
     void               command_set_door_open_check(DoorOpenCheckState state);
 
+    /* xcam save remove print file to local*/
+    bool support_save_remote_print_file_to_storage() const { return is_support_save_remote_print_file_to_storage; };
+    bool get_save_remote_print_file_to_storage() const { return xcam__save_remote_print_file_to_storage; };
+    void command_set_save_remote_print_file_to_storage(bool save);
+
 private:
 
     /* xcam door open check*/
     bool is_support_door_open_check = false;
     DoorOpenCheckState xcam_door_open_check  = DoorOpenCheckState::DOOR_OPEN_CHECK_DISABLE;
     time_t xcam_door_open_check_start_time   = 0;
+
+    /* xcam save remove print file to local*/
+    bool is_support_save_remote_print_file_to_storage = false;
+    bool xcam__save_remote_print_file_to_storage      = false;
+    time_t xcam__save_remote_print_file_to_storage_start_time = 0;
 };
 
 class DeviceManager

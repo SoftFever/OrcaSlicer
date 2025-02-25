@@ -3366,6 +3366,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
 
+                if (jj.contains("support_save_remote_print_file_to_storage")) {
+                    if (jj["support_save_remote_print_file_to_storage"].is_boolean()) {
+                        is_support_save_remote_print_file_to_storage = jj["support_save_remote_print_file_to_storage"].get<bool>();
+                    }
+                }
+
                 if (jj.contains("support_ai_monitoring")) {
                     if (jj["support_ai_monitoring"].is_boolean()) {
                         is_support_ai_monitoring = jj["support_ai_monitoring"].get<bool>();
@@ -5936,6 +5942,11 @@ void MachineObject::parse_new_info(json print)
             ams_auto_switch_filament_flag = get_flag_bits(cfg, 18);
         }
 
+        if (time(nullptr) - xcam__save_remote_print_file_to_storage_start_time > HOLD_TIME_MAX)
+        {
+            xcam__save_remote_print_file_to_storage = get_flag_bits(cfg, 19);
+        }
+
         if (time(nullptr) - xcam_door_open_check_start_time > HOLD_TIME_MAX)
         {
             xcam_door_open_check = (DoorOpenCheckState) get_flag_bits(cfg, 20, 2);
@@ -6544,6 +6555,24 @@ void MachineObject::command_set_door_open_check(DoorOpenCheckState state)
     {
         xcam_door_open_check = state;
         xcam_door_open_check_start_time = time(nullptr);
+    }
+}
+
+
+void MachineObject::command_set_save_remote_print_file_to_storage(bool save)
+{
+    if (get_save_remote_print_file_to_storage() != save)
+    {
+        json j;
+        j["system"]["command"] = "print_cache_set";
+        j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["system"]["config"] = save ? true : false;
+
+        if (publish_json(j.dump()) == 0)
+        {
+            xcam__save_remote_print_file_to_storage = save;
+            xcam__save_remote_print_file_to_storage_start_time = time(nullptr);
+        }
     }
 }
 

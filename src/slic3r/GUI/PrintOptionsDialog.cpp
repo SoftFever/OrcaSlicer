@@ -76,6 +76,12 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
+    m_cb_save_remote_print_file_to_storage->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt)
+    {
+        if (obj) { obj->command_set_save_remote_print_file_to_storage(m_cb_save_remote_print_file_to_storage->GetValue());}
+        evt.Skip();
+    });
+
     m_cb_plate_mark->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
             obj->command_xcam_control_buildplate_marker_detector(m_cb_plate_mark->GetValue());
@@ -211,6 +217,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     }
 
     UpdateOptionOpenDoorCheck(obj_);
+    UpdateOptionSavePrintFileToStorage(obj_);
 
     this->Freeze();
 
@@ -238,7 +245,6 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj) {
     if (!obj || !obj->support_door_open_check()) {
         m_cb_open_door->Hide();
         text_open_door->Hide();
-        open_door_line->Hide();
         open_door_switch_board->Hide();
         return;
     }
@@ -258,6 +264,20 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj) {
     } else {
         m_cb_open_door->SetValue(false);
         open_door_switch_board->Disable();
+    }
+}
+
+void PrintOptionsDialog::UpdateOptionSavePrintFileToStorage(MachineObject *obj)
+{
+    if (obj && obj->support_save_remote_print_file_to_storage())
+    {
+        m_cb_save_remote_print_file_to_storage->SetValue(obj->get_save_remote_print_file_to_storage());
+    }
+    else
+    {
+        m_cb_save_remote_print_file_to_storage->Hide();
+        text_save_remote_print_file_to_storage->Hide();
+        text_save_remote_print_file_to_storage_explain->Hide();
     }
 }
 
@@ -382,9 +402,21 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
-    open_door_line = new StaticLine(parent, false);
-    open_door_line->SetLineColour(wxColour(255, 255, 255));
-    sizer->Add(open_door_line, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+     //Save remote file to local storage
+    line_sizer     = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_save_remote_print_file_to_storage = new CheckBox(parent);
+    text_save_remote_print_file_to_storage = new Label(parent, _L("Store Sent Files on External Storage"));
+    text_save_remote_print_file_to_storage->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_save_remote_print_file_to_storage, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_save_remote_print_file_to_storage, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    text_save_remote_print_file_to_storage_explain = new Label(parent, _L("Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"));
+    text_save_remote_print_file_to_storage_explain->SetFont(Label::Body_14);
+    text_save_remote_print_file_to_storage_explain->Wrap(300);
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(text_save_remote_print_file_to_storage_explain, 0, wxLEFT, FromDIP(58));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     //Allow prompt sound
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
