@@ -2345,6 +2345,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_start_angle");
         optgroup->append_single_option_line("skirt_height");
+        optgroup->append_single_option_line("one_wall_draft_shield");
         optgroup->append_single_option_line("skirt_speed");
         optgroup->append_single_option_line("draft_shield");
         
