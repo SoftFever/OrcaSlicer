@@ -2593,8 +2593,8 @@ void Sidebar::on_filaments_delete(size_t filament_id)
         }
     }
 
-    for (PlaterPresetComboBox *filament_combo : p->combos_filament) {
-        filament_combo->update();
+    for (size_t idx = filament_id ; idx < p->combos_filament.size(); ++idx) {
+        p->combos_filament[idx]->update();
     }
 
     Layout();
