@@ -69,6 +69,10 @@ struct FillParams
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
 
+    // For 2D lattice
+    coordf_t    lattice_angle_1    { 0.f };
+    coordf_t    lattice_angle_2    { 0.f };
+
     // BBS
     Flow            flow;
     ExtrusionRole   extrusion_role{ ExtrusionRole(0) };
