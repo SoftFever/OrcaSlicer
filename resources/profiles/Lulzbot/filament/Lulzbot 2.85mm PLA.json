@@ -5,7 +5,7 @@
     "name": "Lulzbot 2.85mm PLA",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
+    "inherits": "Generic PLA @System",
 	"filament_diameter": [
         "2.85"
     ],

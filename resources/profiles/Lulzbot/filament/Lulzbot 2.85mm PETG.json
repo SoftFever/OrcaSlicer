@@ -5,7 +5,7 @@
     "name": "Lulzbot 2.85mm PETG",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pet",
+    "inherits": "Generic PETG @System",
 	"filament_diameter": [
         "2.85"
     ],

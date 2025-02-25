@@ -5,7 +5,7 @@
     "name": "Lulzbot 2.85mm ABS",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_abs",
+    "inherits": "Generic ABS @System",
     "filament_diameter": [
         "2.85"
     ],
