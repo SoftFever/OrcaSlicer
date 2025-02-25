@@ -1719,22 +1719,13 @@ Sidebar::Sidebar(Plater *parent)
                 extra_flush_volumes[nozzle_id] = get_min_flush_volumes(full_config, nozzle_id);
             }
 
-            std::vector<float>  flush_multiplier;
-            ConfigOptionFloats *flush_multi_opt = project_config.option<ConfigOptionFloats>("flush_multiplier");
-            if (flush_multi_opt)
-                flush_multiplier = cast<float>(flush_multi_opt->values);
-
-            flush_multiplier.resize(nozzle_nums, 1.0f);
-
-            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volumes, flush_multiplier, nozzle_nums);
-            if (dlg.ShowModal() == wxID_OK) {
-                std::vector<float> matrix = dlg.get_matrix();
-                std::vector<float> extruders = dlg.get_extruders();
-                std::vector<float> flush_multipliers = dlg.get_flush_multiplier_vector();
+            WipingDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),extra_flush_volumes);
+            dlg.ShowModal();
+            if (dlg.GetSubmitFlag()) {
+                auto matrix = dlg.GetFlattenMatrix();
+                auto flush_multipliers = dlg.GetMultipliers();
                 (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 (project_config.option<ConfigOptionFloats>("flush_multiplier"))->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
-
                 wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
                 wxGetApp().plater()->update_project_dirty_from_presets();
