@@ -1,15 +1,9 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <djperya4zp@gmail.com>, YEAR.
-# EDITOR <kybargr@gmail.com>, YEAR.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-20 21:21+0800\n"
-"PO-Revision-Date: 2025-02-25 16:28+0200\n"
+"PO-Revision-Date: 2025-02-26 00:03+0200\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "Language: uk_UA\n"
@@ -60,7 +54,7 @@ msgid "Shift + Left mouse button"
 msgstr "Shift + Ліва кнопка миші"
 
 msgid "Erase"
-msgstr "Гумка"
+msgstr "Стерти"
 
 msgid "Erase all painting"
 msgstr "Стерти всі малюнки"
@@ -69,19 +63,19 @@ msgid "Highlight overhang areas"
 msgstr "Підсвічувати області нависань"
 
 msgid "Gap fill"
-msgstr "Заповнення пропусків"
+msgstr "Заповнення проміжків"
 
 msgid "Perform"
 msgstr "Виконати"
 
 msgid "Gap area"
-msgstr "Площа зазору"
+msgstr "Площа проміжку"
 
 msgid "Tool type"
 msgstr "Тип інструменту"
 
 msgid "Smart fill angle"
-msgstr "Розумний кут заповнення"
+msgstr "Кут розумного заповнення"
 
 msgid "On overhangs only"
 msgstr "Тільки на нависаннях"
@@ -96,10 +90,10 @@ msgid "Sphere"
 msgstr "Сфера"
 
 msgid "Fill"
-msgstr "Заповнити"
+msgstr "Заповнення"
 
 msgid "Gap Fill"
-msgstr "Заповнення пропусків"
+msgstr "Заповнення проміжків"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
@@ -130,7 +124,7 @@ msgstr ""
 "малювання."
 
 msgid "Color Painting"
-msgstr "Кольорове малювання"
+msgstr "Розфарбовування кольорами"
 
 msgid "Pen shape"
 msgstr "Форма пера"
@@ -245,7 +239,7 @@ msgid "Volume Operations"
 msgstr "Операції з об’ємом"
 
 msgid "Translate"
-msgstr "Перекласти"
+msgstr "Перемістити"
 
 msgid "Group Operations"
 msgstr "Групова орієнтація"
@@ -780,7 +774,7 @@ msgid "Operation"
 msgstr "Операція"
 
 msgid "Join"
-msgstr "Обєднання"
+msgstr "Об'єднати"
 
 msgid "Click to change text into object part."
 msgstr "Натисніть, щоб змінити текст на частині об'єкта."
@@ -997,7 +991,7 @@ msgid "Distance of the center of the text to the model surface."
 msgstr "Відстань від центру тексту до поверхні моделі."
 
 msgid "Undo rotation"
-msgstr "Відмінити обертання"
+msgstr "Скасувати обертання"
 
 msgid "Rotate text Clock-wise."
 msgstr "Обертати текст за годинниковою стрілкою."
@@ -1601,7 +1595,7 @@ msgid "new or open project file is not allowed during the slicing process!"
 msgstr "новий або відкритий файл проекту не дозволяється в процесі нарізки!"
 
 msgid "Open Project"
-msgstr "Відкрити проект"
+msgstr "Відкрити проєкт"
 
 msgid ""
 "The version of Orca Slicer is too low and needs to be updated to the latest "
@@ -1903,10 +1897,10 @@ msgid "Flush Options"
 msgstr "Параметри Промивання"
 
 msgid "Flush into objects' infill"
-msgstr "Промивати у заповнення моделі"
+msgstr "Промивати у заповнення об'єкта"
 
 msgid "Flush into this object"
-msgstr "Промивати у модель"
+msgstr "Промивати в об'єкт"
 
 msgid "Flush into objects' support"
 msgstr "Промивати у підтримки об'єкта"
@@ -2026,10 +2020,10 @@ msgid "delete all objects on current plate"
 msgstr "видалити всі об'єкти на поточній пластині"
 
 msgid "Arrange"
-msgstr "Організувати"
+msgstr "Впорядкувати"
 
 msgid "arrange current plate"
-msgstr "упорядкувати поточну пластину"
+msgstr "впорядкувати поточну пластину"
 
 msgid "Reload All"
 msgstr "Перезавантажити все"
@@ -2542,7 +2536,7 @@ msgid "Cancel calibration"
 msgstr "Скасувати калібрування"
 
 msgid "Idling..."
-msgstr "Очікування…"
+msgstr "Очікування..."
 
 msgid "Heat the nozzle"
 msgstr "Нагрійте сопло"
@@ -2586,19 +2580,17 @@ msgid ""
 "We can not do auto-arrange on these objects."
 msgstr ""
 "Всі вибрані об'єкти знаходяться на заблокованій пластині,\n"
-"Ми не можемо робити авто-розстановку на цих об'єктах."
+"Ми не можемо виконати автоматичне впорядкування цих об'єктів."
 
 msgid "No arrangeable objects are selected."
-msgstr ""
-"Всі вибрані об'єкти знаходяться на заблокованій пластині,\\n\n"
-"Ми не можемо робити авто-розстановку на цих об'єктах."
+msgstr "Не вибрано жодного доступного для впорядкування об'єкта."
 
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-arrange on this plate."
 msgstr ""
 "Ця пластина заблокована,\n"
-"Ми не можемо зробити автоаранжування на цій пластині."
+"Ми не можемо зробити автоматичне впорядкування на цій пластині."
 
 msgid "Arranging..."
 msgstr "Організація..."
@@ -2621,7 +2613,8 @@ msgstr "Організація зроблена."
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr ""
-"Помилка розміщення. Виявлено деякі винятки під час обробки геометрії моделей."
+"Помилка впорядкування. Виявлено деякі винятки під час обробки геометрії "
+"моделей."
 
 #, c-format, boost-format
 msgid ""
@@ -2629,8 +2622,8 @@ msgid ""
 "bed:\n"
 "%s"
 msgstr ""
-"При розміщенні були проігноровані такі моделі, які не розміщуються на одному "
-"столі:\n"
+"При впорядкуванні були проігноровані такі моделі, які не вмістилися на "
+"одному столі:\n"
 "%s"
 
 msgid ""
@@ -4410,7 +4403,7 @@ msgid "Orient"
 msgstr "Орієнтація"
 
 msgid "Arrange options"
-msgstr "Упорядкувати варіанти"
+msgstr "Параметри впорядкування"
 
 msgid "Spacing"
 msgstr "Відстань"
@@ -4419,7 +4412,7 @@ msgid "0 means auto spacing."
 msgstr "0 означає автоматичний інтервал."
 
 msgid "Auto rotate for arrangement"
-msgstr "Автоповорот для розташування"
+msgstr "Автоповорот при впорядкуванні"
 
 msgid "Allow multiple materials on same plate"
 msgstr "Дозволити використання декількох матеріалів на одній пластині"
@@ -4437,10 +4430,10 @@ msgid "Auto orient"
 msgstr "Автоорієнтація"
 
 msgid "Arrange all objects"
-msgstr "Упорядкувати всі об'єкти"
+msgstr "Розташувати всі об'єкти"
 
 msgid "Arrange objects on selected plates"
-msgstr "Розставити об'єкти на вибраних пластинах"
+msgstr "Впорядкувати об'єкти на вибраних пластинах"
 
 msgid "Split to objects"
 msgstr "Розділити на об'єкти"
@@ -4452,7 +4445,7 @@ msgid "Assembly View"
 msgstr "Вигляд складання"
 
 msgid "Select Plate"
-msgstr "Вибрати Пластину"
+msgstr "Вибрати пластину"
 
 msgid "Assembly Return"
 msgstr "Повернення збірки"
@@ -4568,7 +4561,7 @@ msgid "Resolution"
 msgstr "Роздільна здатність"
 
 msgid "Enable"
-msgstr "Увімкнення"
+msgstr "Увімкнути"
 
 msgid "Hostname or IP"
 msgstr "Ім'я хоста або IP-адреса"
@@ -4797,7 +4790,7 @@ msgid "Export current sliced file"
 msgstr "Експорт поточного нарізаного файлу"
 
 msgid "Export all plate sliced file"
-msgstr "Експортуйте файл нарізки всіх пластин"
+msgstr "Експортувати файл нарізки всіх пластин"
 
 msgid "Export G-code"
 msgstr "Експорт G-коду"
@@ -5881,7 +5874,7 @@ msgid "Support painting"
 msgstr "Підтримка малювання"
 
 msgid "Color painting"
-msgstr "Кольорове малювання"
+msgstr "Розфарбовування кольорами"
 
 msgid "Cut connectors"
 msgstr "Вирізати з'єднувачі"
@@ -6594,8 +6587,8 @@ msgid ""
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
 "Друк за об'єктом: \n"
-"Рекомендовано використовувати автоматичне розташування, щоб уникнути колізій "
-"під час друку."
+"Рекомендовано використовувати автоматичне впорядкування, щоб уникнути "
+"колізій під час друку."
 
 msgid "Send G-code"
 msgstr "Надіслати G-код"
@@ -6889,10 +6882,10 @@ msgstr ""
 "одночасно та керувати декількома пристроями."
 
 msgid "Auto arrange plate after cloning"
-msgstr "Авто орієнтування пластини після клонування"
+msgstr "Автоматично впорядкувати пластину після копіювання"
 
 msgid "Auto arrange plate after object cloning"
-msgstr "Авто орієнтування пластини після клонування об'єкту"
+msgstr "Автоматично впорядкувати об'єкти пластини після копіювання об'єкту"
 
 msgid "Network"
 msgstr "Мережа"
@@ -7990,7 +7983,7 @@ msgid "Tree supports"
 msgstr "Органічні підтримки"
 
 msgid "Multimaterial"
-msgstr "Багатоматеріальний"
+msgstr "Мультиматеріал"
 
 msgid "Prime tower"
 msgstr "Підготовча вежа"
@@ -14492,7 +14485,7 @@ msgstr ""
 "обсягипромивання в таблиці."
 
 msgid "Prime volume"
-msgstr "Основний обсяг"
+msgstr "Об'єм підготовки"
 
 msgid "The volume of material to prime extruder on tower."
 msgstr "Об'єм матеріалу для підготовки екструдера на вежі."
@@ -17425,8 +17418,8 @@ msgid ""
 "Auto-Arrange\n"
 "Did you know that you can auto-arrange all objects in your project?"
 msgstr ""
-"Авторозбудова\n"
-"Чи знаєте ви, що можна автоматично впорядкувати всі об'єкти в проекті?"
+"Автоматичне впорядкування\n"
+"Чи знаєте ви, що можна автоматично розташувати всі об'єкти в проєкті?"
 
 #: resources/data/hints.ini: [hint:Auto-Orient]
 msgid ""
