@@ -53,8 +53,8 @@ protected:
 
     /*items*/
     wxBoxSizer* m_sizer_ams_items{nullptr};
-    wxWindow* m_panel_prv_left {nullptr};
-    wxWindow* m_panel_prv_right{nullptr};
+    wxScrolledWindow* m_panel_prv_left {nullptr};
+    wxScrolledWindow* m_panel_prv_right{nullptr};
     wxBoxSizer* m_sizer_prv_left{nullptr};
     wxBoxSizer* m_sizer_prv_right{nullptr};
 
