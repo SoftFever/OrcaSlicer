@@ -4064,40 +4064,11 @@ LayerResult GCode::process_layer(
     if (z_hope_type == ZHopType::zhtAuto || z_hope_type == ZHopType::zhtSpiral || z_hope_type == ZHopType::zhtSlope)
         auto_lift_type = LiftType::SpiralLift;
 
-    auto insert_timelapse_gcode = [this, print_z, &print, &physical_extruder_id]() -> std::string {
-        std::string timepals_gcode;
-        if (!m_config.time_lapse_gcode.value.empty()) {
-            DynamicConfig config;
-            config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(physical_extruder_id));
-            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
-            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-            timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
-        }
-        if(!timepals_gcode.empty()){
-        m_writer.set_current_position_clear(false);
-
-        double temp_z_after_tool_change;
-        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_tool_change)) {
-            Vec3d pos = m_writer.get_position();
-            pos(2)    = temp_z_after_tool_change;
-            m_writer.set_position(pos);
-        }
-        }
-        return timepals_gcode;
-    };
-
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if(is_BBL_Printer()){
-        if (!need_insert_timelapse_gcode_for_traditional) { // Equivalent to the timelapse gcode placed in layer_change_gcode
-            if (FILAMENT_CONFIG(retract_when_changing_layer)) {
-                gcode += this->retract(false, false, auto_lift_type);
-            }
-            gcode += insert_timelapse_gcode();
-        }
     } else {
         if (!m_config.time_lapse_gcode.value.empty()) {
             DynamicConfig config;
@@ -4491,6 +4462,91 @@ LayerResult GCode::process_layer(
         }
     } // for objects
 
+    std::map<unsigned int, std::vector<InstanceToPrint>> filament_to_print_instances;
+    {
+        for (unsigned int filament_id : layer_tools.extruders) {
+            auto objects_by_extruder_it = by_extruder.find(filament_id);
+            if (objects_by_extruder_it == by_extruder.end()) continue;
+
+            bool has_prime_tower = print.config().enable_prime_tower && print.extruders().size() > 1 &&
+                                   ((print.config().print_sequence == PrintSequence::ByLayer && print.config().print_order == PrintOrder::Default) ||
+                                    (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() == 1));
+            if (has_prime_tower) {
+                int   plate_idx = print.get_plate_index();
+                Point wt_pos(print.config().wipe_tower_x.get_at(plate_idx), print.config().wipe_tower_y.get_at(plate_idx));
+
+                std::vector<GCode::ObjectByExtruder> &objects_by_extruder = objects_by_extruder_it->second;
+                std::vector<const PrintObject *>      print_objects;
+                for (int obj_idx = 0; obj_idx < objects_by_extruder.size(); obj_idx++) {
+                    auto &object_by_extruder = objects_by_extruder[obj_idx];
+                    if (object_by_extruder.islands.empty() && (object_by_extruder.support == nullptr || object_by_extruder.support->empty())) continue;
+
+                    print_objects.push_back(print.get_object(obj_idx));
+                }
+
+                std::vector<const PrintInstance *> new_ordering = chain_print_object_instances(print_objects, &wt_pos);
+                std::reverse(new_ordering.begin(), new_ordering.end());
+                filament_to_print_instances[filament_id] = sort_print_object_instances(objects_by_extruder_it->second, layers, &new_ordering, single_object_instance_idx);
+            } else {
+                filament_to_print_instances[filament_id] = sort_print_object_instances(objects_by_extruder_it->second, layers, ordering, single_object_instance_idx);
+            }
+        }
+    }
+
+    std::set<size_t> layer_object_label_ids;
+    for (auto iter = filament_to_print_instances.begin(); iter != filament_to_print_instances.end(); ++iter) {
+        for (const InstanceToPrint &instance : iter->second) {
+            layer_object_label_ids.insert(instance.label_object_id);
+        }
+    }
+
+    auto insert_timelapse_gcode = [this, print_z, &print, &physical_extruder_id, &layer_object_label_ids]() -> std::string {
+        std::string timepals_gcode;
+        if (!print.config().time_lapse_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(physical_extruder_id));
+            timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
+        }
+        if (!timepals_gcode.empty()) {
+        m_writer.set_current_position_clear(false);
+
+        double temp_z_after_tool_change;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_tool_change)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2)    = temp_z_after_tool_change;
+            m_writer.set_position(pos);
+        }
+        }
+
+        if (is_BBL_Printer() && print.objects().size() > 1) {
+            std::ostringstream oss;
+            for (auto it = layer_object_label_ids.begin(); it != layer_object_label_ids.end(); ++it) {
+                if (it != layer_object_label_ids.begin()) oss << ",";
+                oss << *it;
+            }
+
+            std::string start_str = std::string("; object ids of layer ") + std::to_string(m_layer_index + 1) + (" start: ") + oss.str() + "\n";
+            start_str += "M624 " + _encode_label_ids_to_base64(std::vector<size_t>(layer_object_label_ids.begin(), layer_object_label_ids.end())) + "\n";
+
+            std::string end_str = std::string("; object ids of this layer") + std::to_string(m_layer_index + 1) + (" end: ") + oss.str() + "\n";
+            end_str   += "M625\n";
+
+            timepals_gcode = start_str + timepals_gcode + end_str;
+        }
+
+        return timepals_gcode;
+    };
+
+    if (!need_insert_timelapse_gcode_for_traditional) { // Equivalent to the timelapse gcode placed in layer_change_gcode
+        if (FILAMENT_CONFIG(retract_when_changing_layer)) {
+            gcode += this->retract(false, false, auto_lift_type);
+        }
+        gcode += insert_timelapse_gcode();
+    }
+
     if (m_wipe_tower)
         m_wipe_tower->set_is_first_print(true);
 
@@ -4544,37 +4600,7 @@ LayerResult GCode::process_layer(
         if (layer_tools.has_wipe_tower && m_wipe_tower)
             m_last_processor_extrusion_role = erWipeTower;
 
-        auto objects_by_extruder_it = by_extruder.find(extruder_id);
-        if (objects_by_extruder_it == by_extruder.end())
-            continue;
-
-        // BBS: ordering instances by extruder
-        std::vector<InstanceToPrint> instances_to_print;
-        bool has_prime_tower = print.config().enable_prime_tower
-            && print.extruders().size() > 1
-            && ((print.config().print_sequence == PrintSequence::ByLayer && print.config().print_order == PrintOrder::Default)
-                || (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() == 1));
-        if (has_prime_tower) {
-            int plate_idx = print.get_plate_index();
-            Point wt_pos(print.config().wipe_tower_x.get_at(plate_idx), print.config().wipe_tower_y.get_at(plate_idx));
-
-            std::vector<GCode::ObjectByExtruder>& objects_by_extruder = objects_by_extruder_it->second;
-            std::vector<const PrintObject*> print_objects;
-            for (int obj_idx = 0; obj_idx < objects_by_extruder.size(); obj_idx++) {
-                auto& object_by_extruder = objects_by_extruder[obj_idx];
-                if (object_by_extruder.islands.empty() && (object_by_extruder.support == nullptr || object_by_extruder.support->empty()))
-                    continue;
-
-                print_objects.push_back(print.get_object(obj_idx));
-            }
-
-            std::vector<const PrintInstance*> new_ordering = chain_print_object_instances(print_objects, &wt_pos);
-            std::reverse(new_ordering.begin(), new_ordering.end());
-            instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, &new_ordering, single_object_instance_idx);
-        }
-        else {
-            instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, ordering, single_object_instance_idx);
-        }
+        std::vector<InstanceToPrint> &instances_to_print = filament_to_print_instances[extruder_id];
 
         // BBS
         if (print.config().skirt_type == stPerObject &&
