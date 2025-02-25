@@ -110,7 +110,6 @@
     "retraction_length": "0.7",
     "retraction_minimum_travel": "1.5",
     "retraction_speed": "35",
-    "silent_mode": "1",
     "single_extruder_multi_material": "0",
     "thumbnails": [
         "16x16/QOI",
