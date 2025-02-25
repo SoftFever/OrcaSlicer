@@ -762,7 +762,7 @@ void SecondaryCheckDialog::on_show()
     m_button_cancel->GetEventHandler()->ProcessEvent(evt_cancel);
 
     this->Show();
-    this->Raise();
+    //this->Raise();
 }
 
 void SecondaryCheckDialog::on_hide()
@@ -1724,7 +1724,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_step_icon_panel2->SetMinSize(wxSize(-1, m_tip2->GetBestSize().y));
     m_step_icon_panel2->SetMaxSize(wxSize(-1, m_tip2->GetBestSize().y));
 
-    
+
     m_sizer_msg->Layout();
 
     m_sizer_main_left->Add(m_step_icon_panel1, 0, wxEXPAND, 0);
@@ -1810,7 +1810,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     });
 }
 
-void InputIpAddressDialog::switch_input_panel(int index) 
+void InputIpAddressDialog::switch_input_panel(int index)
 {
     m_button_manual_setup->Hide();
     if (index == 0) {
