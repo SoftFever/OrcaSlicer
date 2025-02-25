@@ -12,7 +12,7 @@
     "filament_max_volumetric_speed": [
         "6"
     ],
-	"compatible_printers": [
-		"Lulzbot Taz 6 0.5 nozzle"
-	]
+    "compatible_printers": [
+	"Lulzbot Taz 6 0.5 nozzle"
+    ]
 }
