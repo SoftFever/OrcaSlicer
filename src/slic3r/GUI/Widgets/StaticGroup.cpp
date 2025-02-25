@@ -5,6 +5,7 @@ StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label)
 {
     SetBackgroundColour(*wxWHITE);
     SetForegroundColour("#CECECE");
+    borderColor_ = wxColour("#CECECE");
 #ifdef __WXMSW__
     Bind(wxEVT_PAINT, &StaticGroup::OnPaint, this);
 #endif
@@ -33,8 +34,12 @@ void StaticGroup::ShowBadge(bool show)
 #endif
 }
 
-#ifdef __WXMSW__
+void StaticGroup::SetBorderColor(const wxColour &color)
+{
+    borderColor_ = color;
+}
 
+#ifdef __WXMSW__
 void StaticGroup::OnPaint(wxPaintEvent &evt)
 {
     wxStaticBox::OnPaint(evt);
@@ -62,7 +67,7 @@ void StaticGroup::PaintForeground(wxDC &dc, const struct tagRECT &rc)
     while (image.GetBlue(0, bottom) == blue) --bottom;
     // Draw border with foreground color
     wxPoint polygon[] = { {left, top}, {0, top}, {0, bottom}, {rc.right - 1, bottom}, {rc.right - 1, top}, {right, top} };
-    dc.SetPen(wxPen(GetForegroundColour(), 1));
+    dc.SetPen(wxPen(borderColor_, 1));
     for (int i = 1; i < 6; ++i) {
         if (i == 4) // fix bottom right corner
             ++polygon[i - 1].y;

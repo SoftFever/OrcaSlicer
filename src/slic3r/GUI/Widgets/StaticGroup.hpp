@@ -12,7 +12,7 @@ public:
 
 public:
     void ShowBadge(bool show);
-
+    void SetBorderColor(const wxColour &color);
 private:
 #ifdef __WXMSW__
     void OnPaint(wxPaintEvent &evt);
@@ -26,6 +26,7 @@ private:
 #ifdef __WXOSX__
     ScalableButton * badge { nullptr };
 #endif
+    wxColour       borderColor_;
 };
 
 #endif // !slic3r_GUI_StaticGroup_hpp_
