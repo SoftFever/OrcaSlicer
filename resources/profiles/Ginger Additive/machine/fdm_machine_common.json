@@ -93,7 +93,7 @@
   "retract_lift_enforce": ["All Surfaces"],
   "retract_restart_extra": ["0"],
   "retract_restart_extra_toolchange": ["0"],
-  "retract_when_changing_layer": ["1"],
+  "retract_when_changing_layer": ["0"],
   "retraction_length": ["0.8"],
   "retraction_minimum_travel": ["1"],
   "retraction_speed": ["30"],

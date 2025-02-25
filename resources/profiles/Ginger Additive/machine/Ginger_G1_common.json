@@ -26,7 +26,7 @@
   "machine_max_speed_x": ["300", "200"],
   "machine_max_speed_y": ["300", "200"],
   "machine_max_speed_z": ["12", "12"],
-  "machine_start_gcode": "START_PRINT BED_TEMPERATURE=[bed_temperature_initial_layer] KAMP_LEVELING=1 EXTRUDER_ROTATION_VOLUME={extruder_rotation_volume[0]} MIXING_STEPPER_ROTATION_VOLUME={mixing_stepper_rotation_volume[0]} PURGE_LAYER_HEIGHT=2 PURGE_PARKING_SPEED=10000 PURGE_LENGHT=300 PURGE_SPEED=500 PURGE_MATERIAL_QUANTITY=3000 EXTRUDER_TEMPERATURE=[nozzle_temperature] EXTRUDER_TEMPERATURE_INITIAL_LAYER=[nozzle_temperature_initial_layer] PRESSURE_ADVANCE=0.2 PRESSURE_ADVANCE_SMOOTH_TIME=0.5 ZONE_1_TEMPERATURE={multi_zone_1_initial_layer[0]} ZONE_2_TEMPERATURE={multi_zone_2_initial_layer[0]} ZONE_3_TEMPERATURE={multi_zone_3_initial_layer[0]}",
+  "machine_start_gcode": "START_PRINT BED_TEMPERATURE=[bed_temperature_initial_layer] KAMP_LEVELING=1 EXTRUDER_ROTATION_VOLUME={extruder_rotation_volume[0]} MIXING_STEPPER_ROTATION_VOLUME={mixing_stepper_rotation_volume[0]} PURGE_LAYER_HEIGHT=2 PURGE_PARKING_SPEED=10000 PURGE_LENGHT=500 PURGE_SPEED=500 PURGE_MATERIAL_QUANTITY=10000 EXTRUDER_TEMPERATURE=[nozzle_temperature] EXTRUDER_TEMPERATURE_INITIAL_LAYER=[nozzle_temperature_initial_layer] PRESSURE_ADVANCE=0.2 PRESSURE_ADVANCE_SMOOTH_TIME=0.5 ZONE_1_TEMPERATURE={multi_zone_1_initial_layer[0]} ZONE_2_TEMPERATURE={multi_zone_2_initial_layer[0]} ZONE_3_TEMPERATURE={multi_zone_3_initial_layer[0]}",
   "print_host": "G1OS.local",
   "printer_model": "Ginger G1",
   "retract_before_wipe": ["0%"],
