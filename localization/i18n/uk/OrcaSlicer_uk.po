@@ -7983,7 +7983,7 @@ msgid "Tree supports"
 msgstr "Органічні підтримки"
 
 msgid "Multimaterial"
-msgstr "Багатоматеріальний"
+msgstr "Мультиматеріал"
 
 msgid "Prime tower"
 msgstr "Підготовча вежа"
