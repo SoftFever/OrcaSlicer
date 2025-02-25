@@ -29,7 +29,7 @@
 		"1000"
 	],
 	"machine_max_acceleration_travel": [
-		"1500",
+		"1250",
 		"1250"
 	],
 	"machine_max_acceleration_x": [
