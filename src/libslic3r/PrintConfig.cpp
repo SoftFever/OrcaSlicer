@@ -6058,6 +6058,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size."
                        "However, the size of the rib wall can not be smaller than that determined by the cleaning volume.");
     def->sidetext = L("mm");
+    def->max      = 300;
     def->mode     = comAdvanced;
     def->min      = 0;
     def->set_default_value(new ConfigOptionFloat(0));
