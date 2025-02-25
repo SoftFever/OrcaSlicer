@@ -12,8 +12,8 @@
 
 #include <wx/stattext.h>
 
-#define SERIAL_STR  "Serial:"
-#define VERSION_STR "Version:"
+#define SERIAL_STR  L("Serial:")
+#define VERSION_STR L("Version:")
 
 using namespace Slic3r::GUI;
 
@@ -68,8 +68,8 @@ void uiDeviceUpdateVersion::CreateWidgets()
     m_dev_snl = new wxStaticText(this, wxID_ANY, "_");
     m_dev_version = new wxStaticText(this, wxID_ANY, "_");
 
-    wxStaticText* serial_text = new wxStaticText(this, wxID_ANY, SERIAL_STR);
-    wxStaticText* version_text = new wxStaticText(this, wxID_ANY, VERSION_STR);
+    wxStaticText* serial_text = new wxStaticText(this, wxID_ANY, _L(SERIAL_STR));
+    wxStaticText* version_text = new wxStaticText(this, wxID_ANY, _L(VERSION_STR));
 
     // The main sizer
     wxFlexGridSizer* main_sizer = new wxFlexGridSizer(3, 3, 0, 0);
