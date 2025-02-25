@@ -26,32 +26,16 @@
     ],
     "filament_list": [
         {
-            "name": "fdm_filament_common",
-            "sub_path": "filament/fdm_filament_common.json"
+            "name": "Lulzbot 2.85mm ABS",
+            "sub_path": "filament/Lulzbot 2.85mm ABS.json"
         },
         {
-            "name": "fdm_filament_abs",
-            "sub_path": "filament/fdm_filament_abs.json"
+            "name": "Lulzbot 2.85mm PETG",
+            "sub_path": "filament/Lulzbot 2.85mm PETG.json"
         },
         {
-            "name": "fdm_filament_pet",
-            "sub_path": "filament/fdm_filament_pet.json"
-        },
-        {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
-        },
-        {
-            "name": "Lulzbot Generic ABS",
-            "sub_path": "filament/Lulzbot Generic ABS.json"
-        },
-        {
-            "name": "Lulzbot Generic PETG",
-            "sub_path": "filament/Lulzbot Generic PETG.json"
-        },
-        {
-            "name": "Lulzbot Generic PLA",
-            "sub_path": "filament/Lulzbot Generic PLA.json"
+            "name": "Lulzbot 2.85mm PLA",
+            "sub_path": "filament/Lulzbot 2.85mm PLA.json"
         }
     ],
     "machine_list": [
