@@ -33,6 +33,14 @@ public:
         m_read_timeout = std::chrono::milliseconds(10000);
     }
 
+    void set_write_timeout(std::chrono::steady_clock::duration timeout) {
+        m_write_timeout = timeout;
+    }
+
+    void set_read_timeout(std::chrono::steady_clock::duration timeout) {
+        m_read_timeout = timeout;
+    }
+
     void set_line_delimiter(const std::string& newline) {
         m_newline = newline;
     }
