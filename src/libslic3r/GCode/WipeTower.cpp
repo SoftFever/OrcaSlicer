@@ -1327,7 +1327,7 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
 
 // BBS
 const std::map<float, float> WipeTower::min_depth_per_height = {
-    {0.f,0.f}, {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
+    {5.f,5.f}, {100.f, 20.f}, {180.f, 40.f}, {250.f, 50.f}, {350.f, 60.f}
 };
 
 float WipeTower::get_limit_depth_by_height(float max_height)
