@@ -36,3 +36,4 @@ The guide below takes you through the key calibration tests in Orca - flow rate,
 - [How to build Orca Slicer](./How-to-build)
 - [Localization and translation guide](Localization_guide)
 - [Developer Reference](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/developer-reference/Home.md)
+- [How to create profiles](./How-to-create-profiles)

@@ -337,7 +337,7 @@ public:
     TEdge *p_edge = edges.data();
     i = 0;
     for (const Path &pg : paths_provider) {
-      if (num_edges[i]) {
+      if (num_edges[i] && !pg.empty()) {
         bool res = AddPathInternal(pg, num_edges[i] - 1, PolyTyp, Closed, p_edge);
         if (res) {
           p_edge += num_edges[i];

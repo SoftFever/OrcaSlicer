@@ -6,7 +6,7 @@
                 "resolution_supported":  [ "720p" ],
                 "liveview": {
                     "local": "local",
-                    "remote": "enabled"
+                    "remote": "tutk"
                 }
             },
             "support_motor_noise_cali":true,
@@ -53,7 +53,7 @@
         "print": {
             "ipcam": {
                 "file": {
-                    "remote": "enabled"
+                    "remote": "tutk"
                 }
             },
             "support_user_preset":true

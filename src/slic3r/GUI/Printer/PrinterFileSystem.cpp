@@ -1239,6 +1239,8 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         if (c) c(result, r, nullptr);
     }
     m_messages.clear();
+    if (result)
+        m_cond.timed_wait(l, boost::posix_time::seconds(10));
     while (true) {
         while (m_stopped) {
             if (m_session.owner == nullptr)

@@ -43,6 +43,7 @@ set(lisbslic3r_sources
     FaceDetector.hpp
     Brim.cpp
     Brim.hpp
+    BrimEarsPoint.hpp
     BuildVolume.cpp
     BuildVolume.hpp
     Circle.cpp
@@ -309,16 +310,16 @@ set(lisbslic3r_sources
     Support/SupportLayer.hpp
     Support/SupportMaterial.cpp
     Support/SupportMaterial.hpp
-    Support/SupportParameters.hpp
     Support/SupportSpotsGenerator.cpp
     Support/SupportSpotsGenerator.hpp
     Support/TreeSupport.hpp
     Support/TreeSupport.cpp
-    Support/TreeSupport3D.cpp
     Support/TreeSupport3D.hpp
-    Support/TreeSupportCommon.hpp
-    Support/TreeModelVolumes.cpp
+    Support/TreeSupport3D.cpp
     Support/TreeModelVolumes.hpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupportCommon.hpp
+    Support/SupportParameters.hpp
     PrincipalComponents2D.cpp
     PrincipalComponents2D.hpp
     MinimumSpanningTree.hpp
@@ -433,8 +434,6 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
-    Arachne/PerimeterOrder.hpp
-    Arachne/PerimeterOrder.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp
@@ -552,7 +551,7 @@ set(OCCT_LIBS
     TKernel
 )
 
-
+find_package(libnoise REQUIRED)
 target_link_libraries(libslic3r
     libnest2d
     admesh
@@ -578,6 +577,7 @@ target_link_libraries(libslic3r
     JPEG::JPEG
     qoi
     opencv_world
+    noise::noise
     )
 
 if(NOT WIN32)

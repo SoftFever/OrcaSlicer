@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "filament_id": "GFG99",
+    "setting_id": "OGFSA04",
+    "name": "Generic PETG @System",
+    "from": "system",
+    "instantiation": "true",
+    "renamed_from": "My Generic PETG",
+    "inherits": "fdm_filament_pet",
+    "compatible_printers": []
+}
