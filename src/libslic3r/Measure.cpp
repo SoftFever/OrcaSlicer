@@ -15,8 +15,8 @@ namespace Slic3r {
 namespace Measure {
 bool get_point_projection_to_plane(const Vec3d &pt, const Vec3d &plane_origin, const Vec3d &plane_normal, Vec3d &intersection_pt)
 {
-    auto normal     = plane_normal.normalized();
-    auto BA         = plane_origin - pt;
+    Vec3d normal     = plane_normal.normalized();
+    Vec3d BA         = plane_origin - pt;
     auto length     = BA.dot(normal);
     intersection_pt = pt + length * normal;
     return true;
@@ -29,7 +29,7 @@ Vec3d get_one_point_in_plane(const Vec3d &plane_origin, const Vec3d &plane_norma
     if (abs(plane_normal.dot(dir)) > 1 - eps) {
         dir = Vec3d(0, 1, 0);
     }
-    auto new_pt = plane_origin + dir;
+    Vec3d new_pt = plane_origin + dir;
     Vec3d retult;
     get_point_projection_to_plane(new_pt, plane_origin, plane_normal, retult);
     return retult;

@@ -3296,8 +3296,8 @@ void TreeSupport::generate_contact_points()
                     int   nSize = points.size();
                     for (int i = 0; i < nSize; i++) {
                         auto pt = points[i];
-                        auto v1 = (pt - points[(i - 1 + nSize) % nSize]).cast<double>().normalized();
-                        auto v2 = (pt - points[(i + 1) % nSize]).cast<double>().normalized();
+                        Vec2d v1 = (pt - points[(i - 1 + nSize) % nSize]).cast<double>().normalized();
+                        Vec2d v2 = (pt - points[(i + 1) % nSize]).cast<double>().normalized();
                         if (v1.dot(v2) > -0.7) { // angle smaller than 135 degrees
                             SupportNode *contact_node = insert_point(pt, overhang, radius, false, add_interface);
                             if (contact_node) {
