@@ -3,7 +3,7 @@
     "name": "SUNLU PLA Marble @BBL P1P",
     "inherits": "SUNLU PLA Marble @base",
     "from": "system",
-    "setting_id": "SNLS06_01",
+    "setting_id": "GFSNLS06_01",
     "instantiation": "true",
     "fan_cooling_layer_time": [
         "80"

@@ -3,7 +3,7 @@
     "name": "SUNLU PLA Matte @BBL X1",
     "inherits": "SUNLU PLA Matte @base",
     "from": "system",
-    "setting_id": "SNLS02_01",
+    "setting_id": "GFSNLS02_01",
     "instantiation": "true",
     "slow_down_layer_time": [
         "8"

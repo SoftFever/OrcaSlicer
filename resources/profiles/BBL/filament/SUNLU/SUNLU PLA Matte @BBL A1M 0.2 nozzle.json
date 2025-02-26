@@ -3,7 +3,7 @@
     "name": "SUNLU PLA Matte @BBL A1M 0.2 nozzle",
     "inherits": "SUNLU PLA Matte @base",
     "from": "system",
-    "setting_id": "SNLS02_08",
+    "setting_id": "GFSNLS02_08",
     "instantiation": "true",
     "fan_cooling_layer_time": [
         "80"

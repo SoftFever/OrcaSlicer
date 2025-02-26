@@ -3,7 +3,7 @@
     "name": "SUNLU PETG @BBL A1M 0.4 nozzle",
     "inherits": "SUNLU PETG @BBL X1C",
     "from": "system",
-    "setting_id": "SNLS08_05",
+    "setting_id": "GFSNLS08_05",
     "instantiation": "true",
     "filament_flow_ratio": [
         "0.94"

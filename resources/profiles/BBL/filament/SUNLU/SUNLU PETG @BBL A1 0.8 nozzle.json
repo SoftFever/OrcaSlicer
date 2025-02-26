@@ -3,7 +3,7 @@
     "name": "SUNLU PETG @BBL A1 0.8 nozzle",
     "inherits": "SUNLU PETG @base",
     "from": "system",
-    "setting_id": "SNLS08_04",
+    "setting_id": "GFSNLS08_04",
     "instantiation": "true",
     "fan_max_speed": [
         "60"

@@ -3,7 +3,7 @@
     "name": "SUNLU PLA+ @base",
     "inherits": "fdm_filament_pla",
     "from": "system",
-    "filament_id": "SNL03",
+    "filament_id": "GFSNL03",
     "instantiation": "false",
     "filament_cost": [
         "18.99"

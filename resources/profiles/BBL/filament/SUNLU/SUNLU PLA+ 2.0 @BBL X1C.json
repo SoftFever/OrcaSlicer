@@ -3,7 +3,7 @@
     "name": "SUNLU PLA+ 2.0 @BBL X1C",
     "inherits": "SUNLU PLA+ 2.0 @base",
     "from": "system",
-    "setting_id": "SNLS04",
+    "setting_id": "GFSNLS04",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

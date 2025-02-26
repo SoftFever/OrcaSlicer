@@ -3,7 +3,7 @@
     "name": "SUNLU Wood PLA @BBL X1",
     "inherits": "SUNLU Wood PLA @base",
     "from": "system",
-    "setting_id": "SNLS07_00",
+    "setting_id": "GFSNLS07_00",
     "instantiation": "true",
     "slow_down_layer_time": [
         "8"

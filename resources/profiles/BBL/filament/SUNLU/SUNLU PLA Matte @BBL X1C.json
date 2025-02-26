@@ -3,7 +3,7 @@
     "name": "SUNLU PLA Matte @BBL X1C",
     "inherits": "SUNLU PLA Matte @base",
     "from": "system",
-    "setting_id": "SNLS02",
+    "setting_id": "GFSNLS02",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",
