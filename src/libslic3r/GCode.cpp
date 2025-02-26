@@ -1202,14 +1202,23 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
             || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double top_cd = object.config().support_top_z_distance;
-            double bottom_cd = object.config().support_bottom_z_distance;
-
+            double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
+            //if (!object.print()->config().independent_support_layer_height)
+            { // the actual support gap may be larger than the configured one due to rounding to layer height for organic support, regardless of independent support layer height
+                top_cd    = std::ceil(top_cd / object.config().layer_height) * object.config().layer_height;
+                bottom_cd = std::ceil(bottom_cd / object.config().layer_height) * object.config().layer_height;
+            }
             double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
             // raft contact distance should not trigger any warning
-            if(last_extrusion_layer && last_extrusion_layer->support_layer)
+            if (last_extrusion_layer && last_extrusion_layer->support_layer) {
+                double raft_gap = object.config().raft_contact_distance.value;
+                //if (!object.print()->config().independent_support_layer_height)
+                {
+                    raft_gap = std::ceil(raft_gap / object.config().layer_height) * object.config().layer_height;
+                }
                 extra_gap = std::max(extra_gap, object.config().raft_contact_distance.value);
-
+            }
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
                 + std::max(0., extra_gap);
