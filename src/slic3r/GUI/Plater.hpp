@@ -614,6 +614,10 @@ public:
     bool show_publish_dialog(bool show = true);
     //BBS: post process string object exception strings by warning types
     void post_process_string_object_exception(StringObjectException &err);
+    // Return the plate that is currently being sliced
+    // If all plates are being sliced, Plater::priv::m_cur_slice_plate is returned
+    // If no plate is being sliced or a singluar plate is being sliced, partplate_list.get_curr_plate_index() is returned
+    int get_current_slicing_plate_index() const;
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
