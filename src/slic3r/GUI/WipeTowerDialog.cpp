@@ -298,12 +298,17 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
     wxSize max_scroll_size = { FromDIP(1000),FromDIP(500) };
     wxSize estimate_size = { (int)(filament_count + 1) * FromDIP(60),(int)(filament_count + 1) * FromDIP(30)+FromDIP(2)};
     wxSize scroll_size ={ std::min(max_scroll_size.x,estimate_size.x),std::min(max_scroll_size.y,estimate_size.y) };
+    wxSize applied_size = scroll_size + extra_size;
 
-    wxSize appied_size = scroll_size + extra_size;
+    wxSize scaled_screen_size = wxGetDisplaySize();
+    double scale_factor = wxDisplay().GetScaleFactor();
+    scaled_screen_size = { (int)(scaled_screen_size.x / scale_factor),(int)(scaled_screen_size.y / scale_factor) };
+
+    applied_size = { std::min(applied_size.x,scaled_screen_size.x),std::min(applied_size.y,scaled_screen_size.y) };
     m_webview = wxWebView::New(this, wxID_ANY,
         wxEmptyString,
         wxDefaultPosition,
-        appied_size,
+        applied_size,
         wxWebViewBackendDefault,
         wxNO_BORDER);
 
