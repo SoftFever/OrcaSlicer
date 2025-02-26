@@ -1,0 +1,11 @@
+{
+  "bottom_shell_layers": "5",
+  "bridge_speed": "30",
+  "from": "system",
+  "inherits": "0.15mm STRUCTURAL @MK4S 0.5",
+  "instantiation": "true",
+  "layer_height": "0.15",
+  "name": "0.15mm Structural @Prusa COREONE 0.5",
+  "top_shell_layers": "6",
+  "type": "process"
+}
