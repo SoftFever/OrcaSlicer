@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install  -y \
     libtool \
     libudev-dev \
     libwayland-dev \
-    libwebkit2gtk-4.0-dev \
+    libwebkit2gtk-4.1-dev \
     libxkbcommon-dev \
     locales \
     locales-all \
