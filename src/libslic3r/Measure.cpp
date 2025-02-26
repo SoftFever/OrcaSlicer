@@ -1413,8 +1413,8 @@ void SurfaceFeature::translate(const Transform3d &tran)
         auto calc_world_radius = [&local_center, &local_normal, &tran, &world_center](const Vec3d &pt, double &value) {
             Vec3d intersection_pt;
             get_point_projection_to_plane(pt, local_center, local_normal, intersection_pt);
-            auto local_radius_pt = (intersection_pt - local_center).normalized() * value + local_center;
-            auto radius_pt       = tran * local_radius_pt;
+            Vec3d local_radius_pt = (intersection_pt - local_center).normalized() * value + local_center;
+            Vec3d radius_pt       = tran * local_radius_pt;
             value                = (radius_pt - world_center).norm();
         };
         //m_value is radius
