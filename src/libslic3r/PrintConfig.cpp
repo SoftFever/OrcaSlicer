@@ -2447,7 +2447,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("ABS-GF");
     def->enum_values.push_back("ASA");
-    def->enum_values.push_back("ASA-Aero");
+    def->enum_values.push_back("ASA-AERO");
     def->enum_values.push_back("BVOH");
     def->enum_values.push_back("PCTG");
     def->enum_values.push_back("EVA");
@@ -7262,6 +7262,29 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         value = "rectilinear";
     } else if (opt_key == "filament_map_mode") {
         if (value == "Auto") value = "Auto For Flush";
+    }
+    else if (opt_key == "filament_type"){
+        std::vector<std::string> type_list;
+        std::stringstream ss(value);
+        std::string token;
+        bool rebuild_value = false;
+        while (std::getline(ss, token, ';')) {
+            if (token.size() >= 2 && token.front() == '"' && token.back() == '"')
+                token = token.substr(1, token.size() - 2);
+            if (token == "ASA-Aero") {
+                token = "ASA-AERO";
+                rebuild_value = true;
+            }
+            type_list.emplace_back(token);
+        }
+        if (rebuild_value) {
+            value.clear();
+            for (size_t idx = 0; idx < type_list.size(); ++idx) {
+                if (idx != 0)
+                    value += ';';
+                value += "\"" + type_list[idx] + "\"";
+            }
+        }
     }
 
     // Ignore the following obsolete configuration keys:
