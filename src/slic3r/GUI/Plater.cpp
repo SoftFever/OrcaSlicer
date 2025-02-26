@@ -885,25 +885,18 @@ Sidebar::Sidebar(Plater *parent)
     // BBS
     // add wiping dialog
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
-    p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
+    p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes")); // ???? Match style with Global/Objects toggle on another commit
     p->m_flushing_volume_btn->SetFont(Label::Body_10);
-    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
-    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
-
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#BFE1DE"), StateColor::Pressed), // ORCA
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
-
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
+    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8), FromDIP(5)));
+    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(12));
+    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Pressed), // ORCA
+                            std::pair<wxColour, int>(wxColour("#D4D4D4"), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Normal));
+    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour("#6B6B6A"), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour("#6B6B6A"), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour("#6B6B6A"), StateColor::Normal));
     p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
-    p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
+    p->m_flushing_volume_btn->SetBorderColor(flush_bg_col);
     p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
     p->m_flushing_volume_btn->SetFocus();
     p->m_flushing_volume_btn->SetId(wxID_RESET);
