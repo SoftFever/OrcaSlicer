@@ -1,0 +1,13 @@
+{
+  "bottom_shell_layers": "5",
+  "bridge_speed": "30",
+  "from": "system",
+  "inherits": "0.16mm SPEED @MK4S 0.3",
+  "inner_wall_acceleration": "3000",
+  "instantiation": "true",
+  "layer_height": "0.15",
+  "name": "0.16mm Speed @Prusa COREONE 0.3",
+  "sparse_infill_acceleration": "6000",
+  "top_shell_layers": "6",
+  "type": "process"
+}
