@@ -955,10 +955,10 @@ void AmsMapingPopup::update(MachineObject* obj)
             m_amsmapping_container_list.push_back(ams_mapping_item_container);
 
             if (nozzle_id == 0) {   //right slot
-                m_sizer_ams_basket_right->Add(ams_mapping_item_container, 0, wxLEFT, 0);
+                m_sizer_ams_basket_right->Add(ams_mapping_item_container, 0, wxTOP, FromDIP(5));
             }
             else if (nozzle_id == 1) {  //left slot
-                m_sizer_ams_basket_left->Add(ams_mapping_item_container, 0, wxLEFT, 0);
+                m_sizer_ams_basket_left->Add(ams_mapping_item_container, 0, wxTOP, FromDIP(5));
             }
 
             if (m_sizer_ams_basket_left->GetChildren().size() <= 0) {
