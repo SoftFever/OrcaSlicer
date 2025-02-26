@@ -1159,7 +1159,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     const ConfigOptionFloatsNullable *nozzle_diameter_config = cali_info.printer_prest->config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     float nozzle_diameter = nozzle_diameter_config->values[0];
 
-    float diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+    float diameter = obj->m_extder_data.extders[cali_info.extruder_id].current_nozzle_diameter;
     bool  is_multi_extruder = obj->is_multi_extruders();
     std::vector<NozzleFlowType> nozzle_volume_types;
     if (is_multi_extruder) {
