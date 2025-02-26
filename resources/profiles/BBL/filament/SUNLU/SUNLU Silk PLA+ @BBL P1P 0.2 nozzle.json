@@ -3,7 +3,7 @@
     "name": "SUNLU Silk PLA+ @BBL P1P 0.2 nozzle",
     "inherits": "SUNLU Silk PLA+ @base",
     "from": "system",
-    "setting_id": "SNLS05_03",
+    "setting_id": "GFSNLS05_03",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
         "2"
