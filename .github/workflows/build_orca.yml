@@ -234,11 +234,11 @@ jobs:
 
 # Ubuntu
       - name: Install dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         env:
-          apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
-          webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || '' }}
-          libfuse2-pkg: ${{ (inputs.os == 'ubuntu-20.04' && 'libfuse2') || (inputs.os == 'ubuntu-24.04' && 'libfuse2t64') || '' }}
+          apt-cmd: ${{ (inputs.os == 'ubuntu-22.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
+          webkit-ver: ${{ (inputs.os == 'ubuntu-22.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || '' }}
+          libfuse2-pkg: ${{ (inputs.os == 'ubuntu-22.04' && 'libfuse2') || (inputs.os == 'ubuntu-24.04' && 'libfuse2t64') || '' }}
         run: |
           ${{ env.apt-cmd }} update
           ${{ env.apt-cmd }} install -y autoconf build-essential cmake curl eglexternalplatform-dev \
@@ -248,17 +248,17 @@ jobs:
           libwebkit2gtk-${{ env.webkit-ver }}-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget ${{ env.libfuse2-pkg }}
 
       - name: Install dependencies from BuildLinux.sh
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: sudo ./BuildLinux.sh -ur
 
       - name: Fix permissions
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: sudo chown $USER -R ./
 
       - name: Build slicer
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
@@ -268,7 +268,7 @@ jobs:
           chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
 
       - name: Build orca_custom_preset_tests
-        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04'
         working-directory: ${{ github.workspace }}/build/src
         shell: bash
         run: |
@@ -277,9 +277,9 @@ jobs:
           zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' }}
         env:
-          ubuntu-ver: ${{ (inputs.os == 'ubuntu-20.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
+          ubuntu-ver: ${{ (inputs.os == 'ubuntu-22.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: actions/upload-artifact@v4
         with:
@@ -287,7 +287,7 @@ jobs:
           path: './build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
 
       - name: Deploy Ubuntu release
-        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: WebFreak001/deploy-nightly@v3.2.0
@@ -300,7 +300,7 @@ jobs:
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
       - name: Deploy orca_custom_preset_tests
-        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
