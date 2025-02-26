@@ -216,6 +216,7 @@ public:
     void render(wxDC &dc);
     void doRender(wxDC &dc);
     void msw_rescale() { m_printoption_item->msw_rescale(); };
+    void enable(bool en){m_printoption_item->Enable(en);};
 
     std::string m_param;
     std::vector<POItem> m_ops;
