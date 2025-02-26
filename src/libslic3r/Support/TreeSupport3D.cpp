@@ -1480,8 +1480,8 @@ static unsigned int move_inside(const Polygons &polygons, Point &from, int dista
             const Point& a = p1;
             const Point& b = p2;
             const Point& p = from;
-            auto ab = (b - a).cast<int64_t>();
-            auto ap = (p - a).cast<int64_t>();
+            Vec2i64 ab = (b - a).cast<int64_t>();
+            Vec2i64 ap = (p - a).cast<int64_t>();
             int64_t ab_length2 = ab.squaredNorm();
             if (ab_length2 <= 0) { //A = B, i.e. the input polygon had two adjacent points on top of each other.
                 p1 = p2; //Skip only one of the points.
@@ -1506,7 +1506,7 @@ static unsigned int move_inside(const Polygons &polygons, Point &from, int dista
                             double lab   = abd.norm();
                             double lp1p2 = p1p2.norm();
                             // inward direction irrespective of sign of [distance]
-                            auto inward_dir = perp(abd * (scaled<double>(10.0) / lab) + p1p2 * (scaled<double>(10.0) / lp1p2));
+                            Vec2d inward_dir = perp(abd * (scaled<double>(10.0) / lab) + p1p2 * (scaled<double>(10.0) / lp1p2));
                             // MM2INT(10.0) to retain precision for the eventual normalization
                             ret = x + (inward_dir * (distance / inward_dir.norm())).cast<coord_t>();
                             is_already_on_correct_side_of_boundary = inward_dir.dot((p - x).cast<double>()) * distance >= 0;
