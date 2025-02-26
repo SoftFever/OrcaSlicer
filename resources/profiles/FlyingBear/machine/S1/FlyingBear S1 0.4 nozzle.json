@@ -29,7 +29,7 @@
   "extra_loading_move": "-2",
   "extruder_clearance_height_to_lid": "69",
   "extruder_clearance_height_to_rod": "69",
-  "extruder_clearance_radius": "49",
+  "extruder_clearance_radius": "55",
   "extruder_colour": [
       "#FCE94F"
   ],
