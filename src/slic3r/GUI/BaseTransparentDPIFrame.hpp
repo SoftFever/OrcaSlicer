@@ -44,7 +44,7 @@ public:
 protected:
     Button *m_button_ok     = nullptr;
     Button *m_button_cancel = nullptr;
-
+    Label  *m_finish_text   = nullptr;
     DisappearanceMode m_timed_disappearance_mode;
     float             m_timer_count = 0;
     wxTimer *         m_refresh_timer{nullptr};

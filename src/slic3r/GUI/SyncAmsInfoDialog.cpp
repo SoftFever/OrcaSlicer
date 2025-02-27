@@ -39,6 +39,12 @@ bool SyncAmsInfoDialog::Show(bool show)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " SyncAmsInfoDialog begin show";
     if (show) {
+        if (m_two_image_panel) {
+            m_two_image_panel->SetBackgroundColor(wxGetApp().dark_mode() ? wxColour(48, 48, 48, 100) : wxColour(246, 246, 246, 100));
+            m_left_image_button->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(61, 61, 61, 0) : wxColour(238, 238, 238, 0));
+            m_right_image_button->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(61, 61, 61, 0) : wxColour(238, 238, 238, 0));
+            init_bitmaps();
+        }
         if (m_options_other) { m_options_other->Hide(); }
         if (m_refresh_timer) { m_refresh_timer->Start(LIST_REFRESH_INTERVAL); }
     } else {
@@ -543,11 +549,9 @@ void SyncAmsInfoDialog::add_two_image_control()
         // m_two_thumbnail_panel->SetBackgroundColour(wxColour(0xF8F8F8));
         m_two_image_panel->SetBorderWidth(0);
         //m_two_image_panel->SetForegroundColour(wxColour(248, 248, 248, 100));
-        m_two_image_panel->SetBackgroundColor(wxGetApp().dark_mode() ? wxColour(48, 48, 48, 100) : wxColour(246, 246, 246, 100));
         m_two_image_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_left_image_button     = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH)),
                                            wxBORDER_NONE | wxBU_AUTODRAW);
-        m_left_image_button->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(61, 61, 61, 0) : wxColour(238, 238, 238, 0));
         m_left_sizer_thumbnail = create_sizer_thumbnail(m_left_image_button, true);
         m_two_image_panel_sizer->Add(m_left_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(8));
         m_two_image_panel_sizer->AddSpacer(FromDIP(5));
@@ -555,7 +559,6 @@ void SyncAmsInfoDialog::add_two_image_control()
         m_right_image_button = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition,
                                             wxSize(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH)),
                                             wxBORDER_NONE | wxBU_AUTODRAW);
-        m_right_image_button->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(61, 61, 61, 0) : wxColour(238, 238, 238, 0));
         m_right_image_button->SetToolTip(_L("If the transparency of the mapping changes, this thumbnail is for reference only."));
         m_right_sizer_thumbnail = create_sizer_thumbnail(m_right_image_button, false);
         m_two_image_panel_sizer->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(8));

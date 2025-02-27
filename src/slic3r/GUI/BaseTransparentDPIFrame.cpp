@@ -44,11 +44,11 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
     image_sizer->AddStretchSpacer();
     text_sizer->Add(image_sizer);
     text_sizer->AddSpacer(FromDIP(5));
-    auto finish_text = new Label(this, win_text, LB_AUTO_WRAP);
-    finish_text->SetMinSize(wxSize(FromDIP(win_width - 64), -1));
-    finish_text->SetMaxSize(wxSize(FromDIP(win_width - 64), -1));
-    finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
-    text_sizer->Add(finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    m_finish_text = new Label(this, win_text, LB_AUTO_WRAP);
+    m_finish_text->SetMinSize(wxSize(FromDIP(win_width - 64), -1));
+    m_finish_text->SetMaxSize(wxSize(FromDIP(win_width - 64), -1));
+    m_finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
+    text_sizer->Add(m_finish_text, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 0);
     text_sizer->AddSpacer(FromDIP(20));
     m_sizer_main->Add(text_sizer, FromDIP(0), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(15));
 
@@ -124,6 +124,7 @@ BaseTransparentDPIFrame::~BaseTransparentDPIFrame() {
 bool BaseTransparentDPIFrame::Show(bool show)
 {
     if (show) {
+        m_finish_text->SetForegroundColour(wxColour(255, 255, 255, 255));
         if (m_refresh_timer) {
             m_refresh_timer->Start(ANIMATION_REFRESH_INTERVAL);
         }
