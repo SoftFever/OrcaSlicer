@@ -2794,6 +2794,7 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
                 wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
 
                 uiAmsHumidityInfo *info = new uiAmsHumidityInfo;
+                info->ams_id            = m_amsinfo.ams_id;
                 info->humidity_level    = m_amsinfo.ams_humidity;
                 info->humidity_percent  = m_amsinfo.humidity_raw;
                 info->left_dry_time     = m_amsinfo.left_dray_time;
