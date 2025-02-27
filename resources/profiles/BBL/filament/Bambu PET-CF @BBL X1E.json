@@ -6,7 +6,7 @@
     "setting_id": "GFST01_00",
     "instantiation": "true",
     "chamber_temperatures": [
-        "60"
+        "50"
     ],
     "compatible_printers": [
         "Bambu Lab X1E 0.4 nozzle",

@@ -15,6 +15,10 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
     "filament_flow_ratio": [
         "0.95",
         "0.95"
@@ -24,8 +28,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "21",
-        "21"
+        "24",
+        "24"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -44,8 +48,8 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "nil",
-        "nil"
+        "0.4",
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -64,24 +68,20 @@
         "nil"
     ],
     "filament_z_hop": [
-        "nil",
-        "nil"
+        "0.2",
+        "0.2"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "nozzle_temperature": [
-        "245",
-        "245"
+        "225",
+        "225"
     ],
     "nozzle_temperature_initial_layer": [
-        "230",
-        "230"
+        "225",
+        "225"
     ],
     "overhang_fan_speed": [
         "100"
