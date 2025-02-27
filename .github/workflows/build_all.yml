@@ -67,6 +67,12 @@ jobs:
       matrix:
         arch: [x86_64, aarch64]
       fail-fast: false
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y python3-pip
+        pip3 install meson
     env:
       date:
       ver:
@@ -83,10 +89,6 @@ jobs:
     - name: "Remove unneeded stuff to free disk space"
       run:
         rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
-    - name: Install dependencies
-      run: |
-        dnf -y install python3-pip
-        pip3 install meson
     - uses: actions/checkout@v4
     - name: Get the version and date
       run: |
