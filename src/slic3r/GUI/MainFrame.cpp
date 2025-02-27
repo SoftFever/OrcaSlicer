@@ -1992,8 +1992,6 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
 
     if (wxGetApp().mainframe)
         wxGetApp().plater()->update_title_dirty_status();
-
-    wxGetApp().sidebar().jusprin_chat_panel()->RefreshPlaterStatus();
 }
 
 

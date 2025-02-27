@@ -364,16 +364,6 @@ void JusPrinChatPanel::CallEmbeddedChatMethod(const wxString& method, const wxSt
     RunScriptInBrowser(strJS);
 }
 
-void JusPrinChatPanel::RefreshPlaterStatus() {
-    nlohmann::json j = nlohmann::json::object();
-    Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
-
-    j["currentPlate"] = nlohmann::json::object();
-    j["currentPlate"]["gCodeCanExport"] = plater->get_partplate_list().get_curr_plate()->is_slice_result_ready_for_export();
-
-    UpdateEmbeddedChatState("platerStatus", j.dump());
-}
-
 void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": page loaded: %1% %2% %3%") % evt.GetURL() % evt.GetTarget() % evt.GetString();
