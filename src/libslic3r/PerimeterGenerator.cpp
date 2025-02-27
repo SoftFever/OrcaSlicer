@@ -8,7 +8,6 @@
 #include "ShortestPath.hpp"
 #include "VariableWidth.hpp"
 #include "CurveAnalyzer.hpp"
-#include "Clipper2Utils.hpp"
 #include "Arachne/WallToolPaths.hpp"
 #include "Geometry/ConvexHull.hpp"
 #include "ExPolygonCollection.hpp"
