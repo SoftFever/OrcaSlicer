@@ -1,0 +1,24 @@
+{
+    "type": "process",
+    "setting_id": "GP024",
+    "name": "0.20mm Strength @Qidi XPlus4 0.4 nozzle",
+    "from": "system",
+    "inherits": "fdm_process_qidi_x4_common",
+    "instantiation": "true",
+    "bridge_flow": "1",
+    "elefant_foot_compensation": "0.15",
+    "gap_infill_speed": "250",
+    "initial_layer_infill_speed": "105",
+    "initial_layer_speed": "50",
+    "inner_wall_speed": "300",
+    "internal_solid_infill_speed": "250",
+    "outer_wall_speed": "60",
+    "sparse_infill_density": "25%",
+    "sparse_infill_speed": "270",
+    "top_shell_layers": "5",
+    "top_shell_thickness": "1.0",
+    "wall_loops": "6",
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.4 nozzle"
+    ]
+}
