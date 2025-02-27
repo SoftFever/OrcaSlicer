@@ -5,6 +5,18 @@ if(${CMAKE_VERSION} VERSION_LESS "3.13" OR ${CMAKE_VERSION} VERSION_GREATER_EQUA
     message(FATAL_ERROR "Only CMake versions between 3.13.x and 3.31.x is supported. Detected version: ${CMAKE_VERSION}")
 endif()
 
+option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
+if (${FORCE_COLORED_OUTPUT})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options (-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options (-fcolor-diagnostics)
+    endif ()
+endif ()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color=always")
+
 if (WIN32)
     # Detect known CI environments
     set(IS_CI FALSE)
@@ -44,7 +56,7 @@ You can do this in Environment Variables settings.
         endif()
     endif()
 endif ()
-    
+
 if (APPLE)
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
