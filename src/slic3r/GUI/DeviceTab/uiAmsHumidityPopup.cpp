@@ -211,7 +211,7 @@ void uiAmsPercentHumidityDryPopup::DrawGridArea(wxDC &dc, wxPoint start_p)
         }
         else if (header == _L("Left Time"))
         {
-            const wxString &time_str = wxString::Format(_L("%d Hours"), m_left_dry_time);
+            const wxString &time_str = wxString::Format(_L("%d : %d"), m_left_dry_time / 60, m_left_dry_time % 60);
             dc.DrawText(time_str, left, start_p.y + row_height);
         }
 

@@ -1066,6 +1066,26 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
     if (m_ams_model == AMSModel::EXT_AMS && !m_vams_lib->is_selected()) {
         m_vams_lib->OnSelected();
     }
+
+    /*update humidity popup*/
+    if (m_percent_humidity_dry_popup->IsShown())
+    {
+        string target_id = m_percent_humidity_dry_popup->get_owner_ams_id();
+        for (const auto& the_info : info)
+        {
+            if (target_id == the_info.ams_id)
+            {
+                uiAmsHumidityInfo humidity_info;
+                humidity_info.ams_id = the_info.ams_id;
+                humidity_info.humidity_level = the_info.ams_humidity;
+                humidity_info.humidity_percent = the_info.humidity_raw;
+                humidity_info.left_dry_time = the_info.left_dray_time;
+                humidity_info.current_temperature = the_info.current_temperature;
+                m_percent_humidity_dry_popup->Update(&humidity_info);
+                break;
+            }
+        }
+    }
 }
 
 void AMSControl::AddAmsItems(AMSinfo info)

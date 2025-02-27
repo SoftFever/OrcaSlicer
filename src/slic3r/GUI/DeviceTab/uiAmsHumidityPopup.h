@@ -18,6 +18,7 @@ namespace Slic3r { namespace GUI {
 
 struct uiAmsHumidityInfo
 {
+    std::string ams_id;
     int humidity_level = -1;
     int humidity_percent = -1;
     float current_temperature;
@@ -35,7 +36,9 @@ public:
     ~uiAmsPercentHumidityDryPopup() = default;
 
 public:
-    void Update(uiAmsHumidityInfo *info) { Update(info->humidity_level, info->humidity_percent, info->left_dry_time, info->current_temperature); };
+    void Update(uiAmsHumidityInfo *info) { m_ams_id = info->ams_id; Update(info->humidity_level, info->humidity_percent, info->left_dry_time, info->current_temperature); };
+
+    std::string get_owner_ams_id() const { return m_ams_id; }
 
     virtual void OnDismiss() wxOVERRIDE {};
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE { return true;};
@@ -52,6 +55,9 @@ private:
     void DrawGridArea(wxDC &dc, wxPoint start_p);
 
 private:
+    /*owner ams id*/
+    std::string m_ams_id;
+
     int m_humidity_level   = 0;
     int m_humidity_percent = 0;
     int m_left_dry_time    = 0;
