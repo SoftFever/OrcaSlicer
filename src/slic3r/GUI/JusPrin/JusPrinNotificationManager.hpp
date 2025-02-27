@@ -13,7 +13,6 @@ public:
 
     // Core methods
     void render_notifications(GLCanvas3D& canvas, float overlay_width, float bottom_margin, float right_margin) override;
-    bool update_notifications(GLCanvas3D& canvas) override;
 
     // Push methods
     void push_notification(const NotificationType type, int timestamp = 0) override;

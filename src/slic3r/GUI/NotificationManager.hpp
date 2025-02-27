@@ -346,7 +346,7 @@ public:
     void bbl_show_sole_text_notification(NotificationType sType,const std::string &text, bool bOverride, int level, bool autohide);
     void bbl_chose_sole_text_notification(NotificationType sType);
 
-private:
+protected:
 	// duration 0 means not disapearing
 	struct NotificationData {
 		NotificationType         type;
@@ -723,7 +723,7 @@ protected:
 		UploadJobState		m_uj_state{ UploadJobState::PB_PROGRESS };
 	};
 
-private:
+protected:
 	class ProgressIndicatorNotification : public ProgressBarNotification
 	{
 	public:
@@ -874,6 +874,8 @@ private:
 		default: return 10;
 		}
 	}
+
+	const std::deque<std::unique_ptr<PopNotification>>& get_pop_notifications() const { return m_pop_notifications; }
 
 	bool m_is_dark = false;
 	// set by init(), until false notifications are only added not updated and frame is not requested after push
