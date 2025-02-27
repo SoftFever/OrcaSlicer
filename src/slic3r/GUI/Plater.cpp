@@ -903,6 +903,7 @@ public:
         std::vector<std::string> extruder_ams_count     = save_extruder_ams_count_to_string(preset_bundle.extruder_ams_counts);
         std::string              extruder_ams_count_str = boost::algorithm::join(extruder_ams_count, ",");
         wxGetApp().app_config->set("presets", "extruder_ams_count", extruder_ams_count_str);
+        wxGetApp().plater()->update(); // update slice status
     }
 
     static void GetAMSCount(int index, int & ams4, int & ams1)
