@@ -380,7 +380,7 @@ class Print;
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
             unsigned int g1_line_id{ 0 };
-            unsigned int remaining_internal_g1_lines;
+            unsigned int remaining_internal_g1_lines{ 0 };
             unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
@@ -429,7 +429,7 @@ class Print;
             struct G1LinesCacheItem
             {
                 unsigned int id;
-                unsigned int remaining_internal_g1_lines;
+                unsigned int remaining_internal_g1_lines{ 0 };
                 float elapsed_time;
             };
 
