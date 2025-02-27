@@ -3170,7 +3170,7 @@ void SelectMachineDialog::update_filament_change_count()
 
     if (obj->m_extder_data.total_extder_count > 1) { m_link_edit_nozzle->Show(true); }
 
-    if ( filament_ids.size () == 0 && (hand_changes_count > 0 || saving_weight > 0) ) {
+    if (hand_changes_count > 0 || saving_weight > 0) {
         m_mapping_sugs_sizer->Show(true);
         m_change_filament_times_sizer->Show(true);
         m_txt_change_filament_times->Show(true);
