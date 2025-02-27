@@ -78,6 +78,7 @@
       "vendor": "Bambu Lab",
       "type": "PLA",
       "name": "PLA Glow",
+	  "model_id":["N1","N2S"],
       "action": "warning",
       "description": "PLA-Glow"
     },

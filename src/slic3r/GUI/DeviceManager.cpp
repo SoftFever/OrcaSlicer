@@ -7492,12 +7492,11 @@ std::string DeviceManager::get_filament_name_from_ams(int ams_id, int slot_id)
     if (!dev) { return name; }
 
     MachineObject *obj = dev->get_selected_machine();
-    if (obj == nullptr || !obj->is_multi_extruders()) { return name; }
+    if (obj == nullptr) { return name; }
 
     if (ams_id < 0 || slot_id < 0 ) {
         return name;
     }
-
 
     if (obj->amsList.find(std::to_string(ams_id)) == obj->amsList.end()) {return name;}
 
@@ -7553,7 +7552,7 @@ bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, con
     return true;
 }
 
-void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, int ams_id, int slot_id, bool& in_blacklist, std::string& ac, std::string& info)
+void DeviceManager::check_filaments_in_blacklist(std::string model_id, std::string tag_vendor, std::string tag_type, int ams_id, int slot_id, std::string tag_name, bool& in_blacklist, std::string& ac, std::string& info)
 {
     if (ams_id < 0 || slot_id < 0) {
         return;
@@ -7568,10 +7567,12 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
         return;
     }
 
-    std::string tag_name = get_filament_name_from_ams(ams_id, slot_id);
+    if (tag_name.empty()) {
+        tag_name = get_filament_name_from_ams(ams_id, slot_id);
+    }
 
     std::unordered_map<std::string, wxString> blacklist_prompt =
-    {
+        {
         {"TPU: not supported", _L("TPU is not supported by AMS.")},
         {"Bambu CF: not supported",  _L("Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS.")},
         {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use.")},
@@ -7589,6 +7590,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
             std::string action;
             std::string description;
             std::string name = "undefine";
+            std::vector<std::string> model_ids;
 
             if (prohibited_filament.contains("vendor") &&
                 prohibited_filament.contains("type") &&
@@ -7612,29 +7614,44 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
                 name = prohibited_filament["name"].get<std::string>();
             }
 
+            if (prohibited_filament.contains("model_id")) {
+                for (auto res : prohibited_filament["model_id"])
+                    model_ids.emplace_back(res.get<std::string>());
+            }
+
             std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
             std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
             std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
-            //third party
+
+            bool mactch_printer = false;
+            auto it = std::find(model_ids.begin(), model_ids.end(), model_id);
+            if (it != model_ids.end()) {mactch_printer = true;}
+
+            // third party
             if (vendor == "third party") {
                 if ("bambu lab" != tag_vendor && tag_type == type) {
                     if (name == "undefine" || (tag_name.find(name) != std::string::npos)) {
-                        in_blacklist = true;
-                        ac           = action;
-                        info         = blacklist_prompt[description].ToUTF8().data();
-                        return;
+
+                        if (model_ids.empty() || mactch_printer) {
+                            in_blacklist = true;
+                            ac           = action;
+                            info         = blacklist_prompt[description].ToUTF8().data();
+                            return;
+                        }
                     }
                 }
-            }
-            else {
+            } else {
                 if (vendor == tag_vendor && tag_type == type) {
                     if (name == "undefine" || (tag_name.find(name) != std::string::npos)) {
-                        in_blacklist = true;
-                        ac           = action;
-                        info         = blacklist_prompt[description].ToUTF8().data();
-                        return;
+
+                        if (model_ids.empty() || mactch_printer) {
+                            in_blacklist = true;
+                            ac           = action;
+                            info         = blacklist_prompt[description].ToUTF8().data();
+                            return;
+                        }
                     }
                 }
             }
