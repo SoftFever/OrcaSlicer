@@ -1,18 +1,24 @@
 #include "JusPrinNotificationManager.hpp"
 #include "JusPrinChatPanel.hpp"
+#include "slic3r/GUI/SlicingProgressNotification.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 void JusPrinNotificationManager::render_notifications(GLCanvas3D& canvas, float overlay_width, float bottom_margin, float right_margin)
 {
-    // Surpress rendering
-}
+    // Check for SlicingProgressNotification instances and print their percentage
+    for (const auto& notification : get_pop_notifications()) {
+        const auto* slicing_progress = dynamic_cast<const NotificationManager::SlicingProgressNotification*>(notification.get());
+        if (!slicing_progress) continue;
+        float percentage = slicing_progress->get_percentage();
+        if (percentage <= 0) continue;
+        wxLogMessage("Slicing progress: %.2f%%", percentage * 100);
+        break; // Only need to find the first one
+    }
 
-bool JusPrinNotificationManager::update_notifications(GLCanvas3D& canvas)
-{
-    // Surpress updating
-    return false;
+    // Call parent implementation for normal rendering
+    NotificationManager::render_notifications(canvas, overlay_width, bottom_margin, right_margin);
 }
 
 void JusPrinNotificationManager::push_notification(const NotificationType type, int timestamp)
