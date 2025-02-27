@@ -35,6 +35,7 @@ function usage() {
     echo "   -d: download and build dependencies in ./deps/ (build prerequisite)"
     echo "   -h: prints this help text"
     echo "   -i: build the Orca Slicer AppImage (optional)"
+    echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
     echo "   -s: build the Orca Slicer (optional)"
     echo "   -u: install system dependencies (asks for sudo password; build prerequisite)"
@@ -42,8 +43,10 @@ function usage() {
     echo "   and then './${SCRIPT_NAME} -dsi'"
 }
 
+SLIC3R_PRECOMPILED_HEADERS="ON"
+
 unset name
-while getopts ":1bcdghirsu" opt ; do
+while getopts ":1bcdghiprsu" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -63,9 +66,12 @@ while getopts ":1bcdghirsu" opt ; do
     i )
         BUILD_IMAGE="1"
         ;;
+    p )
+    	    SLIC3R_PRECOMPILED_HEADERS="OFF"
+    	  ;;
     r )
 	    SKIP_RAM_CHECK="1"
-	;;
+	      ;;
     s )
         BUILD_ORCA="1"
         ;;
@@ -91,7 +97,7 @@ if [ ! -f ./linux.d/${DISTRIBUTION} ] ; then
     echo "Please resolve dependencies manually and contribute a script for your distribution to upstream."
     exit 1
 else
-    echo "resolving sysetem dependeinces for distribution \"${DISTRIBUTION}\" ..."
+    echo "resolving system dependencies for distribution \"${DISTRIBUTION}\" ..."
     source ./linux.d/${DISTRIBUTION}
 fi
 
@@ -130,7 +136,7 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         if [ ! -d "deps/build/release" ] ; then
             mkdir deps/build/release
         fi
-        cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${BUILD_ARGS}
+        cmake -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${BUILD_ARGS}
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
@@ -154,8 +160,9 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     else
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
-    echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
+    echo -e "cmake -S . -B build -G Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
     cmake -S . -B build -G Ninja \
+        -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
         -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
         -DSLIC3R_STATIC=1 \
         -DORCA_TOOLS=ON \
