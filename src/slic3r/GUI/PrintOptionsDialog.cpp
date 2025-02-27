@@ -7,6 +7,7 @@
 
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
+static const wxColour STATIC_TEXT_EXPLAIN_COL = wxColour(100, 100, 100);
 
 namespace Slic3r { namespace GUI {
 
@@ -411,6 +412,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(m_cb_save_remote_print_file_to_storage, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_save_remote_print_file_to_storage, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     text_save_remote_print_file_to_storage_explain = new Label(parent, _L("Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"));
+    text_save_remote_print_file_to_storage_explain->SetForegroundColour(STATIC_TEXT_EXPLAIN_COL);
     text_save_remote_print_file_to_storage_explain->SetFont(Label::Body_14);
     text_save_remote_print_file_to_storage_explain->Wrap(300);
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
