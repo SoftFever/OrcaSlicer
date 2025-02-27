@@ -24,7 +24,7 @@ on:
      - '**/CMakeLists.txt'
      - 'version.inc'
      - ".github/workflows/build_*.yml"
-     - 'BuildLinux.sh'
+     - 'build_linux.sh'
      - 'build_release_vs2022.bat'
      - 'build_release_macos.sh'
 
