@@ -39,7 +39,7 @@ struct SupportParameters {
                 // support_filament==0
                 bool differnt_support_interface_filament = object_config.support_interface_filament != 0 &&
                                                            object_config.support_interface_filament != object_config.support_filament;
-                this->num_top_base_interface_layers    = differnt_support_interface_filament ? 1 : 0;
+                this->num_top_base_interface_layers    = differnt_support_interface_filament ? std::max(int(object_config.support_interface_top_layers.value), 1) : 0;
                 this->num_bottom_base_interface_layers       = differnt_support_interface_filament ? 1 : 0;
 	        }
 	    }
