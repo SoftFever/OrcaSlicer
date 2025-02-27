@@ -43,9 +43,9 @@ public:
     }
     std::string preamble();
     std::string postamble() const;
-    static std::string set_temperature(unsigned int temperature, GCodeFlavor flavor, bool wait = false, int tool = -1, std::string comment = std::string());
+    static std::string set_temperature(unsigned int temperature, GCodeFlavor flavor, bool wait = false, int tool = -1, int zone = -1, std::string comment = std::string());
 
-    std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
+    std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1, int zone = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_chamber_temperature(int temperature, bool wait = false);
     std::string set_print_acceleration(unsigned int acceleration)   { return set_acceleration_internal(Acceleration::Print, acceleration); }
@@ -65,6 +65,8 @@ public:
     // printed with the same extruder.
     std::string toolchange_prefix() const;
     std::string toolchange(unsigned int extruder_id);
+    std::string add_rotation_volume(unsigned int extruder_id, double value);
+    std::string add_rotation_volume(const std::string& name, double value);
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
     // SoftFever NOTE: the returned speed is mm/minute
     double      get_current_speed() const { return m_current_speed;}
