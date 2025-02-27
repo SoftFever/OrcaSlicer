@@ -2588,10 +2588,8 @@ void MainFrame::init_menubar_as_editor()
     wxMenu* viewMenu = nullptr;
     if (m_plater) {
         viewMenu = new wxMenu();
-        m_menu_switch = viewMenu;
         add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
 
-        // Add separator before new mode options
         viewMenu->AppendSeparator();
 
         //BBS perspective view
@@ -3755,14 +3753,6 @@ void MainFrame::update_ui_from_settings()
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
 
-    if (m_menu_switch != nullptr) {
-        m_menu_switch->Check(wxID_MODE_AI + m_mode_id_base, true);
-    }
-    if (m_slice_btn->IsShown()) {
-        m_slice_btn->Hide();
-        m_slice_option_btn->Hide();
-        Layout();
-    }
 }
 
 
