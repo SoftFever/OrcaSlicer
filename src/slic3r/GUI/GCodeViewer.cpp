@@ -4117,8 +4117,8 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x + style.WindowPadding.x);
         for (size_t i = 1; i < title_columns.size() - 1; i++)
             offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-        if (title_columns.back().first == _u8L("   "))
-            offsets.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("   ").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding;
+        if (title_columns.back().first == _u8L("Display"))
+            offsets.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding;
 
         float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
         std::vector<float> ret;
@@ -4520,8 +4520,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
     };
 
-    auto append_headers = [&imgui, window_padding](const std::vector<std::pair<std::string, float>>& title_offsets) {
+    auto append_headers = [&imgui, window_padding, this](const std::vector<std::pair<std::string, float>>& title_offsets) {
         for (size_t i = 0; i < title_offsets.size(); i++) {
+            if (title_offsets[i].first == _u8L("Display")) { // ORCA Hide Display header
+                ImGui::SameLine(title_offsets[i].second);
+                ImGui::Dummy({10.f * m_scale, 1});
+                continue;
+            }
             ImGui::SameLine(title_offsets[i].second);
             imgui.bold_text(title_offsets[i].first);
         }
@@ -4539,14 +4544,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
-    auto calculate_offsets = [&imgui, max_width, window_padding](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
+    auto calculate_offsets = [&imgui, max_width, window_padding, this](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
             const ImGuiStyle& style = ImGui::GetStyle();
             std::vector<float> offsets;
-            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x);
+            // ORCA increase spacing for more readable format. Using direct number requires much less code change in here. GetTextLineHeight for additional spacing for icon_size
+            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 12.f * m_scale + ImGui::GetTextLineHeight()); 
             for (size_t i = 1; i < title_columns.size() - 1; i++)
-                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-            if (title_columns.back().first == _u8L("   ")) {
-                const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("   ").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
+                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + 12.f * m_scale); // ORCA increase spacing for more readable format. Using direct number requires much less code change in here
+            if (title_columns.back().first == _u8L("Display")) {
+                //const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
+                const auto preferred_offset = ImGui::GetWindowWidth() - 10.f * m_scale - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
                 if (preferred_offset > offsets.back()) {
                     offsets.back() = preferred_offset;
                 }
@@ -4558,7 +4565,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             for (size_t i = 1; i < title_columns.size(); i++) {
                 ret.push_back(std::max(offsets[i - 1], i * average_col_width));
             }
-
             return ret;
     };
 
@@ -4643,8 +4649,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ 0, window_padding }); // ORCA Adds unnecessary spacing before fold/unfold button if window_padding used on X
-    ImGui::SameLine();
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine(window_padding * 2); // ORCA Ignores item spacing to get perfect window margins since since this part uses dummies for window padding
     std::wstring btn_name;
     if (m_fold)
         btn_name = ImGui::UnfoldButtonIcon;
@@ -4655,7 +4661,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
     float calc_padding = (ImGui::GetFrameHeight() - 16 * m_scale) / 2;                      // ORCA calculated padding for 16x16 icon
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(calc_padding, calc_padding));    // ORCA Center icon with frame padding
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);                                 // ORCA Match button style with combo box
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f * m_scale);                       // ORCA Match button style with combo box
 
     float button_width = 16 * m_scale + calc_padding * 2;                                   // ORCA match buttons height with combo box
     if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, button_width))) {
@@ -4699,14 +4705,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::EndCombo();
     }
     pop_combo_style();
-    ImGui::SameLine();
-    ImGui::Dummy({ 0, window_padding });                // ORCA Adds unnecessary spacing after combo box if window_padding used on X
-    ImGui::Dummy({ window_padding, window_padding });   // ORCA Adds spacing after toolbar while its folded / or below combo box
-    float window_width = ImGui::GetWindowWidth();       // ORCA Store window width
+    ImGui::SameLine(0, window_padding);               // ORCA Without (0,window_padding) it adds unnecessary item spacing after combo box
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::Dummy({ window_padding, window_padding }); // ORCA Matches top-bottom window paddings
+    float window_width = ImGui::GetWindowWidth();     // ORCA Store window width
 
     if (m_fold) {
-        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar margins while its folded
-        ImGui::SameLine(window_width);                  // ORCA use stored window width while folded. This prevents annoying position change on fold/expand button
+        legend_height = ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar margins while its folded
+        ImGui::SameLine(window_width);                // ORCA use stored window width while folded. This prevents annoying position change on fold/expand button
         ImGui::Dummy({ 0, 0 });
         imgui.end();
         ImGui::PopStyleColor(6);
@@ -4856,8 +4862,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             travel_percent = buffer;
         }
 
-        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("%"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("   "), {""}}}, icon_size);
-        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("%"), offsets[2]}, {_u8L("Usage"), offsets[3]}, {_u8L("   "), offsets[5]}});
+        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("%"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
+        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("%"), offsets[2]}, {_u8L("Usage"), offsets[3]}, {_u8L("Display"), offsets[5]}});
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
@@ -5010,8 +5016,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Spacing();
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        offsets = calculate_offsets({ { _u8L("Options"), { _u8L("Travel")}}, { _u8L("   "), {""}} }, icon_size);
-        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("   "), offsets[1]} });
+        offsets = calculate_offsets({ { _u8L("Options"), { _u8L("Travel")}}, { _u8L("Display"), {""}} }, icon_size);
+        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 3.0f));
         append_item(EItemType::None, Travel_Colors[0], { {_u8L("travel"), offsets[0] }}, true, travel_visible, [this, travel_visible]() {
@@ -5702,8 +5708,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Spacing();
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("   "), {""}} }, icon_size);
-        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("   "), offsets[1]} });
+        offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
+        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
         for (auto item : options_items)
             append_option_item(item, offsets);
     }
@@ -5717,7 +5723,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
 void GCodeViewer::push_combo_style()
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f * m_scale); // ORCA scale rounding
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0,8.0));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
