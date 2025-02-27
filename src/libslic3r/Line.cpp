@@ -114,7 +114,7 @@ void Line::extend(double offset)
 
 Vec3d Linef3::intersect_plane(double z) const
 {
-    auto   v = (this->b - this->a).cast<double>();
+    Vec3d  v = (this->b - this->a).cast<double>();
     double t = (z - this->a(2)) / v(2);
     return Vec3d(this->a(0) + v(0) * t, this->a(1) + v(1) * t, z);
 }
