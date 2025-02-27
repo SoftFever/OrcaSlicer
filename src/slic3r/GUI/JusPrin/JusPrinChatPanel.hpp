@@ -42,7 +42,6 @@ public:
     // End of Agent events that are processed by the chat panel
 
     void UpdateOAuthAccessToken();
-    void RefreshPlaterStatus();
 
     void AdvertiseSupportedAction();
 
