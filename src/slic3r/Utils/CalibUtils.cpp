@@ -647,7 +647,8 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     full_config.apply(printer_config);
 
     Vec3d plate_origin(0, 0, 0);
-    CalibPressureAdvancePattern pa_pattern(calib_info.params, full_config, true, model, plate_origin);
+    auto *object = model.objects[0];
+    CalibPressureAdvancePattern pa_pattern(calib_info.params, full_config, true, *object, plate_origin);
 
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
     double  current_width = bedfs[2].x() - bedfs[0].x();
@@ -656,7 +657,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     Vec3d   offset            = Vec3d(current_width / 2, current_depth / 2, 0) - half_pattern_size;
     pa_pattern.set_start_offset(offset);
 
-    pa_pattern.generate_custom_gcodes(full_config, true, model, plate_origin);
+    model.plates_custom_gcodes[0] = pa_pattern.generate_custom_gcodes(full_config, true, *object, plate_origin);
     model.calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 
