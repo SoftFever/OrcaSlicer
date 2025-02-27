@@ -83,12 +83,11 @@ jobs:
     - name: "Remove unneeded stuff to free disk space"
       run:
         rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
-    - uses: actions/checkout@v4
-    - name: Install Meson
+    - name: Install dependencies
       run: |
-        apt-get update
-        apt-get install -y python3-pip
+        dnf -y install python3-pip
         pip3 install meson
+    - uses: actions/checkout@v4
     - name: Get the version and date
       run: |
         ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
