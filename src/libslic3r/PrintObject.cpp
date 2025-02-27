@@ -2801,7 +2801,7 @@ void PrintObject::bridge_over_infill()
                 expansion_area    = closing(expansion_area, float(SCALED_EPSILON));
                 expansion_area    = intersection(expansion_area, deep_infill_area);
                 Polylines anchors = intersection_pl(infill_lines[lidx - 1], shrink(expansion_area, spacing));
-                Polygons internal_unsupported_area = shrink(deep_infill_area, spacing * 4.5);
+                Polygons internal_unsupported_area = shrink(deep_infill_area, spacing * 3);
 
 #ifdef DEBUG_BRIDGE_OVER_INFILL
                 debug_draw(std::to_string(lidx) + "_" + std::to_string(cluster_idx) + "_" + std::to_string(job_idx) + "_" + "_total_area",
