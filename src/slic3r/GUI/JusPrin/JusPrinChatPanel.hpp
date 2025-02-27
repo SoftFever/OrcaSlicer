@@ -37,6 +37,7 @@ public:
         const std::string& notification_type = "",
         const std::string& notification_level = "");
     void SendChatPanelFocusEvent(const std::string& focus_event_type);
+    void SendSlicingProgressEvent(float percentage, const std::string& text);
 
     // End of Agent events that are processed by the chat panel
 

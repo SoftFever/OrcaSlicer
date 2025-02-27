@@ -152,6 +152,15 @@ void JusPrinChatPanel::SendChatPanelFocusEvent(const std::string& focus_event_ty
     CallEmbeddedChatMethod("processAgentEvent", j.dump());
 }
 
+void JusPrinChatPanel::SendSlicingProgressEvent(float percentage, const std::string& text) {
+    nlohmann::json j = nlohmann::json::object();
+    j["type"] = "slicingProgress";
+    j["data"] = nlohmann::json::object();
+    j["data"]["percentage"] = percentage;
+    j["data"]["text"] = text;
+    CallEmbeddedChatMethod("processAgentEvent", j.dump());
+}
+
 // End of Agent events that are processed by the chat panel
 
 // Actions for preload.html only
