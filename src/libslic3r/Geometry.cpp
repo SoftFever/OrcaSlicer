@@ -693,10 +693,10 @@ Transformation Transformation::volume_to_bed_transformation(const Transformation
         pts(7, 0) = bbox.max.x(); pts(7, 1) = bbox.max.y(); pts(7, 2) = bbox.max.z();
 
         // Corners of the bounding box transformed into the modifier mesh coordinate space, with inverse rotation applied to the modifier.
-        auto qs = pts *
+        auto qs = (pts *
             (instance_rotation_trafo *
             Eigen::Scaling(instance_transformation.get_scaling_factor().cwiseProduct(instance_transformation.get_mirror())) *
-            volume_rotation_trafo).inverse().transpose();
+            volume_rotation_trafo).inverse().transpose()).eval();
         // Fill in scaling based on least squares fitting of the bounding box corners.
         Vec3d scale;
         for (int i = 0; i < 3; ++i)
@@ -767,7 +767,7 @@ double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
 
 TransformationSVD::TransformationSVD(const Transform3d& trafo)
 {
-    const auto &m0 = trafo.matrix().block<3, 3>(0, 0);
+    const Matrix3d m0 = trafo.matrix().block<3, 3>(0, 0);
     mirror = m0.determinant() < 0.0;
 
     Matrix3d m;
@@ -832,8 +832,8 @@ TransformationSVD::TransformationSVD(const Transform3d& trafo)
     qua_world.normalize();
     Transform3d cur_matrix_world;
     temp_world.set_matrix(cur_matrix_world.fromPositionOrientationScale(pt, qua_world, Vec3d(1., 1., 1.)));
-    auto temp_xyz = temp_world.get_matrix().inverse() * xyz;
-    auto new_pos  = temp_world.get_matrix() * (rotateMat4.get_matrix() * temp_xyz);
+    Vec3d temp_xyz = temp_world.get_matrix().inverse() * xyz;
+    Vec3d new_pos  = temp_world.get_matrix() * (rotateMat4.get_matrix() * temp_xyz);
     curMat.set_offset(new_pos);
 
     return curMat;
