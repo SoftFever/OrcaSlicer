@@ -2833,7 +2833,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     if (is_tpu_filament(m_current_tool)) {
         bool   left_to_right     = !m_left_to_right;
         int  tpu_line_count = (real_nozzle_change_line_count + 2 - 1) / 2; // nozzle_change_line_count / 2 round up
-
+        nozzle_change_speed *= 2;
         writer.travel(writer.x(), writer.y() - m_nozzle_change_perimeter_width);
 
         for (int i = 0; true; ++i) {
