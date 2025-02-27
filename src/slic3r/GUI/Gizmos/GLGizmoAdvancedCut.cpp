@@ -989,11 +989,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         }
 
         glsafe(::glDisable(GL_DEPTH_TEST));
-        glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
-        glLineStipple(1, 0x0FFF);
-        glEnable(GL_LINE_STIPPLE);
         m_grabber_connection.render();
-        glDisable(GL_LINE_STIPPLE);
 
         shader->stop_using();
     }
@@ -1147,10 +1143,7 @@ void GLGizmoAdvancedCut::render_cut_line()
         shader->set_uniform("view_model_matrix", camera.get_view_matrix());
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
-        glEnable(GL_LINE_STIPPLE);
-        glLineStipple(1, 0x0FFF);
         m_cut_line.render();
-        glDisable(GL_LINE_STIPPLE);
 
         shader->stop_using();
     }
