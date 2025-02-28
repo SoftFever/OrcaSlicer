@@ -2632,11 +2632,11 @@ void AMSPreview::doRender(wxDC &dc)
                 if (iter->material_colour.Alpha() == 0) {
                     if (wxGetApp().dark_mode())
                     {
-                        dc.DrawBitmap(m_ts_bitmap_cube_dark.bmp(), left - FromDIP(2), (size.y - m_ts_bitmap_cube_dark.GetBmpHeight()) / 2);
+                        dc.DrawBitmap(m_ts_bitmap_cube_dark.bmp(), left - FromDIP(1), (size.y - m_ts_bitmap_cube_dark.GetBmpHeight()) / 2);
                     }
                     else
                     {
-                        dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left - FromDIP(2), (size.y - m_ts_bitmap_cube.GetBmpHeight()) / 2);
+                        dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left - FromDIP(1), (size.y - m_ts_bitmap_cube.GetBmpHeight()) / 2);
                     }
                 }
                 else {
