@@ -351,7 +351,7 @@ public:
     void        refresh_plugin_tips();
     void RunScript(wxString js);
 
-    void start_slicer_all(bool switch_to_preview_tab = true);
+    void start_slicer_all(bool pop_up_slicing_progress = true);
 
     //SoftFever
     void show_device(bool bBBLPrinter);

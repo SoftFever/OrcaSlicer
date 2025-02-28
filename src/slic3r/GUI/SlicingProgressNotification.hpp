@@ -24,7 +24,7 @@ public:
         : PopNotification(n, id_provider, evt_handler)
         , m_cancel_callback(callback)
         , m_dailytips_panel(new DailyTipsPanel(true, DailyTipsLayout::Vertical))
-        , m_switch_to_preview(true)
+        , m_pop_up_slicing_progress(true)
     {
         set_progress_state(SlicingProgressState::SP_NO_SLICING);
     }
@@ -51,9 +51,9 @@ public:
     void				set_fff(bool b) { m_is_fff = b; }
     void                set_export_possible(bool b) { m_export_possible = b; }
     void                on_change_color_mode(bool is_dark) override;
-    // Control whether notifications should be shown based on switch_to_preview flag
-    void                set_switch_to_preview(bool switch_to_preview) { m_switch_to_preview = switch_to_preview; }
-    bool                get_switch_to_preview() const { return m_switch_to_preview; }
+    // Control whether notifications should be shown based on pop_up flag
+    void                set_popup(bool pop_up_slicing_progress) { m_pop_up_slicing_progress = pop_up_slicing_progress; }
+    bool                get_popup() const { return m_pop_up_slicing_progress; }
 protected:
     void        init() override;
     void        render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin) override;
@@ -80,8 +80,8 @@ protected:
     // if true, it is possible show export hyperlink in state SP_PROGRESS
     bool                    m_export_possible{ false };
     DailyTipsPanel*         m_dailytips_panel{ nullptr };
-    // flag to control whether notifications should be shown based on tab switching behavior
-    bool                    m_switch_to_preview{ true };
+    // flag to control whether notifications should be shown
+    bool                    m_pop_up_slicing_progress{ true };
 
     /* currently not used */
     bool				    m_has_print_info{ false };

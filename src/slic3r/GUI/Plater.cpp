@@ -7182,9 +7182,9 @@ void Plater::priv::on_action_slice_plate(SimpleEvent& evt)
         Model::setPrintSpeedTable(config, print_config);
         m_slice_all = false;
         q->reslice();
-        
+
         // Check if we should switch to preview based on the event flag
-        if (evt.ShouldSwitchToPreview()) {
+        if (evt.ShouldPopUpSlicingProgress()) {
             q->select_view_3D("Preview");
         }
     }
@@ -7209,12 +7209,12 @@ void Plater::priv::on_action_slice_all(SimpleEvent& evt)
         //select plate
         q->select_plate(m_cur_slice_plate);
         q->reslice();
-        
+
         // Check if we should switch to preview based on the event flag and not publishing
-        if (!m_is_publishing && evt.ShouldSwitchToPreview()) {
+        if (!m_is_publishing && evt.ShouldPopUpSlicingProgress()) {
             q->select_view_3D("Preview");
         }
-        
+
         //BBS: wish to select all plates stats item
         preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
     }
