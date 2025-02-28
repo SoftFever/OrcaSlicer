@@ -1,22 +1,49 @@
 {
     "result": 0,
-    "t": 1740039331,
-    "ver": 202503250220,
+    "t": 1740665734,
+    "ver": 202503250227,
     "data": [
         {
-            "ecode": "05008074",
-            "image": "bfc449a53ca0deeba7d3f40a563c533c.png",
+            "ecode": "05008058",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008058/c77248ef406e975f6daa1df682489654.png",
             "actions": [
-                22
+                22,
+                21
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500807D",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500807d/876a5d7dbf4cba916046034817c83349.png",
+            "actions": [
+                22,
+                21
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "05008068",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008068/25c5cfac4fd7542766ec7ddd4ff0debc.png",
+            "actions": [
+                22,
+                21
             ],
             "device": "094"
         },
         {
             "ecode": "05008064",
-            "image": "d5874f740a26fa71ec7d85f7f89e7e1b.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008064/d5874f740a26fa71ec7d85f7f89e7e1b.png",
             "actions": [
                 22,
-                27
+                21
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "05008074",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008074/bfc449a53ca0deeba7d3f40a563c533c.png",
+            "actions": [
+                22
             ],
             "device": "094"
         },
@@ -26,15 +53,6 @@
             "actions": [
                 21,
                 22
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "05008058",
-            "image": "c77248ef406e975f6daa1df682489654.png",
-            "actions": [
-                22,
-                27
             ],
             "device": "094"
         },
@@ -56,26 +74,8 @@
             "device": "094"
         },
         {
-            "ecode": "0500807D",
-            "image": "876a5d7dbf4cba916046034817c83349.png",
-            "actions": [
-                22,
-                27
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "05008068",
-            "image": "25c5cfac4fd7542766ec7ddd4ff0debc.png",
-            "actions": [
-                22,
-                27
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05008084",
-            "image": "51688cf5b99fa015090a27c56bf326c1.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008084/51688cf5b99fa015090a27c56bf326c1.png",
             "actions": [
                 22,
                 21
@@ -84,7 +84,7 @@
         },
         {
             "ecode": "03008054",
-            "image": "364bc929b68278f0b3b85c5a1bce7494.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/03008054/364bc929b68278f0b3b85c5a1bce7494.png",
             "actions": [
                 11
             ],
@@ -92,7 +92,7 @@
         },
         {
             "ecode": "07FE8007",
-            "image": "f336022fadaef978b9e4c72a8416a838.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fe8007/f336022fadaef978b9e4c72a8416a838.png",
             "actions": [
                 7,
                 8
@@ -101,7 +101,7 @@
         },
         {
             "ecode": "05008055",
-            "image": "d7c1c7f9109500b16aa9d8d82fe9be4e.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008055/d7c1c7f9109500b16aa9d8d82fe9be4e.png",
             "actions": [
                 22
             ],
@@ -117,7 +117,7 @@
         },
         {
             "ecode": "07FFC006",
-            "image": "537ae91e6acf8f4ec60cae6ac200cd9b.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ffc006/537ae91e6acf8f4ec60cae6ac200cd9b.png",
             "actions": [
                 9
             ],
@@ -125,7 +125,7 @@
         },
         {
             "ecode": "0500806F",
-            "image": "876a5d7dbf4cba916046034817c83349.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500806f/876a5d7dbf4cba916046034817c83349.png",
             "actions": [
                 22
             ],
@@ -133,7 +133,7 @@
         },
         {
             "ecode": "07FFC008",
-            "image": "23b9dffd4aaf35870ab018a4366b0a21.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ffc008/23b9dffd4aaf35870ab018a4366b0a21.png",
             "actions": [
                 4,
                 6
@@ -150,7 +150,7 @@
         },
         {
             "ecode": "0500806B",
-            "image": "838246091d15a2854ed3590af5113218.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500806b/838246091d15a2854ed3590af5113218.png",
             "actions": [
                 21,
                 22
@@ -159,7 +159,7 @@
         },
         {
             "ecode": "07FE8002",
-            "image": "2376f2145e9418615a840302adbd2a66.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fe8002/2376f2145e9418615a840302adbd2a66.png",
             "actions": [
                 4,
                 6
@@ -176,7 +176,7 @@
         },
         {
             "ecode": "05008071",
-            "image": "a97fbf60538c257d06c68a3cc3899bec.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008071/a97fbf60538c257d06c68a3cc3899bec.png",
             "actions": [
                 22
             ],
@@ -184,7 +184,7 @@
         },
         {
             "ecode": "05008067",
-            "image": "957b1e24bcb394ee02661113f7b60f10.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008067/957b1e24bcb394ee02661113f7b60f10.png",
             "actions": [
                 22
             ],
@@ -217,7 +217,7 @@
         },
         {
             "ecode": "07FE8003",
-            "image": "7cb10410ef4abaa8ba6184de04551182.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fe8003/7cb10410ef4abaa8ba6184de04551182.png",
             "actions": [
                 9
             ],
@@ -225,7 +225,7 @@
         },
         {
             "ecode": "0500806A",
-            "image": "f53110e7c243ba8b139f27201d6877f0.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500806a/f53110e7c243ba8b139f27201d6877f0.png",
             "actions": [
                 25,
                 22
@@ -267,7 +267,7 @@
         },
         {
             "ecode": "05008061",
-            "image": "c1413baf5336d9d9810ce59a13422a9f.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008061/c1413baf5336d9d9810ce59a13422a9f.png",
             "actions": [
                 21,
                 22
@@ -276,7 +276,7 @@
         },
         {
             "ecode": "05FE8053",
-            "image": "6463538e852994bef933fec54e09dad0.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05fe8053/6463538e852994bef933fec54e09dad0.png",
             "actions": [
                 22,
                 21
@@ -285,7 +285,7 @@
         },
         {
             "ecode": "07FF8006",
-            "image": "537ae91e6acf8f4ec60cae6ac200cd9b.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ff8006/537ae91e6acf8f4ec60cae6ac200cd9b.png",
             "actions": [
                 9
             ],
@@ -293,7 +293,7 @@
         },
         {
             "ecode": "05008073",
-            "image": "c26671383a1e75b844f1a26228c83d4e.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008073/c26671383a1e75b844f1a26228c83d4e.png",
             "actions": [
                 22
             ],
@@ -301,7 +301,7 @@
         },
         {
             "ecode": "0C004020",
-            "image": "f35ac8877cd7bf12367f79c5126e0567.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0c004020/f35ac8877cd7bf12367f79c5126e0567.png",
             "actions": [
                 11
             ],
@@ -309,7 +309,7 @@
         },
         {
             "ecode": "03008063",
-            "image": "dec054744461428e529e5a66548b498e.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/03008063/dec054744461428e529e5a66548b498e.png",
             "actions": [
                 4
             ],
@@ -317,7 +317,7 @@
         },
         {
             "ecode": "05008072",
-            "image": "51688cf5b99fa015090a27c56bf326c1.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008072/51688cf5b99fa015090a27c56bf326c1.png",
             "actions": [
                 22,
                 21
@@ -336,7 +336,7 @@
         },
         {
             "ecode": "05008063",
-            "image": "d7c1c7f9109500b16aa9d8d82fe9be4e.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008063/d7c1c7f9109500b16aa9d8d82fe9be4e.png",
             "actions": [
                 22
             ],
@@ -344,7 +344,7 @@
         },
         {
             "ecode": "05FF8053",
-            "image": "1c6893be4fe8b0b6da0e8dde6e350ac3.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05ff8053/1c6893be4fe8b0b6da0e8dde6e350ac3.png",
             "actions": [
                 22,
                 21
@@ -361,7 +361,7 @@
         },
         {
             "ecode": "07FE8011",
-            "image": "288368e4ad4513f8e526cf9145922ca9.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fe8011/288368e4ad4513f8e526cf9145922ca9.png",
             "actions": [
                 4
             ],
@@ -369,7 +369,7 @@
         },
         {
             "ecode": "0500807C",
-            "image": "876a5d7dbf4cba916046034817c83349.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500807c/876a5d7dbf4cba916046034817c83349.png",
             "actions": [
                 22
             ],
@@ -386,7 +386,7 @@
         },
         {
             "ecode": "05008056",
-            "image": "a97fbf60538c257d06c68a3cc3899bec.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008056/a97fbf60538c257d06c68a3cc3899bec.png",
             "actions": [
                 22
             ],
@@ -394,7 +394,7 @@
         },
         {
             "ecode": "0C00800B",
-            "image": "f35ac8877cd7bf12367f79c5126e0567.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0c00800b/f35ac8877cd7bf12367f79c5126e0567.png",
             "actions": [
                 4
             ],
@@ -402,7 +402,7 @@
         },
         {
             "ecode": "0C004021",
-            "image": "fd6afcb3c322267736d59eca6149c8bb.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0c004021/fd6afcb3c322267736d59eca6149c8bb.png",
             "actions": [
                 11
             ],
@@ -436,7 +436,7 @@
         },
         {
             "ecode": "07FEC003",
-            "image": "7cb10410ef4abaa8ba6184de04551182.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fec003/7cb10410ef4abaa8ba6184de04551182.png",
             "actions": [
                 4,
                 6
@@ -454,7 +454,7 @@
         },
         {
             "ecode": "0500806C",
-            "image": "c77248ef406e975f6daa1df682489654.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500806c/c77248ef406e975f6daa1df682489654.png",
             "actions": [
                 21,
                 22
@@ -489,7 +489,7 @@
         },
         {
             "ecode": "07FEC00A",
-            "image": "f336022fadaef978b9e4c72a8416a838.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fec00a/f336022fadaef978b9e4c72a8416a838.png",
             "actions": [
                 7,
                 8
@@ -515,7 +515,7 @@
         },
         {
             "ecode": "03008042",
-            "image": "26e5af5ade19e20ff6bbb1b2cfa9cb21.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/03008042/26e5af5ade19e20ff6bbb1b2cfa9cb21.png",
             "actions": [
                 4
             ],
@@ -539,7 +539,7 @@
         },
         {
             "ecode": "07FF8002",
-            "image": "73dca6348b5bb0129541b38bb862aa68.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ff8002/73dca6348b5bb0129541b38bb862aa68.png",
             "actions": [
                 4,
                 6
@@ -556,7 +556,7 @@
         },
         {
             "ecode": "0500807B",
-            "image": "957b1e24bcb394ee02661113f7b60f10.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500807b/957b1e24bcb394ee02661113f7b60f10.png",
             "actions": [
                 22
             ],
@@ -564,7 +564,7 @@
         },
         {
             "ecode": "05008053",
-            "image": "f53110e7c243ba8b139f27201d6877f0.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008053/f53110e7c243ba8b139f27201d6877f0.png",
             "actions": [
                 22,
                 21
@@ -582,7 +582,7 @@
         },
         {
             "ecode": "07FFC00A",
-            "image": "0178c365265d58b273c6a2c1471e3742.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ffc00a/0178c365265d58b273c6a2c1471e3742.png",
             "actions": [
                 7,
                 8
@@ -625,7 +625,7 @@
         },
         {
             "ecode": "07FEC006",
-            "image": "9a2e24032479a29ba72f1b203d195f63.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fec006/9a2e24032479a29ba72f1b203d195f63.png",
             "actions": [
                 9
             ],
@@ -633,7 +633,7 @@
         },
         {
             "ecode": "07FEC008",
-            "image": "7cb10410ef4abaa8ba6184de04551182.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fec008/7cb10410ef4abaa8ba6184de04551182.png",
             "actions": [
                 4,
                 6
@@ -651,7 +651,7 @@
         },
         {
             "ecode": "03008064",
-            "image": "dec054744461428e529e5a66548b498e.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/03008064/dec054744461428e529e5a66548b498e.png",
             "actions": [
                 4
             ],
@@ -667,7 +667,7 @@
         },
         {
             "ecode": "05FE8069",
-            "image": "6463538e852994bef933fec54e09dad0.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05fe8069/6463538e852994bef933fec54e09dad0.png",
             "actions": [
                 23,
                 24
@@ -676,7 +676,7 @@
         },
         {
             "ecode": "07008004",
-            "image": "26de8fa3aad0a57321b163f16efbfa6b.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07008004/26de8fa3aad0a57321b163f16efbfa6b.png",
             "actions": [
                 4,
                 6
@@ -685,7 +685,7 @@
         },
         {
             "ecode": "0500403D",
-            "image": "6000115af7c2ffed9785317cc6a396d6.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500403d/6000115af7c2ffed9785317cc6a396d6.png",
             "actions": [
                 11
             ],
@@ -693,7 +693,7 @@
         },
         {
             "ecode": "05008079",
-            "image": "ba109d320caab495cd0823333c448f0a.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008079/ba109d320caab495cd0823333c448f0a.png",
             "actions": [
                 21,
                 22
@@ -711,7 +711,7 @@
         },
         {
             "ecode": "07FF8011",
-            "image": "c5847d25a03eb96beccf0ef3ccd61f4d.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ff8011/c5847d25a03eb96beccf0ef3ccd61f4d.png",
             "actions": [
                 4,
                 6
@@ -720,7 +720,7 @@
         },
         {
             "ecode": "07FF8003",
-            "image": "23b9dffd4aaf35870ab018a4366b0a21.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ff8003/23b9dffd4aaf35870ab018a4366b0a21.png",
             "actions": [
                 9
             ],
@@ -728,7 +728,7 @@
         },
         {
             "ecode": "07FF8007",
-            "image": "0178c365265d58b273c6a2c1471e3742.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ff8007/0178c365265d58b273c6a2c1471e3742.png",
             "actions": [
                 7,
                 8
@@ -737,7 +737,7 @@
         },
         {
             "ecode": "05008069",
-            "image": "f53110e7c243ba8b139f27201d6877f0.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008069/f53110e7c243ba8b139f27201d6877f0.png",
             "actions": [
                 23,
                 24
@@ -746,7 +746,7 @@
         },
         {
             "ecode": "0500807E",
-            "image": "876a5d7dbf4cba916046034817c83349.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500807e/876a5d7dbf4cba916046034817c83349.png",
             "actions": [
                 22
             ],
@@ -754,7 +754,7 @@
         },
         {
             "ecode": "0C004022",
-            "image": "65f375b32ab6932771ef03c03b7bc9d3.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0c004022/65f375b32ab6932771ef03c03b7bc9d3.png",
             "actions": [
                 11
             ],
@@ -762,7 +762,7 @@
         },
         {
             "ecode": "05008066",
-            "image": "957b1e24bcb394ee02661113f7b60f10.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05008066/957b1e24bcb394ee02661113f7b60f10.png",
             "actions": [
                 22
             ],
@@ -770,7 +770,7 @@
         },
         {
             "ecode": "05FF8069",
-            "image": "1c6893be4fe8b0b6da0e8dde6e350ac3.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05ff8069/1c6893be4fe8b0b6da0e8dde6e350ac3.png",
             "actions": [
                 23,
                 24
@@ -779,7 +779,7 @@
         },
         {
             "ecode": "0500805C",
-            "image": "957b1e24bcb394ee02661113f7b60f10.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500805c/957b1e24bcb394ee02661113f7b60f10.png",
             "actions": [
                 22
             ],
@@ -787,7 +787,7 @@
         },
         {
             "ecode": "0500805A",
-            "image": "39ebb17f9bb6d7aebb116c4e60774bbb.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/0500805a/39ebb17f9bb6d7aebb116c4e60774bbb.png",
             "actions": [
                 21,
                 22
@@ -796,7 +796,7 @@
         },
         {
             "ecode": "07FEC009",
-            "image": "9a2e24032479a29ba72f1b203d195f63.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fec009/9a2e24032479a29ba72f1b203d195f63.png",
             "actions": [
                 9
             ],
@@ -804,7 +804,7 @@
         },
         {
             "ecode": "07FFC003",
-            "image": "23b9dffd4aaf35870ab018a4366b0a21.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ffc003/23b9dffd4aaf35870ab018a4366b0a21.png",
             "actions": [
                 9
             ],
@@ -812,7 +812,7 @@
         },
         {
             "ecode": "05FE806A",
-            "image": "6463538e852994bef933fec54e09dad0.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05fe806a/6463538e852994bef933fec54e09dad0.png",
             "actions": [
                 25,
                 22
@@ -830,7 +830,7 @@
         },
         {
             "ecode": "07FFC009",
-            "image": "537ae91e6acf8f4ec60cae6ac200cd9b.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07ffc009/537ae91e6acf8f4ec60cae6ac200cd9b.png",
             "actions": [
                 9
             ],
@@ -838,7 +838,7 @@
         },
         {
             "ecode": "07FE8006",
-            "image": "9a2e24032479a29ba72f1b203d195f63.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/07fe8006/9a2e24032479a29ba72f1b203d195f63.png",
             "actions": [
                 9
             ],
@@ -846,7 +846,7 @@
         },
         {
             "ecode": "05FF806A",
-            "image": "1c6893be4fe8b0b6da0e8dde6e350ac3.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/05ff806a/1c6893be4fe8b0b6da0e8dde6e350ac3.png",
             "actions": [
                 25,
                 22
@@ -863,7 +863,7 @@
         },
         {
             "ecode": "03008062",
-            "image": "63eb2465bf54ea2f5454da378155ca79.png",
+            "image": "https://public-dev-cdn.bambulab.net/hms/actionimage/pre/03008062/63eb2465bf54ea2f5454da378155ca79.png",
             "actions": [
                 4
             ],
