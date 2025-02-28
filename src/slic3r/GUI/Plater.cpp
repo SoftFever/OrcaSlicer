@@ -7127,7 +7127,7 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 }
 
 //BBS: GUI refactor: slice plate
-void Plater::priv::on_action_slice_plate(SimpleEvent&)
+void Plater::priv::on_action_slice_plate(SimpleEvent& evt)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
@@ -7141,12 +7141,16 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
         Model::setPrintSpeedTable(config, print_config);
         m_slice_all = false;
         q->reslice();
-        q->select_view_3D("Preview");
+        
+        // Check if we should switch to preview based on the event flag
+        if (evt.ShouldSwitchToPreview()) {
+            q->select_view_3D("Preview");
+        }
     }
 }
 
 //BBS: GUI refactor: slice all
-void Plater::priv::on_action_slice_all(SimpleEvent&)
+void Plater::priv::on_action_slice_all(SimpleEvent& evt)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
@@ -7164,8 +7168,12 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         //select plate
         q->select_plate(m_cur_slice_plate);
         q->reslice();
-        if (!m_is_publishing)
+        
+        // Check if we should switch to preview based on the event flag and not publishing
+        if (!m_is_publishing && evt.ShouldSwitchToPreview()) {
             q->select_view_3D("Preview");
+        }
+        
         //BBS: wish to select all plates stats item
         preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
     }

@@ -3721,16 +3721,18 @@ void MainFrame::RunScript(wxString js)
         m_webview->RunScript(js);
 }
 
-void MainFrame::start_slicer_all() {
+void MainFrame::start_slicer_all(bool switch_to_preview_tab) {
     // this->m_plater->select_view_3D("Preview");
     m_plater->exit_gizmo();
     m_plater->update(true, true);
     if (m_slice_select == eSliceAll)
-        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL, nullptr, switch_to_preview_tab));
     else
-        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE, nullptr, switch_to_preview_tab));
 
-    this->m_tabpanel->SetSelection(tpPreview);
+    if (switch_to_preview_tab) {
+        this->m_tabpanel->SetSelection(tpPreview);
+    }
 }
 
 void MainFrame::technology_changed()

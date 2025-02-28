@@ -13,7 +13,10 @@ namespace GUI {
 
 struct SimpleEvent : public wxEvent
 {
-    SimpleEvent(wxEventType type, wxObject* origin = nullptr) : wxEvent(0, type)
+    bool m_switch_to_preview;
+    
+    SimpleEvent(wxEventType type, wxObject* origin = nullptr, bool switch_to_preview = true) 
+        : wxEvent(0, type), m_switch_to_preview(switch_to_preview)
     {
         m_propagationLevel = wxEVENT_PROPAGATE_MAX;
         SetEventObject(origin);
@@ -21,8 +24,11 @@ struct SimpleEvent : public wxEvent
 
     virtual wxEvent* Clone() const
     {
-        return new SimpleEvent(GetEventType(), GetEventObject());
+        SimpleEvent* event = new SimpleEvent(GetEventType(), GetEventObject(), m_switch_to_preview);
+        return event;
     }
+    
+    bool ShouldSwitchToPreview() const { return m_switch_to_preview; }
 };
 
 struct IntEvent : public wxEvent

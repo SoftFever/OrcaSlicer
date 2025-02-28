@@ -281,7 +281,8 @@ nlohmann::json JusPrinChatPanel::handle_change_chatpanel_display(const nlohmann:
 
 void JusPrinChatPanel::handle_start_slicer_all(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
-        wxGetApp().mainframe->start_slicer_all();
+        // Pass false to prevent automatic switching to the preview tab
+        wxGetApp().mainframe->start_slicer_all(false);
     });
 }
 
