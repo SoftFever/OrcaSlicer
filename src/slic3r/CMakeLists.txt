@@ -529,6 +529,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/NetworkAgent.hpp
     Utils/OctoPrint.cpp
     Utils/OctoPrint.hpp
+    Utils/HelioDragon.hpp
+    Utils/HelioDragon.cpp
     Utils/PrintHost.cpp
     Utils/PrintHost.hpp
     Utils/Serial.cpp

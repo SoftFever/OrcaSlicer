@@ -2606,6 +2606,7 @@ struct Plater::priv
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
+    void on_action_slice_helio_dragon(SimpleEvent&);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -7162,6 +7163,24 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
             q->select_view_3D("Preview");
         //BBS: wish to select all plates stats item
         preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+    }
+}
+
+void Plater::priv::on_action_slice_helio_dragon(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
+        //BBS update extruder params and speed table before slicing
+        const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+        auto& print = q->get_partplate_list().get_current_fff_print();
+        auto print_config = print.config();
+        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+
+        Model::setExtruderParams(config, numExtruders);
+        Model::setPrintSpeedTable(config, print_config);
+        m_slice_all = false;
+        q->reslice();
+        q->select_view_3D("Preview");
     }
 }
 

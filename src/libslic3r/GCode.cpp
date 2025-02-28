@@ -2877,7 +2877,7 @@ void GCode::process_layers(
                 }
             } else {
                 LayerToPrint &layer = layers_to_print[layer_to_print_idx ++];
-                print.set_status(80, Slic3r::format(_(L("Generating G-code: layer %1%")), std::to_string(layer_to_print_idx)));
+                print.set_status(80, Slic3r::format(_(L("Generating G-codeii: layer %1%")), std::to_string(layer_to_print_idx)));
                 //BBS
                 check_placeholder_parser_failed();
                 print.throw_if_canceled();

@@ -466,7 +466,7 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
     return m_sizer_tcombox;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange)
+wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, wxTextValidatorStyle validator_filter, std::function<void(wxString)> onchange)
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
     auto        input_title   = new wxStaticText(parent, wxID_ANY, title);
@@ -479,7 +479,7 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
-    wxTextValidator validator(wxFILTER_DIGITS);
+    wxTextValidator validator(validator_filter);
     input->GetTextCtrl()->SetValidator(validator);
 
     auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
@@ -1209,7 +1209,7 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
     auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
 
-    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
+    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", wxFILTER_DIGITS, [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
@@ -1235,6 +1235,11 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
+
+    //Helio options
+    auto title_helio_options = create_item_title(_L("Helio Options"), page, _L("Helio Options"));
+    auto input_helio_api_key = create_item_input(_L("Helio API Key"), "", page, _L("You can generate this by going to the Helio website"), 
+        "helio_api_key", wxFILTER_ASCII, [](wxString value) {});
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
@@ -1271,6 +1276,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(associate_url_bambustudio, 0, wxTOP, FromDIP(3));
     sizer_page->Add(associate_url_cura, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
+    
+     
+
     // auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
     // auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
     // auto update_modelmall = [this, item_title_modelmall, item_item_modelmall] (wxEvent & e) {
@@ -1302,6 +1310,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_skip_ams_blacklist_check, 0, wxTOP, FromDIP(3));
+
+    sizer_page->Add(title_helio_options, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(input_helio_api_key, 0, wxTOP, FromDIP(3));
 
     page->SetSizer(sizer_page);
     page->Layout();

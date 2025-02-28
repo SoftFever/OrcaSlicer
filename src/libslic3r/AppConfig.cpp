@@ -1136,6 +1136,16 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     }
 }
 
+void AppConfig::set_helio_api_key(const std::string api_key)
+{
+    auto it = m_storage.find("helio_options");
+    if (it == m_storage.end())
+        it = m_storage.insert(std::map<std::string, std::map<std::string, std::string>>::value_type("helio_options", std::map<std::string, std::string>())).first;
+
+    it->second.clear();
+    it->second["01"] = api_key;
+}
+
 void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone,
                                  float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz, bool invert_x, bool invert_y, bool invert_z, bool invert_yaw, bool invert_pitch, bool invert_roll)
 {
