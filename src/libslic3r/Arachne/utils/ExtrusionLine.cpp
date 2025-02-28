@@ -156,7 +156,7 @@ void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const 
                 Point intersection_point;
                 bool has_intersection = Line(previous_previous.p, previous.p).intersection_infinite(Line(current.p, next.p), &intersection_point);
                 const auto dist_greater = [](const Point& p1, const Point& p2, const int64_t threshold) {
-                    const auto vec = (p1 - p2).cwiseAbs().cast<uint64_t>();
+                    const auto vec = (p1 - p2).cwiseAbs().cast<uint64_t>().eval();
                     if(vec.x() > threshold || vec.y() > threshold) {
                         // If this condition is true, the distance is definitely greater than the threshold.
                         // We don't need to calculate the squared norm at all, which avoid potential arithmetic overflow.
