@@ -13,7 +13,10 @@ namespace GUI {
 
 struct SimpleEvent : public wxEvent
 {
-    SimpleEvent(wxEventType type, wxObject* origin = nullptr) : wxEvent(0, type)
+    bool m_pop_up_slicing_progress;
+
+    SimpleEvent(wxEventType type, wxObject* origin = nullptr, bool pop_up_slicing_progress = true)
+        : wxEvent(0, type), m_pop_up_slicing_progress(pop_up_slicing_progress)
     {
         m_propagationLevel = wxEVENT_PROPAGATE_MAX;
         SetEventObject(origin);
@@ -21,8 +24,11 @@ struct SimpleEvent : public wxEvent
 
     virtual wxEvent* Clone() const
     {
-        return new SimpleEvent(GetEventType(), GetEventObject());
+        SimpleEvent* event = new SimpleEvent(GetEventType(), GetEventObject(), m_pop_up_slicing_progress);
+        return event;
     }
+
+    bool ShouldPopUpSlicingProgress() const { return m_pop_up_slicing_progress; }
 };
 
 struct IntEvent : public wxEvent
@@ -43,7 +49,7 @@ public:
 
 private:
     int m_data;
-    
+
 };
 
 template<class T, size_t N> struct ArrayEvent : public wxEvent

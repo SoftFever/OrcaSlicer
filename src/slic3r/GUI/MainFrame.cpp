@@ -3788,20 +3788,26 @@ void MainFrame::refresh_plugin_tips()
 
 void MainFrame::RunScript(wxString js)
 {
-    if (m_webview != nullptr)
+    if (m_webview && m_webview->IsShown())
         m_webview->RunScript(js);
 }
 
-void MainFrame::start_slicer_all() {
+void MainFrame::start_slicer_all(bool pop_up_slicing_progress) {
     // this->m_plater->select_view_3D("Preview");
     m_plater->exit_gizmo();
     m_plater->update(true, true);
-    if (m_slice_select == eSliceAll)
-        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-    else
-        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
 
-    this->m_tabpanel->SetSelection(tpPreview);
+    // Set the flag on the notification manager to control whether notifications are shown
+    m_plater->get_notification_manager()->set_slicing_progress_popup(pop_up_slicing_progress);
+
+    if (m_slice_select == eSliceAll)
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL, nullptr, pop_up_slicing_progress));
+    else
+        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE, nullptr, pop_up_slicing_progress));
+
+    if (pop_up_slicing_progress) {
+        this->m_tabpanel->SetSelection(tpPreview);
+    }
 }
 
 void MainFrame::technology_changed()
