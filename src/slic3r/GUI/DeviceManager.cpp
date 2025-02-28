@@ -4052,6 +4052,30 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         } catch (...) {
                                             ;
                                         }
+
+                                        if (curr_ams->humidity_raw != -1)
+                                        {
+                                            if (curr_ams->humidity_raw < 20)
+                                            {
+                                                curr_ams->humidity = 5;
+                                            }
+                                            else if (curr_ams->humidity_raw < 40)
+                                            {
+                                                curr_ams->humidity = 4;
+                                            }
+                                            else if (curr_ams->humidity_raw < 60)
+                                            {
+                                                curr_ams->humidity = 3;
+                                            }
+                                            else if (curr_ams->humidity_raw < 80)
+                                            {
+                                                curr_ams->humidity = 2;
+                                            }
+                                            else
+                                            {
+                                                curr_ams->humidity = 1;
+                                            }
+                                        }
                                     }
 
                                     if (it->contains("tray")) {
