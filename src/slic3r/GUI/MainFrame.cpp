@@ -3725,6 +3725,10 @@ void MainFrame::start_slicer_all(bool switch_to_preview_tab) {
     // this->m_plater->select_view_3D("Preview");
     m_plater->exit_gizmo();
     m_plater->update(true, true);
+    
+    // Set the flag on the notification manager to control whether notifications are shown
+    m_plater->get_notification_manager()->set_slicing_progress_switch_to_preview(switch_to_preview_tab);
+    
     if (m_slice_select == eSliceAll)
         wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL, nullptr, switch_to_preview_tab));
     else

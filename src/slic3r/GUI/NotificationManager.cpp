@@ -2354,6 +2354,16 @@ void NotificationManager::set_slicing_progress_export_possible()
 		}
 	}
 }
+
+void NotificationManager::set_slicing_progress_switch_to_preview(bool switch_to_preview)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::SlicingProgress) {
+			dynamic_cast<SlicingProgressNotification*>(notification.get())->set_switch_to_preview(switch_to_preview);
+			break;
+		}
+	}
+}
 void NotificationManager::init_progress_indicator()
 {
 	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {

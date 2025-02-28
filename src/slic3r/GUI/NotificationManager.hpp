@@ -267,6 +267,8 @@ public:
 	// Add a print time estimate to an existing SlicingProgress notification. Set said notification to SP_COMPLETED state.
 	void set_slicing_complete_print_time(const std::string& info, bool sidebar_colapsed);
 	void set_slicing_progress_export_possible();
+	// Control whether notifications should be shown based on switch_to_preview flag
+	void set_slicing_progress_switch_to_preview(bool switch_to_preview);
 	// ProgressIndicator notification
 	// init adds hidden instance of progress indi notif that should always live (goes to hidden instead of erasing)
 	void init_progress_indicator();

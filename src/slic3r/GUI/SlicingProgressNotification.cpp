@@ -191,6 +191,11 @@ bool  NotificationManager::SlicingProgressNotification::update_state(bool paused
 
 void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin)
 {
+	// Skip rendering the notification if switching to preview tab is disabled
+	if (!m_switch_to_preview && m_sp_state == SlicingProgressState::SP_PROGRESS) {
+		return;
+	}
+
 	if (m_state == EState::Unknown || m_state == PopNotification::EState::Hovered)
 		init();
 
