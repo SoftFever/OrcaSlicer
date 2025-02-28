@@ -254,9 +254,9 @@ wxDataViewItem EditGCodeDialog::add_presets_placeholders()
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     const auto& tab_list    = wxGetApp().tabs_list;
 
-    Tab* tab_print;
-    Tab* tab_filament;
-    Tab* tab_printer;
+    Tab* tab_print = nullptr;
+    Tab* tab_filament = nullptr;
+    Tab* tab_printer = nullptr;
     for (const auto tab : tab_list) {
         if (tab->m_type == Preset::TYPE_PRINT)
             tab_print = tab;

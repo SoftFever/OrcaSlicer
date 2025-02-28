@@ -1817,7 +1817,7 @@ void GLGizmoMeasure::show_selection_ui()
             return text;
         };
 
-        float selection_cap_length;
+        float selection_cap_length = 0.0;
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
                 selection_cap_length = ImGui::CalcTextSize((_u8L("Selection") + " 1" + _u8L(" (Moving)")).c_str()).x * 1.2;
