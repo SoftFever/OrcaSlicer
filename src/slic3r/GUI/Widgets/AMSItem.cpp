@@ -48,7 +48,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     if (!ams) return false;
     this->ams_id = ams->id;
 
-    if (ams->type == 1 || ams->type == 3){
+    if (ams->type == 1 || ams->type == 3 || ams->type == N3S_AMS){
         this->ams_humidity = ams->humidity;
     }
     else{
@@ -2924,7 +2924,7 @@ void AMSHumidity::doRender(wxDC& dc)
             pot.y = pot.y + ((tsize1.y - tsize2.y) / 2) + FromDIP(2);
             dc.DrawText(_L("%"), pot);
 
-            pot.x += tsize2.x + FromDIP(3);
+            pot.x += tsize2.x;
         }
         else /*image with number*/
         {
@@ -2938,11 +2938,13 @@ void AMSHumidity::doRender(wxDC& dc)
 
             pot = wxPoint(FromDIP(5), ((size.y - hum_img.GetBmpSize().y) / 2));
             dc.DrawBitmap(hum_img.bmp(), pot);
-            pot.x = pot.x + hum_img.GetBmpSize().x + FromDIP(3);
+            pot.x = pot.x + hum_img.GetBmpSize().x;
         }
 
         if (m_amsinfo.support_drying())
         {
+            pot.x += FromDIP(2);// spacing
+
             // vertical line
             dc.SetPen(wxPen(wxColour(194, 194, 194)));
             dc.SetBrush(wxBrush(wxColour(194, 194, 194)));
@@ -2950,12 +2952,11 @@ void AMSHumidity::doRender(wxDC& dc)
 
             // sun image
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+            pot.x += ((size.GetWidth() - pot.x) - ams_drying_img.GetBmpWidth()) / 2;// spacing
             if (m_amsinfo.left_dray_time > 0) {
-                pot.x = pot.x + (ams_drying_img.GetBmpWidth() / 2);
                 pot.y = (size.y - ams_drying_img.GetBmpHeight()) / 2;
                 dc.DrawBitmap(ams_drying_img.bmp(), pot);
             } else {
-                pot.x = pot.x + (ams_sun_img.GetBmpWidth() / 2);
                 pot.y = (size.y - ams_sun_img.GetBmpHeight()) / 2;
                 dc.DrawBitmap(ams_sun_img.bmp(), pot);
             }
