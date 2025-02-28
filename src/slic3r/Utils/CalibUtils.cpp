@@ -231,8 +231,8 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
     if (obj->m_extder_data.extders[0].current_nozzle_type == NozzleType::ntUndefine)
         return true;
 
-    if (!is_same_nozzle_diameters(full_config, obj, error_msg))
-        return false;
+    // if (!is_same_nozzle_diameters(full_config, obj, error_msg))
+    //     return false;
 
     if (!is_same_nozzle_type(full_config, obj, error_msg))
         return false;
