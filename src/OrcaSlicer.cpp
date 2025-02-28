@@ -5299,8 +5299,10 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     std::vector<int> filament_maps;
-                                    if (m_extra_config.option<ConfigOptionInts>("filament_map"))
+                                    if (m_extra_config.option<ConfigOptionInts>("filament_map")) {
                                         filament_maps = m_extra_config.option<ConfigOptionInts>("filament_map")->values;
+                                        part_plate->set_filament_maps(filament_maps);
+                                    }
                                     else
                                         filament_maps = part_plate->get_real_filament_maps(m_print_config);
                                     for (int index = 0; index < filament_maps.size(); index++)
