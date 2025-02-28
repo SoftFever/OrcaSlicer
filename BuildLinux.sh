@@ -80,7 +80,7 @@ fi
 
 DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release)
 # treat any ubuntu based os as debian
-if [ "${DISTRIBUTION_LIKE}" == "\"ubuntu debian\"" ]
+if [ "${DISTRIBUTION_LIKE}" == "\"ubuntu debian"\" ]
 then
     DISTRIBUTION="debian"
 fi
