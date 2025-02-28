@@ -596,9 +596,9 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
 
     //BBS: GUI refactor: move to right
     //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
-    imgui.set_next_window_pos(right, top + 6, ImGuiCond_Always, 1.0f, 0.0f); // ORCA add a small gap between legend and code viewer
+    imgui.set_next_window_pos(right, top + 6 * m_scale, ImGuiCond_Always, 1.0f, 0.0f); // ORCA add a small gap between legend and code viewer
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f); // ORCA add window rounding to modernize / match style
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * m_scale); // ORCA add window rounding to modernize / match style
     ImGui::SetNextWindowBgAlpha(0.8f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
@@ -879,6 +879,7 @@ void GCodeViewer::set_scale(float scale)
     if (m_sequential_view.m_scale != scale) {
         m_sequential_view.m_scale = scale;
         m_sequential_view.marker.m_scale = scale;
+        m_sequential_view.gcode_window.m_scale = scale; // ORCA
     }
 }
 
@@ -4466,15 +4467,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 callback();
             if (checkbox) {
                 //ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
-                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() - window_padding - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0)); // ORCA
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0)); // Allows eye icon rendered bigger
+                //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
                 //ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
+                //ImGui::PopStyleVar(1);
                 // ORCA replace checkboxes with eye icon
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-                ImGui::Button(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16 * m_scale, 16 * m_scale));
-                ImGui::PopStyleColor(1);
-                ImGui::PopStyleVar(1);
+                ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 0.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
+                ImGui::Text(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16 * m_scale, 16 * m_scale));
             }
         }
 
@@ -4524,7 +4523,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (size_t i = 0; i < title_offsets.size(); i++) {
             if (title_offsets[i].first == _u8L("Display")) { // ORCA Hide Display header
                 ImGui::SameLine(title_offsets[i].second);
-                ImGui::Dummy({10.f * m_scale, 1});
+                ImGui::Dummy({(16.f - 6.f) * m_scale, 1}); // 16(icon) - 6(half of spacing)
                 continue;
             }
             ImGui::SameLine(title_offsets[i].second);
@@ -4553,7 +4552,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + 12.f * m_scale); // ORCA increase spacing for more readable format. Using direct number requires much less code change in here
             if (title_columns.back().first == _u8L("Display")) {
                 //const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
-                const auto preferred_offset = ImGui::GetWindowWidth() - 10.f * m_scale - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
+                const auto preferred_offset = ImGui::GetWindowWidth() - (16.f - 6.f) * m_scale - ImGui::GetFrameHeight() / 2 - 2 * window_padding - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0);
                 if (preferred_offset > offsets.back()) {
                     offsets.back() = preferred_offset;
                 }
@@ -4837,16 +4836,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 labels.push_back(_u8L(ExtrusionEntity::role_to_string(role)));
                 auto [time, percent] = role_time_and_percent(role);
                 times.push_back((time > 0.0f) ? short_time(get_time_dhms(time)) : "");
-                if (percent == 0)
+                if (percent == 0) // ORCA remove % symbol from rows
                     ::sprintf(buffer, "0");
                 else
                     percent > 0.001 ? ::sprintf(buffer, "%.1f", percent * 100) : ::sprintf(buffer, "<0.1");
                 percents.push_back(buffer);
 
                 auto [model_used_filament_m, model_used_filament_g] = used_filament_per_role(role);
-                ::sprintf(buffer, imperial_units ? "%.2fin" : "%.2fm", model_used_filament_m);
+                ::sprintf(buffer, imperial_units ? "%.2fin" : "%.2fm", model_used_filament_m); // ORCA dont use spacing between value and unit
                 used_filaments_length.push_back(buffer);
-                ::sprintf(buffer, imperial_units ? "%.2foz" : "%.2fg", model_used_filament_g);
+                ::sprintf(buffer, imperial_units ? "%.2foz" : "%.2fg", model_used_filament_g); // ORCA dont use spacing between value and unit
                 used_filaments_weight.push_back(buffer);
             }
         }
@@ -4855,13 +4854,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         {
             auto [time, percent] = move_time_and_percent(EMoveType::Travel);
             travel_time = (time > 0.0f) ? short_time(get_time_dhms(time)) : "";
-            if (percent == 0)
+            if (percent == 0) // ORCA remove % symbol from rows
                 ::sprintf(buffer, "0");
             else
-            percent > 0.001 ? ::sprintf(buffer, "%.1f", percent * 100) : ::sprintf(buffer, "<0.1");
+                percent > 0.001 ? ::sprintf(buffer, "%.1f", percent * 100) : ::sprintf(buffer, "<0.1");
             travel_percent = buffer;
         }
 
+        // ORCA use % symbol for percentage and use "Usage" for "Used filaments"
         offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("%"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
         append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("%"), offsets[2]}, {_u8L("Usage"), offsets[3]}, {_u8L("Display"), offsets[5]}});
         break;
@@ -5724,7 +5724,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 void GCodeViewer::push_combo_style()
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f * m_scale); // ORCA scale rounding
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * m_scale); // ORCA scale frame size
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0,8.0));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
