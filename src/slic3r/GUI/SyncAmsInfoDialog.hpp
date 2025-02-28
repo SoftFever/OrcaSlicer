@@ -33,13 +33,11 @@ class SyncAmsInfoDialog : public DPIDialog
     PrintPageMode     m_print_page_mode{PrintPageMode::PrintPageModePrepare};
     std::string       m_print_error_msg;
     std::string       m_print_error_extra;
-    std::string       m_printer_last_select;
     std::string       m_print_info;
     wxString          m_current_project_name;
     PrintDialogStatus m_print_status{PrintStatusInit};
     wxColour          m_colour_def_color{wxColour(255, 255, 255)};
     wxColour          m_colour_bold_color{wxColour(38, 46, 48)};
-    StateColor        m_btn_bg_enable;
 
     std::shared_ptr<int>                 m_token = std::make_shared<int>(0);
     std::map<std::string, PrintOption *> m_checkbox_list;
@@ -49,9 +47,7 @@ class SyncAmsInfoDialog : public DPIDialog
     std::vector<FilamentInfo>            m_ams_mapping_result;
     std::vector<FilamentInfo>            m_back_ams_mapping_result;
     std::vector<int>                     m_filaments_map;
-    // SendModeSwitchButton*               m_mode_print {nullptr};
-    // SendModeSwitchButton*               m_mode_send {nullptr};
-    wxStaticBitmap *m_printer_image{nullptr};
+
 
     Slic3r::DynamicPrintConfig m_required_data_config;
     Slic3r::Model              m_required_data_model;
@@ -80,8 +76,7 @@ protected:
 
     wxBoxSizer *              m_basicl_sizer{nullptr};
     wxBoxSizer *              m_sizer_autorefill{nullptr};
-    ScalableButton *          m_button_refresh{nullptr};
-    ComboBox *                m_comboBox_printer{nullptr};
+
     wxStaticBitmap *          m_staticbitmap{nullptr};
     wxStaticBitmap *          img_amsmapping_tip{nullptr};
     ThumbnailPanel *          m_thumbnailPanel{nullptr};
@@ -89,8 +84,6 @@ protected:
     wxPanel *                 m_basic_panel;
     wxPanel *                 m_line_top{nullptr};
     Label *                   m_ams_backup_tip{nullptr};
-
-    Label *                   m_stext_printer_title{nullptr};
     Label *                   m_statictext_ams_msg{nullptr};
     Label *                   m_text_printer_msg{nullptr};
     wxStaticText *            m_staticText_bed_title{nullptr};
@@ -156,6 +149,7 @@ protected:
 
 public:
     void check_empty_project();
+    void reinit_dialog();
     void init_bind();
     void init_timer();
     void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
@@ -163,7 +157,6 @@ public:
     void popup_filament_backup();
 
     void     prepare_mode(bool refresh_button = true);
-    void     sending_mode();
     void     finish_mode();
     void     sync_ams_mapping_result(std::vector<FilamentInfo> &result);
     void     prepare(int print_plate_idx);
@@ -195,9 +188,7 @@ public:
     void     unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data,bool allow_clone_ams_color);
     void     change_default_normal(int old_filament_id, wxColour temp_ams_color);
     void     on_timer(wxTimerEvent &event);
-    void     on_selection_changed(wxCommandEvent &event);
     void     update_flow_cali_check(MachineObject *obj);
-    void     Enable_Refresh_Button(bool en);
     void     update_user_machine_list();
     void     update_lan_machine_list();
     void     stripWhiteSpace(std::string &str);

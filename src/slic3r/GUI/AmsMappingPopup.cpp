@@ -86,6 +86,7 @@ void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vect
     if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
     if (m_ams_name != txt) { m_ams_name = txt; need_refresh = true; }
     if (need_refresh) { Refresh();}
+    BOOST_LOG_TRIVIAL(info) << "set_ams_info " << m_ams_name;
 }
 
 void MaterialItem::reset_ams_info() {
