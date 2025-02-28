@@ -2186,7 +2186,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
             if (!ToolOrdering::check_tpu_group(used_filaments, filament_maps, &m_config)) {
                 int master_extruder_id = m_config.master_extruder_id.value - 1; // to 0 based
-                std::string nozzle_name = master_extruder_id == 0 ? "left" : "right";
+                std::string nozzle_name = master_extruder_id == 0 ? L("left") : L("right");
                 std::string exception_str = L("TPU is incompatible with AMS and must be printed seperately in the ") + nozzle_name + L(" nozzle.\nPlease adjust the filament group accordingly.");
                 throw Slic3r::RuntimeError(exception_str);
             }
