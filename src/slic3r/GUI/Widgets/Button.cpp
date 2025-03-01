@@ -156,6 +156,14 @@ wxString btn_disabled[9] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF
 
 void Button::SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type /* Choice/Window/Parameter/Compact */)
 {
+    // STYLES
+    //   Regular / Confirm / Alert / Disabled
+    // TYPES
+    //   Omited      FontSize:14   SemiRounded    Expanded / full size button. ex btn->SetStyle("Regular");
+    //   Compact     FontSize:10   FullyRounded   Use for less spaced areas
+    //   Window      FontSize:12   FullyRounded   Use for regular windows in windows
+    //   Choice      FontSize:14   SemiRounded    Use for dialog/window choice buttons
+    //   Parameter   FontSize:14   SemiRounded    Use for buttons that near parameter boxes
     this->SetFont( type == "Compact" ? Label::Body_10 : 
                    type == "Window"  ? Label::Body_12 : 
                                        Label::Body_14
@@ -188,22 +196,27 @@ void Button::SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */,
 void Button::SetType(const wxString type /* Choice/Window/Parameter/Compact */)
 {
     // Function also rescales button
-    if        (type == "Compact") {     //  FontSize:10  FullyRounded    Use for less spaced areas
+    // Omited      FontSize:14   SemiRounded    Expanded / full size button. ex btn->SetStyle("Regular");
+    // Compact     FontSize:10   FullyRounded   Use for less spaced areas
+    // Window      FontSize:12   FullyRounded   Use for regular windows in windows
+    // Choice      FontSize:14   SemiRounded    Use for dialog/window choice buttons
+    // Parameter   FontSize:14   SemiRounded    Use for buttons that near parameter boxes
+    if        (type == "Compact") {
         this->SetPaddingSize(FromDIP(wxSize(8,3)));
         this->SetCornerRadius(this->FromDIP(8));
-    } else if (type == "Window") {      //  FontSize:12  FullyRounded    Use for regular windows in windows
+    } else if (type == "Window") {
         this->SetSize(FromDIP(wxSize(58,24)));
         this->SetMinSize(FromDIP(wxSize(58,24)));
         this->SetCornerRadius(this->FromDIP(12));
-    } else if (type == "Choice") {      //  FontSize:14  SemiRounded     Use for dialog/window choice buttons. 
+    } else if (type == "Choice") {
         this->SetMinSize(FromDIP(wxSize(100,32)));
         this->SetPaddingSize(FromDIP(wxSize(12,8)));
         this->SetCornerRadius(this->FromDIP(4));
-    } else if (type == "Parameter") {   //  FontSize:14  SemiRounded     Use for buttons that near parameter boxes
+    } else if (type == "Parameter") {
         this->SetMinSize(FromDIP(wxSize(120,26)));
         this->SetSize(FromDIP(wxSize(120,26)));
         this->SetCornerRadius(this->FromDIP(4));
-    } else {         // DEFAULTS            FontSize:14  SemiRounded     Dont specify type parameter on SetStyle(style, type) to get regular button
+    } else {
         this->SetCornerRadius(this->FromDIP(4));
     }
     this->SetBorderWidth(this->FromDIP(1));
