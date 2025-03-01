@@ -1496,50 +1496,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_config_manipulation.apply(m_config, &new_conf);
     }
 
-    // BBS popup a message to ask the user to set optimum parameters for tree support
-    if (opt_key == "support_type" || opt_key == "support_style") {
-        if (is_tree_slim(m_config->opt_enum<SupportType>("support_type"), m_config->opt_enum<SupportMaterialStyle>("support_style")) &&
-            !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_int("support_interface_top_layers") == 0 && m_config->opt_int("tree_support_wall_count") == 2)) {
-            wxString msg_text = _L("We have added an experimental style \"Tree Slim\" that features smaller support volume but weaker strength.\n"
-                                    "We recommend using it with: 0 interface layers, 0 top distance, 2 walls.");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(0));
-                new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(2));
-                m_config_manipulation.apply(m_config, &new_conf);
-            }
-            wxGetApp().plater()->update();
-        } else if ((m_config->opt_enum<SupportType>("support_type")==stTreeAuto && (m_config->opt_enum<SupportMaterialStyle>("support_style")==smsTreeStrong || m_config->opt_enum<SupportMaterialStyle>("support_style") == smsTreeHybrid)) &&
-                   !((m_config->opt_float("support_top_z_distance") >=0.1 || is_support_filament(m_config->opt_int("support_interface_filament") - 1))
-                       && m_config->opt_int("support_interface_top_layers") >1) ) {
-            wxString msg_text = _L("For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following settings: at least 2 interface layers, at least 0.1mm top z distance or using support materials on interface.");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                if (!is_support_filament(m_config->opt_int("support_interface_filament") - 1) && m_config->opt_float("support_top_z_distance") < 0.1)
-                    new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0.2));
-                new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(2));
-                m_config_manipulation.apply(m_config, &new_conf);
-            }
-            wxGetApp().plater()->update();
-        }
-    }
-
     // BBS popup a message to ask the user to set optimum parameters for support interface if support materials are used
     if (opt_key == "support_interface_filament") {
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
         if (is_support_filament(interface_filament_id) && !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
-                                                            m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipConcentric)) {
+                                                            m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) {
             wxString msg_text = _L("When using support material for the support interface, We recommend the following settings:\n"
-                                   "0 top z distance, 0 interface spacing, concentric pattern and disable independent support layer height");
+                                   "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
@@ -1548,7 +1511,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             if (dialog.ShowModal() == wxID_YES) {
                 new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipConcentric));
+                new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
@@ -2262,6 +2225,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
         optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
+        optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_angle");
@@ -2274,8 +2238,9 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance", "support");
+        optgroup->append_single_option_line("support_object_first_layer_gap", "support");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
-        optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
+        optgroup->append_single_option_line("max_bridge_length", "support#tree-support-only-options");
         optgroup->append_single_option_line("independent_support_layer_height", "support");
 
         optgroup = page->new_optgroup(L("Tree supports"), L"param_support_tree");
@@ -2289,8 +2254,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_angle_organic", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_angle_slow");
-        optgroup->append_single_option_line("tree_support_branch_diameter_double_wall");
-        optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_adaptive_layer_height");
         optgroup->append_single_option_line("tree_support_auto_brim");
         optgroup->append_single_option_line("tree_support_brim_width");
@@ -2328,6 +2291,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
         optgroup->append_single_option_line("interlocking_beam");
+        optgroup->append_single_option_line("interface_shells");
         optgroup->append_single_option_line("mmu_segmented_region_max_width");
         optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
         optgroup->append_single_option_line("interlocking_beam_width");
@@ -2361,6 +2325,9 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
         optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
+        optgroup->append_single_option_line("spiral_starting_flow_ratio", "spiral-vase#starting-flow-ratio");
+        optgroup->append_single_option_line("spiral_finishing_flow_ratio", "spiral-vase#finishing-flow-ratio");
+
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
 
         optgroup->append_single_option_line("fuzzy_skin");
@@ -2398,18 +2365,19 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         option.opt.height = 25;//250;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
-        optgroup = page->new_optgroup(L("Profile dependencies"));
+    // Orca: hide the dependencies tab for process for now. The UI is not ready yet.
+    // page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
+    //     optgroup = page->new_optgroup(L("Profile dependencies"));
 
-        create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
-            return compatible_widget_create(parent, m_compatible_printers);
-        });
+    //     create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
+    //         return compatible_widget_create(parent, m_compatible_printers);
+    //     });
     
-        option = optgroup->get_option("compatible_printers_condition");
-        option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
+    //     option = optgroup->get_option("compatible_printers_condition");
+    //     option.opt.full_width = true;
+    //     optgroup->append_single_option_line(option);
 
-        build_preset_description_line(optgroup.get());
+    //     build_preset_description_line(optgroup.get());
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -2453,7 +2421,7 @@ void TabPrint::toggle_options()
     if (auto choice = dynamic_cast<Choice*>(field)) {
         auto def = print_config_def.get("support_style");
         std::vector<int> enum_set_normal = {smsDefault, smsGrid, smsSnug };
-        std::vector<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic };
+        std::vector<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic };
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         auto &           opt             = const_cast<ConfigOptionDef &>(field->m_opt);
         auto             cb              = dynamic_cast<ComboBox *>(choice->window);
@@ -3631,13 +3599,29 @@ void TabFilament::toggle_options()
     {
         bool pa = m_config->opt_bool("enable_pressure_advance", 0);
         toggle_option("pressure_advance", pa);
-        // Orca: Enable the plates that should  be visible when multi bed support is enabled or a BBL printer is selected
-        auto support_multi_bed_types = is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
-        toggle_line("supertack_plate_temp_initial_layer", support_multi_bed_types );
-        toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
-        toggle_line("textured_cool_plate_temp_initial_layer", support_multi_bed_types);
-        toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
-        toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
+
+        //Orca: Enable the plates that should be visible when multi bed support is enabled or a BBL printer is selected; otherwise, enable only the plate visible for the selected bed type.
+        DynamicConfig& proj_cfg               = m_preset_bundle->project_config;
+        std::string    bed_temp_1st_layer_key = "";
+        if (proj_cfg.has("curr_bed_type")) 
+        {
+            bed_temp_1st_layer_key = get_bed_temp_1st_layer_key(proj_cfg.opt_enum<BedType>("curr_bed_type"));
+        }
+
+        const std::vector<std::string> bed_temp_keys = {"supertack_plate_temp_initial_layer", "cool_plate_temp_initial_layer",
+                                                        "textured_cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer",
+                                                        "textured_plate_temp_initial_layer", "hot_plate_temp_initial_layer"};
+
+        bool support_multi_bed_types = std::find(bed_temp_keys.begin(), bed_temp_keys.end(), bed_temp_1st_layer_key) ==
+                                           bed_temp_keys.end() ||
+                                       is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
+
+        for (const auto& key : bed_temp_keys) 
+        {
+            toggle_line(key, support_multi_bed_types || bed_temp_1st_layer_key == key);
+        }
+
+     
         
         // Orca: adaptive pressure advance and calibration model
         // If PA is not enabled, disable adaptive pressure advance and hide the model section

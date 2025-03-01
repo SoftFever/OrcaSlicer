@@ -110,7 +110,7 @@
     ],
     "extruder_clearance_height_to_lid": "80",
     "extruder_clearance_height_to_rod": "64",
-    "extruder_clearance_radius": "40",
+    "extruder_clearance_radius": "55",
     "z_hop": [
         "0.2"
     ],

@@ -24,5 +24,5 @@
 	"deretraction_speed": ["30"],
 	"machine_start_gcode": "M117 Demarrage\nM106 S0\nM140 S[first_layer_bed_temperature]\nM104 T0 S[first_layer_temperature]\nG28\nG90\nM82\nG92 E0\nG1 Z5 F600\nG1 X1 Y419 F6000\nM109 T0 S[first_layer_temperature]\nM300 P350\nG92 E0\nM117 Impression",
 	"before_layer_change_gcode": "G92 E0",
-	"machine_end_gcode": "M107\nM104 S0\nM140 S0\nG0 X1 Y419 F5000\nM84\nM300"
+	"machine_end_gcode": "G90\nG0 X1 Y419 F5000\nG0 X1 Y419 F5000\nM107\nG91\nT0\nG1 E-1\nM104 T0 S0\nG92 E0\nM140 S0\nM84\nM300"
 }

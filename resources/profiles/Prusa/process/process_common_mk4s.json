@@ -9,6 +9,7 @@
     "enable_overhang_speed": "1",
     "enable_prime_tower": "1",
     "enforce_support_layers": "0",
+    "exclude_object": "1",
     "filename_format": "{input_filename_base}_{nozzle_diameter[0]}n_{layer_height}mm_{filament_type[0]}_{printer_model}_{print_time}.gcode",
     "from": "system",
     "gap_infill_speed": "120",

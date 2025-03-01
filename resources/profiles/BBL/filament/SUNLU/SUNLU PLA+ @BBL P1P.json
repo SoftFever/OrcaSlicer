@@ -3,7 +3,7 @@
     "name": "SUNLU PLA+ @BBL P1P",
     "inherits": "SUNLU PLA+ @base",
     "from": "system",
-    "setting_id": "SNLS03_02",
+    "setting_id": "GFSNLS03_02",
     "instantiation": "true",
     "fan_cooling_layer_time": [
         "80"
