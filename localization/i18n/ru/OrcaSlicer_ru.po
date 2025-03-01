@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.2.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
+"POT-Creation-Date: 2025-03-01 17:37+0800\n"
 "PO-Revision-Date: 2024-09-25 22:36+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -7814,14 +7814,17 @@ msgid "Still print by object?"
 msgstr "Продолжить печать по очереди?"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"Мы добавили экспериментальный стиль «Стройный (древ. поддержка)», который "
-"отличается меньшим объёмом поддержки, а следовательно, и меньшей прочностью. "
-"Мы рекомендуем использовать его со следующими параметрами: количество "
-"связующих слоёв - 0, зазор поддержки сверху - 0, периметров - 2."
+"При использовании «материалов для поддержек» в качестве связующего \n"
+"слоя поддержки, мы рекомендуем следующие параметры:\n"
+"зазор поддержки сверху - 0,\n"
+"расстояние между связующими линиями - 0,\n"
+"шаблон связующего слоя - прямолинейный,\n"
+"отключение независимой высоты слоя поддержки."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7831,30 +7834,6 @@ msgstr ""
 "Изменить эти настройки автоматически? \n"
 "Да - Изменить эти настройки автоматически\n"
 "Нет - Не изменять эти настройки"
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"Для стилей «Крепкий (древ. поддержка)» и «Гибридный (древ. поддержка)» \n"
-"мы рекомендуем следующие параметры: \n"
-"не менее 2-х связующих слоёв, \n"
-"зазор поддержки сверху не менее 0,1 мм \n"
-"или использование «материалов для поддержек» в качестве связующего слоя."
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
-msgstr ""
-"При использовании «материалов для поддержек» в качестве связующего \n"
-"слоя поддержки, мы рекомендуем следующие параметры:\n"
-"зазор поддержки сверху - 0, \n"
-"расстояние между связующими линиями - 0, \n"
-"шаблон связующего слоя - концентрический, \n"
-"отключение независимой высоты слоя поддержки."
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -9954,6 +9933,9 @@ msgstr "Генерация G-кода"
 
 msgid "Failed processing of the filename_format template."
 msgstr "Ошибка обработки шаблона filename_format."
+
+msgid "Printer technology"
+msgstr "Технология принтера"
 
 msgid "Printable area"
 msgstr "Область печати"
@@ -12842,6 +12824,12 @@ msgstr ""
 msgid "Speed of internal sparse infill"
 msgstr "Скорость заполнения"
 
+msgid "Inherits profile"
+msgstr "Наследует профиль"
+
+msgid "Name of parent profile"
+msgstr ""
+
 msgid "Interface shells"
 msgstr "Связующие оболочки"
 
@@ -14209,12 +14197,18 @@ msgstr ""
 "спирали. Если задано в процентах, то значение вычисляться относительно "
 "диаметра сопла."
 
+msgid "Spiral starting flow ratio"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
 "0% to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
+msgstr ""
+
+msgid "Spiral finishing flow ratio"
 msgstr ""
 
 #, c-format, boost-format
@@ -14440,6 +14434,12 @@ msgstr "Зазор между моделью и поддержкой по XY"
 
 msgid "XY separation between an object and its support"
 msgstr "Зазор между моделью и поддержкой по осям XY."
+
+msgid "Support/object first layer gap"
+msgstr "Зазор между моделью и поддержкой на первом слое"
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr "Зазор между моделью и поддержкой по осям XY на первом слое."
 
 msgid "Pattern angle"
 msgstr "Угол шаблона поддержки"
@@ -14785,24 +14785,15 @@ msgstr ""
 "по всей своей длине. Небольшой угол может повысить устойчивость органической "
 "поддержки."
 
-msgid "Branch Diameter with double walls"
-msgstr "Диаметр ветвей с двойными стенками"
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-"Ветви, толщина которых больше указанного диаметра, будут напечатаны с "
-"двойными стенками для прочности. Установите 0, если двойные стенки у ветвей "
-"не нужны."
-
 msgid "Support wall loops"
 msgstr "Периметров поддержки"
 
-msgid "This setting specify the count of walls around support"
-msgstr "Этот параметр определяет количество периметров у печатаемой поддержки."
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr ""
+"Этот параметр задаёт количество периметров поддержки в диапазоне [0,2]. 0 - "
+"автоматический выбор."
 
 msgid "Tree support with infill"
 msgstr "Древовидная поддержка с заполнением"
@@ -15440,11 +15431,82 @@ msgstr "слишком большая ширина экструзии "
 msgid " not in range "
 msgstr " вне диапазона "
 
+msgid "Export 3MF"
+msgstr "Экспорт в 3MF"
+
+msgid "Export project as 3MF."
+msgstr ""
+
+msgid "Export slicing data"
+msgstr ""
+
+msgid "Export slicing data to a folder."
+msgstr ""
+
+msgid "Load slicing data"
+msgstr ""
+
+msgid "Load cached slicing data from directory"
+msgstr ""
+
+msgid "Export STL"
+msgstr "Экспорт в STL"
+
+msgid "Export the objects as single STL."
+msgstr ""
+
+msgid "Export multiple STLs"
+msgstr ""
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr ""
+
+msgid "Slice"
+msgstr "Нарезать"
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr ""
+
+msgid "Show command help."
+msgstr ""
+
+msgid "UpToDate"
+msgstr ""
+
+msgid "Update the configs values of 3mf to latest."
+msgstr ""
+
+msgid "downward machines check"
+msgstr ""
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr ""
+
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "Minimum save"
 msgstr "Минимальное сохранение"
 
 msgid "export 3mf with minimum size."
 msgstr "экспорт 3mf файла с минимальным размером."
+
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
 
 msgid "No check"
 msgstr "Без проверки"
@@ -15454,6 +15516,42 @@ msgstr ""
 "Не запускать никакие проверки валидности, такие как проверка на конфликт "
 "путей в G-коде."
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
+msgid "Output Model Info"
+msgstr "Выходная информация о модели"
+
+msgid "Output the model's information."
+msgstr ""
+
+msgid "Export Settings"
+msgstr ""
+
+msgid "Export settings to a file."
+msgstr ""
+
+msgid "Send progress to pipe"
+msgstr ""
+
+msgid "Send progress to pipe."
+msgstr ""
+
+msgid "Arrange Options"
+msgstr ""
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Ensure on bed"
 msgstr "Обеспечивать размещение на столе"
 
@@ -15462,6 +15560,19 @@ msgid ""
 msgstr ""
 "Поднимает модель над столом, когда она частично находится ниже его уровня. "
 "По умолчанию отключено."
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+"Расставьте представленные модели на столе и объединить их в одну модель, "
+"чтобы выполнить действия один раз."
+
+msgid "Convert Unit"
+msgstr ""
+
+msgid "Convert the units of model"
+msgstr ""
 
 msgid "Orient Options"
 msgstr "Параметры ориентации"
@@ -15479,6 +15590,65 @@ msgstr "Поворот вокруг оси Y"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "Угол поворота вокруг оси Y в градусах."
 
+msgid "Scale the model by a float factor"
+msgstr ""
+
+msgid "Load General Settings"
+msgstr ""
+
+msgid "Load process/machine settings from the specified file"
+msgstr ""
+
+msgid "Load Filament Settings"
+msgstr ""
+
+msgid "Load filament settings from the specified file list"
+msgstr ""
+
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
+
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+
+msgid "downward machines settings"
+msgstr ""
+
+msgid "the machine settings list need to do downward checking"
+msgstr ""
+
+msgid "Load assemble list"
+msgstr ""
+
+msgid "Load assemble object list from config file"
+msgstr ""
+
 msgid "Data directory"
 msgstr "Папка конфигурации пользователя"
 
@@ -15491,11 +15661,90 @@ msgstr ""
 "полезно для сохранения различных профилей или конфигураций из сетевого "
 "хранилища."
 
+msgid "Output directory"
+msgstr ""
+
+msgid "Output directory for the exported files."
+msgstr ""
+
+msgid "Debug level"
+msgstr ""
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+"trace\n"
+msgstr ""
+
+msgid "Enable timeplapse for print"
+msgstr ""
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr ""
+
 msgid "Load custom gcode"
 msgstr "Загрузить пользовательский G-код"
 
 msgid "Load custom gcode from json"
 msgstr "Загрузить пользовательской G-код из json"
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr ""
+
+msgid "Allow rotatations when arrange"
+msgstr ""
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr ""
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr ""
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr ""
+
+msgid "Skip modified gcodes in 3mf"
+msgstr ""
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr ""
+
+msgid "MakerLab name"
+msgstr ""
+
+msgid "MakerLab name to generate this 3mf"
+msgstr ""
+
+msgid "MakerLab version"
+msgstr ""
+
+msgid "MakerLab version to generate this 3mf"
+msgstr ""
+
+msgid "metadata name list"
+msgstr ""
+
+msgid "metadata name list added into 3mf"
+msgstr ""
+
+msgid "metadata value list"
+msgstr ""
+
+msgid "metadata value list added into 3mf"
+msgstr ""
+
+msgid "Allow 3mf with newer version to be sliced"
+msgstr ""
 
 msgid "Current z-hop"
 msgstr "Подъём оси Z"
@@ -15818,9 +16067,6 @@ msgstr "Генерация траектории заполнения"
 msgid "Detect overhangs for auto-lift"
 msgstr "Обнаружение нависаний для автоподъёма"
 
-msgid "Generating support"
-msgstr "Генерация поддержки"
-
 msgid "Checking support necessity"
 msgstr "Проверка необходимости поддержки"
 
@@ -15840,6 +16086,9 @@ msgid ""
 msgstr ""
 "Похоже, что у модели %s имеются замечания - %s. \n"
 "Переориентируйте её или включите генерацию поддержки."
+
+msgid "Generating support"
+msgstr "Генерация поддержки"
 
 msgid "Optimizing toolpath"
 msgstr "Оптимизация траектории инструмента"
@@ -15864,36 +16113,8 @@ msgstr ""
 "Коррекция горизонтальных размеров модели не может использоваться в сочетании "
 "с функцией раскрашивания."
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "Поддержка: генерация траектории инструмента на слое %d"
-
-msgid "Support: detect overhangs"
-msgstr "Поддержка: обнаружение нависаний"
-
 msgid "Support: generate contact points"
 msgstr "Поддержка: генерация точек контакта"
-
-msgid "Support: propagate branches"
-msgstr "Поддержка: построение ветвей"
-
-msgid "Support: draw polygons"
-msgstr "Поддержка: рисование полигонов"
-
-msgid "Support: generate toolpath"
-msgstr "Поддержка: генерация траектории инструмента"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "Поддержка: генерация полигонов на слое %d"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "Поддержка: ремонт отверстий на слое %d"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "Поддержка: построение ветвей на слое %d"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -17860,6 +18081,52 @@ msgstr "При попытке войти произошла какая-то ош
 msgid "User cancelled."
 msgstr "Отменено пользователем."
 
+msgid "Head diameter"
+msgstr "Диаметр уха"
+
+msgid "Max angle"
+msgstr "Макс. угол"
+
+msgid "Detection radius"
+msgstr "Радиус обнаружения"
+
+msgid "Remove selected points"
+msgstr "Удалить выбранные"
+
+msgid "Remove all"
+msgstr "Удалить всё"
+
+msgid "Auto-generate points"
+msgstr "Сгенерировать автоматически"
+
+msgid "Add a brim ear"
+msgstr "Добавить «мышиные уши»"
+
+msgid "Delete a brim ear"
+msgstr "Удалить «мышиные уши»"
+
+msgid "Adjust section view"
+msgstr "Настройка вида сечения"
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr ""
+"Предупреждение: если тип каймы не установлен на «Нарисовано», то «мышиные "
+"уши» не будут работать!"
+
+msgid "Set the brim type to \"painted\""
+msgstr "Установить тип каймы на «Нарисовано»."
+
+msgid " invalid brim ears"
+msgstr "недействительные «мышиные уши»"
+
+msgid "Brim Ears"
+msgstr "Кайма «мышиные уши»"
+
+msgid "Please select single object."
+msgstr "Пожалуйста, выберите один объект."
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -18249,6 +18516,85 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "Мы добавили экспериментальный стиль «Стройный (древ. поддержка)», который "
+#~ "отличается меньшим объёмом поддержки, а следовательно, и меньшей "
+#~ "прочностью. Мы рекомендуем использовать его со следующими параметрами: "
+#~ "количество связующих слоёв - 0, зазор поддержки сверху - 0, периметров - "
+#~ "2."
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "Для стилей «Крепкий (древ. поддержка)» и «Гибридный (древ. поддержка)» \n"
+#~ "мы рекомендуем следующие параметры: \n"
+#~ "не менее 2-х связующих слоёв, \n"
+#~ "зазор поддержки сверху не менее 0,1 мм \n"
+#~ "или использование «материалов для поддержек» в качестве связующего слоя."
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "При использовании «материалов для поддержек» в качестве связующего \n"
+#~ "слоя поддержки, мы рекомендуем следующие параметры:\n"
+#~ "зазор поддержки сверху - 0, \n"
+#~ "расстояние между связующими линиями - 0, \n"
+#~ "шаблон связующего слоя - концентрический, \n"
+#~ "отключение независимой высоты слоя поддержки."
+
+#~ msgid "Branch Diameter with double walls"
+#~ msgstr "Диаметр ветвей с двойными стенками"
+
+#~ msgid ""
+#~ "Branches with area larger than the area of a circle of this diameter will "
+#~ "be printed with double walls for stability. Set this value to zero for no "
+#~ "double walls."
+#~ msgstr ""
+#~ "Ветви, толщина которых больше указанного диаметра, будут напечатаны с "
+#~ "двойными стенками для прочности. Установите 0, если двойные стенки у "
+#~ "ветвей не нужны."
+
+#~ msgid "This setting specify the count of walls around support"
+#~ msgstr ""
+#~ "Этот параметр определяет количество периметров у печатаемой поддержки."
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "Поддержка: генерация траектории инструмента на слое %d"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "Поддержка: обнаружение нависаний"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "Поддержка: построение ветвей"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "Поддержка: рисование полигонов"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "Поддержка: генерация траектории инструмента"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "Поддержка: генерация полигонов на слое %d"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "Поддержка: ремонт отверстий на слое %d"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "Поддержка: построение ветвей на слое %d"
 
 #~ msgid "Current Cabin humidity"
 #~ msgstr "Текущая влажность внутри АСПП"
