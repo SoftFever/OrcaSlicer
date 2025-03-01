@@ -141,22 +141,22 @@ void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const Co
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_panel, 1, wxEXPAND);
 
-   auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-   Button* ok_btn = new Button(this, _L("OK"));
-   ok_btn->SetStyle("Confirm", "Choice");
-   ok_btn->SetFocus();
-   ok_btn->SetId(wxID_OK);
-   btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
-   m_button_list[wxOK] = ok_btn;
+    Button* ok_btn = new Button(this, _L("OK"));
+    ok_btn->SetStyle("Confirm", "Choice");
+    ok_btn->SetFocus();
+    ok_btn->SetId(wxID_OK);
+    btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
+    m_button_list[wxOK] = ok_btn;
 
-   Button* cancel_btn = new Button(this, _L("Cancel"));
-   cancel_btn->SetStyle("Regular", "Choice");
-   cancel_btn->SetId(wxID_CANCEL);
-   btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
-   m_button_list[wxCANCEL] = cancel_btn;
+    Button* cancel_btn = new Button(this, _L("Cancel"));
+    cancel_btn->SetStyle("Regular", "Choice");
+    cancel_btn->SetId(wxID_CANCEL);
+    btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
+    m_button_list[wxCANCEL] = cancel_btn;
 
-   main_sizer->Add(btn_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+    main_sizer->Add(btn_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
 
     wxGetApp().UpdateDlgDarkUI(this);
 

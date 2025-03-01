@@ -416,15 +416,8 @@ void EditGCodeDialog::on_dpi_changed(const wxRect&suggested_rect)
     const int& em = em_unit();
 
     //Orca: use custom buttons
-    for (auto button_item : m_button_list)
-    {
-        if (button_item.first == wxOK) {
-            button_item.second->SetType("Choice"); // Rescale Button
-        }
-        if (button_item.first == wxCANCEL) {
-            button_item.second->SetType("Choice"); // Rescale Button
-        }
-    }
+    m_button_list[wxOK]     ->SetType("Choice"); // Rescale Button
+    m_button_list[wxCANCEL] ->SetType("Choice"); // Rescale Button
 
     const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(size);
@@ -443,7 +436,6 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
 {
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     btn_sizer->AddStretchSpacer();
-
 
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));

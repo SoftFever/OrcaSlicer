@@ -892,11 +892,14 @@ Sidebar::Sidebar(Plater *parent)
     StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Pressed), // ORCA
                             std::pair<wxColour, int>(wxColour("#D4D4D4"), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Normal));
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour("#6B6B6A"), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour("#6B6B6A"), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour("#6B6B6A"), StateColor::Normal));
+    StateColor flush_br_col(std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered), // Use orca color while its hovered / focused
+                            std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Normal));
+    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Normal));
     p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
-    p->m_flushing_volume_btn->SetBorderColor(flush_bg_col);
+    p->m_flushing_volume_btn->SetBorderColor(flush_br_col);
     p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
     p->m_flushing_volume_btn->SetFocus();
     p->m_flushing_volume_btn->SetId(wxID_RESET);
