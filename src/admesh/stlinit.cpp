@@ -65,8 +65,7 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
 	unsigned char chtest[128];
   	if (! fread(chtest, sizeof(chtest), 1, fp)) {
 		BOOST_LOG_TRIVIAL(error) << "stl_open_count_facets: The input is an empty file: " << file;
-    	int ret = fclose(fp);
-		(void)ret;
+    	[[maybe_unused]] int ret = fclose(fp);
     	return nullptr;
   	}
   	stl->stats.type = ascii;
@@ -86,8 +85,7 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
     	// Test if the STL file has the right size.
         if (((file_size - header_size) % SIZEOF_STL_FACET != 0) || (file_size < STL_MIN_FILE_SIZE)) {
 			BOOST_LOG_TRIVIAL(error) << "stl_open_count_facets: The file " << file << " has the wrong size.";
-			int ret = fclose(fp);
-			(void)ret;
+			[[maybe_unused]] int ret = fclose(fp);
       		return nullptr;
     	}
         num_facets = (file_size - header_size) / SIZEOF_STL_FACET;
@@ -227,6 +225,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 #endif /* BOOST_ENDIAN_BIG_BYTE */
     	} else {
 			int ret = 0;
+			char *cret = nullptr;
 
 			// Read a single facet from an ASCII .STL file
 			// skip solid/endsolid
@@ -234,33 +233,26 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 			ret = fscanf(fp, " endsolid%*[^\n]\n");
 			ret = fscanf(fp, " solid%*[^\n]\n");  // name might contain spaces so %*s doesn't work and it also can be empty (just "solid")
 			// Leading space in the fscanf format skips all leading white spaces including numerous new lines and tabs.
-			int res_normal     = fscanf(fp, " facet normal %31s %31s %31s", normal_buf[0], normal_buf[1], normal_buf[2]);
-			(void)res_normal;
+			[[maybe_unused]] int res_normal     = fscanf(fp, " facet normal %31s %31s %31s", normal_buf[0], normal_buf[1], normal_buf[2]);
 			assert(res_normal == 3);
-			int res_outer_loop = fscanf(fp, " outer loop");
-			(void)res_outer_loop;
+			[[maybe_unused]]int res_outer_loop = fscanf(fp, " outer loop");
 			assert(res_outer_loop == 0);
-			int res_vertex1    = fscanf(fp, " vertex %f %f %f", &facet.vertex[0](0), &facet.vertex[0](1), &facet.vertex[0](2));
-			(void)res_vertex1;
+			[[maybe_unused]] int res_vertex1    = fscanf(fp, " vertex %f %f %f", &facet.vertex[0](0), &facet.vertex[0](1), &facet.vertex[0](2));
 			assert(res_vertex1 == 3);
-			int res_vertex2    = fscanf(fp, " vertex %f %f %f", &facet.vertex[1](0), &facet.vertex[1](1), &facet.vertex[1](2));
-			(void)res_vertex2;
+			[[maybe_unused]] int res_vertex2    = fscanf(fp, " vertex %f %f %f", &facet.vertex[1](0), &facet.vertex[1](1), &facet.vertex[1](2));
 			assert(res_vertex2 == 3);
 			// Trailing whitespace is there to eat all whitespaces and empty lines up to the next non-whitespace.
-			int res_vertex3    = fscanf(fp, " vertex %f %f %f ", &facet.vertex[2](0), &facet.vertex[2](1), &facet.vertex[2](2));
-			(void)res_vertex3;
+			[[maybe_unused]] int res_vertex3    = fscanf(fp, " vertex %f %f %f ", &facet.vertex[2](0), &facet.vertex[2](1), &facet.vertex[2](2));
 			assert(res_vertex3 == 3);
 			// Some G-code generators tend to produce text after "endloop" and "endfacet". Just ignore it.
 			char buf[2048];
-			fgets(buf, 2047, fp);
-			bool endloop_ok = strncmp(buf, "endloop", 7) == 0 && (buf[7] == '\r' || buf[7] == '\n' || buf[7] == ' ' || buf[7] == '\t');
-			(void)endloop_ok;
+			cret = fgets(buf, 2047, fp);
+			[[maybe_unused]] bool endloop_ok = strncmp(buf, "endloop", 7) == 0 && (buf[7] == '\r' || buf[7] == '\n' || buf[7] == ' ' || buf[7] == '\t');
 			assert(endloop_ok);
 			// Skip the trailing whitespaces and empty lines.
 			ret = fscanf(fp, " ");
-			fgets(buf, 2047, fp);
-			bool endfacet_ok = strncmp(buf, "endfacet", 8) == 0 && (buf[8] == '\r' || buf[8] == '\n' || buf[8] == ' ' || buf[8] == '\t');
-			(void)endfacet_ok;
+			cret = fgets(buf, 2047, fp);
+			[[maybe_unused]] bool endfacet_ok = strncmp(buf, "endfacet", 8) == 0 && (buf[8] == '\r' || buf[8] == '\n' || buf[8] == ' ' || buf[8] == '\t');
 			assert(endfacet_ok);
 			if (res_normal != 3 || res_outer_loop != 0 || res_vertex1 != 3 || res_vertex2 != 3 || res_vertex3 != 3 || ! endloop_ok || ! endfacet_ok) {
 				BOOST_LOG_TRIVIAL(error) << "Something is syntactically very wrong with this ASCII STL! ";
@@ -324,10 +316,8 @@ bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn, int cu
 	if (fp == nullptr)
 		return false;
 	stl_allocate(stl);
-    bool result = stl_read(stl, fp, 0, true, stlFn, custom_header_length);
-	int ret = fclose(fp);
-	(void)ret;
-	(void)result;
+	bool result = stl_read(stl, fp, 0, true, stlFn, custom_header_length);
+	[[maybe_unused]] int ret = fclose(fp);
   	return result;
 }
 
