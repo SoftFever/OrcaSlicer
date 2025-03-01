@@ -313,6 +313,7 @@ void JusPrinChatPanel::handle_switch_to_preview(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
         plater->select_view_3D("Preview", false);
+        wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
     });
 }
 
