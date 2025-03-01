@@ -3,7 +3,7 @@
     "name": "SUNLU Silk PLA+ @BBL P1P",
     "inherits": "SUNLU Silk PLA+ @base",
     "from": "system",
-    "setting_id": "SNLS05_02",
+    "setting_id": "GFSNLS05_02",
     "instantiation": "true",
     "hot_plate_temp": [
         "65"

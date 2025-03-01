@@ -3,7 +3,7 @@
     "name": "SUNLU PLA+ 2.0 @BBL A1 0.2 nozzle",
     "inherits": "SUNLU PLA+ 2.0 @base",
     "from": "system",
-    "setting_id": "SNLS04_05",
+    "setting_id": "GFSNLS04_05",
     "instantiation": "true",
     "fan_cooling_layer_time": [
         "80"
