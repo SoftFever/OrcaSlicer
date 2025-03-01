@@ -2853,6 +2853,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("run_first_layer_scan_from_gcode", coBool);
+    def->label = L("First level scan from gcode");
+    def->mode = comAdvanced;
+    def->tooltip = L("In it's default state to maintain backwards compatibility, will automatically run the first level scan. "
+                    "lHowever, this means that if you are unable to place the gcode for the 1st level scan in the layer change gcode.\n\n"
+                    "Enabling this will stop the slicer from adding M976 S1 P1 to perform the first layer scan. "
+                    "To perform the first layer scan, you will need to call M976 S1 P1 from your customised layer change gcode" );
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
 
     //BBS
     // def = this->add("spaghetti_detector", coBool);

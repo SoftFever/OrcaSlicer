@@ -1106,6 +1106,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
     ((ConfigOptionInts,                required_nozzle_HRC))
     // BBS
+    ((ConfigOptionBool,                run_first_layer_scan_from_gcode))
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionPoints,              thumbnail_size))
     // ((ConfigOptionBool,                spaghetti_detector))
