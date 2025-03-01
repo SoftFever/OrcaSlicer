@@ -737,6 +737,9 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel& logo_buffe
 			shader->stop_using();
 		}
 	}
+    // ORCA Refresh viewport after loading texture
+    m_plater->get_current_canvas3D()->set_as_dirty();
+    m_plater->get_current_canvas3D()->request_extra_frame();
 }
 
 void PartPlate::render_logo(bool bottom, bool render_cali)
