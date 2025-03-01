@@ -38,6 +38,8 @@
 #include <wx/hashmap.h>
 #include <wx/webview.h>
 
+#include "Jobs/Worker.hpp"
+
 namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
@@ -275,6 +277,7 @@ protected:
 class InputIpAddressDialog : public DPIDialog
 {
 public:
+    wxString comfirm_before_check_text;
     wxString comfirm_before_enter_text;
     wxString comfirm_after_enter_text;
     wxString comfirm_last_enter_text;
@@ -283,6 +286,7 @@ public:
 
     std::string m_ip;
     wxWindow* m_step_icon_panel3{ nullptr };
+    Label* m_tip0{ nullptr };
     Label* m_tip1{ nullptr };
     Label* m_tip2{ nullptr };
     Label* m_tip3{ nullptr };
@@ -314,9 +318,11 @@ public:
     wxTimer* closeTimer{ nullptr };
     int     closeCount{3};
     bool   m_show_access_code{ false };
+    bool   m_need_input_sn{true};
     int    m_result;
     int    current_input_index {0};
     std::shared_ptr<BBLStatusBarSend> m_status_bar;
+    std::unique_ptr<Worker> m_worker;
     boost::bimaps::bimap<std::string, std::string> m_models_map;
 
     void switch_input_panel(int index);
@@ -328,6 +334,7 @@ public:
     void check_ip_address_failed(int result);
     void on_check_ip_address_failed(wxCommandEvent& evt);
     void on_ok(wxMouseEvent& evt);
+    void on_send_retry();
     void update_test_msg_event(wxCommandEvent &evt);
     void post_update_test_msg(wxString text, bool beconnect);
     void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id, std::string name);
@@ -336,6 +343,15 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 };
 
+class SendFailedConfirm : public DPIDialog
+{
+public:
+    SendFailedConfirm(wxWindow *parent = nullptr);
+    ~SendFailedConfirm(){};
+
+    //void on_ok(wxMouseEvent &evt);
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+};
 
 wxDECLARE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);

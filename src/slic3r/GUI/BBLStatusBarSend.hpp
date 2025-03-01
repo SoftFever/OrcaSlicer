@@ -86,6 +86,9 @@ public:
 
     void disable_cancel_button();
     void enable_cancel_button();
+
+    void    cancel();
+
 private:
     bool     m_show_error_info_state = false;
     bool     m_busy = false;

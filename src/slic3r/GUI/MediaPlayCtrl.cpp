@@ -431,7 +431,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
                  tunnel == "rtsps";
     if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
-        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
+        if (wxGetApp().show_modal_ip_address_enter_dialog(false, _L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_user_triggered = true;
             if (m_last_user_play + wxTimeSpan::Minutes(5) < wxDateTime::Now()) {

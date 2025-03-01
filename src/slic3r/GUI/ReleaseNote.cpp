@@ -1482,29 +1482,33 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     SetBackgroundColour(*wxWHITE);
     m_result                       = -1;
     wxBoxSizer *m_sizer_body       = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *m_sizer_main       = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *m_sizer_main_left  = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *m_sizer_main_right = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_msg        = new wxBoxSizer(wxHORIZONTAL);
     auto        m_line_top         = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    comfirm_before_enter_text = _L("Step 1. Please confirm Orca Slicer and your printer are in the same LAN.");
-    comfirm_after_enter_text  = _L("Step 2. If the IP and Access Code below are different from the actual values on your printer, please correct them.");
-    comfirm_last_enter_text   = _L("Step 3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen.");
+    comfirm_before_check_text = _L("Try the following methods to update the connection parameters and reconnect to the printer.");
+    comfirm_before_enter_text = _L("1. Please confirm Orca Slicer and your printer are in the same LAN.");
+    comfirm_after_enter_text  = _L("2. If the IP and Access Code below are different from the actual values on your printer, please correct them.");
+    comfirm_last_enter_text   = _L("3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen.");
+
+    m_tip0 = new Label(this, ::Label::Body_13, comfirm_before_check_text, LB_AUTO_WRAP);
+    m_tip0->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip0->SetMaxSize(wxSize(FromDIP(355), -1));
+    m_tip0->Wrap(FromDIP(355));
 
     m_tip1 = new Label(this, ::Label::Body_13, comfirm_before_enter_text, LB_AUTO_WRAP);
-    m_tip1->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip1->SetMaxSize(wxSize(FromDIP(352), -1));
-    m_tip1->Wrap(FromDIP(352));
+    m_tip1->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip1->SetMaxSize(wxSize(FromDIP(355), -1));
+    m_tip1->Wrap(FromDIP(355));
 
     m_tip2 = new Label(this, ::Label::Body_13, comfirm_after_enter_text, LB_AUTO_WRAP);
-    m_tip2->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip2->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip2->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip2->SetMaxSize(wxSize(FromDIP(355), -1));
 
     m_tip3 = new Label(this, ::Label::Body_13, comfirm_last_enter_text, LB_AUTO_WRAP);
-    m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip3->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip3->SetMaxSize(wxSize(FromDIP(355), -1));
 
     ip_input_top_panel = new wxPanel(this);
     ip_input_bot_panel = new wxPanel(this);
@@ -1538,11 +1542,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_input_access_code->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
 
     m_input_tip_area->Add(m_tips_ip, 0, wxALIGN_CENTER, 0);
-    m_input_tip_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
+    m_input_tip_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_tip_area->Add(m_tips_access_code, 0, wxALIGN_CENTER, 0);
 
     m_input_area->Add(m_input_ip, 0, wxALIGN_CENTER, 0);
-    m_input_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
+    m_input_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_area->Add(m_input_access_code, 0, wxALIGN_CENTER, 0);
 
     m_input_top_sizer->Add(m_input_tip_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
@@ -1582,11 +1586,9 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     }
 
     m_input_sn_area->Add(m_tips_sn, 0, wxALIGN_CENTER, 0);
-    m_input_sn_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
     m_input_sn_area->Add(m_tips_modelID, 0, wxALIGN_CENTER, 0);
 
     m_input_modelID_area->Add(m_input_sn, 0, wxALIGN_CENTER, 0);
-    m_input_modelID_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
     m_input_modelID_area->Add(m_input_modelID, 0, wxALIGN_CENTER, 0);
 
     auto* tips_printer_name = new Label(ip_input_bot_panel, _L("Printer name"));
@@ -1596,14 +1598,14 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_input_printer_name->SetMinSize(wxSize(FromDIP(352), FromDIP(28)));
     m_input_printer_name->SetMaxSize(wxSize(FromDIP(352), FromDIP(28)));
 
-    m_input_bot_sizer->Add(tips_printer_name, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(tips_printer_name, 0, wxEXPAND, 0);
     m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_input_bot_sizer->Add(m_input_printer_name, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(m_input_printer_name, 0, wxEXPAND, 0);
     m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
 
-    m_input_bot_sizer->Add(m_input_sn_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(m_input_sn_area, 0,  wxEXPAND, 0);
     m_input_bot_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_input_bot_sizer->Add(m_input_modelID_area, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_input_bot_sizer->Add(m_input_modelID_area, 0, wxEXPAND, 0);
 
     ip_input_bot_panel->SetSizer(m_input_bot_sizer);
     ip_input_bot_panel->Layout();
@@ -1619,12 +1621,12 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_test_wrong_msg->Hide();
 
     m_tip4 = new Label(this, Label::Body_12, _L("Where to find your printer's IP and Access Code?"), LB_AUTO_WRAP);
-    m_tip4->SetMinSize(wxSize(FromDIP(352), -1));
-    m_tip4->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip4->SetMinSize(wxSize(FromDIP(355), -1));
+    m_tip4->SetMaxSize(wxSize(FromDIP(355), -1));
 
     m_trouble_shoot = new wxHyperlinkCtrl(this, wxID_ANY, "How to trouble shooting", "");
 
-    m_img_help = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_x1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(352), -1), 0);
+    m_img_help = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_x1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(355), -1), 0);
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1664,18 +1666,6 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_button_manual_setup->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_manual_setup->SetBorderColor(wxColour(0x90, 0x90, 0x90));
     m_button_manual_setup->Hide();
-
-    /*auto m_button_cancel = new Button(this, _L("Close"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-         on_cancel();
-    });*/
 
     m_sizer_button->AddStretchSpacer();
     m_sizer_button->Add(m_button_manual_setup, 0, wxALL, FromDIP(5));
@@ -1724,54 +1714,45 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_step_icon_panel2->SetMinSize(wxSize(-1, m_tip2->GetBestSize().y));
     m_step_icon_panel2->SetMaxSize(wxSize(-1, m_tip2->GetBestSize().y));
 
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     m_sizer_msg->Layout();
 
-    m_sizer_main_left->Add(m_step_icon_panel1, 0, wxEXPAND, 0);
-    m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_main_left->Add(m_step_icon_panel2, 0, wxEXPAND, 0);
-    m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_main_left->Add(m_step_icon_panel3, 0, wxEXPAND, 0);
-
-    m_sizer_main_left->Layout();
 
     m_trouble_shoot->Hide();
 
-    m_sizer_main_right->Add(m_tip1, 0, wxRIGHT | wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(20));
-    m_sizer_main_right->Add(m_tip2, 0, wxRIGHT | wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(2));
-    m_sizer_main_right->Add(m_tip3, 0, wxTOP|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(12));
-    m_sizer_main_right->Add(m_tip4, 0, wxRIGHT | wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(3));
-    m_sizer_main_right->Add(m_img_help, 0, 0, 0);
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(12));
-    m_sizer_main_right->Add(ip_input_top_panel, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(ip_input_bot_panel, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    //m_sizer_main_right->Add(m_button_ok, 0,  wxRIGHT, FromDIP(18));
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_test_right_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Add(m_test_wrong_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main->Add(m_tip0, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(6));
+    m_sizer_main->Add(m_tip1, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
+    m_sizer_main->Add(m_tip2, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(2));
+    m_sizer_main->Add(m_tip3, 0, wxTOP|wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
+    m_sizer_main->Add(m_tip4, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(3));
+    m_sizer_main->Add(m_img_help, 0, 0, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
+    m_sizer_main->Add(ip_input_top_panel, 0,wxEXPAND, 0);
+    m_sizer_main->Add(ip_input_bot_panel, 0,wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main->Add(m_test_right_msg, 0, wxEXPAND, 0);
+    m_sizer_main->Add(m_test_wrong_msg, 0, wxEXPAND, 0);
 
-    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main_right->Layout();
-
-    m_sizer_main->Add(m_sizer_main_left, 0, wxLEFT, FromDIP(18));
-    m_sizer_main->Add(m_sizer_main_right, 0, wxLEFT|wxEXPAND, FromDIP(4));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main->Add(m_status_bar->get_panel(), 0, wxEXPAND, 0);
     m_sizer_main->Layout();
 
     m_sizer_body->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_sizer_body->Add(m_sizer_main, 0, wxRIGHT, FromDIP(10));
+    m_sizer_body->Add(m_sizer_main, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_body->Add(m_sizer_msg, 0, wxLEFT|wxEXPAND, FromDIP(18));
+    m_sizer_body->Add(m_sizer_msg, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_body->Add(m_trouble_shoot, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(40));
+    m_sizer_body->Add(m_trouble_shoot, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(8));
-    m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(25));
+    m_sizer_body->Add(m_sizer_button, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(20));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
 
@@ -1789,7 +1770,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     closeTimer->SetOwner(this);
     Bind(wxEVT_TIMER, &InputIpAddressDialog::OnTimer, this);
 
-    //Bind(EVT_CHECK_IP_ADDRESS_FAILED, &InputIpAddressDialog::on_check_ip_address_failed, this);
+    Bind(EVT_CHECK_IP_ADDRESS_FAILED, &InputIpAddressDialog::on_check_ip_address_failed, this);
 
     Bind(EVT_CLOSE_IPADDRESS_DLG, [this](auto& e) {
         m_status_bar->reset();
@@ -1890,14 +1871,14 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
          if(connected){
              m_test_right_msg->Show();
              m_test_right_msg->SetLabelText(msg);
-             m_test_right_msg->SetMinSize(wxSize(FromDIP(352), -1));
-             m_test_right_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+             m_test_right_msg->SetMinSize(wxSize(FromDIP(355), -1));
+             m_test_right_msg->SetMaxSize(wxSize(FromDIP(355), -1));
          }
          else{
              m_test_wrong_msg->Show();
              m_test_wrong_msg->SetLabelText(msg);
-             m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
-             m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+             m_test_wrong_msg->SetMinSize(wxSize(FromDIP(355), -1));
+             m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(355), -1));
              if (current_input_index == 0) {
                  m_button_manual_setup->Show();
                  m_button_manual_setup->Enable();
@@ -1929,6 +1910,11 @@ bool InputIpAddressDialog::isIp(std::string ipstr)
 
 void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
 {
+    if (!m_need_input_sn) {
+        on_send_retry();
+        return;
+    }
+
     m_test_right_msg->Hide();
     m_test_wrong_msg->Hide();
     m_trouble_shoot->Hide();
@@ -1956,6 +1942,83 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     Layout();
     Fit();
     m_thread = new boost::thread(boost::bind(&InputIpAddressDialog::workerThreadFunc, this, str_ip, str_access_code, str_sn, str_model_id, str_name));
+}
+
+void InputIpAddressDialog::on_send_retry()
+{
+    m_test_right_msg->Hide();
+    m_test_wrong_msg->Hide();
+    m_img_step3->Hide();
+    m_tip4->Hide();
+    m_trouble_shoot->Hide();
+    Layout();
+    Fit();
+    wxString ip              = m_input_ip->GetTextCtrl()->GetValue();
+    wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+
+    // check support function
+    if (!m_obj) return;
+    if (!m_obj->is_support_send_to_sdcard) {
+        wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
+        auto     event     = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+        event.SetString(input_str);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+
+        auto event_close = wxCommandEvent(EVT_CLOSE_IPADDRESS_DLG);
+        event_close.SetEventObject(this);
+        wxPostEvent(this, event_close);
+        return;
+    }
+
+    m_button_ok->Enable(false);
+    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+
+    m_worker->wait_for_idle();
+
+    m_status_bar->reset();
+    m_status_bar->set_prog_block();
+    m_status_bar->set_cancel_callback_fina([this]() {
+        BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
+        m_worker->cancel_all();
+        m_worker->wait_for_idle();
+    });
+
+    auto m_send_job           = std::make_unique<SendJob>(m_obj->dev_id);
+    m_send_job->m_dev_ip      = ip.ToStdString();
+    m_send_job->m_access_code = str_access_code.ToStdString();
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
+    m_send_job->m_local_use_ssl_for_ftp  = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+#else
+    m_send_job->m_local_use_ssl_for_mqtt = m_obj->local_use_ssl_for_mqtt;
+    m_send_job->m_local_use_ssl_for_ftp  = m_obj->local_use_ssl_for_ftp;
+#endif
+
+    m_send_job->connection_type  = m_obj->connection_type();
+    m_send_job->cloud_print_only = true;
+    m_send_job->has_sdcard       = m_obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+    m_send_job->set_check_mode();
+    m_send_job->set_project_name("verify_job");
+
+    m_send_job->on_check_ip_address_fail([this](int result) {
+        this->check_ip_address_failed(result);
+    });
+
+    m_send_job->on_check_ip_address_success([this, ip, str_access_code]() {
+        wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
+        auto     event     = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+        event.SetString(input_str);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        m_result = 0;
+
+        update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
+    });
+
+     replace_job(*m_worker, std::move(m_send_job));
 }
 
 void InputIpAddressDialog::update_test_msg_event(wxCommandEvent& evt)
@@ -2082,7 +2145,13 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
         update_test_msg(_L("Connection failed, please double check IP and Access Code"), false);
     }
     else {
-        update_test_msg(_L("Connection failed! If your IP and Access Code is correct, \nplease move to step 3 for troubleshooting network issues"), false);
+        if (m_need_input_sn) {
+            update_test_msg(_L("Connection failed! If your IP and Access Code is correct, \nplease move to step 3 for troubleshooting network issues"), false);
+        }
+        else {
+            update_test_msg(_L("Connection failed! Please refer to the wiki page."), false);
+        }
+
         Layout();
         Fit();
     }
@@ -2149,5 +2218,85 @@ void InputIpAddressDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 }
 
+
+ SendFailedConfirm::SendFailedConfirm(wxWindow *parent /*= nullptr*/):
+     DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
+                  wxID_ANY,
+                  _L("sending failed"),
+                  wxDefaultPosition,
+                  wxDefaultSize,
+                  wxCAPTION | wxCLOSE_BOX)
+ {
+     SetMinSize(wxSize(FromDIP(560), -1));
+     SetMaxSize(wxSize(FromDIP(560), -1));
+
+     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+     SetBackgroundColour(*wxWHITE);
+     auto m_sizer_main    = new wxBoxSizer(wxVERTICAL);
+     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), 1));
+     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+
+
+     auto tip = new Label(this, _L("Failed to send. Click Retry to attempt sending again. If retrying does not work, please check the reason."));
+     tip->Wrap(FromDIP(480));
+     tip->SetMinSize(wxSize(FromDIP(480), -1));
+     tip->SetMaxSize(wxSize(FromDIP(480), -1));
+
+     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+
+     auto m_button_retry = new Button(this, _L("Retry"));
+     m_button_retry->SetBackgroundColor(btn_bg_green);
+     m_button_retry->SetBorderColor(*wxWHITE);
+     m_button_retry->SetTextColor(wxColour("#FFFFFE"));
+     m_button_retry->SetFont(Label::Body_12);
+     m_button_retry->SetSize(wxSize(-1, FromDIP(24)));
+     m_button_retry->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_retry->SetCornerRadius(FromDIP(12));
+
+     m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+         EndModal(wxYES);
+     });
+
+     auto m_button_input = new Button(this, _L("reconnect"));
+     m_button_input->SetBackgroundColor(btn_bg_white);
+     m_button_input->SetBorderColor(wxColour(38, 46, 48));
+     m_button_input->SetFont(Label::Body_12);
+     m_button_input->SetSize(wxSize(-1, FromDIP(24)));
+     m_button_input->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+     m_button_input->SetCornerRadius(FromDIP(12));
+
+     m_button_input->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+         EndModal(wxAPPLY);
+     });
+
+     button_sizer->Add(0, 0, 1, wxEXPAND, 5);
+     button_sizer->Add(m_button_retry, 0, wxALL, 5);
+     button_sizer->Add(m_button_input, 0, wxALL, 5);
+
+     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
+     m_sizer_main->Add(tip, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(25));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(25));
+     m_sizer_main->Add(button_sizer, 0, wxEXPAND|wxRIGHT, FromDIP(25));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
+
+     SetSizer(m_sizer_main);
+     Layout();
+     Fit();
+
+     CentreOnParent();
+     wxGetApp().UpdateDlgDarkUI(this);
+ }
+
+void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
 
  }} // namespace Slic3r::GUI

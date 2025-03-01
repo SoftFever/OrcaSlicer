@@ -5512,10 +5512,11 @@ void GUI_App::show_ip_address_enter_dialog(wxString title)
 {
     auto evt = new wxCommandEvent(EVT_SHOW_IP_DIALOG);
     evt->SetString(title);
+    evt->SetInt(-1);
     wxQueueEvent(this, evt);
 }
 
-bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
+bool GUI_App::show_modal_ip_address_enter_dialog(bool input_sn, wxString title)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return false;
@@ -5523,6 +5524,7 @@ bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
     auto obj = dev->get_selected_machine();
 
     InputIpAddressDialog dlg(nullptr);
+    dlg.m_need_input_sn = input_sn;
     dlg.set_machine_obj(obj);
     if (!title.empty()) dlg.update_title(title);
 
@@ -5553,7 +5555,8 @@ bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
 void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
 {
     wxString title = evt.GetString();
-    show_modal_ip_address_enter_dialog(title);
+    int mode = evt.GetInt();
+    show_modal_ip_address_enter_dialog(mode == -1?false:true, title);
 }
 
 //void GUI_App::add_config_menu(wxMenuBar *menu)

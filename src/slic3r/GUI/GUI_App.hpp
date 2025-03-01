@@ -521,7 +521,7 @@ public:
     void            update_internal_development();
     void            show_ip_address_enter_dialog(wxString title = wxEmptyString);
     void            show_ip_address_enter_dialog_handler(wxCommandEvent &evt);
-    bool            show_modal_ip_address_enter_dialog(wxString title = wxEmptyString);
+    bool            show_modal_ip_address_enter_dialog(bool input_sn, wxString title = wxEmptyString);
 
     // BBS
     //void            add_config_menu(wxMenuBar *menu);

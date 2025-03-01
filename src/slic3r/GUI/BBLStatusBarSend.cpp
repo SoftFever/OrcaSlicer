@@ -59,9 +59,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
     m_cancelbutton->Bind(wxEVT_BUTTON,
         [this](wxCommandEvent &evt) {
-        m_was_cancelled = true;
-        if (m_cancel_cb_fina)
-            m_cancel_cb_fina();
+        cancel();
     });
 
     m_stext_percent = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
@@ -385,6 +383,12 @@ void BBLStatusBarSend::disable_cancel_button()
 void BBLStatusBarSend::enable_cancel_button()
 {
     m_cancelbutton->Enable();
+}
+
+void BBLStatusBarSend::cancel()
+{
+    m_was_cancelled = true;
+    if (m_cancel_cb_fina) m_cancel_cb_fina();
 }
 
 }
