@@ -575,14 +575,19 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &buff
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)- PARTPLATE_ICON_GAP - PARTPLATE_TEXT_OFFSET_Y)});
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)- PARTPLATE_ICON_GAP - PARTPLATE_TEXT_OFFSET_Y) });
 #else //in the bottom
-	auto bed_ext = get_extents(m_shape);
-    Vec2d p = bed_ext[1];
-	float offset_x = one_number?PARTPLATE_TEXT_OFFSET_X1: PARTPLATE_TEXT_OFFSET_X2;
+    auto bed_ext   = get_extents(m_shape);
+    Vec2d p        = bed_ext[1];
+    float factor   = bed_ext.size()(1) / 200.0;
+    float size     = PARTPLATE_ICON_SIZE     * factor;
+    float offset_y = PARTPLATE_TEXT_OFFSET_Y * factor;
+    float offset_x = (one_number?PARTPLATE_TEXT_OFFSET_X1: PARTPLATE_TEXT_OFFSET_X2) * factor;
+    float gap_left = PARTPLATE_ICON_GAP_LEFT * factor;
+    p += Vec2d(gap_left,0);
 
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y) });
+    poly.contour.append({ scale_(p(0) + offset_x)       , scale_(p(1) + offset_y) });
+    poly.contour.append({ scale_(p(0) + size - offset_x), scale_(p(1) + offset_y) });
+    poly.contour.append({ scale_(p(0) + size - offset_x), scale_(p(1) + size - offset_y) });
+    poly.contour.append({ scale_(p(0) + offset_x)       , scale_(p(1) + size - offset_y) });
 #endif
     if (!init_model_from_poly(buffer, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
@@ -591,35 +596,27 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &buff
 void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, PickingModel &model) {
     model.reset();
 
-	auto    bed_ext = get_extents(m_shape);
-	auto    factor  = bed_ext.size()(1) / 200.0;
-	wxCoord w, h;
-	h = int(factor * 16);
-	ExPolygon poly;
-	Vec2d     p        = bed_ext[3];
-	float     offset_x = 1;
-	h = PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
-    p += Vec2d(0, PARTPLATE_TEXT_OFFSET_Y + h);
-	if (texture && texture->get_width() > 0 && texture->get_height()) {
-		w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
+    ExPolygon poly;
+    auto  bed_ext  = get_extents(m_shape);
+    Vec2d p        = bed_ext[3];
+    auto  factor   = bed_ext.size()(1) / 200.0;
+    float width    = 0.f;
+    float height   = PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * factor;
+    float offset_x = 1 * factor;
+    float offset_y = PARTPLATE_TEXT_OFFSET_Y * factor;
 
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
+    if (texture && texture->get_width() > 0 && texture->get_height())
+        width = int(factor * (texture->get_original_width() * 16) / texture->get_height());
 
-		if (!init_model_from_poly(model.model, poly, GROUND_Z))
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
-	} else {
+    p += Vec2d(width + offset_x, offset_y + height);
 
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
-		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+    poly.contour.append({ scale_(p(0))         , scale_(p(1) - height) });
+    poly.contour.append({ scale_(p(0) + height), scale_(p(1) - height) });
+    poly.contour.append({ scale_(p(0) + height), scale_(p(1)) });
+    poly.contour.append({ scale_(p(0))         , scale_(p(1)) });
 
-		if (!init_model_from_poly(model.model, poly, GROUND_Z))
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
-    }
+    if (!init_model_from_poly(model.model, poly, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 
     init_raycaster_from_model(model);
 }
@@ -628,17 +625,23 @@ void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
 {
     model.reset();
 
-	ExPolygon poly;
-	auto bed_ext = get_extents(m_shape);
-    Vec2d p = bed_ext[2];
-    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
-        p[1] -= std::max(
-            0.0, (bed_ext.size()(1) - 5 * PARTPLATE_ICON_SIZE - 4 * PARTPLATE_ICON_GAP_Y - PARTPLATE_ICON_GAP_TOP) / 2);
+    ExPolygon poly;
+    auto  bed_ext  = get_extents(m_shape);
+    Vec2d p        = bed_ext[2];
+    auto  factor   = bed_ext.size()(1) / 200.0;
+    float size     = PARTPLATE_ICON_SIZE     * factor;
+    float gap_left = PARTPLATE_ICON_GAP_LEFT * factor;
+    float gap_y    = PARTPLATE_ICON_GAP_Y    * factor;
+    float gap_top  = PARTPLATE_ICON_GAP_TOP  * factor;
+    p += Vec2d(gap_left,-1 * (index * (size + gap_y) + gap_top));
 
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP)});
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
+    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
+        p[1] -= std::max(0.0, (bed_ext.size()(1) - 5 * size - 4 * gap_y - gap_top) / 2);
+
+    poly.contour.append({ scale_(p(0))       , scale_(p(1) - size) });
+    poly.contour.append({ scale_(p(0) + size), scale_(p(1) - size) });
+    poly.contour.append({ scale_(p(0) + size), scale_(p(1)) });
+    poly.contour.append({ scale_(p(0))       , scale_(p(1)) });
 
 	if (!init_model_from_poly(model.model, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
@@ -1905,14 +1908,15 @@ void PartPlate::generate_plate_name_texture()
     auto bed_ext = get_extents(m_shape);
     auto factor = bed_ext.size()(1) / 200.0;
 	ExPolygon poly;
-	float offset_x = 1;
+	float offset_x = 1 * factor;
+    float offset_y = PARTPLATE_TEXT_OFFSET_Y * factor;
     w = int(factor * (m_name_texture.get_width() * 16) / m_name_texture.get_height());
     h = int(factor * 16);
     Vec2d p = bed_ext[3] + Vec2d(0, 1 + h * m_name_texture.m_original_height / m_name_texture.get_height());
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y)});
-	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y) });
+	poly.contour.append({ scale_(p(0) + offset_x)    , scale_(p(1) - h + offset_y) });
+	poly.contour.append({ scale_(p(0) + w - offset_x), scale_(p(1) - h + offset_y) });
+	poly.contour.append({ scale_(p(0) + w - offset_x), scale_(p(1) - offset_y) });
+	poly.contour.append({ scale_(p(0) + offset_x)    , scale_(p(1) - offset_y) });
 
     if (!init_model_from_poly(m_plate_name_icon, poly, GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
