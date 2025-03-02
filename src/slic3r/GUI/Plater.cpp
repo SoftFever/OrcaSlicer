@@ -2293,6 +2293,7 @@ struct Plater::priv
     ProjectDirtyStateManager dirty_state;
 
     BackgroundSlicingProcess    background_process;
+    HelioBackgroundProcess   helio_background_process;
     bool suppressed_backround_processing_update { false };
 
     // TODO: A mechanism would be useful for blocking the plater interactions:
@@ -7171,12 +7172,16 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
 
 void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
 {
-    BOOST_LOG_TRIVIAL(warning) << boost::format("helio called");
+    BOOST_LOG_TRIVIAL(debug) << boost::format("helio process called");
     on_action_slice_plate(a);
-    HelioBackgroundProcess helio_background_process = HelioBackgroundProcess(notification_manager);
+    std::string            helio_api_key            = wxGetApp().app_config->get("helio_api_key");
+
+    helio_background_process.set_helio_api_key(helio_api_key);
+    
     helio_background_process.helio_thread_start(background_process.m_mutex, 
         background_process.m_condition,
-        background_process.m_state);
+        background_process.m_state, 
+        notification_manager);
 }
 
 void Plater::priv::on_action_publish(wxCommandEvent &event)

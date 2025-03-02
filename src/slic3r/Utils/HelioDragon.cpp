@@ -11,39 +11,49 @@
 
 namespace Slic3r {
 
-HelioQuery::PresignedURLResult create_presigned_url(std::string helio_api_key)
+HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::string helio_api_url, const std::string helio_api_key)
 {
-    /* Http http = Http::post(HelioQuery::helio_api_url);
-
-    std::string query_body = R"( {
-			"query": "query PresignedURL($fileName: String!) 
-            { presignedUrl(fileName: $fileName) { mimeType url key } }",
+    HelioQuery::PresignedURLResult res;
+    std::string                    query_body = R"( {
+			"query": "query PresignedURL($fileName: String!) { presignedUrl(fileName: $fileName) { mimeType url key } }",
 			"variables": {
 				"fileName": "test.gcode"
 			}
 		} )";
 
-    http.header("Content-Type", "application/json");
-    http.header("Helio-Key", helio_api_key);
-    http.set_post_body(query_body);
-    http.on_complete([&](std::string body, unsigned status) {
-			BOOST_LOG_TRIVIAL(debug) << boost::format("%1% created file, key") % body; })
-        .on_error([&](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("%1% could not create file, error") % error;
-        })
-        .perform_sync();*/
+    auto http = Http::post(helio_api_url);
 
-        std::string                a        = "";
-    HelioQuery::PresignedURLResult ret_item = {a, a, a};
-    return ret_item;
+    http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
+
+    http.timeout_connect(20)
+        .timeout_max(20)
+        .on_complete([&res](std::string body, unsigned status) {
+            nlohmann::json parsed_obj = nlohmann::json::parse(body);
+            res.status                = status;
+            if (parsed_obj.contains("error")) {
+                res.error = parsed_obj["error"];
+            } else {
+                res.key      = parsed_obj["data"]["presignedUrl"]["key"];
+                res.mimeType = parsed_obj["data"]["presignedUrl"]["mimeType"];
+                res.url      = parsed_obj["data"]["presignedUrl"]["url"];
+            }
+        })
+        .on_error([&res](std::string body, std::string error, unsigned status) {
+            res.error  = error;
+            res.status = status;
+        })
+        .perform_sync();
+
+    return res;
 };
 
-void HelioBackgroundProcess::helio_thread_start(std::mutex&                      slicing_mutex,
-                                                std::condition_variable&         slicing_condition,
-                                                BackgroundSlicingProcess::State& slicing_state)
+void HelioBackgroundProcess::helio_thread_start(std::mutex&                                slicing_mutex,
+                                                std::condition_variable&                   slicing_condition,
+                                                BackgroundSlicingProcess::State&           slicing_state,
+                                                std::unique_ptr<GUI::NotificationManager>& notification_manager)
 {
-    m_thread = create_thread([this, &slicing_mutex, &slicing_condition, &slicing_state] {
-        this->helio_threaded_process_start(slicing_mutex, slicing_condition, slicing_state, this->m_notification_manager);
+    m_thread = create_thread([this, &slicing_mutex, &slicing_condition, &slicing_state, &notification_manager] {
+        this->helio_threaded_process_start(slicing_mutex, slicing_condition, slicing_state, notification_manager);
     });
 }
 
@@ -56,8 +66,20 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
     slicing_condition.wait(slicing_lck, [this, &slicing_state]() {
         return slicing_state == BackgroundSlicingProcess::STATE_FINISHED || slicing_state == BackgroundSlicingProcess::STATE_CANCELED;
     });
-//    HelioQuery::create_presigned_url(helio_api_key);
-    notification_manager->push_notification(GUI::format(_L("Stuff Happened")));
+
+    BOOST_LOG_TRIVIAL(debug) << boost::format("url: %1%, key: %2%") % helio_api_url % helio_api_key;
+
+    HelioQuery::PresignedURLResult res = HelioQuery::create_presigned_url(helio_api_url, helio_api_key);
+
+    if (res.error.empty()) {
+        notification_manager->push_notification(
+            (boost::format("mimeType: %1%\n, key: %2%\n, url:%3%") % res.mimeType % res.key % res.url).str());
+    } else {
+        notification_manager->push_notification((boost::format("error: %1%") % res.error).str());
+    }
+
     slicing_lck.unlock();
 }
+
+void HelioBackgroundProcess::set_helio_api_key(std::string api_key) { helio_api_key = api_key; }
 } // namespace Slic3r

@@ -423,6 +423,7 @@ std::string Http::priv::body_size_error()
 
 void Http::priv::http_perform()
 {
+
 	::curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	::curl_easy_setopt(curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 	::curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writecb);
@@ -462,6 +463,7 @@ void Http::priv::http_perform()
 		::curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields.c_str());
 		::curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, postfields.size());
 	}
+
 
 	CURLcode res = ::curl_easy_perform(curl);
 

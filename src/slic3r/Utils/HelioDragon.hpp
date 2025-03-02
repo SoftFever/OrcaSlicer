@@ -13,9 +13,9 @@
 
 #include "PrintHost.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "nlohmann/json.hpp"
 #include "../GUI/BackgroundSlicingProcess.hpp"
 #include "../GUI/NotificationManager.hpp"
-//#include "Preferences.hpp"
 
 namespace Slic3r {
 
@@ -31,6 +31,8 @@ public:
         std::string key;
         std::string mimeType;
         std::string url;
+        unsigned    status;
+        std::string error;
     };
 
     struct CreateGCodeQuery
@@ -50,12 +52,8 @@ public:
         float       objectProximityAirtemp;
     };
 
-    static PresignedURLResult create_presigned_url(std::string helio_api_key);
-
-    //static const std::string helio_api_url;
+    static PresignedURLResult create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
 };
-
-//const std::string HelioQuery::helio_api_url = "https://api2.helioadditive.com/graphql/sdk";
 
 class HelioBackgroundProcess
 {
@@ -77,38 +75,30 @@ public:
         STATE_EXITED,
     };
 
-    std::mutex                                 m_mutex;
-    std::condition_variable                    m_condition;
-    boost::thread                              m_thread;
-    State                                      m_state = STATE_INITIAL;
-    std::unique_ptr<GUI::NotificationManager>& m_notification_manager;
-    //std::string                                helio_api_key;
+    std::mutex              m_mutex;
+    std::condition_variable m_condition;
+    boost::thread           m_thread;
+    State                   m_state = STATE_INITIAL;
+    std::string             helio_api_key;
+    std::string             helio_api_url;
 
     void helio_threaded_process_start(std::mutex&                                slicing_mutex,
                                       std::condition_variable&                   slicing_condition,
                                       BackgroundSlicingProcess::State&           slicing_state,
                                       std::unique_ptr<GUI::NotificationManager>& notification_manager);
 
-    void helio_thread_start(std::mutex&                      slicing_mutex,
-                            std::condition_variable&         slicing_condition,
-                            BackgroundSlicingProcess::State& slicing_state);
+    void helio_thread_start(std::mutex&                                slicing_mutex,
+                            std::condition_variable&                   slicing_condition,
+                            BackgroundSlicingProcess::State&           slicing_state,
+                            std::unique_ptr<GUI::NotificationManager>& notification_manager);
 
-    void init_notification_manager()
+    HelioBackgroundProcess()
     {
-        if (!m_notification_manager)
-            return;
-        m_notification_manager->init();
-
-        auto cancel_callback = [this]() { return true; };
-        m_notification_manager->init_slicing_progress_notification(cancel_callback);
-        m_notification_manager->set_fff(true);
-        m_notification_manager->init_progress_indicator();
+        helio_api_url = "https://api2.helioadditive.com/graphql/sdk";
     }
 
-    HelioBackgroundProcess(std::unique_ptr<GUI::NotificationManager>& notification_manager) : m_notification_manager(notification_manager)
-    {
-        //helio_api_key = wxGetApp().app_config->get("helio_api_key");
-    }
+    void set_helio_api_key(std::string api_key);
+
 };
 } // namespace Slic3r
 
