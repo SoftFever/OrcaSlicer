@@ -74,11 +74,11 @@ PickingModel GLGizmoBase::Grabber::s_cone;
 
 GLGizmoBase::Grabber::~Grabber()
 {
-    if (s_cube.model.is_initialized())
-        s_cube.model.reset();
+    //if (s_cube.model.is_initialized())
+    //    s_cube.model.reset();
 
-    if (s_cone.model.is_initialized())
-        s_cone.model.reset();
+    //if (s_cone.model.is_initialized())
+    //    s_cone.model.reset();
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const

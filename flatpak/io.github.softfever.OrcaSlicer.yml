@@ -260,6 +260,11 @@ modules:
         url: https://github.com/glfw/glfw/archive/refs/tags/3.3.7.zip
         dest: external-packages/GLFW
         sha256: e02d956935e5b9fb4abf90e2c2e07c9a0526d7eacae8ee5353484c69a2a76cd0
+      # libnoise
+      - type: file
+        url: https://github.com/SoftFever/Orca-deps-libnoise/archive/refs/tags/1.0.zip
+        dest: external-packages/libnoise
+        sha256: 96ffd6cc47898dd8147aab53d7d1b1911b507d9dbaecd5613ca2649468afd8b6
 
   - name: OrcaSlicer 
     buildsystem: simple

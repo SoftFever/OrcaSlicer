@@ -3,7 +3,7 @@
     "name": "SUNLU Silk PLA+ @BBL X1C",
     "inherits": "SUNLU Silk PLA+ @base",
     "from": "system",
-    "setting_id": "SNLS05",
+    "setting_id": "GFSNLS05",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

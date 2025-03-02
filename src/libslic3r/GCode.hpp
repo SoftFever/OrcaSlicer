@@ -515,6 +515,7 @@ private:
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
     // Orca
     bool m_is_overhang_fan_on;
+    bool m_is_internal_bridge_fan_on; // ORCA: Add support for separate internal bridge fan speed control
     bool m_is_supp_interface_fan_on;
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.

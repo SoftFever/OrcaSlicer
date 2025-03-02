@@ -1202,14 +1202,23 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
             || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double top_cd = object.config().support_top_z_distance;
-            double bottom_cd = object.config().support_bottom_z_distance;
-
+            double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
+            //if (!object.print()->config().independent_support_layer_height)
+            { // the actual support gap may be larger than the configured one due to rounding to layer height for organic support, regardless of independent support layer height
+                top_cd    = std::ceil(top_cd / object.config().layer_height) * object.config().layer_height;
+                bottom_cd = std::ceil(bottom_cd / object.config().layer_height) * object.config().layer_height;
+            }
             double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
             // raft contact distance should not trigger any warning
-            if(last_extrusion_layer && last_extrusion_layer->support_layer)
+            if (last_extrusion_layer && last_extrusion_layer->support_layer) {
+                double raft_gap = object.config().raft_contact_distance.value;
+                //if (!object.print()->config().independent_support_layer_height)
+                {
+                    raft_gap = std::ceil(raft_gap / object.config().layer_height) * object.config().layer_height;
+                }
                 extra_gap = std::max(extra_gap, object.config().raft_contact_distance.value);
-
+            }
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
                 + std::max(0., extra_gap);
@@ -1829,6 +1838,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_max_layer_z  = 0.f;
     m_last_width = 0.f;
     m_is_overhang_fan_on = false;
+    m_is_internal_bridge_fan_on = false;
     m_is_supp_interface_fan_on = false;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_last_mm3_per_mm = 0.;
@@ -2897,6 +2907,12 @@ void GCode::process_layers(
                 return in.gcode;
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
+    const auto pa_processor_filter = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [&pa_processor = *this->m_pa_processor](std::string in) -> std::string {
+            return pa_processor.process_layer(std::move(in));
+        }
+    );
+    
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
         [&output_stream](std::string s) { output_stream.write(s); }
     );
@@ -2925,9 +2941,9 @@ void GCode::process_layers(
     else if (m_spiral_vase)
     	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
     else if	(m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & output);
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & pa_processor_filter & output);
     else
-    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & pa_processor_filter & output);
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
@@ -5311,11 +5327,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 ref_speed = std::min(ref_speed, m_config.scarf_joint_speed.get_abs_value(ref_speed));
             }
             
-            ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
+            ConfigOptionPercents         overhang_overlap_levels({90, 75, 50, 25, 13, 0});
 
             if (m_config.slowdown_for_curled_perimeters){
                 ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
-                    {(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
+                    {FloatOrPercent{100, true},
+                     (m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
                      (m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
@@ -5324,9 +5341,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                      (m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
-                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                         FloatOrPercent{100, true} :
-                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
                      (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
@@ -5338,7 +5352,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                                                               ref_speed, speed, m_config.slowdown_for_curled_perimeters);
         	}else{
                 ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
-                    {(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
+                                                                     {FloatOrPercent{100, true},
+                     (m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
                      (m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
@@ -5347,10 +5362,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                      (m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
                          FloatOrPercent{100, true} :
                          FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
-                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                         FloatOrPercent{100, true} :
-                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
-                     FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true},
+                      (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
+                            FloatOrPercent{100, true} :
+                            FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
                      FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true}});
 
                 new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
@@ -5491,7 +5505,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //    { "75%", Overhang_threshold_4_4 },
     //    { "95%", Overhang_threshold_bridge }
     auto check_overhang_fan = [&overhang_fan_threshold](float overlap, ExtrusionRole role) {
-      if (is_bridge(role)) {
+      if (role == erBridgeInfill || role == erOverhangPerimeter) { // ORCA: Split out bridge infill to internal and external to apply separate fan settings
         return true;
       }
       switch (overhang_fan_threshold) {
@@ -5584,7 +5598,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
                     : overhang_fan_threshold - 1;
                     if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
-                        (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
+                        (path.get_overhang_degree() > overhang_threshold ||
+                         (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter))) { // ORCA: Add support for separate internal bridge fan speed control
                         if (!m_is_overhang_fan_on) {
                             gcode += ";_OVERHANG_FAN_START\n";
                             m_is_overhang_fan_on = true;
@@ -5593,6 +5608,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         if (m_is_overhang_fan_on) {
                             m_is_overhang_fan_on = false;
                             gcode += ";_OVERHANG_FAN_END\n";
+                        }
+                    }
+                    if (path.role() == erInternalBridgeInfill) { // ORCA: Add support for separate internal bridge fan speed control
+                        if (!m_is_internal_bridge_fan_on) {
+                            gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
+                            m_is_internal_bridge_fan_on = true;
+                        }
+                    } else {
+                        if (m_is_internal_bridge_fan_on) {
+                            m_is_internal_bridge_fan_on = false;
+                            gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
                         }
                     }
                 }
@@ -5729,6 +5755,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         bool cur_fan_enabled = false;
         if( m_enable_cooling_markers && enable_overhang_bridge_fan)
             pre_fan_enabled = check_overhang_fan(new_points[0].overlap, path.role());
+        
+        if(path.role() == erInternalBridgeInfill) // ORCA: Add support for separate internal bridge fan speed control
+            pre_fan_enabled = true;
 
         double path_length = 0.;
         for (size_t i = 1; i < new_points.size(); i++) {
@@ -5752,6 +5781,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     }
                     pre_fan_enabled = cur_fan_enabled;
                 }
+                // ORCA: Add support for separate internal bridge fan speed control
+                if (path.role() == erInternalBridgeInfill) {
+                    if (!m_is_internal_bridge_fan_on) {
+                        gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
+                        m_is_internal_bridge_fan_on = true;
+                    }
+                } else {
+                    if (m_is_internal_bridge_fan_on) {
+                        gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
+                        m_is_internal_bridge_fan_on = false;
+                    }
+                }
+                
                 if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
                     if (!m_is_supp_interface_fan_on) {
                         gcode += ";_SUPP_INTERFACE_FAN_START\n";
