@@ -128,7 +128,7 @@ void JusPrinPresetConfigUtils::ApplyConfig(const nlohmann::json& item) {
         preset_type = Preset::Type::TYPE_FILAMENT;
     } else {
         std::string error_message = "ApplyConfig: invalid type parameter: " + type;
-        wxGetApp().sidebar().jusprin_chat_panel()->SendNativeErrorOccurredEvent(error_message);
+        wxGetApp().plater()->jusprinChatPanel()->SendNativeErrorOccurredEvent(error_message);
         BOOST_LOG_TRIVIAL(error) << error_message;
         return;
     }
@@ -145,7 +145,7 @@ void JusPrinPresetConfigUtils::ApplyConfig(const nlohmann::json& item) {
             config->set_deserialize(item.value("key", ""), value_str, context);
         } catch (const std::exception& e) {
             std::string error_message = "ApplyConfig: '" + item.value("key", "") + ":" + item["value"].dump() + "' failed: " + e.what();
-            wxGetApp().sidebar().jusprin_chat_panel()->SendNativeErrorOccurredEvent(error_message);
+            wxGetApp().plater()->jusprinChatPanel()->SendNativeErrorOccurredEvent(error_message);
             BOOST_LOG_TRIVIAL(error) << error_message;
             return;
         }

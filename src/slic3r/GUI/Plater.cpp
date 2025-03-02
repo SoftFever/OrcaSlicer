@@ -375,10 +375,6 @@ struct Sidebar::priv
     Search::OptionsSearcher     searcher;
     std::string ams_list_device;
 
-    JusPrinChatPanel* jusprin_chat_panel = nullptr;
-    wxBoxSizer* config_sizer = nullptr;
-    wxBoxSizer* size_top = nullptr;
-
     priv(Plater *plater) : plater(plater) {}
     ~priv();
 
@@ -1142,18 +1138,9 @@ Sidebar::Sidebar(Plater *parent)
     p->object_layers->Hide();
     p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, 0);
 
-    // byzzh
-    p->config_sizer = new wxBoxSizer(wxVERTICAL);
-    p->config_sizer->Add(p->scrolled, 1, wxEXPAND);
-
-    p->size_top = new wxBoxSizer(wxVERTICAL);
-    p->size_top->Add(p->config_sizer, 1, wxEXPAND);
-
-    p->jusprin_chat_panel = new JusPrinChatPanel(this);
-    p->size_top->Add(p->jusprin_chat_panel, 1, wxEXPAND);
-
-    SetSizer(p->size_top);
-    Layout();
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(p->scrolled, 1, wxEXPAND);
+    SetSizer(sizer);
 }
 
 Sidebar::~Sidebar() {}
@@ -1936,11 +1923,6 @@ wxPanel* Sidebar::filament_panel()
     return p->m_panel_filament_content;
 }
 
-JusPrinChatPanel* Sidebar::jusprin_chat_panel()
-{
-    return p->jusprin_chat_panel;
-}
-
 ConfigOptionsGroup* Sidebar::og_freq_chng_params(const bool is_fff)
 {
     // BBS
@@ -2037,14 +2019,9 @@ void Sidebar::update_ui_from_settings()
     p->plater->canvas3D()->update_gizmos_on_off_state();
     p->plater->set_current_canvas_as_dirty();
     p->plater->get_current_canvas3D()->request_extra_frame();
-
-    p->size_top->Hide(p->jusprin_chat_panel, true);
-    p->size_top->Show(p->config_sizer, true);
-
 #if 0
     p->object_list->apply_volumes_order();
 #endif
-    Layout();
 }
 
 bool Sidebar::show_object_list(bool show) const
@@ -3494,7 +3471,6 @@ void Plater::priv::enable_sidebar(bool enabled)
     update_sidebar();
 }
 
-
 void Plater::priv::collapse_sidebar(bool collapse)
 {
     if (q->m_only_gcode)
@@ -3519,6 +3495,7 @@ void Plater::priv::update_sidebar(bool force_update) {
         return;
     }
     bool  needs_update = force_update;
+
     if (!sidebar_layout.is_enabled) {
         if (sidebar.IsShown()) {
             sidebar.Hide();
@@ -8887,6 +8864,8 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 bool Plater::Show(bool show)
 {
+    if (wxGetApp().mainframe)
+        wxGetApp().mainframe->show_option(show);
     return wxPanel::Show(show);
 }
 
@@ -14743,6 +14722,7 @@ void Plater::update_title_dirty_status()
 {
     p->update_title_dirty_status();
 }
+
 
 wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();             }
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
