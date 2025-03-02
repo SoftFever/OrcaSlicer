@@ -348,7 +348,7 @@ nlohmann::json JusPrinPlateUtils::CostItemsToJson(const Slic3r::orientation::Cos
 nlohmann::json JusPrinPlateUtils::GetModelObjectFeaturesJson(const ModelObject* obj) {
     if (!obj || obj->instances.size() != 1) {
         std::string error_message = "GetModelObjectFeaturesJson: Not sure why there will be more than one instance of a model object. Skipping for now.";
-        wxGetApp().sidebar().jusprin_chat_panel()->SendNativeErrorOccurredEvent(error_message);
+        wxGetApp().plater()->jusprinChatPanel()->SendNativeErrorOccurredEvent(error_message);
         BOOST_LOG_TRIVIAL(error) << error_message;
         return nlohmann::json::object();
     }

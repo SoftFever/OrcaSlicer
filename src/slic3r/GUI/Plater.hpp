@@ -169,7 +169,6 @@ public:
     wxPanel*                scrolled_panel();
     wxPanel* print_panel();
     wxPanel* filament_panel();
-    JusPrinChatPanel* jusprin_chat_panel();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();

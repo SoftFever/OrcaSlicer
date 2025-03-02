@@ -3683,8 +3683,8 @@ void GUI_App::update_oauth_access_token() {
     if (mainframe && mainframe->m_webview) {
         mainframe->m_webview->update_oauth_access_token();
     }
-    if (sidebar().jusprin_chat_panel()) {
-        sidebar().jusprin_chat_panel()->UpdateOAuthAccessToken();
+    if (plater()->jusprinChatPanel()) {
+        plater()->jusprinChatPanel()->UpdateOAuthAccessToken();
     }
 }
 
