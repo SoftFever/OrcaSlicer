@@ -6,7 +6,7 @@
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
   "printer_model": "Kingroon KLP1",
-  "default_filament_profile": "Kingroon Generic PLA",
+  "default_filament_profile": "Generic PLA @System",
   "default_print_profile": "0.20mm Standard @Kingroon KLP1",
 
   "thumbnails": [ "100x100" ],
