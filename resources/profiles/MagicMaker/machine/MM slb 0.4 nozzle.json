@@ -62,7 +62,7 @@
         "25"
     ],
 	"default_filament_profile": [
-		"MM Generic PLA"
+		"Generic PLA @System"
 	],
     "is_custom_defined": "0",
     "machine_end_gcode": "M104 S0 ;extruder heater off\nM140 S0 ;heated bed heater off (if you have it)\nG91 ;relative positioning\nG1 E-1 F300  ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG28 X0\nG0 Y120\nG1 E-10 F9000\nM84 ;steppers off\nG90 ;absolute positioning\nPRINT_END",
