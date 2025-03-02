@@ -67,7 +67,7 @@
         "2"
     ],
     "default_filament_profile": [
-        "Generic PLA @Geeetech_FastSpeed"
+        "Generic PLA @System"
     ],    
     "change_filament_gcode": "",
     "machine_pause_gcode": "M0",

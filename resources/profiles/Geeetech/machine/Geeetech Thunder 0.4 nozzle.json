@@ -6,7 +6,7 @@
   "instantiation": "true",
   "inherits": "fdm_geeetech_common",
   "printer_model": "Geeetech Thunder",
-  "default_filament_profile": ["Generic PLA @Geeetech_FastSpeed"],
+  "default_filament_profile": ["Generic PLA @System"],
   "extruder_type": ["Bowden"],
   "nozzle_diameter": ["0.4"],
   "printer_variant": "0.4",
