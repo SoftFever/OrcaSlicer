@@ -55,6 +55,7 @@ void HelioBackgroundProcess::helio_thread_start(std::mutex&                     
     m_thread = create_thread([this, &slicing_mutex, &slicing_condition, &slicing_state, &notification_manager] {
         this->helio_threaded_process_start(slicing_mutex, slicing_condition, slicing_state, notification_manager);
     });
+
 }
 
 void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&                                slicing_mutex,
@@ -67,15 +68,17 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
         return slicing_state == BackgroundSlicingProcess::STATE_FINISHED || slicing_state == BackgroundSlicingProcess::STATE_CANCELED;
     });
 
-    BOOST_LOG_TRIVIAL(debug) << boost::format("url: %1%, key: %2%") % helio_api_url % helio_api_key;
+    if (slicing_state == BackgroundSlicingProcess::STATE_FINISHED) {
+        BOOST_LOG_TRIVIAL(debug) << boost::format("url: %1%, key: %2%") % helio_api_url % helio_api_key;
 
-    HelioQuery::PresignedURLResult res = HelioQuery::create_presigned_url(helio_api_url, helio_api_key);
+        HelioQuery::PresignedURLResult res = HelioQuery::create_presigned_url(helio_api_url, helio_api_key);
 
-    if (res.error.empty()) {
-        notification_manager->push_notification(
-            (boost::format("mimeType: %1%\n, key: %2%\n, url:%3%") % res.mimeType % res.key % res.url).str());
-    } else {
-        notification_manager->push_notification((boost::format("error: %1%") % res.error).str());
+        if (res.error.empty()) {
+            notification_manager->push_notification(
+                (boost::format("mimeType: %1%\n\n key: %2%\n\n url:%3%") % res.mimeType % res.key % res.url).str());
+        } else {
+            notification_manager->push_notification((boost::format("error: %1%") % res.error).str());
+        }
     }
 
     slicing_lck.unlock();
