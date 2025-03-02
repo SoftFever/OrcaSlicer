@@ -15918,7 +15918,7 @@ msgid "Load custom gcode from json"
 msgstr "Charger un G-code personnalisé à partir de json"
 
 msgid "Load filament ids"
-msgstr ""
+msgstr ""timelapse
 
 msgid "Load filament ids for each object"
 msgstr ""

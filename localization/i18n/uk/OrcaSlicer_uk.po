@@ -15133,7 +15133,7 @@ msgstr ""
 "Встановлює рівень реєстрації налагодження. 0: непереборний, 1: помилка, 2: "
 "попередження, 3: інформація, 4: налагодження, 5: трасування\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"
