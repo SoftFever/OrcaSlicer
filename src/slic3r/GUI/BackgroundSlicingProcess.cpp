@@ -320,7 +320,9 @@ void BackgroundSlicingProcess::thread_proc()
 		//assert(m_state == STATE_IDLE || m_state == STATE_CANCELED || m_state == STATE_FINISHED || m_state == STATE_STARTED);
 		// Wait until a new task is ready to be executed, or this thread should be finished.
 		lck.lock();
-		m_condition.wait(lck, [this](){ return m_state == STATE_STARTED || m_state == STATE_EXIT; });
+		m_condition.wait(lck, [this](){ 
+			return m_state == STATE_STARTED || m_state == STATE_EXIT; 
+			});
 		if (m_state == STATE_EXIT)
 			// Exiting this thread.
 			break;
@@ -355,7 +357,7 @@ void BackgroundSlicingProcess::thread_proc()
 		m_print->restart();
 		lck.unlock();
 		// Let the UI thread wake up if it is waiting for the background task to finish.
-		m_condition.notify_one();
+		m_condition.notify_all();
 		// Let the UI thread see the result.
 	}
 	m_state = STATE_EXITED;

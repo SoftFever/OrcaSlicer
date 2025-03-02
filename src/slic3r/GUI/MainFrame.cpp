@@ -1601,8 +1601,10 @@ wxBoxSizer* MainFrame::create_side_tools()
             m_plater->update(true, true);
             if (m_slice_select == eSliceAll)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-            else
+            else if (m_slice_select == eSlicePlate)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+            else
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE_HELIO));
 
             this->m_tabpanel->SetSelection(tpPreview);
         });
@@ -1650,6 +1652,8 @@ wxBoxSizer* MainFrame::create_side_tools()
             slice_all_btn->SetCornerRadius(0);
             SideButton* slice_plate_btn = new SideButton(p, _L("Slice plate"), "");
             slice_plate_btn->SetCornerRadius(0);
+            SideButton* slice_with_helio_btn = new SideButton(p, _L("Slice with Helio"), "");
+            slice_with_helio_btn->SetCornerRadius(0);
 
             slice_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                 m_slice_btn->SetLabel(_L("Slice all"));
@@ -1668,8 +1672,19 @@ wxBoxSizer* MainFrame::create_side_tools()
                 this->Layout();
                 p->Dismiss();
                 });
+
+            slice_with_helio_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                m_slice_btn->SetLabel(_L("Slice with Helio"));
+                m_slice_select = eSliceHelio;
+                m_slice_enable = get_enable_slice_status();
+                m_slice_btn->Enable(m_slice_enable);
+                this->Layout();
+                p->Dismiss();
+                });
+
             p->append_button(slice_all_btn);
             p->append_button(slice_plate_btn);
+            p->append_button(slice_with_helio_btn);
             p->Popup(m_slice_btn);
         }
     );

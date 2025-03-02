@@ -1,6 +1,7 @@
 #include "Plater.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r_version.h"
+#include "../Utils/HelioDragon.hpp"
 
 #include <cstddef>
 #include <algorithm>
@@ -35,6 +36,7 @@
 #include <wx/busyinfo.h>
 #include <wx/event.h>
 #include <wx/wrapsizer.h>
+
 #ifdef _WIN32
 #include <wx/richtooltip.h>
 #include <wx/custombgwin.h>
@@ -2606,7 +2608,7 @@ struct Plater::priv
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
-    void on_action_slice_helio_dragon(SimpleEvent&);
+    void on_action_slice_plate_helio(SimpleEvent&);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -3122,6 +3124,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         //BBS: set on_slice to false
         q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview", false); });
         q->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
+        q->Bind(EVT_GLTOOLBAR_SLICE_PLATE_HELIO, &priv::on_action_slice_plate_helio, this);
         q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_slice_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
         q->Bind(EVT_PRINT_FROM_SDCARD_VIEW, &priv::on_action_print_plate_from_sdcard, this);
@@ -7166,22 +7169,14 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
     }
 }
 
-void Plater::priv::on_action_slice_helio_dragon(SimpleEvent&)
+void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
 {
-    if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
-        //BBS update extruder params and speed table before slicing
-        const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-        auto& print = q->get_partplate_list().get_current_fff_print();
-        auto print_config = print.config();
-        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
-
-        Model::setExtruderParams(config, numExtruders);
-        Model::setPrintSpeedTable(config, print_config);
-        m_slice_all = false;
-        q->reslice();
-        q->select_view_3D("Preview");
-    }
+    BOOST_LOG_TRIVIAL(warning) << boost::format("helio called");
+    on_action_slice_plate(a);
+    HelioBackgroundProcess helio_background_process = HelioBackgroundProcess(notification_manager);
+    helio_background_process.helio_thread_start(background_process.m_mutex, 
+        background_process.m_condition,
+        background_process.m_state);
 }
 
 void Plater::priv::on_action_publish(wxCommandEvent &event)
