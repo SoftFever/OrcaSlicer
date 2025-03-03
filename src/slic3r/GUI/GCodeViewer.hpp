@@ -660,6 +660,7 @@ public:
             std::vector<Line> m_lines;
 
         public:
+            float m_scale = 1.0f;
             GCodeWindow() = default;
             ~GCodeWindow() { stop_mapping_file(); }
             void load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends);
