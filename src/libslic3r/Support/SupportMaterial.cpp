@@ -951,7 +951,7 @@ public:
         }
         ::fclose(file);
 
-        m_support_polygons_deserialized = simplify_polygons(m_support_polygons_deserialized, false);
+        m_support_polygons_deserialized = simplify_polygons(m_support_polygons_deserialized);
         //m_support_polygons_deserialized = to_polygons(union_ex(m_support_polygons_deserialized, false));
 
         // Create an EdgeGrid, initialize it with projection, initialize signed distance field.
