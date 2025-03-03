@@ -4,7 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_flashforge_common",
-    "gcode_flavor": "marlin",
+    "gcode_flavor": "flashforge",
     "printable_area": [
         "-110x-100",
         "110x-100",
@@ -46,7 +46,7 @@
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]",
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "scan_first_layer": "0",
-    "thumbnails": "80x60",
+    "thumbnails": "160x120",
     "use_relative_e_distances": "0",
     "z_hop_types": "Auto Lift",
     "wipe_distance": "2",

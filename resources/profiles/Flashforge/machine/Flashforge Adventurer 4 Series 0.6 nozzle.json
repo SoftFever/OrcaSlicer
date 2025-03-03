@@ -26,7 +26,5 @@
     ],
     "machine_max_speed_z": [
         "30"
-    ],
-    "manual_filament_change": "0",
-    "use_firmware_retraction": "1"
+    ]
 }
