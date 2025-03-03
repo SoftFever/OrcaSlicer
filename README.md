@@ -97,7 +97,9 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
 - Mac 64-bit  
   - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf, texinfo
       - You can install most of them by running `brew install cmake gettext libtool automake autoconf texinfo`
+      - If you haven't since upgrading Xcode, start Xcode and install macOS build support.
   - run `build_release_macos.sh`
+  - open `build_arm64/OrcaSlicer/OrcaSlicer.app`
   - To build and debug in Xcode:
       - run `Xcode.app`
       - open ``build_`arch`/OrcaSlicer.Xcodeproj``
@@ -119,7 +121,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
     - Ubuntu 
       - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
       - run 'sudo ./BuildLinux.sh -u'
-      - run './BuildLinux.sh -dsir'
+      - run './BuildLinux.sh -dsi'
 
 # Note: 
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
