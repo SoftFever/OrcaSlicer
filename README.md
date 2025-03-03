@@ -99,6 +99,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
       - You can install most of them by running `brew install cmake gettext libtool automake autoconf texinfo`
       - If you haven't since upgrading Xcode, start Xcode and install macOS build support.
   - run `build_release_macos.sh`
+  - open `build_arm64/OrcaSlicer/OrcaSlicer.app`
   - To build and debug in Xcode:
       - run `Xcode.app`
       - open ``build_`arch`/OrcaSlicer.Xcodeproj``

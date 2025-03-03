@@ -182,7 +182,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT WIN32)
     # Add DEBUG flags to debug builds.
-    add_compile_definitions($<IF:$<CONFIG:Debug>,DEBUG,NDEBUG>)
+    add_compile_definitions("$<IF:$<CONFIG:Debug>,DEBUG,NDEBUG>")
 endif()
 
 # To be able to link libslic3r with the Perl XS module.
