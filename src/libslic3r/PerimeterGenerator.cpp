@@ -2974,7 +2974,7 @@ void PerimeterGenerator::process_arachne()
         const int inner_loop_number = (config->only_one_wall_top && upper_slices != nullptr) ? loop_number - 1 : -1;
 
         // Set one perimeter when TopSurfaces is selected.
-        if (config->only_one_wall_top)
+        if (config->only_one_wall_top && loop_number > 0)
             loop_number = 0;
 
         Arachne::WallToolPathsParams input_params_tmp = input_params;
