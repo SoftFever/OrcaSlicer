@@ -4411,6 +4411,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_mode_max_xy_smoothing", coFloatOrPercent);
     def->label = L("Max XY Smoothing");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral"
                      "If expressed as a %, it will be computed over nozzle diameter");
     def->sidetext = L("mm or %");
@@ -4423,6 +4424,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_starting_flow_ratio", coFloat);
     def->label = L("Spiral starting flow ratio");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Sets the starting flow ratio while transitioning from the last bottom layer to the spiral. "
                     "Normally the spiral transition scales the flow ratio from 0% to 100% during the first loop "
                     "which can in some cases lead to under extrusion at the start of the spiral.");
@@ -4433,6 +4435,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_finishing_flow_ratio", coFloat);
     def->label = L("Spiral finishing flow ratio");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Sets the finishing flow ratio while ending the spiral. "
                     "Normally the spiral transition scales the flow ratio from 100% to 0% during the last loop "
                     "which can in some cases lead to under extrusion at the end of the spiral.");
