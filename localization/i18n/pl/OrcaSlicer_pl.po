@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
+"POT-Creation-Date: 2025-03-01 17:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -7717,14 +7717,15 @@ msgid "Still print by object?"
 msgstr "Czy nadal drukować według obiektu?"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"Dodaliśmy eksperymentalny styl \"Cienkie Drzewo\", który charakteryzuje się "
-"mniejszą objętością podpór, ale i słabszą wytrzymałością.\n"
-"Zalecamy używanie go z: 0 warstw łączących, 0 odległością od góry, 2 "
-"ścianami."
+"Przy użyciu materiału podporowego do warstw łączących podpory zalecamy "
+"następujące ustawienia:\n"
+"0 odległość w osi Z od góry , 0 odstęp warstwy łączącej, wzór koncentryczny "
+"i wyłączenie niezależnej wysokości warstwy podpory"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7734,26 +7735,6 @@ msgstr ""
 "Zmienić te ustawienia automatycznie? \n"
 "Tak - Zmień te ustawienia automatycznie\n"
 "Nie - Nie zmieniaj tych ustawień dla mnie"
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"Dla stylów \"Drzewo Grube\" i \"Drzewo Hybrydowe\" zalecamy następujące "
-"ustawienia: co najmniej 2 warstwy łączące, co najmniej 0,1 mm odległości od "
-"góry lub używanie materiałów podporowych na łączeniach."
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
-msgstr ""
-"Przy użyciu materiału podporowego do warstw łączących podpory zalecamy "
-"następujące ustawienia:\n"
-"0 odległość osu Z od góry, 0 odstęp warstwy łączącej, wzór koncentryczny i "
-"wyłączenie niezależnej wysokości warstwy podpory"
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -9810,6 +9791,9 @@ msgstr "Generowanie G-code"
 
 msgid "Failed processing of the filename_format template."
 msgstr "Niepowodzenie przetwarzania szablonu filename_format."
+
+msgid "Printer technology"
+msgstr "Technologia druku"
 
 msgid "Printable area"
 msgstr "Obszar druku"
@@ -12661,6 +12645,12 @@ msgstr ""
 msgid "Speed of internal sparse infill"
 msgstr "Prędkość wewnętrznego wypełnienia"
 
+msgid "Inherits profile"
+msgstr "Dziedziczy profil"
+
+msgid "Name of parent profile"
+msgstr ""
+
 msgid "Interface shells"
 msgstr "Powłoki łączące"
 
@@ -14017,12 +14007,18 @@ msgstr ""
 "spróbować uzyskać gładką spiralę. Jeśli wyrażone jako %, będzie obliczane "
 "względem średnicy dyszy."
 
+msgid "Spiral starting flow ratio"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
 "0% to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
+msgstr ""
+
+msgid "Spiral finishing flow ratio"
 msgstr ""
 
 #, c-format, boost-format
@@ -14233,6 +14229,12 @@ msgstr "Odległość XY miedzy podporą a obiektem"
 
 msgid "XY separation between an object and its support"
 msgstr "Odstęp materiału podporowego od modelu w osiach XY"
+
+msgid "Support/object first layer gap"
+msgstr "Odstęp między podporą a pierwszą warstwą obiektu"
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr "Odstęp XY między obiektem a jego podporą na pierwszej warstwie."
 
 msgid "Pattern angle"
 msgstr "Kąt wzoru"
@@ -14565,24 +14567,13 @@ msgstr ""
 "0 spowoduje, że gałęzie będą miały jednakową grubość na całej długości. "
 "Niewielki kąt może zwiększyć stabilność podpór organicznych."
 
-msgid "Branch Diameter with double walls"
-msgstr "Średnica gałęzi z podwójnymi ścianami"
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-"Gałęzie o powierzchni większej niż powierzchnia koła o tej średnicy będą "
-"drukowane z podwójnymi ścianami dla stabilności. Ustaw tę wartość na zero, "
-"aby nie było podwójnych ścian."
-
 msgid "Support wall loops"
 msgstr "Pętle ścian podpory"
 
-msgid "This setting specify the count of walls around support"
-msgstr "To ustawienie określa liczbę ścian wokół podpory"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr ""
 
 msgid "Tree support with infill"
 msgstr "Podpora w formie drzewa z wypełnieniem"
@@ -15202,11 +15193,84 @@ msgstr "zbyt duża szerokość linii "
 msgid " not in range "
 msgstr " nie w zakresie "
 
+msgid "Export 3MF"
+msgstr "Eksportuj 3MF"
+
+msgid "Export project as 3MF."
+msgstr "Eksportuj projekt jako 3MF."
+
+msgid "Export slicing data"
+msgstr "Eksportuj dane slicowania"
+
+msgid "Export slicing data to a folder."
+msgstr "Eksportuj dane slicowania do folderu."
+
+msgid "Load slicing data"
+msgstr "Wczytaj dane cięcia"
+
+msgid "Load cached slicing data from directory"
+msgstr "Załaduj buforowane dane slicowania z katalogu"
+
+msgid "Export STL"
+msgstr "Eksportuj STL"
+
+msgid "Export the objects as single STL."
+msgstr ""
+
+msgid "Export multiple STLs"
+msgstr ""
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr ""
+
+msgid "Slice"
+msgstr "Slice"
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr "Slice podłoża: 0-wszystkie podłoża, i-podłoże i, inne-nieważne"
+
+msgid "Show command help."
+msgstr "Pokaż pomoc komendy."
+
+msgid "UpToDate"
+msgstr "Aktualne"
+
+msgid "Update the configs values of 3mf to latest."
+msgstr "Zaktualizuj wartości konfiguracji 3mf do najnowszych."
+
+msgid "downward machines check"
+msgstr ""
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr ""
+
+msgid "Load default filaments"
+msgstr "Załaduj domyślne filamenty"
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+"Załaduj pierwszy filament jako domyślny dla tych, które nie zostały "
+"załadowane"
+
 msgid "Minimum save"
 msgstr "Minimalne zapisanie"
 
 msgid "export 3mf with minimum size."
 msgstr "eksportuj 3mf o minimalnym rozmiarze."
+
+msgid "mtcpp"
+msgstr "mtcpp"
+
+msgid "max triangle count per plate for slicing."
+msgstr "maksymalna liczba trójkątów na podłoże do slicowania."
+
+msgid "mstpp"
+msgstr "mstpp"
+
+msgid "max slicing time per plate in seconds."
+msgstr "maksymalny czas slicowania na podłoże w sekundach."
 
 msgid "No check"
 msgstr "Brak sprawdzania"
@@ -15216,6 +15280,42 @@ msgstr ""
 "Nie uruchamiaj żadnych testów poprawności, takich jak sprawdzanie konfliktów "
 "ścieżek gcode."
 
+msgid "Normative check"
+msgstr "Kontrola normatywna"
+
+msgid "Check the normative items."
+msgstr "Sprawdź elementy normatywne."
+
+msgid "Output Model Info"
+msgstr "Informacje o modelu wyjściowym"
+
+msgid "Output the model's information."
+msgstr "Wyświetl informacje o modelu."
+
+msgid "Export Settings"
+msgstr "Ustawienia eksportu"
+
+msgid "Export settings to a file."
+msgstr "Eksportuj ustawienia do pliku."
+
+msgid "Send progress to pipe"
+msgstr "Wyślij postęp do rury"
+
+msgid "Send progress to pipe."
+msgstr "Wyślij postęp do rury."
+
+msgid "Arrange Options"
+msgstr "Opcje aranżacji"
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr "Opcje aranżacji: 0-wyłącz, 1-włącz, inne-auto"
+
+msgid "Repetions count"
+msgstr "Liczba powtórzeń"
+
+msgid "Repetions count of the whole model"
+msgstr "Liczba powtórzeń całego modelu"
+
 msgid "Ensure on bed"
 msgstr "Zapewnij na łóżku"
 
@@ -15223,6 +15323,19 @@ msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr ""
 "Podnieś obiekt ponad łóżko, gdy jest częściowo poniżej. Domyślnie wyłączone"
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+"Ułóż modele na stole i połącz je w jedną grupę, aby zastosować ustawienia do "
+"wszystkich na raz."
+
+msgid "Convert Unit"
+msgstr "Konwertuj jednostkę"
+
+msgid "Convert the units of model"
+msgstr "Konwertuj jednostki modelu"
 
 msgid "Orient Options"
 msgstr "Opcje orientacji"
@@ -15239,6 +15352,69 @@ msgstr "Obróć wokół osi Y"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "Kąt obrotu wokół osi Y w stopniach."
 
+msgid "Scale the model by a float factor"
+msgstr "Skaluj model przez czynnik zmiennoprzecinkowy"
+
+msgid "Load General Settings"
+msgstr "Załaduj ustawienia ogólne"
+
+msgid "Load process/machine settings from the specified file"
+msgstr "Załaduj ustawienia procesu/maszyny z określonego pliku"
+
+msgid "Load Filament Settings"
+msgstr "Załaduj ustawienia filamentu"
+
+msgid "Load filament settings from the specified file list"
+msgstr "Załaduj ustawienia filamentu z określonej listy plików"
+
+msgid "Skip Objects"
+msgstr "Pomiń obiekty"
+
+msgid "Skip some objects in this print"
+msgstr "Pomiń niektóre obiekty w tym druku"
+
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+"załaduj aktualne ustawienia procesu/maszyny podczas korzystania z "
+"aktualizacji"
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
+"załaduj aktualne ustawienia procesu/maszyny z określonego pliku podczas "
+"korzystania z aktualizacji"
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+
+msgid "downward machines settings"
+msgstr ""
+
+msgid "the machine settings list need to do downward checking"
+msgstr ""
+
+msgid "Load assemble list"
+msgstr ""
+
+msgid "Load assemble object list from config file"
+msgstr ""
+
 msgid "Data directory"
 msgstr "Katalog danych"
 
@@ -15250,11 +15426,92 @@ msgstr ""
 "Załaduj i zapisz ustawienia w podanym katalogu. Jest to przydatne do "
 "utrzymania różnych profili lub dołączania konfiguracji z pamięci sieciowej."
 
+msgid "Output directory"
+msgstr "Katalog wyjściowy"
+
+msgid "Output directory for the exported files."
+msgstr "Katalog wyjściowy dla eksportowanych plików."
+
+msgid "Debug level"
+msgstr "Poziom debugowania"
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+"trace\n"
+msgstr ""
+"Ustawia poziom logowania debugowania. 0:fatal, 1:error, 2:warning, 3:info, 4:"
+"debug, 5:trace\n"
+
+msgid "Enable timeplapse for print"
+msgstr ""
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr ""
+
 msgid "Load custom gcode"
 msgstr "Załaduj własny gcode"
 
 msgid "Load custom gcode from json"
 msgstr "Załaduj własny gcode z json"
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr ""
+
+msgid "Allow rotatations when arrange"
+msgstr ""
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr ""
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr ""
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr ""
+
+msgid "Skip modified gcodes in 3mf"
+msgstr ""
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr ""
+
+msgid "MakerLab name"
+msgstr ""
+
+msgid "MakerLab name to generate this 3mf"
+msgstr ""
+
+msgid "MakerLab version"
+msgstr ""
+
+msgid "MakerLab version to generate this 3mf"
+msgstr ""
+
+msgid "metadata name list"
+msgstr ""
+
+msgid "metadata name list added into 3mf"
+msgstr ""
+
+msgid "metadata value list"
+msgstr ""
+
+msgid "metadata value list added into 3mf"
+msgstr ""
+
+msgid "Allow 3mf with newer version to be sliced"
+msgstr ""
 
 msgid "Current z-hop"
 msgstr "Bieżący Z-hop"
@@ -15573,9 +15830,6 @@ msgstr "Generowanie ścieżki narzędzia wypełnienia"
 msgid "Detect overhangs for auto-lift"
 msgstr "Wykrywanie nawisów do automatycznego podnoszenia"
 
-msgid "Generating support"
-msgstr "Generowanie podpór"
-
 msgid "Checking support necessity"
 msgstr "Sprawdzanie konieczności użycia podpór"
 
@@ -15595,6 +15849,9 @@ msgid ""
 msgstr ""
 "Wydaje się, że obiekt %s ma %s. Proszę ponownie ustawić obiekt lub włączyć "
 "generowanie podpór."
+
+msgid "Generating support"
+msgstr "Generowanie podpór"
 
 msgid "Optimizing toolpath"
 msgstr "Optymalizowanie ścieżki narzędzia"
@@ -15618,36 +15875,8 @@ msgstr ""
 "malowany na kolor.\n"
 "Kompensacja rozmiaru XY nie może być połączona z malowaniem kolorów."
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "Podpory: generuj ścieżkę narzędzia na warstwie %d"
-
-msgid "Support: detect overhangs"
-msgstr "Podpory: wykryj nawisy"
-
 msgid "Support: generate contact points"
 msgstr "Podpory: Tworzenie miejsc kontaktowych"
-
-msgid "Support: propagate branches"
-msgstr "Podpory: rozprzestrzeniaj gałęzie"
-
-msgid "Support: draw polygons"
-msgstr "Podpory: rysuj poligony"
-
-msgid "Support: generate toolpath"
-msgstr "Podpory: generuj ścieżkę narzędzia"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "Podpory: generuj poligony na warstwie %d"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "Podpory: napraw dziury na warstwie %d"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "Podpory: rozprzestrzeniaj gałęzie na warstwie %d"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -17610,6 +17839,50 @@ msgstr "Wystąpił problem podczas próby logowania, proszę spróbować ponowni
 msgid "User cancelled."
 msgstr "Anulowane przez użytkownika."
 
+msgid "Head diameter"
+msgstr "Średnica łącznika"
+
+msgid "Max angle"
+msgstr ""
+
+msgid "Detection radius"
+msgstr ""
+
+msgid "Remove selected points"
+msgstr "Usuń zaznaczone punkty"
+
+msgid "Remove all"
+msgstr ""
+
+msgid "Auto-generate points"
+msgstr "Generuj punkty automatycznie"
+
+msgid "Add a brim ear"
+msgstr ""
+
+msgid "Delete a brim ear"
+msgstr ""
+
+msgid "Adjust section view"
+msgstr ""
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr ""
+
+msgid "Set the brim type to \"painted\""
+msgstr ""
+
+msgid " invalid brim ears"
+msgstr ""
+
+msgid "Brim Ears"
+msgstr ""
+
+msgid "Please select single object."
+msgstr "Proszę wybrać pojedynczy obiekt."
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -17996,6 +18269,79 @@ msgstr ""
 "Czy wiesz, że podczas drukowania filamentami podatnymi na odkształcenia, "
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "Dodaliśmy eksperymentalny styl \"Cienkie Drzewo\", który charakteryzuje "
+#~ "się mniejszą objętością podpór, ale i słabszą wytrzymałością.\n"
+#~ "Zalecamy używanie go z: 0 warstw łączących, 0 odległością od góry, 2 "
+#~ "ścianami."
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "Dla stylów \"Drzewo Grube\" i \"Drzewo Hybrydowe\" zalecamy następujące "
+#~ "ustawienia: co najmniej 2 warstwy łączące, co najmniej 0,1 mm odległości "
+#~ "od góry lub używanie materiałów podporowych na łączeniach."
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Przy użyciu materiału podporowego do warstw łączących podpory zalecamy "
+#~ "następujące ustawienia:\n"
+#~ "0 odległość osu Z od góry, 0 odstęp warstwy łączącej, wzór koncentryczny "
+#~ "i wyłączenie niezależnej wysokości warstwy podpory"
+
+#~ msgid "Branch Diameter with double walls"
+#~ msgstr "Średnica gałęzi z podwójnymi ścianami"
+
+#~ msgid ""
+#~ "Branches with area larger than the area of a circle of this diameter will "
+#~ "be printed with double walls for stability. Set this value to zero for no "
+#~ "double walls."
+#~ msgstr ""
+#~ "Gałęzie o powierzchni większej niż powierzchnia koła o tej średnicy będą "
+#~ "drukowane z podwójnymi ścianami dla stabilności. Ustaw tę wartość na "
+#~ "zero, aby nie było podwójnych ścian."
+
+#~ msgid "This setting specify the count of walls around support"
+#~ msgstr "To ustawienie określa liczbę ścian wokół podpory"
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "Podpory: generuj ścieżkę narzędzia na warstwie %d"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "Podpory: wykryj nawisy"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "Podpory: rozprzestrzeniaj gałęzie"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "Podpory: rysuj poligony"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "Podpory: generuj ścieżkę narzędzia"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "Podpory: generuj poligony na warstwie %d"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "Podpory: napraw dziury na warstwie %d"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "Podpory: rozprzestrzeniaj gałęzie na warstwie %d"
 
 #~ msgid "Current Cabin humidity"
 #~ msgstr "Aktualna wilgotność w komorze"
@@ -19757,14 +20103,8 @@ msgstr ""
 #~ msgid "Model simplification has been canceled"
 #~ msgstr "Uproszczenie modelu zostało anulowane"
 
-#~ msgid "Head diameter"
-#~ msgstr "Średnica łącznika"
-
 #~ msgid "Lock supports under new islands"
 #~ msgstr "Zablokuj podpory pod nowymi wyspami"
-
-#~ msgid "Remove selected points"
-#~ msgstr "Usuń zaznaczone punkty"
 
 #~ msgid "Remove all points"
 #~ msgstr "Usuń wszystkie punkty"
@@ -19780,9 +20120,6 @@ msgstr ""
 
 #~ msgid "Support points density"
 #~ msgstr "Gęstość punktów podpór"
-
-#~ msgid "Auto-generate points"
-#~ msgstr "Generuj punkty automatycznie"
 
 #~ msgid "Manual editing"
 #~ msgstr "Edycja ręczna"
@@ -20680,158 +21017,14 @@ msgstr ""
 #~ msgid "%%"
 #~ msgstr "%%"
 
-#~ msgid "Export 3MF"
-#~ msgstr "Eksportuj 3MF"
-
-#~ msgid "Export project as 3MF."
-#~ msgstr "Eksportuj projekt jako 3MF."
-
-#~ msgid "Export slicing data"
-#~ msgstr "Eksportuj dane slicowania"
-
-#~ msgid "Export slicing data to a folder."
-#~ msgstr "Eksportuj dane slicowania do folderu."
-
-#~ msgid "Load cached slicing data from directory"
-#~ msgstr "Załaduj buforowane dane slicowania z katalogu"
-
-#~ msgid "Export STL"
-#~ msgstr "Eksportuj STL"
-
 #~ msgid "Export the objects as multiple STL."
 #~ msgstr "Eksportuj obiekty jako wiele plików STL."
-
-#~ msgid "Slice"
-#~ msgstr "Slice"
-
-#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-#~ msgstr "Slice podłoża: 0-wszystkie podłoża, i-podłoże i, inne-nieważne"
-
-#~ msgid "Show command help."
-#~ msgstr "Pokaż pomoc komendy."
-
-#~ msgid "UpToDate"
-#~ msgstr "Aktualne"
-
-#~ msgid "Update the configs values of 3mf to latest."
-#~ msgstr "Zaktualizuj wartości konfiguracji 3mf do najnowszych."
-
-#~ msgid "Load default filaments"
-#~ msgstr "Załaduj domyślne filamenty"
-
-#~ msgid "Load first filament as default for those not loaded"
-#~ msgstr ""
-#~ "Załaduj pierwszy filament jako domyślny dla tych, które nie zostały "
-#~ "załadowane"
-
-#~ msgid "mtcpp"
-#~ msgstr "mtcpp"
-
-#~ msgid "max triangle count per plate for slicing."
-#~ msgstr "maksymalna liczba trójkątów na podłoże do slicowania."
-
-#~ msgid "mstpp"
-#~ msgstr "mstpp"
-
-#~ msgid "max slicing time per plate in seconds."
-#~ msgstr "maksymalny czas slicowania na podłoże w sekundach."
-
-#~ msgid "Normative check"
-#~ msgstr "Kontrola normatywna"
-
-#~ msgid "Check the normative items."
-#~ msgstr "Sprawdź elementy normatywne."
-
-#~ msgid "Output Model Info"
-#~ msgstr "Informacje o modelu wyjściowym"
-
-#~ msgid "Output the model's information."
-#~ msgstr "Wyświetl informacje o modelu."
-
-#~ msgid "Export Settings"
-#~ msgstr "Ustawienia eksportu"
-
-#~ msgid "Export settings to a file."
-#~ msgstr "Eksportuj ustawienia do pliku."
-
-#~ msgid "Send progress to pipe"
-#~ msgstr "Wyślij postęp do rury"
-
-#~ msgid "Send progress to pipe."
-#~ msgstr "Wyślij postęp do rury."
-
-#~ msgid "Arrange Options"
-#~ msgstr "Opcje aranżacji"
-
-#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
-#~ msgstr "Opcje aranżacji: 0-wyłącz, 1-włącz, inne-auto"
-
-#~ msgid "Repetions count"
-#~ msgstr "Liczba powtórzeń"
-
-#~ msgid "Repetions count of the whole model"
-#~ msgstr "Liczba powtórzeń całego modelu"
-
-#~ msgid "Convert Unit"
-#~ msgstr "Konwertuj jednostkę"
-
-#~ msgid "Convert the units of model"
-#~ msgstr "Konwertuj jednostki modelu"
 
 #~ msgid "Rotate around X"
 #~ msgstr "Obróć wokół osi X"
 
 #~ msgid "Rotation angle around the X axis in degrees."
 #~ msgstr "Kąt obrotu wokół osi X w stopniach."
-
-#~ msgid "Scale the model by a float factor"
-#~ msgstr "Skaluj model przez czynnik zmiennoprzecinkowy"
-
-#~ msgid "Load General Settings"
-#~ msgstr "Załaduj ustawienia ogólne"
-
-#~ msgid "Load process/machine settings from the specified file"
-#~ msgstr "Załaduj ustawienia procesu/maszyny z określonego pliku"
-
-#~ msgid "Load Filament Settings"
-#~ msgstr "Załaduj ustawienia filamentu"
-
-#~ msgid "Load filament settings from the specified file list"
-#~ msgstr "Załaduj ustawienia filamentu z określonej listy plików"
-
-#~ msgid "Skip Objects"
-#~ msgstr "Pomiń obiekty"
-
-#~ msgid "Skip some objects in this print"
-#~ msgstr "Pomiń niektóre obiekty w tym druku"
-
-#~ msgid "load uptodate process/machine settings when using uptodate"
-#~ msgstr ""
-#~ "załaduj aktualne ustawienia procesu/maszyny podczas korzystania z "
-#~ "aktualizacji"
-
-#~ msgid ""
-#~ "load uptodate process/machine settings from the specified file when using "
-#~ "uptodate"
-#~ msgstr ""
-#~ "załaduj aktualne ustawienia procesu/maszyny z określonego pliku podczas "
-#~ "korzystania z aktualizacji"
-
-#~ msgid "Output directory"
-#~ msgstr "Katalog wyjściowy"
-
-#~ msgid "Output directory for the exported files."
-#~ msgstr "Katalog wyjściowy dla eksportowanych plików."
-
-#~ msgid "Debug level"
-#~ msgstr "Poziom debugowania"
-
-#~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
-#~ msgstr ""
-#~ "Ustawia poziom logowania debugowania. 0:fatal, 1:error, 2:warning, 3:"
-#~ "info, 4:debug, 5:trace\n"
 
 #~ msgid "The selected preset: %1% is not found."
 #~ msgstr "Wybrana przędło: %1% nie została znaleziona."

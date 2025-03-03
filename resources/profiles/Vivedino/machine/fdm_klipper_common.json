@@ -124,7 +124,7 @@
     "1"
   ],
   "default_filament_profile": [
-    "Troodon Generic ABS"
+    "Generic ABS @System"
   ],
   "default_print_profile": "0.20mm Standard @Troodon2",
   "bed_exclude_area": [

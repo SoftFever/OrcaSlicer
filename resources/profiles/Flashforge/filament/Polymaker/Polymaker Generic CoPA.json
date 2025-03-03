@@ -68,7 +68,7 @@
   "filament_unload_time": ["0"],
   "filament_unloading_speed": ["30"],
   "filament_unloading_speed_start": ["35"],
-  "filament_vendor": ["Generic"],
+  "filament_vendor": ["Polymaker"],
   "filament_wipe": ["nil"],
   "filament_wipe_distance": ["nil"],
   "filament_z_hop": ["nil"],

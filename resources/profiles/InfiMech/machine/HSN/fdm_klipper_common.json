@@ -16,7 +16,7 @@
   "cooling_tube_length": "5",
   "cooling_tube_retraction": "91.5",
   "default_filament_profile": [
-      "InfiMech PLA"
+      "InfiMech Generic PLA"
   ],
   "default_print_profile": "0.20mm Standard @InfiMech TX",
   "deretraction_speed": [

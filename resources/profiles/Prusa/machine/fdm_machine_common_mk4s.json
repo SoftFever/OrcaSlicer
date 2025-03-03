@@ -5,7 +5,7 @@
     "change_filament_gcode": [
         ""
     ],
-    "default_filament_profile": "Prusament PLA @PGIS",
+    "default_filament_profile": "Prusa Generic PLA @MK4S",
     "default_print_profile": "0.20mm SPEED @MK4IS 0.4",
     "deretraction_speed": "25",
     "extruder_clearance_height_to_lid": "220",
@@ -110,7 +110,6 @@
     "retraction_length": "0.7",
     "retraction_minimum_travel": "1.5",
     "retraction_speed": "35",
-    "silent_mode": "1",
     "single_extruder_multi_material": "0",
     "thumbnails": [
         "16x16/QOI",

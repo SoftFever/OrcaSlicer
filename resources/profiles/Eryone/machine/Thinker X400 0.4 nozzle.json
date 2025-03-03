@@ -6,7 +6,7 @@
     "instantiation": "true",
     "printer_model": "Thinker X400",
     "default_print_profile": "0.20mm Standard @Thinker X400",
-    "default_filament_profile":"Eryone Generic PLA;Eryone Generic ABS;Eryone Generic ASA;Eryone Generic PETG;Eryone Generic Silk PLA;Eryone Generic TPU",
+    "default_filament_profile":"Generic PLA @System;Generic ABS @System;Generic ASA @System;Generic PETG @System;Generic PLA Silk @System;Generic TPU @System",
     "auxiliary_fan": "0",
     "bed_custom_model": "",
     "bed_custom_texture": "",
