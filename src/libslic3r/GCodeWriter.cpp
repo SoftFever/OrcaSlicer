@@ -407,6 +407,36 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     return gcode.str();
 }
 
+std::string GCodeWriter::add_rotation_volume(unsigned int extruder_id, double value)
+{
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfKlipper)) {
+        std::string name = "extruder";
+        if (extruder_id > 0)
+            name += std::to_string(extruder_id);
+        gcode << add_rotation_volume(name, value);
+    }
+
+    // TODO: support other flavors
+
+    return gcode.str();
+}
+
+std::string GCodeWriter::add_rotation_volume(const std::string &name, double value)
+{ 
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfKlipper) && this->config.pellet_modded_printer.value) {
+        //https://www.klipper3d.org/it/G-Codes.html?h=set_ex#set_extruder_rotation_distance
+        gcode << "SET_EXTRUDER_ROTATION_DISTANCE";
+        gcode << " EXTRUDER=" << name;
+        gcode << " DISTANCE=" << value << "\n";
+    }
+
+    // TODO: support other flavors
+
+    return gcode.str(); 
+}
+
 std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker)
 {
     assert(F > 0.);
