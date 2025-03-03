@@ -989,7 +989,7 @@ public:
     bool is_support_aux_fan {false};
     bool is_support_chamber_fan{false};
     bool is_support_filament_backup{false};
-    bool is_support_show_filament_backup{false};
+    bool is_support_show_filament_backup{false};/*the filament is not supported shown in some previous hardware*/
     bool is_support_timelapse{false};
     bool is_support_update_remain{false};
     bool is_support_auto_leveling{false};
