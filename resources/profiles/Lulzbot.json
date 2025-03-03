@@ -12,6 +12,10 @@
         {
             "name": "Lulzbot Taz 4 or 5",
             "sub_path": "machine/Lulzbot Taz 4 or 5.json"
+        },
+        {
+            "name": "Lulzbot Taz Pro Dual",
+            "sub_path": "machine/Lulzbot Taz Pro Dual.json"
         }
     ],
     "process_list": [
