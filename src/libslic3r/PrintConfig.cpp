@@ -472,6 +472,34 @@ void PrintConfigDef::init_common_params()
     def->enum_values.push_back("SLA");
     def->set_default_value(new ConfigOptionEnum<PrinterTechnology>(ptFFF));
 
+    def = this->add("helio_printer_id", coString);
+    def->label = L("Helio Printer ID");
+    def->tooltip = L("UUID of the printer provided by Helio");
+    def->mode = comSimple;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("helio_initial_room_air_temp", coFloat);
+    def->label = L("Initial room airtemp");
+    def->tooltip = L("Specifies the starting ambient air temperature within the room or environment where the printing process begins. This parameter establishes the baseline thermal conditions for the printing operation.  ");
+    def->mode = comSimple;
+    def->sidetext = L("°C");
+    def->set_default_value(new ConfigOptionFloat(25));
+
+    def = this->add("helio_layer_threshold", coFloat);
+    def->label = L("Initial room airtemp");
+    def->tooltip = L("LFAM print height, denotes the threshold helight at which the ambient temperature stabilizes, ceasing to rise further as the printing process advances. Typically, this marks the point where the immediate vicinity of the print reaches its peak temperature, owing to the consistent emission of heat from the printing object."); 
+    def->mode = comSimple;
+    def->sidetext = L("mm");
+    def->set_default_value(new ConfigOptionFloat(10));
+
+    def = this->add("helio_object_proximity_airtemp", coFloat);
+    def->label = L("Object Proximity Airtemp");
+    def->tooltip = L("Refers to the ambient air temperature at a distance of 10 centimeters from the vertical surface of the printed object. This measurement indicates the temperature stability in the immediate vicinity of the print, signifying the point at which the air temperature ceases to change as the printing process advances."); 
+    def->mode = comSimple;
+    def->sidetext = L("°C");
+    def->set_default_value(new ConfigOptionFloat(30));
+
     def = this->add("printable_area", coPoints);
     def->label = L("Printable area");
     //BBS
@@ -2280,6 +2308,13 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
+
+    def = this->add("helio_filament_id", coString);
+    def->label = L("Helio Filament ID");
+    def->tooltip = L("UUID of the filament provided by Helio");
+    def->mode = comSimple;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("filament_settings_id", coStrings);
     def->set_default_value(new ConfigOptionStrings { "" });

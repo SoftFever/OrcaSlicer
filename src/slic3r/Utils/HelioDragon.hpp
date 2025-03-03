@@ -41,25 +41,38 @@ public:
         std::string error;
     };
 
-    struct CreateGCodeQuery
+    struct CreateGCodeResult
     {
+        unsigned    status;
+        bool        success;
         std::string name;
-        std::string materialID;
-        std::string printerID;
-        std::string gcodeKey;
+        std::string id;
+        std::string error;
     };
 
-    struct CreateSimulationQuery
+    struct CreateSimulationResult
     {
+        unsigned    status;
+        bool        success;
         std::string name;
-        std::string gcodeID;
-        float       initialRoomAirtemp;
-        float       layerThreshold;
-        float       objectProximityAirtemp;
+        std::string id;
+        std::string error;
     };
 
-    static PresignedURLResult create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
-    static UploadFileResult upload_file_to_presigned_url(const std::string file_path_string, const std::string upload_url);
+    static PresignedURLResult     create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
+    static UploadFileResult       upload_file_to_presigned_url(const std::string file_path_string, const std::string upload_url);
+    static CreateGCodeResult      create_gcode(const std::string key,
+                                               const std::string helio_api_url,
+                                               const std::string helio_api_key,
+                                               const std::string printer_id,
+                                               const std::string filament_id);
+
+    static CreateSimulationResult create_simulation(const std::string helio_api_url,
+                                                    const std::string helio_api_key,
+                                                    const std::string gcode_id,
+                                                    const float       initial_room_airtemp,
+                                                    const float       layer_threshold,
+                                                    const float       object_proximity_airtemp);
 };
 
 class HelioBackgroundProcess
@@ -88,6 +101,9 @@ public:
     State                   m_state = STATE_INITIAL;
     std::string             helio_api_key;
     std::string             helio_api_url;
+    std::string             printer_id;
+    std::string             filament_id;
+
     Slic3r::GCodeProcessorResult* m_gcode_result;
 
     void helio_threaded_process_start(std::mutex&                                slicing_mutex,
@@ -100,10 +116,7 @@ public:
                             BackgroundSlicingProcess::State&           slicing_state,
                             std::unique_ptr<GUI::NotificationManager>& notification_manager);
 
-    HelioBackgroundProcess()
-    {
-        helio_api_url = "https://api2.helioadditive.com/graphql/sdk";
-    }
+    HelioBackgroundProcess() { helio_api_url = "https://api2.helioadditive.com/graphql/sdk"; }
 
     ~HelioBackgroundProcess()
     {
@@ -113,13 +126,20 @@ public:
         }
     }
 
+    void init(std::string api_key, std::string printer_id, std::string filament_id, Slic3r::GCodeProcessorResult* gcode_result)
+    {
+        helio_api_key     = api_key;
+        this->printer_id  = printer_id;
+        this->filament_id = filament_id;
+        m_gcode_result    = gcode_result;
+    }
+
     void set_helio_api_key(std::string api_key);
     void set_gcode_result(Slic3r::GCodeProcessorResult* gcode_result);
-
+    HelioQuery::CreateSimulationResult create_simulation_step(HelioQuery::CreateGCodeResult create_gcode_res, std::unique_ptr<GUI::NotificationManager>& notification_manager);
 };
 } // namespace Slic3r
 #endif
-
 
 /*
 
@@ -146,5 +166,5 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
         reset();
     }
 }
- 
+
 */

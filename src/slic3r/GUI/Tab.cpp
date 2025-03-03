@@ -3253,7 +3253,10 @@ void TabFilament::build()
 
     auto page = add_options_page(L("Filament"), "custom-gcode_filament"); // ORCA: icon only visible on placeholders
         //BBS
-        auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
+        auto optgroup = page->new_optgroup(L("Helio Options"), L"param_information");
+		optgroup->append_single_option_line("helio_filament_id");
+
+        optgroup = page->new_optgroup(L("Basic information"), L"param_information");
         // Set size as all another fields for a better alignment
         Option option = optgroup->get_option("filament_type");
         option.opt.width = Field::def_width();
@@ -3739,7 +3742,14 @@ void TabPrinter::build_fff()
             static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 
     auto page = add_options_page(L("Basic information"), "custom-gcode_object-info"); // ORCA: icon only visible on placeholders
-    auto optgroup = page->new_optgroup(L("Printable space"), "param_printable_space");
+
+		auto optgroup = page->new_optgroup(L("Helio Options"), L"param_information");
+		optgroup->append_single_option_line("helio_printer_id");
+		optgroup->append_single_option_line("helio_initial_room_air_temp");
+		optgroup->append_single_option_line("helio_layer_threshold");
+		optgroup->append_single_option_line("helio_object_proximity_airtemp");
+
+        optgroup = page->new_optgroup(L("Printable space"), "param_printable_space");
 
         create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
            return 	create_bed_shape_widget(parent);
