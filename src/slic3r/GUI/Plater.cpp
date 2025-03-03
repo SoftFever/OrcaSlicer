@@ -7175,9 +7175,10 @@ void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
     BOOST_LOG_TRIVIAL(debug) << boost::format("helio process called");
     on_action_slice_plate(a);
     std::string            helio_api_key            = wxGetApp().app_config->get("helio_api_key");
-
+    auto        g_result      = background_process.get_current_gcode_result();
     helio_background_process.set_helio_api_key(helio_api_key);
-    
+    helio_background_process.set_gcode_result(g_result);
+
     helio_background_process.helio_thread_start(background_process.m_mutex, 
         background_process.m_condition,
         background_process.m_state, 
