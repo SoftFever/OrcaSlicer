@@ -101,7 +101,7 @@ jobs:
       shell: bash
     - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
       with:
-        bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
+        bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
         arch: ${{ matrix.variant.arch }}
@@ -109,15 +109,15 @@ jobs:
     - name: Upload artifacts Flatpak
       uses: actions/upload-artifact@v4
       with:
-        name: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
-        path: '/__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak'
+        name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
+        path: '/__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak'
     - name: Deploy Flatpak to nightly release
       if: ${{github.ref == 'refs/heads/main'}}
       uses: WebFreak001/deploy-nightly@v3.2.0
       with:
         upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
         release_id: 137995723
-        asset_path: /__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
-        asset_name: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
+        asset_path: /__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
+        asset_name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
         asset_content_type: application/octet-stream
         max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
