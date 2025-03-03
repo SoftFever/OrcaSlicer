@@ -1,0 +1,34 @@
+{
+    "type": "machine",
+    "name": "Flashforge Adventurer 4 Series 0.4 Nozzle",
+    "inherits": "fdm_adventurer4_common",
+    "setting_id": "GM001",
+    "from": "system",
+    "instantiation": "true",
+    "printer_variant": "0.4",
+    "printer_model": "Flashforge Adventurer 4 Series",
+    "default_print_profile": "0.20mm Standard @Flashforge AD4 0.4 Nozzle",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "max_layer_height": [
+        "0.20"
+    ],
+    "min_layer_height": [
+        "0.01"
+    ],
+    "retraction_length": [
+        "5"
+    ],
+    "auxiliary_fan": "0",
+    "host_type": "flashforge",
+    "is_custom_defined": "0",
+    "machine_start_gcode": "M140 S[bed_temperature_initial_layer] T0\nM104 S[nozzle_temperature_initial_layer] T0\nM104 S0 T1\nM107\nG90\nG28\nM132 X Y Z A B\nG1 Z50.000 F420\nG161 X Y F3300\nM7 T0\nM6 T0\nM651 S255",
+    "manual_filament_change": "0",
+    "print_host": "192.166.100.77",
+    "print_host_webui": "http://192.166.100.77:8080/?action=stream",
+    "version": "2.2.0.4",
+    "wipe": [
+        "0"
+    ]
+}
