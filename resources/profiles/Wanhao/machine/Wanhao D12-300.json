@@ -8,5 +8,5 @@
     "bed_model": "",
     "bed_texture": "Wanhao D12-300_buildplate_texture.png",
     "hotend_model": "Wanaho D12-300_hotend.stl",
-    "default_materials": "Wanhao Generic PLA;Wanhao Generic PETG;Wanhao Generic TPU;"
+    "default_materials": "Generic PLA @System;Generic PETG @System;Generic TPU @System;"
 }
