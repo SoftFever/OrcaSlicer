@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
+"POT-Creation-Date: 2025-03-01 17:37+0800\n"
 "PO-Revision-Date: 2025-02-20 01:24+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
@@ -7657,13 +7657,15 @@ msgid "Still print by object?"
 msgstr "Hala nesneye göre yazdırıyor musunuz?"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"Daha küçük destek hacmine ancak daha zayıf güce sahip deneysel bir tarz olan "
-"\"Tree Slim\" ekledik.\n"
-"Şunlarla kullanmanızı öneririz: 0 arayüz katmanı, 0 üst mesafe, 2 duvar."
+"Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları "
+"öneririz:\n"
+"0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız "
+"destek katmanı yüksekliğini devre dışı bırakma"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7673,26 +7675,6 @@ msgstr ""
 "Bu ayarlar otomatik olarak değiştirilsin mi?\n"
 "Evet - Bu ayarları otomatik olarak değiştir\n"
 "Hayır - Bu ayarları benim için değiştirme"
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"\"Güçlü Ağaç\" ve \"Ağaç Hibrit\" stilleri için şu ayarları öneriyoruz: en "
-"az 2 arayüz katmanı, en az 0,1 mm üst z mesafesi veya arayüzde destek "
-"malzemeleri kullanılması."
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
-msgstr ""
-"Destek arayüzü için destek materyali kullanırken aşağıdaki ayarları "
-"öneriyoruz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, eş merkezli desen ve bağımsız destek "
-"katmanı yüksekliğini devre dışı bırakma"
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -9737,6 +9719,9 @@ msgstr "G kodu oluşturuluyor"
 
 msgid "Failed processing of the filename_format template."
 msgstr "Dosyaadı_format şablonunun işlenmesi başarısız oldu."
+
+msgid "Printer technology"
+msgstr "Yazıcı teknolojisi"
 
 msgid "Printable area"
 msgstr "Yazdırılabilir alan"
@@ -12664,6 +12649,12 @@ msgstr ""
 msgid "Speed of internal sparse infill"
 msgstr "İç seyrek dolgunun hızı"
 
+msgid "Inherits profile"
+msgstr "Miras profil"
+
+msgid "Name of parent profile"
+msgstr ""
+
 msgid "Interface shells"
 msgstr "Arayüz kabukları"
 
@@ -14012,6 +14003,9 @@ msgstr ""
 "Düzgün bir spiral elde etmek için XY'deki noktaları hareket ettirmek için "
 "maksimum mesafe % olarak ifade edilirse nozül çapı üzerinden hesaplanacaktır."
 
+msgid "Spiral starting flow ratio"
+msgstr ""
+
 #, fuzzy, c-format, boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
@@ -14023,6 +14017,9 @@ msgstr ""
 "Normalde spiral geçiş, ilk döngü sırasında akış oranını %0 dan %100 e "
 "ölçeklendirir; bu da bazı durumlarda spiralin başlangıcında yetersiz "
 "ekstrüzyona yol açabilir."
+
+msgid "Spiral finishing flow ratio"
+msgstr ""
 
 #, fuzzy, c-format, boost-format
 msgid ""
@@ -14235,6 +14232,12 @@ msgstr "Destek/nesne xy mesafesi"
 
 msgid "XY separation between an object and its support"
 msgstr "Bir nesne ile desteği arasındaki XY ayrımı"
+
+msgid "Support/object first layer gap"
+msgstr "Destek/nesne ilk katman boşluğu"
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr "Bir nesne ile ilk katmandaki desteği arasındaki XY ayrımı."
 
 msgid "Pattern angle"
 msgstr "Desen açısı"
@@ -14567,24 +14570,15 @@ msgstr ""
 "dalların uzunlukları boyunca eşit kalınlığa sahip olmasına neden olacaktır. "
 "Birazcık açı organik desteğin stabilitesini artırabilir."
 
-msgid "Branch Diameter with double walls"
-msgstr "Çift duvarlı dal çapı"
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-"Bu çaptaki bir dairenin alanından daha büyük alana sahip dallar, stabilite "
-"için çift duvarlı olarak basılacaktır. Çift duvar olmaması için bu değeri "
-"sıfır olarak ayarlayın."
-
 msgid "Support wall loops"
 msgstr "Destek duvarı döngüleri"
 
-msgid "This setting specify the count of walls around support"
-msgstr "Bu ayar desteğin etrafındaki duvarların sayısını belirtir"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr ""
+"Bu ayar [0,2] aralığındaki destek duvarlarının sayısını belirtir. 0 otomatik "
+"anlamına gelir."
 
 msgid "Tree support with infill"
 msgstr "Dolgulu ağaç desteği"
@@ -15203,11 +15197,82 @@ msgstr "çok büyük çizgi genişliği "
 msgid " not in range "
 msgstr " aralıkta değil "
 
+msgid "Export 3MF"
+msgstr "3MF'yi dışa aktar"
+
+msgid "Export project as 3MF."
+msgstr "Projeyi 3MF olarak dışa aktarın."
+
+msgid "Export slicing data"
+msgstr "Dilimleme verilerini dışa aktar"
+
+msgid "Export slicing data to a folder."
+msgstr "Dilimleme verilerini bir klasöre aktarın."
+
+msgid "Load slicing data"
+msgstr "Dilimleme verilerini yükle"
+
+msgid "Load cached slicing data from directory"
+msgstr "Önbelleğe alınmış dilimleme verilerini dizinden yükle"
+
+msgid "Export STL"
+msgstr "STL'yi dışa aktar"
+
+msgid "Export the objects as single STL."
+msgstr ""
+
+msgid "Export multiple STLs"
+msgstr ""
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr ""
+
+msgid "Slice"
+msgstr "Dilimle"
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr "Plakaları dilimleyin: 0-tüm plakalar, i-plaka i, diğerleri-geçersiz"
+
+msgid "Show command help."
+msgstr "Komut yardımını göster."
+
+msgid "UpToDate"
+msgstr "Güncel"
+
+msgid "Update the configs values of 3mf to latest."
+msgstr "3mf'nin yapılandırma değerlerini en son sürüme güncelleyin."
+
+msgid "downward machines check"
+msgstr ""
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr ""
+
+msgid "Load default filaments"
+msgstr "Varsayılan filamentleri yükle"
+
+msgid "Load first filament as default for those not loaded"
+msgstr "Yüklenmeyenler için ilk filamenti varsayılan olarak yükleyin"
+
 msgid "Minimum save"
 msgstr "Minimum tasarruf"
 
 msgid "export 3mf with minimum size."
 msgstr "3mf'yi minimum boyutta dışa aktarın."
+
+msgid "mtcpp"
+msgstr "mtcpp"
+
+msgid "max triangle count per plate for slicing."
+msgstr "dilimleme için plaka başına maksimum üçgen sayısı."
+
+msgid "mstpp"
+msgstr "mstpp"
+
+msgid "max slicing time per plate in seconds."
+msgstr "saniye cinsinden plaka başına maksimum dilimleme süresi."
 
 msgid "No check"
 msgstr "Kontrol yok"
@@ -15217,6 +15282,43 @@ msgstr ""
 "Gcode yol çakışmaları kontrolü gibi herhangi bir geçerlilik kontrolü "
 "çalıştırmayın."
 
+msgid "Normative check"
+msgstr "Normatif kontrol"
+
+msgid "Check the normative items."
+msgstr "Normatif maddeleri kontrol edin."
+
+msgid "Output Model Info"
+msgstr "Çıktı Model Bilgileri"
+
+msgid "Output the model's information."
+msgstr "Modelin bilgilerini çıktıla."
+
+msgid "Export Settings"
+msgstr "Dışa Aktarma Ayarları"
+
+msgid "Export settings to a file."
+msgstr "Ayarları bir dosyaya aktarın."
+
+msgid "Send progress to pipe"
+msgstr "İlerlemeyi kanala gönder"
+
+msgid "Send progress to pipe."
+msgstr "İlerlemeyi boruya gönder."
+
+msgid "Arrange Options"
+msgstr "Hizalama Seçenekleri"
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr ""
+"Hizalama seçenekleri: 0-devre dışı bırak, 1-etkinleştir, diğer-otomatik"
+
+msgid "Repetions count"
+msgstr "Tekrar sayısı"
+
+msgid "Repetions count of the whole model"
+msgstr "Tüm modelin tekrar sayısı"
+
 msgid "Ensure on bed"
 msgstr "Baskı yatağında olduğundan emin olun"
 
@@ -15225,6 +15327,19 @@ msgid ""
 msgstr ""
 "Kısmen aşağıda olduğunda nesneyi yatağın üzerine kaldırın. Varsayılan olarak "
 "devre dışı"
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+"Tedarik edilen modelleri bir plaka içinde düzenleyin ve bir kez işlem yapmak "
+"için bunları tek bir modelde birleştirin."
+
+msgid "Convert Unit"
+msgstr "Birimi Dönüştür"
+
+msgid "Convert the units of model"
+msgstr "Modelin birimlerini dönüştür"
 
 msgid "Orient Options"
 msgstr "Yönlendirme Seçenekleri"
@@ -15243,6 +15358,67 @@ msgstr "Y etrafında döndür"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "Y ekseni etrafında derece cinsinden dönüş açısı."
 
+msgid "Scale the model by a float factor"
+msgstr "Modeli kayan nokta faktörüne göre ölçeklendirin"
+
+msgid "Load General Settings"
+msgstr "Genel Ayarları Yükle"
+
+msgid "Load process/machine settings from the specified file"
+msgstr "Belirtilen dosyadan proses/yazıcıayarlarını yükleyin"
+
+msgid "Load Filament Settings"
+msgstr "Filament Ayarlarını Yükle"
+
+msgid "Load filament settings from the specified file list"
+msgstr "Filament ayarlarını belirtilen dosya listesinden yükleyin"
+
+msgid "Skip Objects"
+msgstr "Nesneleri Atla"
+
+msgid "Skip some objects in this print"
+msgstr "Bu baskıdaki bazı nesneleri atla"
+
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr "güncellemeyi kullanırken güncelleme işlemi/yazıcıayarlarını yükle"
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
+"güncellemeyi kullanırken belirtilen dosyadan güncel işlem/yazıcıayarlarını "
+"yükle"
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+
+msgid "downward machines settings"
+msgstr ""
+
+msgid "the machine settings list need to do downward checking"
+msgstr ""
+
+msgid "Load assemble list"
+msgstr ""
+
+msgid "Load assemble object list from config file"
+msgstr ""
+
 msgid "Data directory"
 msgstr "Veri dizini"
 
@@ -15255,11 +15431,92 @@ msgstr ""
 "veya bir ağ depolama birimindeki yapılandırmaları dahil etmek için "
 "kullanışlıdır."
 
+msgid "Output directory"
+msgstr "Çıkış dizini"
+
+msgid "Output directory for the exported files."
+msgstr "Dışa aktarılan dosyalar için çıkış dizini."
+
+msgid "Debug level"
+msgstr "Hata ayıklama düzeyi"
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+"trace\n"
+msgstr ""
+"Hata ayıklama günlüğü düzeyini ayarlar. 0:önemli, 1:hata, 2:uyarı, 3:bilgi, "
+"4:hata ayıklama, 5:izleme\n"
+
+msgid "Enable timeplapse for print"
+msgstr ""
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr ""
+
 msgid "Load custom gcode"
 msgstr "Özel gcode yükle"
 
 msgid "Load custom gcode from json"
 msgstr "Json'dan özel gcode yükleyin"
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr ""
+
+msgid "Allow rotatations when arrange"
+msgstr ""
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr ""
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr ""
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr ""
+
+msgid "Skip modified gcodes in 3mf"
+msgstr ""
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr ""
+
+msgid "MakerLab name"
+msgstr ""
+
+msgid "MakerLab name to generate this 3mf"
+msgstr ""
+
+msgid "MakerLab version"
+msgstr ""
+
+msgid "MakerLab version to generate this 3mf"
+msgstr ""
+
+msgid "metadata name list"
+msgstr ""
+
+msgid "metadata name list added into 3mf"
+msgstr ""
+
+msgid "metadata value list"
+msgstr ""
+
+msgid "metadata value list added into 3mf"
+msgstr ""
+
+msgid "Allow 3mf with newer version to be sliced"
+msgstr ""
 
 msgid "Current z-hop"
 msgstr "Mevcut z-hop"
@@ -15575,9 +15832,6 @@ msgstr "Dolgu takım yolu oluşturma"
 msgid "Detect overhangs for auto-lift"
 msgstr "Otomatik kaldırma için çıkıntıları tespit edin"
 
-msgid "Generating support"
-msgstr "Destek oluşturma"
-
 msgid "Checking support necessity"
 msgstr "Destek gerekliliğinin kontrol edilmesi"
 
@@ -15597,6 +15851,9 @@ msgid ""
 msgstr ""
 "Görünüşe göre %s nesnesinde %s var. Lütfen nesneyi yeniden yönlendirin veya "
 "destek oluşturmayı etkinleştirin."
+
+msgid "Generating support"
+msgstr "Destek oluşturma"
 
 msgid "Optimizing toolpath"
 msgstr "Takım yolunu optimize etme"
@@ -15620,36 +15877,8 @@ msgstr ""
 "kullanılmayacaktır.\n"
 "XY Boyut telafisi  renkli boyamayla birleştirilemez."
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "Destek: %d katmanında takım yolu oluştur"
-
-msgid "Support: detect overhangs"
-msgstr "Destek: çıkıntıları tespit et"
-
 msgid "Support: generate contact points"
 msgstr "Destek: iletişim noktaları oluştur"
-
-msgid "Support: propagate branches"
-msgstr "Destek: dal şeklinde oluştur"
-
-msgid "Support: draw polygons"
-msgstr "Destek: çokgen çizme"
-
-msgid "Support: generate toolpath"
-msgstr "Destek: takım yolu oluştur"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "Destek: %d katmanında çokgenler oluşturma"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "Destek: %d katmanındaki delikleri düzeltin"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "Destek: %d katmanındaki dalları çoğalt"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -17595,6 +17824,52 @@ msgstr ""
 msgid "User cancelled."
 msgstr "Kullanıcı iptal edildi."
 
+msgid "Head diameter"
+msgstr "Kafa çapı"
+
+msgid "Max angle"
+msgstr "Maksimum açı"
+
+msgid "Detection radius"
+msgstr "Algılama yarıçapı"
+
+msgid "Remove selected points"
+msgstr "Seçili noktaları kaldır"
+
+msgid "Remove all"
+msgstr "Hepsini kaldır"
+
+msgid "Auto-generate points"
+msgstr "Noktaları otomatik olarak üret"
+
+msgid "Add a brim ear"
+msgstr "Destek kulağı ekle"
+
+msgid "Delete a brim ear"
+msgstr "Destek kulağı sil"
+
+msgid "Adjust section view"
+msgstr "Kesit görünümünü ayarla"
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr ""
+"Uyarı: Siperlik tipi \"boyalı\" olarak ayarlanmamışsa, siperlik kulakları "
+"etkili olmayacaktır!"
+
+msgid "Set the brim type to \"painted\""
+msgstr "Kenar tipini \"boyalı\" olarak ayarlayın"
+
+msgid " invalid brim ears"
+msgstr " geçersi̇z kenarlı kulaklar"
+
+msgid "Brim Ears"
+msgstr "Kenar  kulakları"
+
+msgid "Please select single object."
+msgstr "Lütfen tek bir nesne seçin."
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -17982,6 +18257,78 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "Daha küçük destek hacmine ancak daha zayıf güce sahip deneysel bir tarz "
+#~ "olan \"Tree Slim\" ekledik.\n"
+#~ "Şunlarla kullanmanızı öneririz: 0 arayüz katmanı, 0 üst mesafe, 2 duvar."
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "\"Güçlü Ağaç\" ve \"Ağaç Hibrit\" stilleri için şu ayarları öneriyoruz: "
+#~ "en az 2 arayüz katmanı, en az 0,1 mm üst z mesafesi veya arayüzde destek "
+#~ "malzemeleri kullanılması."
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Destek arayüzü için destek materyali kullanırken aşağıdaki ayarları "
+#~ "öneriyoruz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, eş merkezli desen ve bağımsız destek "
+#~ "katmanı yüksekliğini devre dışı bırakma"
+
+#~ msgid "Branch Diameter with double walls"
+#~ msgstr "Çift duvarlı dal çapı"
+
+#~ msgid ""
+#~ "Branches with area larger than the area of a circle of this diameter will "
+#~ "be printed with double walls for stability. Set this value to zero for no "
+#~ "double walls."
+#~ msgstr ""
+#~ "Bu çaptaki bir dairenin alanından daha büyük alana sahip dallar, "
+#~ "stabilite için çift duvarlı olarak basılacaktır. Çift duvar olmaması için "
+#~ "bu değeri sıfır olarak ayarlayın."
+
+#~ msgid "This setting specify the count of walls around support"
+#~ msgstr "Bu ayar desteğin etrafındaki duvarların sayısını belirtir"
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "Destek: %d katmanında takım yolu oluştur"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "Destek: çıkıntıları tespit et"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "Destek: dal şeklinde oluştur"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "Destek: çokgen çizme"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "Destek: takım yolu oluştur"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "Destek: %d katmanında çokgenler oluşturma"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "Destek: %d katmanındaki delikleri düzeltin"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "Destek: %d katmanındaki dalları çoğalt"
 
 #~ msgid "Orca Slicer"
 #~ msgstr "Orca Slicer"
@@ -19516,158 +19863,14 @@ msgstr ""
 #~ msgid "%%"
 #~ msgstr "%%"
 
-#~ msgid "Export 3MF"
-#~ msgstr "3MF'yi dışa aktar"
-
-#~ msgid "Export project as 3MF."
-#~ msgstr "Projeyi 3MF olarak dışa aktarın."
-
-#~ msgid "Export slicing data"
-#~ msgstr "Dilimleme verilerini dışa aktar"
-
-#~ msgid "Export slicing data to a folder."
-#~ msgstr "Dilimleme verilerini bir klasöre aktarın."
-
-#~ msgid "Load slicing data"
-#~ msgstr "Dilimleme verilerini yükle"
-
-#~ msgid "Load cached slicing data from directory"
-#~ msgstr "Önbelleğe alınmış dilimleme verilerini dizinden yükle"
-
-#~ msgid "Export STL"
-#~ msgstr "STL'yi dışa aktar"
-
 #~ msgid "Export the objects as multiple STL."
 #~ msgstr "Nesneleri birden çok STL olarak dışa aktarın."
-
-#~ msgid "Slice"
-#~ msgstr "Dilimle"
-
-#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-#~ msgstr "Plakaları dilimleyin: 0-tüm plakalar, i-plaka i, diğerleri-geçersiz"
-
-#~ msgid "Show command help."
-#~ msgstr "Komut yardımını göster."
-
-#~ msgid "UpToDate"
-#~ msgstr "Güncel"
-
-#~ msgid "Update the configs values of 3mf to latest."
-#~ msgstr "3mf'nin yapılandırma değerlerini en son sürüme güncelleyin."
-
-#~ msgid "Load default filaments"
-#~ msgstr "Varsayılan filamentleri yükle"
-
-#~ msgid "Load first filament as default for those not loaded"
-#~ msgstr "Yüklenmeyenler için ilk filamenti varsayılan olarak yükleyin"
-
-#~ msgid "mtcpp"
-#~ msgstr "mtcpp"
-
-#~ msgid "max triangle count per plate for slicing."
-#~ msgstr "dilimleme için plaka başına maksimum üçgen sayısı."
-
-#~ msgid "mstpp"
-#~ msgstr "mstpp"
-
-#~ msgid "max slicing time per plate in seconds."
-#~ msgstr "saniye cinsinden plaka başına maksimum dilimleme süresi."
-
-#~ msgid "Normative check"
-#~ msgstr "Normatif kontrol"
-
-#~ msgid "Check the normative items."
-#~ msgstr "Normatif maddeleri kontrol edin."
-
-#~ msgid "Output Model Info"
-#~ msgstr "Çıktı Model Bilgileri"
-
-#~ msgid "Output the model's information."
-#~ msgstr "Modelin bilgilerini çıktıla."
-
-#~ msgid "Export Settings"
-#~ msgstr "Dışa Aktarma Ayarları"
-
-#~ msgid "Export settings to a file."
-#~ msgstr "Ayarları bir dosyaya aktarın."
-
-#~ msgid "Send progress to pipe"
-#~ msgstr "İlerlemeyi kanala gönder"
-
-#~ msgid "Send progress to pipe."
-#~ msgstr "İlerlemeyi boruya gönder."
-
-#~ msgid "Arrange Options"
-#~ msgstr "Hizalama Seçenekleri"
-
-#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
-#~ msgstr ""
-#~ "Hizalama seçenekleri: 0-devre dışı bırak, 1-etkinleştir, diğer-otomatik"
-
-#~ msgid "Repetions count"
-#~ msgstr "Tekrar sayısı"
-
-#~ msgid "Repetions count of the whole model"
-#~ msgstr "Tüm modelin tekrar sayısı"
-
-#~ msgid "Convert Unit"
-#~ msgstr "Birimi Dönüştür"
-
-#~ msgid "Convert the units of model"
-#~ msgstr "Modelin birimlerini dönüştür"
 
 #~ msgid "Rotate around X"
 #~ msgstr "X etrafında döndür"
 
 #~ msgid "Rotation angle around the X axis in degrees."
 #~ msgstr "X ekseni etrafında derece cinsinden dönüş açısı."
-
-#~ msgid "Scale the model by a float factor"
-#~ msgstr "Modeli kayan nokta faktörüne göre ölçeklendirin"
-
-#~ msgid "Load General Settings"
-#~ msgstr "Genel Ayarları Yükle"
-
-#~ msgid "Load process/machine settings from the specified file"
-#~ msgstr "Belirtilen dosyadan proses/yazıcıayarlarını yükleyin"
-
-#~ msgid "Load Filament Settings"
-#~ msgstr "Filament Ayarlarını Yükle"
-
-#~ msgid "Load filament settings from the specified file list"
-#~ msgstr "Filament ayarlarını belirtilen dosya listesinden yükleyin"
-
-#~ msgid "Skip Objects"
-#~ msgstr "Nesneleri Atla"
-
-#~ msgid "Skip some objects in this print"
-#~ msgstr "Bu baskıdaki bazı nesneleri atla"
-
-#~ msgid "load uptodate process/machine settings when using uptodate"
-#~ msgstr "güncellemeyi kullanırken güncelleme işlemi/yazıcıayarlarını yükle"
-
-#~ msgid ""
-#~ "load uptodate process/machine settings from the specified file when using "
-#~ "uptodate"
-#~ msgstr ""
-#~ "güncellemeyi kullanırken belirtilen dosyadan güncel işlem/"
-#~ "yazıcıayarlarını yükle"
-
-#~ msgid "Output directory"
-#~ msgstr "Çıkış dizini"
-
-#~ msgid "Output directory for the exported files."
-#~ msgstr "Dışa aktarılan dosyalar için çıkış dizini."
-
-#~ msgid "Debug level"
-#~ msgstr "Hata ayıklama düzeyi"
-
-#~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
-#~ msgstr ""
-#~ "Hata ayıklama günlüğü düzeyini ayarlar. 0:önemli, 1:hata, 2:uyarı, 3:"
-#~ "bilgi, 4:hata ayıklama, 5:izleme\n"
 
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."
