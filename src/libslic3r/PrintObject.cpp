@@ -633,13 +633,9 @@ void PrintObject::generate_support_material()
     if (this->set_started(posSupportMaterial)) {
         this->clear_support_layers();
 
-        if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
-            m_print->set_status(50, L("Generating support"));
-
-            this->_generate_support_material();
-            m_print->throw_if_canceled();
-        } else if(!m_print->get_no_check_flag()) {
+        if(!has_support() && !m_print->get_no_check_flag()) {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
+            // Note: we also need to pop warning if support is disabled and only raft is enabled
             m_print->set_status(50, L("Checking support necessity"));
             typedef std::chrono::high_resolution_clock clock_;
             typedef std::chrono::duration<double, std::ratio<1> > second_;
@@ -669,6 +665,12 @@ void PrintObject::generate_support_material()
 #endif
         }
 
+        if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && !m_layers.empty())) {
+            m_print->set_status(50, L("Generating support"));
+
+            this->_generate_support_material();
+            m_print->throw_if_canceled();
+        }
         this->set_done(posSupportMaterial);
     }
 }
@@ -731,7 +733,8 @@ void PrintObject::simplify_extrusion_path()
     }
 
     if (this->set_started(posSimplifySupportPath)) {
-        //BBS: share same progress
+        //BBS: disable circle simplification for support as it causes separation of support walls
+        #if 0
         m_print->set_status(75, L("Optimizing toolpath"));
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - start";
         tbb::parallel_for(
@@ -745,6 +748,7 @@ void PrintObject::simplify_extrusion_path()
         );
         m_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - end";
+        #endif
         this->set_done(posSimplifySupportPath);
     }
 }
@@ -843,14 +847,8 @@ void PrintObject::clear_support_layers()
 std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
 {
     if (!m_tree_support_preview_cache) {
-        const coordf_t layer_height = m_config.layer_height.value;
         const coordf_t xy_distance = m_config.support_object_xy_distance.value;
-        const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
-        const coordf_t max_move_distance
-            = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
-        const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
-
-        m_tree_support_preview_cache = std::make_shared<TreeSupportData>(*this, xy_distance, max_move_distance, radius_sample_resolution);
+        m_tree_support_preview_cache = std::make_shared<TreeSupportData>(*this, xy_distance, g_config_tree_support_collision_resolution);
     }
 
     return m_tree_support_preview_cache;
@@ -1015,6 +1013,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_base_pattern"
             || opt_key == "support_style"
             || opt_key == "support_object_xy_distance"
+            || opt_key == "support_object_first_layer_gap"
             || opt_key == "support_base_pattern_spacing"
             || opt_key == "support_expansion"
             //|| opt_key == "independent_support_layer_height" // BBS
@@ -1036,7 +1035,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_diameter"
             || opt_key == "tree_support_branch_diameter_organic"
             || opt_key == "tree_support_branch_diameter_angle"
-            || opt_key == "tree_support_branch_diameter_double_wall"
             || opt_key == "tree_support_branch_angle"
             || opt_key == "tree_support_branch_angle_organic"
             || opt_key == "tree_support_angle_slow"
@@ -3935,91 +3933,8 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
 
 SupportNecessaryType PrintObject::is_support_necessary()
 {
-    static const double super_overhang_area_threshold = SQ(scale_(5.0));
     const double cantilevel_dist_thresh = scale_(6);
-#if 0
-    double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
-    int enforce_support_layers = m_config.enforce_support_layers;
-    // not fixing in extrusion width % PR b/c never called 
-    const coordf_t extrusion_width = m_config.line_width.value;
-    const coordf_t extrusion_width_scaled = scale_(extrusion_width);
-    float max_bridge_length = scale_(m_config.max_bridge_length.value);
-    const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
 
-    for (size_t layer_nr = enforce_support_layers + 1; layer_nr < this->layer_count(); layer_nr++) {
-        Layer* layer = m_layers[layer_nr];
-        Layer* lower_layer = layer->lower_layer;
-
-        coordf_t support_offset_scaled = extrusion_width_scaled * 0.9;
-        ExPolygons lower_layer_offseted = offset_ex(lower_layer->lslices, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-
-        // 1. check sharp tail
-        for (const LayerRegion* layerm : layer->regions()) {
-            for (const ExPolygon& expoly : layerm->raw_slices) {
-                // detect sharp tail
-                if (intersection_ex({ expoly }, lower_layer_offseted).empty())
-                    return SharpTail;
-            }
-        }
-
-        // 2. check overhang area
-        ExPolygons super_overhang_expolys = std::move(diff_ex(layer->lslices, lower_layer_offseted));
-        super_overhang_expolys.erase(std::remove_if(
-            super_overhang_expolys.begin(),
-            super_overhang_expolys.end(),
-            [extrusion_width_scaled](ExPolygon& area) {
-                return offset_ex(area, -0.1 * extrusion_width_scaled).empty();
-            }),
-            super_overhang_expolys.end());
-
-        // remove bridge
-        if (bridge_no_support)
-            remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &super_overhang_expolys, max_bridge_length);
-
-        Polygons super_overhang_polys = to_polygons(super_overhang_expolys);
-
-
-        super_overhang_polys.erase(std::remove_if(
-            super_overhang_polys.begin(),
-            super_overhang_polys.end(),
-            [extrusion_width_scaled](Polygon& area) {
-                return offset_ex(area, -0.1 * extrusion_width_scaled).empty();
-            }),
-            super_overhang_polys.end());
-
-        double super_overhang_area = 0.0;
-        for (Polygon& poly : super_overhang_polys) {
-            bool is_ccw = poly.is_counter_clockwise();
-            double area_  = poly.area();
-            if (is_ccw) {
-                if (area_ > super_overhang_area_threshold)
-                    return LargeOverhang;
-                super_overhang_area += area_;
-            }
-            else {
-                super_overhang_area -= area_;
-            }
-        }
-
-        //if (super_overhang_area > super_overhang_area_threshold)
-        //    return LargeOverhang;
-
-        // 3. check overhang distance
-        const double distance_threshold_scaled = extrusion_width_scaled * 2;
-        ExPolygons lower_layer_offseted_2 = offset_ex(lower_layer->lslices, distance_threshold_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
-        ExPolygons exceed_overhang = std::move(diff_ex(super_overhang_polys, lower_layer_offseted_2));
-        exceed_overhang.erase(std::remove_if(
-            exceed_overhang.begin(),
-            exceed_overhang.end(),
-            [extrusion_width_scaled](ExPolygon& area) {
-                // tolerance for 1 extrusion width offset
-                return offset_ex(area, -0.5 * extrusion_width_scaled).empty();
-            }),
-            exceed_overhang.end());
-        if (!exceed_overhang.empty())
-            return LargeOverhang;
-    }
-#else
     TreeSupport tree_support(*this, m_slicing_params);
     tree_support.support_type = SupportType::stTreeAuto; // need to set support type to fully utilize the power of feature detection
     tree_support.detect_overhangs(true);
@@ -4028,7 +3943,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
         return SharpTail;
     else if (tree_support.has_cantilever && tree_support.max_cantilever_dist > cantilevel_dist_thresh)
         return Cantilever;
-#endif
+
     return NoNeedSupp;
 }
 
@@ -4219,7 +4134,7 @@ static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const index
 }
 
 void PrintObject::project_and_append_custom_facets(
-        bool seam, EnforcerBlockerType type, std::vector<Polygons>& out) const
+        bool seam, EnforcerBlockerType type, std::vector<Polygons>& out, std::vector<std::pair<Vec3f, Vec3f>>* vertical_points) const
 {
     for (const ModelVolume* mv : this->model_object()->volumes)
         if (mv->is_model_part()) {
@@ -4234,7 +4149,7 @@ void PrintObject::project_and_append_custom_facets(
                 else {
                     std::vector<Polygons> projected;
                     // Support blockers or enforcers. Project downward facing painted areas upwards to their respective slicing plane.
-                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){});
+                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, vertical_points, [](){});
                     // Merge these projections with the output, layer by layer.
                     assert(! projected.empty());
                     assert(out.empty() || out.size() == projected.size());
