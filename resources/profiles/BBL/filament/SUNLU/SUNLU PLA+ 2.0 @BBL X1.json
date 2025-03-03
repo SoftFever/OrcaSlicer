@@ -3,7 +3,7 @@
     "name": "SUNLU PLA+ 2.0 @BBL X1",
     "inherits": "SUNLU PLA+ 2.0 @base",
     "from": "system",
-    "setting_id": "SNLS04_00",
+    "setting_id": "GFSNLS04_00",
     "instantiation": "true",
     "slow_down_layer_time": [
         "10"
