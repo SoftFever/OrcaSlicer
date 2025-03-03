@@ -39,6 +39,10 @@
         {
             "name": "MK4S HF",
             "sub_path": "machine/Prusa MK4S HF.json"
+        },
+        {
+            "name": "COREONE",
+            "sub_path": "machine/Prusa COREONE.json"
         }
     ],
     "process_list": [
@@ -77,6 +81,10 @@
         {
             "name": "process_common_mk4s",
             "sub_path": "process/process_common_mk4s.json"
+        },
+        {
+            "name": "process_common_coreone",
+            "sub_path": "process/process_common_coreone.json"
         },
         {
             "name": "0.20mm Standard @MINI 0.25",
@@ -837,6 +845,122 @@
         {
             "name": "0.55mm STRUCTURAL @MK4S HF0.8",
             "sub_path": "process/0.55mm STRUCTURAL @MK4S HF0.8.json"
+        },
+        {
+            "name": "0.05mm Detail @Prusa COREONE 0.25",
+            "sub_path": "process/0.05mm Detail @Prusa COREONE 0.25.json"
+        },
+        {
+            "name": "0.10mm Fast Detail @Prusa COREONE 0.4",
+            "sub_path": "process/0.10mm Fast Detail @Prusa COREONE 0.4.json"
+        },
+        {
+            "name": "0.10mm Structural @Prusa COREONE 0.5",
+            "sub_path": "process/0.10mm Structural @Prusa COREONE 0.5.json"
+        },
+        {
+            "name": "0.12mm Structural @Prusa COREONE 0.25",
+            "sub_path": "process/0.12mm Structural @Prusa COREONE 0.25.json"
+        },
+        {
+            "name": "0.12mm Structural @Prusa COREONE 0.3",
+            "sub_path": "process/0.12mm Structural @Prusa COREONE 0.3.json"
+        },
+        {
+            "name": "0.15mm Speed @Prusa COREONE 0.25",
+            "sub_path": "process/0.15mm Speed @Prusa COREONE 0.25.json"
+        },
+        {
+            "name": "0.15mm Speed @Prusa COREONE 0.4",
+            "sub_path": "process/0.15mm Speed @Prusa COREONE 0.4.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa COREONE 0.25",
+            "sub_path": "process/0.15mm Structural @Prusa COREONE 0.25.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa COREONE 0.4",
+            "sub_path": "process/0.15mm Structural @Prusa COREONE 0.4.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa COREONE 0.5",
+            "sub_path": "process/0.15mm Structural @Prusa COREONE 0.5.json"
+        },
+        {
+            "name": "0.15mm Structural @Prusa COREONE 0.6",
+            "sub_path": "process/0.15mm Structural @Prusa COREONE 0.6.json"
+        },
+        {
+            "name": "0.16mm Speed @Prusa COREONE 0.3",
+            "sub_path": "process/0.16mm Speed @Prusa COREONE 0.3.json"
+        },
+        {
+            "name": "0.16mm Structural @Prusa COREONE 0.3",
+            "sub_path": "process/0.16mm Structural @Prusa COREONE 0.3.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa COREONE 0.3",
+            "sub_path": "process/0.20mm Speed @Prusa COREONE 0.3.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa COREONE 0.4",
+            "sub_path": "process/0.20mm Speed @Prusa COREONE 0.4.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa COREONE 0.5",
+            "sub_path": "process/0.20mm Speed @Prusa COREONE 0.5.json"
+        },
+        {
+            "name": "0.20mm Speed @Prusa COREONE 0.6",
+            "sub_path": "process/0.20mm Speed @Prusa COREONE 0.6.json"
+        },
+        {
+            "name": "0.20mm Structural @Prusa COREONE 0.3",
+            "sub_path": "process/0.20mm Structural @Prusa COREONE 0.3.json"
+        },
+        {
+            "name": "0.20mm Structural @Prusa COREONE 0.4",
+            "sub_path": "process/0.20mm Structural @Prusa COREONE 0.4.json"
+        },
+        {
+            "name": "0.20mm Structural @Prusa COREONE 0.5",
+            "sub_path": "process/0.20mm Structural @Prusa COREONE 0.5.json"
+        },
+        {
+            "name": "0.20mm Structural @Prusa COREONE 0.6",
+            "sub_path": "process/0.20mm Structural @Prusa COREONE 0.6.json"
+        },
+        {
+            "name": "0.25mm Speed @Prusa COREONE 0.6",
+            "sub_path": "process/0.25mm Speed @Prusa COREONE 0.6.json"
+        },
+        {
+            "name": "0.25mm Structural @Prusa COREONE 0.5",
+            "sub_path": "process/0.25mm Structural @Prusa COREONE 0.5.json"
+        },
+        {
+            "name": "0.25mm Structural @Prusa COREONE 0.6",
+            "sub_path": "process/0.25mm Structural @Prusa COREONE 0.6.json"
+        },
+        {
+            "name": "0.30mm Detail @Prusa COREONE 0.8",
+            "sub_path": "process/0.30mm Detail @Prusa COREONE 0.8.json"
+        },
+        {
+            "name": "0.32mm Speed @Prusa COREONE 0.6",
+            "sub_path": "process/0.32mm Speed @Prusa COREONE 0.6.json"
+        },
+        {
+            "name": "0.32mm Structural @Prusa COREONE 0.6",
+            "sub_path": "process/0.32mm Structural @Prusa COREONE 0.6.json"
+        },
+        {
+            "name": "0.40mm Quality @Prusa COREONE 0.8",
+            "sub_path": "process/0.40mm Quality @Prusa COREONE 0.8.json"
+        },
+        {
+            "name": "0.55mm Draft @Prusa COREONE 0.8",
+            "sub_path": "process/0.55mm Draft @Prusa COREONE 0.8.json"
         }
 
     ],
@@ -1488,6 +1612,10 @@
             "sub_path": "machine/fdm_machine_common_mk4s.json"
         },
         {
+            "name": "fdm_machine_common_coreone",
+            "sub_path": "machine/fdm_machine_common_coreone.json"
+        },
+        {
             "name": "Prusa MK3S 0.25 nozzle",
             "sub_path": "machine/Prusa MK3S 0.25 nozzle.json"
         },
@@ -1654,6 +1782,22 @@
         {
             "name": "Prusa MK4S HF0.8 nozzle",
             "sub_path": "machine/Prusa MK4S HF0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.4 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.5 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.6 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.8 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.8 nozzle.json"
         }
     ]
 }
