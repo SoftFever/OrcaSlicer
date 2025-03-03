@@ -6267,11 +6267,14 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
             const bool is_active = vol->is_active;
             vol->is_active = true;
+            vol->picking   = true;
+
             const Transform3d model_matrix = vol->world_matrix();
             shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
             shader->set_uniform("projection_matrix", projection_matrix);
             vol->simple_render(shader, model_objects, extruder_colors);
             vol->is_active = is_active;
+            vol->picking   = false;
         }
 
         //glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
