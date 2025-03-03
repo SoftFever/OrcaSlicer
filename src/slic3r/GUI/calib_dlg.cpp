@@ -374,7 +374,7 @@ void Temp_Calibration_Dlg::on_start(wxCommandEvent& event) {
 
 void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
     int selection = event.GetSelection();
-    unsigned long start,end;
+    unsigned long start = 0, end = 0;
     switch(selection)
     {
         case tABS_ASA:
