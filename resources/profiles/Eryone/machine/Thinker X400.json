@@ -8,5 +8,5 @@
     "bed_model": "X400_bed.stl",
     "bed_texture": "Thinker_texture.png",
     "hotend_model": "",
-    "default_materials": "Generic PLA @System;Generic ABS @System;Generic ASA @System;Generic PETG @System;Generic Silk @System PLA;Generic TPU @System"
+    "default_materials": "Generic PLA @System;Generic ABS @System;Generic ASA @System;Generic PETG @System;Generic PLA Silk @System;Generic TPU @System"
 }

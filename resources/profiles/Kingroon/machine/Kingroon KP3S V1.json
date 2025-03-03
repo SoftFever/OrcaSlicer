@@ -6,5 +6,5 @@
     "machine_tech": "FFF",
     "family": "Kingroon",
     "hotend_model": "",
-    "default_materials": "Generic ABS @System;Generic PLA @System;Generic PLA @System-CF;Generic PETG @System;Generic TPU @System;Generic ASA @System;Generic PC @System;Generic PVA @System;Generic PA @System;Generic PA-CF @System"
+    "default_materials": "Generic ABS @System;Generic PLA @System;Generic PLA-CF @System;Generic PETG @System;Generic TPU @System;Generic ASA @System;Generic PC @System;Generic PVA @System;Generic PA @System;Generic PA-CF @System"
 }
