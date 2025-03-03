@@ -1,7 +1,7 @@
 {
 	"type": "filament",
 	"setting_id": "GFSA04_CREALITY_00",
-	"name": "Creality Generic ABS @Hi",
+	"name": "Creality Generic ABS @Hi-all",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "Creality Generic ABS",
