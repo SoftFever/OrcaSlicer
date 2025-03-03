@@ -72,14 +72,27 @@ void MaterialItem::allow_paint_dropdown(bool flag) {
     }
 }
 
-void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vector<wxColour> cols)
+void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vector<wxColour> cols, bool record_back_info)
 {
     auto need_refresh = false;
+    if (record_back_info) {
+        m_back_ams_cols = cols;
+        m_back_ams_ctype = ctype;
+        m_back_ams_coloul = col;
+        m_back_ams_name  = txt;
+    }
     if (m_ams_cols != cols) { m_ams_cols = cols; need_refresh = true; }
     if (m_ams_ctype != ctype) { m_ams_ctype = ctype; need_refresh = true; }
     if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
     if (m_ams_name != txt) { m_ams_name = txt; need_refresh = true; }
     if (need_refresh) { Refresh();}
+}
+
+void MaterialItem::reset_ams_info() {
+    m_ams_name   = "-";
+    m_ams_coloul = wxColour(0xEE, 0xEE, 0xEE);
+    m_ams_cols.clear();
+    m_ams_ctype = 0;
 }
 
 void MaterialItem::disable()
@@ -330,6 +343,10 @@ void MaterialItem::doRender(wxDC& dc)
     }
 }
 
+void MaterialItem::reset_valid_info() {
+    set_ams_info(m_back_ams_coloul, m_back_ams_name, m_back_ams_ctype, m_back_ams_cols);
+}
+
  MaterialSyncItem::MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname) : MaterialItem(parent, mcolour, mname)
 {
 
@@ -560,6 +577,8 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_ams_left = new wxBoxSizer(wxVERTICAL);
      m_sizer_ams_right = new wxBoxSizer(wxVERTICAL);
+     //m_sizer_ams_left_horizonal = new wxBoxSizer(wxHORIZONTAL);
+     m_sizer_ams_right_horizonal = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_ams_basket_left = new wxBoxSizer(wxVERTICAL);
      m_sizer_ams_basket_right = new wxBoxSizer(wxVERTICAL);
 
@@ -633,7 +652,26 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_tips->SetBackgroundColour(*wxWHITE);
      m_right_tips->SetFont(::Label::Body_13);
      m_right_tips->SetLabel(m_right_tip_text);
-     m_sizer_ams_right->Add(m_right_tips, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+     m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+
+     StateColor cancel_btn_bd_(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
+     StateColor cancel_btn_text(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
+     StateColor cancel_btn_bg(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+     m_reset_btn = new Button(m_right_marea_panel, _L("Reset"));
+     m_reset_btn->SetMinSize(wxSize(FromDIP(50), FromDIP(20)));
+     m_reset_btn->SetCornerRadius(FromDIP(10));
+     m_reset_btn->SetBackgroundColor(cancel_btn_bg);
+     m_reset_btn->SetBorderColor(cancel_btn_bd_);
+     m_reset_btn->SetTextColor(cancel_btn_text);
+     m_reset_btn->SetId(wxID_CANCEL);
+     m_reset_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) { reset_ams_info(); });
+     m_sizer_ams_right_horizonal->AddStretchSpacer();
+     m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+     m_reset_btn->Hide();
+     m_sizer_ams_right_horizonal->AddSpacer(FromDIP(10));
+
+     m_sizer_ams_right->Add(m_sizer_ams_right_horizonal, 0, wxEXPAND, 0);
      m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
      m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -673,6 +711,21 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
          }
      });
  }
+
+ void AmsMapingPopup::reset_ams_info()
+ {
+     if (m_reset_callback) {
+         m_reset_callback(m_material_index);
+     }
+ }
+
+void AmsMapingPopup::set_reset_callback(ResetCallback callback) {
+     m_reset_callback = callback;
+}
+
+void AmsMapingPopup::show_reset_button() {
+    m_reset_btn->Show();
+}
 
  void AmsMapingPopup::set_sizer_title(wxBoxSizer *sizer, wxString text) {
      if (!sizer) { return; }

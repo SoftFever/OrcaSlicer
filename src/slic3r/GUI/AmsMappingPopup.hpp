@@ -83,10 +83,16 @@ public:
     wxColour    m_material_coloul;
     wxString    m_material_name;
 
+    //info
     wxColour m_ams_coloul;
     wxString m_ams_name;
     int      m_ams_ctype = 0;
     std::vector<wxColour> m_ams_cols = std::vector<wxColour>();
+    //reset
+    wxColour              m_back_ams_coloul;
+    wxString              m_back_ams_name;
+    int                   m_back_ams_ctype = 0;
+    std::vector<wxColour> m_back_ams_cols  = std::vector<wxColour>();
 
     ScalableBitmap m_arraw_bitmap_gray;
     ScalableBitmap m_arraw_bitmap_white;
@@ -101,7 +107,8 @@ public:
 
     void msw_rescale();
     void allow_paint_dropdown(bool flag);
-    void set_ams_info(wxColour col, wxString txt, int ctype=0, std::vector<wxColour> cols= std::vector<wxColour>());
+    void set_ams_info(wxColour col, wxString txt, int ctype=0, std::vector<wxColour> cols= std::vector<wxColour>(),bool record_back_info = false);
+    void reset_ams_info();
 
     void disable();
     void enable();
@@ -114,6 +121,7 @@ public:
     virtual void render(wxDC &dc);
     void match(bool mat);
     virtual void doRender(wxDC &dc);
+    virtual void reset_valid_info();
 };
 
 class MaterialSyncItem : public MaterialItem
@@ -125,7 +133,7 @@ public:
     void render(wxDC &dc) override;
     void doRender(wxDC &dc) override;
     void set_material_index_str(std::string str);
-
+    const std::string &get_material_index_str() { return m_material_index; }
 private:
     std::string m_material_index;
 };
@@ -193,6 +201,7 @@ public:
     wxBoxSizer *m_sizer_ams{nullptr};
     wxBoxSizer *m_sizer_ams_left{nullptr};
     wxBoxSizer *m_sizer_ams_right{nullptr};
+    wxBoxSizer *m_sizer_ams_right_horizonal{nullptr};
     wxBoxSizer* m_sizer_ams_basket_left{ nullptr };
     wxBoxSizer* m_sizer_ams_basket_right{ nullptr };
     wxBoxSizer *m_sizer_list{nullptr};
@@ -207,6 +216,7 @@ public:
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
     Label *      m_left_tips{nullptr};
     Label *      m_right_tips{nullptr};
+    Button *     m_reset_btn{nullptr};
     wxString     m_single_tip_text;
     wxString     m_left_tip_text;
     wxString     m_right_tip_text;
@@ -232,6 +242,17 @@ public:
     void         set_parent_item(wxWindow* item) {m_parent_item = item;};
     void         set_show_type(ShowType type) { m_show_type = type; };
     std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
+
+    using ResetCallback = std::function<void(const std::string&)>;
+    void reset_ams_info();
+    void set_reset_callback(ResetCallback callback);
+    void  show_reset_button();
+    void  set_material_index_str(std::string str) { m_material_index = str; }
+    const std::string &get_material_index_str() { return m_material_index; }
+
+private:
+    ResetCallback m_reset_callback{nullptr};
+    std::string m_material_index;
 };
 
 class AmsMapingTipPopup : public PopupWindow

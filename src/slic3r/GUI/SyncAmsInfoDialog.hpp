@@ -47,6 +47,7 @@ class SyncAmsInfoDialog : public DPIDialog
     std::vector<MachineObject *>         m_list;
     std::vector<FilamentInfo>            m_filaments;
     std::vector<FilamentInfo>            m_ams_mapping_result;
+    std::vector<FilamentInfo>            m_back_ams_mapping_result;
     std::vector<int>                     m_filaments_map;
     // SendModeSwitchButton*               m_mode_print {nullptr};
     // SendModeSwitchButton*               m_mode_send {nullptr};
@@ -170,6 +171,7 @@ public:
     void     reset_timeout();
     void     update_user_printer();
     void     reset_ams_material();
+    void     reset_one_ams_material(const std::string & index_str);
     void     update_show_status();
     void     update_printer_combobox(wxCommandEvent &event);
     void     on_cancel(wxCloseEvent &event);

@@ -1296,16 +1296,16 @@ void SyncAmsInfoDialog::finish_mode()
 
 void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &result)
 {
+    m_back_ams_mapping_result = result;
     if (result.empty()) {
         BOOST_LOG_TRIVIAL(trace) << "ams_mapping result is empty";
         for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
             wxString ams_id  = "Ext";
             wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
-            it->second->item->set_ams_info(ams_col, ams_id);
+            it->second->item->set_ams_info(ams_col, ams_id, true); // sync_ams_mapping_result
         }
         return;
     }
-
     for (auto f = result.begin(); f != result.end(); f++) {
         BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
 
@@ -1338,7 +1338,7 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
                 }
                 std::vector<wxColour> cols;
                 for (auto col : f->colors) { cols.push_back(AmsTray::decode_color(col)); }
-                m->set_ams_info(ams_col, ams_id, f->ctype, cols);
+                m->set_ams_info(ams_col, ams_id, f->ctype, cols,true);//sync_ams_mapping_result
                 break;
             }
             iter++;
@@ -2330,7 +2330,7 @@ void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
             auto          m    = item->item;
             if (item->id == m_current_filament_id) {
                 auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
-                m->set_ams_info(ams_colour, selection_data_arr[4], ctype, material_cols);
+                m->set_ams_info(ams_colour, selection_data_arr[4], ctype, material_cols);//finish
             }
             iter++;
         }
@@ -2907,9 +2907,26 @@ void SyncAmsInfoDialog::reset_ams_material()
         int           id      = iter->first;
         Material *    item    = iter->second;
         auto          m       = item->item;
-        wxString      ams_id  = "-";
-        wxColour      ams_col = wxColour(0xEE, 0xEE, 0xEE);
-        m->set_ams_info(ams_col, ams_id);
+        m->reset_ams_info();
+        iter++;
+    }
+}
+
+void SyncAmsInfoDialog::reset_one_ams_material(const std::string& index_str)
+{
+    MaterialHash::iterator iter = m_materialList.begin();
+    while (iter != m_materialList.end()) {
+        int       id      = iter->first;
+        Material *item    = iter->second;
+        auto m    = dynamic_cast<MaterialSyncItem*> (item->item);
+        if (m && m->get_material_index_str() == index_str) {
+            m->reset_valid_info();
+            int index = std::atoi(index_str.c_str()) - 1;
+            if (index >=0 && index < m_back_ams_mapping_result.size()) {
+                m_ams_mapping_result[index] = m_back_ams_mapping_result[index];
+            }
+            break;
+        }
         iter++;
     }
 }
@@ -3138,12 +3155,13 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
-        item->set_material_index_str(std::to_string(item_index));
+        auto item_index_str = std::to_string(item_index);
+        item->set_material_index_str(item_index_str);
         item_index++;
 
         contronal_index++;
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder, item_index_str](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id   = iter->first;
@@ -3179,6 +3197,12 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                 if (obj_ && m_checkbox_list["use_ams"]->getValue() == "on" && obj_->dev_id == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
+                    m_mapping_popup.set_material_index_str(item_index_str);
+                    m_mapping_popup.show_reset_button();
+                    auto reset_call_back = [this](const std::string &item_index_str) {
+                        reset_one_ams_material(item_index_str);
+                    };
+                    m_mapping_popup.set_reset_callback(reset_call_back);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.set_send_win(this);
                     m_mapping_popup.update(obj_);
@@ -3366,7 +3390,7 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
                 for (auto col : m_ams_combo_info.ams_multi_color_filment[index]) {
                     cols.push_back(decode_ams_color(col));
                 }
-                it->second->item->set_ams_info(ams_color, ams_id, 0, cols);
+                it->second->item->set_ams_info(ams_color, ams_id, 0, cols);//generate_override_fix_ams_list
                 index++;
             }
         }
