@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "filament_id": "GFS99",
+    "setting_id": "OGFSA04",
+    "name": "Generic PVA @System",
+    "from": "system",
+    "instantiation": "true",
+    "renamed_from": "My Generic PVA",
+    "inherits": "fdm_filament_pva",
+    "compatible_printers": []
+}

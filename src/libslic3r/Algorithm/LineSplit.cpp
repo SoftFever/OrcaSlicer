@@ -48,8 +48,8 @@ using SplitNode = std::vector<ClipperZUtils::ZPath*>;
 static bool point_on_line(const Point& p, const Line& l)
 {
     // Check collinear
-    const auto d1 = l.b - l.a;
-    const auto d2 = p - l.a;
+    const Vec2crd d1 = l.b - l.a;
+    const Vec2crd d2 = p - l.a;
     if (d1.x() * d2.y() != d1.y() * d2.x()) { 
         return false;
     }
