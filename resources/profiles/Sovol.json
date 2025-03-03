@@ -194,6 +194,10 @@
             "sub_path": "filament/Sovol Generic PLA.json"
         },
         {
+            "name": "Sovol SV06 PLA",
+            "sub_path": "filament/Sovol SV06 PLA.json"
+        },
+        {
             "name": "Sovol Generic TPU",
             "sub_path": "filament/Sovol Generic TPU.json"
         },
@@ -270,6 +274,10 @@
         {
             "name": "Sovol SV05 0.4 nozzle",
             "sub_path": "machine/Sovol SV05 0.4 nozzle.json"
+        },
+		{
+            "name": "Sovol SV06 0.4 High-Speed nozzle",
+            "sub_path": "machine/Sovol SV06 0.4 High-Speed nozzle.json"
         },
 		{
             "name": "Sovol SV06 0.4 nozzle",

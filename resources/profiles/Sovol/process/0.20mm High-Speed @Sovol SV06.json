@@ -33,7 +33,7 @@
 	"line_width": "0.4",
 	"infill_direction": "45",
 	"sparse_infill_density": "10%",
-	"sparse_infill_pattern": "grid",
+	"sparse_infill_pattern": "crosshatch",
 	"initial_layer_acceleration": "500",
 	"travel_acceleration": "2500",
 	"inner_wall_acceleration": "2500",
@@ -90,7 +90,7 @@
 	"tree_support_branch_angle": "40",
 	"tree_support_wall_count": "0",
 	"detect_thin_wall": "1",
-	"top_surface_pattern": "monotonic",
+	"top_surface_pattern": "monotonicline",
 	"top_surface_line_width": "0.4",
 	"top_shell_layers": "4",
 	"top_shell_thickness": "0.8",
@@ -111,6 +111,6 @@
 	"xy_contour_compensation": "0",
 	"wall_generator": "classic",
 	"compatible_printers": [
-		"Sovol SV06 0.4 nozzle"
+		"Sovol SV06 0.4 High-Speed nozzle"
 	]
 }
