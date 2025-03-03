@@ -1,13 +1,17 @@
 {
     "name": "Lulzbot",
     "url": "https://ohai.lulzbot.com/group/taz-6/",
-    "version": "02.03.00.01",
+    "version": "02.03.01.00",
     "force_update": "0",
     "description": "Lulzbot configurations",
     "machine_model_list": [
         {
             "name": "Lulzbot Taz 6",
             "sub_path": "machine/Lulzbot Taz 6.json"
+        },
+        {
+            "name": "Lulzbot Taz 4 or 5",
+            "sub_path": "machine/Lulzbot Taz 4 or 5.json"
         }
     ],
     "process_list": [
@@ -22,6 +26,14 @@
         {
             "name": "0.18mm High Detail @Lulzbot Taz 6",
             "sub_path": "process/0.18mm High Detail @Lulzbot Taz 6.json"
+        },
+        {
+            "name": "0.25mm Standard @Lulzbot Taz 4 or 5",
+            "sub_path": "process/0.25mm Standard @Lulzbot Taz 4 or 5.json"
+        },
+        {
+            "name": "0.18mm High Detail @Lulzbot Taz 4 or 5",
+            "sub_path": "process/0.18mm High Detail @Lulzbot Taz 4 or 5.json"
         }
     ],
     "filament_list": [
@@ -46,6 +58,10 @@
         {
             "name": "Lulzbot Taz 6 0.5 nozzle",
             "sub_path": "machine/Lulzbot Taz 6 0.5 nozzle.json"
+        },
+        {
+            "name": "Lulzbot Taz 4 or 5 0.5 nozzle",
+            "sub_path": "machine/Lulzbot Taz 4 or 5 0.5 nozzle.json"
         }
     ]
 }
