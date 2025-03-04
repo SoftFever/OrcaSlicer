@@ -5,7 +5,7 @@
   "name": "Flashforge PLA-CF10 @AD4",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_filament_pla",
+  "inherits": "Flashforge Generic PLA-CF10",
   "additional_cooling_fan_speed": [
     "100"
   ],
