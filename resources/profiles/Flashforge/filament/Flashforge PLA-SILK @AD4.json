@@ -5,7 +5,7 @@
   "name": "Flashforge PLA-Silk @AD4",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_filament_pla",
+  "inherits": "Flashforge Generic PLA-SILK",
   "filament_flow_ratio": [
     "1.07"
   ],
