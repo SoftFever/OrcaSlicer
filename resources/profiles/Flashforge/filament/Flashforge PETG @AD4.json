@@ -5,7 +5,7 @@
     "name": "Flashforge PETG @AD4",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pet",
+    "inherits": "Flashforge Generic PETG",
     "filament_flow_ratio": [
         "1.09"
     ],
