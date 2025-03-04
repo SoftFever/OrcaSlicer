@@ -5,7 +5,7 @@
   "name": "Flashforge PETG-CF10 @AD4",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_filament_pet",
+  "inherits": "Flashforge Generic PETG-CF10",
   "additional_cooling_fan_speed": [
     "100"
   ],
