@@ -58,15 +58,5 @@
         "Flashforge Adventurer 4 Series 0.4 Nozzle"
     ],
     "filename_format": "{input_filename_base}.gcode",
-    "post_process": "",
-    "is_custom_defined": "0",
-    "only_one_wall_top": "0",
-    "sparse_infill_density": "10%",
-    "sparse_infill_pattern": "honeycomb",
-    "support_on_build_plate_only": "1",
-    "support_style": "organic",
-    "support_type": "tree(auto)",
-    "version": "2.2.0.4",
-    "wall_distribution_count": "2",
-    "wall_generator": "arachne"
+    "post_process": ""
 }
