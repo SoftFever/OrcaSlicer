@@ -251,6 +251,8 @@ HelioQuery::CreateSimulationResult HelioBackgroundProcess::create_simulation_ste
     } else {
         notification_manager->push_notification("Helio: Failed to create GCode");
     }
+    
+    return HelioQuery::CreateSimulationResult();
 }
 
 void HelioBackgroundProcess::set_helio_api_key(std::string api_key) { helio_api_key = api_key; }
