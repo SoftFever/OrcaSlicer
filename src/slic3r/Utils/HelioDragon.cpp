@@ -199,6 +199,7 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
     slicing_condition.wait(slicing_lck, [this, &slicing_state]() {
         return slicing_state == BackgroundSlicingProcess::STATE_FINISHED || slicing_state == BackgroundSlicingProcess::STATE_CANCELED;
     });
+    slicing_lck.unlock();
 
     if (slicing_state == BackgroundSlicingProcess::STATE_FINISHED) {
         BOOST_LOG_TRIVIAL(debug) << boost::format("url: %1%, key: %2%") % helio_api_url % helio_api_key;
@@ -225,7 +226,6 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
         }
     }
 
-    slicing_lck.unlock();
 }
 
 HelioQuery::CreateSimulationResult HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResult create_gcode_res, std::unique_ptr<GUI::NotificationManager>& notification_manager)
