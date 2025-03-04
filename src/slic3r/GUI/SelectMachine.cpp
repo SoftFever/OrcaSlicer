@@ -1796,11 +1796,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             msg_text = _L("Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, false, false, true);
     }  else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
-        wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
-        update_print_status_msg(msg_text, false, true, true);
+        update_print_status_msg(wxEmptyString, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
-        wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
-        update_print_status_msg(msg_text, false, false, true);
+        update_print_status_msg(wxEmptyString, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with AMS");
         update_print_status_msg(msg_text, true, false, true);
@@ -1822,8 +1820,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             msg_text = _L("Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
-        wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
-        update_print_status_msg(msg_text, false, true, true);
+        update_print_status_msg(wxEmptyString, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
         update_print_status_msg(wxEmptyString, true, false, false);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
