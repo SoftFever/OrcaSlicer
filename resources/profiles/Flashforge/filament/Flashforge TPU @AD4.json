@@ -5,7 +5,7 @@
   "name": "Flashforge TPU @AD4",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_filament_tpu",
+  "inherits": "Flashforge Generic TPU",
   "additional_cooling_fan_speed": [
     "100"
   ],
