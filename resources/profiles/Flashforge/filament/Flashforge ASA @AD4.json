@@ -5,7 +5,7 @@
   "name": "Flashforge ASA @AD4",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_filament_asa",
+  "inherits": "Flashforge Generic ASA",
   "additional_cooling_fan_speed": [
     "0"
   ],
