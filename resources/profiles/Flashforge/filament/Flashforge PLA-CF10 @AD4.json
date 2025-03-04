@@ -2,7 +2,7 @@
   "type": "filament",
   "filament_id": "GFL99",
   "setting_id": "GFSA04",
-  "name": "Flashforge PLA-CF10 @AD4",
+  "name": "Flashforge Generic PLA-CF10 @AD4",
   "from": "system",
   "instantiation": "true",
   "inherits": "Flashforge Generic PLA-CF10",
@@ -171,7 +171,7 @@
     "100"
   ],
   "filament_vendor": [
-    "Flashforge"
+    "Generic"
   ],
   "filament_wipe": [
     "nil"
