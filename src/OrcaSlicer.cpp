@@ -6128,7 +6128,7 @@ int CLI::run(int argc, char **argv)
                                                        thumbnail_width, thumbnail_height, thumbnail_params,
                                                                                                           partplate_list, model.objects, glvolume_collection, colors_out, shader,
                                                                                                           Slic3r::GUI::Camera::EType::Ortho,
-                                                                                                          Slic3r::GUI::Camera::ViewAngleType::Top_Plate, true);
+                                                                                                          Slic3r::GUI::Camera::ViewAngleType::Top_Plate, true, true);
                                                     break;
                                                 }
                                             case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
@@ -6144,7 +6144,7 @@ int CLI::run(int argc, char **argv)
                                                                                                               glvolume_collection, colors_out, shader,
                                                                                                               Slic3r::GUI::Camera::EType::Ortho,
                                                                                                               Slic3r::GUI::Camera::ViewAngleType::Top_Plate,
-                                                                                                              true);
+                                                                                                              true,true);
                                                     break;
                                                 }
                                             default:
