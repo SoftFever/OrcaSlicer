@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFG99",
     "setting_id": "GFSA04",
-    "name": "Flashforge PETG @AD4",
+    "name": "Flashforge Generic PETG @AD4",
     "from": "system",
     "instantiation": "true",
     "inherits": "Flashforge Generic PETG",
@@ -87,6 +87,6 @@
         "Flashforge Adventurer 4 Series 0.6 Nozzle"
     ],
     "filament_vendor": [
-        "Flashforge"
+        "Generic"
       ]
 }
