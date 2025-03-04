@@ -188,6 +188,10 @@
       "sub_path": "process/0.20mm Standard @Flashforge AD4 0.4 Nozzle.json"
     },
     {
+      "name": "0.30mm Fast @Flashforge AD4 0.4 Nozzle",
+      "sub_path": "process/0.30mm Fast @Flashforge AD4 0.4 Nozzle.json"
+    },	  
+    {
       "name": "0.20mm High-Speed @Flashforge AD4 HS Nozzle",
       "sub_path": "process/0.20mm High-Speed @Flashforge AD4 HS Nozzle.json"
     },
