@@ -642,9 +642,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
         float alpha = m_wipe_tower_rotation / 180.f * float(M_PI);
 
-        auto transform_wt_pt = [&alpha, this](const Vec2f& pt,bool rib_offset=true) -> Vec2f {
+        auto transform_wt_pt = [&alpha, this](const Vec2f& pt) -> Vec2f {
             Vec2f out = Eigen::Rotation2Df(alpha) * pt;
-            out += m_wipe_tower_pos + (rib_offset? m_rib_offset:Vec2f(0.f,0.f));
+            out += m_wipe_tower_pos + m_rib_offset;
             return out;
         };
 
@@ -877,7 +877,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     avoid_bbx = scaled(m_wipe_tower_bbx);
                     Polygon avoid_points = avoid_bbx.polygon();
                     for (auto& p : avoid_points.points) {
-                        Vec2f pp = transform_wt_pt(unscale(p).cast<float>(),false);
+                        Vec2f pp = transform_wt_pt(unscale(p).cast<float>());
                         p = wipe_tower_point_to_object_point(gcodegen, pp + plate_origin_2d);
                     }
                     avoid_bbx = BoundingBox(avoid_points.points);

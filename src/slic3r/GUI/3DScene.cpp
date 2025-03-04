@@ -816,6 +816,49 @@ int GLVolumeCollection::load_wipe_tower_preview(
     return int(volumes.size() - 1);
 }
 
+int GLVolumeCollection::load_real_wipe_tower_preview(
+    int obj_idx, float pos_x, float pos_y, const TriangleMesh& wt_mesh,const TriangleMesh &brim_mesh,bool render_brim, float rotation_angle, bool size_unknown,  bool opengl_initialized)
+{
+    int plate_idx = obj_idx - 1000;
+    if (wt_mesh.its.vertices.empty()) return int(this->volumes.size() - 1);
+
+    std::vector<Slic3r::ColorRGBA> extruder_colors = GUI::wxGetApp().plater()->get_extruders_colors();
+    std::vector<Slic3r::ColorRGBA> colors;
+    GUI::PartPlateList               &ppl              = GUI::wxGetApp().plater()->get_partplate_list();
+    std::vector<int>                  plate_extruders  = ppl.get_plate(plate_idx)->get_extruders(true);
+
+    for (int extruder_id : plate_extruders) {
+        if (extruder_id <= extruder_colors.size())
+            colors.push_back(extruder_colors[extruder_id - 1]);
+        else
+            colors.push_back(extruder_colors[0]);
+    }
+
+    volumes.emplace_back(new GLWipeTowerVolume(colors));
+    GLWipeTowerVolume &v = *dynamic_cast<GLWipeTowerVolume *>(volumes.back());
+    v.model_per_colors.resize(colors.size());
+    auto mesh = wt_mesh;
+    if (render_brim) {
+        mesh.merge(brim_mesh);
+    }
+    if (!colors.empty()) {
+        v.model_per_colors[0].init_from(mesh);
+    }
+    TriangleMesh wipe_tower_shell = mesh.convex_hull_3d();
+    v.model.init_from(wipe_tower_shell);
+    v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(std::make_shared<const TriangleMesh>(wipe_tower_shell));
+    v.set_convex_hull(wipe_tower_shell);
+    v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
+    v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
+    v.composite_id                             = GLVolume::CompositeID(obj_idx, 0, 0);
+    v.geometry_id.first                        = 0;
+    v.geometry_id.second                       = wipe_tower_instance_id().id + (obj_idx - 1000);
+    v.is_wipe_tower                            = true;
+    v.shader_outside_printer_detection_enabled = !size_unknown;
+    return int(volumes.size() - 1);
+}
+
+
 GLVolume* GLVolumeCollection::new_toolpath_volume(const ColorRGBA& rgba)
 {
     GLVolume* out = new_nontoolpath_volume(rgba);

@@ -10,6 +10,7 @@
 #include "GCodeProcessor.hpp"
 #include "BoundingBox.hpp"
 #include "LocalesUtils.hpp"
+#include "Triangulation.hpp"
 
 
 namespace Slic3r
@@ -18,7 +19,9 @@ bool                    flat_ironing                   = true; // Whether to ena
 static constexpr float  flat_iron_area                 = 4.f;
 constexpr float         flat_iron_speed                = 10.f * 60.f;
 static const double wipe_tower_wall_infill_overlap = 0.0;
-static constexpr double WIPE_TOWER_RESOLUTION = 0.0375;
+static constexpr double WIPE_TOWER_RESOLUTION = 0.1;
+#define WT_SIMPLIFY_TOLERANCE_SCALED (0.001 / SCALING_FACTOR)
+static constexpr int    arc_fit_size = 20;
 #define SCALED_WIPE_TOWER_RESOLUTION (WIPE_TOWER_RESOLUTION / SCALING_FACTOR)
 inline float align_round(float value, float base)
 {
@@ -98,7 +101,7 @@ static Polygon chamfer_polygon(Polygon &polygon, double chamfer_dis = 2., double
     return res;
 }
 
-static Polygon rounding_polygon(Polygon &polygon, double rounding = 2., double angle_tol = 30. / 180. * PI)
+Polygon WipeTower::rounding_polygon(Polygon &polygon, double rounding /*= 2.*/, double angle_tol/* = 30. / 180. * PI*/)
 {
     if (polygon.points.size() < 3) return polygon;
     Polygon res;
@@ -140,8 +143,7 @@ static Polygon rounding_polygon(Polygon &polygon, double rounding = 2., double a
                 Vec2d  center    = b + dir * dis;
                 double radius    = (left - center).norm();
                 ArcSegment arc(scaled(center), scaled(radius), scaled(left), scaled(right), is_ccw ? ArcDirection::Arc_Dir_CCW : ArcDirection::Arc_Dir_CW);
-                float      sample_angle = 5.f / 180.f * PI;
-                int        n            = std::ceil(abs(arc.angle_radians) / sample_angle);
+                int        n            = arc_fit_size;
                 //std::cout << "start  " << arc.start_point[0] << " " << arc.start_point[1] << std::endl;
                 //std::cout << "end  " << arc.end_point[0] << " " << arc.end_point[1] << std::endl;
                 //std::cout << "start angle   " << arc.polar_start_theta << " end angle " << arc.polar_end_theta << std::endl;
@@ -162,6 +164,7 @@ static Polygon rounding_polygon(Polygon &polygon, double rounding = 2., double a
         } else
             res.points.push_back(polygon.points[i]);
     }
+    res.remove_duplicate_points();
     res.points.shrink_to_fit();
     return res;
 }
@@ -198,8 +201,7 @@ static Polygon rounding_rectangle(Polygon &polygon, double rounding = 2., double
                 Vec2d      center = b;
                 double     radius = real_rounding_dis;
                 ArcSegment arc(scaled(center), scaled(radius), scaled(left), scaled(right), is_ccw ? ArcDirection::Arc_Dir_CCW : ArcDirection::Arc_Dir_CW);
-                float      sample_angle = 5.f / 180.f * PI;
-                int        n            = std::ceil(abs(arc.angle_radians) / sample_angle);
+                int        n            = arc_fit_size;
                 // std::cout << "start  " << arc.start_point[0] << " " << arc.start_point[1] << std::endl;
                 // std::cout << "end  " << arc.end_point[0] << " " << arc.end_point[1] << std::endl;
                 // std::cout << "start angle   " << arc.polar_start_theta << " end angle " << arc.polar_end_theta << std::endl;
@@ -724,9 +726,7 @@ public:
             width += m_layer_height * float(1. - M_PI / 4.);
             if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos) m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
             {
-
-                float sample_angle = 5.f / 180.f * PI;
-                int   n            = std::ceil(abs(arc.angle_radians) / sample_angle);
+                int   n            = arc_fit_size;
                 for (int j = 0; j < n; j++) {
                     float cur_angle = arc.polar_start_theta + (float) j / n * arc.angle_radians;
                     if (cur_angle > 2 * PI)
@@ -899,6 +899,7 @@ public:
     WipeTowerWriter &polygon(const Polygon &wall_polygon, const float f = 0.f)
     {
         Polyline    pl = to_polyline(wall_polygon);
+        pl.simplify(WT_SIMPLIFY_TOLERANCE_SCALED);
         pl.simplify_by_fitting_arc(SCALED_WIPE_TOWER_RESOLUTION);
 
         auto get_closet_idx = [this](std::vector<Segment> &corners) -> int {
@@ -1370,6 +1371,122 @@ float WipeTower::get_auto_brim_by_height(float max_height) {
     if (max_height < 100) return max_height/100.f * 8.f;
     return 8.f;
 }
+
+Vec2f WipeTower::move_box_inside_box(const BoundingBox &box1, const BoundingBox &box2,int scaled_offset)
+{
+    Vec2f res{0, 0};
+    if (box1.size()[0] >= box2.size()[0]- 2*scaled_offset || box1.size()[1] >= box2.size()[1]-2*scaled_offset) return res;
+
+    if (box1.max[0] > box2.max[0] - scaled_offset) {
+        res[0] = unscaled<float>((box2.max[0] - scaled_offset) - box1.max[0]);
+    }
+    else if (box1.min[0] < box2.min[0] + scaled_offset) {
+        res[0] = unscaled<float>((box2.min[0] + scaled_offset) - box1.min[0]);
+    }
+
+    if (box1.max[1] > box2.max[1] - scaled_offset) {
+        res[1] = unscaled<float>((box2.max[1] - scaled_offset) - box1.max[1]);
+    }
+    else if (box1.min[1] < box2.min[1] + scaled_offset) {
+        res[1] = unscaled<float>((box2.min[1] + scaled_offset) - box1.min[1]);
+    }
+    return res;
+}
+
+Polygon WipeTower::rib_section(float width, float depth, float rib_length, float rib_width,bool fillet_wall)
+{
+    Polygon res;
+    res.points.resize(16);
+    float              theta     = std::atan(width / depth);
+    float              costheta  = std::cos(theta);
+    float              sintheta  = std::sin(theta);
+    float              w         = rib_width / 2.f;
+    float              diag      = std::sqrt(width * width + depth * depth);
+    float              l         = (rib_length - diag) / 2;
+    Vec2f              diag_dir1 = Vec2f{width, depth}.normalized();
+    Vec2f              diag_dir1_perp{-diag_dir1[1], diag_dir1[0]};
+    Vec2f              diag_dir2 = Vec2f{-width, depth}.normalized();
+    Vec2f              diag_dir2_perp{-diag_dir2[1], diag_dir2[0]};
+    std::vector<Vec2f> p{{0, 0}, {width, 0}, {width, depth}, {0, depth}};
+    Polyline           p_render;
+    for (auto &x : p) p_render.points.push_back(scaled(x));
+    res.points[0] = scaled(Vec2f{p[0].x(), p[0].y() + w / sintheta});
+    res.points[1] = scaled(Vec2f{p[0] - diag_dir1 * l + diag_dir1_perp * w});
+    res.points[2] = scaled(Vec2f{p[0] - diag_dir1 * l - diag_dir1_perp * w});
+    res.points[3] = scaled(Vec2f{p[0].x() + w / costheta, p[0].y()});
+
+    res.points[4] = scaled(Vec2f{p[1].x() - w / costheta, p[1].y()});
+    res.points[5] = scaled(Vec2f{p[1] - diag_dir2 * l + diag_dir2_perp * w});
+    res.points[6] = scaled(Vec2f{p[1] - diag_dir2 * l - diag_dir2_perp * w});
+    res.points[7] = scaled(Vec2f{p[1].x(), p[1].y() + w / sintheta});
+
+    res.points[8]  = scaled(Vec2f{p[2].x(), p[2].y() - w / sintheta});
+    res.points[9]  = scaled(Vec2f{p[2] + diag_dir1 * l - diag_dir1_perp * w});
+    res.points[10] = scaled(Vec2f{p[2] + diag_dir1 * l + diag_dir1_perp * w});
+    res.points[11] = scaled(Vec2f{p[2].x() - w / costheta, p[2].y()});
+
+    res.points[12] = scaled(Vec2f{p[3].x() + w / costheta, p[3].y()});
+    res.points[13] = scaled(Vec2f{p[3] + diag_dir2 * l - diag_dir2_perp * w});
+    res.points[14] = scaled(Vec2f{p[3] + diag_dir2 * l + diag_dir2_perp * w});
+    res.points[15] = scaled(Vec2f{p[3].x(), p[3].y() - w / sintheta});
+    res.remove_duplicate_points();
+    if (fillet_wall) { res = rounding_polygon(res); }
+    res.points.shrink_to_fit();
+    return res;
+}
+
+TriangleMesh WipeTower::its_make_rib_tower(float width, float depth, float height, float rib_length, float rib_width, bool fillet_wall)
+{
+    TriangleMesh res;
+    Polygon      bottom = rib_section(width, depth, rib_length, rib_width, fillet_wall);
+    Polygon      top    = rib_section(width, depth, std::sqrt(width * width + depth * depth), rib_width, fillet_wall);
+    if (fillet_wall)
+    assert(bottom.points.size() == top.points.size());
+    int     offset       = bottom.points.size();
+    res.its.vertices.reserve(offset * 2);
+    auto    faces_bottom = Triangulation::triangulate(bottom);
+    auto    faces_top    = Triangulation::triangulate(top);
+    res.its.indices.reserve(offset * 2 + faces_bottom.size() + faces_top.size());
+    for (auto &t : faces_bottom) res.its.indices.push_back({t[1], t[0], t[2]});
+    for (auto &t : faces_top) res.its.indices.push_back({t[0] + offset, t[1] + offset, t[2] + offset});
+
+    for (int i = 0; i < bottom.size(); i++) res.its.vertices.push_back({unscaled<float>(bottom[i][0]), unscaled<float>(bottom[i][1]), 0});
+    for (int i = 0; i < top.size(); i++) res.its.vertices.push_back({unscaled<float>(top[i][0]), unscaled<float>(top[i][1]), height});
+
+    for (int i = 0; i < offset; i++) {
+        int a = i;
+        int b = (i + 1) % offset;
+        int c = i + offset;
+        int d = b + offset;
+        res.its.indices.push_back({a, b, c});
+        res.its.indices.push_back({d, c, b});
+    }
+    return res;
+}
+
+TriangleMesh WipeTower::its_make_rib_brim(const Polygon& brim, float layer_height) {
+    TriangleMesh res;
+    int          offset = brim.size();
+    res.its.vertices.reserve(brim.size() * 2);
+    auto    faces= Triangulation::triangulate(brim);
+    res.its.indices.reserve(brim.size() * 2  + 2 * faces.size());
+    for (auto &t : faces) res.its.indices.push_back({t[1], t[0], t[2]});
+    for (auto &t : faces) res.its.indices.push_back({t[0] + offset, t[1] + offset, t[2] + offset});
+
+    for (int i = 0; i < brim.size(); i++) res.its.vertices.push_back({unscaled<float>(brim[i][0]), unscaled<float>(brim[i][1]), 0});
+    for (int i = 0; i < brim.size(); i++) res.its.vertices.push_back({unscaled<float>(brim[i][0]), unscaled<float>(brim[i][1]), layer_height});
+
+    for (int i = 0; i < offset; i++) {
+        int a = i;
+        int b = (i + 1) % offset;
+        int c = i + offset;
+        int d = b + offset;
+        res.its.indices.push_back({a, b, c});
+        res.its.indices.push_back({d, c, b});
+    }
+    return res;
+}
+
 
 WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height) :
     m_semm(config.single_extruder_multi_material.value),
@@ -3634,6 +3751,8 @@ void WipeTower::plan_tower_new()
     update_all_layer_depth(max_depth);
     m_rib_length = std::max({m_rib_length, sqrt(m_wipe_tower_depth * m_wipe_tower_depth + m_wipe_tower_width * m_wipe_tower_width)});
     m_rib_length += m_extra_rib_length;
+    m_rib_length = std::max(0.f, m_rib_length);
+    m_rib_width  = std::min(m_rib_width, std::min(m_wipe_tower_depth, m_wipe_tower_width) / 2.f); // Ensure that the rib wall of the wipetower are attached to the infill.
 
 }
 
@@ -3698,7 +3817,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
     if (m_plan.empty())
         return;
     //m_extra_spacing = 1.f;
-
+    m_wipe_tower_height = m_plan.back().z;//real wipe_tower_height
     plan_tower_new();
 
     m_layer_info = m_plan.begin();

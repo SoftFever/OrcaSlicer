@@ -28,7 +28,11 @@ public:
 	static const std::map<float, float> min_depth_per_height;
     static float get_limit_depth_by_height(float max_height);
     static float get_auto_brim_by_height(float max_height);
-
+    static TriangleMesh                 its_make_rib_tower(float width, float depth, float height, float rib_length, float rib_width, bool fillet_wall);
+    static TriangleMesh                 its_make_rib_brim(const Polygon& brim, float layer_height);
+    static Polygon                      rib_section(float width, float depth, float rib_length, float rib_width, bool fillet_wall);
+    static Vec2f                        move_box_inside_box(const BoundingBox &box1, const BoundingBox &box2, int offset = 0);
+    static Polygon                      rounding_polygon(Polygon &polygon, double rounding = 2., double angle_tol = 30. / 180. * PI);
     struct Extrusion
     {
 		Extrusion(const Vec2f &pos, float width, unsigned int tool) : pos(pos), width(width), tool(tool) {}
@@ -192,20 +196,16 @@ public:
         if (m_outer_wall.empty()) return BoundingBoxf({Vec2d(0,0)});
         BoundingBox  box = get_extents(m_outer_wall.begin()->second);
         BoundingBoxf res = BoundingBoxf(unscale(box.min), unscale(box.max));
-        res.translate(m_rib_offset.cast<double>());
         return res;
     }
     std::map<float, Polylines> get_outer_wall() const
     {
-        std::map<float, Polylines> res   = m_outer_wall;
-        Point trans = scaled(m_rib_offset);
-        for (auto &[h,polylines] : res)
-            for (auto &polyline : polylines)
-                polyline.translate(trans.x(), trans.y());
-        return res;
+        return m_outer_wall;
     }
     float get_height() const { return m_wipe_tower_height; }
     float get_layer_height() const { return m_layer_height; }
+    float get_rib_length() const { return m_rib_length; }
+    float get_rib_width() const { return m_rib_width; }
 
 	void set_last_layer_extruder_fill(bool extruder_fill) {
         if (!m_plan.empty()) {

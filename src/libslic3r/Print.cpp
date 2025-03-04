@@ -977,13 +977,20 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
 
     Polygons convex_hulls_temp;
     if (print.has_wipe_tower()) {
-        Polygon wipe_tower_convex_hull;
-        wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y));
-        wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y));
-        wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y + depth));
-        wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y + depth));
-        wipe_tower_convex_hull.rotate(a);
-        convex_hulls_temp.push_back(wipe_tower_convex_hull);
+        if (!print.is_step_done(psWipeTower)) {
+            Polygon wipe_tower_convex_hull;
+            wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y));
+            wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y));
+            wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y + depth));
+            wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y + depth));
+            wipe_tower_convex_hull.rotate(a);
+            convex_hulls_temp.push_back(wipe_tower_convex_hull);
+        } else {
+            //here, wipe_tower_polygon is not always convex.
+            Polygon wipe_tower_polygon = print.wipe_tower_data().wipe_tower_mesh_data->bottom;
+            wipe_tower_polygon.translate(Point(scale_(x), scale_(y)));
+            convex_hulls_temp.push_back(wipe_tower_polygon);
+        }
     }
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
@@ -2569,7 +2576,7 @@ Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) co
     {
         double width = m_wipe_tower_data.bbx.max.x() - m_wipe_tower_data.bbx.min.x();
         double depth = m_wipe_tower_data.bbx.max.y() -m_wipe_tower_data.bbx.min.y();
-        Vec2d pt0 = m_wipe_tower_data.bbx.min;
+        Vec2d  pt0   = m_wipe_tower_data.bbx.min + m_wipe_tower_data.rib_offset.cast<double>();
         
         // First the corners.
         std::vector<Vec2d> pts = { pt0,
@@ -2874,8 +2881,8 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
         }
         const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
         }
+        if (m_config.prime_tower_brim_width < 0) const_cast<Print *>(this)->m_wipe_tower_data.brim_width = WipeTower::get_auto_brim_by_height(max_height);
     }
-    if (m_config.prime_tower_brim_width < 0 ) const_cast<Print *>(this)->m_wipe_tower_data.brim_width = WipeTower::get_auto_brim_by_height(max_height);
     return m_wipe_tower_data;
 }
 
@@ -3058,10 +3065,13 @@ void Print::_make_wipe_tower()
 
         m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
         m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
+        m_wipe_tower_data.construct_mesh(wipe_tower.width(), wipe_tower.get_depth(), wipe_tower.get_height(), wipe_tower.get_brim_width(), config().prime_tower_rib_wall.value,
+                                         wipe_tower.get_rib_width(), wipe_tower.get_rib_length(), config().prime_tower_fillet_wall.value);
         const Vec3d origin                      = this->get_plate_origin();
-        m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position(), wipe_tower.width(), wipe_tower.get_height(),
-                                                  wipe_tower.get_layer_height(), m_wipe_tower_data.depth, m_wipe_tower_data.brim_width,
-                                                  {scale_(origin.x()), scale_(origin.y())});
+        m_fake_wipe_tower.rib_offset = wipe_tower.get_rib_offset();
+        m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position() + m_fake_wipe_tower.rib_offset, wipe_tower.width(), wipe_tower.get_height(), wipe_tower.get_layer_height(),
+                                                  m_wipe_tower_data.depth,
+                                                  m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())});
         m_fake_wipe_tower.outer_wall = wipe_tower.get_outer_wall();
     } else {
         // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
@@ -4667,6 +4677,25 @@ ExtrusionLayers FakeWipeTower::getTrueExtrusionLayersFromWipeTower() const
     }
     return wtels;
 }
-
+void WipeTowerData::construct_mesh(float width, float depth, float height, float brim_width, bool is_rib_wipe_tower, float rib_width, float rib_length,bool fillet_wall)
+{
+    wipe_tower_mesh_data = WipeTowerMeshData{};
+    float first_layer_height=0.08; //brim height
+    if (!is_rib_wipe_tower) {
+        wipe_tower_mesh_data->real_wipe_tower_mesh = make_cube(width, depth, height);
+        wipe_tower_mesh_data->real_brim_mesh       = make_cube(width + 2 * brim_width, depth + 2 * brim_width, first_layer_height);
+        wipe_tower_mesh_data->real_brim_mesh.translate({-brim_width, -brim_width, 0});
+        wipe_tower_mesh_data->bottom = {scaled(Vec2f{-brim_width, -brim_width}), scaled(Vec2f{width + brim_width, 0}), scaled(Vec2f{width + brim_width, depth + brim_width}),
+                                        scaled(Vec2f{0, depth})};
+    } else {
+        wipe_tower_mesh_data->real_wipe_tower_mesh = WipeTower::its_make_rib_tower(width, depth, height, rib_length, rib_width, fillet_wall);
+        wipe_tower_mesh_data->bottom               = WipeTower::rib_section(width, depth, rib_length, rib_width, fillet_wall);
+        wipe_tower_mesh_data->bottom               = offset(wipe_tower_mesh_data->bottom, scaled(brim_width)).front();
+        wipe_tower_mesh_data->real_brim_mesh       = WipeTower::its_make_rib_brim(wipe_tower_mesh_data->bottom, first_layer_height);
+        wipe_tower_mesh_data->real_wipe_tower_mesh.translate(Vec3f(rib_offset[0], rib_offset[1],0));
+        wipe_tower_mesh_data->real_brim_mesh.translate(Vec3f(rib_offset[0], rib_offset[1], 0));
+        wipe_tower_mesh_data->bottom.translate(scaled(Vec2f(rib_offset[0], rib_offset[1])));
+    }
+}
 
 } // namespace Slic3r

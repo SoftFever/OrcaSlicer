@@ -594,13 +594,14 @@ struct FakeWipeTower
     Vec2f pos;
     float width;
     float height;
-    float layer_height;
+    float layer_height;// Due to variable layer height, this parameter may be not right.
     float depth;
     std::vector<std::pair<float, float>> z_and_depth_pairs;
     float brim_width;
     float rotation_angle;
     float cone_angle;
     Vec2d plate_origin;
+    Vec2f rib_offset{0.f,0.f};
     std::map<float , Polylines> outer_wall; //wipe tower's true outer wall and brim
 
     void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
@@ -627,7 +628,7 @@ struct FakeWipeTower
         plate_origin = o;
     }
 
-    void set_pos(Vec2f p) { pos = p; }
+    void set_pos(Vec2f p) { pos = p+rib_offset; }
     void set_pos_and_rotation(const Vec2f& p, float rotation) { pos = p; rotation_angle = rotation; }
 
     std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower() const
@@ -736,6 +737,12 @@ struct FakeWipeTower
 
 struct WipeTowerData
 {
+    struct WipeTowerMeshData
+    {
+        Polygon      bottom;
+        TriangleMesh real_wipe_tower_mesh;
+        TriangleMesh real_brim_mesh;
+    };
     // Following section will be consumed by the GCodeGenerator.
     // Tool ordering of a non-sequential print has to be known to calculate the wipe tower.
     // Cache it here, so it does not need to be recalculated during the G-code generation.
@@ -752,9 +759,9 @@ struct WipeTowerData
     std::vector<std::pair<float, float>>                  z_and_depth_pairs;
     float                                                 brim_width;
     float                                                 height;
-    BoundingBoxf                                          bbx;
+    BoundingBoxf                                          bbx;//including brim
     Vec2f                                                 rib_offset;
-
+    std::optional<WipeTowerMeshData>                      wipe_tower_mesh_data;//added rib_offset
     void clear() {
         priming.reset(nullptr);
         tool_changes.clear();
@@ -763,7 +770,9 @@ struct WipeTowerData
         number_of_toolchanges = -1;
         depth = 0.f;
         brim_width = 0.f;
+        wipe_tower_mesh_data  = std::nullopt;
     }
+    void construct_mesh(float width, float depth, float height, float brim_width, bool is_rib_wipe_tower, float rib_width, float rib_length, bool fillet_wall);
 
 private:
 	// Only allow the WipeTowerData to be instantiated internally by Print, 
