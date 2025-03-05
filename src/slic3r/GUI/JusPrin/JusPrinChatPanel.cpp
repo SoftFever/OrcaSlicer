@@ -93,6 +93,7 @@ void JusPrinChatPanel::init_action_handlers() {
     void_action_handlers["switch_to_preview"] = &JusPrinChatPanel::handle_switch_to_preview;
     void_action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
     void_action_handlers["set_btn_notification_badges"] = &JusPrinChatPanel::handle_set_btn_notification_badges;
+    void_action_handlers["arrange_all_objects"] = &JusPrinChatPanel::handle_arrange_all_objects;
 }
 
 
@@ -314,6 +315,14 @@ void JusPrinChatPanel::handle_switch_to_preview(const nlohmann::json& params) {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
         plater->select_view_3D("Preview", false);
         wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
+    });
+}
+
+void JusPrinChatPanel::handle_arrange_all_objects(const nlohmann::json& params) {
+    GUI::wxGetApp().CallAfter([this] {
+        Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
+        plater->set_prepare_state(Job::PREPARE_STATE_MENU);
+        plater->arrange();
     });
 }
 
