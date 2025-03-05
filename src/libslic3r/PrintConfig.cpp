@@ -7576,7 +7576,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("enable_timelapse", coBool);
-    def->label = L("Enable timeplapse for print");
+    def->label = L("Enable timelapse for print");
     def->tooltip = L("If enabled, this slicing will be considered using timelapse");
     def->set_default_value(new ConfigOptionBool(false));
 
