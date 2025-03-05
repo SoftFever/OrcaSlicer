@@ -337,21 +337,21 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 
     auto http = Http::get(file_download_url);
     std::string downloaded_gcode;
-    std::string error;
+    std::string response_error;
 
-    http.on_complete([&downloaded_gcode, &error](std::string body, unsigned status) {
+    http.on_complete([&downloaded_gcode, &response_error](std::string body, unsigned status) {
             if (status == 200) {
                 downloaded_gcode = body;
             } else {
-                error = (boost::format("status: %1%, error: %2%") % status % body).str();
+                response_error = (boost::format("status: %1%, error: %2%") % status % body).str();
             }
         })
-        .on_error([&error](std::string body, std::string error, unsigned status) {
-            error = (boost::format("status: %1%, error: %2%") % status % body).str();
+        .on_error([&response_error](std::string body, std::string error, unsigned status) {
+            response_error = (boost::format("status: %1%, error: %2%") % status % body).str();
         })
         .perform_sync();
 
-    if (error.empty()) {
+    if (response_error.empty()) {
         FILE* file = fopen(simulated_gcode_path.c_str(), "w");
         fwrite(downloaded_gcode.c_str(), 1, downloaded_gcode.size(), file);
         fclose(file);
