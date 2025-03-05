@@ -728,7 +728,11 @@ void AMSControl::CreateAmsSingleNozzle()
             //AddExtraAms(*ams_info);
         }
         else if (ams_info->cans.size() == 1) {
-            single_info.push_back(*ams_info);
+            m_item_ids[DEPUTY_NOZZLE_ID].push_back(ams_info->ams_id);
+            AddAmsPreview(*ams_info, ams_info->ams_type);
+            AddAms(*ams_info, AMSPanelPos::LEFT_PANEL);
+
+            /*single_info.push_back(*ams_info);
             if (single_info.size() == MAX_AMS_NUM_IN_PANEL) {
                 m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info[0].ams_id);
                 m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info[1].ams_id);
@@ -737,7 +741,7 @@ void AMSControl::CreateAmsSingleNozzle()
                 AddAmsPreview(single_info, AMSPanelPos::LEFT_PANEL);
                 AddAms(single_info, AMSPanelPos::LEFT_PANEL);
                 single_info.clear();
-            }
+            }*/
         }
     }
     if (single_info.size() > 0){
@@ -803,30 +807,6 @@ void AMSControl::CreateAmsSingleNozzle()
 
 void AMSControl::Reset()
 {
-    /*auto caninfo0_0 = Caninfo{"0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"1", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"2", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"3", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-
-    AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-
-    std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
-    std::vector<AMSinfo>::iterator it;*/
-
-    /*Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (dev) {
-        MachineObject* obj = dev->get_selected_machine();
-        parse_object(obj);
-    }
-
-    UpdateAms(m_ams_info, true);
-    m_current_show_ams  = "";
-    m_current_ams       = "";
-    m_current_select    = "";*/
-
     m_ams_info.clear();
     m_ext_info.clear();
     m_dev_id.clear();
@@ -995,74 +975,68 @@ void AMSControl::UpdateAms(const std::string& series_name, std::vector<AMSinfo> 
 
         //m_simplebook_ams_left->SetSelection(m_simplebook_ams_left->m_first);
     }
-    else
-    {
-        static bool first_time = true;
-        bool fresh = false;
-        static std::vector<AMSinfo>ams_info;
-        int nozzle_num = 2;
-        if (first_time){
-            ams_info = GenerateSimulateData();
-            fresh = true;
-            first_time = false;
-        }
+    //else
+    //{
+    //    static bool first_time = true;
+    //    bool fresh = false;
+    //    static std::vector<AMSinfo>ams_info;
+    //    int nozzle_num = 2;
+    //    if (first_time){
+    //        ams_info = GenerateSimulateData();
+    //        fresh = true;
+    //        first_time = false;
+    //    }
 
-        //Freeze();
+    //    //Freeze();
 
-        // update item
-        m_ams_info.clear();
-        m_ams_info = ams_info;
-        m_ext_info.clear();
-        m_ext_info.push_back(ext_info[0]);
-        m_ext_info.push_back(ext_info[0]);
-        m_ext_info[0].ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
-        m_ext_info[0].nozzle_id = MAIN_NOZZLE_ID;
-        m_ext_info[1].ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
-        m_ext_info[1].nozzle_id = DEPUTY_NOZZLE_ID;
-        m_extder_data = data;
-        if (fresh){
-            ClearAms();
-            if (m_extder_data.total_extder_count >= 2) {
-                CreateAmsDoubleNozzle();
-            }
-            else {
-                CreateAmsSingleNozzle();
-            }
-            SetSize(wxSize(FromDIP(578), -1));
-            SetMinSize(wxSize(FromDIP(578), -1));
-            Layout();
-        }
-        //Thaw();
+    //    // update item
+    //    m_ams_info.clear();
+    //    m_ams_info = ams_info;
+    //    m_ext_info.clear();
+    //    m_ext_info.push_back(ext_info[0]);
+    //    m_ext_info.push_back(ext_info[0]);
+    //    m_ext_info[0].ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+    //    m_ext_info[0].nozzle_id = MAIN_NOZZLE_ID;
+    //    m_ext_info[1].ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
+    //    m_ext_info[1].nozzle_id = DEPUTY_NOZZLE_ID;
+    //    m_extder_data = data;
+    //    if (fresh){
+    //        ClearAms();
+    //        if (m_extder_data.total_extder_count >= 2) {
+    //            CreateAmsDoubleNozzle();
+    //        }
+    //        else {
+    //            CreateAmsSingleNozzle();
+    //        }
+    //        SetSize(wxSize(FromDIP(578), -1));
+    //        SetMinSize(wxSize(FromDIP(578), -1));
+    //        Layout();
+    //    }
+    //    //Thaw();
 
-        // update cans
+    //    // update cans
 
-        for (auto ams_item : m_ams_item_list) {
-            std::string ams_id = ams_item.first;
-            AmsItem* cans = ams_item.second;
-            if (atoi(cans->get_ams_id().c_str()) >= VIRTUAL_TRAY_DEPUTY_ID) {
-                for (auto ifo : m_ext_info) {
-                    if (ifo.ams_id == ams_id) {
-                        cans->Update(ifo);
-                        cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
-                    }
-                }
-            }
-            else {
-                for (auto ifo : m_ams_info) {
-                    if (ifo.ams_id == ams_id) {
-                        cans->Update(ifo);
-                        cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
-                    }
-                }
-            }
-        }
-
-        /*if (m_current_show_ams.empty() && !is_reset) {
-            if (ams_info.size() > 0) {
-                SwitchAms(ams_info[0].ams_id);
-            }
-        }*/
-    }
+    //    for (auto ams_item : m_ams_item_list) {
+    //        std::string ams_id = ams_item.first;
+    //        AmsItem* cans = ams_item.second;
+    //        if (atoi(cans->get_ams_id().c_str()) >= VIRTUAL_TRAY_DEPUTY_ID) {
+    //            for (auto ifo : m_ext_info) {
+    //                if (ifo.ams_id == ams_id) {
+    //                    cans->Update(ifo);
+    //                    cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
+    //                }
+    //            }
+    //        }
+    //        else {
+    //            for (auto ifo : m_ams_info) {
+    //                if (ifo.ams_id == ams_id) {
+    //                    cans->Update(ifo);
+    //                    cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     /*update humidity popup*/
     if (m_percent_humidity_dry_popup->IsShown())
