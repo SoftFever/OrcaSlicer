@@ -6479,11 +6479,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"% d: %s플레이트는 %s(%s)필라멘트를 출력하는데 사용하지 않는 것이 좋습니다. "
+"%d: %s플레이트는 %s(%s)필라멘트를 출력하는데 사용하지 않는 것이 좋습니다. "
 "이 출력을 계속하려면 이 필라멘트의 베드 온도를 0이 아닌 값으로 설정하세요."
 
 msgid "Switching the language requires application restart.\n"

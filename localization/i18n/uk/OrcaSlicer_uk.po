@@ -6658,11 +6658,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Пластина% d: %s не рекомендується використовувати для друку на нитках "
+"Пластина %d: %s не рекомендується використовувати для друку на нитках "
 "%s(%s). Якщо ви все ще хочете зробити цей друк, будь ласка, встановіть "
 "температуру шару цієї нитки до ненульового."
 

@@ -6347,11 +6347,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"列印板% d：%s 不建議用於列印 %s（%s）線材。如果你仍想執行此列印，請將該線材的"
+"列印板 %d：%s 不建議用於列印 %s（%s）線材。如果你仍想執行此列印，請將該線材的"
 "熱床溫度設為非零值。"
 
 msgid "Switching the language requires application restart.\n"
