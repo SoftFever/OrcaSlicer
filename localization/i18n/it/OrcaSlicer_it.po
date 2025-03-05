@@ -8067,7 +8067,7 @@ msgid "Retraction"
 msgstr "Retrazione"
 
 msgid "Basic information"
-msgstr "Informazioni di Base"
+msgstr "Informazioni di base"
 
 msgid "Recommended nozzle temperature"
 msgstr "Temperatura ugello consigliata"
@@ -14842,7 +14842,7 @@ msgid ""
 "higher angle for branches to merge faster."
 msgstr ""
 "L'angolo di inclinazione preferito dei rami, quando non devono evitare il "
-"modello. Utilizzare un'angolazionep iù bassa per renderli più verticali e "
+"modello. Utilizzare un'angolazione più bassa per renderli più verticali e "
 "più stabili. Utilizzare un'angolazione più alta in modo che i rami si "
 "uniscano più velocemente."
 
