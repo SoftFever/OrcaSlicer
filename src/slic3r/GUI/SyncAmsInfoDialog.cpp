@@ -2882,13 +2882,15 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             wxBoxSizer *ams_tip_sizer = new wxBoxSizer(wxVERTICAL);
             if (is_first_row) {
                 is_first_row              = false;
-                auto tip0_text = new wxStaticText(m_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
+                auto tip0_text = new wxStaticText(m_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS") + ":");
                 tip0_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-                ams_tip_sizer->Add(tip0_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+                tip0_text->SetFont(::Label::Head_12);
+                ams_tip_sizer->Add(tip0_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
 
-                auto tip1_text = new wxStaticText(m_filament_panel, wxID_ANY, _L("AMS"));
+                auto tip1_text = new wxStaticText(m_filament_panel, wxID_ANY, _L("AMS") + ":");
                 tip1_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-                ams_tip_sizer->Add(tip1_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
+                tip1_text->SetFont(::Label::Head_12);
+                ams_tip_sizer->Add(tip1_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(9));
             }
             m_sizer_ams_mapping->Add(ams_tip_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
             contronal_index++;
