@@ -4710,6 +4710,9 @@ msgstr ""
 msgid "Overwrite file"
 msgstr ""
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr ""
 

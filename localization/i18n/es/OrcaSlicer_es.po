@@ -5078,6 +5078,9 @@ msgstr ""
 msgid "Overwrite file"
 msgstr "Sobrescribir archivo"
 
+msgid "Overwrite config"
+msgstr "Sobrescribir configuración"
+
 msgid "Yes to All"
 msgstr "Sí a todo"
 

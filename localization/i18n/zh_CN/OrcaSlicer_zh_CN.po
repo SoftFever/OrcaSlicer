@@ -4836,6 +4836,9 @@ msgstr "有一个同名的配置 %s。你想覆盖它吗？"
 msgid "Overwrite file"
 msgstr "覆盖文件"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "全是"
 

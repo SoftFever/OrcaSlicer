@@ -4989,6 +4989,9 @@ msgstr "Aynı adda bir yapılandırma mevcut: %s, üzerine yazmak istiyor musunu
 msgid "Overwrite file"
 msgstr "Dosyanın üzerine yaz"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "Tümüne evet"
 

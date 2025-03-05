@@ -5090,6 +5090,9 @@ msgstr ""
 msgid "Overwrite file"
 msgstr "Datei überschreiben"
 
+msgid "Overwrite config"
+msgstr "Konfiguration überschreiben"
+
 msgid "Yes to All"
 msgstr "Ja zu allem"
 

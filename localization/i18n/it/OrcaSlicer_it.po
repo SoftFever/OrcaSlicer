@@ -5050,6 +5050,9 @@ msgstr "Esiste una configurazione con lo stesso nome: %s. Vuoi sovrascriverla?"
 msgid "Overwrite file"
 msgstr "Sovrascrivi file"
 
+msgid "Overwrite config"
+msgstr "Sovrascrivi configurazione"
+
 msgid "Yes to All"
 msgstr "Sì a tutto"
 

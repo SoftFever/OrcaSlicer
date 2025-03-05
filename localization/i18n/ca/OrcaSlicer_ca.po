@@ -5038,6 +5038,9 @@ msgstr "Hi ha una configuració amb el mateix nom: %s, la voleu sobreescriure."
 msgid "Overwrite file"
 msgstr "Sobreescriure el fitxer"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "Sí a Tot"
 

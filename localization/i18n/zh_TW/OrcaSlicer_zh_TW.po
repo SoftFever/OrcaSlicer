@@ -4843,6 +4843,9 @@ msgstr "已存在名稱為 %s 的設定檔，是否要覆蓋它？"
 msgid "Overwrite file"
 msgstr "覆蓋檔案"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "全部覆蓋"
 

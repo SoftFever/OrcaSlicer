@@ -4887,6 +4887,9 @@ msgstr ""
 msgid "Overwrite file"
 msgstr "ファイルを上書き"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "全ては[はい]"
 

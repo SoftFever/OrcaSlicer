@@ -4988,6 +4988,9 @@ msgstr ""
 msgid "Overwrite file"
 msgstr "Bestand overschrijven"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "Ja op alles"
 

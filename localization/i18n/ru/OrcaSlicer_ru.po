@@ -5088,6 +5088,9 @@ msgstr "Профиль с именем %s уже существует. Пере�
 msgid "Overwrite file"
 msgstr "Перезаписать файл"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "Да для всех"
 

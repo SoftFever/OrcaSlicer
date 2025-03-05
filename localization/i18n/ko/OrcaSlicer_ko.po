@@ -4918,6 +4918,9 @@ msgstr "같은 이름을 가진 설정이 존재합니다: %s, 덮어 쓰겠습�
 msgid "Overwrite file"
 msgstr "파일 덮어쓰기"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "모두 예"
 
