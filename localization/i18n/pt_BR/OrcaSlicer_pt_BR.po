@@ -5015,12 +5015,12 @@ msgid "&Help"
 msgstr "&Ajuda"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
-msgstr "Existe um arquivo com o mesmo nome: %s, você deseja substituí-lo?"
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
+msgstr "Existe um arquivo com o mesmo nome: %s, deseja substituí-lo?"
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
-msgstr "Já existe uma configuração com o mesmo nome: %s. Deseja substituí-la?"
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
+msgstr "Existe uma configuração com o mesmo nome: %s, deseja substituí-la?"
 
 msgid "Overwrite file"
 msgstr "Substituir arquivo"
@@ -15497,7 +15497,7 @@ msgid ""
 "trace\n"
 msgstr ""
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"

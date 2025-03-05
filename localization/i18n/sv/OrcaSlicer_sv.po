@@ -4908,12 +4908,12 @@ msgstr "&Visa"
 msgid "&Help"
 msgstr "&Hjälp"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Det finns en fil med samma namn: %s. Vill du åsidosätta den?"
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Det finns en konfiguration med samma namn: %s. Vill du åsidosätta den?"
 
 msgid "Overwrite file"
@@ -14260,7 +14260,7 @@ msgstr ""
 "Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, 5:"
 "spåra\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"
