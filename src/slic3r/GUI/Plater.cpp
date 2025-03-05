@@ -199,6 +199,9 @@ wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
+
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, SimpleEvent);
+
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
     std::string name = into_u8(wxs_name);
@@ -2610,6 +2613,7 @@ struct Plater::priv
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
     void on_action_slice_plate_helio(SimpleEvent&);
+    void on_helio_processing_complete(SimpleEvent&);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -3147,6 +3151,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent& evt) { q->publish_job_finished(evt);});
         q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent& evt) { q->open_platesettings_dialog(evt);});
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
+
+        q->Bind(EVT_HELIO_PROCESSING_COMPLETED, &priv::on_helio_processing_complete, this);
     }
 
     // Drop target:
@@ -7178,12 +7184,21 @@ void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
     const Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
     auto        g_result      = background_process.get_current_gcode_result();
 
-    helio_background_process.init(helio_api_key, config.opt_string("helio_printer_id"), config.opt_string("helio_filament_id"), g_result);
+    helio_background_process.init(helio_api_key, config.opt_string("helio_printer_id"), 
+        config.opt_string("helio_filament_id"), g_result,
+                                  preview, [this]() {});
 
     helio_background_process.helio_thread_start(background_process.m_mutex, 
         background_process.m_condition,
         background_process.m_state, 
         notification_manager);
+}
+
+void Plater::priv::on_helio_processing_complete(SimpleEvent& a)
+{
+  this->update();
+  //this->view3D->reload_scene(false);
+  //this->get_current_canvas3D()->render(false);
 }
 
 void Plater::priv::on_action_publish(wxCommandEvent &event)

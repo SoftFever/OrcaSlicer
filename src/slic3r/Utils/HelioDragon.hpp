@@ -17,6 +17,8 @@
 #include "../GUI/BackgroundSlicingProcess.hpp"
 #include "../GUI/NotificationManager.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "../GUI/GUI_Preview.hpp"
+#include "../GUI/Plater.hpp"
 
 namespace Slic3r {
 
@@ -122,6 +124,8 @@ public:
 
     Slic3r::GCodeProcessorResult* m_gcode_result;
     Slic3r::GCodeProcessor        m_gcode_processor;
+    Slic3r::GUI::Preview*         m_preview;
+    std::function<void()>         m_update_function;
 
     void helio_threaded_process_start(std::mutex&                                slicing_mutex,
                                       std::condition_variable&                   slicing_condition,
@@ -143,12 +147,19 @@ public:
         }
     }
 
-    void init(std::string api_key, std::string printer_id, std::string filament_id, Slic3r::GCodeProcessorResult* gcode_result)
+    void init(std::string                   api_key,
+              std::string                   printer_id,
+              std::string                   filament_id,
+              Slic3r::GCodeProcessorResult* gcode_result,
+              Slic3r::GUI::Preview*         preview,
+    std::function<void()>         function)
     {
         helio_api_key     = api_key;
         this->printer_id  = printer_id;
         this->filament_id = filament_id;
         m_gcode_result    = gcode_result;
+        m_preview         = preview;
+        m_update_function          = function;
     }
 
     void set_helio_api_key(std::string api_key);
@@ -172,6 +183,8 @@ public:
 
         return (parent / new_filename).string();
     }
+
+    void load_simulation_to_viwer(std::string file_path);
 };
 } // namespace Slic3r
 #endif
