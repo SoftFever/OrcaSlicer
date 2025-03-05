@@ -88,7 +88,7 @@ void JusPrinChatPanel::init_action_handlers() {
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
     void_action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
     void_action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
-    void_action_handlers["auto_orient_object"] = &JusPrinChatPanel::handle_auto_orient_object;
+    void_action_handlers["auto_orient_all_objects"] = &JusPrinChatPanel::handle_auto_orient_all_objects;
     void_action_handlers["plater_undo"] = &JusPrinChatPanel::handle_plater_undo;
     void_action_handlers["switch_to_preview"] = &JusPrinChatPanel::handle_switch_to_preview;
     void_action_handlers["refresh_oauth_token"] = &JusPrinChatPanel::handle_refresh_oauth_token;
@@ -295,7 +295,7 @@ void JusPrinChatPanel::handle_export_gcode(const nlohmann::json& params) {
     });
 }
 
-void JusPrinChatPanel::handle_auto_orient_object(const nlohmann::json& params) {
+void JusPrinChatPanel::handle_auto_orient_all_objects(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         Slic3r::GUI::Plater* plater = Slic3r::GUI::wxGetApp().plater();
         plater->set_prepare_state(Job::PREPARE_STATE_MENU);

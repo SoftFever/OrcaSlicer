@@ -81,7 +81,7 @@ private:
     void handle_show_login(const nlohmann::json& params);
     void handle_start_slicer_all(const nlohmann::json& params);
     void handle_export_gcode(const nlohmann::json& params);
-    void handle_auto_orient_object(const nlohmann::json& params);
+    void handle_auto_orient_all_objects(const nlohmann::json& params);
     void handle_plater_undo(const nlohmann::json& params);
     void handle_switch_to_preview(const nlohmann::json& params);
     void handle_set_btn_notification_badges(const nlohmann::json& params);
