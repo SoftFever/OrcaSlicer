@@ -196,7 +196,8 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
                 image.SetAlpha((int) c, (int) r, px[3]);
             }
         }
-        image = image.Rescale(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH));
+        //image.SaveFile("preview-left.png", wxBITMAP_TYPE_PNG);
+        image = image.Rescale(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), wxIMAGE_QUALITY_BOX_AVERAGE);
         m_left_image_button->SetBitmap(image);
     }
     if (data.is_valid() && m_right_image_button) {
@@ -210,8 +211,8 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
                 image.SetAlpha((int) c, (int) r, px[3]);
             }
         }
-        //image.SaveFile("E:/preview.png", wxBITMAP_TYPE_PNG);
-        image = image.Rescale(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH));
+        //image.SaveFile("preview-right.png", wxBITMAP_TYPE_PNG);
+        image = image.Rescale(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), wxIMAGE_QUALITY_BOX_AVERAGE);
         m_right_image_button->SetBitmap(image);
         auto extruders = wxGetApp().plater()->get_partplate_list().get_plate(m_specify_plate_idx)->get_extruders();
         if (wxGetApp().plater()->get_extruders_colors().size() == extruders.size()) {
