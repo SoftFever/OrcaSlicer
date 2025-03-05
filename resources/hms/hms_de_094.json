@@ -1,11 +1,79 @@
 {
     "result": 0,
-    "t": 1740666194,
-    "ver": 202503250227,
+    "t": 1741069238,
+    "ver": 202503250304,
     "data": {
         "device_error": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "de": [
+                {
+                    "ecode": "0500806A",
+                    "intro": "Kann den linken und rechten Hotend nicht erkennen. Es könnte sich um einen nicht offiziellen Hotend handeln, oder die Markierung des Hotends könnte schmutzig sein. Bitte setzen Sie den Hotend-Typ vor dem nächsten Druck."
+                },
+                {
+                    "ecode": "05FE806A",
+                    "intro": "Kann den linken Hotend nicht erkennen. Es könnte sich um einen nicht offiziellen Hotend handeln, oder die Markierung des Hotends könnte schmutzig sein. Bitte setzen Sie den Hotend-Typ vor dem nächsten Druck."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "Die Laserplattform ist versetzt. Bitte stellen Sie sicher, dass die vier Ecken der Plattform mit dem Heizbett ausgerichtet sind und der Marker nicht blockiert ist."
+                },
+                {
+                    "ecode": "05FE8081",
+                    "intro": "Der linke Hotend ist nicht installiert."
+                },
+                {
+                    "ecode": "05FF8081",
+                    "intro": "Der rechte Hotend ist nicht installiert."
+                },
+                {
+                    "ecode": "05FF8080",
+                    "intro": "Der rechte Hotend ist nicht installiert."
+                },
+                {
+                    "ecode": "05008086",
+                    "intro": "Die Linse der Düsenkamera ist schmutzig, was die AI-Überwachungsfunktion beeinträchtigen kann. Bitte reinigen Sie die Oberfläche der Düsenkamera-Linse so schnell wie möglich."
+                },
+                {
+                    "ecode": "05008085",
+                    "intro": "Die Düsenkamera ist blockiert."
+                },
+                {
+                    "ecode": "05008069",
+                    "intro": "Kann den linken und rechten Hotend nicht erkennen. Es könnte sich um einen nicht offiziellen Hotend handeln, oder die Markierung des Hotends könnte schmutzig sein. Bitte setzen Sie den Hotend-Typ manuell."
+                },
+                {
+                    "ecode": "05FE8069",
+                    "intro": "Kann den linken Hotend nicht erkennen. Es könnte sich um einen nicht offiziellen Hotend handeln, oder die Markierung des Hotends könnte schmutzig sein. Bitte setzen Sie den Hotend-Typ manuell."
+                },
+                {
+                    "ecode": "05FF806A",
+                    "intro": "Der richtige Hotend kann nicht erkannt werden. Es könnte ein nicht offizieller Hotend sein oder die Hotend-Markierung könnte verschmutzt sein. Bitte stellen Sie den Hotend-Typ vor dem nächsten Druck ein."
+                },
+                {
+                    "ecode": "05FF8069",
+                    "intro": "Der richtige Hotend kann nicht erkannt werden. Es könnte ein nicht offizieller Hotend sein oder die Hotend-Markierung könnte verschmutzt sein. Bitte stellen Sie den Hotend-Typ manuell ein."
+                },
+                {
+                    "ecode": "05FE8080",
+                    "intro": "Der linke Hotend ist nicht installiert."
+                },
+                {
+                    "ecode": "05008080",
+                    "intro": "Der linke und der rechte Hotend sind nicht installiert."
+                },
+                {
+                    "ecode": "05008081",
+                    "intro": "Der linke und der rechte Hotend sind nicht installiert."
+                },
+                {
+                    "ecode": "05008088",
+                    "intro": "Die Birdseye-Kamera ist schmutzig."
+                },
+                {
+                    "ecode": "05008087",
+                    "intro": "Die BirdsEye-Kamera ist blockiert."
+                },
                 {
                     "ecode": "03004002",
                     "intro": "Auto Bed Leveling fehlgeschlagen; die Aufgabe wurde gestoppt."
@@ -309,10 +377,6 @@
                 {
                     "ecode": "05004076",
                     "intro": "Bitte platzieren Sie die Laserplattform korrekt und stellen Sie sicher, dass die hinteren Markierungen nicht blockiert sind. Starten Sie dann die Dickenmessung in der Software neu, bevor Sie die Aufgabe initiieren."
-                },
-                {
-                    "ecode": "05008074",
-                    "intro": "Die Laserplattform ist versetzt. Bitte stellen Sie sicher, dass die vier Ecken der Plattform mit dem Heizbett ausgerichtet sind."
                 },
                 {
                     "ecode": "0500807A",
@@ -699,10 +763,6 @@
                     "intro": "Während des Trocknens von AMS D ist ein Fehler aufgetreten. Bitte gehen Sie zu Assistant für weitere Details."
                 },
                 {
-                    "ecode": "05008081",
-                    "intro": "AI hat erkannt, dass das linke und rechte Hotend nicht installiert sind."
-                },
-                {
                     "ecode": "0701C06B",
                     "intro": "AMS B ändert das Filament. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
                 },
@@ -743,10 +803,6 @@
                     "intro": "AMS C liest RFID. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
                 },
                 {
-                    "ecode": "05FE8081",
-                    "intro": "AI hat erkannt, dass das linke Hotend nicht installiert ist."
-                },
-                {
                     "ecode": "0702C06E",
                     "intro": "AMS C Motor führt einen Selbsttest durch. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
                 },
@@ -767,28 +823,12 @@
                     "intro": "AMS B liest RFID. Trocknen kann nicht gestartet werden. Bitte später erneut versuchen."
                 },
                 {
-                    "ecode": "05FE8080",
-                    "intro": "AI hat erkannt, dass der linke Hotend nicht installiert ist."
-                },
-                {
                     "ecode": "0702C06D",
                     "intro": "AMS C hilft beim Einführen des Filaments. Trocknen kann nicht gestartet werden. Bitte versuchen Sie es später erneut."
                 },
                 {
                     "ecode": "05008082",
                     "intro": "Bitte entfernen Sie die Schutzfolie von der opak glänzenden Acrylplatte vor der Bearbeitung."
-                },
-                {
-                    "ecode": "05FF8081",
-                    "intro": "AI hat erkannt, dass der rechte Hotend nicht installiert ist."
-                },
-                {
-                    "ecode": "05FF8080",
-                    "intro": "AI hat erkannt, dass der rechte Hotend nicht installiert ist."
-                },
-                {
-                    "ecode": "05008080",
-                    "intro": "AI hat erkannt, dass der linke und der rechte Hotend nicht installiert sind."
                 },
                 {
                     "ecode": "0703C06A",
@@ -1299,32 +1339,8 @@
                     "intro": "Der Typ der Schneidematte ist unbekannt; bitte ersetzen Sie sie durch die richtige Schneidematte."
                 },
                 {
-                    "ecode": "0500806A",
-                    "intro": "Die linke und rechte Heizdüse können möglicherweise aufgrund einer nicht offiziellen Heizdüse nicht identifiziert werden. Bitte stellen Sie den Heizdüsentyp vor dem nächsten Druck ein."
-                },
-                {
                     "ecode": "05008062",
                     "intro": "Der Typ der Druckplatte ist unbekannt; bitte ersetzen Sie sie durch die richtige Platte."
-                },
-                {
-                    "ecode": "05008069",
-                    "intro": "Die linke und rechte Heizdüse können möglicherweise aufgrund des beschädigten Düsenmarkierers nicht identifiziert werden. Bitte stellen Sie den Heizdüsentyp manuell ein."
-                },
-                {
-                    "ecode": "05FE8069",
-                    "intro": "Die linke Heizdüse kann möglicherweise aufgrund des beschädigten Düsenmarkierers nicht identifiziert werden. Bitte stellen Sie den Heizdüsentyp manuell ein."
-                },
-                {
-                    "ecode": "05FE806A",
-                    "intro": "Die linke Heizdüse kann möglicherweise aufgrund einer nicht offiziellen Heizdüse nicht identifiziert werden. Bitte stellen Sie den Heizdüsentyp vor dem nächsten Druck ein."
-                },
-                {
-                    "ecode": "05FF806A",
-                    "intro": "Die rechte Heizdüse kann möglicherweise aufgrund einer nicht offiziellen Heizdüse nicht identifiziert werden. Bitte stellen Sie den Heizdüsentyp vor dem nächsten Druck ein."
-                },
-                {
-                    "ecode": "05FF8069",
-                    "intro": "Die rechte Heizdüse kann möglicherweise aufgrund des beschädigten Düsenmarkierers nicht identifiziert werden. Bitte stellen Sie den Heizdüsentyp manuell ein."
                 },
                 {
                     "ecode": "03008064",
@@ -2473,8 +2489,168 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "de": [
+                {
+                    "ecode": "0700700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "0701700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "0701700000020006",
+                    "intro": "Zeitüberschreitung beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklebt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "0702700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "0703700000020006",
+                    "intro": "Zeitüberschreitung beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklebt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "0500060000020031",
+                    "intro": "Die ToolHead-Kamera ist nicht verbunden. Bitte überprüfen Sie die Hardware- und Kabelverbindungen."
+                },
+                {
+                    "ecode": "03009C0000010001",
+                    "intro": "Die Luftpumpe wird nicht erkannt. Bitte überprüfen Sie, ob der Stecker richtig eingesteckt ist."
+                },
+                {
+                    "ecode": "1807700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "1803700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "1800700000020006",
+                    "intro": "Zeitüberschreitung beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklebt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "1804700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "1805700000020006",
+                    "intro": "Timeout beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklemmt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "0706700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "1803700000020006",
+                    "intro": "Timeout beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklemmt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "1804700000020006",
+                    "intro": "Timeout beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklemmt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "1801700000020006",
+                    "intro": "Timeout beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklemmt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "1806700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse."
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020006",
+                    "intro": "Timeout beim Reinigen des alten Filaments. Mögliche Ursache: Filament festgeklemmt oder Verstopfung des Extruders/der Düse."
+                },
+                {
+                    "ecode": "0702700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament steckt oder der Extruder/Düse ist verstopft."
+                },
+                {
+                    "ecode": "0703700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Extruder oder Düse ist verstopft."
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "Düsenkamera ist nicht verbunden. Bitte überprüfen Sie die Hardware- und Kabelverbindungen."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "Luftstromsystem konnte den Lasermodus nicht aktivieren; bitte überprüfen Sie den Status der Lufttür."
+                },
+                {
+                    "ecode": "0500010000030006",
+                    "intro": "Der USB-Stick ist nicht formatiert oder kann nicht beschrieben werden; bitte formatieren Sie den USB-Stick."
+                },
+                {
+                    "ecode": "03009C0000010002",
+                    "intro": "Die Luftpumpe ist abnormal und könnte beschädigt sein."
+                },
+                {
+                    "ecode": "1807700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament steckt oder der Extruder/Düse ist verstopft."
+                },
+                {
+                    "ecode": "0707700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Extruder oder Düse ist verstopft."
+                },
+                {
+                    "ecode": "1802700000020003",
+                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Extruder oder Düse ist verstopft."
+                },
+                {
+                    "ecode": "0705700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament steckt oder der Extruder/Düse ist verstopft."
+                },
+                {
+                    "ecode": "0707700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament verklemmt oder der Extruder/Düse verstopft."
+                },
+                {
+                    "ecode": "1801700000020003",
+                    "intro": "Filament konnte nicht extrudiert werden. Mögliche Ursache: Extruder oder Düse verstopft."
+                },
+                {
+                    "ecode": "1800700000020003",
+                    "intro": "Filament konnte nicht extrudiert werden. Mögliche Ursache: Extruder oder Düse verstopft."
+                },
+                {
+                    "ecode": "1806700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament verklemmt oder der Extruder/Düse verstopft."
+                },
+                {
+                    "ecode": "0704700000020003",
+                    "intro": "Filament konnte nicht extrudiert werden. Mögliche Ursache: Extruder oder Düse verstopft."
+                },
+                {
+                    "ecode": "1802700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament verklemmt oder der Extruder/Düse verstopft."
+                },
+                {
+                    "ecode": "0704700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament verklemmt oder der Extruder/Düse verstopft."
+                },
+                {
+                    "ecode": "0705700000020003",
+                    "intro": "Filament konnte nicht extrudiert werden. Mögliche Ursache: Extruder oder Düse verstopft."
+                },
+                {
+                    "ecode": "0706700000020006",
+                    "intro": "Timeout beim Entfernen von altem Filament. Mögliche Ursache: Filament verklemmt oder der Extruder/Düse verstopft."
+                },
+                {
+                    "ecode": "1805700000020003",
+                    "intro": "Filament konnte nicht extrudiert werden. Mögliche Ursache: Extruder oder Düse verstopft."
+                },
                 {
                     "ecode": "0C00040000020007",
                     "intro": "Die BirdsEye Kamera wird eingerichtet. Bitte alle Objekte entfernen und die Matte wegnehmen. Stellen Sie sicher, dass der Marker nicht verdeckt ist. Reinigen Sie in der Zwischenzeit sowohl die BirdsEye Kamera als auch die Toolhead Kamera und entfernen Sie alle fremden Objekte, die ihre Sicht behindern."
@@ -2528,10 +2704,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020061",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020052",
                     "intro": ""
                 },
@@ -2554,10 +2726,6 @@
                 {
                     "ecode": "0300C00000010003",
                     "intro": "Fehler am automatischen Oberluftraumventil: Es könnte feststecken."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Das Luftstromsystem konnte den Laser-/Schneidemodus nicht aktivieren; bitte überprüfen Sie den Status der Luftklappe."
                 },
                 {
                     "ecode": "0300C00000010001",
@@ -2618,10 +2786,6 @@
                 {
                     "ecode": "1800700000020008",
                     "intro": "Fehler beim Abrufen der AMS-Zuordnungstabelle; bitte wählen Sie \"Fortfahren\", um es erneut zu versuchen."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "Die aktuelle Plattform erfüllt nicht die Anforderungen der Aufgabe; bitte verwenden Sie die Cutting Platform."
                 },
                 {
                     "ecode": "07FE800000010006",
@@ -2730,18 +2894,6 @@
                 {
                     "ecode": "1807700000020008",
                     "intro": "Fehler beim Abrufen der AMS-Mapping-Tabelle; bitte wählen Sie \"Fortfahren\", um es erneut zu versuchen."
-                },
-                {
-                    "ecode": "0500040000020042",
-                    "intro": "Ein Düsenfehler wurde während des Druckens festgestellt. Bitte starten Sie den Druck nach dem erneuten Slicing oder setzen Sie den Druck fort, nachdem Sie die richtige Düse ersetzt haben. Vorsicht: Die Hotend-Temperatur ist hoch."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "Keine Plattform erkannt; bitte stellen Sie sicher, dass die Laser-Plattform richtig platziert ist."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "Ein Düsenfehler wurde während des Druckens festgestellt. Bitte starten Sie den Druck nach dem erneuten Slicing oder setzen Sie den Druck fort, nachdem Sie die richtige Düse ersetzt haben. Vorsicht: Die Hotend-Temperatur ist hoch."
                 },
                 {
                     "ecode": "0C00010000020014",
@@ -2866,22 +3018,6 @@
                 {
                     "ecode": "1807700000020046",
                     "intro": "AMS-HT H Das Herausziehen des Filaments ist fehlgeschlagen; dies könnte an übermäßigem Widerstand im Hilfsmotor liegen. Bitte überprüfen Sie, ob die Filamentspule geneigt oder verformt ist und ob das Filamentrohr frei ist."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "Die aktuelle Plattform erfüllt die Anforderungen der Aufgabe nicht; bitte verwenden Sie die Laser-Plattform."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "Ein Düsenfehler wurde während des Drucks festgestellt. Bitte starten Sie den Druck nach dem erneuten Slicing oder fahren Sie mit dem Drucken fort, nachdem Sie die richtige Düse verwendet haben. Vorsicht: Die Hotend-Temperatur ist hoch."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Falscher Plattformtyp erkannt; bitte die Laser-Plattform zur Kalibrierung einsetzen."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Falscher Plattformtyp erkannt; bitte die Schneid-Plattform zur Kalibrierung einsetzen."
                 },
                 {
                     "ecode": "0500050000010008",
@@ -4564,10 +4700,6 @@
                     "intro": "Laser-Modul überhitzt."
                 },
                 {
-                    "ecode": "0500060000020032",
-                    "intro": "Die Bindung der Düse-Kamera ist fehlgeschlagen. Bitte überprüfen Sie die Hardware und die Kabelverbindungen."
-                },
-                {
                     "ecode": "0500060000020022",
                     "intro": ""
                 },
@@ -4880,10 +5012,6 @@
                     "intro": "Die XY-Kalibrierung des Fokuspunkts des Gravurlasers ist fehlgeschlagen. Bitte reinigen Sie den Laser-Homing-Bereich auf der Laserplattform und führen Sie die Kalibrierung der Laser-Modulhalterung erneut durch."
                 },
                 {
-                    "ecode": "03009C0000010001",
-                    "intro": "Das Active Airflow Assist Module wird nicht erkannt. Bitte überprüfen Sie, ob der Stecker richtig eingesteckt ist."
-                },
-                {
                     "ecode": "0702230000020007",
                     "intro": "Der Hall-Sensor für den Feed-out im AMS C Slot 4 ist getrennt. Der Stecker könnte schlechten Kontakt haben."
                 },
@@ -5160,10 +5288,6 @@
                     "intro": "Bitte überprüfen Sie, ob das Material aus der linken Düse kommt. Wenn nicht, drücken Sie das Material vorsichtig und versuchen Sie es erneut zu extrudieren."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Unbekannter Typ der Schnittschutzbasis. Bitte ersetzen Sie ihn durch die korrekte Schnittschutzbasis."
-                },
-                {
                     "ecode": "0300D00000010002",
                     "intro": "Der Messerhalter ist abgefallen; bitte installieren Sie ihn erneut."
                 },
@@ -5182,10 +5306,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "Der externe Spulenanschluss am rechten Extruder könnte verknotet oder blockiert sein."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "Es wurde keine Schneidschutzbasis entdeckt. Bitte bestätigen Sie, dass sie korrekt platziert wurde."
                 },
                 {
                     "ecode": "0300D00000010001",
@@ -5254,22 +5374,6 @@
                 {
                     "ecode": "1805010000020006",
                     "intro": "AMS-HT F Die drei Phasenleitungen des Hilfsmotors sind nicht angeschlossen. Der Anschluss des Hilfsmotors könnte schlechten Kontakt haben."
-                },
-                {
-                    "ecode": "0500040000020044",
-                    "intro": "Der Plattentyp ist unbekannt; bitte ersetzen Sie ihn durch die richtige Platte."
-                },
-                {
-                    "ecode": "0500040000020041",
-                    "intro": "Der linke und rechte Hotend können nicht identifiziert werden, möglicherweise aufgrund eines nicht offiziellen Hotends. Es könnte auch sein, dass die Kennzeichnung des Hotends unklar ist."
-                },
-                {
-                    "ecode": "05FF040000020041",
-                    "intro": "Der rechte Hotend kann nicht identifiziert werden, möglicherweise aufgrund eines nicht offiziellen Hotends. Es könnte auch sein, dass die Kennzeichnung des Hotends unklar ist."
-                },
-                {
-                    "ecode": "05FE040000020041",
-                    "intro": "Der linke Hotend kann nicht identifiziert werden, möglicherweise aufgrund eines nicht offiziellen Hotends. Es könnte auch sein, dass die Kennzeichnung des Hotends unklar ist."
                 },
                 {
                     "ecode": "0500040000020053",
@@ -5784,10 +5888,6 @@
                     "intro": "Die Geschwindigkeit des Kühlventilators des Hotends ist langsam. Er könnte stecken und muss gereinigt werden."
                 },
                 {
-                    "ecode": "0500040000020049",
-                    "intro": "Der Plattformtyp ist unbekannt. Bitte ersetzen Sie ihn durch den richtigen und prüfen Sie, ob die BirdsEye-Kamera verdeckt ist."
-                },
-                {
                     "ecode": "0703200000030001",
                     "intro": "AMS D Slot 1 Filament ist leer. Bitte warten Sie, während das alte Filament entfernt wird."
                 },
@@ -5810,10 +5910,6 @@
                 {
                     "ecode": "0704200000020005",
                     "intro": "AMS E Slot 1 Filament ist leer, und das Entfernen des alten Filaments verlief abnormal. Bitte prüfen Sie, ob das Filament im Werkzeugkopf stecken geblieben ist."
-                },
-                {
-                    "ecode": "1805700000020003",
-                    "intro": "Filamentextrusion fehlgeschlagen. Mögliche Ursachen: Verstopfung des Extruders oder Düse. Bitte wenden Sie sich an den Assistenten für weitere Informationen."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -6056,10 +6152,6 @@
                     "intro": "Bitte ziehen Sie das externe Filament vom rechten Extruder heraus."
                 },
                 {
-                    "ecode": "0705700000020003",
-                    "intro": "Extrudieren des Filaments ist fehlgeschlagen. Mögliche Ursache: Verstopfung des Extruders oder der Düse. Nähere Einzelheiten entnehmen Sie bitte dem Assistenten."
-                },
-                {
                     "ecode": "0705210000020009",
                     "intro": "Extrudieren des Filaments auf dem AMS F Slot 2 ist fehlgeschlagen; der Extruder könnte verstopft sein oder das Filament ist möglicherweise zu dünn, was ein Verrutschen des Extruders verursacht."
                 },
@@ -6090,10 +6182,6 @@
                 {
                     "ecode": "0705700000020032",
                     "intro": "AMS Das Zuführen des Filaments zum Extruder des Werkzeugkopfes ist fehlgeschlagen. Dies könnte auf zu viel Widerstand im Filament zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentspule geneigt ist oder ob das Filamentrohr blockiert ist."
-                },
-                {
-                    "ecode": "0706700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Filament steckt oder der Extruder/Düse ist verstopft. Bitte beachten sie die Details im Assistenten."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6286,10 +6374,6 @@
                 {
                     "ecode": "1802700000020022",
                     "intro": "AMS-HT C: Das Zuführen des Filaments zum Buffer ist fehlgeschlagen. Dies könnte an einem abgenutzten Filament liegen, das dazu führt, dass der Assist-Motor rutscht. Bitte schneiden Sie den abgenutzten Abschnitt des Filaments ab."
-                },
-                {
-                    "ecode": "0704700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Filament steckt fest oder Extruder/Düse verstopft. Bitte wenden Sie sich an die Assistenz für weitere Details."
                 },
                 {
                     "ecode": "1805700000020021",
@@ -6496,10 +6580,6 @@
                     "intro": "AMS-HT D-Filamentzufuhr zum Puffer ist fehlgeschlagen; dies kann daran liegen, dass der Puffer das Filament blockiert. Bitte überprüfen Sie den PTFE-Rohrstecker des Puffers."
                 },
                 {
-                    "ecode": "1801700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Filament steckt fest oder Extruder-/Düsenverstopfung. Bitte wenden Sie sich an den Assistant für weitere Details."
-                },
-                {
                     "ecode": "1802700000020060",
                     "intro": "AMS-HT C Unterstützung des Extruder beim Greifen des Filaments fehlgeschlagen; dies könnte auf ein Rutschen des Assistenzmotors zurückzuführen sein. Bitte schneiden Sie den abgenutzten Abschnitt des Filaments ab."
                 },
@@ -6538,10 +6618,6 @@
                 {
                     "ecode": "0707700000020044",
                     "intro": "AMS H: Das Herausziehen des Filaments ist fehlgeschlagen; dies könnte daran liegen, dass das Filament im Druckkopf gebrochen ist. Bitte entfernen Sie das gebrochene Filament."
-                },
-                {
-                    "ecode": "1806700000020003",
-                    "intro": "Das Extrudieren des Filaments ist fehlgeschlagen. Mögliche Ursache: Verstopfung des Extruders oder der Düse. Bitte wenden Sie sich für weitere Details an den Assistenten."
                 },
                 {
                     "ecode": "1805700000020023",
@@ -6800,10 +6876,6 @@
                     "intro": "Das AMS-HT E Filament-Füttern zum Extruder des Tool Heads ist fehlgeschlagen. Dies kann daran liegen, dass das Filament abgenutzt ist und dazu führt, dass der Assist-Motor rutscht. Bitte trimmen Sie den abgenutzten Abschnitt des Filaments ab."
                 },
                 {
-                    "ecode": "1803700000020006",
-                    "intro": "Time-Out beim Reinigen des alten Filaments. Mögliche Ursache: Feststeckendes Filament oder verstopfter Extruder/Düse. Bitte wenden Sie sich für weitere Details an den Assistenten."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Versagen des Verschlüsselungschips"
                 },
@@ -6838,10 +6910,6 @@
                 {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F: Unterstützung beim Greifen des Filaments durch den Extruder fehlgeschlagen, möglicherweise aufgrund erhöhtem Widerstandes aus dem Buffer. Bitte prüfen Sie, ob der Buffer blockiert ist, die Filamentrolle geneigt ist und das Filamentrohr frei ist."
-                },
-                {
-                    "ecode": "1804700000020006",
-                    "intro": "Timeout beim Durchspülen des alten Filaments. Mögliche Ursache: Filament steckt fest oder Extruder-/Düsenverstopfung. Bitte beachten Sie die Informationen des Assistenten."
                 },
                 {
                     "ecode": "1807310000030003",
@@ -7332,10 +7400,6 @@
                     "intro": "Das Ausstoßen des AMS E Slot 4 Filaments ist fehlgeschlagen. Der Extruder kann verstopft sein oder das Filament ist möglicherweise zu dünn und verursacht ein Rutschen des Extruders."
                 },
                 {
-                    "ecode": "0706700000020003",
-                    "intro": "Das Extrudieren des Filaments ist fehlgeschlagen. Mögliche Ursachen: Verstopfung des Extruders oder der Düse. Details finden Sie im Assistenten."
-                },
-                {
                     "ecode": "1807700000020023",
                     "intro": "AMS-HT H Das Zuführen des Filaments zum Puffer ist fehlgeschlagen; dies könnte daran liegen, dass sich das Filament gelöst hat. Bitte überprüfen Sie, ob das Filamentrohr falsch verbunden ist oder ob das Rohr durch Abnutzung beschädigt ist."
                 },
@@ -7540,10 +7604,6 @@
                     "intro": "Das Einziehen des Filaments in das Assistenzmotor-Extrusionsrad bei AMS E ist fehlgeschlagen. Möglicherweise handelt es sich um ein kleines Stück gebrochenes Filament, das in das Förderröhrchen gelangt ist. Bitte entfernen Sie das gebrochene Filament aus dem Förderröhrchen."
                 },
                 {
-                    "ecode": "0704700000020003",
-                    "intro": "Das Ausstoßen des Filaments ist fehlgeschlagen. Mögliche Ursache: Verstopfung des Extruders oder der Düse. Bitte wenden Sie sich an den Assistenten, um weitere Details zu erfahren."
-                },
-                {
                     "ecode": "1802700000020041",
                     "intro": "Das Herausziehen des Filaments bei AMS-HT C ist fehlgeschlagen. Möglicherweise ist das Filament von der Spule abgerissen. Bitte ersetzen Sie die Spule durch eine neue."
                 },
@@ -7566,10 +7626,6 @@
                 {
                     "ecode": "1801700000020023",
                     "intro": "AMS-HT B Die Zuführung des Filaments zum Puffer ist fehlgeschlagen; dies könnte darauf zurückzuführen sein, dass das Filament gelöst wurde. Bitte überprüfen Sie, ob das Filamentrohr falsch angeschlossen ist oder ob das Rohr durch Abnutzung beschädigt wurde."
-                },
-                {
-                    "ecode": "1802700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Das Filament steckt fest oder der Extruder-/Düsenkanal ist verstopft. Bitte konsultieren Sie den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0707700000020042",
@@ -8004,10 +8060,6 @@
                     "intro": "AMS-HT F Das Greifen des Filaments durch den Helfer-Extruder ist fehlgeschlagen; dies könnte auf ein Abrutschen des Assist-Motors zurückzuführen sein. Bitte schneiden Sie den abgenutzten Abschnitt des Filaments ab."
                 },
                 {
-                    "ecode": "1800700000020003",
-                    "intro": "Extrusion des Filaments fehlgeschlagen. Mögliche Ursache: Extruder oder Düsenverstopfung. Bitte wenden Sie sich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "1805700000020011",
                     "intro": "AMS-HT F Das Zuführen des Filaments zum Assist-Motor-Ektrusionsrad ist fehlgeschlagen. Dies könnte auf eine Unterbrechung des Gleichstrommotors zurückzuführen sein. Bitte überprüfen Sie die Verbindung des Gleichstrommotorsteckers."
                 },
@@ -8074,10 +8126,6 @@
                 {
                     "ecode": "0706700000020031",
                     "intro": "AMS G Das Zuführen des Filaments zum Extruder der Werkzeugkopfdüse ist fehlgeschlagen. Dies könnte daran liegen, dass das Filament abgenutzt ist und der Hilfsmotor dadurch rutscht. Bitte schneiden Sie den abgenutzten Abschnitt des Filaments ab."
-                },
-                {
-                    "ecode": "1806700000020006",
-                    "intro": "Time-Out beim Reinigen des alten Filaments. Mögliche Ursache: Filament blockiert oder Extruder/Düse verstopft. Bitte beachten Sie die Details im Assistenten."
                 },
                 {
                     "ecode": "0704700000020043",
@@ -8296,20 +8344,12 @@
                     "intro": "AMS-HT D Die Zuführung des Filaments in den Puffer ist fehlgeschlagen; dies kann an einem abgenutzten Filament liegen, das dazu führt, dass der Assist-Motor rutscht. Bitte schneiden Sie den abgenutzten Abschnitt des Filaments ab."
                 },
                 {
-                    "ecode": "1805700000020006",
-                    "intro": "Timeout beim Reinigen des alten Filaments. Mögliche Ursache: Feststecken des Filaments oder Verstopfung des Extruders/Düse. Bitte wenden Sie sich an die Assistenz für weitere Details."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "RFID kann aufgrund eines Hardware- oder Strukturfehlers nicht gelesen werden."
                 },
                 {
                     "ecode": "1806700000020020",
                     "intro": "AMS-HT G Die Zuführung des Filaments in den Puffer ist fehlgeschlagen; dies kann daran liegen, dass der Puffer das Filament blockiert. Bitte überprüfen Sie den PTFE-Rohrverschluss des Puffers."
-                },
-                {
-                    "ecode": "1801700000020003",
-                    "intro": "Das Extrudieren des Filaments ist fehlgeschlagen. Mögliche Ursache: Extruder oder Düsenverstopfung. Bitte wenden Sie sich an die Assistenz für weitere Details."
                 },
                 {
                     "ecode": "1800300000010004",
@@ -8768,10 +8808,6 @@
                     "intro": "AMS H Die Zuführung des Filaments zum Buffer ist fehlgeschlagen; dies könnte daran liegen, dass das Filament im Buffer blockiert ist. Bitte überprüfen Sie den PTFE-Rohrstecker des Buffers."
                 },
                 {
-                    "ecode": "0707700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Filament steckt fest oder der Extruder/Düse ist verstopft. Bitte wenden Sie sich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0706700000020033",
                     "intro": "AMS G Das Zuführen des Filaments zum Extruder der Druckkopfeinheit ist fehlgeschlagen; dies könnte daran liegen, dass das Filament herausrutscht. Bitte überprüfen Sie, ob das Filamentrohr getrennt ist oder das Rohr durch Abnutzung beschädigt wurde."
                 },
@@ -8818,10 +8854,6 @@
                 {
                     "ecode": "1803700000020014",
                     "intro": "AMS-HT D Einführung des Filaments in das Hilfe-Motorextrusionsrad ist fehlgeschlagen. Dies könnte auf ein kleines Stückchen gebrochenes Filament zurückzuführen sein, das in das Zufuhrrohr gelangt ist. Bitte entfernen Sie das gebrochene Filament aus dem Zufuhrrohr."
-                },
-                {
-                    "ecode": "1804700000020003",
-                    "intro": "Fehlerhafte Filamentextrusion. Mögliche Ursache: Verstopfung des Extruders oder der Düse. Bitte beachten Sie den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "1800700000020032",
@@ -9016,10 +9048,6 @@
                     "intro": "Das Entfernen des Filaments aus AMS G ist fehlgeschlagen; dies könnte daran liegen, dass das Filament aufgebraucht ist oder herausgezogen wurde."
                 },
                 {
-                    "ecode": "1803700000020003",
-                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse. Bitte Assistant für weitere Details konsultieren."
-                },
-                {
                     "ecode": "1805700000020020",
                     "intro": "Das AMS-HT F Filament konnte nicht in den Puffer eingezogen werden; dies könnte daran liegen, dass der Puffer das Filament blockiert. Bitte überprüfen Sie den PTFE-Rohrstopfen des Puffers."
                 },
@@ -9038,10 +9066,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C Die Zuführung von Filament zum Extruder des Werkzeugkopfes ist fehlgeschlagen; dies könnte daran liegen, dass das Filament herausgerutscht ist. Bitte prüfen Sie, ob das Filament-Rohr getrennt ist oder ob das Rohr durchgescheuert ist."
-                },
-                {
-                    "ecode": "1800700000020006",
-                    "intro": "Timeout beim Reinigen des alten Filaments. Mögliche Ursache: Das Filament ist blockiert oder der Extruder/Düse ist verstopft. Weitere Details finden Sie im Assistant."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9256,10 +9280,6 @@
                     "intro": "AMS-HT H Das Zuführen von Filament zum Extrusionsrad des Unterstützungsmotors ist fehlgeschlagen. Dies kann auf übermäßigen Widerstand im Filament zurückzuführen sein. Bitte überprüfen Sie, ob die Spule schräg steht, das Filament verheddert ist oder die Spulenrotation nicht reibungslos verläuft."
                 },
                 {
-                    "ecode": "0705700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Filament steckt fest oder der Extruder/Düse ist verstopft. Bitte konsultieren Sie den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0706700000020021",
                     "intro": "AMS G Das Zuführen von Filament zum Puffer ist fehlgeschlagen; dies kann auf übermäßigen Widerstand im Filament zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentrolle schräg steht oder das PTFE-Rohr blockiert ist."
                 },
@@ -9318,10 +9338,6 @@
                 {
                     "ecode": "1806700000020030",
                     "intro": "AMS-HT G Die Zuführung des Filaments zum Werkzeugkopf-Extruder ist fehlgeschlagen. Dies kann auf eine Verstopfung des Filaments am Eingang des Werkzeugkopfs zurückzuführen sein. Bitte überprüfen Sie den Stecker des Filamentrohrs des Werkzeugkopfs."
-                },
-                {
-                    "ecode": "1807700000020003",
-                    "intro": "Fehler beim Extrudieren des Filaments. Mögliche Ursache: Verstopfung des Extruders oder der Düse. Bitte siehe den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9502,10 +9518,6 @@
                 {
                     "ecode": "0706700000020032",
                     "intro": "AMS G Die Zuführung von Filament zum Extruder des Werkzeugkopfs ist fehlgeschlagen. Dies kann auf übermäßigen Widerstand im Filament zurückzuführen sein. Bitte überprüfen Sie, ob die Filamentspule gekippt ist oder das Filamentrohr blockiert ist."
-                },
-                {
-                    "ecode": "1802700000020003",
-                    "intro": "Extrudieren des Filaments fehlgeschlagen. Mögliche Ursache: Verstopfung des Extruders oder der Düse. Bitte kontaktieren Sie den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0704700000020021",
@@ -10224,16 +10236,8 @@
                     "intro": "Das Zuführen des Filaments zum Assist Motor Extrusion Wheel des AMS E Steckplatzes ist fehlgeschlagen. Dies kann an zu großem Widerstand im Filament liegen. Bitte überprüfen Sie, ob die Spule geneigt ist, das Filament verheddert ist oder die Rotation der Spule nicht glatt verläuft."
                 },
                 {
-                    "ecode": "1807700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Filament blockiert oder Extruder/Düse verstopft. Bitte wenden Sie sich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "1805700000020012",
                     "intro": "Das Zuführen des Filaments zum Assist Motor Extrusion Wheel des AMS-HT F Steckplatzes ist fehlgeschlagen. Dies kann an zu großem Widerstand im Filament liegen. Bitte überprüfen Sie, ob die Spule geneigt ist, das Filament verheddert ist oder die Rotation der Spule nicht glatt verläuft."
-                },
-                {
-                    "ecode": "0707700000020003",
-                    "intro": "Extrusion des Filaments fehlgeschlagen. Mögliche Ursache: Der Extruder oder die Düse ist verstopft. Bitte wenden Sie sich an den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0705700000020022",
@@ -10546,26 +10550,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "Die Fremdkörpererkennung funktioniert nicht. Bitte starten Sie das Gerät neu oder aktualisieren Sie die Firmware."
-                },
-                {
-                    "ecode": "03009C0000010002",
-                    "intro": "Das aktive Luftstromunterstützungsmodul ist abnorm und kann beschädigt sein."
-                },
-                {
-                    "ecode": "0500040000020047",
-                    "intro": "Fremdkörper auf dem Heizbett erkannt. Bitte überprüfen und reinigen Sie das Heizbett."
-                },
-                {
-                    "ecode": "0500040000020043",
-                    "intro": "Keine Druckplatte erkannt. Bitte stellen Sie sicher, dass sie korrekt platziert ist."
-                },
-                {
-                    "ecode": "0500040000020046",
-                    "intro": "Kein Material erkannt; bitte überprüfen Sie die Platzierung, bevor Sie fortfahren."
-                },
-                {
-                    "ecode": "0500040000020045",
-                    "intro": "Der erkannte 3D-Druckplattentyp stimmt nicht mit dem im Slicer ausgewählten überein."
                 },
                 {
                     "ecode": "1200300000010004",
@@ -11084,10 +11068,6 @@
                     "intro": "AMS A kann das Trocknen nicht starten; bitte ziehen Sie das Filament aus dem Filament-Hub heraus und versuchen Sie es erneut."
                 },
                 {
-                    "ecode": "0500010000030006",
-                    "intro": "Der USB-Stick ist nicht formatiert; bitte formatieren Sie den USB-Stick."
-                },
-                {
                     "ecode": "0300290000010001",
                     "intro": "Das Encodermuster kann nicht erkannt werden; mögliche Gründe dafür sind: Muster-Verzerrung, Überbelichtung des Lichts, Fehlplatzierung der Platte..."
                 },
@@ -11388,24 +11368,12 @@
                     "intro": "Das RFID-Tag auf AMS B Slot2 ist beschädigt oder dessen Inhalt kann nicht identifiziert werden."
                 },
                 {
-                    "ecode": "0701700000020006",
-                    "intro": "Timeout zum Entfernen des alten Filaments. Mögliche Ursache: Filamentblockade oder Düsenverstopfung. Bitte wenden Sie sich an den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0702310000020002",
                     "intro": "Das RFID-Tag auf AMS C Slot2 ist beschädigt oder dessen Inhalt kann nicht identifiziert werden."
                 },
                 {
                     "ecode": "0703310000010004",
                     "intro": "Verschlüsselungs-Chip-Fehler."
-                },
-                {
-                    "ecode": "0703700000020003",
-                    "intro": "Es konnte kein Filament extrudiert werden. Mögliche Ursache: Extruder oder Düse verstopft. Bitte beziehen Sie sich auf den Assistenten für weitere Details."
-                },
-                {
-                    "ecode": "0703700000020006",
-                    "intro": "Time-Out beim Entfernen von altem Filament. Mögliche Ursache: Filament blockiert oder Extruder-/Düsenverstopfung. Bitte beziehen Sie sich auf den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0C00020000010005",
@@ -11648,20 +11616,12 @@
                     "intro": "Der RFID-Tag auf AMS A Slot4 ist beschädigt oder dessen Inhalt kann nicht identifiziert werden."
                 },
                 {
-                    "ecode": "0700700000020006",
-                    "intro": "Timeout beim Entfernen des alten Filaments. Mögliche Ursache: Filament steckt fest oder Extruder/Düse ist verstopft. Details finden Sie im Assistenten."
-                },
-                {
                     "ecode": "0701300000010004",
                     "intro": "Verschlüsselungschip Fehler."
                 },
                 {
                     "ecode": "0701330000020002",
                     "intro": "Der RFID-Tag am AMS B Slot4 ist beschädigt oder sein Inhalt kann nicht identifiziert werden."
-                },
-                {
-                    "ecode": "0701700000020003",
-                    "intro": "Die Filamentextrusion ist fehlgeschlagen. Mögliche Ursachen: Verstopfung des Extruders oder der Düse. Bitte wenden Sie sich an den Assistenten für weitere Informationen."
                 },
                 {
                     "ecode": "0702300000010004",
@@ -12232,16 +12192,8 @@
                     "intro": "Der RFID-Tag am AMS-A-Slot1 ist beschädigt oder sein Inhalt kann nicht identifiziert werden."
                 },
                 {
-                    "ecode": "0700700000020003",
-                    "intro": "Die Filamentextrusion ist fehlgeschlagen. Mögliche Ursachen: Eine Verstopfung des Extruders oder der Düse. Bitte konsultieren Sie den Assistenten für weitere Details."
-                },
-                {
                     "ecode": "0701320000020002",
                     "intro": "Der RFID-Tag auf AMS B Slot3 ist beschädigt oder sein Inhalt kann nicht identifiziert werden."
-                },
-                {
-                    "ecode": "0702700000020006",
-                    "intro": "Timeout beim Entfernen alten Filaments. Mögliche Ursachen: Das Filament ist blockiert oder der Extruder/Düse ist verstopft. Bitte konsultieren Sie den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0703320000020002",
@@ -12490,10 +12442,6 @@
                 {
                     "ecode": "0701310000010004",
                     "intro": "Verschlüsselungschipfehler."
-                },
-                {
-                    "ecode": "0702700000020003",
-                    "intro": "Die Filamentextrusion ist fehlgeschlagen. Mögliche Ursachen: Verstopfung des Extruders oder der Düse. Bitte wenden Sie sich an den Assistenten für weitere Details."
                 },
                 {
                     "ecode": "0C00020000020003",
@@ -14178,10 +14126,6 @@
                 {
                     "ecode": "07FF810000020001",
                     "intro": "Die Umschaltaktion des Extruders ist abnormal. Bitte überprüfen Sie, ob etwas im Werkzeugkopf steckt."
-                },
-                {
-                    "ecode": "0500060000020031",
-                    "intro": "Die Bindung der Werkzeugkopfkamera ist fehlgeschlagen. Bitte überprüfen Sie die Hardware- und Kabelverbindungen."
                 },
                 {
                     "ecode": "0500030000010026",

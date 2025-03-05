@@ -1,11 +1,79 @@
 {
     "result": 0,
-    "t": 1740666194,
-    "ver": 202503250227,
+    "t": 1741069238,
+    "ver": 202503250304,
     "data": {
         "device_error": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "it": [
+                {
+                    "ecode": "0500806A",
+                    "intro": "Impossibile riconoscere l'hotend sinistro e destro. Potrebbe essere un hotend non ufficiale o il marchio dell'hotend potrebbe essere sporco. Si prega di impostare il tipo di hotend prima della prossima stampa."
+                },
+                {
+                    "ecode": "05FE806A",
+                    "intro": "Impossibile riconoscere l'hotend sinistro. Potrebbe essere un hotend non ufficiale o il marchio dell'hotend potrebbe essere sporco. Si prega di impostare il tipo di hotend prima della prossima stampa."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "La piattaforma laser è disallineata. Si prega di assicurarsi che i quattro angoli della piattaforma siano allineati con il piano riscaldato e che il marcatore non sia ostacolato."
+                },
+                {
+                    "ecode": "05FE8081",
+                    "intro": "L'hotend sinistro non è installato."
+                },
+                {
+                    "ecode": "05FF8081",
+                    "intro": "L'hotend destro non è installato."
+                },
+                {
+                    "ecode": "05FF8080",
+                    "intro": "L'hotend destro non è installato."
+                },
+                {
+                    "ecode": "05008086",
+                    "intro": "La lente della camera dell'ugello è sporca, il che potrebbe influenzare la funzionalità di monitoraggio dell'AI. Si prega di pulire la superficie della lente della camera dell'ugello il prima possibile."
+                },
+                {
+                    "ecode": "05008085",
+                    "intro": "La camera dell'ugello è ostruita."
+                },
+                {
+                    "ecode": "05008069",
+                    "intro": "Impossibile riconoscere l'hotend sinistro e destro. Potrebbe essere un hotend non ufficiale o il marchio dell'hotend potrebbe essere sporco. Si prega di impostare manualmente il tipo di hotend."
+                },
+                {
+                    "ecode": "05FE8069",
+                    "intro": "Impossibile riconoscere l'hotend sinistro. Potrebbe essere un hotend non ufficiale o il marchio dell'hotend potrebbe essere sporco. Si prega di impostare manualmente il tipo di hotend."
+                },
+                {
+                    "ecode": "05FF806A",
+                    "intro": "Impossibile riconoscere l'hotend giusto. Potrebbe essere un hotend non ufficiale, oppure il marchio dell'hotend potrebbe essere sporco. Si prega di impostare il tipo di hotend prima della prossima stampa."
+                },
+                {
+                    "ecode": "05FF8069",
+                    "intro": "Impossibile riconoscere l'hotend giusto. Potrebbe essere un hotend non ufficiale, oppure il marchio dell'hotend potrebbe essere sporco. Si prega di impostare manualmente il tipo di hotend."
+                },
+                {
+                    "ecode": "05FE8080",
+                    "intro": "L'hotend sinistro non è installato."
+                },
+                {
+                    "ecode": "05008080",
+                    "intro": "L'hotend sinistro e destro non è installato."
+                },
+                {
+                    "ecode": "05008081",
+                    "intro": "L'hotend sinistro e destro non sono installati."
+                },
+                {
+                    "ecode": "05008088",
+                    "intro": "La telecamera Birdseye è sporca."
+                },
+                {
+                    "ecode": "05008087",
+                    "intro": "La telecamera BirdsEye è ostruita."
+                },
                 {
                     "ecode": "03004002",
                     "intro": "Il livellamento automatico del letto è fallito; il task è stato interrotto."
@@ -309,10 +377,6 @@
                 {
                     "ecode": "05004076",
                     "intro": "Si prega di posizionare correttamente la Laser Platform e di assicurarsi che i marker posteriori non siano bloccati, quindi riavviare la misurazione dello spessore nel software prima di avviare il compito."
-                },
-                {
-                    "ecode": "05008074",
-                    "intro": "La Laser Platform è spostata. Si prega di assicurarsi che i quattro angoli della piattaforma siano allineati con il piano riscaldante."
                 },
                 {
                     "ecode": "0500807A",
@@ -699,10 +763,6 @@
                     "intro": "Si è verificato un errore durante l'essiccazione di AMS D. Si prega di andare su Assistant per ulteriori dettagli."
                 },
                 {
-                    "ecode": "05008081",
-                    "intro": "AI ha rilevato che gli hotend sinistro e destro non sono installati."
-                },
-                {
                     "ecode": "0701C06B",
                     "intro": "AMS B sta cambiando il filamento. Impossibile avviare l'essiccazione. Per favore riprova più tardi."
                 },
@@ -743,10 +803,6 @@
                     "intro": "AMS C sta leggendo l'RFID. Impossibile avviare l'asciugatura. Si prega di riprovare più tardi."
                 },
                 {
-                    "ecode": "05FE8081",
-                    "intro": "AI ha rilevato che l'hotend sinistro non è installato."
-                },
-                {
                     "ecode": "0702C06E",
                     "intro": "Il motore AMS C sta eseguendo un'autodiagnosi. Impossibile avviare l'asciugatura. Per favore riprova più tardi."
                 },
@@ -767,28 +823,12 @@
                     "intro": "AMS B sta leggendo RFID. Impossibile avviare l'essiccazione. Per favore riprova più tardi."
                 },
                 {
-                    "ecode": "05FE8080",
-                    "intro": "AI ha rilevato che l'hotend sinistro non è installato"
-                },
-                {
                     "ecode": "0702C06D",
                     "intro": "AMS C sta assistendo nell'inserimento del filamento. Impossibile avviare l'essiccazione. Si prega di riprovare più tardi."
                 },
                 {
                     "ecode": "05008082",
                     "intro": "Si prega di rimuovere la pellicola protettiva dall'Acrilico Opaco Lucido prima del trattamento."
-                },
-                {
-                    "ecode": "05FF8081",
-                    "intro": "AI ha rilevato che l'hotend destro non è installato."
-                },
-                {
-                    "ecode": "05FF8080",
-                    "intro": "AI ha rilevato che l'hotend destro non è installato."
-                },
-                {
-                    "ecode": "05008080",
-                    "intro": "AI ha rilevato che l'hotend sinistro e destro non sono installati."
                 },
                 {
                     "ecode": "0703C06A",
@@ -1299,32 +1339,8 @@
                     "intro": "Il tipo di tappetino da taglio è sconosciuto; si prega di sostituirlo con il tappetino da taglio corretto."
                 },
                 {
-                    "ecode": "0500806A",
-                    "intro": "L'hotend sinistro e destro non possono essere identificati, probabilmente a causa di un hotend non ufficiale. Si prega di impostare il tipo di hotend prima della prossima stampa."
-                },
-                {
                     "ecode": "05008062",
                     "intro": "Il tipo di piano di stampa è sconosciuto; si prega di sostituirlo con il piano corretto."
-                },
-                {
-                    "ecode": "05008069",
-                    "intro": "L'hotend sinistro e destro non possono essere identificati, probabilmente a causa del marcatore dell'ugello danneggiato. Si prega di impostare manualmente il tipo di hotend."
-                },
-                {
-                    "ecode": "05FE8069",
-                    "intro": "Il hotend sinistro non può essere identificato, probabilmente a causa del marcatore dell'ugello danneggiato. Si prega di impostare manualmente il tipo di hotend."
-                },
-                {
-                    "ecode": "05FE806A",
-                    "intro": "Il hotend sinistro non può essere identificato, probabilmente a causa di un hotend non ufficiale. Si prega di impostare il tipo di hotend prima della prossima stampa."
-                },
-                {
-                    "ecode": "05FF806A",
-                    "intro": "Il hotend destro non può essere identificato, probabilmente a causa di un hotend non ufficiale. Si prega di impostare il tipo di hotend prima della prossima stampa."
-                },
-                {
-                    "ecode": "05FF8069",
-                    "intro": "Il hotend destro non può essere identificato, probabilmente a causa del marcatore dell'ugello danneggiato. Si prega di impostare manualmente il tipo di hotend."
                 },
                 {
                     "ecode": "03008064",
@@ -2473,8 +2489,168 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "it": [
+                {
+                    "ecode": "0700700000020003",
+                    "intro": "Impossibile estrudere il filamento. Causa possibile: otturazione dell'estrusore o dell'ugello."
+                },
+                {
+                    "ecode": "0701700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: otturazione dell'estrusore o dell'ugello."
+                },
+                {
+                    "ecode": "0701700000020006",
+                    "intro": "Timeout durante la purga del vecchio filamento. Causa possibile: filamento bloccato o otturazione dell'estrusore/ugello."
+                },
+                {
+                    "ecode": "0702700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: otturazione dell'estrusore o dell'ugello."
+                },
+                {
+                    "ecode": "0703700000020006",
+                    "intro": "Timeout per la rimozione del filamento vecchio. Possibile causa: filamento bloccato o ostruzione dell'estrusore/del nozzle."
+                },
+                {
+                    "ecode": "0500060000020031",
+                    "intro": "La Camera del ToolHead non è connessa. Controlla l'hardware e le connessioni dei cavi."
+                },
+                {
+                    "ecode": "03009C0000010001",
+                    "intro": "La Pompa d'Aria non è rilevata. Controlla se il connettore è collegato correttamente."
+                },
+                {
+                    "ecode": "1807700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: otturazione dell'estrusore o dell'ugello."
+                },
+                {
+                    "ecode": "1803700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: otturazione dell'estrusore o dell'ugello."
+                },
+                {
+                    "ecode": "1800700000020006",
+                    "intro": "Timeout durante la purga del vecchio filamento. Causa possibile: filamento bloccato o otturazione dell'estrusore/ugello."
+                },
+                {
+                    "ecode": "1804700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: intasamento dell'estrusore o dell'ugello."
+                },
+                {
+                    "ecode": "1805700000020006",
+                    "intro": "Timeout per la purga del vecchio filamento. Possibile causa: filamento bloccato o intasamento dell'estrusore/ugello."
+                },
+                {
+                    "ecode": "0706700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: intasamento dell'estrusore o dell'ugello."
+                },
+                {
+                    "ecode": "1803700000020006",
+                    "intro": "Timeout per la rimozione del filamento vecchio. Possibile causa: filamento bloccato o ostruzione dell'estrusore/nozzle."
+                },
+                {
+                    "ecode": "1804700000020006",
+                    "intro": "Timeout per la purga del vecchio filamento. Possibile causa: filamento bloccato o intasamento dell'estrusore/ugello."
+                },
+                {
+                    "ecode": "1801700000020006",
+                    "intro": "Timeout per la purga del vecchio filamento. Possibile causa: filamento bloccato o intasamento dell'estrusore/ugello."
+                },
+                {
+                    "ecode": "1806700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: ostruzione dell'estrusore o del nozzle."
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020006",
+                    "intro": "Timeout per la purga del vecchio filamento. Possibile causa: filamento bloccato o intasamento dell'estrusore/ugello."
+                },
+                {
+                    "ecode": "0702700000020006",
+                    "intro": "Timeout durante l'eliminazione del vecchio filamento. Causa possibile: filamento bloccato o intasamento dell'estrusore/del beccuccio."
+                },
+                {
+                    "ecode": "0703700000020003",
+                    "intro": "Impossibile estrudere il filamento. Causa possibile: intasamento dell'estrusore o del beccuccio."
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "La telecamera del beccuccio non è collegata. Controlla l'hardware e le connessioni dei cavi."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "Il sistema di flusso d'aria non è riuscito ad attivare la modalità laser; controlla lo stato della porta d'aria."
+                },
+                {
+                    "ecode": "0500010000030006",
+                    "intro": "La chiavetta USB non è formattata o non può essere scritta; si prega di formattare la chiavetta USB."
+                },
+                {
+                    "ecode": "03009C0000010002",
+                    "intro": "La pompa d'aria è anormale e potrebbe essere danneggiata."
+                },
+                {
+                    "ecode": "1807700000020006",
+                    "intro": "Timeout durante l'eliminazione del vecchio filamento. Causa possibile: filamento bloccato o intasamento dell'estrusore/del beccuccio."
+                },
+                {
+                    "ecode": "0707700000020003",
+                    "intro": "Impossibile estrudere il filamento. Causa possibile: intasamento dell'estrusore o del beccuccio."
+                },
+                {
+                    "ecode": "1802700000020003",
+                    "intro": "Impossibile estrudere il filamento. Causa possibile: intasamento dell'estrusore o del beccuccio."
+                },
+                {
+                    "ecode": "0705700000020006",
+                    "intro": "Timeout durante l'eliminazione del vecchio filamento. Causa possibile: filamento bloccato o intasamento dell'estrusore/del beccuccio."
+                },
+                {
+                    "ecode": "0707700000020006",
+                    "intro": "Timeout durante la rimozione del filamento vecchio. Possibile causa: filamento bloccato o intasamento dell'estrusore/della testa di stampa."
+                },
+                {
+                    "ecode": "1801700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: intasamento dell'estrusore o della testa di stampa."
+                },
+                {
+                    "ecode": "1800700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: intasamento dell'estrusore o della bocchetta."
+                },
+                {
+                    "ecode": "1806700000020006",
+                    "intro": "Timeout per la rimozione del filamento vecchio. Possibile causa: filamento bloccato o ostruzione dell'estrusore/nozzle."
+                },
+                {
+                    "ecode": "0704700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: intasamento dell'estrusore o della bocchetta."
+                },
+                {
+                    "ecode": "1802700000020006",
+                    "intro": "Timeout durante la rimozione del filamento vecchio. Possibile causa: filamento bloccato o intasamento dell'estrusore/della testa di stampa."
+                },
+                {
+                    "ecode": "0704700000020006",
+                    "intro": "Timeout durante la rimozione del filamento vecchio. Possibile causa: filamento bloccato o intasamento dell'estrusore/della bocchetta."
+                },
+                {
+                    "ecode": "0705700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: intasamento dell'estrusore o della bocchetta."
+                },
+                {
+                    "ecode": "0706700000020006",
+                    "intro": "Timeout durante la rimozione del filamento vecchio. Possibile causa: filamento bloccato o intasamento dell'estrusore/della bocchetta."
+                },
+                {
+                    "ecode": "1805700000020003",
+                    "intro": "Impossibile estrudere il filamento. Possibile causa: intasamento dell'estrusore o della bocchetta."
+                },
                 {
                     "ecode": "0C00040000020007",
                     "intro": "La BirdsEye Camera si sta preparando. Per favore, rimuovi tutti gli oggetti e togli il tappeto. Assicurati che il marker non sia ostruito. Nel frattempo, pulisci sia la BirdsEye Camera che la Toolhead Camera, e rimuovi eventuali oggetti estranei che bloccano la loro visuale."
@@ -2528,10 +2704,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020061",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020052",
                     "intro": ""
                 },
@@ -2554,10 +2726,6 @@
                 {
                     "ecode": "0300C00000010003",
                     "intro": "Malfunzionamento della valvola dell'aria del ventilatore superiore automatico: potrebbe essere bloccata."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "Il sistema di flusso d'aria non è riuscito ad attivare la modalità laser/taglio; controlla lo stato della valvola dell'aria."
                 },
                 {
                     "ecode": "0300C00000010001",
@@ -2618,10 +2786,6 @@
                 {
                     "ecode": "1800700000020008",
                     "intro": "Impossibile ottenere la tabella di mappatura AMS; seleziona \"Riprendi\" per riprovare."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "La piattaforma attuale non soddisfa i requisiti del compito; utilizza la Piattaforma di Taglio."
                 },
                 {
                     "ecode": "07FE800000010006",
@@ -2730,18 +2894,6 @@
                 {
                     "ecode": "1807700000020008",
                     "intro": "Impossibile ottenere la tabella di mapping AMS; seleziona \"Riprendi\" per riprovare."
-                },
-                {
-                    "ecode": "0500040000020042",
-                    "intro": "È stata rilevata una discrepanza dell'ugello durante la stampa. Procedi con la stampa dopo aver eseguito un nuovo slicing, oppure continua a stampare dopo aver sostituito con l'ugello corretto. Attenzione: la temperatura dell'hotend è alta."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "Nessuna piattaforma rilevata; assicurati che la Piattaforma Laser sia posizionata correttamente."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "È stata rilevata una discrepanza dell'ugello durante la stampa. Procedi con la stampa dopo aver eseguito un nuovo slicing, oppure continua a stampare dopo aver sostituito con l'ugello corretto. Attenzione: la temperatura dell'hotend è alta."
                 },
                 {
                     "ecode": "0C00010000020014",
@@ -2866,22 +3018,6 @@
                 {
                     "ecode": "1807700000020046",
                     "intro": "AMS-HT H Il prelievo del filamento è fallito; questo potrebbe essere dovuto a una resistenza eccessiva nel motore di assistenza. Controlla se il rocchetto di filamento è inclinato o deformato e se il tubo del filamento è libero."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "La piattaforma attuale non soddisfa i requisiti del compito; utilizza la Piattaforma Laser."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "È stata rilevata una incompatibilità dell'ugello durante la stampa. Inizia la stampa dopo aver ristampato, oppure continua la stampa dopo aver sostituito con l'ugello corretto. Attenzione: la temperatura dell'hotend è alta."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Tipo di piattaforma errato rilevato; posiziona la Piattaforma Laser per la calibrazione."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Tipo di piattaforma errato rilevato; posiziona la Piattaforma di Taglio per la calibrazione."
                 },
                 {
                     "ecode": "0500050000010008",
@@ -4564,10 +4700,6 @@
                     "intro": "Surriscaldamento del modulo laser"
                 },
                 {
-                    "ecode": "0500060000020032",
-                    "intro": "Il binding della Telecamera della Boccetta è fallito. Si prega di controllare l'hardware e le connessioni dei cavi."
-                },
-                {
                     "ecode": "0500060000020022",
                     "intro": ""
                 },
@@ -4880,10 +5012,6 @@
                     "intro": "La calibrazione del punto focale XY del laser di incisione è fallita. Si prega di pulire l'Area di Homing Laser sulla Piattaforma Laser e ripetere la calibrazione del Montaggio del Modulo Laser."
                 },
                 {
-                    "ecode": "03009C0000010001",
-                    "intro": "Il Modulo di Assistenza al Flusso d'Aria Attivo non è rilevato. Si prega di controllare se il connettore è collegato correttamente."
-                },
-                {
                     "ecode": "0702230000020007",
                     "intro": "Il sensore Hall di uscita del feed-out Slot 4 AMS C è disconnesso. Il connettore potrebbe avere un contatto scarso."
                 },
@@ -5160,10 +5288,6 @@
                     "intro": "Controlla se il materiale esce dall'ugello sinistro. Se no, spingi delicatamente il materiale e prova a estrudere di nuovo."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Tipo di base di protezione da taglio sconosciuto. Si prega di sostituirlo con la corretta base di protezione da taglio."
-                },
-                {
                     "ecode": "0300D00000010002",
                     "intro": "Il portabile è caduto; si prega di reinstallarlo."
                 },
@@ -5182,10 +5306,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "La bobina esterna collegata all'estrusore destro potrebbe essere aggrovigliata o bloccata."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "Nessuna base di protezione al taglio è stata rilevata. Per favore, conferma che sia stata posizionata correttamente."
                 },
                 {
                     "ecode": "0300D00000010001",
@@ -5254,22 +5374,6 @@
                 {
                     "ecode": "1805010000020006",
                     "intro": "AMS-HT F I cavi trifase del motore ausiliario non sono collegati. Il connettore del motore ausiliario potrebbe avere un cattivo contatto."
-                },
-                {
-                    "ecode": "0500040000020044",
-                    "intro": "Il tipo di piastra di stampa è sconosciuto; per favore sostituiscila con quella corretta."
-                },
-                {
-                    "ecode": "0500040000020041",
-                    "intro": "L'hotend sinistro e destro non possono essere identificati, probabilmente a causa di un hotend non ufficiale. Potrebbe anche essere che il marcatore dell'hotend sia poco chiaro."
-                },
-                {
-                    "ecode": "05FF040000020041",
-                    "intro": "L'hotend destro non può essere identificato, probabilmente a causa di un hotend non ufficiale. Potrebbe anche essere che il marcatore dell'hotend sia poco chiaro."
-                },
-                {
-                    "ecode": "05FE040000020041",
-                    "intro": "L'hotend sinistro non può essere identificato, probabilmente a causa di un hotend non ufficiale. Potrebbe anche essere che il marcatore dell'hotend sia poco chiaro."
                 },
                 {
                     "ecode": "0500040000020053",
@@ -5784,10 +5888,6 @@
                     "intro": "La velocità della ventola di raffreddamento del hotend è lenta. Potrebbe essere bloccata e avere bisogno di pulizia."
                 },
                 {
-                    "ecode": "0500040000020049",
-                    "intro": "Il tipo di piattaforma è sconosciuto; si prega di sostituirlo con quello corretto e verificare se la telecamera BirdsEye è ostruita."
-                },
-                {
                     "ecode": "0703200000030001",
                     "intro": "AMS D Slot 1 filamento è esaurito. Si prega di attendere mentre il vecchio filamento viene purgato."
                 },
@@ -5810,10 +5910,6 @@
                 {
                     "ecode": "0704200000020005",
                     "intro": "AMS E Slot 1 filamento è esaurito, e la pulizia del vecchio filamento è stata anormale; si prega di verificare se il filamento è bloccato nella testina dell'utensile."
-                },
-                {
-                    "ecode": "1805700000020003",
-                    "intro": "Impossibile estrudere il filamento. Possibile causa: ostruzione dell'estrusore o della boccetta. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -6056,10 +6152,6 @@
                     "intro": "Ti preghiamo di estrarre il filamento esterno dall'estrusore destro."
                 },
                 {
-                    "ecode": "0705700000020003",
-                    "intro": "L'estrazione del filamento è fallita. Possibile causa: ostruzione dell'estrusore o della ugello. Per ulteriori informazioni, consulta l'Assistente."
-                },
-                {
                     "ecode": "0705210000020009",
                     "intro": "L'estrazione del filamento Slot 2 AMS F è fallita; l'estrusore potrebbe essere ostruito o il filamento potrebbe essere troppo sottile, causando lo slittamento dell'estrusore."
                 },
@@ -6090,10 +6182,6 @@
                 {
                     "ecode": "0705700000020032",
                     "intro": "L'alimentazione del filamento all'estrusore della testa dell'utensile AMS F è fallita; ciò potrebbe essere dovuto a un'eccessiva resistenza del filamento. Verificare se la bobina del filamento è inclinata o se il tubo del filamento è ostruito."
-                },
-                {
-                    "ecode": "0706700000020006",
-                    "intro": "Timeout della purga del vecchio filamento. Possibile causa: il filamento è bloccato o l'estrusore/il nozzle sono ostruiti. Consultare l'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6286,10 +6374,6 @@
                 {
                     "ecode": "1802700000020022",
                     "intro": "AMS-HT C L'alimentazione del filamento al buffer non è riuscita; ciò potrebbe essere causato dal filamento usurato che fa scivolare il motore di assistenza. Si prega di tagliare la sezione del filamento usurata."
-                },
-                {
-                    "ecode": "0704700000020006",
-                    "intro": "Timeout nella pulizia del vecchio filamento. Possibile causa: blocco del filamento o ostruzione della estrusione/augello. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "1805700000020021",
@@ -6496,10 +6580,6 @@
                     "intro": "L'alimentazione del filamento di AMS-HT D al buffer è fallita; ciò potrebbe essere dovuto al blocco del buffer del filamento. Si prega di controllare la spina del tubo PTFE del buffer."
                 },
                 {
-                    "ecode": "1801700000020006",
-                    "intro": "Timeout durante l'eliminazione del vecchio filamento. Possibile causa: il filamento potrebbe essere bloccato o potrebbe esserci un blocco nell'estrusore/testina di stampa. Si prega di fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "1802700000020060",
                     "intro": "AMS-HT C Assistere la presa dell'estrusore al filamento è fallito; questo potrebbe essere dovuto allo slittamento del motore di assistenza. Si prega di tagliare la sezione usurata del filamento."
                 },
@@ -6538,10 +6618,6 @@
                 {
                     "ecode": "0707700000020044",
                     "intro": "AMS H L'estrazione del filamento è fallita; ciò potrebbe essere dovuto al filamento rotto nella testina del utensile. Si prega di rimuovere il filamento rotto."
-                },
-                {
-                    "ecode": "1806700000020003",
-                    "intro": "L'estrusione del filamento è fallita. Possibile causa: ostruzione dell'estrusore o dell'ugello. Si prega di consultare l'Assistente per i dettagli."
                 },
                 {
                     "ecode": "1805700000020023",
@@ -6800,10 +6876,6 @@
                     "intro": "L'inserimento del filamento AMS-HT E nell'estrusore della testina non è riuscito; ciò potrebbe essere dovuto all'usura del filamento e al conseguente slittamento del motore di assistenza. Si prega di tagliare la sezione usurata del filamento."
                 },
                 {
-                    "ecode": "1803700000020006",
-                    "intro": "Timeout purgante il vecchio filamento. Possibile causa: il filamento è bloccato oppure l'estrusore/tubetto sono ostruiti. Si prega di consultare il supporto per ulteriori dettagli."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Fallimento del chip di crittografia."
                 },
@@ -6838,10 +6910,6 @@
                 {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F Assistenza estrusore: errore nel prelievo del filamento, probabilmente causato da una resistenza eccessiva del buffer. Si prega di controllare se il buffer è bloccato, se la bobina del filamento è inclinata e se il tubo del filamento è libero."
-                },
-                {
-                    "ecode": "1804700000020006",
-                    "intro": "Timeout durante l'eliminazione del vecchio filamento, possibile causa: filamento bloccato o ostruzione dell'estrusore / ugello. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "1807310000030003",
@@ -7332,10 +7400,6 @@
                     "intro": "Impossibile estrudere il filamento dello slot 4 dell'AMS E; l'estrusore potrebbe essere occluso o il filamento potrebbe essere troppo sottile, causando lo slittamento dell'estrusore."
                 },
                 {
-                    "ecode": "0706700000020003",
-                    "intro": "Impossibile estrudere il filamento. Possibile causa: occlusione dell'estrusore o del getto. Si prega di fare riferimento al programma Assistant per i dettagli."
-                },
-                {
                     "ecode": "1807700000020023",
                     "intro": "L'alimentazione del filamento al buffer AMS-HT H è fallita; ciò potrebbe essere causato dal distacco del filamento. Si prega di verificare se il tubo del filamento è collegato correttamente o se il tubo è stato consumato."
                 },
@@ -7540,10 +7604,6 @@
                     "intro": "L'alimentazione del filamento alla ruota di estrusione dell'assistente motore dell'AMS E è fallita. Ciò potrebbe essere dovuto all'ingresso di un piccolo pezzo di filamento rotto nel tubo di alimentazione. Si prega di rimuovere il filamento rotto dal tubo di alimentazione."
                 },
                 {
-                    "ecode": "0704700000020003",
-                    "intro": "Impossibile effettuare l'estrusione del filamento. Possibile causa: ostruzione dell'estrusore o dell'ugello. Si prega di fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "1802700000020041",
                     "intro": "L'estrazione del filamento dall'AMS-HT C è fallita; ciò potrebbe essere dovuto allo stacco del filamento dalla bobina. Si prega di sostituire la bobina con una nuova."
                 },
@@ -7566,10 +7626,6 @@
                 {
                     "ecode": "1801700000020023",
                     "intro": "L'alimentazione del filamento AMS-HT B al buffer è fallita; ciò potrebbe essere dovuto al distacco del filamento. Si prega di verificare se il tubo del filamento è collegato in modo improprio o se il tubo è stato consumato."
-                },
-                {
-                    "ecode": "1802700000020006",
-                    "intro": "Timeout durante lo scarico del vecchio filamento. Possibile causa: il filamento è bloccato o l'estrusore/ugello è ostruito. Si prega di fare riferimento all'Assistente per ulteriori dettagli."
                 },
                 {
                     "ecode": "0707700000020042",
@@ -8004,10 +8060,6 @@
                     "intro": "La presa del filamento da parte del motore di assistenza di AMS-HT F è fallita; potrebbe essere il risultato di uno slittamento del motore di assistenza. Si prega di tagliare la sezione logora del filamento."
                 },
                 {
-                    "ecode": "1800700000020003",
-                    "intro": "L'estrazione del filamento è fallita. Possibile causa: ostruzione dell'estrusore o ugello. Si prega di fare riferimento all'assistente per i dettagli."
-                },
-                {
                     "ecode": "1805700000020011",
                     "intro": "AMS-HT F L'alimentazione del filamento alla ruota di estrusione del motore di assistenza è fallita. Ciò potrebbe essere dovuto a una disconnessione del motore DC. Si prega di verificare la connessione della spina del motore DC."
                 },
@@ -8074,10 +8126,6 @@
                 {
                     "ecode": "0706700000020031",
                     "intro": "AMS G L'alimentazione della filament al sistema di estrusione testa utensile non è riuscita; ciò potrebbe essere dovuto all'usura della filament che causa lo slittamento del motore di assistenza. Si prega di tagliare la sezione consumata della filament."
-                },
-                {
-                    "ecode": "1806700000020006",
-                    "intro": "Timeout di purga della vecchia filament. Possibile causa: filament bloccata o ostruzione dell'estrusore / ugello. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0704700000020043",
@@ -8296,20 +8344,12 @@
                     "intro": "AMS-HT D L'alimentazione del filamento al buffer é fallita; ciò potrebbe essere dovuto dall'usura del filamento causando lo slittamento del motore di assistenza. Si prega di tagliare la sezione usurata del filamento."
                 },
                 {
-                    "ecode": "1805700000020006",
-                    "intro": "Timeout nell'eliminazione del vecchio filamento. Possibile causa: filamento bloccato o occlusione dell'estrusore/ugello. Si prega di fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "Impossibile leggere RFID a causa di un errore hardware o strutturale."
                 },
                 {
                     "ecode": "1806700000020020",
                     "intro": "AMS-HT G L'alimentazione del filamento al buffer é fallita; ciò potrebbe essere dovuto al blocco del filamento nel buffer. Si prega di controllare la spina del tubo PTFE del buffer."
-                },
-                {
-                    "ecode": "1801700000020003",
-                    "intro": "L'estrusione del filamento é fallita. Possibile causa: occlusione dell'estrusore o dell'ugello. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "1800300000010004",
@@ -8768,10 +8808,6 @@
                     "intro": "AMS H L'alimentazione del filamento al buffer non è riuscita; ciò potrebbe essere dovuto al blocco del filamento nel buffer. Controllare il connettore del tubo di PTFE del buffer."
                 },
                 {
-                    "ecode": "0707700000020006",
-                    "intro": "Timeout per l'espulsione del vecchio filamento. Possibile causa: il filamento è bloccato o l'estrusore/testina è ostruito. Fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "0706700000020033",
                     "intro": "AMS G L'alimentazione del filamento all'estrusore della testina non è riuscita; ciò potrebbe essere dovuto allo scivolamento del filamento. Controllare se il tubo del filamento è scollegato o se il tubo è stato consumato."
                 },
@@ -8818,10 +8854,6 @@
                 {
                     "ecode": "1803700000020014",
                     "intro": "L'alimentazione del filamento AMS-HT D alla ruota di estrusione del motore ausiliario è fallita. Ciò potrebbe essere dovuto all'ingresso di un piccolo pezzo di filamento rotto nel tubo di alimentazione. Si prega di rimuovere il filamento rotto dal tubo di alimentazione."
-                },
-                {
-                    "ecode": "1804700000020003",
-                    "intro": "Fallita l'estrusione del filamento. Possibile causa: otturazione dell'estrusore o del nozzle. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "1800700000020032",
@@ -9016,10 +9048,6 @@
                     "intro": "L'estrazione del filamento dall'AMS G non è riuscita; potrebbe essere dovuto all'esaurimento del filamento o all'estrazione del filamento."
                 },
                 {
-                    "ecode": "1803700000020003",
-                    "intro": "L'estrusione del filamento non è riuscita. Possibile causa: ostruzione dell'estrusore o delugatore. Si prega di fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "1805700000020020",
                     "intro": "L'alimentazione del filamento AMS-HT F al buffer non è riuscita; potrebbe essere dovuto al blocco del filamento nel buffer. Si prega di verificare il tappo del tubo PTFE del buffer."
                 },
@@ -9038,10 +9066,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C L'alimentazione del filamento all'estrusore della testina utensile è fallita; ciò potrebbe essere dovuto allo scivolamento del filamento. Verificare se il tubo del filamento è scollegato o se si è consumato."
-                },
-                {
-                    "ecode": "1800700000020006",
-                    "intro": "Timeout durante la pulizia del filamento vecchio. Possibile causa: il filamento è bloccato o c'è un'ostruzione nell'estrusore / ugello. Consultare l'Assistente per maggiori dettagli."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9256,10 +9280,6 @@
                     "intro": "AMS-HT H L'alimentazione del filamento alla ruota di estrusione del motore di assistenza è fallita. Ciò potrebbe essere dovuto ad un'eccessiva resistenza nel filamento. Si prega di verificare se il rullo è inclinato, se il filamento è attorcigliato o se la rotazione del rullo non è fluida."
                 },
                 {
-                    "ecode": "0705700000020006",
-                    "intro": "Timeout durante la pulizia del vecchio filamento. Possibile causa: filamento bloccato o ostruzione dell'estrusore/nozzle. Si prega di fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "0706700000020021",
                     "intro": "AMS G L'alimentazione del filamento al buffer è fallita; ciò potrebbe essere dovuto ad un'eccessiva resistenza del filamento. Si prega di verificare se il rullo del filamento è inclinato o se il tubo di PTFE è bloccato."
                 },
@@ -9318,10 +9338,6 @@
                 {
                     "ecode": "1806700000020030",
                     "intro": "AMS-HT G L'alimentazione del filamento all'estrusore della testina è fallita; ciò potrebbe essere dovuto al blocco del filamento all'ingresso della testina. Si prega di verificare la spina del tubo del filamento della testina."
-                },
-                {
-                    "ecode": "1807700000020003",
-                    "intro": "Fallita l'estrusione del filamento. Possibile causa: ostruzione dell'estrusore o dell'ugello. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9502,10 +9518,6 @@
                 {
                     "ecode": "0706700000020032",
                     "intro": "AMS G L'alimentazione del filamento all'estrusore della testina strumento è fallita; ciò potrebbe essere dovuto a una resistenza eccessiva del filamento. Si prega di controllare se il supporto del filamento è inclinato o se il tubo del filamento è ostruito."
-                },
-                {
-                    "ecode": "1802700000020003",
-                    "intro": "L'estrazione del filamento è fallita. Possibili cause: occlusione dell'estrusore o del nozzle. Si prega di fare riferimento all'Assistente per maggiori dettagli."
                 },
                 {
                     "ecode": "0704700000020021",
@@ -10224,16 +10236,8 @@
                     "intro": "Il caricamento del filamento nell'AMS E per la ruota di estrusione del motore di assistenza è fallito. Ciò potrebbe essere dovuto ad un'eccessiva resistenza del filamento. Si prega di verificare se il rullino è inclinato, se il filamento è impigliato o se la rotazione del rullino non è fluida."
                 },
                 {
-                    "ecode": "1807700000020006",
-                    "intro": "Timeout durante la pulizia del vecchio filamento. Possibile causa: il filamento è bloccato o l'estrusore/il beccuccio è otturato. Si prega di fare riferimento all'Assistente per i dettagli."
-                },
-                {
                     "ecode": "1805700000020012",
                     "intro": "Il caricamento del filamento nell'AMS-HT F per la ruota di estrusione del motore di assistenza è fallito. Ciò potrebbe essere dovuto ad un'eccessiva resistenza del filamento. Si prega di verificare se il rullino è inclinato, se il filamento è impigliato o se la rotazione del rullino non è fluida."
-                },
-                {
-                    "ecode": "0707700000020003",
-                    "intro": "Impossibile estrarre il filamento. Possibile causa: ostruzione dell'estrusore o del beccuccio. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0705700000020022",
@@ -10546,26 +10550,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "Il rilevamento di oggetti estranei non funziona. Si prega di riavviare il dispositivo o aggiornare il firmware."
-                },
-                {
-                    "ecode": "03009C0000010002",
-                    "intro": "Il modulo di assistenza al flusso d'aria attivo non è normale e potrebbe essere danneggiato."
-                },
-                {
-                    "ecode": "0500040000020047",
-                    "intro": "Oggetti estranei rilevati sul piano di stampa 3D; si prega di controllare e pulire il piano di stampa."
-                },
-                {
-                    "ecode": "0500040000020043",
-                    "intro": "Piastra di stampa non rilevata; assicurati che sia posizionata correttamente."
-                },
-                {
-                    "ecode": "0500040000020046",
-                    "intro": "Materiale non rilevato; conferma il posizionamento prima di continuare."
-                },
-                {
-                    "ecode": "0500040000020045",
-                    "intro": "Il tipo di piastra di stampa 3D rilevato non corrisponde a quello selezionato nel slicer."
                 },
                 {
                     "ecode": "1200300000010004",
@@ -11084,10 +11068,6 @@
                     "intro": "AMS A Impossibile avviare la fase di essiccazione; prego, rimuovere il filamento dal mozzo e riprovare."
                 },
                 {
-                    "ecode": "0500010000030006",
-                    "intro": "Il disco USB non è formattato; prego, formattare il disco USB."
-                },
-                {
                     "ecode": "0300290000010001",
                     "intro": "Il pattern dell'encoder non può essere riconosciuto; le possibili cause possono essere: distorsione del pattern, sovraesposizione alla luce, disallineamento della piastra..."
                 },
@@ -11388,24 +11368,12 @@
                     "intro": "Il tag RFID sulla Slot2 di AMS B è danneggiato o il suo contenuto non può essere identificato."
                 },
                 {
-                    "ecode": "0701700000020006",
-                    "intro": "Timeout durante la pulizia del vecchio filamento. Possibile causa: filamento bloccato o occlusione dell'estrusore / nozzle. Si prega di consultare l'Assistente per i dettagli."
-                },
-                {
                     "ecode": "0702310000020002",
                     "intro": "Il tag RFID sulla Slot2 di AMS C è danneggiato o il suo contenuto non può essere identificato."
                 },
                 {
                     "ecode": "0703310000010004",
                     "intro": "Guasto della chip di crittografia."
-                },
-                {
-                    "ecode": "0703700000020003",
-                    "intro": "Impossibile estrarre il filamento. Possibile causa: otturazione dell'estrusore o del beccuccio. Si prega di fare riferimento all'Assistente per i dettagli."
-                },
-                {
-                    "ecode": "0703700000020006",
-                    "intro": "Timeout nella purga del vecchio filamento. Possibile causa: filamento bloccato o otturazione dell'estrusore o del beccuccio. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0C00020000010005",
@@ -11648,20 +11616,12 @@
                     "intro": "Il tag RFID sulla Slot4 di AMS A è danneggiato, oppure il suo contenuto non può essere identificato."
                 },
                 {
-                    "ecode": "0700700000020006",
-                    "intro": "Timeout durante la rimozione del vecchio filamento. Possibile causa: filamento bloccato o ostruzione dell'estrusore/ugello. Si prega di consultare l'Assistente per maggiori dettagli."
-                },
-                {
                     "ecode": "0701300000010004",
                     "intro": "Errore del chip di crittografia."
                 },
                 {
                     "ecode": "0701330000020002",
                     "intro": "Il tag RFID su AMS B Slot4 è danneggiato o il suo contenuto non può essere identificato."
-                },
-                {
-                    "ecode": "0701700000020003",
-                    "intro": "Impossibile estrudere il filamento. Possibile causa: ostruzione dell'estrusore o della boccola. Si prega di fare riferimento all'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0702300000010004",
@@ -12232,16 +12192,8 @@
                     "intro": "Il tag RFID sulla fessura AMS A Slot1 è danneggiato, oppure il suo contenuto non può essere identificato."
                 },
                 {
-                    "ecode": "0700700000020003",
-                    "intro": "La filiera non è riuscita ad estrudere il filamento. Possibile causa: otturazione dell'estrusore o della testina di stampa. Consultare l'Assistente per maggiori dettagli."
-                },
-                {
                     "ecode": "0701320000020002",
                     "intro": "Il tag RFID su AMS B Slot3 è danneggiato o non è possibile identificarne il contenuto."
-                },
-                {
-                    "ecode": "0702700000020006",
-                    "intro": "Timeout durante la pulizia del vecchio filamento. Possibile causa: filamento bloccato o ostruzione dell'estrusore o della testina di stampa. Consultare l'Assistente per maggiori dettagli."
                 },
                 {
                     "ecode": "0703320000020002",
@@ -12490,10 +12442,6 @@
                 {
                     "ecode": "0701310000010004",
                     "intro": "Guasto alla chip di crittografia."
-                },
-                {
-                    "ecode": "0702700000020003",
-                    "intro": "Non è stato possibile estrarre il filamento. Possibile causa: ostruzione dell'estrusore o del getto. Consultare l'Assistente per i dettagli."
                 },
                 {
                     "ecode": "0C00020000020003",
@@ -14178,10 +14126,6 @@
                 {
                     "ecode": "07FF810000020001",
                     "intro": "L'azione di commutazione dell'estrusore è anomala. Si prega di verificare se c'è qualcosa bloccato nella testa utensile."
-                },
-                {
-                    "ecode": "0500060000020031",
-                    "intro": "Il binding della telecamera della testa utensile non è riuscito. Si prega di verificare le connessioni hardware e del cavo."
                 },
                 {
                     "ecode": "0500030000010026",

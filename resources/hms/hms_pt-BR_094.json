@@ -1,11 +1,79 @@
 {
     "result": 0,
-    "t": 1740666194,
-    "ver": 202503250227,
+    "t": 1741069238,
+    "ver": 202503250304,
     "data": {
         "device_error": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "pt-BR": [
+                {
+                    "ecode": "0500806A",
+                    "intro": "Incapaz de reconhecer o hotend esquerdo e direito. Pode ser um hotend não oficial, ou a marca do hotend pode estar suja. Por favor, defina o tipo de hotend antes da próxima impressão."
+                },
+                {
+                    "ecode": "05FE806A",
+                    "intro": "Incapaz de reconhecer o hotend esquerdo. Pode ser um hotend não oficial, ou a marca do hotend pode estar suja. Por favor, defina o tipo de hotend antes da próxima impressão."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "A plataforma a laser está deslocada. Por favor, certifique-se de que os quatro cantos da plataforma estejam alinhados com o heatbed e que o marcador não esteja obstruído."
+                },
+                {
+                    "ecode": "05FE8081",
+                    "intro": "O hotend esquerdo não está instalado."
+                },
+                {
+                    "ecode": "05FF8081",
+                    "intro": "O hotend direito não está instalado."
+                },
+                {
+                    "ecode": "05FF8080",
+                    "intro": "O hotend direito não está instalado."
+                },
+                {
+                    "ecode": "05008086",
+                    "intro": "A lente da câmera do bico está suja, o que pode afetar a funcionalidade de monitoramento de IA. Por favor, limpe a superfície da lente da câmera do bico assim que possível."
+                },
+                {
+                    "ecode": "05008085",
+                    "intro": "A câmera do bico está obstruída."
+                },
+                {
+                    "ecode": "05008069",
+                    "intro": "Incapaz de reconhecer o hotend esquerdo e direito. Pode ser um hotend não oficial, ou a marca do hotend pode estar suja. Por favor, defina manualmente o tipo de hotend."
+                },
+                {
+                    "ecode": "05FE8069",
+                    "intro": "Incapaz de reconhecer o hotend esquerdo. Pode ser um hotend não oficial, ou a marca do hotend pode estar suja. Por favor, defina manualmente o tipo de hotend."
+                },
+                {
+                    "ecode": "05FF806A",
+                    "intro": "Incapaz de reconhecer o hotend correto. Pode ser um hotend não oficial, ou a marca do hotend pode estar suja. Por favor, defina o tipo de hotend antes da próxima impressão."
+                },
+                {
+                    "ecode": "05FF8069",
+                    "intro": "Incapaz de reconhecer o hotend correto. Pode ser um hotend não oficial, ou a marca do hotend pode estar suja. Por favor, defina manualmente o tipo de hotend."
+                },
+                {
+                    "ecode": "05FE8080",
+                    "intro": "O hotend esquerdo não está instalado."
+                },
+                {
+                    "ecode": "05008080",
+                    "intro": "O hotend esquerdo e o direito não estão instalados."
+                },
+                {
+                    "ecode": "05008081",
+                    "intro": "O hotend esquerdo e o direito não estão instalados."
+                },
+                {
+                    "ecode": "05008088",
+                    "intro": "A câmera Birdseye está suja."
+                },
+                {
+                    "ecode": "05008087",
+                    "intro": "A câmera BirdsEye está obstruída."
+                },
                 {
                     "ecode": "03004002",
                     "intro": "Falha no nivelamento automático da cama; a tarefa foi interrompida."
@@ -309,10 +377,6 @@
                 {
                     "ecode": "05004076",
                     "intro": "Por favor, coloque a Plataforma a Laser corretamente e garanta que os marcadores traseiros não estejam bloqueados, depois reinicie a medição de espessura no software antes de iniciar a tarefa."
-                },
-                {
-                    "ecode": "05008074",
-                    "intro": "A Plataforma a Laser está desalinhada. Por favor, certifique-se de que os quatro cantos da plataforma estejam alinhados com a cama aquecida."
                 },
                 {
                     "ecode": "0500807A",
@@ -699,10 +763,6 @@
                     "intro": "Ocorreu um erro durante a secagem do AMS D. Por favor, acesse o Assistente para mais detalhes."
                 },
                 {
-                    "ecode": "05008081",
-                    "intro": "A IA detectou que os hotends esquerdo e direito não estão instalados."
-                },
-                {
                     "ecode": "0701C06B",
                     "intro": "O AMS B está trocando o filamento. Não foi possível iniciar a secagem. Por favor, tente novamente mais tarde."
                 },
@@ -743,10 +803,6 @@
                     "intro": "O AMS C está lendo RFID. Não é possível iniciar a secagem. Por favor, tente novamente mais tarde."
                 },
                 {
-                    "ecode": "05FE8081",
-                    "intro": "AI detectou que o hotend esquerdo não está instalado."
-                },
-                {
                     "ecode": "0702C06E",
                     "intro": "O motor AMS C está realizando auto-teste. Não foi possível iniciar a secagem. Por favor, tente novamente mais tarde."
                 },
@@ -767,28 +823,12 @@
                     "intro": "O AMS B está lendo RFID. Não foi possível iniciar a secagem. Por favor, tente novamente mais tarde."
                 },
                 {
-                    "ecode": "05FE8080",
-                    "intro": "AI detectou que o hotend esquerdo não está instalado."
-                },
-                {
                     "ecode": "0702C06D",
                     "intro": "AMS C está ajudando na inserção do filamento. Não foi possível iniciar a secagem. Por favor, tente novamente mais tarde."
                 },
                 {
                     "ecode": "05008082",
                     "intro": "Por favor, remova o filme protetor do Acrílico Glossy Opaque antes de processar."
-                },
-                {
-                    "ecode": "05FF8081",
-                    "intro": "AI detectou que o hotend direito não está instalado."
-                },
-                {
-                    "ecode": "05FF8080",
-                    "intro": "AI detectou que o hotend direito não está instalado."
-                },
-                {
-                    "ecode": "05008080",
-                    "intro": "AI detectou que os hotends esquerdo e direito não estão instalados."
                 },
                 {
                     "ecode": "0703C06A",
@@ -1299,32 +1339,8 @@
                     "intro": "O tipo de base de corte é desconhecido; por favor, substitua pela base de corte correta."
                 },
                 {
-                    "ecode": "0500806A",
-                    "intro": "Os hotends esquerdo e direito não podem ser identificados, possivelmente devido a um hotend não oficial. Por favor, defina o tipo de hotend antes da próxima impressão."
-                },
-                {
                     "ecode": "05008062",
                     "intro": "O tipo de placa de impressão é desconhecido; por favor, substitua pela placa correta."
-                },
-                {
-                    "ecode": "05008069",
-                    "intro": "Os hotends esquerdo e direito não podem ser identificados, possivelmente devido ao marcador de bico danificado. Por favor, defina manualmente o tipo de hotend."
-                },
-                {
-                    "ecode": "05FE8069",
-                    "intro": "O hotend esquerdo não pode ser identificado, possivelmente devido ao marcador de bico danificado. Por favor, defina manualmente o tipo de hotend."
-                },
-                {
-                    "ecode": "05FE806A",
-                    "intro": "O hotend esquerdo não pode ser identificado, possivelmente devido a um hotend não oficial. Por favor, defina o tipo de hotend antes da próxima impressão."
-                },
-                {
-                    "ecode": "05FF806A",
-                    "intro": "O hotend direito não pode ser identificado, possivelmente devido a um hotend não oficial. Por favor, defina o tipo de hotend antes da próxima impressão."
-                },
-                {
-                    "ecode": "05FF8069",
-                    "intro": "O hotend direito não pode ser identificado, possivelmente devido ao marcador de bico danificado. Por favor, defina manualmente o tipo de hotend."
                 },
                 {
                     "ecode": "03008064",
@@ -2473,8 +2489,168 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "pt-BR": [
+                {
+                    "ecode": "0700700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou do bico."
+                },
+                {
+                    "ecode": "0701700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou do bico."
+                },
+                {
+                    "ecode": "0701700000020006",
+                    "intro": "Timeout limpando filamento velho. Possível causa: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0702700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou do bico."
+                },
+                {
+                    "ecode": "0703700000020006",
+                    "intro": "Timeout purgando filamento antigo. Possível causa: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0500060000020031",
+                    "intro": "A câmera do ToolHead não está conectada. Por favor, verifique o hardware e as conexões dos cabos."
+                },
+                {
+                    "ecode": "03009C0000010001",
+                    "intro": "A bomba de ar não foi detectada. Por favor, verifique se o conector está devidamente conectado."
+                },
+                {
+                    "ecode": "1807700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou do bico."
+                },
+                {
+                    "ecode": "1803700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou do bico."
+                },
+                {
+                    "ecode": "1800700000020006",
+                    "intro": "Timeout ao purgar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "1804700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "1805700000020006",
+                    "intro": "Tempo esgotado para limpar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0706700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "1803700000020006",
+                    "intro": "Tempo esgotado para limpar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "1804700000020006",
+                    "intro": "Tempo esgotado para limpar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "1801700000020006",
+                    "intro": "Tempo esgotado para limpar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "1806700000020003",
+                    "intro": "Falha ao extrudar o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020006",
+                    "intro": "Tempo esgotado para limpar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0702700000020006",
+                    "intro": "Timeout ao purgar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0703700000020003",
+                    "intro": "Falha ao extrudir o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "A câmera do bico não está conectada. Por favor, verifique as conexões de hardware e cabos."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "O sistema de fluxo de ar falhou ao ativar o modo laser; por favor, verifique o status da porta de ar."
+                },
+                {
+                    "ecode": "0500010000030006",
+                    "intro": "A unidade USB não está formatada ou não pode ser gravada; por favor, formate a unidade USB."
+                },
+                {
+                    "ecode": "03009C0000010002",
+                    "intro": "A bomba de ar está anormal e pode estar danificada."
+                },
+                {
+                    "ecode": "1807700000020006",
+                    "intro": "Timeout ao purgar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0707700000020003",
+                    "intro": "Falha ao extrudir o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "1802700000020003",
+                    "intro": "Falha ao extrudir o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "0705700000020006",
+                    "intro": "Timeout ao purgar o filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0707700000020006",
+                    "intro": "Timeout purgando filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "1801700000020003",
+                    "intro": "Falha ao extrudir o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "1800700000020003",
+                    "intro": "Falha ao extrudar o filamento. Possível causa: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "1806700000020006",
+                    "intro": "Timeout purgando filamento velho. Possível causa: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0704700000020003",
+                    "intro": "Falha ao extrudir o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "1802700000020006",
+                    "intro": "Timeout purgando filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0704700000020006",
+                    "intro": "Timeout purgando filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "0705700000020003",
+                    "intro": "Falha ao extrudir o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
+                {
+                    "ecode": "0706700000020006",
+                    "intro": "Timeout purgando filamento antigo. Causa possível: filamento preso ou entupimento do extrusor/bico."
+                },
+                {
+                    "ecode": "1805700000020003",
+                    "intro": "Falha ao extrudir o filamento. Causa possível: entupimento do extrusor ou bico."
+                },
                 {
                     "ecode": "0C00040000020007",
                     "intro": "A câmera BirdsEye está sendo configurada. Por favor, remova todos os objetos e retire o tapete. Certifique-se de que o marcador não esteja obstruído. Enquanto isso, limpe tanto a câmera BirdsEye quanto a câmera Toolhead, e remova quaisquer objetos estranhos que estejam bloqueando a visão delas."
@@ -2528,10 +2704,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020061",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020052",
                     "intro": ""
                 },
@@ -2554,10 +2726,6 @@
                 {
                     "ecode": "0300C00000010003",
                     "intro": "Malfuncionamento da porta de ar do ventilador superior automático: pode estar presa."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "O sistema de fluxo de ar não conseguiu ativar o modo laser/corte; por favor, verifique o status da porta de ar."
                 },
                 {
                     "ecode": "0300C00000010001",
@@ -2618,10 +2786,6 @@
                 {
                     "ecode": "1800700000020008",
                     "intro": "Falha ao obter a tabela de mapeamento AMS; por favor, selecione \"Retomar\" para tentar novamente."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "A plataforma atual não atende ao requisito da tarefa; por favor, use a Plataforma de Corte."
                 },
                 {
                     "ecode": "07FE800000010006",
@@ -2730,18 +2894,6 @@
                 {
                     "ecode": "1807700000020008",
                     "intro": "Falha ao obter a tabela de mapeamento AMS; por favor, selecione \"Retomar\" para tentar novamente."
-                },
-                {
-                    "ecode": "0500040000020042",
-                    "intro": "Foi detectada uma incompatibilidade de bico durante a impressão. Por favor, inicie a impressão após refilmar, ou continue imprimindo após substituir pelo bico correto. Atenção: a temperatura do hotend está alta."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "Nenhuma plataforma detectada; por favor, certifique-se de que a Plataforma a Laser está posicionada corretamente."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "Foi detectada uma incompatibilidade de bico durante a impressão. Por favor, inicie a impressão após re-slicing, ou continue imprimindo após substituir pelo bico correto. Atenção: a temperatura do hotend está alta."
                 },
                 {
                     "ecode": "0C00010000020014",
@@ -2866,22 +3018,6 @@
                 {
                     "ecode": "1807700000020046",
                     "intro": "Falha ao retirar o filamento AMS-HT H; isso pode ser devido à resistência excessiva no motor de assistência. Por favor, verifique se o carretel de filamento está inclinado ou deformado e se o tubo de filamento está desobstruído."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "A plataforma atual não atende aos requisitos da tarefa; por favor, use a Plataforma Laser."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "Foi detectada uma incompatibilidade do bico durante a impressão. Por favor, inicie a impressão após recortar novamente, ou continue a impressão após substituir pelo bico correto. Atenção: a temperatura do hotend está alta."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Tipo de plataforma errado detectado; por favor, coloque a Plataforma Laser para a calibração."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Tipo de plataforma errado detectado; por favor, coloque a Plataforma de Corte para a calibração."
                 },
                 {
                     "ecode": "0500050000010008",
@@ -4564,10 +4700,6 @@
                     "intro": "Módulo a Laser superaquecendo"
                 },
                 {
-                    "ecode": "0500060000020032",
-                    "intro": "Falha na conexão da câmera do bico. Por favor, verifique o hardware e as conexões do cabo."
-                },
-                {
                     "ecode": "0500060000020022",
                     "intro": ""
                 },
@@ -4880,10 +5012,6 @@
                     "intro": "A calibração do ponto focal XY do laser de gravação falhou. Por favor, limpe a Área de Homing do Laser na Plataforma do Laser e reexecute a Calibração do Suporte do Módulo Laser."
                 },
                 {
-                    "ecode": "03009C0000010001",
-                    "intro": "O Módulo de Assistência de Fluxo de Ar Ativo não está sendo detectado. Por favor, verifique se o conector está conectado corretamente."
-                },
-                {
                     "ecode": "0702230000020007",
                     "intro": "O sensor Hall do feed-out do Slot 4 do AMS C está desconectado. O conector pode ter mau contato."
                 },
@@ -5160,10 +5288,6 @@
                     "intro": "Por favor, verifique se o material está saindo do bico esquerdo. Se não, empurre o material com cuidado e tente extrudar novamente."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Tipo de base de proteção contra cortes desconhecido. Por favor, substitua pela base de proteção contra cortes correta."
-                },
-                {
                     "ecode": "0300D00000010002",
                     "intro": "O suporte da lâmina caiu; por favor, reinstale-o."
                 },
@@ -5182,10 +5306,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "O carretel externo conectado ao extrusor direito pode estar emaranhado ou preso."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "Nenhuma base de proteção contra cortes foi detectada. Por favor, confirme se ela está corretamente posicionada."
                 },
                 {
                     "ecode": "0300D00000010001",
@@ -5254,22 +5374,6 @@
                 {
                     "ecode": "1805010000020006",
                     "intro": "AMS-HT F Os fios do motor auxiliar trifásico não estão conectados. O conector do motor auxiliar pode ter um contato ruim."
-                },
-                {
-                    "ecode": "0500040000020044",
-                    "intro": "O tipo de chapa de impressão é desconhecido; por favor, substitua-o pela chapa correta."
-                },
-                {
-                    "ecode": "0500040000020041",
-                    "intro": "O hotend esquerdo e o direito não podem ser identificados, possivelmente devido a um hotend não oficial. Também pode ser que a marcação do hotend esteja unclear."
-                },
-                {
-                    "ecode": "05FF040000020041",
-                    "intro": "O hotend direito não pode ser identificado, possivelmente devido a um hotend não oficial. Também pode ser que a marcação do hotend esteja unclear."
-                },
-                {
-                    "ecode": "05FE040000020041",
-                    "intro": "O hotend esquerdo não pode ser identificado, possivelmente devido a um hotend não oficial. Também pode ser que a marcação do hotend esteja unclear."
                 },
                 {
                     "ecode": "0500040000020053",
@@ -5784,10 +5888,6 @@
                     "intro": "A velocidade do ventilador de resfriamento do hotend está lenta. Pode estar travado e precisar de limpeza."
                 },
                 {
-                    "ecode": "0500040000020049",
-                    "intro": "O tipo da plataforma é desconhecido; por favor, substitua-o pelo correto e verifique se a câmera BirdsEye está obstruída."
-                },
-                {
                     "ecode": "0703200000030001",
                     "intro": "Filamento da ranhura 1 do AMS D acabou. Aguarde enquanto o filamento antigo é purgado."
                 },
@@ -5810,10 +5910,6 @@
                 {
                     "ecode": "0704200000020005",
                     "intro": "Filamento da ranhura 1 do AMS E acabou e a purga do filamento antigo ocorreu anormalmente; por favor, verifique se o filamento está obstruindo o suporte da ferramenta."
-                },
-                {
-                    "ecode": "1805700000020003",
-                    "intro": "Falha na extrusão do filamento. Possível causa: obstrução no extrusor ou bico. Consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -6056,10 +6152,6 @@
                     "intro": "Por favor, puxe o filamento externo do extrusor direito."
                 },
                 {
-                    "ecode": "0705700000020003",
-                    "intro": "Falha na extrusão do filamento. Possível causa: obstrução do extrusor ou do bico. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0705210000020009",
                     "intro": "Falha ao extrudar o filamento AMS F Slot 2; o extrusor pode estar obstruído ou o filamento pode estar muito fino, fazendo com que o extrusor escorregue."
                 },
@@ -6090,10 +6182,6 @@
                 {
                     "ecode": "0705700000020032",
                     "intro": "AMS F Falha ao alimentar o filamento no extrusor da ferramenta. Isso pode ser devido a uma resistência excessiva do filamento. Verifique se o carretel de filamento está inclinado ou se o tubo de filamento está obstruído."
-                },
-                {
-                    "ecode": "0706700000020006",
-                    "intro": "Timeout ao limpar o filamento antigo. Possível causa: filamento preso ou obstrução no extrusor/bico. Consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6286,10 +6374,6 @@
                 {
                     "ecode": "1802700000020022",
                     "intro": "AMS-HT C Falha ao alimentar o filamento para o buffer. Isso pode ser devido ao filamento gasto, fazendo com que o motor de assistência deslize. Por favor, corte a seção gasta do filamento."
-                },
-                {
-                    "ecode": "0704700000020006",
-                    "intro": "Tempo limite para purgar o filamento antigo. Possível causa: filamento preso ou entupimento do extrusor/bico. Por favor, consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "1805700000020021",
@@ -6496,10 +6580,6 @@
                     "intro": "A alimentação de filamento do AMS-HT D para o buffer falhou; isso pode ser devido ao buffer bloquear o filamento. Por favor, verifique o plugue do tubo PTFE do buffer."
                 },
                 {
-                    "ecode": "1801700000020006",
-                    "intro": "Tempo esgotado para extrusão de filamento antigo. Possível causa: filamento preso ou obstrução no extrusor/bico. Por favor, consulte o assistente para mais detalhes."
-                },
-                {
                     "ecode": "1802700000020060",
                     "intro": "AMS-HT C Falha ao ajudar o extrusor a agarrar o filamento; isso pode ser devido ao motor auxiliar escorregando. Por favor, corte a seção desgastada do filamento."
                 },
@@ -6538,10 +6618,6 @@
                 {
                     "ecode": "0707700000020044",
                     "intro": "AMS H a remoção do filamento falhou; isso pode ser devido a um filamento quebrado na cabeça da ferramenta. Por favor, remova o filamento quebrado."
-                },
-                {
-                    "ecode": "1806700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: obstrução do extrusor ou bico. Por favor, consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "1805700000020023",
@@ -6800,10 +6876,6 @@
                     "intro": "A alimentação de filamento para o extrusor da cabeça da ferramenta AMS-HT E falhou; isso pode ser devido ao desgaste do filamento e causando o deslizamento do motor auxiliar. Por favor, corte a seção desgastada do filamento."
                 },
                 {
-                    "ecode": "1803700000020006",
-                    "intro": "Tempo limite para limpar o filamento velho. Possível causa: filamento preso ou obstrução do extrusor / bico. Por favor, consulte o assistente para obter detalhes."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Falha no chip de criptografia."
                 },
@@ -6838,10 +6910,6 @@
                 {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F Falha ao ajudar o extrusor a agarrar o filamento, possivelmente devido a resistência excessiva do buffer. Verifique se o buffer está preso, se o carretel de filamento está inclinado e se o tubo do filamento está desobstruído."
-                },
-                {
-                    "ecode": "1804700000020006",
-                    "intro": "Tempo esgotado ao limpar o filamento antigo. Possível causa: filamento preso ou entupimento do extrusor/bico. Consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "1807310000030003",
@@ -7332,10 +7400,6 @@
                     "intro": "Falha ao extrudar o filamento da AMS E Slot 4; a extrusora pode estar obstruída ou o filamento pode ser muito fino, causando deslizamento da extrusora."
                 },
                 {
-                    "ecode": "0706700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: obstrução na extrusora ou no bocal. Consulte o Assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "1807700000020023",
                     "intro": "A alimentação do filamento para o buffer da AMS-HT H falhou, isso pode ter ocorrido devido ao filamento ter se soltado. Verifique se o tubo de filamento está conectado corretamente ou se o tubo foi desgastado."
                 },
@@ -7540,10 +7604,6 @@
                     "intro": "Falhou a alimentação do filamento do AMS E para a roda de extrusão do motor de assistência. Isso pode ser devido a um pequeno fragmento de filamento quebrado que entrou no tubo de alimentação. Por favor, remova o filamento quebrado do tubo de alimentação."
                 },
                 {
-                    "ecode": "0704700000020003",
-                    "intro": "Falhou a extrusão do filamento. Possível causa: obstrução do extrusor ou bico. Por favor, consulte o Assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "1802700000020041",
                     "intro": "A retirada do filamento do AMS-HT C falhou; isso pode ser devido ao filamento ter se soltado do rolo. Por favor, substitua o rolo por um novo."
                 },
@@ -7566,10 +7626,6 @@
                 {
                     "ecode": "1801700000020023",
                     "intro": "Alimentar o filamento para o buffer AMS-HT B falhou; isso pode ser devido ao filamento ter sido solto. Verifique se o tubo do filamento está conectado incorretamente ou se o tubo está desgastado."
-                },
-                {
-                    "ecode": "1802700000020006",
-                    "intro": "Tempo limite de purga do filamento antigo. Possível causa: filamento preso ou entupimento do extrusor/bico. Consulte o assistente para obter detalhes."
                 },
                 {
                     "ecode": "0707700000020042",
@@ -8004,10 +8060,6 @@
                     "intro": "AMS-HT F A ajuda do extrusor para puxar o filamento falhou; isso pode ser devido ao motor de assistência ter deslizado. Por favor, corte a seção desgastada do filamento."
                 },
                 {
-                    "ecode": "1800700000020003",
-                    "intro": "Falha na extrusão do filamento. Possível causa: obstrução no extrusor ou bico. Por favor, consulte o assistente para obter detalhes."
-                },
-                {
                     "ecode": "1805700000020011",
                     "intro": "AMS-HT F A alimentação do filamento para a roda de extrusão do motor auxiliar falhou. Isso pode ser devido a uma desconexão do motor DC. Por favor, verifique a conexão do plugue do motor DC."
                 },
@@ -8074,10 +8126,6 @@
                 {
                     "ecode": "0706700000020031",
                     "intro": "AMS G Alimentação de filamento para o extrusor da ferramenta falhou; isso pode ser devido ao filamento se desgastando e fazendo com que o motor auxiliar escorregue. Por favor, corte a seção desgastada do filamento."
-                },
-                {
-                    "ecode": "1806700000020006",
-                    "intro": "Tempo esgotado ao purgar o filamento antigo. Possível causa: filamento preso ou entupimento no extrusor/bico. Por favor, consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "0704700000020043",
@@ -8296,20 +8344,12 @@
                     "intro": "AMS-HT D. O fornecimento de filamento para o buffer falhou; isso pode ser devido ao desgaste do filamento fazendo com que o motor de assistência deslize. Por favor, corte a seção desgastada do filamento."
                 },
                 {
-                    "ecode": "1805700000020006",
-                    "intro": "Tempo limite para limpeza do filamento antigo. Possível causa: filamento preso ou entupimento do extrusor/bico. Por favor, consulte o assistente para obter detalhes."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "O RFID não pode ser lido devido a um erro de hardware ou estrutural."
                 },
                 {
                     "ecode": "1806700000020020",
                     "intro": "AMS-HT G. O fornecimento de filamento para o buffer falhou; isso pode ser devido ao buffer bloqueando o filamento. Por favor, verifique o tampão do tubo PTFE do buffer."
-                },
-                {
-                    "ecode": "1801700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: entupimento do extrusor ou bico. Por favor, consulte o assistente para obter detalhes."
                 },
                 {
                     "ecode": "1800300000010004",
@@ -8768,10 +8808,6 @@
                     "intro": "AMS H Falha ao alimentar o filamento no buffer; isso pode ser devido ao buffer estar bloqueando o filamento. Por favor, verifique o plugue do tubo PTFE do buffer."
                 },
                 {
-                    "ecode": "0707700000020006",
-                    "intro": "Timeout na purga do filamento antigo. Possível causa: filamento preso ou entupimento do extrusor/bico. Por favor, consulte o assistente para mais detalhes."
-                },
-                {
                     "ecode": "0706700000020033",
                     "intro": "AMS G Falha ao alimentar o filamento para o extrusor da ferramenta; isso pode ser devido ao filamento escapar. Por favor, verifique se o tubo de filamento está desconectado ou se o tubo foi gasto."
                 },
@@ -8818,10 +8854,6 @@
                 {
                     "ecode": "1803700000020014",
                     "intro": "AMS-HT D: Falha ao alimentar o filamento ao roda de extrusão do motor de assistência. Isso pode ser devido a um pequeno pedaço do filamento quebrado que entrou no tubo de alimentação. Por favor, remova o filamento quebrado do tubo de alimentação."
-                },
-                {
-                    "ecode": "1804700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: obstrução do extrusor ou da bico. Por favor, consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "1800700000020032",
@@ -9016,10 +9048,6 @@
                     "intro": "Não foi possível retirar o filamento do AMS G; isso pode ser devido ao fim do filamento ou ao filamento ter sido puxado para fora."
                 },
                 {
-                    "ecode": "1803700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: entupimento do extrusor ou do bico. Por favor, consulte o Assistente para obter detalhes."
-                },
-                {
                     "ecode": "1805700000020020",
                     "intro": "Não foi possível alimentar o filamento AMS-HT F no buffer; isso pode ser devido ao bloqueio do buffer impedindo o avanço do filamento. Por favor, verifique se o tubo PTFE do buffer está obstruído."
                 },
@@ -9038,10 +9066,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C A alimentação do filamento para o extrusor da cabeça da ferramenta falhou; isso pode ser devido ao filamento ter escapado. Verifique se o tubo do filamento está desconectado ou se o tubo foi desgastado."
-                },
-                {
-                    "ecode": "1800700000020006",
-                    "intro": "Tempo limite excedido para limpar o filamento antigo. Possível causa: filamento preso ou obstrução no extrusor/bico. Consulte o assistente para obter detalhes."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9256,10 +9280,6 @@
                     "intro": "AMS-HT H - Falha ao alimentar o filamento para a roda de extrusão do motor auxiliar. Isso pode ser devido a uma resistência excessiva no filamento. Verifique se a bobina está inclinada, se o filamento está emaranhado ou se a rotação da bobina não está suave."
                 },
                 {
-                    "ecode": "0705700000020006",
-                    "intro": "Tempo limite para purgar o filamento antigo. Possível causa: filamento preso ou obstrução na extrusora/bico. Favor consultar o Assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "0706700000020021",
                     "intro": "AMS G - Falha ao alimentar o filamento no buffer; isso pode ser devido a uma resistência excessiva no filamento. Verifique se a bobina de filamento está inclinada ou se o tubo de PTFE está obstruído."
                 },
@@ -9318,10 +9338,6 @@
                 {
                     "ecode": "1806700000020030",
                     "intro": "AMS-HT G A alimentação do filamento para a extrusora da ferramenta falhou; isso pode ser devido ao filamento estar bloqueado na entrada da ferramenta. Por favor, verifique o plugue do tubo de filamento da cabeça da ferramenta."
-                },
-                {
-                    "ecode": "1807700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: entupimento do extrusor ou bico. Por favor, consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9502,10 +9518,6 @@
                 {
                     "ecode": "0706700000020032",
                     "intro": "AMS G A alimentação do filamento para o extrusor da cabeça da ferramenta falhou; isso pode estar ocorrendo devido à resistência excessiva do filamento. Verifique se o carretel do filamento está inclinado ou se o tubo do filamento está obstruído."
-                },
-                {
-                    "ecode": "1802700000020003",
-                    "intro": "Não foi possível extrudar o filamento. Possível causa: obstrução no extrusor ou bico. Por favor, consulte o Assistente para detalhes."
                 },
                 {
                     "ecode": "0704700000020021",
@@ -10224,16 +10236,8 @@
                     "intro": "A alimentação do filamento para a roda de extrusão do motor de assistência da AMS E falhou. Isso pode ser devido a uma resistência excessiva no filamento. Verifique se a bobina está inclinada, se o filamento está emaranhado ou se a rotação da bobina não é suave."
                 },
                 {
-                    "ecode": "1807700000020006",
-                    "intro": "Tempo esgotado para remover o filamento antigo. Possível causa: filamento preso ou entupimento do extrusor/bico. Consulte o assistente para obter mais detalhes."
-                },
-                {
                     "ecode": "1805700000020012",
                     "intro": "A alimentação do filamento para a roda de extrusão do motor de assistência da AMS-HT F falhou. Isso pode ser devido a uma resistência excessiva no filamento. Verifique se a bobina está inclinada, se o filamento está emaranhado ou se a rotação da bobina não é suave."
-                },
-                {
-                    "ecode": "0707700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: entupimento do extrusor ou bico. Consulte o assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "0705700000020022",
@@ -10546,26 +10550,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "A detecção de objetos estranhos não está funcionando. Por favor, reinicie os dispositivos ou atualize o firmware."
-                },
-                {
-                    "ecode": "03009C0000010002",
-                    "intro": "O módulo de assistência de fluxo de ar ativo está anormal e pode estar danificado."
-                },
-                {
-                    "ecode": "0500040000020047",
-                    "intro": "Objetos estranhos detectados na cama aquecida; por favor, verifique e limpe a cama aquecida."
-                },
-                {
-                    "ecode": "0500040000020043",
-                    "intro": "Nenhuma placa de impressão detectada; por favor, verifique se ela está colocada corretamente."
-                },
-                {
-                    "ecode": "0500040000020046",
-                    "intro": "Material não detectado; por favor, confirme o posicionamento antes de continuar."
-                },
-                {
-                    "ecode": "0500040000020045",
-                    "intro": "O tipo de placa de impressão 3D detectado não corresponde ao selecionado no fatiador."
                 },
                 {
                     "ecode": "1200300000010004",
@@ -11084,10 +11068,6 @@
                     "intro": "AMS A Incapaz de iniciar a secagem; por favor retire o filamento do suporte e tente novamente."
                 },
                 {
-                    "ecode": "0500010000030006",
-                    "intro": "O drive USB não está formatado; por favor formate o drive USB."
-                },
-                {
                     "ecode": "0300290000010001",
                     "intro": "O padrão do encoder não pode ser reconhecido; possíveis motivos incluem: distorção do padrão, sobreexposição à luz, deslocamento da placa..."
                 },
@@ -11388,24 +11368,12 @@
                     "intro": "A etiqueta RFID na AMS B Slot2 está danificada ou seu conteúdo não pode ser identificado."
                 },
                 {
-                    "ecode": "0701700000020006",
-                    "intro": "Tempo limite para expulsar o filamento antigo. Possível causa: filamento preso ou obstrução do extrusor/bico. Consulte o Assistente para obter detalhes."
-                },
-                {
                     "ecode": "0702310000020002",
                     "intro": "A etiqueta RFID na AMS C Slot2 está danificada ou seu conteúdo não pode ser identificado."
                 },
                 {
                     "ecode": "0703310000010004",
                     "intro": "Falha no chip de criptografia."
-                },
-                {
-                    "ecode": "0703700000020003",
-                    "intro": "Não foi possível extrudar o filamento. Possível causa: entupimento do extrusor ou bico. Consulte o Assistente para obter detalhes."
-                },
-                {
-                    "ecode": "0703700000020006",
-                    "intro": "Tempo esgotado para descartar o filamento antigo. Possível causa: filamento travado ou entupimento do extrusor/bico. Consulte o Assistente para obter detalhes."
                 },
                 {
                     "ecode": "0C00020000010005",
@@ -11648,20 +11616,12 @@
                     "intro": "A etiqueta de RFID na AMS A Slot4 está danificada ou seu conteúdo não pode ser identificado."
                 },
                 {
-                    "ecode": "0700700000020006",
-                    "intro": "Tempo limite para purgar o filamento antigo. Possível causa: filamento preso ou obstrução no extrusor/bico. Por favor, consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0701300000010004",
                     "intro": "Falha no chip de criptografia."
                 },
                 {
                     "ecode": "0701330000020002",
                     "intro": "A etiqueta RFID no Slot4 do AMS B está danificada ou seu conteúdo não pode ser identificado."
-                },
-                {
-                    "ecode": "0701700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: entupimento do extrusor ou do bico. Consulte o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "0702300000010004",
@@ -12232,16 +12192,8 @@
                     "intro": "A etiqueta RFID na AMS A Slot1 está danificada ou seu conteúdo não pode ser identificado."
                 },
                 {
-                    "ecode": "0700700000020003",
-                    "intro": "Falha ao extrudar o filamento. Possível causa: obstrução no extrusor ou bico. Consulte o Assistente para mais detalhes."
-                },
-                {
                     "ecode": "0701320000020002",
                     "intro": "A etiqueta RFID no Slot3 do AMS B está danificada ou o seu conteúdo não pode ser identificado."
-                },
-                {
-                    "ecode": "0702700000020006",
-                    "intro": "Tempo limite para a purga do filamento antigo. Possível causa: filamento preso ou obstrução no extrusor/bico. Consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "0703320000020002",
@@ -12490,10 +12442,6 @@
                 {
                     "ecode": "0701310000010004",
                     "intro": "Falha no chip de criptografia."
-                },
-                {
-                    "ecode": "0702700000020003",
-                    "intro": "Falha na extrusão do filamento. Possível causa: obstrução no extrusor ou bico. Consulte o Assistente para mais detalhes."
                 },
                 {
                     "ecode": "0C00020000020003",
@@ -14178,10 +14126,6 @@
                 {
                     "ecode": "07FF810000020001",
                     "intro": "A ação de troca do extrusor está anormal. Por favor, verifique se há algo preso na ferramenta."
-                },
-                {
-                    "ecode": "0500060000020031",
-                    "intro": "Falha na vinculação da câmera da ferramenta. Por favor, verifique o hardware e as conexões do cabo."
                 },
                 {
                     "ecode": "0500030000010026",

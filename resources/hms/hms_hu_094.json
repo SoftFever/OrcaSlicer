@@ -1,11 +1,79 @@
 {
     "result": 0,
-    "t": 1740666194,
-    "ver": 202503250227,
+    "t": 1741069238,
+    "ver": 202503250304,
     "data": {
         "device_error": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "hu": [
+                {
+                    "ecode": "0500806A",
+                    "intro": "Nem sikerült felismerni a bal és jobb hotendet. Lehet, hogy nem hivatalos hotendről van szó, vagy a hotend jelölése koszos. Kérjük, állítsa be a hotend típusát a következő nyomtatás előtt."
+                },
+                {
+                    "ecode": "05FE806A",
+                    "intro": "Nem sikerült felismerni a bal hotendet. Lehet, hogy nem hivatalos hotendről van szó, vagy a hotend jelölése koszos. Kérjük, állítsa be a hotend típusát a következő nyomtatás előtt."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "A lézer platform el van mozdulva. Kérjük, győződjön meg róla, hogy a platform négy sarka igazodik a fűtött ágyhoz, és a jelölő nincs elakadva."
+                },
+                {
+                    "ecode": "05FE8081",
+                    "intro": "A bal hotend nincs telepítve."
+                },
+                {
+                    "ecode": "05FF8081",
+                    "intro": "A jobb hotend nincs telepítve."
+                },
+                {
+                    "ecode": "05FF8080",
+                    "intro": "A jobb hotend nincs telepítve."
+                },
+                {
+                    "ecode": "05008086",
+                    "intro": "A fúvóka kamera lencséje koszos, ami befolyásolhatja az MI megfigyelési funkcióját. Kérjük, tisztítsa meg a fúvóka kamera lencséjének felületét a lehető leghamarabb."
+                },
+                {
+                    "ecode": "05008085",
+                    "intro": "A fúvóka kamera el van akadva."
+                },
+                {
+                    "ecode": "05008069",
+                    "intro": "Nem sikerült felismerni a bal és jobb hotendet. Lehet, hogy nem hivatalos hotendről van szó, vagy a hotend jelölése koszos. Kérjük, manuálisan állítsa be a hotend típusát."
+                },
+                {
+                    "ecode": "05FE8069",
+                    "intro": "Nem sikerült felismerni a bal hotendet. Lehet, hogy nem hivatalos hotendről van szó, vagy a hotend jelölése koszos. Kérjük, manuálisan állítsa be a hotend típusát."
+                },
+                {
+                    "ecode": "05FF806A",
+                    "intro": "Nem sikerült azonosítani a megfelelő hotendet. Lehetséges, hogy egy nem hivatalos hotendről van szó, vagy a hotend címkéje piszkos. Kérjük, állítsa be a hotend típusát a következő nyomtatás előtt."
+                },
+                {
+                    "ecode": "05FF8069",
+                    "intro": "Nem sikerült azonosítani a megfelelő hotendet. Lehetséges, hogy egy nem hivatalos hotendről van szó, vagy a hotend címkéje piszkos. Kérjük, manuálisan állítsa be a hotend típusát."
+                },
+                {
+                    "ecode": "05FE8080",
+                    "intro": "A bal oldali hotend nincs felszerelve."
+                },
+                {
+                    "ecode": "05008080",
+                    "intro": "A bal és a jobb oldali hotend nincs felszerelve."
+                },
+                {
+                    "ecode": "05008081",
+                    "intro": "A bal és a jobb oldali hotend nincs felszerelve."
+                },
+                {
+                    "ecode": "05008088",
+                    "intro": "A Birdseye kamera piszkos."
+                },
+                {
+                    "ecode": "05008087",
+                    "intro": "A BirdsEye kamera el van akadva."
+                },
                 {
                     "ecode": "03004002",
                     "intro": "Az automatikus ágyszintezés megbukott; a feladat leállt."
@@ -309,10 +377,6 @@
                 {
                     "ecode": "05004076",
                     "intro": "Kérjük, helyezze el a Lézerplatformot helyesen, és gondoskodjon arról, hogy a hátsó jelölők ne legyenek elblokkolva, majd indítsa újra a vastagságmérést a szoftverben, mielőtt elindítaná a feladatot."
-                },
-                {
-                    "ecode": "05008074",
-                    "intro": "A Lézerplatform el van tolva. Kérjük, győződjön meg arról, hogy a platform négy sarka egyenesen illeszkedik a fűtött ágyhoz."
                 },
                 {
                     "ecode": "0500807A",
@@ -699,10 +763,6 @@
                     "intro": "Hiba történt az AMS D szárítás során. Kérjük, látogasson el az Assistant-ra a további részletekért."
                 },
                 {
-                    "ecode": "05008081",
-                    "intro": "AI észlelte, hogy a bal és jobb Hotend nincs telepítve."
-                },
-                {
                     "ecode": "0701C06B",
                     "intro": "AMS B szálat cserél. Nem lehet elindítani a szárítást. Kérjük, próbálja meg később."
                 },
@@ -743,10 +803,6 @@
                     "intro": "Az AMS C az RFID-t olvassa. A szárítást nem lehet elindítani. Kérjük, próbálja meg később."
                 },
                 {
-                    "ecode": "05FE8081",
-                    "intro": "AI észlelte, hogy a bal hotend nincs telepítve."
-                },
-                {
                     "ecode": "0702C06E",
                     "intro": "Az AMS C motor önellenőrzést végez. Nem sikerült elindítani a szárítást. Kérjük, próbálja meg később."
                 },
@@ -767,28 +823,12 @@
                     "intro": "AMS B olvassa az RFID-t. Nem lehet elindítani a szárítást. Kérjük, próbálja meg később."
                 },
                 {
-                    "ecode": "05FE8080",
-                    "intro": "AI észlelte, hogy a bal forró fúvóka nincs telepítve."
-                },
-                {
                     "ecode": "0702C06D",
                     "intro": "AMS C segít a filament behelyezésében. A szárítást nem lehet megkezdeni. Kérjük, próbálja meg később."
                 },
                 {
                     "ecode": "05008082",
                     "intro": "Kérjük, távolítsa el a védőfóliát az Opaque Glossy Acrylic-ról a feldolgozás előtt."
-                },
-                {
-                    "ecode": "05FF8081",
-                    "intro": "AI észlelte, hogy a jobb forró fúvóka nincs telepítve."
-                },
-                {
-                    "ecode": "05FF8080",
-                    "intro": "AI észlelte, hogy a jobb forró fúvóka nincs telepítve."
-                },
-                {
-                    "ecode": "05008080",
-                    "intro": "AI észlelte, hogy a bal és a jobb forró fúvóka nincs telepítve."
                 },
                 {
                     "ecode": "0703C06A",
@@ -1299,32 +1339,8 @@
                     "intro": "A vágóalap típusa ismeretlen; kérlek, cseréld ki a megfelelő vágóalapra."
                 },
                 {
-                    "ecode": "0500806A",
-                    "intro": "A bal és jobb hotend nem azonosítható, valószínűleg nem hivatalos hotend miatt. Kérlek, állítsd be a hotend típust a következő nyomtatás előtt."
-                },
-                {
                     "ecode": "05008062",
                     "intro": "A nyomtatólemez típusa ismeretlen; kérlek, cseréld ki a megfelelő lemezre."
-                },
-                {
-                    "ecode": "05008069",
-                    "intro": "A bal és jobb hotend nem azonosítható, valószínűleg a sérült fúvóka jelző miatt. Kérlek, állítsd be manuálisan a hotend típust."
-                },
-                {
-                    "ecode": "05FE8069",
-                    "intro": "A bal hotend nem azonosítható, valószínűleg a sérült fúvóka jelző miatt. Kérlek, állítsd be manuálisan a hotend típust."
-                },
-                {
-                    "ecode": "05FE806A",
-                    "intro": "A bal hotend nem azonosítható, valószínűleg nem hivatalos hotend miatt. Kérlek, állítsd be a hotend típust a következő nyomtatás előtt."
-                },
-                {
-                    "ecode": "05FF806A",
-                    "intro": "A jobb hotend nem azonosítható, valószínűleg nem hivatalos hotend miatt. Kérlek, állítsd be a hotend típust a következő nyomtatás előtt."
-                },
-                {
-                    "ecode": "05FF8069",
-                    "intro": "A jobb hotend nem azonosítható, valószínűleg a sérült fúvóka jelző miatt. Kérlek, állítsd be manuálisan a hotend típust."
                 },
                 {
                     "ecode": "03008064",
@@ -2473,8 +2489,168 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "hu": [
+                {
+                    "ecode": "0700700000020003",
+                    "intro": "Nem sikerült kinyomni a filamet. Lehetséges ok: az extruder vagy a fúvóka eltömődött."
+                },
+                {
+                    "ecode": "0701700000020003",
+                    "intro": "Nem sikerült kinyomni a filamentet. Lehetséges ok: az extruder vagy a fúvóka eltömődött."
+                },
+                {
+                    "ecode": "0701700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítésekor. Lehetséges ok: a filament elakadt, vagy az extruder/fúvóka eltömődött."
+                },
+                {
+                    "ecode": "0702700000020003",
+                    "intro": "Nem sikerült kinyomni a filamentet. Lehetséges ok: az extruder vagy a fúvóka eltömődött."
+                },
+                {
+                    "ecode": "0703700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítésekor. Lehetséges ok: a filament elakadt, vagy az extruder/fúvóka eltömődött."
+                },
+                {
+                    "ecode": "0500060000020031",
+                    "intro": "A ToolHead kamera nincs csatlakoztatva. Kérjük, ellenőrizze a hardver- és kábelcsatlakozásokat."
+                },
+                {
+                    "ecode": "03009C0000010001",
+                    "intro": "A légpumpa nem észlelhető. Kérjük, ellenőrizze, hogy a csatlakozó megfelelően van-e bedugva."
+                },
+                {
+                    "ecode": "1807700000020003",
+                    "intro": "Nem sikerült kinyomni a filamentet. Lehetséges ok: az extruder vagy a fúvóka eltömődött."
+                },
+                {
+                    "ecode": "1803700000020003",
+                    "intro": "Nem sikerült kinyomni a filamentet. Lehetséges ok: az extruder vagy a fúvóka eltömődött."
+                },
+                {
+                    "ecode": "1800700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítésekor. Lehetséges ok: a filament elakadt, vagy az extruder/fúvóka eltömődött."
+                },
+                {
+                    "ecode": "1804700000020003",
+                    "intro": "Nem sikerült kiadagolni a filametet. Lehetséges ok: az extruder vagy a fúvóka eldugulása."
+                },
+                {
+                    "ecode": "1805700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítése során. Lehetséges ok: a filament megakadt vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "0706700000020003",
+                    "intro": "Nem sikerült kiadagolni a filametet. Lehetséges ok: az extruder vagy a fúvóka eldugulása."
+                },
+                {
+                    "ecode": "1803700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítése során. Lehetséges ok: a filament megakadt vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "1804700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítése során. Lehetséges ok: a filament megakadt vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "1801700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítése során. Lehetséges ok: a filament megakadt vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "1806700000020003",
+                    "intro": "Nem sikerült kiadagolni a filametet. Lehetséges ok: az extruder vagy a fúvóka eldugulása."
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020006",
+                    "intro": "Időtúllépés az régi filament kiürítése során. Lehetséges ok: a filament megakadt vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "0702700000020006",
+                    "intro": "Időtúllépés a régi filament eltávolításakor. Lehetséges ok: filament akadályozva, vagy az extruder/fej eldugulva."
+                },
+                {
+                    "ecode": "0703700000020003",
+                    "intro": "A filament kiadagolása nem sikerült. Lehetséges ok: extruder vagy fej eldugulva."
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "A fejkamera nincs csatlakoztatva. Kérjük, ellenőrizze a hardver- és kábelcsatlakozásokat."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "A légáramlási rendszer nem tudta aktiválni a lézer üzemmódot; kérjük, ellenőrizze a légzár állapotát."
+                },
+                {
+                    "ecode": "0500010000030006",
+                    "intro": "A USB meghajtó nincs formázva, vagy nem lehet rá írni; kérjük, formázza meg a USB meghajtót."
+                },
+                {
+                    "ecode": "03009C0000010002",
+                    "intro": "A légpumpa rendellenes, és esetleg sérült."
+                },
+                {
+                    "ecode": "1807700000020006",
+                    "intro": "Időtúllépés a régi filament eltávolításakor. Lehetséges ok: filament akadályozva, vagy az extruder/fej eldugulva."
+                },
+                {
+                    "ecode": "0707700000020003",
+                    "intro": "A filament kiadagolása nem sikerült. Lehetséges ok: extruder vagy fej eldugulva."
+                },
+                {
+                    "ecode": "1802700000020003",
+                    "intro": "A filament kiadagolása nem sikerült. Lehetséges ok: extruder vagy fej eldugulva."
+                },
+                {
+                    "ecode": "0705700000020006",
+                    "intro": "Időtúllépés a régi filament eltávolításakor. Lehetséges ok: filament akadályozva, vagy az extruder/fej eldugulva."
+                },
+                {
+                    "ecode": "0707700000020006",
+                    "intro": "Időkorlát a régi filament eltávolításához. Lehetséges ok: a filament megrekedt, vagy az extruder/nedvesedés eldugult."
+                },
+                {
+                    "ecode": "1801700000020003",
+                    "intro": "Nem sikerült a filamentszorítás. Lehetséges ok: az extruder vagy a nedvesedés eldugult."
+                },
+                {
+                    "ecode": "1800700000020003",
+                    "intro": "Nem sikerült a filament extrudálása. Lehetséges ok: az extruder vagy a fúvóka eldugult."
+                },
+                {
+                    "ecode": "1806700000020006",
+                    "intro": "Időkorlát a régi filament eltávolításához. Lehetséges ok: a filament megrekedt, vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "0704700000020003",
+                    "intro": "Nem sikerült a filament extrudálása. Lehetséges ok: az extruder vagy a fúvóka eldugult."
+                },
+                {
+                    "ecode": "1802700000020006",
+                    "intro": "Időkorlát a régi filament eltávolításához. Lehetséges ok: a filament megrekedt, vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "0704700000020006",
+                    "intro": "Időkorlát a régi filament eltávolításához. Lehetséges ok: a filament megrekedt, vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "0705700000020003",
+                    "intro": "Nem sikerült a filament extrudálása. Lehetséges ok: az extruder vagy a fúvóka eldugult."
+                },
+                {
+                    "ecode": "0706700000020006",
+                    "intro": "Időkorlát a régi filament eltávolításához. Lehetséges ok: a filament megrekedt, vagy az extruder/fúvóka eldugult."
+                },
+                {
+                    "ecode": "1805700000020003",
+                    "intro": "Nem sikerült a filament extrudálása. Lehetséges ok: az extruder vagy a fúvóka eldugult."
+                },
                 {
                     "ecode": "0C00040000020007",
                     "intro": "A BirdsEye Kamera beállítása folyamatban van. Kérjük, tüntessen el minden tárgyat és vegye el a szőnyeget. Győződjön meg arról, hogy a jelölő nincs akadályozva. Közben tisztítsa meg a BirdsEye Kamarát és a Toolhead Kamarát, és távolítsa el a látómezejüket akadályozó idegen tárgyakat."
@@ -2528,10 +2704,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020061",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020052",
                     "intro": ""
                 },
@@ -2554,10 +2726,6 @@
                 {
                     "ecode": "0300C00000010003",
                     "intro": "Automatikus felső szellőző légajtó hibája: lehet, hogy be van ragadva."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "A légáramlási rendszer nem tudta aktiválni a lézer/vágási módot; kérjük, ellenőrizze a légajtó állapotát."
                 },
                 {
                     "ecode": "0300C00000010001",
@@ -2618,10 +2786,6 @@
                 {
                     "ecode": "1800700000020008",
                     "intro": "Nem sikerült megszerezni az AMS térképezési táblázatát; kérjük, válassza a \"Folytatás\" lehetőséget az újrapróbálkozáshoz."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "A jelenlegi platform nem felel meg a feladat követelményeinek; kérjük, használja a Vágó Platformot."
                 },
                 {
                     "ecode": "07FE800000010006",
@@ -2730,18 +2894,6 @@
                 {
                     "ecode": "1807700000020008",
                     "intro": "Nem sikerült megszerezni az AMS térképezési táblát; kérlek válaszd a \"Folyatatás\"-t az újrapróbálkozáshoz."
-                },
-                {
-                    "ecode": "0500040000020042",
-                    "intro": "Fúvóka eltérés volt észlelve a nyomtatás során. Kérlek, indítsd újra a nyomtatást az újraszeletelés után, vagy folytasd a nyomtatást a megfelelő fúvóka cseréje után. Figyelem: a forró vég hőmérséklete magas."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "Nem észlelhető platform; kérlek, győződj meg róla, hogy a Lézer Platform megfelelően van elhelyezve."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "Fúvóka eltérés volt észlelve a nyomtatás során. Kérlek, indítsd újra a nyomtatást az újraszeletelés után, vagy folytasd a nyomtatást a megfelelő fúvóka cseréje után. Figyelem: a hotend hőmérséklete magas."
                 },
                 {
                     "ecode": "0C00010000020014",
@@ -2866,22 +3018,6 @@
                 {
                     "ecode": "1807700000020046",
                     "intro": "Az AMS-HT H szál kihúzása meghiúsult; ez a segédmotorban lévő túlzott ellenállás miatt lehet. Kérjük, ellenőrizze, hogy a száltekercs megdőlt-e vagy deformálódott-e, valamint hogy a szálcső tiszta-e."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "A jelenlegi platform nem felel meg a feladat követelményeinek; kérjük, használja a Lézer Platformot."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "Fúvóka eltérés lépett fel a nyomtatás során. Kérjük, indítsa újra a nyomtatást újraszeletelés után, vagy folytassa a nyomtatást a megfelelő fúvóka cseréje után. Figyelem: a forró vég hőmérséklete magas."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Hibás platformtípust észleltek; kérjük, helyezze el a Lézer Platformot a kalibráláshoz."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Hibás platformtípust észleltek; kérjük, helyezze el a Vágó Platformot a kalibráláshoz."
                 },
                 {
                     "ecode": "0500050000010008",
@@ -4564,10 +4700,6 @@
                     "intro": "A lézermodul túlmelegedett."
                 },
                 {
-                    "ecode": "0500060000020032",
-                    "intro": "A fúvóka kamera összekapcsolása nem sikerült. Kérjük, ellenőrizze a hardvert és a kábelcsatlakozásokat."
-                },
-                {
                     "ecode": "0500060000020022",
                     "intro": ""
                 },
@@ -4880,10 +5012,6 @@
                     "intro": "Az gravírozó lézer fókuszpont XY kalibrálása nem sikerült. Kérjük, tisztítsa meg a Lézer Hazai Területet a Lézer Platformon, és futtassa újra a Lézer Modul Képkeret Kalibrálást."
                 },
                 {
-                    "ecode": "03009C0000010001",
-                    "intro": "Az Aktív Légáramlás Segéd Modul nincs észlelve. Kérjük, ellenőrizze, hogy a csatlakozó megfelelően van-e bedugva."
-                },
-                {
                     "ecode": "0702230000020007",
                     "intro": "Az AMS C Slot 4 kimeneti Hall érzékelő le van választva. A csatlakozó gyenge érintkezésű lehet."
                 },
@@ -5160,10 +5288,6 @@
                     "intro": "Kérlek, ellenőrizd, hogy az anyag a bal fúvókából jön-e. Ha nem, óvatosan nyomd meg az anyagot, és próbáld meg újra kiextrudálni."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Ismeretlen vágásvédelmi alap típus. Kérjük, cserélje le a megfelelő vágásvédelmi alappal."
-                },
-                {
                     "ecode": "0300D00000010002",
                     "intro": "A kés tartója leesett; kérjük, telepítse újra."
                 },
@@ -5182,10 +5306,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "A jobb extruderre csatlakoztatott külső orsó összegabalyodhatott vagy elakadhatott."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "Nem észlelhető a vágásvédő alap. Kérlek, erősítsd meg, hogy helyesen van elhelyezve."
                 },
                 {
                     "ecode": "0300D00000010001",
@@ -5254,22 +5374,6 @@
                 {
                     "ecode": "1805010000020006",
                     "intro": "AMS-HT F A segédmotor háromfázisú vezetékei nincsenek csatlakoztatva. A segédmotor csatlakozója rossz kontaktusú lehet."
-                },
-                {
-                    "ecode": "0500040000020044",
-                    "intro": "A nyomólemez típusa ismeretlen; kérjük, cserélje ki a megfelelő lemezre."
-                },
-                {
-                    "ecode": "0500040000020041",
-                    "intro": "A bal és jobb forró vég nem azonosítható, valószínűleg nem hivatalos forró vég miatt. Az is lehetséges, hogy a forró végjelölés nem egyértelmű."
-                },
-                {
-                    "ecode": "05FF040000020041",
-                    "intro": "A jobb forró vég nem azonosítható, valószínűleg nem hivatalos forró vég miatt. Az is lehetséges, hogy a forró végjelölés nem egyértelmű."
-                },
-                {
-                    "ecode": "05FE040000020041",
-                    "intro": "A bal forró vég nem azonosítható, valószínűleg nem hivatalos forró vég miatt. Az is lehetséges, hogy a forró végjelölés nem egyértelmű."
                 },
                 {
                     "ecode": "0500040000020053",
@@ -5784,10 +5888,6 @@
                     "intro": "A hotend hűtőventilátor sebessége lassú. Lehetséges, hogy eltömődött és takarításra van szüksége."
                 },
                 {
-                    "ecode": "0500040000020049",
-                    "intro": "Az platform típusa ismeretlen; kérjük, cserélje ki a megfelelőre, majd ellenőrizze, hogy a BirdsEye kamera akadályozott-e."
-                },
-                {
                     "ecode": "0703200000030001",
                     "intro": "AMS D 1. nyílású filamen elfogyott. Várjon, amíg az öreg filament kiürül."
                 },
@@ -5810,10 +5910,6 @@
                 {
                     "ecode": "0704200000020005",
                     "intro": "AMS E 1. nyílású filamen elfogyott, és az öreg filament ürítése rendellenesen ment; ellenőrizze, hogy a filamen beragadt-e a szerszámgépben."
-                },
-                {
-                    "ecode": "1805700000020003",
-                    "intro": "A filamen extrudálása nem sikerült. Lehetséges okok: extruder vagy fúvóka eltömődése. Részletekért tekintse meg az Asszisztens-t."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -6056,10 +6152,6 @@
                     "intro": "Kérjük, húzza ki a külső filamentet a jobb extruderből."
                 },
                 {
-                    "ecode": "0705700000020003",
-                    "intro": "A filament extrudálása nem sikerült. Lehetséges ok: eltömődött extruder vagy fúvóka. További részletekért forduljon az Asszisztenshez."
-                },
-                {
                     "ecode": "0705210000020009",
                     "intro": "Az AMS F 2. fészekben lévő filament kihúzása sikertelen volt; az extruder eltömődött lehet, vagy a filament túl vékony, ami miatt az extruder elcsúszik."
                 },
@@ -6090,10 +6182,6 @@
                 {
                     "ecode": "0705700000020032",
                     "intro": "AMS F Az eszközfej extruderébe való filament adagolása nem sikerült; az ok a filament jelentős ellenállásában rejlik. Kérjük ellenőrizze, hogy a tekerctartó ferde-e vagy az adagolócső el van-e dugulva."
-                },
-                {
-                    "ecode": "0706700000020006",
-                    "intro": "Időtúllépés az öreg filament eltávolításakor. Lehetséges ok: a filament beragadt, vagy az extruder / nyomófej el van dugulva. További részletekért kérjük, olvassa el az Asszisztenst."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6286,10 +6374,6 @@
                 {
                     "ecode": "1802700000020022",
                     "intro": "AMS-HT C Szál betáplálása a puffernél sikertelen volt; ez valószínűleg a viseltes szál okozta az assist motornak a megcsúszását. Kérjük, vágja le a viseltes részt a szálról."
-                },
-                {
-                    "ecode": "0704700000020006",
-                    "intro": "Időtúllépés az előző szál tisztításánál. Lehetséges okok: betömődött szál, vagy eltömődött extruder/nozzle. Részletekért kérjük, tekintse meg az Assistant-ot."
                 },
                 {
                     "ecode": "1805700000020021",
@@ -6496,10 +6580,6 @@
                     "intro": "Az AMS-HT D-ben a filament a buffertárolóba való betöltése nem sikerült; ez lehet, hogy a buffer eltömődésének köszönhető. Kérjük, ellenőrizze a buffer PTFE cső dugattyúját."
                 },
                 {
-                    "ecode": "1801700000020006",
-                    "intro": "Lejárt az idő az előző filament kiürítésére. Lehetséges ok: a filament ragadt, vagy az extruder / fúvóka eltömődött. Részletekért kérjük, hivatkozzon az Assistant-re."
-                },
-                {
                     "ecode": "1802700000020060",
                     "intro": "AMS-HT C Segítségnyújtó motor segítségével az extruder nem tudta megfogni a filamenst; ennek oka lehet a segítőmotor elcsúszása. Kérem vágja le a kopott részt a filamenstről."
                 },
@@ -6538,10 +6618,6 @@
                 {
                     "ecode": "0707700000020044",
                     "intro": "AMS H Hibát észleltünk a szál kihúzásakor; lehet, hogy törött szál van az eszközben. Kérjük, távolítsa el a törött szálat."
-                },
-                {
-                    "ecode": "1806700000020003",
-                    "intro": "Nem sikerült az anyag kinyomása a szálból. Lehetséges ok: extruder vagy fúvóka eldugult. Kérjük, részletekért forduljon az asszisztenshez."
                 },
                 {
                     "ecode": "1805700000020023",
@@ -6800,10 +6876,6 @@
                     "intro": "Az AMS-HT E filament betáplálása a nyomtatófej extruderjébe meghiúsult, lehet hogy az anyag elkopott, és így az assziszt motor csúszást okoz. Kérjük vágja le az elkopott részt az anyagból."
                 },
                 {
-                    "ecode": "1803700000020006",
-                    "intro": "Időtúllépés az előző nyersanyag kitisztításánál. Lehetséges ok: nyersanyag beragadt vagy az extruder/nozzle eltömődött. Részletekért kérjük hivatkozzon az Asszisztensre."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Titkosító chip hiba."
                 },
@@ -6838,10 +6910,6 @@
                 {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F Segítségnyújtás az ekstrudáló szál elkapásához sikertelen volt, esetleg a puffer túlzott ellenállása miatt. Kérem ellenőrizze, hogy a puffer beragadt-e, dől-e a szál tekercselő, és tiszta-e a szálvezető cső."
-                },
-                {
-                    "ecode": "1804700000020006",
-                    "intro": "Időtúllépés az előző szál tisztításánál. Lehetséges ok: szál beragadt, vagy az ekstruder/nozzle eltömődött. Kérem, olvassa el az asszisztens üzenetét részletekért."
                 },
                 {
                     "ecode": "1807310000030003",
@@ -7332,10 +7400,6 @@
                     "intro": "Az AMS E 4. helyén a filament extrudálása nem sikerült; az extruder eltömődhetett, vagy a filament túl vékony, ami miatt az extruder csúszik."
                 },
                 {
-                    "ecode": "0706700000020003",
-                    "intro": "A filament extrudálása nem sikerült. Lehet, hogy az extruder vagy a fúvóka eltömődött. Részletekért lásd az Asszisztenst."
-                },
-                {
                     "ecode": "1807700000020023",
                     "intro": "AMS-HT H: A filament betáplálása a puffertartályba nem sikerült, ez a filamen leszakadása miatt lehet. Kérjük ellenőrizze a filamencső helyes kapcsolását és, hogy bekopott-e."
                 },
@@ -7540,10 +7604,6 @@
                     "intro": "Az AMS E szál betáplálása az asszisztáló motor extruder görgőjébe meghiúsult, ami annak köszönhető, hogy egy kis szál töredék belépett a tápláló csőbe. Kérjük, távolítsa el a törött szálat a tápláló csőből."
                 },
                 {
-                    "ecode": "0704700000020003",
-                    "intro": "Nem sikerült kinyomtatni a szálat. Lehetséges oka: az extruder vagy a fúvóka eldugult. Részletekért kérjük, hívja az asszisztens segítségét."
-                },
-                {
                     "ecode": "1802700000020041",
                     "intro": "Az AMS-HT C szál kihúzása meghiúsult, melyet a szál tekerccsel való meglazulása okozhatott. Kérjük, cserélje le az új tekercsre."
                 },
@@ -7566,10 +7626,6 @@
                 {
                     "ecode": "1801700000020023",
                     "intro": "AMS-HT B probléma van az adagoló tartállyal, mert a filament vezetése meghiúsult. Ennek oka az lehet, hogy a filament csöve rosszul van csatlakoztatva vagy a cső kilyukadt. Ellenőrizd, hogy a filament cső megfelelően van-e csatlakoztatva vagy ki van-e lyukadva."
-                },
-                {
-                    "ecode": "1802700000020006",
-                    "intro": "Időtúllépés a régi filament kiürítésekor. Lehet, hogy a filament beragadt, vagy a extruder/szelep eltömődött. További részletekért kérjük, tekintse meg az Assistant-et."
                 },
                 {
                     "ecode": "0707700000020042",
@@ -8004,10 +8060,6 @@
                     "intro": "Az AMS-HT F extruder szál segítési motor sikertelen volt a szál megragadásakor, mivel a segéd motor csúszott. Kérem vágja le az elhasznált részt a fűtőszálról."
                 },
                 {
-                    "ecode": "1800700000020003",
-                    "intro": "A fűtőszál extrudálása sikertelen volt. Az ok lehet eltömődött extruder vagy fúvóka. Kérem részletekért forduljon az Asszisztenshez."
-                },
-                {
                     "ecode": "1805700000020011",
                     "intro": "AMS-HT F Az anyagszál az asszisztens motor extrúziós kerékbe történő betáplálása meghiúsult. Ez lehet az DC motor csatlakozójának leválásával van összefüggésben. Kérjük ellenőrizze a DC motor csatlakozójának kapcsolatát."
                 },
@@ -8074,10 +8126,6 @@
                 {
                     "ecode": "0706700000020031",
                     "intro": "Az AMS G szerszámfő extruderébe való száladagolás meghiúsult, ezt valószínűleg annak köszönhető, hogy a szál elhasználódott, és ezért az assziszt motor elcsúszott. Kérjük, vágja le a elhasználódott részt a szálról."
-                },
-                {
-                    "ecode": "1806700000020006",
-                    "intro": "Időtúllépés az ósdi filament kiürítése közben. Lehetséges okok: elakadt szál vagy eltömődött extruder / fúvóka. Kérjük, tekintse meg az Asszisztenst a részletekért."
                 },
                 {
                     "ecode": "0704700000020043",
@@ -8296,20 +8344,12 @@
                     "intro": "AMS-HT D: Hiba történt a filament betáplálásakor a bufferbe; ez lehet az okozója annak, hogy a segéd motor elcsúszik. Kérjük, vágja le a kopott részt a filamentből."
                 },
                 {
-                    "ecode": "1805700000020006",
-                    "intro": "Az régi filament eltávolítása időkorlátja letelt. Az ok lehet, hogy a filament beragadt vagy az extruder/nozzle eltömődött. Kérjük, részletekért forduljon az Assistant-hez."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "Az RFID nem olvasható be a hardveres vagy szerkezeti hiba miatt."
                 },
                 {
                     "ecode": "1806700000020020",
                     "intro": "AMS-HT G: A filament betáplálása a bufferbe nem sikerült; ennek oka lehet, hogy a buffer eltömődött a filamenttel. Kérjük, ellenőrizze a buffer PTFE cső dugattyút."
-                },
-                {
-                    "ecode": "1801700000020003",
-                    "intro": "A filament extrudálása nem sikerült. Az ok lehet, hogy az extruder vagy a nozzle eltömődött. Részletekért forduljon az Assistant-hez."
                 },
                 {
                     "ecode": "1800300000010004",
@@ -8768,10 +8808,6 @@
                     "intro": "AMS H Az anyagnak a puffertartályba való továbbítása nem sikerült; ennek oka a puffertartály eltömődése lehet. Kérjük, ellenőrizze a puffertartály PTFE cső dugattyúját."
                 },
                 {
-                    "ecode": "0707700000020006",
-                    "intro": "Az elöregedett filament eltávolítása során időtúllépés történt. Az ok lehet, hogy a filament elakadt, vagy a nyomtatófej csöve elkopott. További részletekért kérjük, forduljon az Asszisztenshez."
-                },
-                {
                     "ecode": "0706700000020033",
                     "intro": "AMS G Az anyag táplálása a nyomtatószoftver fejéhez nem sikerült; az anyag kicsúszása lehet az oka. Kérjük, ellenőrizze, hogy az anyagcső van-e leválasztva vagy át van-e lyukasodva."
                 },
@@ -8818,10 +8854,6 @@
                 {
                     "ecode": "1803700000020014",
                     "intro": "AMS-HT D A szálas anyag segéd motor hajtású kereke felé történő betáplálása sikertelen volt. Ennek oka lehet egy eltört szál kis darabja, ami bekerült az anyagadagoló csőbe. Kérjük távolítsa el az eltört szálas anyagot az adagoló csőből."
-                },
-                {
-                    "ecode": "1804700000020003",
-                    "intro": "Szálas anyag extrudálása sikertelen volt. Lehetséges ok: extruder vagy nozzle eltömődés. További részletekért kérjük, forduljon az Asszisztenshez."
                 },
                 {
                     "ecode": "1800700000020032",
@@ -9016,10 +9048,6 @@
                     "intro": "AMS G: Sikertelen a filament eltávolítása; ennek oka lehet a filament vége, vagy hogy a filamentet kioldották."
                 },
                 {
-                    "ecode": "1803700000020003",
-                    "intro": "A filament extrudálása sikertelen. Lehetséges ok: az extruder vagy a fúvóka eltömődött. Részletekért kérjük, hívja segítségül az Asszisztenst."
-                },
-                {
                     "ecode": "1805700000020020",
                     "intro": "AMS-HT F: A filament táplálása a pufferbe sikertelen volt; ennek oka lehet, hogy a puffer eltömődött. Kérjük, ellenőrizze a puffer PTFE cső dugóját."
                 },
@@ -9038,10 +9066,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C Ételmentesítő szál behelyezése az eszközfejen meghiúsult; ennek oka lehet a szál kicsúszása. Kérjük, ellenőrizze, hogy a szálcső nincs-e leválasztva, vagy átvágódott-e a cső."
-                },
-                {
-                    "ecode": "1800700000020006",
-                    "intro": "Időtúllépés az előző szál kiürítésénél. Lehetséges okok: eltömődött szál, eltömődött extruder/nozzle. Részletekért kérjük, hivatkozzon az Assistant-re."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9256,10 +9280,6 @@
                     "intro": "AMS-HT H A filament adagolása a segítőmotor- extrúziós kerékhez nem sikerült. Ez lehet, hogy a filament túlzott ellenállásának köszönhető. Kérjük, ellenőrizze, hogy az orsó ferde-e, a filament összegabalyodott-e vagy az orsó forgása nem sima-e."
                 },
                 {
-                    "ecode": "0705700000020006",
-                    "intro": "Időtúllépés az régi filament eltávolításakor. Lehetséges ok: a filament beragadt vagy az extruder / fúvóka eldugult. További részletekért forduljon az Assistant-hez."
-                },
-                {
                     "ecode": "0706700000020021",
                     "intro": "AMS G A filament adagolása a pufferbe nem sikerült; ez lehet, hogy a filament túlzott ellenállásának tudható be. Kérjük, ellenőrizze, hogy az orsó ferde-e vagy a PTFE cső eldugult-e."
                 },
@@ -9318,10 +9338,6 @@
                 {
                     "ecode": "1806700000020030",
                     "intro": "AMS-HT G: A filament adagolása az eszközfej extruderébe nem sikerült; ennek oka lehet a filament akadása az eszközfej bejáratánál. Kérjük, ellenőrizze az eszközfej filament cső dugaszát."
-                },
-                {
-                    "ecode": "1807700000020003",
-                    "intro": "A filament extrudálása nem sikerült. Lehetséges ok: extruder vagy fúvóka eltömődése. További részletekért nézze meg az Assistant-et."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9502,10 +9518,6 @@
                 {
                     "ecode": "0706700000020032",
                     "intro": "AMS G Az etetőszál táplálása az eszközfej extruderébe meghiúsult; ennek oka az etetőszálban fellépő túlzott ellenállás lehet. Kérjük, ellenőrizze, hogy az etetőszál gurtnija ferde-e vagy az etetőszál csöve akadályozott-e."
-                },
-                {
-                    "ecode": "1802700000020003",
-                    "intro": "Nem sikerült extrudálni a filamentet. Lehetséges okai: az extruder vagy a fúvóka eltömődése. Részletekért forduljon az Asszisztenshez."
                 },
                 {
                     "ecode": "0704700000020021",
@@ -10224,16 +10236,8 @@
                     "intro": "Az AMS E szál behelyezése az asszisztálómotor extrúziós kerékbe nem sikerült. Ez lehet az oka annak, hogy az orsószálban túlzott az ellenállás. Kérjük ellenőrizze, hogy az orsó ferde-e, az orsószál összegabalyodott-e vagy az orsó forgása nem egyenletes."
                 },
                 {
-                    "ecode": "1807700000020006",
-                    "intro": "Időtúllépés a régi orsószál kiürítésénél. Lehetséges ok: az orsószál beragadt vagy az extruder/nozzle eltömődött. Kérjük, lépjen kapcsolatba az asszisztenssel a részletekért."
-                },
-                {
                     "ecode": "1805700000020012",
                     "intro": "Az AMS-HT F szál behelyezése az asszisztálómotor extrúziós kerékbe nem sikerült. Ez lehet az oka annak, hogy az orsószálban túlzott az ellenállás. Kérjük ellenőrizze, hogy az orsó ferde-e, az orsószál összegabalyodott-e vagy az orsó forgása nem egyenletes."
-                },
-                {
-                    "ecode": "0707700000020003",
-                    "intro": "Az orsószál extrudálása nem sikerült. Lehetséges ok: az extruder vagy a nozzle eltömődött. Kérjük, lépjen kapcsolatba az asszisztenssel a részletekért."
                 },
                 {
                     "ecode": "0705700000020022",
@@ -10546,26 +10550,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "A szennyezett tárgyak észlelése nem működik. Kérjük, indítsa újra az eszközt, vagy frissítse a firmware-t."
-                },
-                {
-                    "ecode": "03009C0000010002",
-                    "intro": "Az aktív légszórás segítő modulja nem normális és sérült lehet."
-                },
-                {
-                    "ecode": "0500040000020047",
-                    "intro": "Külföldi tárgy észlelve a fűtőágyon; kérjük, ellenőrizze és tisztítsa meg a fűtőágyat."
-                },
-                {
-                    "ecode": "0500040000020043",
-                    "intro": "Nyomtatási lap nem észlelhető; kérjük ellenőrizze, hogy helyesen van-e elhelyezve."
-                },
-                {
-                    "ecode": "0500040000020046",
-                    "intro": "Anyag nem észlelhető; Kérjük, erősítse meg a helyes elhelyezést, mielőtt folytatja."
-                },
-                {
-                    "ecode": "0500040000020045",
-                    "intro": "A Felismert 3D nyomtatási lemez típus nem egyezik a szeletelőben kiválasztott lemezzel."
                 },
                 {
                     "ecode": "1200300000010004",
@@ -11084,10 +11068,6 @@
                     "intro": "AMS A Nem lehet elkezdeni a szárítást; Kérjük, húzza ki a filamentet a filamenttárolóból és próbálja újra."
                 },
                 {
-                    "ecode": "0500010000030006",
-                    "intro": "Az USB meghajtó nincs formázva; Kérjük, formázza az USB meghajtót."
-                },
-                {
                     "ecode": "0300290000010001",
                     "intro": "Az encoder minta nem ismerhető fel; lehetséges okok közé tartozik: minta torzulása, túl expozíció a fényre, lemez eltolódása..."
                 },
@@ -11388,24 +11368,12 @@
                     "intro": "Az AMS B 2. foglalatán lévő RFID-címke sérült, vagy a tartalma nem azonosítható."
                 },
                 {
-                    "ecode": "0701700000020006",
-                    "intro": "Halott idő az előző filament tisztítása során. Lehetséges okok: a filament beragadt vagy az extruder/fúvóka eltömődött. Kérjük tekintse meg az Asszisztenst részletekért."
-                },
-                {
                     "ecode": "0702310000020002",
                     "intro": "Az AMS C 2. foglalatán lévő RFID-címke sérült, vagy a tartalma nem azonosítható."
                 },
                 {
                     "ecode": "0703310000010004",
                     "intro": "Titkosítási chip hiba."
-                },
-                {
-                    "ecode": "0703700000020003",
-                    "intro": "Nem sikerült kinyomtatni a filamentet. Lehetséges ok: az extruder vagy a fúvóka eldugult. Részletekért lásd az Asszisztens szakaszát."
-                },
-                {
-                    "ecode": "0703700000020006",
-                    "intro": "Időtúllépés az régi filament eltávolításában. Lehetséges ok: a filament beragadt, vagy az extruder / fúvóka dugul. Részletekért lásd az Asszisztens szakaszát."
                 },
                 {
                     "ecode": "0C00020000010005",
@@ -11648,20 +11616,12 @@
                     "intro": "Az AMS A Slot4 RFID-címke sérült, vagy annak tartalmát nem lehet azonosítani."
                 },
                 {
-                    "ecode": "0700700000020006",
-                    "intro": "Időtúllépés az előző szál eltávolításakor. Lehetséges ok: a szál elakadt, vagy az extruder / fúvóka eltömődött. További részletekért forduljon az Assistant-hez."
-                },
-                {
                     "ecode": "0701300000010004",
                     "intro": "Titkosítási lapka hiba."
                 },
                 {
                     "ecode": "0701330000020002",
                     "intro": "Az AMS B Slot4 RFID-címkéje károsodott, vagy annak tartalma nem azonosítható."
-                },
-                {
-                    "ecode": "0701700000020003",
-                    "intro": "Nem sikerült extrudálni a filamentet. Lehetséges ok: extruder vagy fúvóka eldugult. Részletekért forduljon az Assistenshez."
                 },
                 {
                     "ecode": "0702300000010004",
@@ -12232,16 +12192,8 @@
                     "intro": "Az AMS A Slot1-es RFID címkéje sérült, vagy annak tartalma nem azonosítható."
                 },
                 {
-                    "ecode": "0700700000020003",
-                    "intro": "Nem sikerült extrudálni a filamentet. Lehetséges okok: az extruder vagy a nozzle eltömődése. Részletekért kérjük, tekintse meg az Asszisztenst."
-                },
-                {
                     "ecode": "0701320000020002",
                     "intro": "Az AMS B 3. foglalatán lévő RFID címke sérült, vagy annak tartalma nem azonosítható."
-                },
-                {
-                    "ecode": "0702700000020006",
-                    "intro": "Időtúllépés az előző filament eltávolításakor. Lehetséges okok: a filament beragadt, vagy az extruder/nozzle eltömődött. Részletekért kérjük, tekintse meg az Asszisztenst."
                 },
                 {
                     "ecode": "0703320000020002",
@@ -12490,10 +12442,6 @@
                 {
                     "ecode": "0701310000010004",
                     "intro": "Az adatvédelmi chip hibás."
-                },
-                {
-                    "ecode": "0702700000020003",
-                    "intro": "Nem sikerült kinyomni a filamentet. Lehetséges okok: extruder vagy fúvóka eltömődése. További részletekért kérjük, forduljon az Assistant-hez."
                 },
                 {
                     "ecode": "0C00020000020003",
@@ -14178,10 +14126,6 @@
                 {
                     "ecode": "07FF810000020001",
                     "intro": "Az extruder váltás művelete rendellenes. Kérem ellenőrizze, hogy van-e valami elakadva az eszközfejben."
-                },
-                {
-                    "ecode": "0500060000020031",
-                    "intro": "Az eszközfej kamera kapcsolódása sikertelen. Kérjük ellenőrizze a hardvert és a kábel kapcsolatokat."
                 },
                 {
                     "ecode": "0500030000010026",

@@ -1,11 +1,79 @@
 {
     "result": 0,
-    "t": 1740666194,
-    "ver": 202503250227,
+    "t": 1741069238,
+    "ver": 202503250304,
     "data": {
         "device_error": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "pl": [
+                {
+                    "ecode": "0500806A",
+                    "intro": "Nie można rozpoznać lewego i prawego hotendu. Może to być nieoficjalny hotend lub znacznik hotendu może być brudny. Proszę ustawić typ hotendu przed następnym wydrukiem."
+                },
+                {
+                    "ecode": "05FE806A",
+                    "intro": "Nie można rozpoznać lewego hotendu. Może to być nieoficjalny hotend lub znacznik hotendu może być brudny. Proszę ustawić typ hotendu przed następnym wydrukiem."
+                },
+                {
+                    "ecode": "05008074",
+                    "intro": "Platforma laserowa jest przesunięta. Proszę upewnić się, że cztery narożniki platformy są wyrównane z gorącą powierzchnią, a znacznik nie jest zasłonięty."
+                },
+                {
+                    "ecode": "05FE8081",
+                    "intro": "Lewy hotend nie jest zainstalowany."
+                },
+                {
+                    "ecode": "05FF8081",
+                    "intro": "Prawy hotend nie jest zainstalowany."
+                },
+                {
+                    "ecode": "05FF8080",
+                    "intro": "Prawy hotend nie jest zainstalowany."
+                },
+                {
+                    "ecode": "05008086",
+                    "intro": "Soczewka kamery dyszy jest brudna, co może wpływać na funkcjonalność monitorowania AI. Proszę jak najszybciej oczyścić powierzchnię soczewki kamery dyszy."
+                },
+                {
+                    "ecode": "05008085",
+                    "intro": "Kamera dyszy jest zasłonięta."
+                },
+                {
+                    "ecode": "05008069",
+                    "intro": "Nie można rozpoznać lewego i prawego hotendu. Może to być nieoficjalny hotend lub znacznik hotendu może być brudny. Proszę ręcznie ustawić typ hotendu."
+                },
+                {
+                    "ecode": "05FE8069",
+                    "intro": "Nie można rozpoznać lewego hotendu. Może to być nieoficjalny hotend lub znacznik hotendu może być brudny. Proszę ręcznie ustawić typ hotendu."
+                },
+                {
+                    "ecode": "05FF806A",
+                    "intro": "Nie można rozpoznać odpowiedniego hotenda. Może to być nieoficjalny hotend, lub oznaczenie hotenda może być brudne. Proszę ustawić typ hotenda przed następnym drukowaniem."
+                },
+                {
+                    "ecode": "05FF8069",
+                    "intro": "Nie można rozpoznać odpowiedniego hotenda. Może to być nieoficjalny hotend, lub oznaczenie hotenda może być brudne. Proszę ręcznie ustawić typ hotenda."
+                },
+                {
+                    "ecode": "05FE8080",
+                    "intro": "Lewa końcówka grzewcza nie jest zainstalowana."
+                },
+                {
+                    "ecode": "05008080",
+                    "intro": "Lewa i prawa końcówka grzewcza nie są zainstalowane."
+                },
+                {
+                    "ecode": "05008081",
+                    "intro": "Lewa i prawa końcówka grzewcza nie są zainstalowane."
+                },
+                {
+                    "ecode": "05008088",
+                    "intro": "Kamera Birdseye jest brudna."
+                },
+                {
+                    "ecode": "05008087",
+                    "intro": "Kamera BirdsEye jest zablokowana."
+                },
                 {
                     "ecode": "03004002",
                     "intro": "Automatyczne poziomowanie stołu nie powiodło się; zadanie zostało zatrzymane."
@@ -309,10 +377,6 @@
                 {
                     "ecode": "05004076",
                     "intro": "Proszę poprawnie umieścić platformę laserową i upewnić się, że tylne znaczniki nie są zablokowane, a następnie zrestartować pomiar grubości w oprogramowaniu przed rozpoczęciem zadania."
-                },
-                {
-                    "ecode": "05008074",
-                    "intro": "Platforma laserowa jest przesunięta. Proszę upewnić się, że cztery rogi platformy są wyrównane z podgrzewaną powierzchnią."
                 },
                 {
                     "ecode": "0500807A",
@@ -699,10 +763,6 @@
                     "intro": "Wystąpił błąd podczas suszenia AMS D. Proszę przejść do Asystenta po więcej informacji."
                 },
                 {
-                    "ecode": "05008081",
-                    "intro": "AI wykrył, że lewy i prawy hotend nie są zainstalowane."
-                },
-                {
                     "ecode": "0701C06B",
                     "intro": "AMS B zmienia filament. Nie można rozpocząć suszenia. Proszę spróbować później."
                 },
@@ -743,10 +803,6 @@
                     "intro": "AMS C odczytuje RFID. Nie można rozpocząć suszenia. Proszę spróbować ponownie później."
                 },
                 {
-                    "ecode": "05FE8081",
-                    "intro": "AI wykryło, że lewy hotend nie jest zainstalowany."
-                },
-                {
                     "ecode": "0702C06E",
                     "intro": "Silnik AMS C wykonuje test własny. Nie można rozpocząć suszenia. Proszę spróbować ponownie później."
                 },
@@ -767,28 +823,12 @@
                     "intro": "AMS B odczytuje RFID. Nie można rozpocząć suszenia. Proszę spróbować ponownie później."
                 },
                 {
-                    "ecode": "05FE8080",
-                    "intro": "AI wykrył, że lewy hotend nie jest zainstalowany."
-                },
-                {
                     "ecode": "0702C06D",
                     "intro": "AMS C pomaga w wprowadzeniu filamentu. Nie można rozpocząć suszenia. Spróbuj ponownie później."
                 },
                 {
                     "ecode": "05008082",
                     "intro": "Proszę usunąć folię ochronną z Opaque Glossy Acrylic przed przetwarzaniem."
-                },
-                {
-                    "ecode": "05FF8081",
-                    "intro": "AI wykryło, że prawy hotend nie jest zainstalowany."
-                },
-                {
-                    "ecode": "05FF8080",
-                    "intro": "AI wykryło, że prawy hotend nie jest zainstalowany."
-                },
-                {
-                    "ecode": "05008080",
-                    "intro": "AI wykryło, że lewy i prawy hotend nie są zainstalowane."
                 },
                 {
                     "ecode": "0703C06A",
@@ -1299,32 +1339,8 @@
                     "intro": "Typ macie do cięcia jest nieznany; proszę go wymienić na odpowiedni matę do cięcia."
                 },
                 {
-                    "ecode": "0500806A",
-                    "intro": "Lewy i prawy hotend nie mogą być zidentyfikowane, prawdopodobnie z powodu nieoficjalnego hotendu. Proszę ustawić typ hotendu przed następnym drukowaniem."
-                },
-                {
                     "ecode": "05008062",
                     "intro": "Typ płyty do druku jest nieznany; proszę ją wymienić na odpowiednią płytę."
-                },
-                {
-                    "ecode": "05008069",
-                    "intro": "Lewy i prawy hotend nie mogą być zidentyfikowane, prawdopodobnie z powodu uszkodzonego znacznika dyszy. Proszę ręcznie ustawić typ hotendu."
-                },
-                {
-                    "ecode": "05FE8069",
-                    "intro": "Lewy hotend nie może być zidentyfikowany, prawdopodobnie z powodu uszkodzonego znacznika dyszy. Proszę ręcznie ustawić typ hotendu."
-                },
-                {
-                    "ecode": "05FE806A",
-                    "intro": "Lewy hotend nie może być zidentyfikowany, prawdopodobnie z powodu nieoficjalnego hotendu. Proszę ustawić typ hotendu przed następnym drukowaniem."
-                },
-                {
-                    "ecode": "05FF806A",
-                    "intro": "Nie można zidentyfikować odpowiedniego hotendu, możliwe, że to nieoficjalny hotend. Proszę ustawić typ hotendu przed następnym drukowaniem."
-                },
-                {
-                    "ecode": "05FF8069",
-                    "intro": "Prawy hotend nie może być zidentyfikowany, prawdopodobnie z powodu uszkodzonego znacznika dyszy. Proszę ręcznie ustawić typ hotendu."
                 },
                 {
                     "ecode": "03008064",
@@ -2473,8 +2489,168 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250227,
+            "ver": 202503250304,
             "pl": [
+                {
+                    "ecode": "0700700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "0701700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "0701700000020006",
+                    "intro": "Przekroczono czas na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "0702700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "0703700000020006",
+                    "intro": "Przekroczono czas na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "0500060000020031",
+                    "intro": "Kamera ToolHead nie jest podłączona. Proszę sprawdzić sprzęt i połączenia kablowe."
+                },
+                {
+                    "ecode": "03009C0000010001",
+                    "intro": "Pompa powietrza nie została wykryta. Proszę sprawdzić, czy złącze jest poprawnie podłączone."
+                },
+                {
+                    "ecode": "1807700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "1803700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "1800700000020006",
+                    "intro": "Przekroczono czas na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "1804700000020003",
+                    "intro": "Nie udało się wytłoczyć filamentu. Możliwa przyczyna: zator w ekstruderze lub dyszy."
+                },
+                {
+                    "ecode": "1805700000020006",
+                    "intro": "Przekroczono czas oczyszczania starego filamentu. Możliwa przyczyna: zablokowany filament lub zator w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "0706700000020003",
+                    "intro": "Nie udało się wytłoczyć filamentu. Możliwa przyczyna: zator w ekstruderze lub dyszy."
+                },
+                {
+                    "ecode": "1803700000020006",
+                    "intro": "Przekroczono czas oczyszczania starego filamentu. Możliwa przyczyna: zablokowany filament lub zator w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "1804700000020006",
+                    "intro": "Przekroczono czas oczyszczania starego filamentu. Możliwa przyczyna: zablokowany filament lub zator w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "1801700000020006",
+                    "intro": "Przekroczono czas oczyszczania starego filamentu. Możliwa przyczyna: zablokowany filament lub zator w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "1806700000020003",
+                    "intro": "Nie udało się wytłoczyć filamentu. Możliwa przyczyna: zator w ekstruderze lub dyszy."
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700700000020006",
+                    "intro": "Przekroczono czas oczyszczania starego filamentu. Możliwa przyczyna: zablokowany filament lub zator w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "0702700000020006",
+                    "intro": "Przekroczono czas oczekiwania na usunięcie starego filamentu. Możliwe przyczyny: zablokowany filament lub zatyczka w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "0703700000020003",
+                    "intro": "Nie udało się wytłoczyć filamentu. Możliwe przyczyny: zatyczka w ekstruderze lub dyszy."
+                },
+                {
+                    "ecode": "0500060000020032",
+                    "intro": "Kamera dyszy nie jest podłączona. Proszę sprawdzić sprzęt i połączenia kablowe."
+                },
+                {
+                    "ecode": "0300C10000010003",
+                    "intro": "System wentylacji nie zdołał aktywować trybu laserowego; proszę sprawdzić status drzwi powietrznych."
+                },
+                {
+                    "ecode": "0500010000030006",
+                    "intro": "Dysk USB nie jest sformatowany lub nie można na nim zapisywać; proszę sformatować dysk USB."
+                },
+                {
+                    "ecode": "03009C0000010002",
+                    "intro": "Pompa powietrza jest w stanie nieprawidłowym i może być uszkodzona."
+                },
+                {
+                    "ecode": "1807700000020006",
+                    "intro": "Przekroczono czas oczekiwania na usunięcie starego filamentu. Możliwe przyczyny: zablokowany filament lub zatyczka w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "0707700000020003",
+                    "intro": "Nie udało się wytłoczyć filamentu. Możliwe przyczyny: zatyczka w ekstruderze lub dyszy."
+                },
+                {
+                    "ecode": "1802700000020003",
+                    "intro": "Nie udało się wytłoczyć filamentu. Możliwe przyczyny: zatyczka w ekstruderze lub dyszy."
+                },
+                {
+                    "ecode": "0705700000020006",
+                    "intro": "Przekroczono czas oczekiwania na usunięcie starego filamentu. Możliwe przyczyny: zablokowany filament lub zatyczka w ekstruderze/dyszy."
+                },
+                {
+                    "ecode": "0707700000020006",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "1801700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "1800700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "1806700000020006",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "0704700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "1802700000020006",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "0704700000020006",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "0705700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
+                {
+                    "ecode": "0706700000020006",
+                    "intro": "Czas oczekiwania na usunięcie starego filamentu. Możliwa przyczyna: zablokowany filament lub zatykanie ekstrudera/dyszy."
+                },
+                {
+                    "ecode": "1805700000020003",
+                    "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
+                },
                 {
                     "ecode": "0C00040000020007",
                     "intro": "Kamera BirdsEye się przygotowuje. Proszę usunąć wszystkie obiekty i zdjąć matę. Upewnij się, że znacznik nie jest zasłonięty. W międzyczasie oczyść zarówno Kamerę BirdsEye, jak i Kamerę Toolhead, oraz usuń wszelkie obce przedmioty blokujące ich widok."
@@ -2528,10 +2704,6 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0500060000020061",
-                    "intro": ""
-                },
-                {
                     "ecode": "0500060000020052",
                     "intro": ""
                 },
@@ -2554,10 +2726,6 @@
                 {
                     "ecode": "0300C00000010003",
                     "intro": "Awaria klapy powietrznej automatycznego górnego wentylatora: może być zablokowana."
-                },
-                {
-                    "ecode": "0300C10000010003",
-                    "intro": "System przepływu powietrza nie włączył trybu lasera/ciecia; proszę sprawdzić status klapy powietrznej."
                 },
                 {
                     "ecode": "0300C00000010001",
@@ -2618,10 +2786,6 @@
                 {
                     "ecode": "1800700000020008",
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę wybrać \"Wznów\", aby spróbować ponownie."
-                },
-                {
-                    "ecode": "050004000002004B",
-                    "intro": "Obecna platforma nie spełnia wymagań zadania; proszę użyć Platformy Tnącej."
                 },
                 {
                     "ecode": "07FE800000010006",
@@ -2730,18 +2894,6 @@
                 {
                     "ecode": "1807700000020008",
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; wybierz \"Wznów\", aby spróbować ponownie."
-                },
-                {
-                    "ecode": "0500040000020042",
-                    "intro": "Wykryto niezgodność dyszy podczas druku. Proszę rozpocząć drukowanie po ponownym wycięciu modelu lub kontynuować drukowanie po wymianie na odpowiednią dyszę. Uwaga: temperatura hotendu jest wysoka."
-                },
-                {
-                    "ecode": "0500040000020048",
-                    "intro": "Nie wykryto platformy; upewnij się, że platforma laserowa jest prawidłowo umieszczona."
-                },
-                {
-                    "ecode": "05FF040000020042",
-                    "intro": "Wykryto niezgodność dyszy podczas druku. Proszę rozpocząć drukowanie po ponownym wycięciu modelu lub kontynuować drukowanie po wymianie na odpowiednią dyszę. Uwaga: temperatura hotendu jest wysoka."
                 },
                 {
                     "ecode": "0C00010000020014",
@@ -2866,22 +3018,6 @@
                 {
                     "ecode": "1807700000020046",
                     "intro": "AMS-HT H Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Sprawdź, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "050004000002004A",
-                    "intro": "Bieżąca platforma nie spełnia wymagań zadania; użyj platformy laserowej."
-                },
-                {
-                    "ecode": "05FE040000020042",
-                    "intro": "Wykryto niezgodność dyszy podczas drukowania. Proszę rozpocząć drukowanie po ponownym przekształceniu modelu lub kontynuować drukowanie po wymianie na odpowiednią dyszę. Uwaga: temperatura hotendu jest wysoka."
-                },
-                {
-                    "ecode": "050004000002004E",
-                    "intro": "Wykryto niewłaściwy typ platformy; umieść platformę laserową w celu kalibracji."
-                },
-                {
-                    "ecode": "050004000002004F",
-                    "intro": "Wykryto niewłaściwy typ platformy; umieść platformę do cięcia w celu kalibracji."
                 },
                 {
                     "ecode": "0500050000010008",
@@ -4564,10 +4700,6 @@
                     "intro": "Moduł lasera przegrzewa się."
                 },
                 {
-                    "ecode": "0500060000020032",
-                    "intro": "Binding kamery dyszy nie powiódł się. Proszę sprawdzić połączenia sprzętowe i kable."
-                },
-                {
                     "ecode": "0500060000020022",
                     "intro": ""
                 },
@@ -4880,10 +5012,6 @@
                     "intro": "Kalibracja punktu ogniskowego lasera grawerującego XY nie powiodła się. Proszę oczyścić obszar odnajdowania lasera na platformie laserowej i ponownie przeprowadzić kalibrację mocowania modułu lasera."
                 },
                 {
-                    "ecode": "03009C0000010001",
-                    "intro": "Moduł wspomagania aktywnego przepływu powietrza nie jest wykrywany. Proszę sprawdzić, czy złącze jest prawidłowo podłączone."
-                },
-                {
                     "ecode": "0702230000020007",
                     "intro": "Czujnik Hall wyjścia 4 w gnieździe AMS C jest odłączony. Złącze może mieć słaby kontakt."
                 },
@@ -5160,10 +5288,6 @@
                     "intro": "Proszę sprawdzić, czy materiał wychodzi z lewej dyszy. Jeśli nie, delikatnie pchnij materiał i spróbuj ponownie wyekstrahować."
                 },
                 {
-                    "ecode": "050004000002004C",
-                    "intro": "Nieznany typ podstawy ochrony przed cięciem. Proszę wymienić na odpowiednią podstawę ochrony przed cięciem."
-                },
-                {
                     "ecode": "0300D00000010002",
                     "intro": "Uchwyt ostrza odpadł; proszę go ponownie zamontować."
                 },
@@ -5182,10 +5306,6 @@
                 {
                     "ecode": "07FF600000020001",
                     "intro": "Zewnętrzna szpula podłączona do prawego ekstrudera może być zaplątana lub zacięta."
-                },
-                {
-                    "ecode": "050004000002004D",
-                    "intro": "Nie wykryto podstawy ochronnej przed cięciem. Proszę potwierdzić, że została poprawnie umieszczona."
                 },
                 {
                     "ecode": "0300D00000010001",
@@ -5254,22 +5374,6 @@
                 {
                     "ecode": "1805010000020006",
                     "intro": "AMS-HT F. Przewody trójfazowe silnika pomocniczego nie są podłączone. Złącze silnika pomocniczego może mieć słaby kontakt."
-                },
-                {
-                    "ecode": "0500040000020044",
-                    "intro": "Typ płyty drukarskiej jest nieznany; proszę zastąpić ją odpowiednią płytą."
-                },
-                {
-                    "ecode": "0500040000020041",
-                    "intro": "Lewy i prawy hotend nie mogą być zidentyfikowane, prawdopodobnie z powodu nieoficjalnego hotendu. Może też być tak, że oznaczenie hotendu jest nieczytelne."
-                },
-                {
-                    "ecode": "05FF040000020041",
-                    "intro": "Prawy hotend nie może być zidentyfikowany, prawdopodobnie z powodu nieoficjalnego hotendu. Może też być tak, że oznaczenie hotendu jest nieczytelne."
-                },
-                {
-                    "ecode": "05FE040000020041",
-                    "intro": "Lewy hotend nie może być zidentyfikowany, możliwe, że przez nieoficjalny hotend. Może też być tak, że oznaczenie hotenda jest nieczytelne."
                 },
                 {
                     "ecode": "0500040000020053",
@@ -5784,10 +5888,6 @@
                     "intro": "Prędkość wentylatora chłodzenia hotendu jest powolna. Może być zablokowany i wymaga czyszczenia."
                 },
                 {
-                    "ecode": "0500040000020049",
-                    "intro": "Nieznany typ platformy; proszę wymienić na właściwą oraz sprawdzić, czy kamera BirdsEye nie jest zablokowana."
-                },
-                {
                     "ecode": "0703200000030001",
                     "intro": "AMS D Slot 1 wykorzystał swoją pojemność. Proszę czekać, aż stary filament zostanie wypłukany."
                 },
@@ -5810,10 +5910,6 @@
                 {
                     "ecode": "0704200000020005",
                     "intro": "AMS E Slot 1 wykorzystał swoją pojemność i usuwanie starego filamentu nie powiodło się prawidłowo. Proszę sprawdzić, czy filament utknął w głowicy narzędzia."
-                },
-                {
-                    "ecode": "1805700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwą przyczyną jest zaczopowanie ekstrudera lub dyszy. Szczegóły znajdują się w Asystencie."
                 },
                 {
                     "ecode": "18FE810000010001",
@@ -6056,10 +6152,6 @@
                     "intro": "Proszę wyjąć zewnętrzny filament z prawego ekstrudera."
                 },
                 {
-                    "ecode": "0705700000020003",
-                    "intro": "Niepowodzenie w ekstruzji filamentu. Możliwe przyczyny: zatkane ekstruder lub dysza. Proszę odnosić się do Asystenta, aby uzyskać szczegółowe instrukcje."
-                },
-                {
                     "ecode": "0705210000020009",
                     "intro": "Niepowodzenie w ekstruzji filamentu AMS F Slot 2; ekstruder może być zatkany lub filament może być zbyt cienki, co powoduje poślizg ekstrudera."
                 },
@@ -6090,10 +6182,6 @@
                 {
                     "ecode": "0705700000020032",
                     "intro": "Podawanie filamentu do ekstrudera głowicy narzędzia AMS F nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Sprawdź, czy szpula filamentu jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0706700000020006",
-                    "intro": "Przekroczony czas na oczyszczenie drukarki ze starego filamentu. Możliwe przyczyny to zablokowany filament albo zatkany ekstruder/dysza. Szczegóły można sprawdzić w asystencie."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6286,10 +6374,6 @@
                 {
                     "ecode": "1802700000020022",
                     "intro": "AMS-HT C Włożenie filamentu do bufora nie powiodło się; może to być spowodowane zużytym filamentem, powodującym poślizg silnika pomocniczego. Proszę odciąć z zużytą część filamentu."
-                },
-                {
-                    "ecode": "0704700000020006",
-                    "intro": "Przekroczony limit czasu oczyszczania starego filamentu. Możliwe przyczyny: zablokowanie filamentu lub zatkany ekstruder/dysza. Proszę sprawdzić szczegóły w Aplikacji Pomocniczej."
                 },
                 {
                     "ecode": "1805700000020021",
@@ -6496,10 +6580,6 @@
                     "intro": "Podajnik filamentu AMS-HT D do bufora nie wykonał zadania. Może to być spowodowane blokowaniem bufora przez filament. Sprawdź wtyczkę rurki PTFE bufora."
                 },
                 {
-                    "ecode": "1801700000020006",
-                    "intro": "Przekroczony czas oczekiwania na wypłukanie starego filamentu. Możliwa przyczyna: zablokowany filament lub zator w ekstrudera/dyszy. Szczegóły znajdują się w Asystencie."
-                },
-                {
                     "ecode": "1802700000020060",
                     "intro": "AMS-HT C Pomoc w chwytaniu filamentu dla wyciskarki nie powiodła się; może to być spowodowane poślizgiem silnika pomocniczego. Proszę odciąć zużyty odcinek filamentu."
                 },
@@ -6538,10 +6618,6 @@
                 {
                     "ecode": "0707700000020044",
                     "intro": "AMS H Wyjęcie filamentu nie udało się; może to być spowodowane złamanym filamentem w głowicy narzędziowej. Proszę wyjąć złamany filament."
-                },
-                {
-                    "ecode": "1806700000020003",
-                    "intro": "Nie można przetłoczyć filamentu. Możliwa przyczyna: zatkany ekstruder lub dysza. Szczegółowe informacje można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "1805700000020023",
@@ -6800,10 +6876,6 @@
                     "intro": "Nie udało się wprowadzić filamentu do ekstruzora głowicy narzędzia AMS-HT E; może to być spowodowane zużyciem filamentu i poślizgiem w silniku asysty. Proszę przyciąć zużyty odcinek filamentu."
                 },
                 {
-                    "ecode": "1803700000020006",
-                    "intro": "Przekroczony czas usuwania starego filamentu. Możliwą przyczyną jest zablokowany filament lub zapchany ekstruder / dysza. Szczegóły można znaleźć w pomocy Asystenta."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Awaria chipu szyfrującego"
                 },
@@ -6838,10 +6910,6 @@
                 {
                     "ecode": "1805700000020061",
                     "intro": "AMS-HT F Wspomaganie chwytaka wyciskarki nie powiodło się, prawdopodobnie z powodu nadmiernego oporu ze strony bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona i czy rura filamentu jest czysta."
-                },
-                {
-                    "ecode": "1804700000020006",
-                    "intro": "Przekroczony czas czyszczenia starego filamentu. Możliwą przyczyną jest przestrzał filamentu lub zaczopowany ekstruder/strzykawka. Szczegóły można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "1807310000030003",
@@ -7332,10 +7400,6 @@
                     "intro": "Nie udało się wyeksplodować filamentu w slocie AMS E 4; ekstruder może być zapchany lub filament może być zbyt cienki, powodując poślizg ekstrudera."
                 },
                 {
-                    "ecode": "0706700000020003",
-                    "intro": "Nie udało się wyeksplodować filamentu. Możliwe przyczyny: zapchanie ekstrudera lub dyszy. Szczegóły znajdują się w Pomocy."
-                },
-                {
                     "ecode": "1807700000020023",
                     "intro": "AMS-HT H Podczas dostarczania filamentu do bufora wystąpił błąd; może to być spowodowane oderwaniem filamentu. Proszę sprawdzić, czy rurka filamentowa jest nieprawidłowo podłączona lub czy rurka jest wytarta."
                 },
@@ -7540,10 +7604,6 @@
                     "intro": "AMS E zasilanie filamentu koła ekstrudera z silnikiem pomocniczym zakończyło się niepowodzeniem. Może to być spowodowane wejściem do rurki zasilającej małego kawałka zepsutego filamentu. Proszę usunąć zepsuty filament z rurki zasilania."
                 },
                 {
-                    "ecode": "0704700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwa przyczyna: zatkany wtryskiwacz lub dysza. Szczegóły można znaleźć w Asystencie."
-                },
-                {
                     "ecode": "1802700000020041",
                     "intro": "AMS-HT wycofywanie filamentu zakończyło się niepowodzeniem; może to być spowodowane oderwaniem filamentu od szpuli. Proszę wymienić szpulę na nową."
                 },
@@ -7566,10 +7626,6 @@
                 {
                     "ecode": "1801700000020023",
                     "intro": "AMS-HT B Podajnik filamentu do bufora nie powiódł się; może to być spowodowane oderwaniem się filamentu. Sprawdź, czy rurka filamentu jest nieprawidłowo podłączona, lub czy rurka jest przetarta."
-                },
-                {
-                    "ecode": "1802700000020006",
-                    "intro": "Przekroczony czas wypłukiwania starego filamentu. Możliwa przyczyna: zablokowanie filamentu lub zatkanie ekstrudera/dyszy. Szczegóły znajdziesz w asystencie."
                 },
                 {
                     "ecode": "0707700000020042",
@@ -8004,10 +8060,6 @@
                     "intro": "Węzeł AMS-HT F nie mógł chwycić filamentu przy pomocy silnika asystującego; może to być spowodowane poślizgiem silnika. Proszę odciąć zużyty fragment filamentu."
                 },
                 {
-                    "ecode": "1800700000020003",
-                    "intro": "Nie można wycisnąć filamentu. Możliwą przyczyną jest zapchany ekstruder lub dysza. Szczegóły znajdują się u Asystenta."
-                },
-                {
                     "ecode": "1805700000020011",
                     "intro": "AMS-HT F Podczas podawania filamentu do koła ekstrudującego silnika pomocniczego wystąpiło niepowodzenie. Może to być spowodowane rozłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
                 },
@@ -8074,10 +8126,6 @@
                 {
                     "ecode": "0706700000020031",
                     "intro": "AMS G Wprowadzenie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane zużyciem filamentu i spowodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1806700000020006",
-                    "intro": "Przekroczony czas wypłukiwania starego filamentu. Możliwa przyczyna: filament utknął lub zatkał się ekstruder/dysza. Szczegóły zawarte są w Asystencie."
                 },
                 {
                     "ecode": "0704700000020043",
@@ -8296,20 +8344,12 @@
                     "intro": "AMS-HT D Zasilanie podawania filamentu do bufora się nie powiodło. Może to być spowodowane zużytym filamentem powodującym poślizg silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
                 },
                 {
-                    "ecode": "1805700000020006",
-                    "intro": "Przekroczony czas wyczyszczania starego filamentu. Możliwa przyczyna: filament utknął lub występuje zatkanie ekstrudera/końcówki. Szczegóły znajdziesz w Asystencie."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
                     "ecode": "1806700000020020",
                     "intro": "AMS-HT G Podawanie filamentu do bufora się nie powiodło. Może to być spowodowane zablokowaniem filamentu przez bufor. Proszę sprawdzić wtyczkę w rurce PTFE w buforze."
-                },
-                {
-                    "ecode": "1801700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwa przyczyna: zatkany ekstruder lub końcówka. Szczegóły znajdziesz w Asystencie."
                 },
                 {
                     "ecode": "1800300000010004",
@@ -8768,10 +8808,6 @@
                     "intro": "AMS H Wprowadzanie filamentu do bufora nie powiodło się; może to być spowodowane zablokowaniem filamentu przez bufor. Sprawdź wtyk rury PTFE bufora."
                 },
                 {
-                    "ecode": "0707700000020006",
-                    "intro": "Przekroczony czas usuwania starego filamentu. Możliwe przyczyny to zablokowany filament lub zatkany ekstruder/dysza. Szczegóły można znaleźć w asystencie."
-                },
-                {
                     "ecode": "0706700000020033",
                     "intro": "AMS G Wprowadzanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane wypadnięciem filamentu. Sprawdź, czy rura z filamentem jest odłączona lub czy rura jest zużyta."
                 },
@@ -8818,10 +8854,6 @@
                 {
                     "ecode": "1803700000020014",
                     "intro": "Podawanie filamentu do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane wejściem do przewodu zasilającego małego kawałka filamentu. Prosimy usunąć ułamany filament z przewodu zasilającego."
-                },
-                {
-                    "ecode": "1804700000020003",
-                    "intro": "Nieudane wytłaczanie filamentu. Możliwą przyczyną jest zablokowany ekstruder lub dysza. Szczegóły można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "1800700000020032",
@@ -9016,10 +9048,6 @@
                     "intro": "Nie udało się wyjąć filamentu z AMS G; może to być spowodowane brakiem filamentu lub próbą wymuszenia wyciągnięcia."
                 },
                 {
-                    "ecode": "1803700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwe przyczyny: zapchana dysza lub ekstruder. Szczegóły można uzyskać po kontakcie z Asystentem."
-                },
-                {
                     "ecode": "1805700000020020",
                     "intro": "Nie udało się przetransportować filamentu AMS-HT F do bufora; może to być spowodowane zatkaniem bufora filamentem. Sprawdź wtyk rurki PTFE bufora."
                 },
@@ -9038,10 +9066,6 @@
                 {
                     "ecode": "1802700000020033",
                     "intro": "AMS-HT C Podawanie filamentu do ekstrudera głowicy narzędziowej nie powiodło się; może to być spowodowane wypadnięciem filamentu. Proszę sprawdzić, czy rura filamentu jest odłączona lub czy rura została zużyta."
-                },
-                {
-                    "ecode": "1800700000020006",
-                    "intro": "Przekroczony limit czasu oczyszczania starego filamentu. Możliwą przyczyną jest zablokowanie filamentu lub zatkany ekstruder/dysza. Szczegóły znajdują się w Asystencie."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9256,10 +9280,6 @@
                     "intro": "AMS-HT H - Podawanie filamentu do koła wyciągarki silnika pomocniczego nie powiodło się. Może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdź, czy szpula z filamentem jest przechylona, czy filament jest splątany, lub czy obrót szpuli nie jest płynny."
                 },
                 {
-                    "ecode": "0705700000020006",
-                    "intro": "Przekroczony czas usuwania starego filamentu. Możliwą przyczyną może być zatkana dysza lub wyciągarka. Proszę skonsultować się z asystentem w celu uzyskania szczegółowych informacji."
-                },
-                {
                     "ecode": "0706700000020021",
                     "intro": "AMS G - Podawanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula z filamentem jest przechylona oraz czy rurka PTFE nie jest zablokowana."
                 },
@@ -9318,10 +9338,6 @@
                 {
                     "ecode": "1806700000020030",
                     "intro": "Niepowodzenie podczas podawania filamentu do ekstrudera głowicy narzędzia z pomocą AMS-HT G. Może to być spowodowane zablokowaniem filamentu na wejściu do głowicy narzędzia. Proszę sprawdzić wtyczkę rurki filamentu w głowicy narzędzia."
-                },
-                {
-                    "ecode": "1807700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwą przyczyną może być zatkany ekstruder lub dysza. Proszę skorzystać z Asystenta, aby uzyskać szczegółowe informacje."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9502,10 +9518,6 @@
                 {
                     "ecode": "0706700000020032",
                     "intro": "AMS G Podawanie filamentu do ekstrudera głowicy narzędziowej nie powiodło się; może to być spowodowane zbyt dużym oporem filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "1802700000020003",
-                    "intro": "Niepowodzenie wyciskania filamentu. Możliwe przyczyny: zatkany ekstruder lub dysza. Szczegóły znajdują się w Asystencie."
                 },
                 {
                     "ecode": "0704700000020021",
@@ -10224,16 +10236,8 @@
                     "intro": "Podawanie filamentu do koła pomocniczego silnika w zagłębieniu AMS E nie powiodło się. Może to być spowodowane nadmiernym oporem w filamentu. Sprawdź, czy kółko jest przechylone, czy filament jest splątany lub obrót koła kółka jest niegładki."
                 },
                 {
-                    "ecode": "1807700000020006",
-                    "intro": "Limit czasu wyczyszczania starego filamentu. Możliwa przyczyna: zablokowany filament lub zatkany ekstruder / dysza. Szczegóły można znaleźć w Asystencie."
-                },
-                {
                     "ecode": "1805700000020012",
                     "intro": "Podawanie filamentu do koła pomocniczego silnika w zagłębieniu AMS-HT F nie powiodło się. Może to być spowodowane nadmiernym oporem w filamentu. Sprawdź, czy kółko jest przechylone, czy filament jest splątany lub obrót koła kółka jest niegładki."
-                },
-                {
-                    "ecode": "0707700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwe przyczyny: zatkana dysza lub ekstruder. Szczegóły można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "0705700000020022",
@@ -10546,26 +10550,6 @@
                 {
                     "ecode": "0C00030000020013",
                     "intro": "Wykrywanie obiektów obcych nie działa. Proszę zrestartować urządzenia lub zaktualizować oprogramowanie do najnowszej wersji."
-                },
-                {
-                    "ecode": "03009C0000010002",
-                    "intro": "Moduł aktywnego wspomagania przepływu powietrza jest nienormalny i może być uszkodzony."
-                },
-                {
-                    "ecode": "0500040000020047",
-                    "intro": "Wykryto obce przedmioty na stoliku grzewczym; proszę sprawdzić i wyczyścić stolik grzewczy."
-                },
-                {
-                    "ecode": "0500040000020043",
-                    "intro": "Nie wykryto płyty drukowej; upewnij się, że jest ona poprawnie umieszczona."
-                },
-                {
-                    "ecode": "0500040000020046",
-                    "intro": "Nie wykryto materiału; przed kontynuowaniem proszę potwierdzić jego umieszczenie."
-                },
-                {
-                    "ecode": "0500040000020045",
-                    "intro": "Wykryty typ płyty drukującej 3D nie odpowiada temu wybranemu w programie generującym ścieżki druku."
                 },
                 {
                     "ecode": "1200300000010004",
@@ -11084,10 +11068,6 @@
                     "intro": "AMS A. Nie można rozpocząć suszenia; proszę wyjąć filament z pojemnika i spróbować ponownie."
                 },
                 {
-                    "ecode": "0500010000030006",
-                    "intro": "Dysk USB nie został sformatowany; proszę sformatować dysk USB."
-                },
-                {
                     "ecode": "0300290000010001",
                     "intro": "Nie można rozpoznać wzoru enkodera; możliwe przyczyny to: zniekształcone wzory, nadmierna ekspozycja światła, nieprawidłowe umiejscowienie płyty..."
                 },
@@ -11388,24 +11368,12 @@
                     "intro": "RFID-tag na slocie 2 AMS B jest uszkodzony lub jego zawartość nie może zostać zidentyfikowana."
                 },
                 {
-                    "ecode": "0701700000020006",
-                    "intro": "Przekroczony czas usuwania starego filamentu. Możliwa przyczyna: zacięcie filamentu lub zatkanie się ekstrudera/dyszy. Proszę odwołać się do Asystenta w celu uzyskania szczegółów."
-                },
-                {
                     "ecode": "0702310000020002",
                     "intro": "RFID-tag na slocie 2 AMS C jest uszkodzony lub jego zawartość nie może zostać zidentyfikowana."
                 },
                 {
                     "ecode": "0703310000010004",
                     "intro": "Awaria układu szyfrującego."
-                },
-                {
-                    "ecode": "0703700000020003",
-                    "intro": "Nieudane przetłoczenie filamentu. Możliwa przyczyna: zatkany ekstruder lub dysza. Szczegóły znajdziesz w asystencie."
-                },
-                {
-                    "ecode": "0703700000020006",
-                    "intro": "Przekroczony czas usuwania starego filamentu. Możliwa przyczyna: zablokowany filament lub zatkany ekstruder/dysza. Szczegóły znajdziesz w asystencie."
                 },
                 {
                     "ecode": "0C00020000010005",
@@ -11648,20 +11616,12 @@
                     "intro": "Tag RFID na slocie AMS A Slot4 jest uszkodzony lub jego zawartość nie może zostać zidentyfikowana."
                 },
                 {
-                    "ecode": "0700700000020006",
-                    "intro": "Przekroczony czas usuwania starego filamentu. Możliwa przyczyna: zablokowany filament lub zatkany ekstruder/końcówka. Szczegóły można znaleźć w pomocy."
-                },
-                {
                     "ecode": "0701300000010004",
                     "intro": "Awaria chipu szyfrującego."
                 },
                 {
                     "ecode": "0701330000020002",
                     "intro": "Etykieta RFID na slocie 4 AMS B jest uszkodzona lub jej zawartość nie może zostać zidentyfikowana."
-                },
-                {
-                    "ecode": "0701700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwą przyczyną może być zatkany ekstruder lub dysza. Szczegóły można znaleźć w Asystencie."
                 },
                 {
                     "ecode": "0702300000010004",
@@ -12232,16 +12192,8 @@
                     "intro": "Tag RFID na slocie AMS A Slot1 jest uszkodzony lub jego zawartość nie może zostać zidentyfikowana."
                 },
                 {
-                    "ecode": "0700700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwe przyczyny: zator ekstrudera lub dyszy. Szczegóły znajdziesz w Asystencie."
-                },
-                {
                     "ecode": "0701320000020002",
                     "intro": "RFID-tag w slocie AMS B3 jest uszkodzony lub nie można zidentyfikować jego zawartości."
-                },
-                {
-                    "ecode": "0702700000020006",
-                    "intro": "Przekroczono czas oczekiwania na przepłukanie starego filamentu. Możliwe przyczyny: zablokowany filament lub zator ekstrudera/dyszy. Szczegóły znajdziesz w Asystencie."
                 },
                 {
                     "ecode": "0703320000020002",
@@ -12490,10 +12442,6 @@
                 {
                     "ecode": "0701310000010004",
                     "intro": "Usterka układu szyfrującego."
-                },
-                {
-                    "ecode": "0702700000020003",
-                    "intro": "Nie udało się wycisnąć filamentu. Możliwa przyczyna: zator ekstrudera lub dyszy. Szczegóły znajdziesz w Asystencie."
                 },
                 {
                     "ecode": "0C00020000020003",
@@ -14178,10 +14126,6 @@
                 {
                     "ecode": "07FF810000020001",
                     "intro": "Działanie przełącznika ekstrudera jest nienormalne. Proszę sprawdzić, czy w głowicy narzędzia nie utknęło coś."
-                },
-                {
-                    "ecode": "0500060000020031",
-                    "intro": "Nieudane powiązanie kamery głowicy narzędzia. Proszę sprawdzić sprzęt i połączenia kablowe."
                 },
                 {
                     "ecode": "0500030000010026",
