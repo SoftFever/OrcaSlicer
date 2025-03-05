@@ -487,7 +487,7 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionFloat(25));
 
     def = this->add("helio_layer_threshold", coFloat);
-    def->label = L("Initial room airtemp");
+    def->label = L("Layer Threshold");
     def->tooltip = L("LFAM print height, denotes the threshold helight at which the ambient temperature stabilizes, ceasing to rise further as the printing process advances. Typically, this marks the point where the immediate vicinity of the print reaches its peak temperature, owing to the consistent emission of heat from the printing object."); 
     def->mode = comSimple;
     def->sidetext = L("mm");

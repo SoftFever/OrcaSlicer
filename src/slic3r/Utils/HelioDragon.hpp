@@ -16,6 +16,7 @@
 #include "nlohmann/json.hpp"
 #include "../GUI/BackgroundSlicingProcess.hpp"
 #include "../GUI/NotificationManager.hpp"
+#include "libslic3r/GCode/GCodeProcessor.hpp"
 
 namespace Slic3r {
 
@@ -59,13 +60,24 @@ public:
         std::string error;
     };
 
-    static PresignedURLResult     create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
-    static UploadFileResult       upload_file_to_presigned_url(const std::string file_path_string, const std::string upload_url);
-    static CreateGCodeResult      create_gcode(const std::string key,
-                                               const std::string helio_api_url,
-                                               const std::string helio_api_key,
-                                               const std::string printer_id,
-                                               const std::string filament_id);
+    struct CheckSimulationProgressResult
+    {
+        unsigned    status;
+        bool        is_finished;
+        float       progress;
+        std::string id;
+        std::string name;
+        std::string url;
+        std::string error;
+    };
+
+    static PresignedURLResult create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
+    static UploadFileResult   upload_file_to_presigned_url(const std::string file_path_string, const std::string upload_url);
+    static CreateGCodeResult  create_gcode(const std::string key,
+                                           const std::string helio_api_url,
+                                           const std::string helio_api_key,
+                                           const std::string printer_id,
+                                           const std::string filament_id);
 
     static CreateSimulationResult create_simulation(const std::string helio_api_url,
                                                     const std::string helio_api_key,
@@ -73,6 +85,10 @@ public:
                                                     const float       initial_room_airtemp,
                                                     const float       layer_threshold,
                                                     const float       object_proximity_airtemp);
+
+    static CheckSimulationProgressResult check_simulation_progress(const std::string helio_api_url,
+                                                                   const std::string helio_api_key,
+                                                                   const std::string simulation_id);
 };
 
 class HelioBackgroundProcess
@@ -105,6 +121,7 @@ public:
     std::string             filament_id;
 
     Slic3r::GCodeProcessorResult* m_gcode_result;
+    Slic3r::GCodeProcessor        m_gcode_processor;
 
     void helio_threaded_process_start(std::mutex&                                slicing_mutex,
                                       std::condition_variable&                   slicing_condition,
@@ -136,7 +153,25 @@ public:
 
     void set_helio_api_key(std::string api_key);
     void set_gcode_result(Slic3r::GCodeProcessorResult* gcode_result);
-    HelioQuery::CreateSimulationResult create_simulation_step(HelioQuery::CreateGCodeResult create_gcode_res, std::unique_ptr<GUI::NotificationManager>& notification_manager);
+    void create_simulation_step(HelioQuery::CreateGCodeResult              create_gcode_res,
+                                std::unique_ptr<GUI::NotificationManager>& notification_manager);
+    void save_downloaded_gcode_and_load_preview(std::string                                file_download_url,
+                                                std::string                                simulated_gcode_path,
+                                                std::unique_ptr<GUI::NotificationManager>& notification_manager);
+
+    std::string create_path_for_simulated_gcode(std::string unsimulated_gcode_path)
+    {
+        boost::filesystem::path p(unsimulated_gcode_path);
+
+        if (!p.has_filename()) {
+            throw std::runtime_error("Invalid path: No filename present.");
+        }
+
+        boost::filesystem::path parent       = p.parent_path();
+        std::string             new_filename = "simulated_" + p.filename().string();
+
+        return (parent / new_filename).string();
+    }
 };
 } // namespace Slic3r
 #endif
