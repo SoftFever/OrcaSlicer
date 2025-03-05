@@ -99,16 +99,18 @@ void MaterialItem::reset_ams_info() {
 void MaterialItem::disable()
 {
     if (IsEnabled()) {
-        this->Disable();
-        Refresh();
+        //this->Disable();
+        //Refresh();
+        m_enable = false;
     }
 }
 
 void MaterialItem::enable()
 {
     if (!IsEnabled()) {
-        this->Enable();
-        Refresh();
+        /*this->Enable();
+        Refresh();*/
+        m_enable = true;
     }
 }
 

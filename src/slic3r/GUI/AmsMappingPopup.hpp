@@ -104,6 +104,7 @@ public:
     bool m_selected {false};
     bool m_warning{false};
     bool m_match {true};
+    bool m_enable {true};
 
     void msw_rescale();
     void allow_paint_dropdown(bool flag);
@@ -116,7 +117,6 @@ public:
     void on_selected();
     void on_warning();
 
-    void on_left_down(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);
     virtual void render(wxDC &dc);
     void match(bool mat);
