@@ -15681,7 +15681,7 @@ msgid ""
 "trace\n"
 msgstr ""
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"
