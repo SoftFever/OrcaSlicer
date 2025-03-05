@@ -3772,11 +3772,10 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         // generate tool change
         bool insert_wall = false;
         int  insert_finish_layer_idx = -1;
+        if (wall_idx != -1 && m_enable_timelapse_print) {
+            timelapse_wall = only_generate_out_wall(true);
+        }
         for (int i = 0; i < int(layer.tool_changes.size()); ++i) {
-            if (i == 0 && m_enable_timelapse_print) {
-                timelapse_wall = only_generate_out_wall(true);
-            }
-
             ToolChangeResult wall_gcode;
             if (i == 0 && (layer.tool_changes[i].old_tool == wall_idx)) {
                 finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, false, false);
@@ -3804,7 +3803,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         // insert finish block
         if (wall_idx != -1) {
             if (layer.tool_changes.empty()) {
-                finish_layer_tcr = finish_layer_new(true, false, false);
+                finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, false, false);
             }
 
             for (WipeTowerBlock& block : m_wipe_tower_blocks) {
@@ -3884,7 +3883,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 layer_result[insert_finish_layer_idx] = merge_tcr(layer_result[insert_finish_layer_idx], finish_layer_tcr);
         }
 
-        if (m_enable_timelapse_print) {
+        if (m_enable_timelapse_print && !timelapse_wall.gcode.empty()) {
             layer_result.insert(layer_result.begin(), std::move(timelapse_wall));
         }
         result.emplace_back(std::move(layer_result));
