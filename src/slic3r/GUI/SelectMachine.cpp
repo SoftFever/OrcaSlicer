@@ -3449,14 +3449,11 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    // check ams and vt_slot mix use status
-#if 0 /*AP is supporting, send the print job and let the device check it*/
     if (obj_->is_ams_on_settingup())
     {
         show_status(PrintDialogStatus::PrintStatusAmsOnSettingup);
         return;
     }
-#endif
 
     struct ExtruderStatus
     {

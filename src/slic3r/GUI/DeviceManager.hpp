@@ -674,6 +674,11 @@ public:
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
+
+    int   ams_cali_id = 0;
+    int   ams_cali_stat = 0;
+
+    //AmsTray vt_tray;                        // virtual tray
     long  ams_exist_bits = 0;
     long  tray_exist_bits = 0;
     long  tray_is_bbl_bits = 0;

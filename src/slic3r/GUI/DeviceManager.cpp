@@ -917,15 +917,12 @@ bool MachineObject::is_support_amx_ext_mix_mapping() {
     return true;
 }
 
-/* the API is developing by AP, not completed now*/
 bool MachineObject::is_ams_on_settingup() const
 {
-    for (const auto& ext : m_extder_data.extders)
+    int setting_up_stat = this->get_flag_bits(ams_cali_stat, 0, 8);
+    if (setting_up_stat == 0x01 || setting_up_stat == 0x02 || setting_up_stat == 0x03 || setting_up_stat == 0x04)
     {
-        if (ext.ams_stat != 0)
-        {
-            return true;
-        }
+        return true;
     }
 
     return false;
@@ -4283,6 +4280,16 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                             if (jj["ams"].contains("tray_exist_bits")) {
                                 tray_exist_bits = stol(jj["ams"]["tray_exist_bits"].get<std::string>(), nullptr, 16);
+                            }
+
+                            if (jj["ams"].contains("cali_id"))
+                            {
+                                ams_cali_id = jj["ams"]["cali_id"].get<int>();
+                            }
+
+                            if (jj["ams"].contains("cali_stat"))
+                            {
+                                ams_cali_stat = jj["ams"]["cali_stat"].get<int>();
                             }
 
                             if (!key_field_only) {
