@@ -7,7 +7,7 @@
     "inherits": "fdm_machine_common",
     "printer_model": "Wanhao D12 300 PRO MAX SMARTPAD DIRECT",
     "gcode_flavor": "klipper",
-    "default_print_profile": "0.20mm Standard @Wanhao D12-300",
+    "default_print_profile": "0.20mm Standard @Wanhao-D12-300",
     "nozzle_diameter": [
         "0.4"
       ],

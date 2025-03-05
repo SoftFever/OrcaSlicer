@@ -7,7 +7,7 @@
     "inherits": "fdm_machine_common",
     "printer_model": "Wanhao D12 500 PRO M2 MONO DUAL",
     "gcode_flavor": "marlin2",
-    "default_print_profile": "0.20mm Standard @Wanhao D12-500",
+    "default_print_profile": "0.20mm Standard @Wanhao-D12-500",
     "nozzle_diameter": [
         "0.4"
       ],

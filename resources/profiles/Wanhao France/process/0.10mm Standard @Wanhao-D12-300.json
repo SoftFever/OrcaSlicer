@@ -1,11 +1,11 @@
 {
   "type": "process",
   "setting_id": "GP004",
-  "name": "0.24mm Standard @Wanhao D12-500",
+  "name": "0.10mm Standard @Wanhao-D12-300",
   "from": "system",
   "inherits": "fdm_process_common",
   "instantiation": "true",
-  "layer_height": "0.24",
+  "layer_height": "0.1",
   "bottom_shell_layers": "4",
   "top_shell_layers": "5",
   "default_acceleration": "1500",
@@ -48,9 +48,10 @@
   "wipe_before_external_loop": "1",
   "wipe_on_loops": "1",
   "compatible_printers": [
-	    "D12 500 PRO SMARTPAD MONO DUAL 0.4 nozzle", 
-      "D12 500 PRO M2 MONO DUAL 0.4 nozzle",
-      "D12 500 PRO M2 DIRECT 0.4 nozzle",
-      "D12 500 PRO SMARTPAD DIRECT 0.4 nozzle"
-    ]
+    "D12 300 PRO SMARTPAD MONO DUAL 0.4 nozzle", 
+    "D12 300 PRO M2 MONO DUAL 0.4 nozzle",
+    "D12 300 PRO M2 DIRECT 0.4 nozzle",
+    "D12 300 PRO SMARTPAD DIRECT 0.4 nozzle"
+  ]
+  
 }
