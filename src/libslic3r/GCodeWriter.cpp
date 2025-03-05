@@ -447,12 +447,6 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     // this function, fix it first.
     //std::terminate();
 
-    // Orca: If moving down during below the current layer nominal Z, force XY->Z moves to avoid collisions with previous extrusions
-    double nominal_z = m_pos(2) - m_lifted;
-    if (point(2) < nominal_z - EPSILON) { // EPSILON to avoid false matches due to rounding errors
-        this->set_current_position_clear(false); // This forces XYZ moves to be split into XY->Z
-    }
-
     /*  If target Z is lower than current Z but higher than nominal Z we
         don't perform the Z move but we only move in the XY plane and
         adjust the nominal Z by reducing the lift amount that will be 

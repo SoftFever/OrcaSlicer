@@ -70,7 +70,7 @@
   "filament_unload_time": ["0"],
   "filament_unloading_speed": ["35"],
   "filament_unloading_speed_start": ["40"],
-  "filament_vendor": ["Generic"],
+  "filament_vendor": ["FusRock"],
   "filament_wipe": ["nil"],
   "filament_wipe_distance": ["nil"],
   "filament_z_hop": ["nil"],

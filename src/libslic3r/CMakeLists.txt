@@ -310,16 +310,16 @@ set(lisbslic3r_sources
     Support/SupportLayer.hpp
     Support/SupportMaterial.cpp
     Support/SupportMaterial.hpp
-    Support/SupportParameters.hpp
     Support/SupportSpotsGenerator.cpp
     Support/SupportSpotsGenerator.hpp
     Support/TreeSupport.hpp
     Support/TreeSupport.cpp
-    Support/TreeSupport3D.cpp
     Support/TreeSupport3D.hpp
-    Support/TreeSupportCommon.hpp
-    Support/TreeModelVolumes.cpp
+    Support/TreeSupport3D.cpp
     Support/TreeModelVolumes.hpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupportCommon.hpp
+    Support/SupportParameters.hpp
     PrincipalComponents2D.cpp
     PrincipalComponents2D.hpp
     MinimumSpanningTree.hpp
