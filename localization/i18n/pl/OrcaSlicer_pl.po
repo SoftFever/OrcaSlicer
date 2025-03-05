@@ -13999,8 +13999,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "Maksymalne Wygładzanie XY"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "Maksymalna odległość, o którą można przesunąć punkty w płaszczyźnie XY, aby "
@@ -14010,7 +14011,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -14021,7 +14022,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -20818,14 +20819,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Smooth Spiral wygładza również ruchy w osiach X i Y, co skutkuje brakiem "
 #~ "widocznych szwów, nawet w kierunkach XY na ścianach, które nie są pionowe"
-
-#~ msgid ""
-#~ "Maximum distance to move points in XY to try to achieve a smooth spiral. "
-#~ "If expressed as a %, it will be computed over nozzle diameter"
-#~ msgstr ""
-#~ "Maksymalna odległość przesuwania punktów w XY, aby osiągnąć gładką "
-#~ "spiralę. Jeśli wyrażona w procentach, będzie obliczona na podstawie "
-#~ "średnicy dyszy"
 
 #, c-format, boost-format
 #~ msgid ""

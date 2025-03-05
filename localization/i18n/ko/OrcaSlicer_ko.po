@@ -13599,8 +13599,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "최대 XY 스무딩"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "부드러운 나선형을 얻기 위해 점을 XY로 이동하는 최대 거리 %로 표시할 경우 노"
@@ -13609,7 +13610,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, fuzzy, c-format, boost-format
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13623,7 +13624,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, fuzzy, c-format, boost-format
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
