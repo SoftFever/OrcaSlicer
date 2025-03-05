@@ -110,13 +110,26 @@ We, therefore, need to run 12 PA tests as below:
 
 ### Identifying the flow rates from the print speed
 
+#### OrcaSlicer 2.2.0 and later
+
+Test parameters needed to build adaptive PA table are printed on the test sample:
+
+<img width="452" alt="pa batch mode" src="https://github.com/user-attachments/assets/219c53b5-d53f-4360-963e-0985d9257bd7">
+
+Test sample above was done with acceleration 12000 mm/s² and flow rate 27.13 mm³/s
+
+
+#### OrcaSlicer 2.1.0 and older.
+
 As mentioned earlier, **the print speed is used as a proxy to vary the extrusion flow rate**. Once your PA test is set up, change the gcode preview to “flow” and move the horizontal slider over one of the herringbone patterns and take note of the flow rate for different speeds.
 ![337939815-e358b960-cf96-41b5-8c7e-addde927933f](https://github.com/user-attachments/assets/21290435-6f2a-4a21-bcf0-28cd6ae1912a)
 
 
 ### Running the tests
 
-Setup your PA test as usual from the calibration menu in Orca slicer. It is recommended that the PA step is set to a small value, to allow you to make meaningful distinctions between the different tests – **therefore a PA step value of 0.001 is recommended.  **
+#### General tips
+
+It is recommended that the PA step is set to a small value, to allow you to make meaningful distinctions between the different tests – **therefore a PA step value of 0.001 is recommended.  **
 
 **Set the end PA to a value high enough to start showing perimeter separation for the lowest flow (print speed) and acceleration test.** For example, for a Voron 350 using Revo HF, the maximum value was set to 0.05 as that was sufficient to show perimeter separation even at the slowest flow rates and accelerations.  
 
@@ -124,7 +137,19 @@ Setup your PA test as usual from the calibration menu in Orca slicer. It is reco
 
 <img width="402" alt="PA calibration parameters" src="https://github.com/user-attachments/assets/b411dc30-5556-4e7c-8c40-5279d3074eae">
 
-Once setup, your PA test should look like the below:
+#### OrcaSlicer 2.3.0 and newer
+
+PA pattern calibration configuration window have been changed to simplify test setup. Now all is needed is to fill list of accelerations and speeds into relevant fields of the calibration window:
+
+![PA pattern batch mode](./images/pa/pa-pattern-batch.png)
+
+Test patterns generated for each acceleration-speed pair and all parameters are set accordingly. No additional actions needed from user side. Just slice and print all plates generated.
+
+Refer to [Calibration Guide](./Calibration) for more details on batch mode calibration.
+
+#### OrcaSlicer 2.2.0 and older
+
+Setup your PA test as usual from the calibration menu in Orca slicer. Once setup, your PA test should look like the below:
 
 <img width="437" alt="PA calibration test 1" src="https://github.com/user-attachments/assets/1e6159fe-c3c5-4480-95a1-4383f1fae422">
 <img width="437" alt="Pa calibration test 2" src="https://github.com/user-attachments/assets/c360bb18-a97a-4f37-b5a3-bb0c67cac2b6">
@@ -132,6 +157,9 @@ Once setup, your PA test should look like the below:
 Now input your identified print speeds and accelerations in the fields above and run the PA tests. 
 
 **IMPORTANT:** Make sure your acceleration values are all the same in all text boxes. Same for the print speed values and Jerk (XY) values. Make sure your Jerk value is set to the external perimeter jerk used in your print profiles.  
+
+#### Test results processing
+
 Now run the tests and note the optimal PA value, the flow, and the acceleration. You should produce a table like this:
 
 <img width="452" alt="calibration table" src="https://github.com/user-attachments/assets/9451e8e4-352f-4cfc-b835-dffa4420d580">
