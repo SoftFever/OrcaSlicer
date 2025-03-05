@@ -4243,7 +4243,7 @@ msgid "Statistics of All Plates"
 msgstr "Statistiche di tutti i piatti"
 
 msgid "Display"
-msgstr "Schermo"
+msgstr "Mostra"
 
 msgid "Flushed"
 msgstr "Spurgo"
@@ -4282,7 +4282,7 @@ msgid "Percent"
 msgstr "Percentuale"
 
 msgid "Used filament"
-msgstr "Filamento Usato"
+msgstr "Filamento usato"
 
 msgid "Layer Height (mm)"
 msgstr "Altezza strato (mm)"
@@ -4360,7 +4360,7 @@ msgid "Total Filament"
 msgstr "Filamento totale"
 
 msgid "Model Filament"
-msgstr "Modello filamento"
+msgstr "Filamento modello"
 
 msgid "Prepare time"
 msgstr "Tempo preparazione"
