@@ -588,7 +588,7 @@ Description:FanControlPopupNew
 **************************************************/
 static void nop_deleter_fan_control_popup(FanControlPopupNew *) {}
 FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj, const AirDuctData& data)
-    : PopupWindow(parent, wxBORDER_NONE)
+    : wxDialog(parent, wxID_ANY, wxEmptyString)
 {
     SetBackgroundColour(*wxWHITE);
     init_names();
@@ -848,10 +848,6 @@ void FanControlPopupNew::on_left_down(wxMouseEvent& evt)
     evt.Skip();
 }
 
-void FanControlPopupNew::OnDismiss()
-{
-}
-
 void FanControlPopupNew::post_event(int fan_type, wxString speed)
 {
     // id, speed
@@ -861,11 +857,6 @@ void FanControlPopupNew::post_event(int fan_type, wxString speed)
     event.SetEventObject(GetParent());
     wxPostEvent(GetParent(), event);
     event.Skip();
-}
-
-bool FanControlPopupNew::ProcessLeftDown(wxMouseEvent& event)
-{
-    return PopupWindow::ProcessLeftDown(event);
 }
 
 void FanControlPopupNew::on_show(wxShowEvent& evt)

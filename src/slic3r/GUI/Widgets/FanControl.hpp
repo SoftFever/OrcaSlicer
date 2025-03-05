@@ -174,7 +174,7 @@ public:
 };
 
 
-class FanControlPopupNew : public PopupWindow
+class FanControlPopupNew : public wxDialog
 {
 public:
     FanControlPopupNew(wxWindow* parent, MachineObject* obj, const AirDuctData& data);
@@ -248,8 +248,6 @@ public:
     void         post_event(int fan_type, wxString speed);
     void         on_show(wxShowEvent& evt);
     void         command_control_air_duct(int mode_id);
-    virtual void OnDismiss() wxOVERRIDE;
-    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 };
 wxDECLARE_EVENT(EVT_FAN_SWITCH_ON, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FAN_SWITCH_OFF, wxCommandEvent);

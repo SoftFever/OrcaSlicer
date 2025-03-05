@@ -4824,7 +4824,7 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     }
 
     m_fan_control_popup->SetPosition(pos);
-    m_fan_control_popup->Popup();
+    m_fan_control_popup->ShowModal();
 
 
 
