@@ -14175,7 +14175,7 @@ msgstr ""
 "デバッグロギングレベルを設定します。0:fatal、1:error、2:warning、3:info、4:"
 "debug、5:trace。\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"
