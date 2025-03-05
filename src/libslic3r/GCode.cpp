@@ -2363,6 +2363,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
             this->placeholder_parser().set("scan_first_layer", new ConfigOptionBool(false));
+            this->placeholder_parser().set("run_first_layer_scan_from_gcode", new ConfigOptionBool(false));
         }
     }
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
@@ -3776,8 +3777,8 @@ LayerResult GCode::process_layer(
           gcode += "; open powerlost recovery\n";
           gcode += "M1003 S1\n";
         }
-        // BBS: open first layer inspection at second layer
-        if (print.config().scan_first_layer.value) {
+        // BBS: open first layer inspection at second layer unless the user has specified that they will run it from their gcode
+        if (print.config().scan_first_layer.value && ! print.config().run_first_layer_scan_from_gcode) {
           // BBS: retract first to avoid droping when scan model
           gcode += this->retract();
           gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
