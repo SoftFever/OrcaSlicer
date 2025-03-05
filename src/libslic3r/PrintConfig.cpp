@@ -4290,8 +4290,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(1));
     
     def = this->add("one_wall_draft_shield", coBool);
-    def->label = L("One wall skirt after first layer");
-    def->tooltip = L("Limits the skirt loops to one wall after the first skirt layer. This is useful, on occasion, to conserve filament when using a draft shield.");
+    def->label = L("One wall draft shield");
+    def->tooltip = L("Limits the draft shield loops to one wall after the first layer. This is useful, on occasion, to conserve filament but may cause the draft shield to warp / crack.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 

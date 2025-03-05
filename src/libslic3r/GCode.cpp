@@ -3541,9 +3541,10 @@ std::string GCode::generate_skirt(const Print &print,
         // Decide where to start looping:
         // - If it’s the first layer or if we do NOT want a single-wall draft shield,
         //   start from loops.first (all loops).
-        // - Otherwise, if one_wall_draft_shield == true (and not the first layer),
+        // - Otherwise, if one_wall_draft_shield == true and draft_shield == true (and not the first layer),
         //   start from loops.second - 1 (just one loop).
-        bool one_wall_draft_shield = print.m_config.one_wall_draft_shield;
+        bool one_wall_draft_shield = print.m_config.one_wall_draft_shield &&
+                                    (print.m_config.draft_shield == dsEnabled);
         const size_t start_idx = (first_layer || !one_wall_draft_shield)
                                  ? loops.first
                                  : (loops.second - 1);
