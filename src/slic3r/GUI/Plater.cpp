@@ -1557,12 +1557,11 @@ Sidebar::Sidebar(Plater *parent)
         reset_bed_type_combox_choices();
 
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
-            auto select_bed_type = get_cur_select_bed_type();
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, isDual ? 48 : 32));
+            auto image_path        = get_cur_select_bed_image();
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, isDual ? 48 : 32));
             if (p->big_bed_image_popup) {
-                p->big_bed_image_popup->set_bitmap(
-                    create_scaled_bitmap("big_" + bed_type_thumbnails[select_bed_type], p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
@@ -1573,9 +1572,8 @@ Sidebar::Sidebar(Plater *parent)
             wxPoint temp_pos(pos.x + rect.GetWidth(), pos.y);
             if (p->big_bed_image_popup == nullptr) {
                 p->big_bed_image_popup = new ImageDPIFrame();
-                auto select_bed_type   = get_cur_select_bed_type();
-                p->big_bed_image_popup->set_bitmap(
-                    create_scaled_bitmap("big_" + bed_type_thumbnails[select_bed_type], p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                auto image_path        = get_cur_select_bed_image();
+                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
             }
             p->big_bed_image_popup->SetCanFocus(false);
             p->big_bed_image_popup->SetPosition(temp_pos);
@@ -2199,15 +2197,14 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         bool is_dual_extruder = nozzle_diameter->size() == 2;
         p->layout_printer(isBBL, is_dual_extruder);
-        auto select_bed_type = get_cur_select_bed_type();
+        auto image_path = get_cur_select_bed_image();
         if (is_dual_extruder) {
             AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
             AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
-
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, 48));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
         } else {
             AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, 32));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 32));
         }
 
         if (GUI::wxGetApp().plater())
@@ -2268,6 +2265,14 @@ BedType Sidebar::get_cur_select_bed_type() {
     return select_bed_type;
 }
 
+std::string Sidebar::get_cur_select_bed_image()
+{
+    auto select_bed_type   = get_cur_select_bed_type();
+    auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
+    auto image_path        = bed_type_thumbnails[select_bed_type] + series_suffix_str;
+    return image_path;
+}
+
 void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
     for (size_t i = 0; i < m_cur_combox_bed_types.size(); i++) {
         if (m_cur_combox_bed_types[i] == bed_type) {
@@ -2275,7 +2280,11 @@ void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
             return;
         }
     }
-    p->combo_printer_bed->SelectAndNotify(0);
+    use_default_bed_type();
+    //re save preferred bed type
+    auto        select_bed_type = get_cur_select_bed_type();
+    std::string bed_type_name   = print_config_def.get("curr_bed_type")->enum_values[int(select_bed_type) - 1];
+    save_bed_type_to_config(bed_type_name);
 }
 
 bool  Sidebar::reset_bed_type_combox_choices() {
@@ -2301,6 +2310,9 @@ bool  Sidebar::reset_bed_type_combox_choices() {
     m_cur_combox_bed_types.clear();
     if (pm &&bed_type_def && bed_type_def->enum_keys_map) {
         int index = 0;
+        if (m_cur_image_bed_type != pm->image_bed_type) {
+            m_cur_image_bed_type = pm->image_bed_type;
+        }
         for (auto item : bed_type_def->enum_labels) {
             index++;
             bool find = std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), item) != pm->not_support_bed_types.end();
@@ -2312,6 +2324,7 @@ bool  Sidebar::reset_bed_type_combox_choices() {
         }
     }
     else {
+        m_cur_image_bed_type = "";
         int index = 0;
         for (auto item : bed_type_def->enum_labels) {
             index++;
@@ -2344,9 +2357,10 @@ void Sidebar::msw_rescale()
     p->m_printer_setting->msw_rescale();
     p->btn_edit_printer->msw_rescale();
     p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
-    bool isDual = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
-    auto select_bed_type = get_cur_select_bed_type();
-    p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[select_bed_type], this, 48));
+    bool isDual     = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
+    auto image_path = get_cur_select_bed_image();
+    p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, isDual ? 48 : 32));
+
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
