@@ -18,7 +18,8 @@ int stagger_seam_index(int ind, LINE_T line, double shift, bool dir)
         if (dir)
             ind = (ind + 1) % line.points.size();
         else
-            ind = ind > 0 ? --ind : line.points.size() - 1;
+            ind = (ind > 0) ? (ind - 1) : (line.points.size() - 1);
+
         Point const &next = line.points[ind];
         dist += point->distance_to(next);
         point = &next;
@@ -61,8 +62,8 @@ void FillConcentric::_fill_surface_single(
     size_t iPathFirst = polylines_out.size();
     Point last_pos(0, 0);
     
-    double min_nozzle_diameter;
-    bool dir;
+    double min_nozzle_diameter = 0.0;
+    bool dir = false;
     if (this->print_config != nullptr && params.density >= STAGGER_SEAM_THRESHOLD) {
         min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
         dir = rand() % 2;
