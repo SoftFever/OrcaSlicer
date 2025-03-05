@@ -15756,7 +15756,7 @@ msgstr ""
 "wenn Aktuell verwendet wird"
 
 msgid "load uptodate filament settings when using uptodate"
-msgstr "
+msgstr "Aktuelle Filamenteinstellungen laden, wenn Aktuell verwendet wird"
 
 msgid ""
 "load uptodate filament settings from the specified file when using uptodate"
