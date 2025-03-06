@@ -1,5 +1,5 @@
 {
-    "default_filament_profile": "Prusament PLA @MK4S 0.8",
+    "default_filament_profile": "Prusa Generic PLA @MK4S 0.8",
     "default_print_profile": "0.40mm QUALITY @MK4S 0.8",
     "deretraction_speed": "15",
     "from": "system",

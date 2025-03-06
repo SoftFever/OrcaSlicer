@@ -9,5 +9,5 @@
     "bed_texture": "Folgertech_FT6_buildplate_texture.png",
     "hotend_model": "hotend.stl",
 	"extruders_count": "2",
-    "default_materials": "Folgertech Generic PLA;Folgertech Generic PETG;Folgertech Generic ABS;Folgertech Generic TPU;"
+    "default_materials": "Generic PLA @System;Generic PETG @System;Generic ABS @System;Generic TPU @System;"
 }
