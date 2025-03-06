@@ -1454,6 +1454,9 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*
 
 bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips)
 {
+    if (!curr_obj)
+        return true;
+
     int ams_id;
     int slot_id;
     int out_tray_id;
@@ -2508,6 +2511,10 @@ void CalibrationPresetPage::update_multi_extruder_filament_combobox(const std::s
 
     int item_size = 4;
     if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+        item_size = 1;
+    }
+
+    if (ams_id_int >= 128 && ams_id_int < 153) {  // N3S
         item_size = 1;
     }
 
