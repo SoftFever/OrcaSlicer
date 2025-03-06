@@ -13076,8 +13076,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "XY 軸最大平滑度"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "在 XY 平面中為實現平滑螺旋所允許移動點的最大距離。若以百分比表示，將根據噴嘴"
@@ -13086,7 +13087,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13097,7 +13098,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
