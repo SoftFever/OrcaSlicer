@@ -14539,7 +14539,7 @@ msgstr ""
 "mientras que el estilo Híbrido creará una estructura similar a la del "
 "soporte Normal bajo grandes voladizos planos."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Por defecto (Rejilla/Orgánico)"
 
 msgid "Snug"

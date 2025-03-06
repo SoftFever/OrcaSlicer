@@ -14652,7 +14652,7 @@ msgstr ""
 "mentre que l'estil híbrid crearà una estructura similar al suport normal "
 "sota grans voladissos plans."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Per defecte (quadrícula/orgànic"
 
 msgid "Snug"

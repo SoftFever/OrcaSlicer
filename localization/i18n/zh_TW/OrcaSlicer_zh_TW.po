@@ -13283,7 +13283,7 @@ msgid ""
 "generated"
 msgstr ""
 "選擇「普通 (自動)」或「樹狀 (自動)」時，系統將自動產生支撐結構。若選擇「普通 "
-"(自動)」或「樹狀 (自動)」，則僅會生成手動設定的支撐區域"
+"(手動)」或「樹狀 (手動)」，則僅會生成手動設定的支撐區域"
 
 msgid "Normal (auto)"
 msgstr "普通 (自動)"
@@ -13292,10 +13292,10 @@ msgid "Tree (auto)"
 msgstr "樹狀 (自動)"
 
 msgid "Normal (manual)"
-msgstr "普通 (自動)"
+msgstr "普通 (手動)"
 
 msgid "Tree (manual)"
-msgstr "樹狀 (自動)"
+msgstr "樹狀 (手動)"
 
 msgid "Support/object xy distance"
 msgstr "支撐/模型 XY 間距"
@@ -13471,8 +13471,8 @@ msgstr ""
 "分支，節省大量材料（默認為有機樹）；而『混合樹』則會在較大的平坦懸空區域下生"
 "成類似於普通支撐的結構。"
 
-msgid "Default (Grid/Organic"
-msgstr "預設 (格狀/有機"
+msgid "Default (Grid/Organic)"
+msgstr "預設 (網格/有機)"
 
 msgid "Snug"
 msgstr "緊貼"
@@ -16917,7 +16917,7 @@ msgid ""
 "print speed. Check them out!"
 msgstr ""
 "支撐類型\n"
-"你知道嗎？有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，\n"
+"你知道嗎？有多種可選的支撐類型，有機樹狀支撐非常適合人物/動物模型，\n"
 "同時可以節線材並提高列印速度。試試看！"
 
 #: resources/data/hints.ini: [hint:Printing Silk Filament]

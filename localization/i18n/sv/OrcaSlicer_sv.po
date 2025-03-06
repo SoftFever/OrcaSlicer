@@ -13366,7 +13366,7 @@ msgid ""
 "overhangs."
 msgstr ""
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr ""
 
 msgid "Snug"
