@@ -201,6 +201,7 @@ wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 
 wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, SimpleEvent);
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
@@ -2614,6 +2615,7 @@ struct Plater::priv
     void on_action_slice_all(SimpleEvent&);
     void on_action_slice_plate_helio(SimpleEvent&);
     void on_helio_processing_complete(SimpleEvent&);
+    void on_helio_processing_start(SimpleEvent&);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -3153,6 +3155,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
 
         q->Bind(EVT_HELIO_PROCESSING_COMPLETED, &priv::on_helio_processing_complete, this);
+        q->Bind(EVT_HELIO_PROCESSING_STARTED, &priv::on_helio_processing_start, this);
     }
 
     // Drop target:
@@ -7199,6 +7202,14 @@ void Plater::priv::on_helio_processing_complete(SimpleEvent& a)
   this->update();
   //this->view3D->reload_scene(false);
   //this->get_current_canvas3D()->render(false);
+}
+
+void Plater::priv::on_helio_processing_start(SimpleEvent& a)
+{
+    notification_manager->close_notification_of_type(GUI::NotificationType::SignDetected);
+    notification_manager->close_notification_of_type(GUI::NotificationType::ExportFinished);
+    notification_manager->set_slicing_progress_began();
+    notification_manager->update_slicing_notif_dailytips(true);
 }
 
 void Plater::priv::on_action_publish(wxCommandEvent &event)

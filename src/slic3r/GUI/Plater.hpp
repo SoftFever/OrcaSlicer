@@ -106,6 +106,7 @@ wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, SimpleEvent);
+wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
