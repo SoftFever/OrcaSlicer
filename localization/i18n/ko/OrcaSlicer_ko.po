@@ -4908,15 +4908,18 @@ msgid "&Help"
 msgstr "도움말 (&H)"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "같은 이름을 가진 파일이 존재합니다: %s, 덮어 쓰겠습니까."
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "같은 이름을 가진 설정이 존재합니다: %s, 덮어 쓰겠습니까."
 
 msgid "Overwrite file"
 msgstr "파일 덮어쓰기"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "모두 예"
@@ -6479,11 +6482,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"% d: %s플레이트는 %s(%s)필라멘트를 출력하는데 사용하지 않는 것이 좋습니다. "
+"%d: %s플레이트는 %s(%s)필라멘트를 출력하는데 사용하지 않는 것이 좋습니다. "
 "이 출력을 계속하려면 이 필라멘트의 베드 온도를 0이 아닌 값으로 설정하세요."
 
 msgid "Switching the language requires application restart.\n"
@@ -13601,8 +13604,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "최대 XY 스무딩"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "부드러운 나선형을 얻기 위해 점을 XY로 이동하는 최대 거리 %로 표시할 경우 노"
@@ -13611,7 +13615,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr "나선형 시작 유량비"
 
-#, fuzzy, c-format, boost-format
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13625,7 +13629,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr "나선형 종료 유량비"
 
-#, fuzzy, c-format, boost-format
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -14983,7 +14987,7 @@ msgstr ""
 "디버그 로깅 수준을 설정합니다. 0:치명적, 1:오류, 2:경고, 3:정보, 4:디버그, 5:"
 "추적\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr "출력에 타임랩스 활성화"
 
 msgid "If enabled, this slicing will be considered using timelapse"
