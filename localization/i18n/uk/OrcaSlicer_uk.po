@@ -5012,16 +5012,19 @@ msgstr "&Вигляд"
 msgid "&Help"
 msgstr "&Допомога"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Існує файл із таким же ім'ям: %s, ви хочете перевизначити його."
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Існує конфігурація з таким же ім'ям: %s, ви хочете перевизначити її."
 
 msgid "Overwrite file"
 msgstr "Перезаписати файл"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "Так для всіх"
@@ -6658,11 +6661,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Пластина% d: %s не рекомендується використовувати для друку на нитках "
+"Пластина %d: %s не рекомендується використовувати для друку на нитках "
 "%s(%s). Якщо ви все ще хочете зробити цей друк, будь ласка, встановіть "
 "температуру шару цієї нитки до ненульового."
 
@@ -13772,8 +13775,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "Максимальне згладжування XY"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "Максимальна відстань переміщення точок по XY для спроби досягнення плавної "
@@ -13783,7 +13787,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13794,7 +13798,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
