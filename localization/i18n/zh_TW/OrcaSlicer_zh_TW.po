@@ -4832,16 +4832,19 @@ msgstr "視角"
 msgid "&Help"
 msgstr "幫助"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "檔案名稱為 %s 的檔案已存在，是否要覆蓋它？"
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "已存在名稱為 %s 的設定檔，是否要覆蓋它？"
 
 msgid "Overwrite file"
 msgstr "覆蓋檔案"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "全部覆蓋"
@@ -6347,11 +6350,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"列印板% d：%s 不建議用於列印 %s（%s）線材。如果你仍想執行此列印，請將該線材的"
+"列印板 %d：%s 不建議用於列印 %s（%s）線材。如果你仍想執行此列印，請將該線材的"
 "熱床溫度設為非零值。"
 
 msgid "Switching the language requires application restart.\n"
@@ -13076,8 +13079,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "XY 軸最大平滑度"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "在 XY 平面中為實現平滑螺旋所允許移動點的最大距離。若以百分比表示，將根據噴嘴"
@@ -13086,7 +13090,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13097,7 +13101,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
