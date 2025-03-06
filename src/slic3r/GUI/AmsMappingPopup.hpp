@@ -216,7 +216,7 @@ public:
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
     Label *      m_left_tips{nullptr};
     Label *      m_right_tips{nullptr};
-    Button *     m_reset_btn{nullptr};
+    ScalableButton* m_reset_btn{nullptr};
     wxString     m_single_tip_text;
     wxString     m_left_tip_text;
     wxString     m_right_tip_text;

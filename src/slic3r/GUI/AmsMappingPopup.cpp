@@ -26,7 +26,7 @@
 namespace Slic3r { namespace GUI {
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
-#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(60), FromDIP(60))
+#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(60))
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 const int LEFT_OFFSET = 2;
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)
@@ -657,22 +657,14 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_tips->SetLabel(m_right_tip_text);
      m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
 
-     StateColor cancel_btn_bd_(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
-     StateColor cancel_btn_text(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
-     StateColor cancel_btn_bg(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-     m_reset_btn = new Button(m_right_marea_panel, _L("Reset"));
-     m_reset_btn->SetMinSize(wxSize(FromDIP(50), FromDIP(20)));
-     m_reset_btn->SetCornerRadius(FromDIP(10));
-     m_reset_btn->SetBackgroundColor(cancel_btn_bg);
-     m_reset_btn->SetBorderColor(cancel_btn_bd_);
-     m_reset_btn->SetTextColor(cancel_btn_text);
-     m_reset_btn->SetId(wxID_CANCEL);
-     m_reset_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) { reset_ams_info(); });
+     m_reset_btn = new ScalableButton(m_right_marea_panel, wxID_ANY, "text_undo", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+     m_reset_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { reset_ams_info(); });
+     m_reset_btn->SetBackgroundColour(*wxWHITE);
+     m_reset_btn->SetToolTip(_L("Reset current filament mapping"));
      m_sizer_ams_right_horizonal->AddStretchSpacer();
-     m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+     m_sizer_ams_right_horizonal->AddSpacer(FromDIP(5));
+     m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
      m_reset_btn->Hide();
-     m_sizer_ams_right_horizonal->AddSpacer(FromDIP(10));
 
      m_sizer_ams_right->Add(m_sizer_ams_right_horizonal, 0, wxEXPAND, 0);
      m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
