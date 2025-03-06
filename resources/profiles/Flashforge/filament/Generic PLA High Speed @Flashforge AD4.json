@@ -2,7 +2,7 @@
   "type": "filament",
   "filament_id": "GFL99",
   "setting_id": "GFSA04",
-  "name": "Generic PLA-HS @Flashforge AD4",
+  "name": "Generic PLA High Speed @Flashforge AD4",
   "from": "system",
   "instantiation": "true",
   "inherits": "Flashforge Generic HS PLA",
