@@ -5,7 +5,7 @@
 namespace Slic3r {
 namespace GUI {
 
-    
+
 MultiMachinePage::MultiMachinePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
 {
@@ -15,7 +15,7 @@ MultiMachinePage::MultiMachinePage(wxWindow* parent, wxWindowID id, const wxPoin
     SetSizerAndFit(m_main_sizer);
     Layout();
     Fit();
-    
+
     wxGetApp().UpdateDarkUIWin(this);
 
     init_timer();
@@ -312,7 +312,7 @@ MultiMachinePickPage::MultiMachinePickPage(Plater* plater /*= nullptr*/)
 
     auto line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     line_top->SetBackgroundColour(wxColour(166, 169, 170));
-    
+
     m_label = new Label(this, _L("Select connected printers (0/6)"));
 
     scroll_macine_list = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
@@ -373,8 +373,8 @@ void MultiMachinePickPage::update_selected_count()
 
     if (m_selected_count > PICK_DEVICE_MAX) {
         MessageDialog msg_wingow(nullptr, wxString::Format(_L("The maximum number of printers that can be selected is %d"), PICK_DEVICE_MAX), "", wxAPPLY | wxOK);
-        if (msg_wingow.ShowModal() == wxOK) { 
-            return; 
+        if (msg_wingow.ShowModal() == wxOK) {
+            return;
         }
     }
 
@@ -423,6 +423,10 @@ void MultiMachinePickPage::refresh_user_device()
     std::vector<std::string> subscribe_list;
 
     for (auto it = user_machine.begin(); it != user_machine.end(); ++it) {
+        if (it->second->m_extder_data.total_extder_count > 1) {
+            continue;
+        }
+
         DevicePickItem* di = new DevicePickItem(scroll_macine_list, it->second);
 
         di->Bind(EVT_MULTI_DEVICE_SELECTED_FINHSH, [this, di](auto& e) {
