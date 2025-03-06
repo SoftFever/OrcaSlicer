@@ -529,6 +529,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_link_edit_nozzle->SetLabel(_L("Not satisfied with the grouping of filaments? Regroup and slice ->"));
 
     m_link_edit_nozzle->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+
+        if (this && this->m_is_in_sending_mode) {
+            return;
+        }
+
         EndModal(wxID_CLOSE);
         Plater *       plater = wxGetApp().plater();
         wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
@@ -2356,12 +2361,23 @@ void SelectMachineDialog::EnableEditing(bool enable)
     m_button_refresh->Enable(enable);
 
     /*mapping*/
-    m_filament_panel->Enable(enable);
-    m_filament_left_panel->Enable(enable);
-    m_filament_right_panel->Enable(enable);
+    for (size_t i = 0; i < m_sizer_ams_mapping_left->GetItemCount(); ++i) {
+        wxSizerItem *item = m_sizer_ams_mapping_left->GetItem(i);
+        if (item) {item->GetWindow()->Enable(enable);}
+    }
+
+    for (size_t i = 0; i < m_sizer_ams_mapping_right->GetItemCount(); ++i) {
+        wxSizerItem *item = m_sizer_ams_mapping_right->GetItem(i);
+        if (item) {item->GetWindow()->Enable(enable);}
+    }
+
+    for (size_t i = 0; i < m_sizer_ams_mapping->GetItemCount(); ++i) {
+        wxSizerItem *item = m_sizer_ams_mapping->GetItem(i);
+        if (item) { item->GetWindow()->Enable(enable); }
+    }
 
     /*mapping link*/
-    m_link_edit_nozzle->Enable(enable);
+    //m_link_edit_nozzle->Enable(enable);
 
     /*options*/
     for (auto iter : m_checkbox_list)
