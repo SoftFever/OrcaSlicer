@@ -254,7 +254,19 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     const Size& cnv_size = canvas.get_canvas_size();
     float left_pos = canvas.m_main_toolbar.get_item("layersediting")->render_left_pos;
-    const float x = (1 + left_pos) * cnv_size.get_width() / 2;
+    float x = (1 + left_pos) * cnv_size.get_width() / 2;
+
+    const auto canvas_width = cnv_size.get_width();
+    if (abs(GLCanvas3D::LayersEditing::s_overlay_window_width) > 0.01f) {
+        if (x + GLCanvas3D::LayersEditing::s_overlay_window_width > canvas_width) {
+            if (GLCanvas3D::LayersEditing::s_overlay_window_width > canvas_width)
+                x = 0;
+            else
+                x = canvas_width - GLCanvas3D::LayersEditing::s_overlay_window_width;
+        }
+    }
+    x = std::max(x, 0.0f);
+
     imgui.set_next_window_pos(x, canvas.m_main_toolbar.get_height(), ImGuiCond_Always, 0.0f, 0.0f);
 
     imgui.push_toolbar_style(canvas.get_scale());
