@@ -6059,8 +6059,7 @@ void MachineObject::parse_new_info(json print)
         }
 
         if (device.contains("type")) {
-            int type = device["type"].get<int>(); // FDM:1<<0 Laser:1<< Cut:1<<2
-            is_fdm   = type & 1;
+            m_device_mode = (DeviceMode)device["type"].get<int>();// FDM:1<<0 Laser:1<< Cut:1<<2
         }
 
         if (device.contains("bed_temp")) {

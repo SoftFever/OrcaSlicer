@@ -1773,6 +1773,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
         wxString msg_text = _L("Synchronizing device information time out");
         update_print_status_msg(msg_text, true, true, true);
+    } else if (status == PrintDialogStatus::PrintStatusModeNotFDM) {
+        update_print_status_msg(_L("Cannot send the print job when the printer is not at FDM mode"), true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
         wxString msg_text = _L("Cannot send the print job when the printer is updating firmware");
         update_print_status_msg(msg_text, true, false, true);
@@ -3283,6 +3285,12 @@ void SelectMachineDialog::update_show_status()
             show_status(PrintStatusNeedConsistencyUpgrading);
             return;
         }
+    }
+
+    if (!obj_->is_fdm_type())
+    {
+        show_status(PrintDialogStatus::PrintStatusModeNotFDM);
+        return;
     }
 
     if (is_blocking_printing(obj_)) {

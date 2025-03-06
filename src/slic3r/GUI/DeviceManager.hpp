@@ -963,6 +963,13 @@ public:
         DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT = 2,/*pause print*/
     };
 
+    enum DeviceMode : unsigned int
+    {
+        DEVICE_MODE_FDM   = 0x00000001,
+        DEVICE_MODE_LASER = 0x00000010,
+        DEVICE_MODE_CUT   = 0x00000100,
+    };
+
     bool        file_model_download{false};
     bool        virtual_camera{false};
 
@@ -1067,8 +1074,8 @@ public:
     bool is_makeworld_subtask();
 
     /* device type */
-    bool        is_fdm{ true };
-    inline bool is_fdm_type() const { return is_fdm; }
+    DeviceMode  m_device_mode{ DEVICE_MODE_FDM };
+    inline bool is_fdm_type() const { return m_device_mode == DEVICE_MODE_FDM; }
 
     int m_plate_index { -1 };
     std::string m_gcode_file;

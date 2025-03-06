@@ -71,6 +71,7 @@ enum PrintDialogStatus {
     PrintStatusReadingFinished,
     PrintStatusReadingTimeout,
     PrintStatusInUpgrading,
+    PrintStatusModeNotFDM,
     PrintStatusNeedUpgradingAms,
     PrintStatusInSystemPrinting,
     PrintStatusInPrinting,
