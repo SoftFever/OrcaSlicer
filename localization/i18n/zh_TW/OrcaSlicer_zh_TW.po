@@ -13345,7 +13345,7 @@ msgid "Bottom Z distance"
 msgstr "底部 Z 間距"
 
 msgid "The z gap between the bottom support interface and object"
-msgstr "支撐產生於模型表面時，支撐面底部和模型之間的z間隙"
+msgstr "支撐產生於模型表面時，支撐面底部和模型之間的 Z 間隙"
 
 msgid "Support/raft base"
 msgstr "支撐/筏層主體"
