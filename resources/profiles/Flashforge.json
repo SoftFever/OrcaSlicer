@@ -526,8 +526,8 @@
       "sub_path": "filament/Generic ASA @Flashforge AD4.json"
     },
     {
-      "name": "Generic PLA-HS @Flashforge AD4",
-      "sub_path": "filament/Generic PLA-HS @Flashforge AD4.json"
+      "name": "Generic PLA High Speed @Flashforge AD4",
+      "sub_path": "filament/Generic PLA High Speed @Flashforge AD4.json"
     },
     {
       "name": "Generic PETG @Flashforge AD4",
