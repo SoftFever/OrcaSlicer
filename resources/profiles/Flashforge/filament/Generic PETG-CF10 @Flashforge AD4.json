@@ -2,7 +2,7 @@
   "type": "filament",
   "filament_id": "GFG99",
   "setting_id": "GFSA04",
-  "name": "Flashforge Generic PETG-CF10 @AD4",
+  "name": "Generic PETG-CF10 @Flashforge AD4",
   "from": "system",
   "instantiation": "true",
   "inherits": "Flashforge Generic PETG-CF10",
