@@ -1271,7 +1271,9 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
         get_ams_mapping_result(ams_array, ams_array2, mapping_info);
         if (ams_array.empty()) {
             reset_ams_material();
-            updata_thumbnail_data_after_connected_printer(); // FIX:update cur plate thumbnail
+            if (m_print_type == FROM_NORMAL) {
+                updata_thumbnail_data_after_connected_printer(); // FIX:update cur plate thumbnail
+            }
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=[]";
         } else {
             sync_ams_mapping_result(m_ams_mapping_result);
