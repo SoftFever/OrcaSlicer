@@ -67,6 +67,9 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
     bool res = true;
 
     Utils::TCPConsole client(m_host, m_console_port);
+    //sometimes FF AD5M is very slow in data upload, so timeout is increased to 10 minutes
+    client.set_write_timeout(std::chrono::minutes(10));
+    client.set_read_timeout(std::chrono::minutes(10));
     client.enqueue_cmd(controlCommand);
    
     client.enqueue_cmd(connect5MCommand);

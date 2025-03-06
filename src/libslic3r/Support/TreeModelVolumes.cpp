@@ -33,7 +33,7 @@ using namespace std::literals;
 
 // or warning
 // had to use a define beacuse the macro processing inside macro BOOST_LOG_TRIVIAL()
-#define error_level_not_in_cache error
+#define error_level_not_in_cache debug
 
 //FIXME Machine border is currently ignored.
 static Polygons calculateMachineBorderCollision(Polygon machine_border)

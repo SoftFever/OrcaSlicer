@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
+"POT-Creation-Date: 2025-03-01 17:37+0800\n"
 "PO-Revision-Date: 2025-01-11 10:54+0800\n"
 "Last-Translator: Shuwn Hsu\n"
 "Language-Team: \n"
@@ -4832,16 +4832,19 @@ msgstr "視角"
 msgid "&Help"
 msgstr "幫助"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "檔案名稱為 %s 的檔案已存在，是否要覆蓋它？"
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "已存在名稱為 %s 的設定檔，是否要覆蓋它？"
 
 msgid "Overwrite file"
 msgstr "覆蓋檔案"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "全部覆蓋"
@@ -6347,11 +6350,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"列印板% d：%s 不建議用於列印 %s（%s）線材。如果你仍想執行此列印，請將該線材的"
+"列印板 %d：%s 不建議用於列印 %s（%s）線材。如果你仍想執行此列印，請將該線材的"
 "熱床溫度設為非零值。"
 
 msgid "Switching the language requires application restart.\n"
@@ -7349,12 +7352,11 @@ msgid "Still print by object?"
 msgstr "持續逐件列印？"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"我們新增了一種實驗性支撐樣式『苗條樹』，具有更小的支撐體積但強度較低。\n"
-"建議使用以下設置：0 個介面層、0 頂部距離、2 層牆。"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7364,23 +7366,6 @@ msgstr ""
 "自動調整這些設定？\n"
 "是 - 自動調整這些設定\n"
 "否 - 不用為我調整這些設定"
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"對於 \"強壯樹 \"和 \"混合樹 \"的支撐樣式，我們推薦以下設定：至少 2 層界面層，"
-"至少 0.1 毫米的頂部z距離或使用專用的支撐線材。"
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
-msgstr ""
-"當使用專用的支撐線材時，我們推薦以下設定：\n"
-"0 頂層z距離，0 界面間距，同心模式，並且禁用獨立支撐層高"
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -9296,6 +9281,9 @@ msgstr "正在產生 G-code"
 
 msgid "Failed processing of the filename_format template."
 msgstr "處理檔案名稱格式範本失敗。"
+
+msgid "Printer technology"
+msgstr "打印機技術"
 
 msgid "Printable area"
 msgstr "可列印區域"
@@ -11901,6 +11889,12 @@ msgstr ""
 msgid "Speed of internal sparse infill"
 msgstr "內部稀疏填充的列印速度"
 
+msgid "Inherits profile"
+msgstr "繼承設定檔"
+
+msgid "Name of parent profile"
+msgstr ""
+
 msgid "Interface shells"
 msgstr "接觸面外殼"
 
@@ -13085,14 +13079,18 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "XY 軸最大平滑度"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "在 XY 平面中為實現平滑螺旋所允許移動點的最大距離。若以百分比表示，將根據噴嘴"
 "直徑計算"
 
-#, c-format, boost-format
+msgid "Spiral starting flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13100,7 +13098,10 @@ msgid ""
 "extrusion at the start of the spiral."
 msgstr ""
 
-#, c-format, boost-format
+msgid "Spiral finishing flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -13292,6 +13293,12 @@ msgstr "支撐/模型 XY 間距"
 
 msgid "XY separation between an object and its support"
 msgstr "模型和支撐之間 XY 的間距"
+
+msgid "Support/object first layer gap"
+msgstr ""
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr ""
 
 msgid "Pattern angle"
 msgstr "支撐角度"
@@ -13597,23 +13604,13 @@ msgstr ""
 "分支直徑隨高度逐漸變粗的角度。若角度設為 0，分支將在整個長度上保持均勻厚度。"
 "稍微調整角度可提升有機樹的穩定性。"
 
-msgid "Branch Diameter with double walls"
-msgstr "分支雙層牆直徑"
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-"當分支的面積大於設定直徑圓形的面積時，將以雙層牆結構列印以增強穩定性。若設為 "
-"0，則不啟用雙層牆結構。"
-
 msgid "Support wall loops"
 msgstr "支撐牆數"
 
-msgid "This setting specify the count of walls around support"
-msgstr "此設定指定支援結構的牆壁數量"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr ""
 
 msgid "Tree support with infill"
 msgstr "樹狀支撐產生填充"
@@ -14150,11 +14147,82 @@ msgstr "線寬過大"
 msgid " not in range "
 msgstr " 不在合理的區間"
 
+msgid "Export 3MF"
+msgstr "匯出為 3MF檔"
+
+msgid "Export project as 3MF."
+msgstr ""
+
+msgid "Export slicing data"
+msgstr ""
+
+msgid "Export slicing data to a folder."
+msgstr ""
+
+msgid "Load slicing data"
+msgstr ""
+
+msgid "Load cached slicing data from directory"
+msgstr ""
+
+msgid "Export STL"
+msgstr "匯出為 STL 檔"
+
+msgid "Export the objects as single STL."
+msgstr ""
+
+msgid "Export multiple STLs"
+msgstr ""
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr ""
+
+msgid "Slice"
+msgstr "切入"
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr ""
+
+msgid "Show command help."
+msgstr ""
+
+msgid "UpToDate"
+msgstr ""
+
+msgid "Update the configs values of 3mf to latest."
+msgstr ""
+
+msgid "downward machines check"
+msgstr ""
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr ""
+
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "Minimum save"
 msgstr "最低保存"
 
 msgid "export 3mf with minimum size."
 msgstr "匯出最小尺寸的 3mf。"
+
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
 
 msgid "No check"
 msgstr "不檢查"
@@ -14162,12 +14230,60 @@ msgstr "不檢查"
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "不要執行任何有效性檢查，如 G-code 路徑衝突檢查。"
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
+msgid "Output Model Info"
+msgstr "輸出模型資訊"
+
+msgid "Output the model's information."
+msgstr ""
+
+msgid "Export Settings"
+msgstr ""
+
+msgid "Export settings to a file."
+msgstr ""
+
+msgid "Send progress to pipe"
+msgstr ""
+
+msgid "Send progress to pipe."
+msgstr ""
+
+msgid "Arrange Options"
+msgstr ""
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Ensure on bed"
 msgstr "確認在列印板上"
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr "當物件部分位於列印板的下方時，將其提升到列印板的上方。預設情況下禁用"
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+"將提供的模型排列在整個載台中，並將它們合併為一個模型，以便同時執行一次操作。"
+
+msgid "Convert Unit"
+msgstr ""
+
+msgid "Convert the units of model"
+msgstr ""
 
 msgid "Orient Options"
 msgstr "方向設定"
@@ -14184,6 +14300,65 @@ msgstr "繞 Y 旋轉"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "繞 Y 軸的旋轉角度（以度為單位）"
 
+msgid "Scale the model by a float factor"
+msgstr ""
+
+msgid "Load General Settings"
+msgstr ""
+
+msgid "Load process/machine settings from the specified file"
+msgstr ""
+
+msgid "Load Filament Settings"
+msgstr ""
+
+msgid "Load filament settings from the specified file list"
+msgstr ""
+
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
+
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+
+msgid "downward machines settings"
+msgstr ""
+
+msgid "the machine settings list need to do downward checking"
+msgstr ""
+
+msgid "Load assemble list"
+msgstr ""
+
+msgid "Load assemble object list from config file"
+msgstr ""
+
 msgid "Data directory"
 msgstr "檔案目錄"
 
@@ -14195,11 +14370,90 @@ msgstr ""
 "指定目錄用以載入或儲存設定檔。 這對於維護不同的設定檔或包含來自網路儲存的設定"
 "檔非常有用。"
 
+msgid "Output directory"
+msgstr ""
+
+msgid "Output directory for the exported files."
+msgstr ""
+
+msgid "Debug level"
+msgstr ""
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+"trace\n"
+msgstr ""
+
+msgid "Enable timelapse for print"
+msgstr ""
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr ""
+
 msgid "Load custom gcode"
 msgstr "載入自訂 G-code"
 
 msgid "Load custom gcode from json"
 msgstr "從 json 載入自訂 gcode"
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr ""
+
+msgid "Allow rotatations when arrange"
+msgstr ""
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr ""
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr ""
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr ""
+
+msgid "Skip modified gcodes in 3mf"
+msgstr ""
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr ""
+
+msgid "MakerLab name"
+msgstr ""
+
+msgid "MakerLab name to generate this 3mf"
+msgstr ""
+
+msgid "MakerLab version"
+msgstr ""
+
+msgid "MakerLab version to generate this 3mf"
+msgstr ""
+
+msgid "metadata name list"
+msgstr ""
+
+msgid "metadata name list added into 3mf"
+msgstr ""
+
+msgid "metadata value list"
+msgstr ""
+
+msgid "metadata value list added into 3mf"
+msgstr ""
+
+msgid "Allow 3mf with newer version to be sliced"
+msgstr ""
 
 msgid "Current z-hop"
 msgstr "當前 Z 抬升高度"
@@ -14485,9 +14739,6 @@ msgstr "正在產生填充走線"
 msgid "Detect overhangs for auto-lift"
 msgstr "偵測懸空區域為自動抬升做準備"
 
-msgid "Generating support"
-msgstr "正在產生支撐"
-
 msgid "Checking support necessity"
 msgstr "正在檢查支撐必要性"
 
@@ -14505,6 +14756,9 @@ msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
 msgstr "物件 %s 似乎有 %s。請重新調整物件的方向或啟用支撐。"
+
+msgid "Generating support"
+msgstr "正在產生支撐"
 
 msgid "Optimizing toolpath"
 msgstr "正在最佳化走線"
@@ -14527,36 +14781,8 @@ msgstr ""
 "物件的 XY 尺寸補償不會生效，因為在此物件上做過上色操作。\n"
 "XY 尺寸補償不能與上色功能一起使用。"
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "支撐：正在產生 %d 層的路徑"
-
-msgid "Support: detect overhangs"
-msgstr "支撐：正在偵測懸空面"
-
 msgid "Support: generate contact points"
 msgstr "支撐：正在產生接觸點"
-
-msgid "Support: propagate branches"
-msgstr "支撐：正在生長樹枝"
-
-msgid "Support: draw polygons"
-msgstr "支撐：正在產生多邊形"
-
-msgid "Support: generate toolpath"
-msgstr "支撐：正在產生走線路徑"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "支撐：正在產生 %d 層的多邊形"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "支撐：正在修補 %d 層的空洞"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "支撐：正在生長 %d 層的樹枝"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -16357,6 +16583,50 @@ msgstr "嘗試登入時發生了意外錯誤，請再試一次。"
 msgid "User cancelled."
 msgstr "使用者取消。"
 
+msgid "Head diameter"
+msgstr "頭直徑"
+
+msgid "Max angle"
+msgstr ""
+
+msgid "Detection radius"
+msgstr ""
+
+msgid "Remove selected points"
+msgstr "移除選定的點"
+
+msgid "Remove all"
+msgstr ""
+
+msgid "Auto-generate points"
+msgstr "自動產生點"
+
+msgid "Add a brim ear"
+msgstr ""
+
+msgid "Delete a brim ear"
+msgstr ""
+
+msgid "Adjust section view"
+msgstr ""
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr ""
+
+msgid "Set the brim type to \"painted\""
+msgstr ""
+
+msgid " invalid brim ears"
+msgstr ""
+
+msgid "Brim Ears"
+msgstr ""
+
+msgid "Please select single object."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -16721,6 +16991,73 @@ msgstr ""
 "避免翹曲\n"
 "你知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度\n"
 "可以降低翹曲的機率。"
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "我們新增了一種實驗性支撐樣式『苗條樹』，具有更小的支撐體積但強度較低。\n"
+#~ "建議使用以下設置：0 個介面層、0 頂部距離、2 層牆。"
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "對於 \"強壯樹 \"和 \"混合樹 \"的支撐樣式，我們推薦以下設定：至少 2 層界面"
+#~ "層，至少 0.1 毫米的頂部z距離或使用專用的支撐線材。"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "當使用專用的支撐線材時，我們推薦以下設定：\n"
+#~ "0 頂層z距離，0 界面間距，同心模式，並且禁用獨立支撐層高"
+
+#~ msgid "Branch Diameter with double walls"
+#~ msgstr "分支雙層牆直徑"
+
+#~ msgid ""
+#~ "Branches with area larger than the area of a circle of this diameter will "
+#~ "be printed with double walls for stability. Set this value to zero for no "
+#~ "double walls."
+#~ msgstr ""
+#~ "當分支的面積大於設定直徑圓形的面積時，將以雙層牆結構列印以增強穩定性。若設"
+#~ "為 0，則不啟用雙層牆結構。"
+
+#~ msgid "This setting specify the count of walls around support"
+#~ msgstr "此設定指定支援結構的牆壁數量"
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "支撐：正在產生 %d 層的路徑"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "支撐：正在偵測懸空面"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "支撐：正在生長樹枝"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "支撐：正在產生多邊形"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "支撐：正在產生走線路徑"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "支撐：正在產生 %d 層的多邊形"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "支撐：正在修補 %d 層的空洞"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "支撐：正在生長 %d 層的樹枝"
 
 #, c-format, boost-format
 #~ msgid ""

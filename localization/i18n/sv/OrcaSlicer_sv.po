@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
+"POT-Creation-Date: 2025-03-01 17:37+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4908,16 +4908,19 @@ msgstr "&Visa"
 msgid "&Help"
 msgstr "&Hjälp"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Det finns en fil med samma namn: %s. Vill du åsidosätta den?"
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Det finns en konfiguration med samma namn: %s. Vill du åsidosätta den?"
 
 msgid "Overwrite file"
 msgstr "Skriv över fil"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "Ja till allt"
@@ -6479,11 +6482,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Platta% d: %s rekommenderas inte för användning av filament %s(%s). Om du "
+"Platta %d: %s rekommenderas inte för användning av filament %s(%s). Om du "
 "fortfarande vill göra detta utskriftsjobb, vänligen ställ in detta filaments "
 "byggplattas temperatur till ett tal som inte är noll."
 
@@ -7525,14 +7528,15 @@ msgid "Still print by object?"
 msgstr "Fortfarande utskrift per objekt?"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"Vi har lagt till en experimentell stil \"Tree Slim\" som har mindre support "
-"volym men svagare styrka.\n"
-"Vi rekommenderar att du använder den tillsammans med: 0 gränssnitts lager, 0 "
-"övre avstånd, 2 väggar."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7542,26 +7546,6 @@ msgstr ""
 "Ändra dessa inställningar automatiskt? \n"
 "Ja - Ändra dessa inställningar automatiskt.\n"
 "Nej - Ändra inte dessa inställningar för mig."
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"För ”Tree Strong” och ”Tree Hybrid” stilar rekommenderar vi följande "
-"inställningar: minst 2 anläggnings lager, minst 0,1 mm topp z-avstånd eller "
-"med support material på anläggningsytan."
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
-msgstr ""
-"Vid användning av stödmaterial för stödgränssnittet rekommenderar vi "
-"följande inställningar:\n"
-"0 top z-avstånd, 0 gränssnittsavstånd, koncentriskt mönster och inaktivera "
-"oberoende stödskiktshöjd"
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -9487,6 +9471,9 @@ msgstr "Skapar G-kod"
 
 msgid "Failed processing of the filename_format template."
 msgstr "Skapande av filnamn_format template misslyckades."
+
+msgid "Printer technology"
+msgstr ""
 
 msgid "Printable area"
 msgstr "Utskriftsbar yta"
@@ -11847,6 +11834,12 @@ msgstr ""
 msgid "Speed of internal sparse infill"
 msgstr "Hastighet för sparsam ifyllnad"
 
+msgid "Inherits profile"
+msgstr ""
+
+msgid "Name of parent profile"
+msgstr ""
+
 msgid "Interface shells"
 msgstr "Interface shells"
 
@@ -12995,14 +12988,16 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "Max XY Smoothing"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
-"expressed as a %, it will be computed over nozzle diameter"
-msgstr ""
 "Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
 
-#, c-format, boost-format
+msgid "Spiral starting flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13010,7 +13005,10 @@ msgid ""
 "extrusion at the start of the spiral."
 msgstr ""
 
-#, c-format, boost-format
+msgid "Spiral finishing flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -13190,6 +13188,12 @@ msgstr "Support/objekt xy distans"
 
 msgid "XY separation between an object and its support"
 msgstr "XY avstånd mellan objektet och support"
+
+msgid "Support/object first layer gap"
+msgstr "Support/object first layer gap"
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr "XY separation between an object and its support at the first layer."
 
 msgid "Pattern angle"
 msgstr "Mönster vinkel"
@@ -13498,21 +13502,13 @@ msgid ""
 "support."
 msgstr ""
 
-msgid "Branch Diameter with double walls"
-msgstr ""
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-
 msgid "Support wall loops"
 msgstr "Vägg support"
 
-msgid "This setting specify the count of walls around support"
-msgstr "Denna inställning anger antalet väggar runt supporten"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr ""
 
 msgid "Tree support with infill"
 msgstr "Tree support med ifyllnad"
@@ -14026,11 +14022,82 @@ msgstr "för stor linjebredd "
 msgid " not in range "
 msgstr " inte inom intervallet "
 
+msgid "Export 3MF"
+msgstr "Exportera 3mf"
+
+msgid "Export project as 3MF."
+msgstr "Exportera projekt som3mf."
+
+msgid "Export slicing data"
+msgstr "Exportera beredningsdata"
+
+msgid "Export slicing data to a folder."
+msgstr "Exportera beredningsdata till en mapp"
+
+msgid "Load slicing data"
+msgstr "Ladda berednings data"
+
+msgid "Load cached slicing data from directory"
+msgstr "Ladda cachad berednings data från katalogen"
+
+msgid "Export STL"
+msgstr "Exportera STL"
+
+msgid "Export the objects as single STL."
+msgstr ""
+
+msgid "Export multiple STLs"
+msgstr ""
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr ""
+
+msgid "Slice"
+msgstr "Bered"
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr "Bered plattorna: 0-alla plattor, i-platta i, andra-ogiltiga"
+
+msgid "Show command help."
+msgstr "Visa kommandohjälp."
+
+msgid "UpToDate"
+msgstr "Aktuell"
+
+msgid "Update the configs values of 3mf to latest."
+msgstr "Uppdatera konfigurations värdena i 3mf till det senaste."
+
+msgid "downward machines check"
+msgstr ""
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr ""
+
+msgid "Load default filaments"
+msgstr "Ladda standard filament"
+
+msgid "Load first filament as default for those not loaded"
+msgstr "Ladda första filamentet som standard för de som inte laddats"
+
 msgid "Minimum save"
 msgstr ""
 
 msgid "export 3mf with minimum size."
 msgstr ""
+
+msgid "mtcpp"
+msgstr "mtcpp"
+
+msgid "max triangle count per plate for slicing."
+msgstr "max antal trianglar per platta för beredning"
+
+msgid "mstpp"
+msgstr "mstpp"
+
+msgid "max slicing time per plate in seconds."
+msgstr "Max berednings tid per platta i sekunder"
 
 msgid "No check"
 msgstr "Ingen kontroll"
@@ -14040,12 +14107,59 @@ msgstr ""
 "Utför inga giltighets kontroller, t.ex. kontroll av konflikter mellan G-kod "
 "och banor."
 
+msgid "Normative check"
+msgstr "Normativ kontroll"
+
+msgid "Check the normative items."
+msgstr "Kontrollera de normativa objekten."
+
+msgid "Output Model Info"
+msgstr "Mata ut modell information"
+
+msgid "Output the model's information."
+msgstr "Mata ut modellens information."
+
+msgid "Export Settings"
+msgstr "Exportera inställningar"
+
+msgid "Export settings to a file."
+msgstr "Exportera inställningar till en fil."
+
+msgid "Send progress to pipe"
+msgstr "Skicka framsteg till röret (SLA)"
+
+msgid "Send progress to pipe."
+msgstr "Skicka framsteg till röret (SLA)"
+
+msgid "Arrange Options"
+msgstr "Placera Val"
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr "Placera val: 0-inaktivera, 1-aktivera, andra-auto"
+
+msgid "Repetions count"
+msgstr "Antal upprepningar"
+
+msgid "Repetions count of the whole model"
+msgstr "Antal upprepningar av hela modellen"
+
 msgid "Ensure on bed"
 msgstr ""
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr ""
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+
+msgid "Convert Unit"
+msgstr "Konvertera enhet"
+
+msgid "Convert the units of model"
+msgstr "Konvertera modellens enheter"
 
 msgid "Orient Options"
 msgstr ""
@@ -14062,6 +14176,67 @@ msgstr ""
 msgid "Rotation angle around the Y axis in degrees."
 msgstr ""
 
+msgid "Scale the model by a float factor"
+msgstr "Skala modellen med en plus faktor"
+
+msgid "Load General Settings"
+msgstr "Ladda allmänna inställningar"
+
+msgid "Load process/machine settings from the specified file"
+msgstr "Ladda process/maskin inställningar ifrån vald fil"
+
+msgid "Load Filament Settings"
+msgstr "Ladda filament inställningar"
+
+msgid "Load filament settings from the specified file list"
+msgstr "Ladda filament inställningar ifrån vald fil"
+
+msgid "Skip Objects"
+msgstr "Hoppa över objekt"
+
+msgid "Skip some objects in this print"
+msgstr "Hoppa över vissa objekt i denna utskrift"
+
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr "ladda senaste process/maskin inställningar vid användning av senaste"
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
+"ladda aktuella process/maskin inställningar från angiven fil vid användning "
+"av aktuella"
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+
+msgid "downward machines settings"
+msgstr ""
+
+msgid "the machine settings list need to do downward checking"
+msgstr ""
+
+msgid "Load assemble list"
+msgstr ""
+
+msgid "Load assemble object list from config file"
+msgstr ""
+
 msgid "Data directory"
 msgstr ""
 
@@ -14071,10 +14246,91 @@ msgid ""
 "storage."
 msgstr ""
 
+msgid "Output directory"
+msgstr "Mata ut katalog"
+
+msgid "Output directory for the exported files."
+msgstr "Mata ut katalogen för exporterade filer."
+
+msgid "Debug level"
+msgstr "Felsökningsnivå"
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+"trace\n"
+msgstr ""
+"Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, 5:"
+"spåra\n"
+
+msgid "Enable timelapse for print"
+msgstr ""
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr ""
+
 msgid "Load custom gcode"
 msgstr ""
 
 msgid "Load custom gcode from json"
+msgstr ""
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr ""
+
+msgid "Allow rotatations when arrange"
+msgstr ""
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr ""
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr ""
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr ""
+
+msgid "Skip modified gcodes in 3mf"
+msgstr ""
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr ""
+
+msgid "MakerLab name"
+msgstr ""
+
+msgid "MakerLab name to generate this 3mf"
+msgstr ""
+
+msgid "MakerLab version"
+msgstr ""
+
+msgid "MakerLab version to generate this 3mf"
+msgstr ""
+
+msgid "metadata name list"
+msgstr ""
+
+msgid "metadata name list added into 3mf"
+msgstr ""
+
+msgid "metadata value list"
+msgstr ""
+
+msgid "metadata value list added into 3mf"
+msgstr ""
+
+msgid "Allow 3mf with newer version to be sliced"
 msgstr ""
 
 msgid "Current z-hop"
@@ -14351,9 +14607,6 @@ msgstr "Skapa ifyllnadens verktygsbana"
 msgid "Detect overhangs for auto-lift"
 msgstr "Identifiera överhäng för automatisk lyftning"
 
-msgid "Generating support"
-msgstr "Skapa support"
-
 msgid "Checking support necessity"
 msgstr "Kontrollera supportens nödvändighet"
 
@@ -14373,6 +14626,9 @@ msgid ""
 msgstr ""
 "Det verkar som om objektet %s har %s. Vänligen orientera om objektet eller "
 "aktivera supportgenerering."
+
+msgid "Generating support"
+msgstr "Skapa support"
 
 msgid "Optimizing toolpath"
 msgstr "Optimerar verktygsbanan"
@@ -14396,36 +14652,8 @@ msgstr ""
 "är också färglagd.\n"
 "XY-storlekskompensation kan inte kombineras med färgläggning."
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "Support: generera verktygsbana vid lager %d"
-
-msgid "Support: detect overhangs"
-msgstr "Support: upptäck överhäng"
-
 msgid "Support: generate contact points"
 msgstr "Support: generera kontaktpunkter"
-
-msgid "Support: propagate branches"
-msgstr "Support: föröka grenar"
-
-msgid "Support: draw polygons"
-msgstr "Support: rita polygoner"
-
-msgid "Support: generate toolpath"
-msgstr "Support: generera verktygsbana"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "Support: generera polygoner vid lager %d"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "Support: åtgärda hål vid lager %d"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "Support: föröka grenar vid lager %d"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -16304,6 +16532,50 @@ msgstr ""
 msgid "User cancelled."
 msgstr ""
 
+msgid "Head diameter"
+msgstr ""
+
+msgid "Max angle"
+msgstr ""
+
+msgid "Detection radius"
+msgstr ""
+
+msgid "Remove selected points"
+msgstr ""
+
+msgid "Remove all"
+msgstr ""
+
+msgid "Auto-generate points"
+msgstr ""
+
+msgid "Add a brim ear"
+msgstr ""
+
+msgid "Delete a brim ear"
+msgstr ""
+
+msgid "Adjust section view"
+msgstr ""
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr ""
+
+msgid "Set the brim type to \"painted\""
+msgstr ""
+
+msgid " invalid brim ears"
+msgstr ""
+
+msgid "Brim Ears"
+msgstr ""
+
+msgid "Please select single object."
+msgstr "Please select single object."
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -16645,6 +16917,67 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "Vi har lagt till en experimentell stil \"Tree Slim\" som har mindre "
+#~ "support volym men svagare styrka.\n"
+#~ "Vi rekommenderar att du använder den tillsammans med: 0 gränssnitts "
+#~ "lager, 0 övre avstånd, 2 väggar."
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "För ”Tree Strong” och ”Tree Hybrid” stilar rekommenderar vi följande "
+#~ "inställningar: minst 2 anläggnings lager, minst 0,1 mm topp z-avstånd "
+#~ "eller med support material på anläggningsytan."
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Vid användning av stödmaterial för stödgränssnittet rekommenderar vi "
+#~ "följande inställningar:\n"
+#~ "0 top z-avstånd, 0 gränssnittsavstånd, koncentriskt mönster och "
+#~ "inaktivera oberoende stödskiktshöjd"
+
+#~ msgid "This setting specify the count of walls around support"
+#~ msgstr "Denna inställning anger antalet väggar runt supporten"
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "Support: generera verktygsbana vid lager %d"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "Support: upptäck överhäng"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "Support: föröka grenar"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "Support: rita polygoner"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "Support: generera verktygsbana"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "Support: generera polygoner vid lager %d"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "Support: åtgärda hål vid lager %d"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "Support: föröka grenar vid lager %d"
 
 #~ msgid "Current Cabin humidity"
 #~ msgstr "Current Cabin humidity"
@@ -17245,124 +17578,6 @@ msgstr ""
 
 #~ msgid "inner-outer-inner/infill"
 #~ msgstr "inre-yttre-inre/utfyllnad"
-
-#~ msgid "Export 3MF"
-#~ msgstr "Exportera 3mf"
-
-#~ msgid "Export project as 3MF."
-#~ msgstr "Exportera projekt som3mf."
-
-#~ msgid "Export slicing data"
-#~ msgstr "Exportera beredningsdata"
-
-#~ msgid "Export slicing data to a folder."
-#~ msgstr "Exportera beredningsdata till en mapp"
-
-#~ msgid "Load slicing data"
-#~ msgstr "Ladda berednings data"
-
-#~ msgid "Load cached slicing data from directory"
-#~ msgstr "Ladda cachad berednings data från katalogen"
-
-#~ msgid "Slice"
-#~ msgstr "Bered"
-
-#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-#~ msgstr "Bered plattorna: 0-alla plattor, i-platta i, andra-ogiltiga"
-
-#~ msgid "Show command help."
-#~ msgstr "Visa kommandohjälp."
-
-#~ msgid "UpToDate"
-#~ msgstr "Aktuell"
-
-#~ msgid "Update the configs values of 3mf to latest."
-#~ msgstr "Uppdatera konfigurations värdena i 3mf till det senaste."
-
-#~ msgid "mtcpp"
-#~ msgstr "mtcpp"
-
-#~ msgid "max triangle count per plate for slicing."
-#~ msgstr "max antal trianglar per platta för beredning"
-
-#~ msgid "mstpp"
-#~ msgstr "mstpp"
-
-#~ msgid "max slicing time per plate in seconds."
-#~ msgstr "Max berednings tid per platta i sekunder"
-
-#~ msgid "Normative check"
-#~ msgstr "Normativ kontroll"
-
-#~ msgid "Check the normative items."
-#~ msgstr "Kontrollera de normativa objekten."
-
-#~ msgid "Output Model Info"
-#~ msgstr "Mata ut modell information"
-
-#~ msgid "Output the model's information."
-#~ msgstr "Mata ut modellens information."
-
-#~ msgid "Export Settings"
-#~ msgstr "Exportera inställningar"
-
-#~ msgid "Export settings to a file."
-#~ msgstr "Exportera inställningar till en fil."
-
-#~ msgid "Send progress to pipe"
-#~ msgstr "Skicka framsteg till röret (SLA)"
-
-#~ msgid "Send progress to pipe."
-#~ msgstr "Skicka framsteg till röret (SLA)"
-
-#~ msgid "Arrange Options"
-#~ msgstr "Placera Val"
-
-#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
-#~ msgstr "Placera val: 0-inaktivera, 1-aktivera, andra-auto"
-
-#~ msgid "Convert Unit"
-#~ msgstr "Konvertera enhet"
-
-#~ msgid "Convert the units of model"
-#~ msgstr "Konvertera modellens enheter"
-
-#~ msgid "Scale the model by a float factor"
-#~ msgstr "Skala modellen med en plus faktor"
-
-#~ msgid "Load General Settings"
-#~ msgstr "Ladda allmänna inställningar"
-
-#~ msgid "Load process/machine settings from the specified file"
-#~ msgstr "Ladda process/maskin inställningar ifrån vald fil"
-
-#~ msgid "Load Filament Settings"
-#~ msgstr "Ladda filament inställningar"
-
-#~ msgid "Load filament settings from the specified file list"
-#~ msgstr "Ladda filament inställningar ifrån vald fil"
-
-#~ msgid "Skip Objects"
-#~ msgstr "Hoppa över objekt"
-
-#~ msgid "Skip some objects in this print"
-#~ msgstr "Hoppa över vissa objekt i denna utskrift"
-
-#~ msgid "Output directory"
-#~ msgstr "Mata ut katalog"
-
-#~ msgid "Output directory for the exported files."
-#~ msgstr "Mata ut katalogen för exporterade filer."
-
-#~ msgid "Debug level"
-#~ msgstr "Felsökningsnivå"
-
-#~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
-#~ msgstr ""
-#~ "Välj felsöknings nivå. 0:allvarlig, 1:fel, 2:varning, 3:info, 4:felsök, 5:"
-#~ "spåra\n"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"
