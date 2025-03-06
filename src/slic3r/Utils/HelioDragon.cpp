@@ -7,6 +7,7 @@
 
 #include "PrintHost.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/PrintBase.hpp"
 #include <boost/log/trivial.hpp>
 #include "../GUI/GUI_App.hpp"
 #include "../GUI/Event.hpp"
@@ -113,7 +114,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
             if (parsed_obj.contains("errors")) {
-                res.error   = parsed_obj["errors"];
+                res.error   = parsed_obj["errors"].dump();
                 res.success = false;
             } else {
                 res.success = true;
@@ -167,7 +168,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
             if (parsed_obj.contains("errors")) {
-                res.error   = parsed_obj["errors"];
+                res.error   = parsed_obj["errors"].dump();
                 res.success = false;
             } else {
                 res.success = true;
@@ -208,7 +209,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
             if (parsed_obj.contains("errors")) {
-                res.error = parsed_obj["errors"];
+                res.error = parsed_obj["errors"].dump();
             } else {
                 res.id          = parsed_obj["data"]["simulation"]["id"];
                 res.name        = parsed_obj["data"]["simulation"]["name"];
@@ -249,7 +250,9 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
     });
     slicing_lck.unlock();
 
-	notification_manager->push_notification("Helio: Started process. Please be patient");
+    Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(0.0, "Helio: Process Started");
+    Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+    wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
     if (slicing_state == BackgroundSlicingProcess::STATE_FINISHED) {
         BOOST_LOG_TRIVIAL(debug) << boost::format("url: %1%, key: %2%") % helio_api_url % helio_api_key;
@@ -257,22 +260,22 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
         HelioQuery::PresignedURLResult create_presigned_url_res = HelioQuery::create_presigned_url(helio_api_url, helio_api_key);
 
         if (create_presigned_url_res.error.empty()) {
-            notification_manager->push_notification("Helio: Presigned URL Created");
+            //notification_manager->push_notification("Helio: Presigned URL Created");
             HelioQuery::UploadFileResult upload_file_res = HelioQuery::upload_file_to_presigned_url(m_gcode_result->filename,
                                                                                                     create_presigned_url_res.url);
 
             if (upload_file_res.success) {
-                notification_manager->push_notification("Helio: file successfully uploaded");
+                //notification_manager->push_notification("Helio: file successfully uploaded");
                 HelioQuery::CreateGCodeResult create_gcode_res = HelioQuery::create_gcode(create_presigned_url_res.key, helio_api_url,
                                                                                           helio_api_key, printer_id, filament_id);
 
                 create_simulation_step(create_gcode_res, notification_manager);
 
             } else {
-                notification_manager->push_notification("Helio: file upload failed");
+                //notification_manager->push_notification("Helio: file upload failed");
             }
         } else {
-            notification_manager->push_notification((boost::format("error: %1%") % create_presigned_url_res.error).str());
+            //notification_manager->push_notification((boost::format("error: %1%") % create_presigned_url_res.error).str());
         }
     }
 }
@@ -281,7 +284,7 @@ void HelioBackgroundProcess::create_simulation_step(
     HelioQuery::CreateGCodeResult create_gcode_res, std::unique_ptr<GUI::NotificationManager>& notification_manager)
 {
     if (create_gcode_res.success) {
-        notification_manager->push_notification("Helio: GCode created successfully");
+        //notification_manager->push_notification("Helio: GCode created successfully");
 
         auto              print_config             = GUI::wxGetApp().preset_bundle->full_config();
         const std::string gcode_id                 = create_gcode_res.id;
@@ -294,8 +297,8 @@ void HelioBackgroundProcess::create_simulation_step(
                                                                                                  object_proximity_airtemp);
 
         if (create_simulation_res.success) {
-            notification_manager->push_notification(
-                (boost::format("Helio: Simulation successfully created.\n%1%") % create_simulation_res.id).str());
+            //notification_manager->push_notification(
+                //(boost::format("Helio: Simulation successfully created.\n%1%") % create_simulation_res.id).str());
 
             int times_tried            = 0;
             int max_unsuccessful_tries = 5;
@@ -308,23 +311,23 @@ void HelioBackgroundProcess::create_simulation_step(
                 if (check_simulation_progress_res.status == 200) {
                     times_tried = 0;
                     if (check_simulation_progress_res.error.empty()) {
-                        notification_manager->push_notification(
-                            (boost::format("Helio: Check %2%, Simulation progress: %1%") % check_simulation_progress_res.progress % times_queried).str());
+                        //notification_manager->push_notification(
+                            //(boost::format("Helio: Check %2%, Simulation progress: %1%") % check_simulation_progress_res.progress % times_queried).str());
                         if (check_simulation_progress_res.is_finished) {
-                            notification_manager->push_notification((boost::format("Helio: Simulation finished.")).str());
+                            //notification_manager->push_notification((boost::format("Helio: Simulation finished.")).str());
                             std::string simulated_gcode_path = HelioBackgroundProcess::create_path_for_simulated_gcode(m_gcode_result->filename);
                             HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(check_simulation_progress_res.url,
                                                                                            simulated_gcode_path, notification_manager);
                             break;
                         }
                     } else {
-                        notification_manager->push_notification((boost::format("Helio: Simulation failed")).str());
+                        //notification_manager->push_notification((boost::format("Helio: Simulation failed")).str());
                         break;
                     }
                 } else {
                     times_tried++;
-                    notification_manager->push_notification(
-                        (boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
+                    //notification_manager->push_notification(
+                        //(boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
                     if (times_tried >= max_unsuccessful_tries)
                         break;
                 }
@@ -334,11 +337,11 @@ void HelioBackgroundProcess::create_simulation_step(
             }
 
         } else {
-            notification_manager->push_notification("Helio: Failed to create simulation");
+            //notification_manager->push_notification("Helio: Failed to create simulation");
         }
 
     } else {
-        notification_manager->push_notification("Helio: Failed to create GCode");
+        //notification_manager->push_notification("Helio: Failed to create GCode");
     }
 
 }
@@ -369,7 +372,7 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 
         if (response_status != 200) {
             number_of_attempts++;
-            notification_manager->push_notification((boost::format("Helio: Could not download file. Attempts left %1%") % (max_attempts - number_of_attempts)).str());
+            //notification_manager->push_notification((boost::format("Helio: Could not download file. Attempts left %1%") % (max_attempts - number_of_attempts)).str());
             boost::this_thread::sleep_for(boost::chrono::seconds(2));
         }
 
@@ -381,11 +384,11 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
         FILE* file = fopen(simulated_gcode_path.c_str(), "w");
         fwrite(downloaded_gcode.c_str(), 1, downloaded_gcode.size(), file);
         fclose(file);
-        notification_manager->push_notification("Helio: GCode downloaded successfully");
+        //notification_manager->push_notification("Helio: GCode downloaded successfully");
 
         HelioBackgroundProcess::load_simulation_to_viwer(simulated_gcode_path);
     } else {
-        notification_manager->push_notification((boost::format("Helio: GCode download failed: %1%") % response_error).str());
+        //notification_manager->push_notification((boost::format("Helio: GCode download failed: %1%") % response_error).str());
     }
 
 
