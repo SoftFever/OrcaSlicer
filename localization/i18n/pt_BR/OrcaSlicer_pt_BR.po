@@ -5016,14 +5016,17 @@ msgstr "&Ajuda"
 
 #, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to overwrite it?"
-msgstr "Existe um arquivo com o mesmo nome: %s, deseja substituí-lo?"
+msgstr "Existe um arquivo com o mesmo nome: %s, deseja sobrescrevê-lo?"
 
 #, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to overwrite it?"
-msgstr "Existe uma configuração com o mesmo nome: %s, deseja substituí-la?"
+msgstr "Existe uma configuração com o mesmo nome: %s, deseja sobrescrevê-la?"
 
 msgid "Overwrite file"
-msgstr "Substituir arquivo"
+msgstr "Sobrescrever arquivo"
+
+msgid "Overwrite config"
+msgstr "Sobrescrever configuração"
 
 msgid "Yes to All"
 msgstr "Sim para Todos"

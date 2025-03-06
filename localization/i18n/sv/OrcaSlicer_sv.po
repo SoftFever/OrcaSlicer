@@ -4919,6 +4919,9 @@ msgstr "Det finns en konfiguration med samma namn: %s. Vill du åsidosätta den?
 msgid "Overwrite file"
 msgstr "Skriv över fil"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "Ja till allt"
 

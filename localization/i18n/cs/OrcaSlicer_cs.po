@@ -4946,6 +4946,9 @@ msgstr "Existuje konfigurace se stejným názvem: %s, chcete ji přepsat."
 msgid "Overwrite file"
 msgstr "Přepsat soubor"
 
+msgid "Overwrite config"
+msgstr ""
+
 msgid "Yes to All"
 msgstr "Ano všem"
 
