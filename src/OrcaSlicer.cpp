@@ -1224,11 +1224,11 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false, filament_color_changed = false, downward_check = false;
+    bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, filament_color_changed = false, downward_check = false;
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
-    float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f;
+    float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f, old_filament_prime_volume = 0.f;
     std::vector<double> old_max_layer_height, old_min_layer_height;
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
@@ -1542,7 +1542,7 @@ int CLI::run(int argc, char **argv)
                         record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
                         flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
                     }
-                    Semver old_version(1, 5, 9), old_version2(1, 5, 9);
+                    Semver old_version(1, 5, 9), old_version2(1, 5, 9), old_version3(2, 0, 0);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
@@ -1550,6 +1550,21 @@ int CLI::run(int argc, char **argv)
                     if ((file_version < old_version2) && !config.empty()) {
                         regenerate_thumbnails = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to regenerate_thumbnails for all")%file_version.to_string();
+                    }
+                    if ((file_version < old_version3) && !config.empty()) {
+                        keep_old_params = true;
+                        ConfigOptionFloats *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume");
+                        if (filament_prime_volume_option) {
+                            std::vector<double>& filament_prime_volume_values = filament_prime_volume_option->values;
+                            if (!filament_prime_volume_values.empty()) {
+                                old_filament_prime_volume = filament_prime_volume_values[0];
+                                ConfigOptionStrings* filament_colors_option = config.option<ConfigOptionStrings>("filament_colour", true);
+                                if (filament_colors_option->size() > 1)
+                                    filament_prime_volume_values.resize(filament_colors_option->size(), old_filament_prime_volume);
+                            }
+                        }
+
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to keep old params")%file_version.to_string();
                     }
 
                     if (normative_check) {
@@ -3737,6 +3752,71 @@ int CLI::run(int argc, char **argv)
                 downward_compatible_machines.push_back(plate_info.printer_name);
             }
             sliced_info.downward_machines = downward_compatible_machines;
+        }
+    }
+
+    //process some old params
+    if (is_bbl_3mf && keep_old_params) {
+        std::vector<std::string> different_keys;
+        Slic3r::unescape_strings_cstyle(different_settings[0], different_keys);
+        std::set<std::string> different_key_set(different_keys.begin(), different_keys.end());
+
+        //wipe tower params process
+        ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
+        prime_tower_rib_wall_option->value = false;
+
+        ConfigOptionPercent *prime_tower_infill_gap_option = m_print_config.option<ConfigOptionPercent>("prime_tower_infill_gap", true);
+        prime_tower_infill_gap_option->value = 100;
+
+        ConfigOptionInts *filament_adhesiveness_category_option = m_print_config.option<ConfigOptionInts>("filament_adhesiveness_category", true);
+        std::vector<int>& filament_adhesiveness_category_values = filament_adhesiveness_category_option->values;
+        filament_adhesiveness_category_values.resize(filament_count);
+        for (int index = 0; index < filament_count; index++)
+            filament_adhesiveness_category_values[index] = 100;
+
+        ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+        std::vector<double>& filament_prime_volume_values = filament_prime_volume_option->values;
+        filament_prime_volume_values.resize(filament_count);
+        for (int index = 0; index < filament_count; index++) {
+            if (old_filament_prime_volume != 0.f)
+                filament_prime_volume_values[index] = old_filament_prime_volume;
+            else
+                filament_prime_volume_values[index] = filament_prime_volume_values[0];
+        }
+
+        //support params process
+        ConfigOptionBool *enable_support_option = m_print_config.option<ConfigOptionBool>("enable_support", true);
+        ConfigOptionEnum<SupportType>* support_type_option  = m_print_config.option<ConfigOptionEnum<SupportType>>("support_type", true);
+        ConfigOptionEnum<SupportMaterialStyle>* support_style_option = m_print_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
+        ConfigOptionFloat *support_top_z_distance_option = m_print_config.option<ConfigOptionFloat>("support_top_z_distance", true);
+        if (support_type_option->value == stTreeAuto)
+        {
+            if (different_key_set.find("support_type") == different_key_set.end())
+                support_type_option->value = stNormalAuto;
+        }
+
+        //traverse each object one by one
+        size_t num_objects = m_models[0].objects.size();
+        for (int i = 0; i < num_objects; ++i) {
+            ModelObject* object = m_models[0].objects[i];
+            DynamicPrintConfig object_config = object->config.get();
+            ConfigOptionBool *obj_enable_support_option = object_config.option<ConfigOptionBool>("enable_support");
+            if (enable_support_option->value || (obj_enable_support_option && obj_enable_support_option->value)) {
+                ConfigOptionEnum<SupportType>* obj_support_type_option  = object_config.option<ConfigOptionEnum<SupportType>>("support_type");
+                ConfigOptionEnum<SupportMaterialStyle>* obj_support_style_option = object_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style");
+                ConfigOptionFloat *obj_support_top_z_distance_option = object_config.option<ConfigOptionFloat>("support_top_z_distance");
+
+                SupportType obj_support_type = obj_support_type_option? obj_support_type_option->value: support_type_option->value;
+                SupportMaterialStyle obj_support_style =  obj_support_style_option? obj_support_style_option->value: support_style_option->value;
+                if ((obj_support_type == stTreeAuto) && (obj_support_style == smsDefault ))
+                {
+                    float support_top_z_distance = obj_support_top_z_distance_option? obj_support_top_z_distance_option->value: support_top_z_distance_option->value;
+                    if (!object->has_custom_layering() && (support_top_z_distance == 0)) {
+                        obj_support_style_option = object_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
+                        obj_support_style_option->value = smsTreeOrganic;
+                    }
+                }
+            }
         }
     }
 

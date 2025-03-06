@@ -7127,7 +7127,11 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "prime_tower_width";
     } else if (opt_key == "wiping_volume") {
         opt_key = "filament_prime_volume";
-    } else if (opt_key == "wipe_tower_brim_width") {
+    }
+    else if (opt_key == "prime_volume") {
+        opt_key = "filament_prime_volume";
+    }
+    else if (opt_key == "wipe_tower_brim_width") {
         opt_key = "prime_tower_brim_width";
     } else if (opt_key == "tool_change_gcode") {
         opt_key = "change_filament_gcode";
