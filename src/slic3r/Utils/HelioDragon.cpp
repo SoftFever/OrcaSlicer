@@ -383,7 +383,7 @@ void HelioBackgroundProcess::create_simulation_step(
 void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string file_download_url, std::string simulated_gcode_path, std::unique_ptr<GUI::NotificationManager>& notification_manager) {
 
     auto http = Http::get(file_download_url);
-    unsigned    response_status;
+    unsigned    response_status = 0;
     std::string downloaded_gcode;
     std::string response_error;
 
