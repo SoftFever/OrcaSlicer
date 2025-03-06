@@ -368,7 +368,7 @@ public:
     WipeTowerBlock*      m_cur_block{nullptr};
 
 	// help function
-    WipeTowerBlock& get_block_by_category(int filament_adhesiveness_category);
+    WipeTowerBlock* get_block_by_category(int filament_adhesiveness_category, bool create);
     void add_depth_to_block(int filament_id, int filament_adhesiveness_category, float depth, bool is_nozzle_change = false);
 	int get_filament_category(int filament_id);
 	bool is_in_same_extruder(int filament_id_1, int filament_id_2);
