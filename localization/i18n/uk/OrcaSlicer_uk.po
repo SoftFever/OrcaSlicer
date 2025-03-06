@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-01 17:37+0800\n"
-"PO-Revision-Date: 2025-03-06 14:56+0200\n"
+"PO-Revision-Date: 2025-03-06 21:03+0200\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "Language: uk_UA\n"
@@ -2436,7 +2436,7 @@ msgid "Filament "
 msgstr "Філамент "
 
 msgid "Change filament at the beginning of this layer."
-msgstr "Заміна нитки на початку цього шару."
+msgstr "Замінити філамент на початку цього шару."
 
 msgid "Delete Pause"
 msgstr "Видалити паузу"
@@ -2451,7 +2451,7 @@ msgid "Delete Custom G-code"
 msgstr "Видалити G-код користувача"
 
 msgid "Delete Filament Change"
-msgstr "Видалити команду заміни нитки"
+msgstr "Видалити команду заміни філаменту"
 
 msgid "No printer"
 msgstr "Принтер не вибраний"
@@ -2554,7 +2554,7 @@ msgid "Purge old filament"
 msgstr "Очистити від старого філаменту"
 
 msgid "Feed Filament"
-msgstr "Подача нитки філаменту"
+msgstr "Подача філаменту"
 
 msgid "Confirm extruded"
 msgstr "Підтвердити витіснення"
@@ -2927,7 +2927,7 @@ msgstr ""
 "Налаштування інформації віртуального слота під час друку не підтримується"
 
 msgid "Are you sure you want to clear the filament information?"
-msgstr "Ви впевнені, що хочете видалити інформацію про нитки?"
+msgstr "Ви впевнені, що хочете видалити інформацію про філамент?"
 
 msgid "You need to select the material type and color first."
 msgstr "Спочатку потрібно вибрати тип матеріалу та колір."
@@ -3042,7 +3042,7 @@ msgid "Disable AMS"
 msgstr "Вимкнути AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr "Друк із ниткою, встановленою на задній частині корпусу"
+msgstr "Друкувати філаментом, встановленим на задній частині корпусу"
 
 msgid "Current AMS humidity"
 msgstr "Поточна вологість AMS"
@@ -3068,7 +3068,7 @@ msgid "Filament used in this print job"
 msgstr "Філамент, який використовується в цьому завданні на друк"
 
 msgid "AMS slot used for this filament"
-msgstr "Слот AMS, який використовується для цієї нитки"
+msgstr "Слот AMS, який використовується для цього філаменту"
 
 msgid "Click to select AMS slot manually"
 msgstr "Натисніть, щоб вибрати слот AMS вручну"
@@ -6040,7 +6040,7 @@ msgid "Estimated time"
 msgstr "Розрахунковий час"
 
 msgid "Filament changes"
-msgstr "Зміни нитки"
+msgstr "Зміни філаменту"
 
 msgid "Click to edit preset"
 msgstr "Натисніть, щоб редагувати профіль"
@@ -11715,8 +11715,8 @@ msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
 "and should be accurate"
 msgstr ""
-"Діаметр нитки використовується для розрахунку екструзії в gcode, тому він "
-"важливий імає бути точним"
+"Діаметр філаменту використовується для розрахунку екструзії в gcode, тому "
+"він важливий і має бути точним"
 
 msgid "Pellet flow coefficient"
 msgstr "Коефіцієнт потоку гранул"
@@ -11912,7 +11912,7 @@ msgid "Density"
 msgstr "Щільність"
 
 msgid "Filament density. For statistics only"
-msgstr "Щільність нитки. Тільки для статистики"
+msgstr "Щільність філаменту. Тільки для статистики"
 
 msgid "g/cm³"
 msgstr "г/см³"
@@ -14250,10 +14250,10 @@ msgid "Single Extruder Multi Material"
 msgstr "Мульти-матеріальний (ММ) друк з одним екструдером"
 
 msgid "Use single nozzle to print multi filament"
-msgstr "Використовувати одне сопло для друку декількома нитками"
+msgstr "Використовувати одне сопло для друку декількома філаментами"
 
 msgid "Manual Filament Change"
-msgstr "Ручна заміна нитки"
+msgstr "Ручна заміна філаменту"
 
 msgid ""
 "Enable this option to omit the custom Change filament G-code only at the "
@@ -15752,7 +15752,8 @@ msgid "Volume per extruder"
 msgstr "Об'єм на один екструдер"
 
 msgid "Total filament volume extruded per extruder during the entire print."
-msgstr "Загальний об'єм нитки, екструдованої одним екструдером за весь друк."
+msgstr ""
+"Загальний об'єм філаменту, екструдованого одним екструдером за весь друк."
 
 msgid "Total toolchanges"
 msgstr "Повні зміни інструменту"
@@ -15764,7 +15765,7 @@ msgid "Total volume"
 msgstr "Загальний обсяг"
 
 msgid "Total volume of filament used during the entire print."
-msgstr "Загальний об’єм нитки, використаної під час усього друку."
+msgstr "Загальний об’єм філаменту, використаного під час усього друку."
 
 msgid "Weight per extruder"
 msgstr "Вага одного екструдера"
@@ -15937,7 +15938,7 @@ msgid "Height of the last layer above the print bed."
 msgstr "Висота останнього шару над друкарським столом."
 
 msgid "Filament extruder ID"
-msgstr "ID номер екструдера нитки"
+msgstr "ID номер екструдера філаменту"
 
 msgid "The current extruder ID. The same as current_extruder."
 msgstr "Поточний ідентифікатор екструдера. Те саме, що й current_extruder."
@@ -16381,7 +16382,7 @@ msgid "material with significant thermal shrinkage/expansion, such as..."
 msgstr "матеріалами зі значним термічним звуженням/розширенням, такими як..."
 
 msgid "materials with inaccurate filament diameter"
-msgstr "матеріалами з неточним діаметром нитки"
+msgstr "матеріалами з неточним діаметром філаменту"
 
 msgid "We found the best Flow Dynamics Calibration Factor"
 msgstr "Ми знайшли найкращий коефіцієнт калібрування динаміки потоку"
@@ -16502,13 +16503,13 @@ msgid "Plate Type"
 msgstr "Тип Пластини"
 
 msgid "filament position"
-msgstr "положення нитки"
+msgstr "позиція філаменту"
 
 msgid "External Spool"
 msgstr "Зовнішній барабан"
 
 msgid "Filament For Calibration"
-msgstr "Нитка для калібрування"
+msgstr "Філамент для калібрування"
 
 msgid ""
 "Tips for calibration material: \n"
