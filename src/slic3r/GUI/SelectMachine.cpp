@@ -3890,7 +3890,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
-                    m_mapping_popup.update(obj_);
+                    m_mapping_popup.update(obj_, m_ams_mapping_result);
                     m_mapping_popup.Popup();
                 }
             }
@@ -4393,7 +4393,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                     m_mapping_popup.set_current_filament_id(fo.id);
                     m_mapping_popup.set_tag_texture(fo.type);
                     m_mapping_popup.set_send_win(this);
-                    m_mapping_popup.update(obj_);
+                    m_mapping_popup.update(obj_, m_ams_mapping_result);
                     m_mapping_popup.Popup();
                 }
             }

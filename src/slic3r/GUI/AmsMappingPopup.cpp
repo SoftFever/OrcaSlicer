@@ -587,7 +587,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
 
      auto title_panel = new wxPanel(this, wxID_ANY);
-     title_panel->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+     title_panel->SetBackgroundColour("#ACACAC");
      title_panel->SetSize(wxSize(-1, FromDIP(30)));
      title_panel->SetMinSize(wxSize(-1, FromDIP(30)));
 
@@ -595,10 +595,10 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      wxBoxSizer *title_sizer_h= new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *title_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-     auto title_text = new wxStaticText(title_panel, wxID_ANY, _L("AMS Slots"));
-     title_text->SetForegroundColour(wxColour(0x32, 0x3A, 0x3D));
-     title_text->SetFont(::Label::Head_13);
-     title_sizer_v->Add(title_text, 0, wxALIGN_CENTER, 5);
+     m_title_text = new wxStaticText(title_panel, wxID_ANY, _L("AMS Slots"));
+     m_title_text->SetForegroundColour(wxColour(0x32, 0x3A, 0x3D));
+     m_title_text->SetFont(::Label::Head_13);
+     title_sizer_v->Add(m_title_text, 0, wxALIGN_CENTER, 5);
      title_sizer_h->Add(title_sizer_v, 1, wxALIGN_CENTER, 5);
      title_panel->SetSizer(title_sizer_h);
      title_panel->Layout();
@@ -682,17 +682,9 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams->Add(0, 0, 0, wxEXPAND, FromDIP(15));
      m_sizer_ams->Add(m_right_marea_panel, 1, wxEXPAND, FromDIP(0));
 
-
-     m_warning_text = new Label(this);
-     m_warning_text->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
-     m_warning_text->SetFont(::Label::Body_12);
-     m_warning_text->SetLabel(_L("Note: Only the AMS slots loaded with the same material type can be selected."));
-
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
      m_sizer_main->Add(m_sizer_ams, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(14));
-     m_sizer_main->Add( 0, 0, 0, wxTOP, FromDIP(8));
-     m_sizer_main->Add(m_warning_text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(14));
-     m_sizer_main->Add( 0, 0, 0, wxTOP, FromDIP(8));
+     m_sizer_main->Add( 0, 0, 0, wxTOP, FromDIP(14));
 
      SetSizer(m_sizer_main);
      Layout();
@@ -823,13 +815,72 @@ void AmsMapingPopup::update_ams_data_multi_machines()
         add_ams_mapping(tray_datas, m_amsmapping_container_list[m_amsmapping_container_list_index], m_amsmapping_container_sizer_list[m_amsmapping_container_list_index]);
     }
 
-    m_warning_text->Show(m_has_unmatch_filament);
-
     Layout();
     Fit();
 }
 
-void AmsMapingPopup::update(MachineObject* obj)
+void AmsMapingPopup::update_title(MachineObject* obj)
+{
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    if (nozzle_nums > 1)
+    {
+        if (m_show_type == ShowType::LEFT)
+        {
+            m_title_text->SetLabelText(_L("Left Nozzle"));
+            return;
+        }
+        else if (m_show_type == ShowType::RIGHT)
+        {
+            m_title_text->SetLabelText(_L("Right Nozzle"));
+            return;
+        }
+    }
+
+    m_title_text->SetLabelText(_L("Nozzle"));
+}
+
+void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result)
+{
+    /*update check states*/
+    if (m_parent_item)
+    {
+        auto update_item_check_state = [&ams_mapping_result, this](MappingItem* item)
+        {
+            if (item)
+            {
+                for (const auto& mapping_res : ams_mapping_result)
+                {
+                    if (mapping_res.id == this->m_current_filament_id)
+                    {
+                        if (mapping_res.ams_id == std::to_string(item->m_ams_id) &&
+                            mapping_res.slot_id == std::to_string(item->m_slot_id))
+                        {
+                            item->set_checked(true);
+                        }
+                        else
+                        {
+                            item->set_checked(false);
+                        }
+
+                        return;
+                    }
+                }
+
+                item->set_checked(false);
+            }
+        };
+
+        update_item_check_state(m_left_extra_slot);
+        update_item_check_state(m_right_extra_slot);
+        for (auto mapping_item : m_mapping_item_list)
+        {
+            update_item_check_state(mapping_item);
+        }
+    }
+}
+
+void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result)
 {
     //BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->m_extder_data.nozzle.size();
     BOOST_LOG_TRIVIAL(info) << "ams_mapping total count " << obj->amsList.size();
@@ -845,13 +896,12 @@ void AmsMapingPopup::update(MachineObject* obj)
     m_amsmapping_container_sizer_list.clear();
     m_mapping_item_list.clear();
 
+    /*title*/
+    update_title(obj);
 
     /*ext*/
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-
-    m_warning_text->SetMinSize(wxSize(FromDIP(248), FromDIP(-1)));
-    m_warning_text->Wrap(FromDIP(248));
 
     if (nozzle_nums == 1) {
         m_left_marea_panel->Hide();
@@ -890,8 +940,6 @@ void AmsMapingPopup::update(MachineObject* obj)
         }
         else if (m_show_type == ShowType::LEFT_AND_RIGHT)
         {
-            m_warning_text->SetMinSize(wxSize(FromDIP(496), FromDIP(-1)));
-            m_warning_text->Wrap(FromDIP(496));
             m_left_marea_panel->Show();
             m_left_extra_slot->Show();
             m_right_marea_panel->Show();
@@ -955,7 +1003,7 @@ void AmsMapingPopup::update(MachineObject* obj)
         if (ams_type >=1 || ams_type <= 3) { //1:ams 2:ams-lite 3:n3f
 
             auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-            auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0? m_right_marea_panel:m_left_marea_panel);
+            auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0? m_right_marea_panel:m_left_marea_panel, ams_iter->second->trayList.size());
             ams_mapping_item_container->SetSizer(sizer_mapping_list);
             ams_mapping_item_container->Layout();
 
@@ -1020,12 +1068,12 @@ void AmsMapingPopup::update(MachineObject* obj)
             } else {
                 m_right_split_ams_sizer->Show(true);
             }
-
-            //m_warning_text->Show(m_has_unmatch_filament);
         }
         else if(ams_type == 4){ //4:n3s
         }
     }
+
+    update_items_check_state(ams_mapping_result);
 
     Refresh();
     Layout();
@@ -1203,6 +1251,7 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 #endif //__WINDOWS__
 
     m_transparent_mapping_item = ScalableBitmap(this, "transparent_mapping_item", FromDIP(60));
+    mapping_item_checked = ScalableBitmap(this, "mapping_item_checked", FromDIP(20));
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
 }
@@ -1229,6 +1278,7 @@ void MappingItem::send_event(int fliament_id)
 
  void MappingItem::msw_rescale()
 {
+
 }
 
 void MappingItem::paintEvent(wxPaintEvent &evt)
@@ -1242,8 +1292,9 @@ void MappingItem::paintEvent(wxPaintEvent &evt)
 
 void MappingItem::render(wxDC &dc)
 {
+      wxSize     size = GetSize();
+  
 #ifdef __WXMSW__
-    wxSize     size = GetSize();
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
     memdc.SelectObject(bmp);
@@ -1260,6 +1311,13 @@ void MappingItem::render(wxDC &dc)
     doRender(dc);
 #endif
 
+    // checked
+    if (m_checked)
+    {
+        dc.DrawBitmap(mapping_item_checked.bmp(), size.x - mapping_item_checked.GetBmpWidth() - FromDIP(4), 0);
+    }
+    auto top = mapping_item_checked.GetBmpHeight() - FromDIP(4);
+
     // materials name
     dc.SetFont(::Label::Head_13);
 
@@ -1269,7 +1327,7 @@ void MappingItem::render(wxDC &dc)
     dc.SetTextForeground(txt_colour);
 
     auto txt_size = dc.GetTextExtent(m_tray_index);
-    auto top = (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2 + FromDIP(8);
+    top += ((GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
     dc.DrawText(m_tray_index, wxPoint((GetSize().x - txt_size.x) / 2, top));
 
 
@@ -1287,6 +1345,24 @@ void MappingItem::set_data(wxColour colour, wxString name, TrayData data, bool u
     if (m_coloul != colour || m_name != name) {
         m_coloul = colour;
         m_name   = name;
+        Refresh();
+    }
+
+    if (m_unmatch || (m_name == "-"))
+    {
+        SetToolTip(_L("Note: Only the AMS slots loaded with the same material type can be selected."));
+    }
+    else
+    {
+        SetToolTip(wxEmptyString);
+    }
+}
+
+void MappingItem::set_checked(bool checked)
+{
+    if (m_checked != checked)
+    {
+        m_checked = checked;
         Refresh();
     }
 }
@@ -1752,7 +1828,7 @@ bool AmsIntroducePopup::ProcessLeftDown(wxMouseEvent& event) {
 }
 
 
-MappingContainer::MappingContainer(wxWindow* parent)
+MappingContainer::MappingContainer(wxWindow* parent, int slots_num)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
 #ifdef __WINDOWS__
@@ -1761,10 +1837,18 @@ MappingContainer::MappingContainer(wxWindow* parent)
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingContainer::paintEvent, this);
 
-    ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container", this, 78);
-
-    SetMinSize(wxSize(FromDIP(230), FromDIP(78)));
-    SetMaxSize(wxSize(FromDIP(230), FromDIP(78)));
+    if (slots_num == 1)
+    {
+        ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_1", this, 78);
+        SetMinSize(wxSize(FromDIP(74), FromDIP(78)));
+        SetMaxSize(wxSize(FromDIP(230), FromDIP(78)));
+    }
+    else
+    {
+        ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_4", this, 78);
+        SetMinSize(wxSize(FromDIP(230), FromDIP(78)));
+        SetMaxSize(wxSize(FromDIP(230), FromDIP(78)));
+    }
 }
 
 MappingContainer::~MappingContainer()

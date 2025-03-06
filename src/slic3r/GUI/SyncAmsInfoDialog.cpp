@@ -2964,7 +2964,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                     m_mapping_popup.set_reset_callback(reset_call_back);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.set_send_win(this);
-                    m_mapping_popup.update(obj_);
+                    m_mapping_popup.update(obj_, m_ams_mapping_result);
                     m_mapping_popup.Popup();
                 }
             }

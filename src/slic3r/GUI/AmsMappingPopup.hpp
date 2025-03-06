@@ -144,33 +144,41 @@ public:
     MappingItem(wxWindow *parent);
     ~MappingItem();
 
-	void update_data(TrayData data);
-    void send_event(int fliament_id);
-    void set_tray_index(wxString t_index) {m_tray_index = t_index;};
-
     wxWindow*send_win{nullptr};
     wxString m_tray_index;
     wxColour m_coloul;
     wxString m_name;
     TrayData m_tray_data;
     ScalableBitmap m_transparent_mapping_item;
+    ScalableBitmap mapping_item_checked;
     bool     m_unmatch{false};
 
     int     m_ams_id{255};
     int     m_slot_id{255};
 
+public:
+    void update_data(TrayData data);
+    void send_event(int fliament_id);
+    void set_data(wxColour colour, wxString name, TrayData data, bool unmatch = false);
+    void set_checked(bool checked);
+    void set_tray_index(wxString t_index) { m_tray_index = t_index; };
+
     void msw_rescale();
+
+private:
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
-    void set_data(wxColour colour, wxString name, TrayData data, bool unmatch = false);
     void doRender(wxDC &dc);
+
+private:
+    bool m_checked = false;
 };
 
 class MappingContainer : public wxPanel
 {
 public:
     wxBitmap  ams_mapping_item_container;
-    MappingContainer(wxWindow* parent);
+    MappingContainer(wxWindow* parent, int slots_num = 4);
     ~MappingContainer();
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
@@ -180,13 +188,15 @@ public:
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
+    wxStaticText* m_title_text{ nullptr };
 
 public:
     AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false);
     ~AmsMapingPopup() {};
 
+    MaterialItem* m_parent_item{ nullptr };
+
     wxWindow* send_win{ nullptr };
-    Label*      m_warning_text{nullptr};
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
     std::vector<wxWindow*>   m_amsmapping_container_list;
@@ -205,7 +215,6 @@ public:
     wxBoxSizer* m_sizer_ams_basket_left{ nullptr };
     wxBoxSizer* m_sizer_ams_basket_right{ nullptr };
     wxBoxSizer *m_sizer_list{nullptr};
-    wxWindow   *m_parent_item{nullptr};
 
     MappingItem* m_left_extra_slot{nullptr};
     MappingItem* m_right_extra_slot{nullptr};
@@ -228,7 +237,9 @@ public:
     void         set_send_win(wxWindow* win) {send_win = win;};
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
-    void         update(MachineObject* obj);
+    void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result);
+    void         update_title(MachineObject* obj);
+    void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* container, wxBoxSizer* sizer);
     void         add_ext_ams_mapping(TrayData tray_data, MappingItem* item);
@@ -239,7 +250,7 @@ public:
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void         paintEvent(wxPaintEvent &evt);
-    void         set_parent_item(wxWindow* item) {m_parent_item = item;};
+    void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
     void         set_show_type(ShowType type) { m_show_type = type; };
     std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 
