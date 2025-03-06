@@ -4955,16 +4955,19 @@ msgstr "&Görünüm"
 msgid "&Help"
 msgstr "&Yardım"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Aynı adda bir dosya var: %s, üzerine yazmak istiyor musunuz."
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Aynı adda bir yapılandırma mevcut: %s, üzerine yazmak istiyor musunuz."
 
 msgid "Overwrite file"
 msgstr "Dosyanın üzerine yaz"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "Tümüne evet"
@@ -6563,11 +6566,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
-"still want to do this printing, please set this filament's bed temperature to "
-"non zero."
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
+"still want to do this printing, please set this filament's bed temperature "
+"to non-zero."
 msgstr ""
-"Plaka% d: %s'nin %s(%s) filamentinı yazdırmak için kullanılması önerilmez. "
+"Plaka %d: %s'nin %s(%s) filamentinı yazdırmak için kullanılması önerilmez. "
 "Eğer yine de bu baskıyı yapmak istiyorsanız, lütfen bu filamentin yatak "
 "sıcaklığını sıfır olmayan bir değere ayarlayın."
 
@@ -13896,8 +13899,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "Maksimum xy yumuşatma"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "Düzgün bir spiral elde etmek için XY'deki noktaları hareket ettirmek için "
@@ -13906,7 +13910,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr "Spiral başlangıç ​​akış oranı"
 
-#, fuzzy, c-format, boost-format
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer to "
 "the spiral. Normally the spiral transition scales the flow ratio from 0% to "
@@ -13921,7 +13925,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr "Spiral bitirme akış oranı"
 
-#, fuzzy, c-format, boost-format
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -15330,7 +15334,7 @@ msgstr ""
 "Hata ayıklama günlüğü düzeyini ayarlar. 0:önemli, 1:hata, 2:uyarı, 3:bilgi, 4:"
 "hata ayıklama, 5:izleme\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr "Yazdırma için hızlandırılmış çekimi etkinleştir"
 
 msgid "If enabled, this slicing will be considered using timelapse"

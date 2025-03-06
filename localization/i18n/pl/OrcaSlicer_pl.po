@@ -5021,16 +5021,19 @@ msgstr "i Widok"
 msgid "&Help"
 msgstr "i Pomoc"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Istnieje plik o tej samej nazwie: %s. Czy chcesz go nadpisać ?."
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Istnieje plik o tej samej nazwie: %s. Czy chcesz go nadpisać ?."
 
 msgid "Overwrite file"
 msgstr "Nadpisz plik"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "Tak dla wszystkich"
@@ -6648,11 +6651,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Płyta% d:%s Nie zaleca się używania do druku filamentu %s(%s). Jeśli nadal "
+"Płyta %d: %s Nie zaleca się używania do druku filamentu %s(%s). Jeśli nadal "
 "chcesz wydrukować ten filament, ustaw temperaturę stołu dla tego filamentu "
 "na większą niż zero."
 
@@ -13999,8 +14002,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "Maksymalne Wygładzanie XY"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "Maksymalna odległość, o którą można przesunąć punkty w płaszczyźnie XY, aby "
@@ -14010,7 +14014,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -14021,7 +14025,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -15442,7 +15446,7 @@ msgstr ""
 "Ustawia poziom logowania debugowania. 0:fatal, 1:error, 2:warning, 3:info, 4:"
 "debug, 5:trace\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"
@@ -20818,14 +20822,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Smooth Spiral wygładza również ruchy w osiach X i Y, co skutkuje brakiem "
 #~ "widocznych szwów, nawet w kierunkach XY na ścianach, które nie są pionowe"
-
-#~ msgid ""
-#~ "Maximum distance to move points in XY to try to achieve a smooth spiral. "
-#~ "If expressed as a %, it will be computed over nozzle diameter"
-#~ msgstr ""
-#~ "Maksymalna odległość przesuwania punktów w XY, aby osiągnąć gładką "
-#~ "spiralę. Jeśli wyrażona w procentach, będzie obliczona na podstawie "
-#~ "średnicy dyszy"
 
 #, c-format, boost-format
 #~ msgid ""
