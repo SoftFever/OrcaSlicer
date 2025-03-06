@@ -409,11 +409,14 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 			Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(80, (boost::format("Helio: Could not download file. Attempts left %1%") % (max_attempts - number_of_attempts)).str());
 			Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
 			wxQueueEvent(GUI::wxGetApp().plater(), evt);
+            
             boost::this_thread::sleep_for(boost::chrono::seconds(2));
         }
 
-        if (response_status == 200 || number_of_attempts >= max_attempts)
+        if (response_status == 200 || number_of_attempts >= max_attempts){
+            response_error = "";
             break;
+        }
     }
 
     if (response_error.empty()) {
