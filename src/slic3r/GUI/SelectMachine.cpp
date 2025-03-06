@@ -1248,7 +1248,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     //single nozzle
     else {
         if (obj_->is_support_amx_ext_mix_mapping()){
-            map_opt = { false, true, false, true }; //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+            map_opt = { false, true, false, false }; //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
             filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
             //auto_supply_with_ext(obj_->vt_slot);
         }
