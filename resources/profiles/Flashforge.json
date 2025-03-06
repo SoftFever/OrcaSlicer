@@ -518,40 +518,40 @@
       "sub_path": "filament/Flashforge Generic PVA.json"
     },
     {
-      "name": "Flashforge Generic ABS @AD4",
-      "sub_path": "filament/Flashforge Generic ABS @AD4.json"
+      "name": "Generic ABS @Flashforge AD4",
+      "sub_path": "filament/Generic ABS @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic ASA @AD4",
-      "sub_path": "filament/Flashforge Generic ASA @AD4.json"
+      "name": "Generic ASA @AD4",
+      "sub_path": "filament/Generic ASA @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic PLA-HS @AD4",
-      "sub_path": "filament/Flashforge Generic PLA-HS @AD4.json"
+      "name": "Generic PLA-HS @Flashforge AD4",
+      "sub_path": "filament/Generic PLA-HS @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic PETG @AD4",
-      "sub_path": "filament/Flashforge Generic PETG @AD4.json"
+      "name": "Generic PETG @Flashforge AD4",
+      "sub_path": "filament/Generic PETG @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic PETG-CF10 @AD4",
-      "sub_path": "filament/Flashforge Generic PETG-CF10 @AD4.json"
+      "name": "Generic PETG-CF10 @Flashforge AD4",
+      "sub_path": "filament/Generic PETG-CF10 @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic PLA @AD4",
-      "sub_path": "filament/Flashforge Generic PLA @AD4.json"
+      "name": "Generic PLA @Flashforge AD4",
+      "sub_path": "filament/Generic PLA @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic PLA-CF10 @AD4",
-      "sub_path": "filament/Flashforge Generic PLA-CF10 @AD4.json"
+      "name": "Generic PLA-CF10 @Flashforge AD4",
+      "sub_path": "filament/Generic PLA-CF10 @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic PLA Silk @AD4",
-      "sub_path": "filament/Flashforge Generic PLA Silk @AD4.json"
+      "name": "Generic PLA Silk @Flashforge AD4",
+      "sub_path": "filament/Generic PLA Silk @Flashforge AD4.json"
     },
     {
-      "name": "Flashforge Generic TPU @AD4",
-      "sub_path": "filament/Flashforge Generic TPU @AD4.json"
+      "name": "Generic TPU @Flashforge AD4",
+      "sub_path": "filament/Generic TPU @Flashforge AD4.json"
     },    
     {
 		"name": "SUNLU PLA Matte @base",
