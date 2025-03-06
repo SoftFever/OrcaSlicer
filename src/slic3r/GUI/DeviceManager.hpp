@@ -632,10 +632,17 @@ public:
     bool        get_printer_is_enclosed() const;
 
     // check printer device series
+    static bool is_series_n(const std::string& series_str);
+    static bool is_series_p(const std::string& series_str);
+    static bool is_series_x(const std::string& series_str);
+    static bool is_series_o(const std::string& series_str);
+
     bool is_series_n() const;
     bool is_series_p() const;
     bool is_series_x() const;
     bool is_series_o() const;
+
+    std::string get_printer_series_str() const;
 
     void reload_printer_settings();
 

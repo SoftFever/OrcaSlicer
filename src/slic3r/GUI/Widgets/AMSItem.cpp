@@ -766,9 +766,10 @@ void AMSextruder::OnAmsLoading(bool load, int nozzle_id, wxColour col /*= AMS_CO
     }
 }
 
-void AMSextruder::updateNozzleNum(int nozzle_num)
+void AMSextruder::updateNozzleNum(int nozzle_num, const string& series_name)
 {
-    if (m_nozzle_num == nozzle_num) return;
+    if (m_nozzle_num == nozzle_num && m_series_name == series_name) return;
+    m_series_name = series_name;
     m_nozzle_num = nozzle_num;
     this->DestroyChildren();
 
@@ -786,7 +787,19 @@ void AMSextruder::updateNozzleNum(int nozzle_num)
     }
     else
     {
-        m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
+        if (MachineObject::is_series_n(m_series_name))
+        {
+            m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle_n", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
+        }
+        else if(MachineObject::is_series_x(m_series_name) || MachineObject::is_series_p(m_series_name))
+        {
+            m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle_xp", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
+        }
+        else
+        {
+            m_left_extruder = new AMSextruderImage(this, wxID_ANY, "single_nozzle_xp", AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE);
+        }
+
         m_left_extruder->setShowState(true);
         m_right_extruder->setShowState(false);
         m_bitmap_sizer->Add(m_left_extruder, 0, wxALIGN_LEFT | wxALIGN_TOP, 0);
@@ -794,6 +807,7 @@ void AMSextruder::updateNozzleNum(int nozzle_num)
     }
 
     SetSizer(m_bitmap_sizer);
+    Layout();
     Refresh();
 }
 

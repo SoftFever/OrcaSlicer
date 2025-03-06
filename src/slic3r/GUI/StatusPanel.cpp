@@ -3251,7 +3251,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     ExtderData  data   = obj->m_extder_data;
 
     // must select a current can
-    m_ams_control->UpdateAms(ams_info, ext_info, data, dev_id, false);
+    m_ams_control->UpdateAms(obj->get_printer_series_str(), ams_info, ext_info, data, dev_id, false);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;

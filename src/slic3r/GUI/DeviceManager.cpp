@@ -615,10 +615,17 @@ bool MachineObject::get_printer_is_enclosed() const
     return DeviceManager::get_printer_is_enclosed(printer_type);
 }
 
-bool MachineObject::is_series_n() const { return DeviceManager::get_printer_series(printer_type) == "series_n"; };
-bool MachineObject::is_series_p() const { return DeviceManager::get_printer_series(printer_type) == "series_p1p"; };
-bool MachineObject::is_series_x() const { return DeviceManager::get_printer_series(printer_type) == "series_x1"; };
-bool MachineObject::is_series_o() const { return DeviceManager::get_printer_series(printer_type) == "series_o"; };
+bool MachineObject::is_series_n(const std::string& series_str) { return series_str == "series_n";  }
+bool MachineObject::is_series_p(const std::string& series_str) { return series_str == "series_p1p";}
+bool MachineObject::is_series_x(const std::string& series_str) { return series_str == "series_x1"; }
+bool MachineObject::is_series_o(const std::string& series_str) { return series_str == "series_o";  }
+
+bool MachineObject::is_series_n() const { return is_series_n(DeviceManager::get_printer_series(printer_type)); }
+bool MachineObject::is_series_p() const { return is_series_p(DeviceManager::get_printer_series(printer_type)); }
+bool MachineObject::is_series_x() const { return is_series_x(DeviceManager::get_printer_series(printer_type)); }
+bool MachineObject::is_series_o() const { return is_series_o(DeviceManager::get_printer_series(printer_type)); }
+
+std::string MachineObject::get_printer_series_str() const{ return DeviceManager::get_printer_series(printer_type);};
 
 void MachineObject::reload_printer_settings()
 {

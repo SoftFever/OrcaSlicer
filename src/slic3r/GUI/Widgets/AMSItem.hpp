@@ -398,7 +398,9 @@ private:
 class AMSextruder : public wxWindow
 {
 private:
-    int m_nozzle_num = -1;
+    int    m_nozzle_num = -1;
+    string m_series_name;
+
 public:
     void TurnOn(wxColour col);
     void TurnOff();
@@ -407,7 +409,7 @@ public:
     void msw_rescale();
     void has_ams(bool hams) {m_has_vams = hams; Refresh();};
     void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
-    void updateNozzleNum(int nozzle_num);
+    void updateNozzleNum(int nozzle_num, const std::string& series_name = string());
 
     bool            m_none_ams_mode{true};
     bool            m_has_vams{false};
