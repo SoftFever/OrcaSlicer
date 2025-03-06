@@ -8,5 +8,5 @@
     "bed_model": "",
     "bed_texture": "voron_switchwire_logo.png",
     "hotend_model": "",
-    "default_materials": "Voron Generic PLA;Voron Generic PLA-CF;Voron Generic PETG;Voron Generic TPU"
+    "default_materials": "Generic ABS @System;Generic PLA @System;Generic PLA-CF @System;Generic PETG @System;Generic TPU @System;Generic ASA @System;Generic PC @System;Generic PVA @System;Generic PA @System;Generic PA-CF @System"
 }

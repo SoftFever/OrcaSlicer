@@ -2991,11 +2991,11 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                     auto v0 = volume->mesh().its.vertices[face[0]];
                     auto v1 = volume->mesh().its.vertices[face[1]];
                     auto v2 = volume->mesh().its.vertices[face[2]];
-                    auto                 dir_0_1  = (v1 - v0).normalized();
-                    auto                 dir_0_2  = (v2 - v0).normalized();
+                    auto                 dir_0_1  = (v1 - v0).normalized().eval();
+                    auto                 dir_0_2  = (v2 - v0).normalized().eval();
                     float                sita0    = acos(dir_0_1.dot(dir_0_2));
-                    auto                 dir_1_0  = -dir_0_1;
-                    auto                 dir_1_2  = (v2 - v1).normalized();
+                    auto                 dir_1_0  = (-dir_0_1).eval();
+                    auto                 dir_1_2  = (v2 - v1).normalized().eval();
                     float                sita1    = acos(dir_1_0.dot(dir_1_2));
                     float                sita2    = PI - sita0 - sita1;
                     std::array<float, 3> sitas    = {sita0, sita1, sita2};
