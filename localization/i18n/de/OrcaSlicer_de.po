@@ -12962,7 +12962,7 @@ msgid "Inherits profile"
 msgstr "Übernimmt Profil"
 
 msgid "Name of parent profile"
-msgstr ""
+msgstr "Name des übergeordneten Profils"
 
 msgid "Interface shells"
 msgstr "Support-Verbindung"
@@ -14336,7 +14336,7 @@ msgstr ""
 "Düsendurchmesser berechnet."
 
 msgid "Spiral starting flow ratio"
-msgstr ""
+msgstr "Spirale Startflussverhältnis"
 
 #, fuzzy, no-c-format, no-boost-format
 msgid ""
@@ -14351,7 +14351,7 @@ msgstr ""
 "Fällen zu einer Unterextrusion am Anfang der Spirale führen kann."
 
 msgid "Spiral finishing flow ratio"
-msgstr ""
+msgstr "Spirale Endflussverhältnis"
 
 #, fuzzy, no-c-format, no-boost-format
 msgid ""
@@ -14927,6 +14927,8 @@ msgid ""
 "This setting specifies the count of support walls in the range of [0,2]. 0 "
 "means auto."
 msgstr ""
+"Diese Einstellung gibt die Anzahl der Wände um die Stützstrukturen im Bereich "
+"von [0,2] an. 0 bedeutet automatisch."
 
 msgid "Tree support with infill"
 msgstr "Baumsupport mit Füllung"
@@ -15579,13 +15581,13 @@ msgid "Export STL"
 msgstr "Export STL"
 
 msgid "Export the objects as single STL."
-msgstr ""
+msgstr "Exportieren Sie die Objekte als einzelne STL."
 
 msgid "Export multiple STLs"
-msgstr ""
+msgstr "Mehrere STLs exportieren"
 
 msgid "Export the objects as multiple STLs to directory"
-msgstr ""
+msgstr "Exportieren Sie die Objekte als mehrere STLs in ein Verzeichnis"
 
 msgid "Slice"
 msgstr "Slice"
@@ -15605,12 +15607,14 @@ msgid "Update the configs values of 3mf to latest."
 msgstr "Aktualisierung der 3mf Konfigurationswerte auf die neueste Version."
 
 msgid "downward machines check"
-msgstr ""
+msgstr "abwärts Kompatibilitätsprüfung"
 
 msgid ""
 "check whether current machine downward compatible with the machines in the "
 "list"
 msgstr ""
+"Überprüfen, ob die aktuelle Maschine abwärtskompatibel mit den Maschinen in "
+"der Liste ist"
 
 msgid "Load default filaments"
 msgstr "Standard-Filamente laden"
@@ -15739,10 +15743,10 @@ msgid "Skip some objects in this print"
 msgstr "Einige Objekte in diesem Druck überspringen"
 
 msgid "Clone Objects"
-msgstr ""
+msgstr "Objekte klonen"
 
 msgid "Clone objects in the load list"
-msgstr ""
+msgstr "Objekte in der Ladeliste klonen"
 
 msgid "load uptodate process/machine settings when using uptodate"
 msgstr ""
@@ -15756,28 +15760,32 @@ msgstr ""
 "wenn Aktuell verwendet wird"
 
 msgid "load uptodate filament settings when using uptodate"
-msgstr ""
+msgstr "Aktuelle Filamenteinstellungen laden, wenn Aktuell verwendet wird"
 
 msgid ""
 "load uptodate filament settings from the specified file when using uptodate"
 msgstr ""
+"Aktuelle Filamenteinstellungen aus der angegebenen Datei laden, wenn "
+"Aktuell verwendet wird"
 
 msgid ""
 "if enabled, check whether current machine downward compatible with the "
 "machines in the list"
 msgstr ""
+"Wenn aktiviert, wird überprüft, ob die aktuelle Maschine abwärtskompatibel "
+"mit den Maschinen in der Liste ist"
 
 msgid "downward machines settings"
-msgstr ""
+msgstr "Einstellungen für abwärtskompatible Maschinen"
 
 msgid "the machine settings list need to do downward checking"
-msgstr ""
+msgstr "Die Liste der Maschineneinstellungen muss abwärts überprüft werden"
 
 msgid "Load assemble list"
-msgstr ""
+msgstr "Lade die Liste der zusammenzufügenden Objekte"
 
 msgid "Load assemble object list from config file"
-msgstr ""
+msgstr "Laden Sie die Liste der zusammenzufügenden Objekte aus der Konfigurationsdatei"
 
 msgid "Data directory"
 msgstr "Datenverzeichnis"
@@ -15808,10 +15816,10 @@ msgstr ""
 "3:info, 4:debug, 5:trace\n"
 
 msgid "Enable timelapse for print"
-msgstr ""
+msgstr "Zeitraffer für Druck aktivieren"
 
 msgid "If enabled, this slicing will be considered using timelapse"
-msgstr ""
+msgstr "Wenn aktiviert, wird dieses Slicing als Zeitraffer betrachtet"
 
 msgid "Load custom gcode"
 msgstr "Lade benutzerdefinierten G-Code"
@@ -15820,63 +15828,65 @@ msgid "Load custom gcode from json"
 msgstr "Lade benutzerdefinierten G-Code aus json"
 
 msgid "Load filament ids"
-msgstr ""
+msgstr "Lade Filament-IDs"
 
 msgid "Load filament ids for each object"
-msgstr ""
+msgstr "Lade Filament-IDs für jedes Objekt"
 
 msgid "Allow multiple color on one plate"
-msgstr ""
+msgstr "Erlaube mehrere Farben auf einer Platte"
 
 msgid "If enabled, the arrange will allow multiple color on one plate"
-msgstr ""
+msgstr "Wenn aktiviert, wird die Anordnung mehrere Farben auf einer Platte zulassen"
 
 msgid "Allow rotatations when arrange"
-msgstr ""
+msgstr "Erlaube Drehungen beim Anordnen"
 
 msgid "If enabled, the arrange will allow rotations when place object"
-msgstr ""
+msgstr "Wenn aktiviert, wird die Anordnung Drehungen zulassen, wenn Objekte platziert werden"
 
 msgid "Avoid extrusion calibrate region when doing arrange"
-msgstr ""
+msgstr "Vermeiden Sie den Extrusionskalibrierungsbereich beim Anordnen"
 
 msgid ""
 "If enabled, the arrange will avoid extrusion calibrate region when place "
 "object"
 msgstr ""
+"Wenn aktiviert, wird die Anordnung den Extrusionskalibrierungsbereich beim "
+"Platzieren von Objekten vermeiden."
 
 msgid "Skip modified gcodes in 3mf"
-msgstr ""
+msgstr "Überspringe geänderte G-Codes in 3mf"
 
 msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
-msgstr ""
+msgstr "Überspringe die geänderten G-Codes in der 3mf für Drucker- oder Filamentvorgaben"
 
 msgid "MakerLab name"
-msgstr ""
+msgstr "MakerLab-Name"
 
 msgid "MakerLab name to generate this 3mf"
-msgstr ""
+msgstr "MakerLab-Name zum Generieren dieses 3mf"
 
 msgid "MakerLab version"
-msgstr ""
+msgstr "MakerLab-Version"
 
 msgid "MakerLab version to generate this 3mf"
-msgstr ""
+msgstr "MakerLab-Version zum Generieren dieses 3mf"
 
 msgid "metadata name list"
-msgstr ""
+msgstr "Metadatennamenliste"
 
 msgid "metadata name list added into 3mf"
-msgstr ""
+msgstr "Metadatennamenliste, wird in die 3mf hinzugefügt"
 
 msgid "metadata value list"
-msgstr ""
+msgstr "Metadatenwertliste"
 
 msgid "metadata value list added into 3mf"
-msgstr ""
+msgstr "Metadatenwertliste, wird in die 3mf hinzugefügt"
 
 msgid "Allow 3mf with newer version to be sliced"
-msgstr ""
+msgstr "Erlauben Sie das Slicen von 3mf mit neuerer Version"
 
 msgid "Current z-hop"
 msgstr "Aktuelles Z-Hop"
@@ -18237,42 +18247,44 @@ msgid "Head diameter"
 msgstr "Kopfdurchmesser"
 
 msgid "Max angle"
-msgstr ""
+msgstr "Maximaler Winkel"
 
 msgid "Detection radius"
-msgstr ""
+msgstr "Erkennungsradius"
 
 msgid "Remove selected points"
 msgstr "Ausgewählte Punkte entfernen"
 
 msgid "Remove all"
-msgstr ""
+msgstr "Alle entfernen"
 
 msgid "Auto-generate points"
 msgstr "Punkte automatisch generieren"
 
 msgid "Add a brim ear"
-msgstr ""
+msgstr "Ein Mausohr hinzufügen"
 
 msgid "Delete a brim ear"
-msgstr ""
+msgstr "Löschen Sie ein Mausohr"
 
 msgid "Adjust section view"
-msgstr ""
+msgstr "Justieren Sie die Schnittansicht"
 
 msgid ""
 "Warning: The brim type is not set to \"painted\",the brim ears will not take "
 "effect !"
 msgstr ""
+"Achtung: Der Brim-Typ ist nicht auf \"bemalt\" eingestellt, auf die Mausohren "
+"wirken sich das nicht aus!"
 
 msgid "Set the brim type to \"painted\""
-msgstr ""
+msgstr "Setze den Brim-Typ auf \"bemalt\""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " ungültige Mausohren"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Mausohren"
 
 msgid "Please select single object."
 msgstr "Please select single object."
