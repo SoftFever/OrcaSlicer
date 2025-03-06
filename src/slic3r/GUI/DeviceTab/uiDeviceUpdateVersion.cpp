@@ -30,7 +30,7 @@ uiDeviceUpdateVersion::uiDeviceUpdateVersion(wxWindow* parent,
 
 void uiDeviceUpdateVersion::UpdateInfo(const MachineObject::ModuleVersionInfo& info)
 {
-    SetName(info.product_name);
+    SetName(I18N::translate(info.product_name));
     SetSerial(info.sn);
     SetVersion(info.sw_ver, info.sw_new_ver);
 }
