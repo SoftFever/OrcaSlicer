@@ -339,7 +339,13 @@ void HelioBackgroundProcess::create_simulation_step(
                     times_tried = 0;
                     if (check_simulation_progress_res.error.empty()) {
 
-						status = Slic3r::PrintBase::SlicingStatus(35+times_queried, "Helio: simulation working");
+                        std::string trailing_dots = "";
+
+                        for (int i = 0; i < (times_queried % 3); i++) {
+                            trailing_dots += "....";
+                        }
+
+						status = Slic3r::PrintBase::SlicingStatus(35 + (80-35) * check_simulation_progress_res.progress, "Helio: simulation working" + trailing_dots);
 						evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
 						wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         if (check_simulation_progress_res.is_finished) {
@@ -360,7 +366,7 @@ void HelioBackgroundProcess::create_simulation_step(
                     //notification_manager->push_notification(
                         //(boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
 
-					status = Slic3r::PrintBase::SlicingStatus(35+times_queried, (boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
+					status = Slic3r::PrintBase::SlicingStatus(35, (boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
 					evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
 					wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
