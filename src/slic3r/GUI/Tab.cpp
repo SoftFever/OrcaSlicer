@@ -5668,7 +5668,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection *presets /*= nullptr
             }
             if (has_variants) {
                 auto msg = _L("Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters.");
-                MessageDialog(this, msg, _L("Use Modified Value"), wxOK | wxICON_WARNING).ShowModal();
+                MessageDialog(wxGetApp().plater(), msg, _L("Use Modified Value"), wxOK | wxICON_WARNING).ShowModal();
                 selected_options.erase(std::remove(selected_options.begin(), selected_options.end(), ""), selected_options.end());
             }
         }
