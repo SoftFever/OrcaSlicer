@@ -7200,8 +7200,6 @@ void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
 void Plater::priv::on_helio_processing_complete(SimpleEvent& a)
 {
   this->update();
-  //this->view3D->reload_scene(false);
-  //this->get_current_canvas3D()->render(false);
 }
 
 void Plater::priv::on_helio_processing_start(SimpleEvent& a)

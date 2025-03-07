@@ -154,6 +154,7 @@ public:
               Slic3r::GUI::Preview*         preview,
     std::function<void()>         function)
     {
+        m_gcode_processor.reset();
         helio_api_key     = api_key;
         this->printer_id  = printer_id;
         this->filament_id = filament_id;

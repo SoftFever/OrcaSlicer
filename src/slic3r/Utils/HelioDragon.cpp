@@ -47,7 +47,7 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
             }
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
-            res.error  = error;
+            res.error  = (boost::format("error: %1%, message: %2%") % error % body).str();
             res.status = status;
         })
         .perform_sync();
@@ -263,7 +263,7 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
 
         HelioQuery::PresignedURLResult create_presigned_url_res = HelioQuery::create_presigned_url(helio_api_url, helio_api_key);
 
-        if (create_presigned_url_res.error.empty()) {
+        if (create_presigned_url_res.error.empty() && create_presigned_url_res.status == 200) {
 
 			status = Slic3r::PrintBase::SlicingStatus(5, "Helio: Presigned URL Created");
 		    evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
@@ -290,7 +290,13 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
             }
         } else {
 
-			status = Slic3r::PrintBase::SlicingStatus(100, (boost::format("error: %1%") % create_presigned_url_res.error).str());
+            std::string presigned_url_message = (boost::format("error: %1%") % create_presigned_url_res.error).str();
+
+            if (create_presigned_url_res.status == 401) {
+                presigned_url_message += "\n Please make sure you have the corrent API key set in preferences.";
+            }
+
+			status = Slic3r::PrintBase::SlicingStatus(100, presigned_url_message);
 		    evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
 			wxQueueEvent(GUI::wxGetApp().plater(), evt);
         }
