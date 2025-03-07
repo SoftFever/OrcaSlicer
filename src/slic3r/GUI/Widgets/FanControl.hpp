@@ -163,6 +163,7 @@ public:
     bool check_printing_state();
     void set_machine_obj(MachineObject *obj);
     void set_name(wxString name);
+    void set_mode_id(int id) { m_mode_id = id;}
     void set_part_id(int id){m_part_id = id;};
     void set_fan_speed(int g);
     void set_fan_speed_percent(int speed);

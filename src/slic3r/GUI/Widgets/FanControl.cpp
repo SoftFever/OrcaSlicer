@@ -707,21 +707,24 @@ void FanControlPopupNew::UpdateParts(int mode_id)
 {
     Freeze();
 
-    m_sizer_fanControl->Clear(true);
     for (const auto& part : m_data.parts) {
 
         auto part_id = part.id;
-        auto part_func = part.func;
         auto part_name = fan_func_name[AIR_FUN(part_id)];
-        auto part_state = part.state;
 
-        auto fan_control = new FanControlNew(this, m_data, mode_id, part_id, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        auto fan_control = m_fan_control_list[part_id];
+        if (!fan_control)
+        {
+            fan_control = new FanControlNew(this, m_data, mode_id, part_id, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+            m_fan_control_list[part_id] = fan_control;
+            m_sizer_fanControl->Add(fan_control, 0, wxALL, FromDIP(5));
+        }
 
         fan_control->set_machine_obj(m_obj);
         fan_control->set_name(part_name);
-
-        m_fan_control_list[part_id] = fan_control;
-        m_sizer_fanControl->Add(fan_control, 0, wxALL, FromDIP(5));
+        fan_control->update_fan_data(m_data);
+        fan_control->set_mode_id(mode_id);
+        fan_control->update_mode();
     }
 
     m_sizer_fanControl->Layout();
