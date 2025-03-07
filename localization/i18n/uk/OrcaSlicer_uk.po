@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-01 17:37+0800\n"
-"PO-Revision-Date: 2025-03-06 21:03+0200\n"
+"PO-Revision-Date: 2025-03-07 09:30+0200\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "Language: uk_UA\n"
@@ -415,7 +415,7 @@ msgid "Select all connectors"
 msgstr "Виберіть усі з'єднувачі"
 
 msgid "Cut"
-msgstr "Розрізати"
+msgstr "Вирізати"
 
 msgid "Rotate cut plane"
 msgstr "Поверніть площину розрізу"
@@ -1306,7 +1306,7 @@ msgid "Select point"
 msgstr "Виберіть точку"
 
 msgid "Delete"
-msgstr "Видалити"
+msgstr "Delete"
 
 msgid "Restart selection"
 msgstr "Вибрати заново"
@@ -3386,7 +3386,7 @@ msgid "No task"
 msgstr "Немає завдань"
 
 msgid "View"
-msgstr "Вигляд"
+msgstr "Вид"
 
 msgid "N/A"
 msgstr "Н/Д"
@@ -4668,7 +4668,7 @@ msgid "Show Configuration Folder"
 msgstr "Показати папку конфігурації"
 
 msgid "Show Tip of the Day"
-msgstr "Показати Раду дня"
+msgstr "Показати пораду дня"
 
 msgid "Check for Update"
 msgstr "Перевірити оновлення"
@@ -4803,7 +4803,7 @@ msgid "Export current plate as G-code"
 msgstr "Експортувати поточну пластину як G-код"
 
 msgid "Export Preset Bundle"
-msgstr "Експорт пакета пресетів"
+msgstr "Експорт пакету профілів"
 
 msgid "Export current configuration to files"
 msgstr "Експорт поточної конфігурації до файлів"
@@ -4842,7 +4842,7 @@ msgid "Deletes the current selection"
 msgstr "Видаляє поточний вибір"
 
 msgid "Delete all"
-msgstr "Видаляє все"
+msgstr "Видалити все"
 
 msgid "Deletes all objects"
 msgstr "Видаляє всі об'єкти"
@@ -4872,10 +4872,10 @@ msgid "Deselects all objects"
 msgstr "Зняти виділення з усіх об'єктів"
 
 msgid "Use Perspective View"
-msgstr "Використовуйте вигляд у перспективі"
+msgstr "Використовувати вид у перспективі"
 
 msgid "Use Orthogonal View"
-msgstr "Використовувати ортогональний вигляд"
+msgstr "Використовувати ортогональний вид"
 
 msgid "Show &G-code Window"
 msgstr "Показати вікно G-коду"
@@ -4950,7 +4950,7 @@ msgid "Flow rate"
 msgstr "Потік"
 
 msgid "Pressure advance"
-msgstr "Випередження тиску PA"
+msgstr "Випередження тиску (PA)"
 
 msgid "Retraction test"
 msgstr "Тест на втягування"
@@ -4962,7 +4962,7 @@ msgid "Max flowrate"
 msgstr "Максимальний потік"
 
 msgid "VFA"
-msgstr "ВДА (VFA)"
+msgstr "Вертикальні дрібні артефакти (VFA)"
 
 msgid "More..."
 msgstr "Більше..."
@@ -6809,13 +6809,13 @@ msgstr ""
 "Сенсорна панель: Alt+рух для обертання, Shift+рух для панорамування."
 
 msgid "Zoom to mouse position"
-msgstr "Наблизити до положення миші"
+msgstr "Масштабувати до положення миші"
 
 msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr ""
-"Наблизьтеся до положення покажчика миші у 3D-виді, а не до центру 2D вікна."
+"Масштабувати до положення курсору миші у 3D-виді, а не до центру 2D вікна."
 
 msgid "Use free camera"
 msgstr "Використовувати вільну камеру"
@@ -6826,7 +6826,7 @@ msgstr ""
 "використовуватиметься камера з обмеженими можливостями."
 
 msgid "Reverse mouse zoom"
-msgstr "Реверсний зум миші"
+msgstr "Зворотне масштабування мишкою"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr ""
@@ -6839,7 +6839,7 @@ msgid "Show the splash screen during startup."
 msgstr "Показувати заставку під час запуску."
 
 msgid "Show \"Tip of the day\" notification after start"
-msgstr "Показувати повідомлення \"Рада дня\" після запуску"
+msgstr "Показувати повідомлення \"Порада дня\" після запуску"
 
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "Якщо увімкнено, під час запуску відображаються корисні підказки."
@@ -6894,7 +6894,7 @@ msgstr "Мережа"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
-"Автоматична синхронізація користувацьких пресетів (принтер/філамент/процес)"
+"Автоматична синхронізація користувацьких профілів (принтер/філамент/процес)"
 
 msgid "User Sync"
 msgstr "Синхронізація користувачів"
@@ -6906,7 +6906,7 @@ msgid "System Sync"
 msgstr "Синхронізація системи"
 
 msgid "Clear my choice on the unsaved presets."
-msgstr "Очистіть мій вибір від незахищених пресетів."
+msgstr "Очистити мій вибір для незбережених профілів."
 
 msgid "Associate files to OrcaSlicer"
 msgstr "Асоціювати файли з OrcaSlicer"
@@ -7016,7 +7016,7 @@ msgid "User sync"
 msgstr "Синхронізація користувача"
 
 msgid "Preset sync"
-msgstr "Синхронізація пресетів"
+msgstr "Синхронізація профілів"
 
 msgid "Preferences sync"
 msgstr "Синхронізація налаштувань"
@@ -8476,8 +8476,8 @@ msgid ""
 "transfer the values you have modified to the new preset."
 msgstr ""
 "\n"
-"Ви можете зберегти або відкинути змінені значення пресетів, або перенести "
-"змінені значення до нового пресету."
+"Ви можете зберегти або скинути змінені значення профілів, або перенести "
+"змінені значення до нового профілю."
 
 msgid "You have previously modified your settings."
 msgstr "Ви раніше змінювали свої налаштування."
@@ -16621,7 +16621,7 @@ msgstr ""
 "Будь ласка, виберіть той, який слід використовувати."
 
 msgid "PA Calibration"
-msgstr "Калібрування РА"
+msgstr "Калібрування ВТ (РА)"
 
 msgid "DDE"
 msgstr "Директ"
@@ -16642,13 +16642,13 @@ msgid "PA Pattern"
 msgstr "PA Патерн"
 
 msgid "Start PA: "
-msgstr "Стартовий PA: "
+msgstr "Початкове ВТ (PA): "
 
 msgid "End PA: "
-msgstr "Кінцевий РА: "
+msgstr "Кінцеве ВТ (РА): "
 
 msgid "PA step: "
-msgstr "Крок PA: "
+msgstr "Крок ВТ (PA): "
 
 msgid "Print numbers"
 msgstr "Друк значень"
@@ -16735,7 +16735,7 @@ msgstr ""
 "кінець > початок + крок)"
 
 msgid "VFA test"
-msgstr "VFA тест"
+msgstr "ВДА (VFA) тест"
 
 msgid "Start speed: "
 msgstr "Початкова швидкість: "
