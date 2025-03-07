@@ -881,7 +881,7 @@ void SelectMachineDialog::init_bind()
             if (!obj) return;
 
             if (obj->dev_id == e.GetString()) {
-                m_comboBox_printer->SetValue(obj->dev_name + "(LAN)");
+                m_comboBox_printer->SetValue(wxString::FromUTF8(obj->dev_name) + "(LAN)");
             }
         }
     });
