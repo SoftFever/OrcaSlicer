@@ -1,5 +1,5 @@
 {
-    "default_filament_profile": "Prusament PLA @MK4S 0.6",
+    "default_filament_profile": "Prusa Generic PLA @MK4S 0.6",
     "default_print_profile": "0.25mm SPEED @MK4S 0.6",
     "from": "system",
     "inherits": "Prusa MK4S 0.4 nozzle",
