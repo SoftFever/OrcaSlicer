@@ -14006,7 +14006,7 @@ msgstr ""
 "은 재료를 절약합니다(기본값 유기체). 반면 혼합 모양은 크고 평평한 오버행 아래"
 "에 일반 서포트와 유사한 구조를 만듭니다."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "기본값(그리드/오가닉"
 
 msgid "Snug"
