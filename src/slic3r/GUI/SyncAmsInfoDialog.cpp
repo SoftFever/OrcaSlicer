@@ -1342,6 +1342,7 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array2=" << ams_array2;
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_info=" << mapping_info;
         }
+        deal_only_exist_ext_spool(obj_);
         show_thumbnail_page();
         return obj_->is_valid_mapping_result(m_ams_mapping_result);
     } else {
@@ -1356,11 +1357,33 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
             }
         }
         sync_ams_mapping_result(m_ams_mapping_result);
+        deal_only_exist_ext_spool(obj_);
         show_thumbnail_page();
         return is_valid;
     }
 
     return true;
+}
+
+void SyncAmsInfoDialog::deal_only_exist_ext_spool(MachineObject *obj_) {
+    if (!obj_)
+        return;
+    if (!m_append_color_text) { return; }
+    bool only_exist_ext_spool_flag = m_only_exist_ext_spool_flag = obj_->only_exist_ext_spool();
+    auto temp_str                  = only_exist_ext_spool_flag ? "" : "AMS ";
+    SetTitle(wxString::Format(_L("Synchronize %sFilament Information"), temp_str));
+    m_append_color_text->SetLabel(wxString::Format(_L("Unused %sfilaments should also be added to the filament list."), temp_str));
+    if (m_map_mode == MapModeEnum::ColorMap) {
+        m_tip_attention_color_map = wxString::Format(_L("Only synchronize filament type and color, not including %sslot information."), temp_str);
+        m_tip_text->SetLabel(m_tip_attention_color_map);
+
+    }
+    if (m_ams_or_ext_text_in_colormap) {
+        m_ams_or_ext_text_in_colormap->SetLabel((only_exist_ext_spool_flag ? _L("Ext spool") : _L("AMS")) + ":");
+    }
+    if (m_ams_or_ext_text_in_override) {
+        m_ams_or_ext_text_in_override->SetLabel((only_exist_ext_spool_flag ? _L("Ext spool") : _L("AMS")) + ":");
+    }
 }
 
 void SyncAmsInfoDialog::show_thumbnail_page()
@@ -2883,15 +2906,19 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             wxBoxSizer *ams_tip_sizer = new wxBoxSizer(wxVERTICAL);
             if (is_first_row) {
                 is_first_row              = false;
-                auto tip0_text = new wxStaticText(m_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS") + ":");
-                tip0_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-                tip0_text->SetFont(::Label::Head_12);
-                ams_tip_sizer->Add(tip0_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
+                if (!m_original_in_colormap) {
+                    m_original_in_colormap = new wxStaticText(m_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS") + ":");
+                    m_original_in_colormap->SetForegroundColour(wxColour(107, 107, 107, 100));
+                    m_original_in_colormap->SetFont(::Label::Head_12);
+                }
+                ams_tip_sizer->Add(m_original_in_colormap, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
 
-                auto tip1_text = new wxStaticText(m_filament_panel, wxID_ANY, _L("AMS") + ":");
-                tip1_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-                tip1_text->SetFont(::Label::Head_12);
-                ams_tip_sizer->Add(tip1_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(9));
+                if (!m_ams_or_ext_text_in_colormap) {
+                    m_ams_or_ext_text_in_colormap = new wxStaticText(m_filament_panel, wxID_ANY, _L("AMS") + ":");
+                    m_ams_or_ext_text_in_colormap->SetForegroundColour(wxColour(107, 107, 107, 100));
+                    m_ams_or_ext_text_in_colormap->SetFont(::Label::Head_12);
+                }
+                ams_tip_sizer->Add(m_ams_or_ext_text_in_colormap, 0, wxALIGN_LEFT | wxTOP, FromDIP(9));
             }
             m_sizer_ams_mapping->Add(ams_tip_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
             contronal_index++;
@@ -3087,13 +3114,20 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
             wxBoxSizer *ams_tip_sizer = new wxBoxSizer(wxVERTICAL);
             if (is_first_row) {
                 is_first_row   = false;
-                auto tip0_text = new wxStaticText(m_fix_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
-                tip0_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-                ams_tip_sizer->Add(tip0_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+                if (!m_original_in_override) {
+                    m_original_in_override = new wxStaticText(m_fix_filament_panel, wxID_ANY, _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS") + ":");
+                    m_original_in_override->SetForegroundColour(wxColour(107, 107, 107, 100));
+                    m_original_in_override->SetFont(::Label::Head_12);
+                }
+                ams_tip_sizer->Add(m_original_in_override, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
 
-                auto tip1_text = new wxStaticText(m_fix_filament_panel, wxID_ANY, _L("AMS"));
-                tip1_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-                ams_tip_sizer->Add(tip1_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(6));
+                if (!m_ams_or_ext_text_in_override) {
+                    auto text = (m_only_exist_ext_spool_flag ? _L("Ext spool") : _L("AMS")) + ":";
+                    m_ams_or_ext_text_in_override = new wxStaticText(m_fix_filament_panel, wxID_ANY, text);
+                    m_ams_or_ext_text_in_override->SetForegroundColour(wxColour(107, 107, 107, 100));
+                    m_ams_or_ext_text_in_override->SetFont(::Label::Head_12);
+                }
+                ams_tip_sizer->Add(m_ams_or_ext_text_in_override, 0, wxALIGN_LEFT | wxTOP, FromDIP(9));
             }
             m_fix_sizer_ams_mapping->Add(ams_tip_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
             contronal_index++;

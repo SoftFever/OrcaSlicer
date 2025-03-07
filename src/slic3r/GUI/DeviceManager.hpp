@@ -714,6 +714,7 @@ public:
     std::chrono::system_clock::time_point extrusion_cali_set_hold_start;
     std::string  extrusion_cali_filament_name;
 
+    bool only_exist_ext_spool() { return amsList.empty(); }
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();
     void _parse_tray_now(std::string tray_now);

@@ -2889,6 +2889,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     int dlg_res{(int) wxID_CANCEL};
     if (m_sync_dlg->is_need_show()) {
+        m_sync_dlg->deal_only_exist_ext_spool(obj);
         if (m_sync_dlg->is_dirty_filament()) {
             wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true);
             wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -3144,6 +3145,7 @@ void Sidebar::deal_btn_sync() {
 }
 
 void Sidebar::pop_sync_nozzle_and_ams_dialog() {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " begin pop_sync_nozzle_and_ams_dialog";
     wxTheApp->CallAfter([this]() {
         SyncNozzleAndAmsDialog::InputInfo temp_na_info;
         wxPoint                           big_btn_pt;
