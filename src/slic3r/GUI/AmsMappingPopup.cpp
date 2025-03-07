@@ -580,7 +580,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_ams_left = new wxBoxSizer(wxVERTICAL);
      m_sizer_ams_right = new wxBoxSizer(wxVERTICAL);
-     //m_sizer_ams_left_horizonal = new wxBoxSizer(wxHORIZONTAL);
+     m_sizer_ams_left_horizonal = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_ams_right_horizonal = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_ams_basket_left = new wxBoxSizer(wxVERTICAL);
      m_sizer_ams_basket_right = new wxBoxSizer(wxVERTICAL);
@@ -606,7 +606,8 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      m_left_marea_panel = new wxPanel(this);
      m_right_marea_panel = new wxPanel(this);
-
+     m_left_first_text_panel  = new wxPanel(m_left_marea_panel);
+     m_right_first_text_panel = new wxPanel(m_right_marea_panel);
      auto sizer_temp = new wxBoxSizer(wxHORIZONTAL);
      /*left ext*/
      m_left_extra_slot = new MappingItem(m_left_marea_panel);
@@ -636,13 +637,15 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_left_tip_text = _L("Select filament that installed to the left nozzle");
      m_right_tip_text = _L("Select filament that installed to the right nozzle");
 
-     m_left_tips = new Label(m_left_marea_panel);
+     m_left_tips = new Label(m_left_first_text_panel);
      m_left_tips->SetForegroundColour(StateColor::darkModeColorFor("0x262E30"));
      m_left_tips->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
      m_left_tips->SetFont(::Label::Body_13);
      m_left_tips->SetLabel(m_left_tip_text);
+     m_sizer_ams_left_horizonal->Add(m_left_tips, 0, wxEXPAND, 0);
+     m_left_first_text_panel->SetSizer(m_sizer_ams_left_horizonal);
 
-     m_sizer_ams_left->Add(m_left_tips, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+     m_sizer_ams_left->Add(m_left_first_text_panel, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
      m_left_split_ams_sizer = create_split_sizer(m_left_marea_panel, _L("Left AMS"));
      m_sizer_ams_left->Add(m_left_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -650,23 +653,27 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      //m_sizer_ams_left->Add(m_left_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
      m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
-     m_right_tips = new Label(m_right_marea_panel);
+     m_right_tips = new Label(m_right_first_text_panel);
      m_right_tips->SetForegroundColour(0x262E30);
      m_right_tips->SetBackgroundColour(*wxWHITE);
      m_right_tips->SetFont(::Label::Body_13);
      m_right_tips->SetLabel(m_right_tip_text);
-     m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+     m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND , 0);
 
-     m_reset_btn = new ScalableButton(m_right_marea_panel, wxID_ANY, "text_undo", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+     m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, "text_undo", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 14);
      m_reset_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { reset_ams_info(); });
      m_reset_btn->SetBackgroundColour(*wxWHITE);
      m_reset_btn->SetToolTip(_L("Reset current filament mapping"));
      m_sizer_ams_right_horizonal->AddStretchSpacer();
      m_sizer_ams_right_horizonal->AddSpacer(FromDIP(5));
-     m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+     m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxALIGN_TOP | wxEXPAND );
      m_reset_btn->Hide();
+     m_right_first_text_panel->SetSizer(m_sizer_ams_right_horizonal);
+     const int same_height = 15;
+     m_left_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
+     m_right_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
 
-     m_sizer_ams_right->Add(m_sizer_ams_right_horizonal, 0, wxEXPAND, 0);
+     m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
      m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
      m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));

@@ -1370,11 +1370,12 @@ void SyncAmsInfoDialog::deal_only_exist_ext_spool(MachineObject *obj_) {
         return;
     if (!m_append_color_text) { return; }
     bool only_exist_ext_spool_flag = m_only_exist_ext_spool_flag = obj_->only_exist_ext_spool();
-    auto temp_str                  = only_exist_ext_spool_flag ? "" : "AMS ";
-    SetTitle(wxString::Format(_L("Synchronize %sFilament Information"), temp_str));
-    m_append_color_text->SetLabel(wxString::Format(_L("Unused %sfilaments should also be added to the filament list."), temp_str));
+    SetTitle(only_exist_ext_spool_flag ? _L("Synchronize Filament Information") : _L("Synchronize AMS Filament Information"));
+    m_append_color_text->SetLabel(only_exist_ext_spool_flag ? _L("Unused filaments should also be added to the filament list.") :
+                                                              _L("Unused AMS filaments should also be added to the filament list."));
     if (m_map_mode == MapModeEnum::ColorMap) {
-        m_tip_attention_color_map = wxString::Format(_L("Only synchronize filament type and color, not including %sslot information."), temp_str);
+        m_tip_attention_color_map = only_exist_ext_spool_flag ? _L("Only synchronize filament type and color, not including slot information.") :
+                                                                _L("Only synchronize filament type and color, not including AMS slot information.");
         m_tip_text->SetLabel(m_tip_attention_color_map);
 
     }
@@ -2459,6 +2460,7 @@ void SyncAmsInfoDialog::update_show_status()
 
     if (!obj_->is_info_ready()) {
         if (is_timeout()) {
+            BOOST_LOG_TRIVIAL(error) << "check error:machine timeout";
             m_ams_mapping_result.clear();
             sync_ams_mapping_result(m_ams_mapping_result);
             show_status(PrintDialogStatus::PrintStatusReadingTimeout);

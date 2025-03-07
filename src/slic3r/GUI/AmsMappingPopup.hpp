@@ -211,6 +211,7 @@ public:
     wxBoxSizer *m_sizer_ams{nullptr};
     wxBoxSizer *m_sizer_ams_left{nullptr};
     wxBoxSizer *m_sizer_ams_right{nullptr};
+    wxBoxSizer *m_sizer_ams_left_horizonal{nullptr};
     wxBoxSizer *m_sizer_ams_right_horizonal{nullptr};
     wxBoxSizer* m_sizer_ams_basket_left{ nullptr };
     wxBoxSizer* m_sizer_ams_basket_right{ nullptr };
@@ -219,8 +220,10 @@ public:
     MappingItem* m_left_extra_slot{nullptr};
     MappingItem* m_right_extra_slot{nullptr};
 
-    wxPanel*     m_left_marea_panel;
-    wxPanel*     m_right_marea_panel;
+    wxPanel *    m_left_marea_panel{nullptr};
+    wxPanel *    m_right_marea_panel{nullptr};
+    wxPanel *    m_left_first_text_panel{nullptr};
+    wxPanel *    m_right_first_text_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
     Label *      m_left_tips{nullptr};
