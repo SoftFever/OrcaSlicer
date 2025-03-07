@@ -15,6 +15,7 @@ finish-args:
   - --filesystem=/run/media
   - --filesystem=/media
   - --filesystem=/run/spnav.sock:ro
+  - --filesystem=xdg-download
   # Allow OrcaSlicer to talk to other instances
   - --talk-name=io.github.softfever.OrcaSlicer.InstanceCheck.*
   - --system-talk-name=org.freedesktop.UDisks2

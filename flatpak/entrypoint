@@ -6,4 +6,30 @@ grep -q org.freedesktop.Platform.GL.nvidia /.flatpak-info && export WEBKIT_DISAB
 # Work-around https://github.com/bambulab/BambuStudio/issues/3440
 export LC_ALL=C.UTF-8
 
+# Function to check file size and retry download if 0 bytes
+check_and_retry_download() {
+    local file_path="$1"
+    local retries=3
+    local count=0
+
+    while [ $count -lt $retries ]; do
+        if [ -s "$file_path" ]; then
+            break
+        fi
+        count=$((count + 1))
+        echo "Retrying download ($count/$retries)..."
+        sleep 1
+    done
+
+    if [ ! -s "$file_path" ]; then
+        echo "Failed to download file after $retries attempts."
+        exit 1
+    fi
+}
+
+# Check and retry download for each file passed as argument
+for file in "$@"; do
+    check_and_retry_download "$file"
+done
+
 exec /app/bin/orca-slicer "$@"
