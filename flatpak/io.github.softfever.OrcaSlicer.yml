@@ -72,6 +72,21 @@ modules:
       - /lib/*.la
       - /lib/pkgconfig
 
+  - name: curl
+    config-opts:
+      - --disable-static
+      - --enable-versioned-symbols
+      - --with-openssl
+    sources:
+      - type: archive
+        url: https://curl.se/download/curl-8.6.0.tar.xz
+        sha256: 3ccd55d91af9516539df80625f818c734dc6f2ecf9bada33c76765e99121db15
+    cleanup:
+      - /include
+      - /lib/*.la
+      - /lib/pkgconfig
+      - /share/man
+
   - name: kde-extra-cmake-modules
     buildsystem: cmake-ninja
     sources:
