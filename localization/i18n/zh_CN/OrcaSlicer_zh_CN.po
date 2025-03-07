@@ -13212,8 +13212,8 @@ msgstr ""
 "强壮的支撑结构，但用料更多；而混合树是苗条树和普通支撑的结合，它会在大的平面"
 "悬垂下创建与正常支撑类似的结构（默认）。"
 
-msgid "Default (Grid/Organic"
-msgstr ""
+msgid "Default (Grid/Organic)"
+msgstr "默认 (网格/有机)"
 
 msgid "Snug"
 msgstr "紧贴"

@@ -13610,7 +13610,7 @@ msgstr ""
 "větve a ušetří mnoho materiálu (výchozí organický), zatímco hybridní styl "
 "vytvoří podobnou strukturu jako běžná podpěra pod velkými plochými převisy."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr ""
 
 msgid "Snug"

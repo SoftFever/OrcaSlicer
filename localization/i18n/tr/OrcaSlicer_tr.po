@@ -14310,7 +14310,7 @@ msgstr ""
 "stil, büyük düz çıkıntıların altında normal destekle benzer bir yapı "
 "oluşturacaktır."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Varsayılan (Izgara/Organik)"
 
 msgid "Snug"

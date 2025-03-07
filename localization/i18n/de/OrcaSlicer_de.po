@@ -14760,7 +14760,7 @@ msgstr ""
 "während der Hybridstil eine ähnliche Struktur wie normale Stützstrukturen "
 "unter großen flachen Überhängen erzeugt."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Standard (Gitter/Organisch)"
 
 msgid "Snug"

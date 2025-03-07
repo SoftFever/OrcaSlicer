@@ -14853,7 +14853,7 @@ msgstr ""
 "(organique par défaut), tandis que le style hybride créera une structure "
 "similaire aux supports normaux sous de grands surplombs plats."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Défaut (Grille/Organique)"
 
 msgid "Snug"

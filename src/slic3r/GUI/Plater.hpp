@@ -820,6 +820,7 @@ private:
     int start_next_slice();
 
     void _calib_pa_pattern(const Calib_Params& params);
+    void _calib_pa_pattern_gen_gcode();
     void _calib_pa_tower(const Calib_Params& params);
     void _calib_pa_select_added_objects();
 

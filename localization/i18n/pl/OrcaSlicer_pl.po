@@ -14432,7 +14432,7 @@ msgstr ""
 "styl hybrydowy stworzy podobną strukturę do normalnego wsparcia pod dużymi "
 "płaskimi nawisami."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Domyślne (Kratka/Organiczne)"
 
 msgid "Snug"

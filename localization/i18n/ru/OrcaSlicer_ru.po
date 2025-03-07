@@ -13580,7 +13580,7 @@ msgid "The start and end points which is from cutter area to garbage can."
 msgstr "Начальная и конечная точки от зоны обрезки до мусорного лотка."
 
 msgid "Reduce infill retraction"
-msgstr "Уменьшать отката при заполнении"
+msgstr "Уменьшать откат при заполнении"
 
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
@@ -14843,7 +14843,7 @@ msgstr ""
 "органический). В то время как гибридный стиль создаёт структуру, схожую с "
 "обычную поддержкой при больших плоских нависаниях."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "По умолчанию (сетка/органический)"
 
 msgid "Snug"
