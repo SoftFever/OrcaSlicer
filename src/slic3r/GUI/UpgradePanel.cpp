@@ -831,8 +831,9 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                     }
                     else {
                         if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
-                            if (obj->upgrade_new_version
-                                && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) {
+                            if (obj->upgrade_new_version &&
+                                !obj->ams_new_version_number.empty() &&
+                                obj->ams_new_version_number.compare(it->second.sw_ver) != 0) {
                                 amspanel->m_ams_new_version_img->Show();
 
                                 if (obj->ams_new_version_number.empty()) {
