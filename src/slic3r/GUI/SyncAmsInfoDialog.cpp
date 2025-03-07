@@ -2987,6 +2987,8 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                     m_mapping_popup.show_reset_button();
                     auto reset_call_back = [this](const std::string &item_index_str) {
                         reset_one_ams_material(item_index_str);
+                        m_mapping_popup.update_items_check_state(m_ams_mapping_result);
+                        m_mapping_popup.Refresh();
                     };
                     m_mapping_popup.set_reset_callback(reset_call_back);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
