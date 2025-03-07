@@ -99,7 +99,8 @@ msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "僅允許在由以下條件選擇的平面上進行繪製：%1%"
 
 msgid "Highlight faces according to overhang angle."
-msgstr "根據懸空角度突顯出表面。"
+msgstr ""
+"根據懸空角度突顯出表面。"
 
 msgid "No auto support"
 msgstr "無自動支撐"
@@ -120,7 +121,7 @@ msgid ""
 msgstr "線材數量超過上色工具支援的最大值，僅前 %1% 個線材可在上色工具中使用。"
 
 msgid "Color Painting"
-msgstr "顏色筆刷"
+msgstr "上色"
 
 msgid "Pen shape"
 msgstr "筆刷形狀"
@@ -3605,10 +3606,10 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"
 msgstr ""
-"換料塔不支援和自適應層高或支撐獨立層高。同時開啟\n"
+"換料塔不支援和自適應層高或獨立支撐層高。同時開啟\n"
 "如何選擇？\n"
 "是 - 選擇開啟換料塔\n"
-"否 - 選擇保留自適應層高或支撐獨立層高"
+"否 - 選擇保留自適應層高或獨立支撐層高"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height is on.\n"
@@ -3627,10 +3628,10 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Independent Support Layer Height"
 msgstr ""
-"換料塔不支援和支撐獨立層高同時開啟。\n"
+"換料塔不支援和獨立支撐層高同時開啟。\n"
 "如何選擇？\n"
 "是 - 選擇開啟換料塔\n"
-"否 - 選擇保留支撐獨立層高"
+"否 - 選擇保留獨立支撐層高"
 
 msgid ""
 "seam_slope_start_height need to be smaller than layer_height.\n"
@@ -6545,7 +6546,7 @@ msgid ""
 msgstr "啟用後，Orca會記住且自動切換各機臺線材與列印設定。"
 
 msgid "Multi-device Management(Take effect after restarting Orca)."
-msgstr "多臺設備管理(需重開Orca)"
+msgstr "多臺設備管理 (需重開Orca)"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6929,7 +6930,7 @@ msgstr "為 \"%1%\"，增加 \"%2%\" 為一個新預設"
 
 #, boost-format
 msgid "Simply switch to \"%1%\""
-msgstr "直接切換到 \"%1%\" "
+msgstr "直接切換到 \"%1%\""
 
 msgid "Task canceled"
 msgstr "任務已取消"
@@ -7357,6 +7358,11 @@ msgid ""
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
 msgstr ""
+"當使用支撐材質作為支撐界面時，我們建議使用以下設定：\n"
+"•頂部 Z 距離：0\n"
+"•接觸面間距：0\n"
+"•交錯直線填充模式\n"
+"•停用獨立支撐層高"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7450,14 +7456,13 @@ msgstr ""
 
 msgid "Detach preset"
 msgstr ""
-"解除預設關聯你知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度可以"
-"降低翹曲的機率。"
+"解除預設"
 
 msgid "This is a default preset."
 msgstr "預設配置。"
 
 msgid "This is a system preset."
-msgstr "這是系統預設配置"
+msgstr "這是系統預設配置。"
 
 msgid "Current preset is inherited from the default preset."
 msgstr "目前的配置繼承自預設配置。"
@@ -8728,7 +8733,7 @@ msgid "The printer mode is incorrect, please switch to LAN Only."
 msgstr "列印設備模式錯誤，請切換為 LAN Only 模式。"
 
 msgid "Connecting to printer... The dialog will close later"
-msgstr "正在連接印表機… 對話框將在稍後自動關閉。"
+msgstr "正在連接印表機… 對話框將在稍後自動關閉"
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr "連接失敗，請再次檢查 IP 和存取碼"
@@ -9221,7 +9226,7 @@ msgstr "在 layer_gcode 中發現 \"G92 E0\"，它與絕對擠出機尋址不相
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
-msgstr "平台 %d：%s 不支援線材 %s。"
+msgstr "平台 %d：%s 不支援線材 %s"
 
 msgid ""
 "Setting the jerk speed too low could lead to artifacts on curved surfaces"
@@ -9283,7 +9288,7 @@ msgid "Failed processing of the filename_format template."
 msgstr "處理檔案名稱格式範本失敗。"
 
 msgid "Printer technology"
-msgstr "打印機技術"
+msgstr "列印設備技術"
 
 msgid "Printable area"
 msgstr "可列印區域"
@@ -10033,7 +10038,7 @@ msgstr ""
 "該參數控制在模型的外側和/或內側產生 Brim 。自動是指自動分析和計算邊框的寬度。"
 
 msgid "Painted"
-msgstr ""
+msgstr "上色"
 
 msgid "Brim-object gap"
 msgstr "Brim 與模型的間隙"
@@ -11893,7 +11898,7 @@ msgid "Inherits profile"
 msgstr "繼承設定檔"
 
 msgid "Name of parent profile"
-msgstr ""
+msgstr "上層設定檔名稱"
 
 msgid "Interface shells"
 msgstr "接觸面外殼"
@@ -12028,7 +12033,7 @@ msgstr "燙平內縮距離"
 msgid ""
 "The distance to keep from the edges. A value of 0 sets this to half of the "
 "nozzle diameter"
-msgstr "與邊緣保持的距離。設定為 0 時，距離將自動設為噴嘴直徑的一半。"
+msgstr "與邊緣保持的距離。設定為 0 時，距離將自動設為噴嘴直徑的一半"
 
 msgid "Ironing speed"
 msgstr "熨燙速度"
@@ -12516,7 +12521,7 @@ msgid "Printer variant"
 msgstr "列印機型號"
 
 msgid "Raft contact Z distance"
-msgstr "筏層Z間距"
+msgstr "筏層 Z 間距"
 
 msgid "Z gap between object and raft. Ignored for soluble interface"
 msgstr "模型和筏層之間的Z間隙"
@@ -13088,7 +13093,7 @@ msgstr ""
 "直徑計算"
 
 msgid "Spiral starting flow ratio"
-msgstr ""
+msgstr "螺旋起始擠出比率"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -13097,9 +13102,11 @@ msgid ""
 "0% to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
+"設定從最後一層底部過渡到螺旋時的起始流量比率。通常，螺旋過渡會在第一圈內將流量比率從 0% 逐步增加到 100%，但在某些情況下，"
+"這可能會導致螺旋開始時發生擠出不足的問題。"
 
 msgid "Spiral finishing flow ratio"
-msgstr ""
+msgstr "螺旋收尾擠出比率"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -13107,6 +13114,8 @@ msgid ""
 "transition scales the flow ratio from 100% to 0% during the last loop which "
 "can in some cases lead to under extrusion at the end of the spiral."
 msgstr ""
+"設定螺旋結束時的最終流量比率。通常，螺旋過渡會在最後一圈內將流量比率從 100% 逐步減少到 0%，但在某些情況下，"
+"這可能會導致螺旋結束時發生擠出不足的問題。"
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -13274,7 +13283,7 @@ msgid ""
 "generated"
 msgstr ""
 "選擇「普通 (自動)」或「樹狀 (自動)」時，系統將自動產生支撐結構。若選擇「普通 "
-"(自動)」或「樹狀 (自動)」，則僅會生成手動設定的支撐區域。"
+"(手動)」或「樹狀 (手動)」，則僅會生成手動設定的支撐區域"
 
 msgid "Normal (auto)"
 msgstr "普通 (自動)"
@@ -13283,10 +13292,10 @@ msgid "Tree (auto)"
 msgstr "樹狀 (自動)"
 
 msgid "Normal (manual)"
-msgstr "普通 (自動)"
+msgstr "普通 (手動)"
 
 msgid "Tree (manual)"
-msgstr "樹狀 (自動)"
+msgstr "樹狀 (手動)"
 
 msgid "Support/object xy distance"
 msgstr "支撐/模型 XY 間距"
@@ -13295,10 +13304,10 @@ msgid "XY separation between an object and its support"
 msgstr "模型和支撐之間 XY 的間距"
 
 msgid "Support/object first layer gap"
-msgstr ""
+msgstr "支撐/物件第一層間隙"
 
 msgid "XY separation between an object and its support at the first layer."
-msgstr ""
+msgstr "物件與支撐在第一層的 XY 方向間距。"
 
 msgid "Pattern angle"
 msgstr "支撐角度"
@@ -13327,16 +13336,16 @@ msgid "Remove small overhangs that possibly need no supports."
 msgstr "移除可能並不需要支撐的小懸空。"
 
 msgid "Top Z distance"
-msgstr "頂部Z距離"
+msgstr "頂部 Z 間距"
 
 msgid "The z gap between the top support interface and object"
 msgstr "支撐頂部和模型之間的z間隙"
 
 msgid "Bottom Z distance"
-msgstr "底部Z距離"
+msgstr "底部 Z 間距"
 
 msgid "The z gap between the bottom support interface and object"
-msgstr "支撐產生於模型表面時，支撐面底部和模型之間的z間隙"
+msgstr "支撐產生於模型表面時，支撐面底部和模型之間的 Z 間隙"
 
 msgid "Support/raft base"
 msgstr "支撐/筏層主體"
@@ -13393,13 +13402,13 @@ msgid "Same as top"
 msgstr "與頂部相同"
 
 msgid "Top interface spacing"
-msgstr "頂部接觸面線距"
+msgstr "頂部接觸面間距"
 
 msgid "Spacing of interface lines. Zero means solid interface"
 msgstr "接觸面的線距。0 代表實心接觸面"
 
 msgid "Bottom interface spacing"
-msgstr "底部接觸面線距"
+msgstr "底部接觸面間距"
 
 msgid "Spacing of bottom interface lines. Zero means solid interface"
 msgstr "底部接觸面走線的線距。0 表示實心接觸面"
@@ -13431,7 +13440,7 @@ msgstr ""
 "圖案為同心"
 
 msgid "Rectilinear Interlaced"
-msgstr "交疊的直線"
+msgstr "交錯直線"
 
 msgid "Base pattern spacing"
 msgstr "主體圖案線距"
@@ -13462,8 +13471,8 @@ msgstr ""
 "分支，節省大量材料（默認為有機樹）；而『混合樹』則會在較大的平坦懸空區域下生"
 "成類似於普通支撐的結構。"
 
-msgid "Default (Grid/Organic"
-msgstr "預設 (格狀/有機"
+msgid "Default (Grid/Organic)"
+msgstr "預設 (網格/有機)"
 
 msgid "Snug"
 msgstr "緊貼"
@@ -13481,7 +13490,7 @@ msgid "Tree Hybrid"
 msgstr "混合樹"
 
 msgid "Independent support layer height"
-msgstr "支撐獨立層高"
+msgstr "獨立支撐層高"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
@@ -13611,6 +13620,7 @@ msgid ""
 "This setting specifies the count of support walls in the range of [0,2]. 0 "
 "means auto."
 msgstr ""
+"此設定指定支撐壁的數量，範圍為 [0,2]。0 表示自動調整。"
 
 msgid "Tree support with infill"
 msgstr "樹狀支撐產生填充"
@@ -14148,63 +14158,63 @@ msgid " not in range "
 msgstr " 不在合理的區間"
 
 msgid "Export 3MF"
-msgstr "匯出為 3MF檔"
+msgstr "匯出為 3MF 檔案"
 
 msgid "Export project as 3MF."
-msgstr ""
+msgstr "將專案匯出為 3MF 檔案。"
 
 msgid "Export slicing data"
-msgstr ""
+msgstr "匯出切片資料"
 
 msgid "Export slicing data to a folder."
-msgstr ""
+msgstr "將列印切片資料匯出至指定資料夾。"
 
 msgid "Load slicing data"
-msgstr ""
+msgstr "載入切片資料"
 
 msgid "Load cached slicing data from directory"
-msgstr ""
+msgstr "從資料夾載入快取的切片資料"
 
 msgid "Export STL"
-msgstr "匯出為 STL 檔"
+msgstr "匯出為 STL 檔案"
 
 msgid "Export the objects as single STL."
-msgstr ""
+msgstr "將所有物件匯出為單一 STL 檔案。"
 
 msgid "Export multiple STLs"
-msgstr ""
+msgstr "匯出為多個 STL 檔案"
 
 msgid "Export the objects as multiple STLs to directory"
-msgstr ""
+msgstr "將物件匯出為多個 STL 檔案至指定資料夾"
 
 msgid "Slice"
-msgstr "切入"
+msgstr "切片"
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr ""
+msgstr "切片板選項：0 代表所有板，i 代表第 i 塊板，其餘則為無效輸入"
 
 msgid "Show command help."
-msgstr ""
+msgstr "顯示指令使用說明。"
 
 msgid "UpToDate"
-msgstr ""
+msgstr "保持最新狀態"
 
 msgid "Update the configs values of 3mf to latest."
-msgstr ""
+msgstr "更新 3MF 配置值至最新版本。"
 
 msgid "downward machines check"
-msgstr ""
+msgstr "相容設備檢測"
 
 msgid ""
 "check whether current machine downward compatible with the machines in the "
 "list"
-msgstr ""
+msgstr "檢查當前機器是否與列表中的機器向下相容"
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "載入預設列印耗材"
 
 msgid "Load first filament as default for those not loaded"
-msgstr ""
+msgstr "將第一種耗材設為預設，以供未載入的項目使用"
 
 msgid "Minimum save"
 msgstr "最低保存"
@@ -14213,16 +14223,16 @@ msgid "export 3mf with minimum size."
 msgstr "匯出最小尺寸的 3mf。"
 
 msgid "mtcpp"
-msgstr ""
+msgstr "mtcpp"
 
 msgid "max triangle count per plate for slicing."
-msgstr ""
+msgstr "每片板的最大切片三角形數量。"
 
 msgid "mstpp"
-msgstr ""
+msgstr "mstpp"
 
 msgid "max slicing time per plate in seconds."
-msgstr ""
+msgstr "每片板的最大切片時間（秒）。"
 
 msgid "No check"
 msgstr "不檢查"
@@ -14231,40 +14241,40 @@ msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "不要執行任何有效性檢查，如 G-code 路徑衝突檢查。"
 
 msgid "Normative check"
-msgstr ""
+msgstr "規範符合性檢測"
 
 msgid "Check the normative items."
-msgstr ""
+msgstr "檢查符合規範的項目。"
 
 msgid "Output Model Info"
 msgstr "輸出模型資訊"
 
 msgid "Output the model's information."
-msgstr ""
+msgstr "輸出模型資訊。"
 
 msgid "Export Settings"
-msgstr ""
+msgstr "匯出設定"
 
 msgid "Export settings to a file."
-msgstr ""
+msgstr "將設定匯出至指定資料夾。"
 
 msgid "Send progress to pipe"
-msgstr ""
+msgstr "將進度發送到 Pipe"
 
 msgid "Send progress to pipe."
-msgstr ""
+msgstr "將進度發送到 Pipe。"
 
 msgid "Arrange Options"
-msgstr ""
+msgstr "佈局選項"
 
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr ""
+msgstr "佈局選項：0 代表停用，1 代表啟用，其他則為自動模式"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "重複次數"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "整個模型的重複次數"
 
 msgid "Ensure on bed"
 msgstr "確認在列印板上"
@@ -14280,10 +14290,10 @@ msgstr ""
 "將提供的模型排列在整個載台中，並將它們合併為一個模型，以便同時執行一次操作。"
 
 msgid "Convert Unit"
-msgstr ""
+msgstr "單位轉換"
 
 msgid "Convert the units of model"
-msgstr ""
+msgstr "變更模型的度量單位"
 
 msgid "Orient Options"
 msgstr "方向設定"
@@ -14298,66 +14308,66 @@ msgid "Rotate around Y"
 msgstr "繞 Y 旋轉"
 
 msgid "Rotation angle around the Y axis in degrees."
-msgstr "繞 Y 軸的旋轉角度（以度為單位）"
+msgstr "繞 Y 軸的旋轉角度（以度為單位）。"
 
 msgid "Scale the model by a float factor"
-msgstr ""
+msgstr "依浮點數比例縮放模型"
 
 msgid "Load General Settings"
-msgstr ""
+msgstr "載入一般設定"
 
 msgid "Load process/machine settings from the specified file"
-msgstr ""
+msgstr "從指定檔案載入參數與機器設定"
 
 msgid "Load Filament Settings"
-msgstr ""
+msgstr "載入列印耗材設定"
 
 msgid "Load filament settings from the specified file list"
-msgstr ""
+msgstr "從指定的檔案清單載入耗材設定"
 
 msgid "Skip Objects"
-msgstr ""
+msgstr "略過物件"
 
 msgid "Skip some objects in this print"
-msgstr ""
+msgstr "在本次列印中略過部分物件"
 
 msgid "Clone Objects"
-msgstr ""
+msgstr "複製物件"
 
 msgid "Clone objects in the load list"
-msgstr ""
+msgstr "複製載入清單中的物件"
 
 msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
+msgstr "使用最新版本時，載入最新的參數與機器設定"
 
 msgid ""
 "load uptodate process/machine settings from the specified file when using "
 "uptodate"
-msgstr ""
+msgstr "當使用最新版本時，從指定檔案載入最新的參數與機器設定"
 
 msgid "load uptodate filament settings when using uptodate"
-msgstr ""
+msgstr "使用最新版本時，載入最新的列印耗材設定"
 
 msgid ""
 "load uptodate filament settings from the specified file when using uptodate"
-msgstr ""
+msgstr "當使用最新版本時，從指定檔案載入最新的列印耗材設定"
 
 msgid ""
 "if enabled, check whether current machine downward compatible with the "
 "machines in the list"
-msgstr ""
+msgstr "若啟用，則檢查當前機器是否與列表中的機器向下相容"
 
 msgid "downward machines settings"
-msgstr ""
+msgstr "相容機器設定"
 
 msgid "the machine settings list need to do downward checking"
-msgstr ""
+msgstr "機器設定清單需執行向下相容性檢測"
 
 msgid "Load assemble list"
-msgstr ""
+msgstr "載入組裝清單"
 
 msgid "Load assemble object list from config file"
-msgstr ""
+msgstr "從設定檔載入組裝物件清單"
 
 msgid "Data directory"
 msgstr "檔案目錄"
@@ -14371,24 +14381,24 @@ msgstr ""
 "檔非常有用。"
 
 msgid "Output directory"
-msgstr ""
+msgstr "輸出資料夾"
 
 msgid "Output directory for the exported files."
-msgstr ""
+msgstr "用於存放匯出檔案的目錄。"
 
 msgid "Debug level"
-msgstr ""
+msgstr "除錯模式等級"
 
 msgid ""
 "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
-msgstr ""
+msgstr "設定除錯日誌級別。0：致命錯誤，1：錯誤，2：警告，3：資訊，4：除錯，5：追蹤\n"
 
 msgid "Enable timelapse for print"
-msgstr ""
+msgstr "啟用列印過程縮時錄影"
 
 msgid "If enabled, this slicing will be considered using timelapse"
-msgstr ""
+msgstr "若啟用，此次切片將使用縮時錄影模式"
 
 msgid "Load custom gcode"
 msgstr "載入自訂 G-code"
@@ -14397,63 +14407,63 @@ msgid "Load custom gcode from json"
 msgstr "從 json 載入自訂 gcode"
 
 msgid "Load filament ids"
-msgstr ""
+msgstr "載入耗材識別碼"
 
 msgid "Load filament ids for each object"
-msgstr ""
+msgstr "載入每個物件的耗材識別碼"
 
 msgid "Allow multiple color on one plate"
-msgstr ""
+msgstr "允許同塊板上使用多色列印"
 
 msgid "If enabled, the arrange will allow multiple color on one plate"
-msgstr ""
+msgstr "若啟用，佈局將允許同一板上使用多色列印"
 
 msgid "Allow rotatations when arrange"
-msgstr ""
+msgstr "允許在排列時進行旋轉調整"
 
 msgid "If enabled, the arrange will allow rotations when place object"
-msgstr ""
+msgstr "若啟用，物件排列時將允許旋轉調整"
 
 msgid "Avoid extrusion calibrate region when doing arrange"
-msgstr ""
+msgstr "在排列物件時避開擠出校準區域"
 
 msgid ""
 "If enabled, the arrange will avoid extrusion calibrate region when place "
 "object"
-msgstr ""
+msgstr "若啟用，物件排列時將避開擠出校準區域"
 
 msgid "Skip modified gcodes in 3mf"
-msgstr ""
+msgstr "忽略 3MF 檔案內已修改的 G-code"
 
 msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
-msgstr ""
+msgstr "忽略 3MF 檔案內來自印表機或耗材預設的已修改 G-code"
 
 msgid "MakerLab name"
-msgstr ""
+msgstr "MakerLab 名稱"
 
 msgid "MakerLab name to generate this 3mf"
-msgstr ""
+msgstr "生成此 3MF 檔案時所使用的 MakerLab 名稱"
 
 msgid "MakerLab version"
-msgstr ""
+msgstr "MakerLab 版本"
 
 msgid "MakerLab version to generate this 3mf"
-msgstr ""
+msgstr "生成此 3MF 檔案時所使用的 MakerLab 版本"
 
 msgid "metadata name list"
-msgstr ""
+msgstr "中繼資料名稱清單"
 
 msgid "metadata name list added into 3mf"
-msgstr ""
+msgstr "新增至 3MF 檔案的中繼資料名稱清單"
 
 msgid "metadata value list"
-msgstr ""
+msgstr "中繼資料值清單"
 
 msgid "metadata value list added into 3mf"
-msgstr ""
+msgstr "新增至 3MF 檔案的中繼資料值清單"
 
 msgid "Allow 3mf with newer version to be sliced"
-msgstr ""
+msgstr "允許對較新版本的 3MF 進行切片處理"
 
 msgid "Current z-hop"
 msgstr "當前 Z 抬升高度"
@@ -15605,10 +15615,10 @@ msgid "Network Test"
 msgstr "網路測試"
 
 msgid "Start Test Multi-Thread"
-msgstr "開始多續測試"
+msgstr "啟動多執行緒測試"
 
 msgid "Start Test Single-Thread"
-msgstr "開始單續測試"
+msgstr "啟動單執行緒測試"
 
 msgid "Export Log"
 msgstr "匯出記錄"
@@ -16587,45 +16597,45 @@ msgid "Head diameter"
 msgstr "頭直徑"
 
 msgid "Max angle"
-msgstr ""
+msgstr "最大角度"
 
 msgid "Detection radius"
-msgstr ""
+msgstr "偵測範圍"
 
 msgid "Remove selected points"
 msgstr "移除選定的點"
 
 msgid "Remove all"
-msgstr ""
+msgstr "刪除全部"
 
 msgid "Auto-generate points"
 msgstr "自動產生點"
 
 msgid "Add a brim ear"
-msgstr ""
+msgstr "添加邊緣支撐 (Brim)"
 
 msgid "Delete a brim ear"
-msgstr ""
+msgstr "刪除邊緣支撐 (Brim)"
 
 msgid "Adjust section view"
-msgstr ""
+msgstr "調整截圖視角"
 
 msgid ""
 "Warning: The brim type is not set to \"painted\",the brim ears will not take "
 "effect !"
-msgstr ""
+msgstr "警告：邊緣類型未設置「上色」，因此邊緣支撐 (Brim) 不會生效！"
 
 msgid "Set the brim type to \"painted\""
-msgstr ""
+msgstr "將邊緣類型設置為「上色」。"
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " 無效的邊緣支撐 (Brim)"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "邊緣支撐 (Brim)"
 
 msgid "Please select single object."
-msgstr ""
+msgstr "請選擇一個物件。"
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -16714,7 +16724,7 @@ msgid ""
 "the surface quality of your overhangs?"
 msgstr ""
 "奇數反向\n"
-"你知道嗎？<b>奇數反向</b> 功能能大幅提升懸空結構的表面品質 "
+"你知道嗎？<b>奇數反向</b> 功能能大幅提升懸空結構的表面品質。"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -16907,7 +16917,7 @@ msgid ""
 "print speed. Check them out!"
 msgstr ""
 "支撐類型\n"
-"你知道嗎？有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，\n"
+"你知道嗎？有多種可選的支撐類型，有機樹狀支撐非常適合人物/動物模型，\n"
 "同時可以節線材並提高列印速度。試試看！"
 
 #: resources/data/hints.ini: [hint:Printing Silk Filament]

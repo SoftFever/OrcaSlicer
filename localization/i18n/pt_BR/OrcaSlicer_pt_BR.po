@@ -14486,7 +14486,7 @@ msgstr ""
 "estilo híbrido criará uma estrutura semelhante ao suporte normal em grandes "
 "saliências planas."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr ""
 
 msgid "Snug"
