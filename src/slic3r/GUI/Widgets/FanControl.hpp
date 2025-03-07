@@ -133,6 +133,7 @@ protected:
     wxStaticText* m_static_name{ nullptr };
     int m_fan_id;
 
+    ScalableBitmap* m_bitmap_fan{ nullptr };
     ScalableBitmap* m_bitmap_toggle_off{ nullptr };
     ScalableBitmap* m_bitmap_toggle_on{ nullptr };
 
@@ -154,6 +155,7 @@ protected:
     std::shared_ptr<FanControlNew> token;
 
 public:
+    wxStaticBitmap* m_static_bitmap_fan { nullptr};
     wxStaticBitmap* m_switch_button{ nullptr };
     void update_obj_state(bool stat) { m_update_already = stat; };
     void update_fan_data(const AirDuctData& data) { m_fan_data = data; };
@@ -171,6 +173,8 @@ public:
     void update_mode();
     void on_left_down(wxMouseEvent& event);
     void on_mode_change(wxMouseEvent& event);
+
+    void msw_rescale();
 };
 
 
@@ -207,9 +211,6 @@ private:
     int m_fan_set_time_out{ 0 };
 
     std::map<int, bool> m_duct_ctrl;
-
-    std::map<int, FanControlNew*> m_duct_fans_list;
-    std::map<int, FanControlNew*> m_duct_doors_list;
 
     Button* m_button_refresh;
     wxStaticText* m_cooling_text;
@@ -248,6 +249,8 @@ public:
     void         post_event(int fan_type, wxString speed);
     void         on_show(wxShowEvent& evt);
     void         command_control_air_duct(int mode_id);
+
+    void         msw_rescale();
 };
 wxDECLARE_EVENT(EVT_FAN_SWITCH_ON, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FAN_SWITCH_OFF, wxCommandEvent);

@@ -260,12 +260,19 @@ class SendModeSwitchButton : public wxPanel
 public:
     SendModeSwitchButton(wxWindow *parent, wxString mode, bool sel);
     ~SendModeSwitchButton(){};
-    void OnPaint(wxPaintEvent &event);
-    void render(wxDC &dc);
-    void on_left_down(wxMouseEvent &evt);
-    void doRender(wxDC &dc);
+
+public:
+    void msw_rescale();
     void setSelected(bool selected);
     bool isSelected(){return is_selected;};
+
+private:
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void on_left_down(wxMouseEvent& evt);
+    void doRender(wxDC& dc);
+
+private:
     bool is_selected {false};
     ScalableBitmap m_img_selected;
     ScalableBitmap m_img_unselected;

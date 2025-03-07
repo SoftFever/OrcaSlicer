@@ -329,6 +329,9 @@ void FanOperate::doRender(wxDC& dc)
 }
 
 void FanOperate::msw_rescale() {
+    m_bitmap_add.msw_rescale();
+    m_bitmap_decrease.msw_rescale();
+    Refresh();
 }
 
 static void nop_deleter_fan_control(FanControlNew* ){}
@@ -343,7 +346,7 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
 {
     SetMaxSize(wxSize(FromDIP(180), FromDIP(80)));
     SetMinSize(wxSize(FromDIP(180), FromDIP(80)));
-    auto m_bitmap_fan = new ScalableBitmap(this, "fan_icon", 20);
+    m_bitmap_fan = new ScalableBitmap(this, "fan_icon", 20);
     m_bitmap_toggle_off = new ScalableBitmap(this, "toggle_off", 16);
     m_bitmap_toggle_on = new ScalableBitmap(this, "toggle_on", 16);
 
@@ -357,7 +360,7 @@ FanControlNew::FanControlNew(wxWindow *parent, const AirDuctData &fan_data, int 
     wxBoxSizer* sizer_control_top = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_control_bottom = new wxBoxSizer(wxVERTICAL);
 
-    auto m_static_bitmap_fan = new wxStaticBitmap(this, wxID_ANY, m_bitmap_fan->bmp(), wxDefaultPosition, wxDefaultSize);
+    m_static_bitmap_fan = new wxStaticBitmap(this, wxID_ANY, m_bitmap_fan->bmp(), wxDefaultPosition, wxDefaultSize);
 
     m_static_name = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTER_HORIZONTAL);
     m_static_name->SetBackgroundColour(wxColour(248, 248, 248));
@@ -430,6 +433,28 @@ void FanControlNew::on_left_down(wxMouseEvent& evt)
     //auto tag_pos = m_fan_operate->ScreenToClient(mouse_pos);
     //evt.SetPosition(tag_pos);
     m_fan_operate->on_left_down(evt);
+}
+
+void FanControlNew::msw_rescale()
+{
+    m_bitmap_fan->msw_rescale();
+    m_static_bitmap_fan->SetBitmap(m_bitmap_fan->bmp());
+
+    m_bitmap_toggle_off->msw_rescale();
+    m_bitmap_toggle_on->msw_rescale();
+    if (m_switch_fan)
+    {
+        m_switch_button->SetBitmap(m_bitmap_toggle_on->bmp());
+    }
+    else
+    {
+        m_switch_button->SetBitmap(m_bitmap_toggle_off->bmp());
+    }
+
+    m_fan_operate->msw_rescale();
+
+    Layout();
+    Refresh();
 }
 
 void FanControlNew::command_control_fan()
@@ -889,6 +914,19 @@ void FanControlPopupNew::command_control_air_duct(int mode_id)
                 this->Refresh();
             }
          });
+    }
+}
+
+void FanControlPopupNew::msw_rescale()
+{
+    for (auto btn : m_mode_switch_btn_list)
+    {
+        btn->msw_rescale();
+    }
+
+    for (auto fan : m_fan_control_list)
+    {
+        fan.second->msw_rescale();
     }
 }
 

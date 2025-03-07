@@ -3131,7 +3131,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         if (m_fan_panel->IsShown()) {
             m_fan_panel->Hide();
         }
-        if (m_fan_control_popup && m_fan_control_popup->Show())
+        if (m_fan_control_popup && m_fan_control_popup->IsShown())
             m_fan_control_popup->Hide();
     }
 
@@ -5256,6 +5256,10 @@ void StatusPanel::msw_rescale()
 
     m_switch_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_fan->Rescale();
+    if (m_fan_control_popup)
+    {
+        m_fan_control_popup->msw_rescale();
+    }
 
     //m_switch_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     //m_switch_fan->Rescale();

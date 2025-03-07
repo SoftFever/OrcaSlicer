@@ -5020,6 +5020,15 @@ void SendModeSwitchButton::on_left_down(wxMouseEvent &evt)
    setSelected(!is_selected);
 }
 
+void SendModeSwitchButton::msw_rescale()
+{
+    m_img_selected.msw_rescale();
+    m_img_unselected.msw_rescale();
+    m_img_selected_tag.msw_rescale();
+    m_img_unselected_tag.msw_rescale();
+    Refresh();
+}
+
 void SendModeSwitchButton::setSelected(bool selected)
 {
     if (is_selected != selected)
