@@ -1084,7 +1084,10 @@ void AMSControl::UpdateAms(const std::string& series_name, std::vector<AMSinfo> 
     }
 
     /*update ams extruder*/
-    m_extruder->updateNozzleNum(m_extder_data.total_extder_count, series_name);
+    if (m_extruder->updateNozzleNum(m_extder_data.total_extder_count, series_name))
+    {
+        m_amswin->Layout();
+    }
 }
 
 void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)

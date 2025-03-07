@@ -157,7 +157,8 @@ enum FilamentStepType {
 #define AMS_REFRESH_SIZE wxSize(FromDIP(28), FromDIP(28))
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(29), FromDIP(37))
 #define AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE wxSize(FromDIP(13), FromDIP(36))
-#define AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE wxSize(FromDIP(18), FromDIP(36))
+#define AMS_EXTRUDER_SINGLE_NOZZLE_N_SIZE wxSize(FromDIP(18), FromDIP(36))
+#define AMS_EXTRUDER_SINGLE_NOZZLE_XP_SIZE wxSize(FromDIP(25), FromDIP(36))
 #define AMS_BODY_SIZE wxSize(FromDIP(36), FromDIP(55))
 #define AMS_DOWN_ROAD_SIZE wxSize(FromDIP(568), FromDIP(10))
 
@@ -409,7 +410,7 @@ public:
     void msw_rescale();
     void has_ams(bool hams) {m_has_vams = hams; Refresh();};
     void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
-    void updateNozzleNum(int nozzle_num, const std::string& series_name = string());
+    bool updateNozzleNum(int nozzle_num, const std::string& series_name = string());
 
     bool            m_none_ams_mode{true};
     bool            m_has_vams{false};
