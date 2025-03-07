@@ -894,6 +894,7 @@ public:
     std::vector<int> stage_list_info;
     int stage_curr = 0;
     int m_push_count = 0;
+    int m_full_msg_count = 0; /*the full message count, there are full or diff messages from network*/
     bool calibration_done { false };
 
     bool is_axis_at_home(std::string axis);

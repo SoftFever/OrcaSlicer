@@ -633,6 +633,7 @@ void AMSControl::CreateAmsDoubleNozzle()
     }
     if (m_ext_info.size() <= 1) {
         BOOST_LOG_TRIVIAL(trace) << "vt_slot empty!";
+        assert(0);
         return;
     }
     AMSinfo ext_info;
