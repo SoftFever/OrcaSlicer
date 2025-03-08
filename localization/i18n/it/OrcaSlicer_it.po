@@ -14769,7 +14769,7 @@ msgstr ""
 "(predefinito organico), mentre lo stile ibrido creerà una struttura simile "
 "al supporto normale sotto grandi sporgenze piatte."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Predefinito (Griglia/Organico)"
 
 msgid "Snug"
