@@ -477,30 +477,30 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     }
 
     if (0) {
-        for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(step)) {
-            Polyline line;
-            line.append(Point(x, pp_bbox.min(1)));
-            line.append(Point(x, pp_bbox.max(1)));
+    for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(step)) {
+		Polyline line;
+		line.append(Point(x, pp_bbox.min(1)));
+		line.append(Point(x, pp_bbox.max(1)));
 
-            if ((count % 5) == 0)
-                axes_lines_bolder.push_back(line);
-            else
-                axes_lines.push_back(line);
-            count++;
-        }
-        count = 0;
-        for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(step)) {
-            Polyline line;
-            line.append(Point(pp_bbox.min(0), y));
-            line.append(Point(pp_bbox.max(0), y));
-            axes_lines.push_back(line);
+		if ( (count % 5) == 0 )
+			axes_lines_bolder.push_back(line);
+		else
+			axes_lines.push_back(line);
+		count ++;
+	}
+	count = 0;
+	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(step)) {
+		Polyline line;
+		line.append(Point(pp_bbox.min(0), y));
+		line.append(Point(pp_bbox.max(0), y));
+		axes_lines.push_back(line);
 
-            if ((count % 5) == 0)
-                axes_lines_bolder.push_back(line);
-            else
-                axes_lines.push_back(line);
-            count++;
-        }
+		if ( (count % 5) == 0 )
+			axes_lines_bolder.push_back(line);
+		else
+			axes_lines.push_back(line);
+		count ++;
+	}
     }
 
     // ORCA draw grid lines relative to origin 
