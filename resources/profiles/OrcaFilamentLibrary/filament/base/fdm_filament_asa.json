@@ -5,7 +5,7 @@
     "from": "system",
     "instantiation": "false",
     "activate_air_filtration": [
-        "1"
+        "0"
     ],
     "supertack_plate_temp": [
         "0"
@@ -20,10 +20,10 @@
         "0"
     ],
     "eng_plate_temp": [
-        "90"
+        "100"
     ],
     "eng_plate_temp_initial_layer": [
-        "90"
+        "105"
     ],
     "fan_cooling_layer_time": [
         "35"
@@ -47,10 +47,10 @@
         "ASA"
     ],
     "hot_plate_temp": [
-        "90"
+        "100"
     ],
     "hot_plate_temp_initial_layer": [
-        "90"
+        "105"
     ],
     "nozzle_temperature": [
         "260"
@@ -77,15 +77,18 @@
         "3"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "textured_plate_temp": [
-        "90"
+        "100"
     ],
     "textured_plate_temp_initial_layer": [
-        "90"
+        "105"
     ],
     "filament_flow_ratio": [
         "0.926"
+    ],
+    "temperature_vitrification": [
+        "110"
     ]
 }
