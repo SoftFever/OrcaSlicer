@@ -1321,7 +1321,8 @@ int CLI::run(int argc, char **argv)
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
-    int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 0, new_extruder_count = 0;
+    //int arrange_option;
+    int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false;
     Semver file_version;
@@ -3449,6 +3450,72 @@ int CLI::run(int argc, char **argv)
         //plate_stride = partplate_list.plate_stride_x();
     }
 
+    //process some old params
+    if (is_bbl_3mf && keep_old_params) {
+        std::vector<std::string> different_keys;
+        Slic3r::unescape_strings_cstyle(different_settings[0], different_keys);
+        std::set<std::string> different_key_set(different_keys.begin(), different_keys.end());
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, process old params for support and wipe tower")%__LINE__;
+
+        //wipe tower params process
+        ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
+        prime_tower_rib_wall_option->value = false;
+
+        ConfigOptionPercent *prime_tower_infill_gap_option = m_print_config.option<ConfigOptionPercent>("prime_tower_infill_gap", true);
+        prime_tower_infill_gap_option->value = 100;
+
+        ConfigOptionInts *filament_adhesiveness_category_option = m_print_config.option<ConfigOptionInts>("filament_adhesiveness_category", true);
+        std::vector<int>& filament_adhesiveness_category_values = filament_adhesiveness_category_option->values;
+        filament_adhesiveness_category_values.resize(filament_count);
+        for (int index = 0; index < filament_count; index++)
+            filament_adhesiveness_category_values[index] = 100;
+
+        ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+        std::vector<double>& filament_prime_volume_values = filament_prime_volume_option->values;
+        filament_prime_volume_values.resize(filament_count);
+        for (int index = 0; index < filament_count; index++) {
+            if (old_filament_prime_volume != 0.f)
+                filament_prime_volume_values[index] = old_filament_prime_volume;
+            else
+                filament_prime_volume_values[index] = filament_prime_volume_values[0];
+        }
+
+        //support params process
+        ConfigOptionBool *enable_support_option = m_print_config.option<ConfigOptionBool>("enable_support", true);
+        ConfigOptionEnum<SupportType>* support_type_option  = m_print_config.option<ConfigOptionEnum<SupportType>>("support_type", true);
+        ConfigOptionEnum<SupportMaterialStyle>* support_style_option = m_print_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
+        ConfigOptionFloat *support_top_z_distance_option = m_print_config.option<ConfigOptionFloat>("support_top_z_distance", true);
+        if (support_type_option->value == stTreeAuto)
+        {
+            if (different_key_set.find("support_type") == different_key_set.end())
+                support_type_option->value = stNormalAuto;
+        }
+
+        //traverse each object one by one
+        size_t num_objects = m_models[0].objects.size();
+        for (int i = 0; i < num_objects; ++i) {
+            ModelObject* object = m_models[0].objects[i];
+            DynamicPrintConfig object_config = object->config.get();
+            ConfigOptionBool *obj_enable_support_option = object_config.option<ConfigOptionBool>("enable_support");
+            if (enable_support_option->value || (obj_enable_support_option && obj_enable_support_option->value)) {
+                ConfigOptionEnum<SupportType>* obj_support_type_option  = object_config.option<ConfigOptionEnum<SupportType>>("support_type");
+                ConfigOptionEnum<SupportMaterialStyle>* obj_support_style_option = object_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style");
+                ConfigOptionFloat *obj_support_top_z_distance_option = object_config.option<ConfigOptionFloat>("support_top_z_distance");
+
+                SupportType obj_support_type = obj_support_type_option? obj_support_type_option->value: support_type_option->value;
+                SupportMaterialStyle obj_support_style =  obj_support_style_option? obj_support_style_option->value: support_style_option->value;
+                if ((obj_support_type == stTreeAuto) && (obj_support_style == smsDefault ))
+                {
+                    float support_top_z_distance = obj_support_top_z_distance_option? obj_support_top_z_distance_option->value: support_top_z_distance_option->value;
+                    if (!object->has_custom_layering() && (support_top_z_distance == 0)) {
+                        obj_support_style_option = object_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
+                        obj_support_style_option->value = smsTreeOrganic;
+                    }
+                }
+            }
+        }
+    }
+
     auto get_print_sequence = [](Slic3r::GUI::PartPlate* plate, DynamicPrintConfig& print_config, bool &is_seq_print) {
         PrintSequence curr_plate_seq = plate->get_print_seq();
         if (curr_plate_seq == PrintSequence::ByDefault) {
@@ -3464,7 +3531,7 @@ int CLI::run(int argc, char **argv)
         }
     };
 
-    auto check_plate_wipe_tower = [get_print_sequence, is_smooth_timelapse](Slic3r::GUI::PartPlate* plate, int plate_index, DynamicPrintConfig& print_config, plate_obj_size_info_t &plate_obj_size_info) {
+    auto check_plate_wipe_tower = [get_print_sequence, is_smooth_timelapse, new_extruder_count](Slic3r::GUI::PartPlate* plate, int plate_index, DynamicPrintConfig& print_config, plate_obj_size_info_t &plate_obj_size_info) {
         plate_obj_size_info.obj_bbox= plate->get_objects_bounding_box();
         BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, object bbox: min {%2%, %3%, %4%} - max {%5%, %6%, %7%}")
                     %(plate_index+1) %plate_obj_size_info.obj_bbox.min.x() % plate_obj_size_info.obj_bbox.min.y() % plate_obj_size_info.obj_bbox.min.z() %plate_obj_size_info.obj_bbox.max.x() % plate_obj_size_info.obj_bbox.max.y() % plate_obj_size_info.obj_bbox.max.z();
@@ -3513,7 +3580,7 @@ int CLI::run(int argc, char **argv)
         ConfigOptionFloats* volume_option = print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
         std::vector<double> wipe_volume = volume_option->values;
 
-        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), filaments_cnt);
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
         Vec3d origin = plate->get_origin();
@@ -3752,71 +3819,6 @@ int CLI::run(int argc, char **argv)
                 downward_compatible_machines.push_back(plate_info.printer_name);
             }
             sliced_info.downward_machines = downward_compatible_machines;
-        }
-    }
-
-    //process some old params
-    if (is_bbl_3mf && keep_old_params) {
-        std::vector<std::string> different_keys;
-        Slic3r::unescape_strings_cstyle(different_settings[0], different_keys);
-        std::set<std::string> different_key_set(different_keys.begin(), different_keys.end());
-
-        //wipe tower params process
-        ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
-        prime_tower_rib_wall_option->value = false;
-
-        ConfigOptionPercent *prime_tower_infill_gap_option = m_print_config.option<ConfigOptionPercent>("prime_tower_infill_gap", true);
-        prime_tower_infill_gap_option->value = 100;
-
-        ConfigOptionInts *filament_adhesiveness_category_option = m_print_config.option<ConfigOptionInts>("filament_adhesiveness_category", true);
-        std::vector<int>& filament_adhesiveness_category_values = filament_adhesiveness_category_option->values;
-        filament_adhesiveness_category_values.resize(filament_count);
-        for (int index = 0; index < filament_count; index++)
-            filament_adhesiveness_category_values[index] = 100;
-
-        ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
-        std::vector<double>& filament_prime_volume_values = filament_prime_volume_option->values;
-        filament_prime_volume_values.resize(filament_count);
-        for (int index = 0; index < filament_count; index++) {
-            if (old_filament_prime_volume != 0.f)
-                filament_prime_volume_values[index] = old_filament_prime_volume;
-            else
-                filament_prime_volume_values[index] = filament_prime_volume_values[0];
-        }
-
-        //support params process
-        ConfigOptionBool *enable_support_option = m_print_config.option<ConfigOptionBool>("enable_support", true);
-        ConfigOptionEnum<SupportType>* support_type_option  = m_print_config.option<ConfigOptionEnum<SupportType>>("support_type", true);
-        ConfigOptionEnum<SupportMaterialStyle>* support_style_option = m_print_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
-        ConfigOptionFloat *support_top_z_distance_option = m_print_config.option<ConfigOptionFloat>("support_top_z_distance", true);
-        if (support_type_option->value == stTreeAuto)
-        {
-            if (different_key_set.find("support_type") == different_key_set.end())
-                support_type_option->value = stNormalAuto;
-        }
-
-        //traverse each object one by one
-        size_t num_objects = m_models[0].objects.size();
-        for (int i = 0; i < num_objects; ++i) {
-            ModelObject* object = m_models[0].objects[i];
-            DynamicPrintConfig object_config = object->config.get();
-            ConfigOptionBool *obj_enable_support_option = object_config.option<ConfigOptionBool>("enable_support");
-            if (enable_support_option->value || (obj_enable_support_option && obj_enable_support_option->value)) {
-                ConfigOptionEnum<SupportType>* obj_support_type_option  = object_config.option<ConfigOptionEnum<SupportType>>("support_type");
-                ConfigOptionEnum<SupportMaterialStyle>* obj_support_style_option = object_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style");
-                ConfigOptionFloat *obj_support_top_z_distance_option = object_config.option<ConfigOptionFloat>("support_top_z_distance");
-
-                SupportType obj_support_type = obj_support_type_option? obj_support_type_option->value: support_type_option->value;
-                SupportMaterialStyle obj_support_style =  obj_support_style_option? obj_support_style_option->value: support_style_option->value;
-                if ((obj_support_type == stTreeAuto) && (obj_support_style == smsDefault ))
-                {
-                    float support_top_z_distance = obj_support_top_z_distance_option? obj_support_top_z_distance_option->value: support_top_z_distance_option->value;
-                    if (!object->has_custom_layering() && (support_top_z_distance == 0)) {
-                        obj_support_style_option = object_config.option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
-                        obj_support_style_option->value = smsTreeOrganic;
-                    }
-                }
-            }
         }
     }
 
@@ -4299,24 +4301,33 @@ int CLI::run(int argc, char **argv)
                         y = tower_margin;
                     }
 
-                    ConfigOptionFloat wt_x_opt(x);
-                    ConfigOptionFloat wt_y_opt(y);
-
                     //create the options using default if neccessary
                     ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
                     ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
                     ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
                     ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
                     ConfigOptionFloats *volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+                    ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
                     std::vector<double> wipe_volume   = volume_option->values;
 
-                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%") % width_option->value % rotation_angle_option->value % get_max_element(wipe_volume);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%, rib_wall %4%") % width_option->value % rotation_angle_option->value % get_max_element(wipe_volume) %prime_tower_rib_wall_option->value;
+
+                    ConfigOptionFloat wt_x_opt(x);
+                    ConfigOptionFloat wt_y_opt(y);
 
                     wipe_x_option->set_at(&wt_x_opt, i, 0);
                     wipe_y_option->set_at(&wt_y_opt, i, 0);
 
+                    Vec3d wipe_tower_size, wipe_tower_pos;
+                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, wipe_tower_pos, wipe_tower_size, new_extruder_count, assemble_plate.filaments_count, true);
 
-                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, assemble_plate.filaments_count, true);
+                    //update the new wp position
+                    wt_x_opt.value = wipe_tower_pos(0);
+                    wt_y_opt.value = wipe_tower_pos(1);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, after estimate_wipe_tower_polygon pos {%2%, %3%}, size {%4%, %5%}")%__LINE__ % wipe_tower_pos(0) % wipe_tower_pos(1) % wipe_tower_size(0) %wipe_tower_size(1);
+
+                    wipe_x_option->set_at(&wt_x_opt, i, 0);
+                    wipe_y_option->set_at(&wt_y_opt, i, 0);
 
                     wipe_tower_ap.bed_idx = i;
                     unselected.emplace_back(wipe_tower_ap);
@@ -4575,8 +4586,19 @@ int CLI::run(int argc, char **argv)
                                 wipe_y_option->set_at(&wt_y_opt, plate_index_valid, 0);
                             }
 
+                            Vec3d wipe_tower_size, wipe_tower_pos;
+                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size, new_extruder_count, extruder_size, true);
 
-                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, extruder_size, true);
+                            //update the new wp position
+                            if (bedid < plate_count) {
+                                wt_x_opt.value = wipe_tower_pos(0);
+                                wt_y_opt.value = wipe_tower_pos(1);
+
+                                wipe_x_option->set_at(&wt_x_opt, plate_index_valid, 0);
+                                wipe_y_option->set_at(&wt_y_opt, plate_index_valid, 0);
+
+                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, after estimate_wipe_tower_polygon,  pos {%2%, %3%}, size {%4%, %5%}, plate %6%")%__LINE__ % wipe_tower_pos(0) % wipe_tower_pos(1) % wipe_tower_size(0) %wipe_tower_size(1) %bedid;
+                            }
 
                             wipe_tower_ap.bed_idx = bedid;
                             unselected.emplace_back(wipe_tower_ap);
@@ -4666,7 +4688,7 @@ int CLI::run(int argc, char **argv)
 
                             //float depth = v * (filaments_cnt - 1) / (layer_height * w);
 
-                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), filaments_cnt);
+                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt);
                             Vec3d plate_origin = cur_plate->get_origin();
                             int plate_width, plate_depth, plate_height;
                             partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
