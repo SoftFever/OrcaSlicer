@@ -322,7 +322,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->opt_bool("alternate_extra_wall") &&
         (config->opt_enum<EnsureVerticalShellThickness>("ensure_vertical_shell_thickness") == evstAll)) {
-        wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All. "));
+        wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All."));
 
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"

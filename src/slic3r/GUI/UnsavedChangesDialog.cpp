@@ -1418,7 +1418,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
 
     wxString action_msg;
     if (dependent_presets) {
-        action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". "), dependent_presets->get_edited_preset().name);
+        action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\"."), dependent_presets->get_edited_preset().name);
         if (!m_transfer_btn) {
             action_msg += _L("\nYou can save or discard the preset values you have modified.");
         } else {
