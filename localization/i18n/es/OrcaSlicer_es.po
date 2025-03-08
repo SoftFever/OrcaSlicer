@@ -3790,10 +3790,10 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr ""
 "Perímetro adicional alternado no funciona bien cuando \"Garantizar el grosor "
-"vertical de las cubiertas\" se establece en Todos. "
+"vertical de las cubiertas\" se establece en Todos."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -5067,16 +5067,19 @@ msgid "&Help"
 msgstr "Ayuda (&H)"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Existe un archivo con el mismo nombre: %s, ¿desea sobreescribirlo?."
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr ""
 "Existe una configuración con el mismo nombre: %s, ¿desea sobreescribirla?."
 
 msgid "Overwrite file"
 msgstr "Sobrescribir archivo"
+
+msgid "Overwrite config"
+msgstr "Sobrescribir configuración"
 
 msgid "Yes to All"
 msgstr "Sí a todo"
@@ -6705,11 +6708,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Bandeja% d: %s no es recomendable ser usada para imprimir el filamento "
+"Bandeja %d: %s no es recomendable ser usada para imprimir el filamento "
 "%s(%s). Si desea imprimir de todos modos, por favor, indique una temperatura "
 "de bandeja distinta a 0 en la configuración del filamento."
 
@@ -8511,7 +8514,7 @@ msgstr ""
 "los siguientes cambios no guardados:"
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
+msgid "You have changed some settings of preset \"%1%\"."
 msgstr "Ha cambiado algunos ajustes del perfil \"%1%\"."
 
 msgid ""
@@ -10500,7 +10503,7 @@ msgstr "Perímetros extra en voladizos"
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr ""
 "Crear perímetros adicionales sobre voladizos pronunciados y áreas donde los "
 "puentes no pueden ser anclados."
@@ -12406,7 +12409,7 @@ msgstr "Capas y Perímetros"
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 "Filtra los huecos menores que el umbral especificado (en mm). Este ajuste "
 "afecta los rellenos superior, inferior e interno, así como al relleno de "
@@ -14049,7 +14052,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 "Longitud mínima de extrusión de filamento en mm al imprimir el faldón. Cero "
 "significa que esta característica está desactivada.\n"
@@ -14117,8 +14120,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "Suavizado XY Máximo"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "Distancia máxima a desplazar los puntos en XY para intentar conseguir una "
@@ -14128,7 +14132,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -14139,7 +14143,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -14535,7 +14539,7 @@ msgstr ""
 "mientras que el estilo Híbrido creará una estructura similar a la del "
 "soporte Normal bajo grandes voladizos planos."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "Por defecto (Rejilla/Orgánico)"
 
 msgid "Snug"
@@ -15582,7 +15586,7 @@ msgstr ""
 "Ajusta el nivel de registro de depuración. 0:fatal, 1:error, 2:advertencia, "
 "3:información, 4:depuración, 5:rastreo\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"

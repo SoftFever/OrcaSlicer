@@ -3647,7 +3647,7 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr ""
 
 msgid ""
@@ -4898,15 +4898,18 @@ msgid "&Help"
 msgstr "&Help"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
-msgstr "A file exists with the same name: %s. Do you want to override it?"
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
+msgstr "A file exists with the same name: %s. Do you want to overwrite it?"
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
-msgstr "A config exists with the same name: %s. Do you want to override it?"
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
+msgstr "A config exists with the same name: %s. Do you want to overwrite it?"
 
 msgid "Overwrite file"
 msgstr "Overwrite file"
+
+msgid "Overwrite config"
+msgstr "Overwrite config"
 
 msgid "Yes to All"
 msgstr "Yes to All"
@@ -6466,11 +6469,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Plate% d: %s is not suggested for use printing filament %s(%s). If you still "
+"Plate %d: %s is not suggested for use printing filament %s(%s). If you still "
 "want to do this print job, please set this filament's bed temperature to a "
 "number that is not zero."
 
@@ -8193,8 +8196,8 @@ msgstr ""
 "contains the following unsaved changes:"
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
-msgstr "You have changed some settings of preset \"%1%\". "
+msgid "You have changed some settings of preset \"%1%\"."
+msgstr "You have changed some settings of preset \"%1%\"."
 
 msgid ""
 "\n"
@@ -9989,7 +9992,7 @@ msgstr ""
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr ""
 
 msgid "Reverse on even"
@@ -11546,7 +11549,7 @@ msgstr "Layers and Perimeters"
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 
 msgid ""
@@ -12921,7 +12924,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 
 msgid ""
@@ -12980,8 +12983,9 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "Max XY Smoothing"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "Maximum distance to move points in XY to try to achieve a smooth spiral. If "
@@ -12990,7 +12994,7 @@ msgstr ""
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from "
@@ -13001,7 +13005,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -13358,7 +13362,7 @@ msgid ""
 "overhangs."
 msgstr ""
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr ""
 
 msgid "Snug"
@@ -14252,7 +14256,7 @@ msgstr ""
 "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"
