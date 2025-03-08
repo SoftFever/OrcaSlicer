@@ -2412,9 +2412,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             during_print_exhaust_fan_speed = std::max(during_print_exhaust_fan_speed,
                                                       m_config.during_print_exhaust_fan_speed.get_at(extruder.id()));
     }
-    // ORCA: If the printer profile doesnt support air filtration, ignore filament setting
-    if(!m_config.support_air_filtration)
-        activate_air_filtration = false;
     if (activate_air_filtration)
         file.write(m_writer.set_exhaust_fan(during_print_exhaust_fan_speed, true));
 

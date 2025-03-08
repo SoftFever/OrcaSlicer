@@ -3659,7 +3659,7 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr ""
 
 msgid ""
@@ -8226,8 +8226,8 @@ msgstr ""
 "innehåller följande osparade ändringar:"
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
-msgstr "You have changed some settings of preset \"%1%\". "
+msgid "You have changed some settings of preset \"%1%\"."
+msgstr "You have changed some settings of preset \"%1%\"."
 
 msgid ""
 "\n"
@@ -10011,7 +10011,7 @@ msgstr ""
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr ""
 
 msgid "Reverse on even"
@@ -11554,7 +11554,7 @@ msgstr "Lager och perimetrar"
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 
 msgid ""
@@ -12931,7 +12931,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 
 msgid ""
@@ -13366,7 +13366,7 @@ msgid ""
 "overhangs."
 msgstr ""
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr ""
 
 msgid "Snug"

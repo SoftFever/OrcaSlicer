@@ -6,7 +6,7 @@
     "from": "system",
     "instantiation": "false",
     "activate_air_filtration": [
-        "1"
+        "0"
     ],
     "supertack_plate_temp": [
         "0"
@@ -81,7 +81,7 @@
         "2"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "temperature_vitrification": [
         "210"
