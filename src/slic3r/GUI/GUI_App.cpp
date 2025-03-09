@@ -791,17 +791,6 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
-    if (app_config->get("sync_user_preset") == "true") {
-        // BBS loading user preset
-        // Always async, not such startup step
-        // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
-        // scrn->SetText(_L("Loading user presets..."));
-        if (m_agent) { start_sync_user_preset(); }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
-    } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
-    }
-
     m_open_method = "double_click";
     bool switch_to_3d = false;
 
@@ -955,6 +944,20 @@ void GUI_App::post_init()
         else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<<":networking plugin updated failed";
         }
+    }
+
+    // Start preset sync after project opened, otherwise we could have preset change during project opening which could cause crash 
+    if (app_config->get("sync_user_preset") == "true") {
+        // BBS loading user preset
+        // Always async, not such startup step
+        // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
+        // scrn->SetText(_L("Loading user presets..."));
+        if (m_agent) {
+            start_sync_user_preset();
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
     // The extra CallAfter() is needed because of Mac, where this is the only way
@@ -2125,7 +2128,8 @@ bool GUI_App::OnInit()
 {
     try {
         return on_init_inner();
-    } catch (const std::exception&) {
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(fatal) << "OnInit Got Fatal error: " << e.what();
         generic_exception_handle();
         return false;
     }
@@ -2200,6 +2204,8 @@ bool GUI_App::on_init_inner()
 #if BBL_RELEASE_TO_PUBLIC
     wxLog::SetLogLevel(wxLOG_Message);
 #endif
+
+    ::Label::initSysFont();
 
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();

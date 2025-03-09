@@ -144,7 +144,7 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                     double t1 = std::max(a0, a1);
 
                     if (t0 < 1.0) {
-                        auto p0     = curr.position + t0 * (next.position - curr.position);
+                        Vec2d p0     = curr.position + t0 * (next.position - curr.position);
                         auto [p0_dist, p0_near_l,
                               p0_x] = unscaled_prev_layer.template distance_from_lines_extra<SIGNED_DISTANCE>(p0.cast<AABBScalar>());
                         ExtendedPoint new_p{};
@@ -161,7 +161,7 @@ std::vector<ExtendedPoint> estimate_points_properties(const POINTS              
                         }
                     }
                     if (t1 > 0.0) {
-                        auto p1     = curr.position + t1 * (next.position - curr.position);
+                        Vec2d p1     = curr.position + t1 * (next.position - curr.position);
                         auto [p1_dist, p1_near_l,
                               p1_x] = unscaled_prev_layer.template distance_from_lines_extra<SIGNED_DISTANCE>(p1.cast<AABBScalar>());
                         ExtendedPoint new_p{};

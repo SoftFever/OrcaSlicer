@@ -322,7 +322,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->opt_bool("alternate_extra_wall") &&
         (config->opt_enum<EnsureVerticalShellThickness>("ensure_vertical_shell_thickness") == evstAll)) {
-        wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All. "));
+        wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All."));
 
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"
@@ -426,7 +426,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         auto   support_type = config->opt_enum<SupportType>("support_type");
         auto   support_style = config->opt_enum<SupportMaterialStyle>("support_style");
         std::set<int> enum_set_normal = { smsDefault, smsGrid, smsSnug };
-        std::set<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic };
+        std::set<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic };
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         if (set.find(support_style) == set.end()) {
             DynamicPrintConfig new_conf = *config;
@@ -527,19 +527,22 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
     toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"));
-    bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
-    bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
-    bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
-    // solid_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "internal_solid_infill_pattern", "solid_infill_filament"})
-        toggle_field(el, has_solid_infill);
+    toggle_line("spiral_starting_flow_ratio", has_spiral_vase);
+    toggle_line("spiral_finishing_flow_ratio", has_spiral_vase);
+    bool has_top_shell    = config->opt_int("top_shell_layers") > 0;
+    bool has_bottom_shell = config->opt_int("bottom_shell_layers") > 0;
+    bool has_solid_infill = has_top_shell || has_bottom_shell;
+    toggle_field("top_surface_pattern", has_top_shell);
+    toggle_field("bottom_surface_pattern", has_bottom_shell);
     
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
+        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","internal_bridge_angle",
+        "solid_infill_direction", "rotate_solid_infill_direction", "internal_solid_infill_pattern", "solid_infill_filament",
+        })
         toggle_field(el, have_infill || has_solid_infill);
     
-    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
-    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_solid_infill);
+    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell);
+    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell);
 
     toggle_field("wall_direction", !has_spiral_vase);
     
@@ -547,7 +550,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("gap_infill_speed", have_perimeters);
     
     for (auto el : { "top_surface_line_width", "top_surface_speed" })
-        toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
+        toggle_field(el, has_top_shell || (has_spiral_vase && has_bottom_shell));
     
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     
@@ -562,12 +565,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    for (auto el : {"skirt_type", "skirt_distance", "skirt_start_angle", "draft_shield"})
-        toggle_field(el, have_skirt);
+    toggle_line("single_loop_draft_shield", have_skirt && config->opt_enum<DraftShield>("draft_shield") == dsEnabled); // ORCA: Display one wall draft shield if draft shield is enabled and skirt enabled
+    for (auto el : {"skirt_type","min_skirt_length", "skirt_distance", "skirt_start_angle","skirt_height","skirt_speed", "draft_shield", "single_loop_draft_shield"})
+        toggle_field(el, have_skirt);   
     
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim);
     toggle_field("brim_object_gap", have_brim);
-    bool have_brim_width = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim;
+    bool have_brim_width = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim &&
+                           config->opt_enum<BrimType>("brim_type") != btPainted;
     toggle_field("brim_width", have_brim_width);
     // wall_filament uses the same logic as in Print::extruders()
     toggle_field("wall_filament", have_perimeters || have_brim);
@@ -596,14 +601,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
         "bridge_no_support", "max_bridge_length", "support_top_z_distance", "support_bottom_z_distance",
         "support_type", "support_on_build_plate_only", "support_critical_regions_only","support_interface_not_for_body",
-        "support_object_xy_distance"/*, "independent_support_layer_height"*/})
+        "support_object_xy_distance","support_object_first_layer_gap"/*, "independent_support_layer_height"*/})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));
     toggle_field("support_threshold_overlap", config->opt_int("support_threshold_angle") == 0 && have_support_material && is_auto(support_type));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
     
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    bool support_is_normal_tree = support_is_tree && support_style != smsOrganic &&
+    bool support_is_normal_tree = support_is_tree && support_style != smsTreeOrganic &&
     // Orca: use organic as default
     support_style != smsDefault;
     bool support_is_organic = support_is_tree && !support_is_normal_tree;
@@ -611,10 +616,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter" })
         toggle_line(el, support_is_normal_tree);
     // settings specific to normal trees
-    for (auto el : {"tree_support_wall_count", "tree_support_auto_brim", "tree_support_brim_width", "tree_support_adaptive_layer_height"})
+    for (auto el : {"tree_support_auto_brim", "tree_support_brim_width", "tree_support_adaptive_layer_height"})
         toggle_line(el, support_is_normal_tree);
     // settings specific to organic trees
-    for (auto el : {"tree_support_branch_angle_organic", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic","tree_support_angle_slow","tree_support_tip_diameter", "tree_support_top_rate", "tree_support_branch_diameter_angle", "tree_support_branch_diameter_double_wall"})
+    for (auto el : {"tree_support_branch_angle_organic", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic","tree_support_angle_slow","tree_support_tip_diameter", "tree_support_top_rate", "tree_support_branch_diameter_angle"})
         toggle_line(el, support_is_organic);
     
     toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"));
@@ -782,6 +787,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
     toggle_line("interlocking_depth", use_beam_interlocking);
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
+
+    bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DLattice;
+    for (auto el : { "lattice_angle_1", "lattice_angle_2"})
+        toggle_line(el, lattice_options);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

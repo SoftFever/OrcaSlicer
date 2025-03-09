@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-while getopts ":dpa:snt:xbc:h" opt; do
+while getopts ":dpa:snt:xbc:hu" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -37,6 +37,9 @@ while getopts ":dpa:snt:xbc:h" opt; do
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
         ;;
+    u )
+        export BUILD_UNIVERSAL="1"
+        ;;
     h ) echo "Usage: ./build_release_macos.sh [-d]"
         echo "   -d: Build deps only"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
@@ -46,6 +49,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
         echo "   -x: Use Ninja CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
         echo "   -c: Set CMake build configuration, default is Release"
+        echo "   -u: Build universal binary (both arm64 and x86_64)"
         echo "   -1: Use single job for building"
         exit 0
         ;;
@@ -57,8 +61,16 @@ done
 # Set defaults
 
 if [ -z "$ARCH" ]; then
-  ARCH="$(uname -m)"
+  if [ "1." == "$BUILD_UNIVERSAL". ]; then
+    ARCH="universal"
+  else
+    ARCH="$(uname -m)"
+  fi
   export ARCH
+fi
+
+if [ "1." == "$BUILD_UNIVERSAL". ]; then
+  echo "Universal build enabled - will create a combined arm64/x86_64 binary"
 fi
 
 if [ -z "$BUILD_CONFIG" ]; then
@@ -205,16 +217,71 @@ function build_slicer() {
     # zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
 }
 
+function build_universal() {
+    echo "Building universal binary..."
+    # Save current ARCH
+    ORIGINAL_ARCH="$ARCH"
+    
+    # Build x86_64
+    ARCH="x86_64"
+    PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
+    DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
+    DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
+    build_deps
+    build_slicer
+    
+    # Build arm64
+    ARCH="arm64"
+    PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
+    DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
+    DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
+    build_deps
+    build_slicer
+    
+    # Restore original ARCH
+    ARCH="$ORIGINAL_ARCH"
+    PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
+    DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
+    DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
+    
+    # Create universal binary
+    echo "Creating universal binary..."
+    PROJECT_BUILD_DIR="$PROJECT_DIR/build_Universal"
+    mkdir -p "$PROJECT_BUILD_DIR/OrcaSlicer"
+    UNIVERSAL_APP="$PROJECT_BUILD_DIR/OrcaSlicer/Universal_OrcaSlicer.app"
+    rm -rf "$UNIVERSAL_APP"
+    cp -R "$PROJECT_DIR/build_x86_64/OrcaSlicer/OrcaSlicer.app" "$UNIVERSAL_APP"
+    
+    # Get the binary path inside the .app bundle
+    BINARY_PATH="Contents/MacOS/OrcaSlicer"
+    
+    # Create universal binary using lipo
+    lipo -create \
+        "$PROJECT_DIR/build_x86_64/OrcaSlicer/OrcaSlicer.app/$BINARY_PATH" \
+        "$PROJECT_DIR/build_arm64/OrcaSlicer/OrcaSlicer.app/$BINARY_PATH" \
+        -output "$UNIVERSAL_APP/$BINARY_PATH"
+        
+    echo "Universal binary created at $UNIVERSAL_APP"
+}
+
 case "${BUILD_TARGET}" in
     all)
-        build_deps
-        build_slicer
+        if [ "1." == "$BUILD_UNIVERSAL". ]; then
+            build_universal
+        else
+            build_deps
+            build_slicer
+        fi
         ;;
     deps)
         build_deps
         ;;
     slicer)
-        build_slicer
+        if [ "1." == "$BUILD_UNIVERSAL". ]; then
+            build_universal
+        else
+            build_slicer
+        fi
         ;;
     *)
         echo "Unknown target: $BUILD_TARGET. Available targets: deps, slicer, all."

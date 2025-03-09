@@ -50,7 +50,7 @@ enum class NoiseType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htESP3D, htCrealityPrint, htObico, htFlashforge, htSimplyPrint, htElegooLink
 };
 
 enum AuthorizationType {
@@ -58,7 +58,7 @@ enum AuthorizationType {
 };
 
 enum InfillPattern : int {
-    ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
+    ipConcentric, ipRectilinear, ipGrid, ip2DLattice, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
     ipLightning, ipCrossHatch, ipQuarterCubic,
     ipCount,
@@ -132,7 +132,7 @@ enum SupportMaterialPattern {
 };
 
 enum SupportMaterialStyle {
-    smsDefault, smsGrid, smsSnug, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic,
+    smsDefault, smsGrid, smsSnug, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic,
 };
 
 enum LongRectrationLevel
@@ -188,6 +188,11 @@ enum InternalBridgeFilter {
 };
 
 //Orca
+enum EnableExtraBridgeLayer {
+    eblDisabled, eblExternalBridgeOnly, eblInternalBridgeOnly, eblApplyToAll
+};
+
+//Orca
 enum GapFillTarget {
      gftEverywhere, gftTopBottom, gftNowhere
  };
@@ -221,6 +226,7 @@ enum SLAPillarConnectionMode {
 enum BrimType {
     btAutoBrim,  // BBS
     btEar, // Orca
+    btPainted,  // BBS
     btOuterOnly,
     btInnerOnly,
     btOuterAndInner,
@@ -262,12 +268,12 @@ enum OverhangFanThreshold {
 // BBS
 enum BedType {
     btDefault = 0,
-    btSuperTack,
     btPC,
     btEP,
     btPEI,
     btPTE,
     btPCT,
+    btSuperTack,
     btCount
 };
 
@@ -827,10 +833,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionBool,                thick_internal_bridges))
     ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
+    // Orca
+    ((ConfigOptionEnum<EnableExtraBridgeLayer>,  enable_extra_bridge_layer))
+    ((ConfigOptionPercent,              internal_bridge_density))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloatOrPercent,      support_threshold_overlap))
     ((ConfigOptionFloat,               support_object_xy_distance))
+    ((ConfigOptionFloat,               support_object_first_layer_gap))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
     ((ConfigOptionBool,                flush_into_objects))
@@ -841,9 +851,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              tree_support_branch_distance))
     ((ConfigOptionFloat,              tree_support_tip_diameter))
     ((ConfigOptionFloat,              tree_support_branch_diameter))
-    ((ConfigOptionFloat,              tree_support_branch_diameter_angle))
-    ((ConfigOptionFloat,              tree_support_branch_diameter_double_wall))
     ((ConfigOptionFloat,              tree_support_branch_angle))
+    ((ConfigOptionFloat,              tree_support_branch_diameter_angle))
     ((ConfigOptionFloat,              tree_support_angle_slow))
     ((ConfigOptionInt,                tree_support_wall_count))
     ((ConfigOptionBool,               tree_support_adaptive_layer_height))
@@ -907,6 +916,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                  bottom_shell_layers))
     ((ConfigOptionFloat,                bottom_shell_thickness))
     ((ConfigOptionFloat,                bridge_angle))
+    ((ConfigOptionFloat,                internal_bridge_angle)) // ORCA: Internal bridge angle override
     ((ConfigOptionFloat,                bridge_flow))
     ((ConfigOptionFloat,                internal_bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
@@ -922,6 +932,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 rotate_solid_infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
+    ((ConfigOptionFloat,                lattice_angle_1))
+    ((ConfigOptionFloat,                lattice_angle_2))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
@@ -1274,11 +1286,14 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                skirt_loops))
     ((ConfigOptionEnum<SkirtType>,    skirt_type))
     ((ConfigOptionFloat,              skirt_speed))
+    ((ConfigOptionBool,               single_loop_draft_shield))
     ((ConfigOptionFloat,              min_skirt_length))
     ((ConfigOptionFloats,             slow_down_layer_time))
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionBool,               spiral_mode_smooth))
     ((ConfigOptionFloatOrPercent,     spiral_mode_max_xy_smoothing))
+    ((ConfigOptionFloat,              spiral_finishing_flow_ratio))
+    ((ConfigOptionFloat,              spiral_starting_flow_ratio))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionFloat,                preheat_time))
     ((ConfigOptionInt,                preheat_steps))
@@ -1331,6 +1346,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,                gcode_comments))
     ((ConfigOptionInt,                 slow_down_layers))
     ((ConfigOptionInts,                support_material_interface_fan_speed))
+    ((ConfigOptionInts,                internal_bridge_fan_speed)) // ORCA: Add support for separate internal bridge fan speed control
     // Orca: notes for profiles from PrusaSlicer
     ((ConfigOptionStrings,             filament_notes))
     ((ConfigOptionString,              notes))

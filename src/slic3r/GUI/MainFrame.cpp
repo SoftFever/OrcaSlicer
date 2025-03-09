@@ -2730,7 +2730,7 @@ void MainFrame::init_menubar_as_editor()
             this, [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->is_view3D_overhang_shown(); }, this);
 
         append_menu_check_item(
-            viewMenu, wxID_ANY, _L("Show Selected Outline (Experimental)"), _L("Show outline around selected object in 3D scene"),
+            viewMenu, wxID_ANY, _L("Show Selected Outline (beta)"), _L("Show outline around selected object in 3D scene"),
             [this](wxCommandEvent&) {
                 wxGetApp().toggle_show_outline();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
@@ -3226,10 +3226,10 @@ struct ConfigsOverwriteConfirmDialog : MessageDialog
 {
     ConfigsOverwriteConfirmDialog(wxWindow *parent, wxString name, bool exported)
         : MessageDialog(parent,
-                        wxString::Format(exported ? _L("A file exists with the same name: %s, do you want to override it.") :
-                                                  _L("A config exists with the same name: %s, do you want to override it."),
+                        wxString::Format(exported ? _L("A file exists with the same name: %s, do you want to overwrite it?") :
+                                                  _L("A config exists with the same name: %s, do you want to overwrite it?"),
                                          name),
-                        _L(exported ? "Overwrite file" : "Overwrite config"),
+                        exported ? _L("Overwrite file") : _L("Overwrite config"),
                         wxYES_NO | wxNO_DEFAULT)
     {
         add_button(wxID_YESTOALL, false, _L("Yes to All"));

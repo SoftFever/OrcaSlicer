@@ -131,7 +131,7 @@
         "Spiral Lift"
     ],
 	"default_filament_profile": [
-		"MM Generic PLA"
+		"Generic PLA @System"
 	],
     "version": "2.0.0.0"
 }

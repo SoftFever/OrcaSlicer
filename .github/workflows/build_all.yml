@@ -98,6 +98,11 @@ jobs:
         manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
         upload-artifact: false
+    - name: Upload artifacts Flatpak
+      uses: actions/upload-artifact@v4
+      with:
+        name: OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak
+        path: '/__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}.flatpak'
     - name: Deploy Flatpak to nightly release
       if: ${{github.ref == 'refs/heads/main'}}
       uses: WebFreak001/deploy-nightly@v3.2.0
