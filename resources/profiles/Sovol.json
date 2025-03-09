@@ -272,6 +272,10 @@
             "sub_path": "machine/Sovol SV05 0.4 nozzle.json"
         },
 		{
+            "name": "Sovol SV06 0.4 High-Speed nozzle",
+            "sub_path": "machine/Sovol SV06 0.4 High-Speed nozzle.json"
+        },
+		{
             "name": "Sovol SV06 0.4 nozzle",
             "sub_path": "machine/Sovol SV06 0.4 nozzle.json"
         },
