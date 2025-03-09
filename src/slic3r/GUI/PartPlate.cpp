@@ -860,8 +860,8 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 	if (force_default_color) //for thumbnail case
 		return;
 
-	ColorRGBA select_color{   .8f, .2f, .2f, .3f };
-	ColorRGBA unselect_color{ .4f, .4f, .4f, .3f };
+	ColorRGBA select_color{   .8f, .2f, .2f, .3f }; // ORCA use red color to make it easy to discern
+	ColorRGBA unselect_color{ .4f, .4f, .4f, .3f }; // ORCA use red color to make it easy to discern  
 	//ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
 	// draw exclude area
@@ -2565,12 +2565,11 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 	};
 
 	int points_count = 8;
-	if (m_exclude_area.size() == 4)
+	// ORCA always draw simple rectangle on non BBL printers instead rounded shape
+	// problem with BBL shape other brands can use other positions for exclusion area instead bottom right. shape doesnt fit in that case
+	bool is_bbl = wxGetApp().preset_bundle->is_bbl_vendor(); // broken on current code. it always returns false
+	if (is_bbl && m_exclude_area.size() == 4)
 	{
-        //for (int i = 0; i < 4; i++) {
-        //    const Vec2d& p = m_exclude_area[i];
-        //    exclude_polygon.contour.append({scale_(p(0)), scale_(p(1))});
-        //}
 			//rectangle case
 			for (int i = 0; i < 4; i++)
 			{
