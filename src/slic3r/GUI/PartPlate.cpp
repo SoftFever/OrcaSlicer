@@ -2578,7 +2578,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 				double start_angle, stop_angle, radius;
 				switch (i) {
 					case 0:
-						radius = 0.f;
+						radius = 5.f;
 						center(0) = p(0) + radius;
 						center(1) = p(1) + radius;
 						start_angle = PI;
@@ -2589,7 +2589,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
 						break;
 					case 2:
-						radius = 0.f;
+						radius = 3.f;
 						center(0) = p(0) - radius;
 						center(1) = p(1) - radius;
 						start_angle = 0;
