@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-01 17:37+0800\n"
+"POT-Creation-Date: 2025-03-09 14:32+0800\n"
 "PO-Revision-Date: 2025-03-05 20:05+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1014,6 +1014,10 @@ msgid "Orient the text towards the camera."
 msgstr "Orientar/alinear el text vers la càmera."
 
 #, boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+
+#, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1273,6 +1277,9 @@ msgstr "L'analitzador Nano SVG no es pot carregar des del fitxer ( %1% )."
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "El fitxer SVG NO conté una sola ruta per gravar en relleu( %1% )."
+
+msgid "No feature"
+msgstr ""
 
 msgid "Vertex"
 msgstr "Vèrtex"
@@ -3247,8 +3254,12 @@ msgstr ""
 "S'ha produït un error. Potser la memòria del sistema no és suficient o és un "
 "error del programa"
 
-msgid "Please save project and restart the program. "
-msgstr "Deseu el projecte i reinicieu el programa. "
+#, boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr ""
+
+msgid "Please save project and restart the program."
+msgstr ""
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Processant el Codi-G del fitxer anterior..."
@@ -3329,8 +3340,8 @@ msgid ""
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
 "La còpia del codi-G temporal ha finalitzat, però el codi exportat no s'ha "
-"pogut obrir durant la verificació de la còpia. El codi-G de sortida és a %1%."
-"tmp."
+"pogut obrir durant la verificació de la còpia. El codi-G de sortida és a "
+"%1%.tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
@@ -3694,9 +3705,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "La temperatura actual de la cambra és superior a la temperatura segura del "
 "material, pot provocar un estovament i obstrucció del material. La "
@@ -4491,7 +4502,7 @@ msgstr "Volum:"
 msgid "Size:"
 msgstr "Mida:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4887,6 +4898,14 @@ msgstr "Utilitzar la vista de perspectiva"
 
 msgid "Use Orthogonal View"
 msgstr "Utilitzar la vista ortogonal"
+
+msgid "Auto Perspective"
+msgstr ""
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
+msgstr ""
 
 msgid "Show &G-code Window"
 msgstr "Mostra Finestra %Codi-G"
@@ -6446,6 +6465,22 @@ msgid ""
 msgstr ""
 "La importació a Orca Slicer ha fallat. Descarregueu el fitxer manualment i "
 "importeu-lo."
+
+msgid "INFO:"
+msgstr ""
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+
+msgid "mm/s"
+msgstr "mm/s"
 
 msgid "Import SLA archive"
 msgstr "Importar fitxer SLA"
@@ -9688,6 +9723,11 @@ msgstr ""
 "mateix nombre de capes de Vora d'Adherència"
 
 msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
+
+msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
 msgstr ""
@@ -9701,11 +9741,22 @@ msgstr ""
 "La Torre de Purga només està suportat si tots els objectes tenen la mateixa "
 "alçada variable de capa"
 
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
+
 msgid "Too small line width"
 msgstr "Amplada de línia massa petita"
 
 msgid "Too large line width"
 msgstr "Amplada de línia massa gran"
+
+msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
+msgstr ""
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -10688,9 +10739,6 @@ msgstr ""
 "velocitat d'impressió per a les parets de voladís que estan suportades per "
 "menys del 13%, ja sigui que formin part d'un pont o d'un voladís."
 
-msgid "mm/s"
-msgstr "mm/s"
-
 msgid "Internal"
 msgstr "Intern"
 
@@ -10840,9 +10888,6 @@ msgid ""
 msgstr ""
 "L'acceleració predeterminada tant de la impressió normal com dels viatges "
 "excepte a la capa inicial"
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "Perfil de filament predeterminat"
@@ -12219,8 +12264,8 @@ msgid "mm/s² or %"
 msgstr "mm/s o %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Acceleració del farciment poc dens. Si el valor s'expressa en percentatge "
 "( per exemple, 100% ), es calcularà a partir de l'acceleració predeterminada."
@@ -14087,6 +14132,15 @@ msgstr "Alçada de la faldilla"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Quantes capes de faldilla. Normalment només una capa"
 
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
+
 msgid "Draft shield"
 msgstr "Escut contra corrents d'aire"
 
@@ -14238,8 +14292,8 @@ msgstr "Relació de flux d'inici en Espiral"
 #, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
-"to the spiral. Normally the spiral transition scales the flow ratio from "
-"0% to 100% during the first loop which can in some cases lead to under "
+"to the spiral. Normally the spiral transition scales the flow ratio from 0% "
+"to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
 "Estableix la relació de flux inicial mentre es fa la transició de l'última "
@@ -15178,9 +15232,9 @@ msgid "Idle temperature"
 msgstr "Temperatura d'espera"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 "Temperatura del broquet quan l'eina no s'utilitza actualment en "
 "configuracions multieina. Només s'utilitza quan la \"Prevenció de "
@@ -15704,11 +15758,11 @@ msgid "Debug level"
 msgstr "Nivell de depuració"
 
 msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
 msgstr ""
-"Defineix el nivell de registre de depuració. 0:fatal, 1:error, 2:warning, 3:"
-"info, 4:debug, 5:tracejar\n"
+"Defineix el nivell de registre de depuració. 0:fatal, 1:error, 2:warning, "
+"3:info, 4:debug, 5:tracejar\n"
 
 msgid "Enable timelapse for print"
 msgstr "Activa el timelapse per a la impressió"
@@ -16155,8 +16209,8 @@ msgstr "Suport: generar punts de contacte"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Format de fitxer desconegut. El fitxer d'entrada ha de tenir extensió .stl, ."
-"obj, .amf( .xml )."
+"Format de fitxer desconegut. El fitxer d'entrada ha de tenir "
+"extensió .stl, .obj, .amf( .xml )."
 
 msgid "Loading of a model file failed."
 msgstr "La càrrega d'un fitxer de model ha fallat."
@@ -16800,8 +16854,20 @@ msgstr "Final PA( Pressure Advance ): "
 msgid "PA step: "
 msgstr "Pas de PA( Pressure Advance ): "
 
+msgid "Accelerations: "
+msgstr ""
+
+msgid "Speeds: "
+msgstr ""
+
 msgid "Print numbers"
 msgstr "Imprimir números"
+
+msgid "Comma-separated list of printing accelerations"
+msgstr ""
+
+msgid "Comma-separated list of printing speeds"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -18575,6 +18641,9 @@ msgstr ""
 "Sabíeu que quan imprimiu materials propensos a deformar-se, com ara l'ABS, "
 "augmentar adequadament la temperatura del llit pot reduir la probabilitat de "
 "deformació."
+
+#~ msgid "Please save project and restart the program. "
+#~ msgstr "Deseu el projecte i reinicieu el programa. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
