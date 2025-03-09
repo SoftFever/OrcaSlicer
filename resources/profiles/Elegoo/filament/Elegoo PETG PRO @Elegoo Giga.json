@@ -3,7 +3,7 @@
   "filament_id": "GFG99",
 	"setting_id": "GFSG99",
   "name": "Elegoo PETG PRO @Elegoo Giga",
-  "inherits": "Elegoo Generic PETG PRO",
+  "inherits": "Generic PETG PRO @Elegoo",
   "from": "system",
   "instantiation": "true",
   "filament_max_volumetric_speed": [

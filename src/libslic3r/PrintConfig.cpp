@@ -1089,7 +1089,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extra_perimeters_on_overhangs", coBool);
     def->label = L("Extra perimeters on overhangs");
     def->category = L("Quality");
-    def->tooltip = L("Create additional perimeter paths over steep overhangs and areas where bridges cannot be anchored. ");
+    def->tooltip = L("Create additional perimeter paths over steep overhangs and areas where bridges cannot be anchored.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -2805,7 +2805,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("Don't print gap fill with a length is smaller than the threshold specified (in mm). This setting applies to top, "
-                     "bottom and solid infill and, if using the classic perimeter generator, to wall gap fill. ");
+                     "bottom and solid infill and, if using the classic perimeter generator, to wall gap fill.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -4288,6 +4288,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->max = 10000;
     def->set_default_value(new ConfigOptionInt(1));
+    
+    def = this->add("single_loop_draft_shield", coBool);
+    def->label = L("Single loop draft shield");
+    def->tooltip = L("Limits the draft shield loops to one wall after the first layer. This is useful, on occasion, to conserve filament but may cause the draft shield to warp / crack.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("draft_shield", coEnum);
     def->label = L("Draft shield");
@@ -4339,7 +4345,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Skirt minimum extrusion length");
     def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
                      "Using a non zero value is useful if the printer is set up to print without a prime line.\n"
-                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case. ");
+                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case.");
     def->min = 0;
     def->sidetext = L("mm");
     def->mode = comAdvanced;

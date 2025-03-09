@@ -2412,9 +2412,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             during_print_exhaust_fan_speed = std::max(during_print_exhaust_fan_speed,
                                                       m_config.during_print_exhaust_fan_speed.get_at(extruder.id()));
     }
-    // ORCA: If the printer profile doesnt support air filtration, ignore filament setting
-    if(!m_config.support_air_filtration)
-        activate_air_filtration = false;
     if (activate_air_filtration)
         file.write(m_writer.set_exhaust_fan(during_print_exhaust_fan_speed, true));
 
@@ -3541,7 +3538,19 @@ std::string GCode::generate_skirt(const Print &print,
         m_avoid_crossing_perimeters.use_external_mp();
         Flow layer_skirt_flow = print.skirt_flow().with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
         double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
-        for (size_t i = first_layer ? loops.first : loops.second - 1; i < loops.second; ++i) {
+        // Decide where to start looping:
+        // - If it’s the first layer or if we do NOT want a single-wall draft shield,
+        //   start from loops.first (all loops).
+        // - Otherwise, if single_loop_draft_shield == true and draft_shield == true (and not the first layer),
+        //   start from loops.second - 1 (just one loop).
+        bool single_loop_draft_shield = print.m_config.single_loop_draft_shield &&
+                                    (print.m_config.draft_shield == dsEnabled);
+        const size_t start_idx = (first_layer || !single_loop_draft_shield)
+                                 ? loops.first
+                                 : (loops.second - 1);
+
+        // Loop over the skirt loops and extrude
+        for (size_t i = start_idx; i < loops.second; ++i) {
             // Adjust flow according to this layer's layer height.
             ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(skirt.entities[i]);
             for (ExtrusionPath &path : loop.paths) {
@@ -3555,8 +3564,10 @@ std::string GCode::generate_skirt(const Print &print,
 
             //FIXME using the support_speed of the 1st object printed.
             gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
-            if (!first_layer)
+            // If we only want a single wall on non-first layers, break now
+            if (!first_layer && single_loop_draft_shield) {
                 break;
+            }
         }
         m_avoid_crossing_perimeters.use_external_mp(false);
         // Allow a straight travel move to the first object point if this is the first layer (but don't in next layers).
@@ -4586,8 +4597,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // if spiral vase, we have to ensure that all contour are in the same orientation.
         loop.make_counter_clockwise();
     }
-    if (loop.loop_role() == elrSkirt && (this->m_layer->id() % 2 == 1))
-        loop.reverse();
+    //if (loop.loop_role() == elrSkirt && (this->m_layer->id() % 2 == 1))
+    //    loop.reverse();
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested

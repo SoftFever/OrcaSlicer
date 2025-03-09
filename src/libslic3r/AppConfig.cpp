@@ -170,6 +170,9 @@ void AppConfig::set_defaults()
     if (get("use_perspective_camera").empty())
         set_bool("use_perspective_camera", true);
 
+    if (get("auto_perspective").empty())
+        set_bool("auto_perspective", false);
+
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);
 
