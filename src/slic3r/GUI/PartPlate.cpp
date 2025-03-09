@@ -860,8 +860,8 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 	if (force_default_color) //for thumbnail case
 		return;
 
-	ColorRGBA select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
-	ColorRGBA unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	ColorRGBA select_color{   .8f, .2f, .2f, .3f };
+	ColorRGBA unselect_color{ .4f, .4f, .4f, .3f };
 	//ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
 	// draw exclude area
@@ -2567,6 +2567,10 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 	int points_count = 8;
 	if (m_exclude_area.size() == 4)
 	{
+        //for (int i = 0; i < 4; i++) {
+        //    const Vec2d& p = m_exclude_area[i];
+        //    exclude_polygon.contour.append({scale_(p(0)), scale_(p(1))});
+        //}
 			//rectangle case
 			for (int i = 0; i < 4; i++)
 			{
@@ -2575,7 +2579,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 				double start_angle, stop_angle, radius;
 				switch (i) {
 					case 0:
-						radius = 5.f;
+						radius = 0.f;
 						center(0) = p(0) + radius;
 						center(1) = p(1) + radius;
 						start_angle = PI;
@@ -2586,7 +2590,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
 						break;
 					case 2:
-						radius = 3.f;
+						radius = 0.f;
 						center(0) = p(0) - radius;
 						center(1) = p(1) - radius;
 						start_angle = 0;
