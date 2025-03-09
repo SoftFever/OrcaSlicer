@@ -92,6 +92,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRe
         &region_config,
         &this->layer()->object()->config(),
         &print_config,
+        this->layer()->object(),
         spiral_mode,
         
         // output:
