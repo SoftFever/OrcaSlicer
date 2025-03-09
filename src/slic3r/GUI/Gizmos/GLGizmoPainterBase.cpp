@@ -174,14 +174,19 @@ void GLGizmoPainterBase::render_cursor_circle()
     const float cnv_inv_height = 1.0f / cnv_height;
 
     const Vec2d center = m_parent.get_local_mouse_position();
-    const float radius = m_cursor_radius * float(wxGetApp().plater()->get_camera().get_zoom());
+    const float zoom = float(wxGetApp().plater()->get_camera().get_zoom());
+    const float radius = m_cursor_radius * zoom;
 
-    glsafe(::glLineWidth(1.5f));
+    if (!OpenGLManager::get_gl_info().is_core_profile())
+        glsafe(::glLineWidth(1.5f));
+
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glPushAttrib(GL_ENABLE_BIT));
-    glsafe(::glLineStipple(4, 0xAAAA));
-    glsafe(::glEnable(GL_LINE_STIPPLE));
+    if (!OpenGLManager::get_gl_info().is_core_profile()) {
+        glsafe(::glPushAttrib(GL_ENABLE_BIT));
+        glsafe(::glLineStipple(4, 0xAAAA));
+        glsafe(::glEnable(GL_LINE_STIPPLE));
+    }
 
     if (!m_circle.is_initialized() || !m_old_center.isApprox(center) || std::abs(m_old_cursor_radius - radius) > EPSILON) {
         m_old_cursor_radius = radius;
@@ -189,19 +194,41 @@ void GLGizmoPainterBase::render_cursor_circle()
         m_circle.reset();
 
         GLModel::Geometry init_data;
-        static const unsigned int StepsCount = 32;
-        static const float StepSize = 2.0f * float(PI) / float(StepsCount);
-        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2 };
+        unsigned int steps_count = 0;
+        if (OpenGLManager::get_gl_info().is_core_profile()) {
+            steps_count = (unsigned int)(2 * (4 + int(252 * (zoom - 1.0f) / (250.0f - 1.0f))));
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P2 };
+        }
+        else {
+            steps_count = 32;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2 };
+        }
+        const float step_size = 2.0f * float(PI) / float(steps_count);
         init_data.color  = { 0.0f, 1.0f, 0.3f, 1.0f };
-        init_data.reserve_vertices(StepsCount);
-        init_data.reserve_indices(StepsCount);
+        init_data.reserve_vertices(steps_count);
+        init_data.reserve_indices(steps_count);
 
         // vertices + indices
-        for (unsigned int i = 0; i < StepsCount; ++i) {
-            const float angle = float(i * StepSize);
-            init_data.add_vertex(Vec2f(2.0f * ((center.x() + ::cos(angle) * radius) * cnv_inv_width - 0.5f),
-                                       -2.0f * ((center.y() + ::sin(angle) * radius) * cnv_inv_height - 0.5f)));
-            init_data.add_index(i);
+        for (unsigned int i = 0; i < steps_count; ++i) {
+            if (OpenGLManager::get_gl_info().is_core_profile()) {
+                if (i % 2 != 0) continue;
+
+                const float angle_i = float(i) * step_size;
+                const unsigned int j = (i + 1) % steps_count;
+                const float angle_j = float(j) * step_size;
+                const Vec2d v_i(::cos(angle_i), ::sin(angle_i));
+                const Vec2d v_j(::cos(angle_j), ::sin(angle_j));
+                init_data.add_vertex(Vec2f(v_i.x(), v_i.y()));
+                init_data.add_vertex(Vec2f(v_j.x(), v_j.y()));
+                const size_t vcount = init_data.vertices_count();
+                init_data.add_line(vcount - 2, vcount - 1);
+            }
+            else {
+                const float angle = float(i) * step_size;
+                init_data.add_vertex(Vec2f(2.0f * ((center.x() + ::cos(angle) * radius) * cnv_inv_width - 0.5f),
+                  -2.0f * ((center.y() + ::sin(angle) * radius) * cnv_inv_height - 0.5f)));
+                init_data.add_index(i);
+            }
         }
 
         m_circle.init_from(std::move(init_data));
@@ -215,17 +242,30 @@ void GLGizmoPainterBase::render_cursor_circle()
         render_color = this->get_cursor_sphere_right_button_color();
 
     m_circle.set_color(render_color);
-
-    GLShaderProgram* shader = GUI::wxGetApp().get_shader("flat");
+	
+    GLShaderProgram* shader = OpenGLManager::get_gl_info().is_core_profile() ? wxGetApp().get_shader("dashed_thick_lines") : wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
-        shader->set_uniform("view_model_matrix", Transform3d::Identity());
+        if (OpenGLManager::get_gl_info().is_core_profile()) {
+            const Transform3d view_model_matrix = Geometry::translation_transform(Vec3d(2.0f * (center.x() * cnv_inv_width - 0.5f), -2.0f * (center.y() * cnv_inv_height - 0.5f), 0.0)) *
+                Geometry::scale_transform(Vec3d(2.0f * radius * cnv_inv_width, 2.0f * radius * cnv_inv_height, 1.0f));
+            shader->set_uniform("view_model_matrix", view_model_matrix);
+        }
+        else
+            shader->set_uniform("view_model_matrix", Transform3d::Identity());
         shader->set_uniform("projection_matrix", Transform3d::Identity());
+        if (OpenGLManager::get_gl_info().is_core_profile()) {
+            const std::array<int, 4>& viewport = wxGetApp().plater()->get_camera().get_viewport();
+            shader->set_uniform("viewport_size", Vec2d(double(viewport[2]), double(viewport[3])));
+            shader->set_uniform("width", 0.25f);
+            shader->set_uniform("gap_size", 0.0f);
+        }
         m_circle.render();
         shader->stop_using();
     }
 
-    glsafe(::glPopAttrib());
+    if (!OpenGLManager::get_gl_info().is_core_profile())
+        glsafe(::glPopAttrib());
     glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
@@ -319,7 +359,6 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
 
             shader->set_uniform("view_model_matrix", view_model_matrix);
             shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-            glsafe(::glLineWidth(2.0f));
             m_cut_contours[m_volumes_index].contours.render();
             m_volumes_index++;
         }
@@ -1528,6 +1567,7 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, bool show_wireframe
     if (shader == nullptr)
         return;
 
+    glsafe(::glBindVertexArray(this->m_vertices_VAO_ids[triangle_indices_idx]));
     // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
     const GLint position_id = shader->get_attrib_location("v_position");
@@ -1579,6 +1619,10 @@ void TriangleSelectorPatch::release_geometry()
         glsafe(::glDeleteBuffers(1, &triangle_indices_VBO_id));
         triangle_indices_VBO_id = 0;
     }
+    for (auto& vertice_VAO_id : m_vertices_VAO_ids) {
+        glsafe(::glDeleteVertexArrays(1, &vertice_VAO_id));
+        vertice_VAO_id = 0;
+    }
     this->clear();
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: released geometry")%__LINE__;
@@ -1598,12 +1642,16 @@ void TriangleSelectorPatch::finalize_vertices()
 
 void TriangleSelectorPatch::finalize_triangle_indices()
 {
+    m_vertices_VAO_ids.resize(m_triangle_patches.size());
     m_vertices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_sizes.resize(m_triangle_patches.size());
     assert(std::all_of(m_triangle_indices_VBO_ids.cbegin(), m_triangle_indices_VBO_ids.cend(), [](const auto& ti_VBO_id) { return ti_VBO_id == 0; }));
 
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
+        glsafe(::glGenVertexArrays(1, &m_vertices_VAO_ids[buffer_idx]));
+        glsafe(::glBindVertexArray(m_vertices_VAO_ids[buffer_idx]));
+
         std::vector<float>& patch_vertices = m_triangle_patches[buffer_idx].patch_vertices;
         if (!patch_vertices.empty()) {
             glsafe(::glGenBuffers(1, &m_vertices_VBO_ids[buffer_idx]));

@@ -74,6 +74,8 @@ class GCodeViewer
         };
 
         EFormat format{ EFormat::Position };
+        // vaos id
+        std::vector<unsigned int> vaos;
         // vbos id
         std::vector<unsigned int> vbos;
         // sizes of the buffers, in bytes, used in export to obj
@@ -174,6 +176,8 @@ class GCodeViewer
     // ibo buffer containing indices data (for lines/triangles) used to render a specific toolpath type
     struct IBuffer
     {
+        // id of the associated vertex array buffer
+        unsigned int vao{ 0 };
         // id of the associated vertex buffer
         unsigned int vbo{ 0 };
         // ibo id
@@ -509,8 +513,9 @@ Range layer_duration_log;
     struct SequentialRangeCap
     {
         TBuffer* buffer{ nullptr };
-        unsigned int ibo{ 0 };
+        unsigned int vao{ 0 };
         unsigned int vbo{ 0 };
+        unsigned int ibo{ 0 };
         ColorRGBA color;
 
         ~SequentialRangeCap();
