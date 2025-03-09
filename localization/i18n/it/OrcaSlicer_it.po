@@ -3287,7 +3287,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Salva il progetto e riavvia l'applicazione."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Elaborazione G-Code dal file precedente..."
@@ -18797,9 +18797,6 @@ msgstr ""
 #~ "OrcaSlicer ha esaurito la memoria e verrà chiuso. Questo potrebbe "
 #~ "essere \n"
 #~ "un bug. Si prega di segnalare questo errore al supporto tecnico."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Salva il progetto e riavvia l'applicazione. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

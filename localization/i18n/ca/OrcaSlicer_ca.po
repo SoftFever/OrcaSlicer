@@ -3259,7 +3259,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Deseu el projecte i reinicieu el programa."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Processant el Codi-G del fitxer anterior..."
@@ -18641,9 +18641,6 @@ msgstr ""
 "Sabíeu que quan imprimiu materials propensos a deformar-se, com ara l'ABS, "
 "augmentar adequadament la temperatura del llit pot reduir la probabilitat de "
 "deformació."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Deseu el projecte i reinicieu el programa. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

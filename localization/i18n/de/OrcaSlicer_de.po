@@ -3289,7 +3289,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Bitte speichern Sie das Projekt und starten Sie das Programm neu."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Verarbeite G-Code der vorherigen Datei..."
@@ -18754,9 +18754,6 @@ msgstr ""
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verwerfungen neigen, "
 "wie z.B. ABS, durch eine entsprechende Erhöhung der Heizbetttemperatur die "
 "Wahrscheinlichkeit von Verwerfungen verringert werden kann."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Bitte speichern Sie das Projekt und starten Sie das Programm neu. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

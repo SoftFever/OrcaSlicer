@@ -3199,7 +3199,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Uložte projekt a restartujte program."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Zpracovává se G-kód z předchozího souboru..."
@@ -17143,9 +17143,6 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Uložte projekt a restartujte program. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
