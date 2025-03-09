@@ -344,7 +344,8 @@ public:
     std::vector<groupedVolumeSlices>& firstLayerObjGroupsMod() { return firstLayerObjSliceByGroups; }
 
     bool                         has_brim() const       {
-        return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) || this->config().brim_type == btAutoBrim)
+        return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) || this->config().brim_type == btAutoBrim
+            || (this->config().brim_type == btPainted && !this->model_object()->brim_points.empty()))
             && ! this->has_raft();
     }
 
