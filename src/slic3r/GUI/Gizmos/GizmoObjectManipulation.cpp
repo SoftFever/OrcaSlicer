@@ -496,9 +496,12 @@ void GizmoObjectManipulation::reset_scale_value()
     change_scale_value(2, 100.);
 }
 
-static const char* label_values[2][3] = {
+static const char* label_values[5][3] = {
 { "##position_x", "##position_y", "##position_z"},
-{ "##rotation_x", "##rotation_y", "##rotation_z"}
+{ "##rotation_x", "##rotation_y", "##rotation_z"},
+{ "##position_x_relative", "##position_y_relative", "##position_z_relative"},
+{ "<##rotate_relative_x_dec", "<##rotate_relative_y_dec", "<##rotate_relative_z_dec"},
+{ ">##rotate_relative_x_inc", ">##rotate_relative_y_inc", ">##rotate_relative_z_inc"},
 };
 
 static const char* label_scale_values[2][3] = {
@@ -546,17 +549,33 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
      return unit_size + 8.0;
  }
 
+ float GizmoObjectManipulation::max_caption_width(float space_size)
+ {
+    float caption_max = std::max({
+        ImGuiWrapper::calc_text_size(_L("World")).x,
+        ImGuiWrapper::calc_text_size(_L("Object")).x,
+        ImGuiWrapper::calc_text_size(_L("Position")).x,
+        ImGuiWrapper::calc_text_size(_L("Relative")).x,
+        ImGuiWrapper::calc_text_size(_L("Rotate")).x,
+        ImGuiWrapper::calc_text_size(_L("Scale")).x,
+        ImGuiWrapper::calc_text_size(_L("Size")).x,
+        ImGuiWrapper::calc_text_size(MAX_SIZE).x, // unit_size for 30/45 toggle on rotate
+    }) + 4 * space_size;
+
+     return caption_max;
+ }
+
 void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
-    // BBS: GUI refactor: move gizmo to the right
-    if (abs(last_move_input_window_width) > 0.01f) {
-        if (x + last_move_input_window_width > m_glcanvas.get_canvas_size().get_width()) {
-            if (last_move_input_window_width > m_glcanvas.get_canvas_size().get_width())
-                x = 0;
-            else
-                x = m_glcanvas.get_canvas_size().get_width() - last_move_input_window_width;
-        }
-    }
+    // ORCA Calculate element start points and window dimension before draw
+    float space_size   = imgui_wrapper->get_style_scaling() * 8;
+    float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
+    float caption_max  = max_caption_width(space_size);
+    float end_width    = std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1});
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + end_width + ImGui::GetStyle().WindowPadding.x * 2;
+
+    x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
+
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
 #else
@@ -582,16 +601,10 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         return -1;
     };
 
-    float space_size    = imgui_wrapper->get_style_scaling() * 8;
-    float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
-    auto position_title = _L("World coordinates");
     Selection& selection = m_glcanvas.get_selection();
+    auto position_title = _L("World");
     if(selection.is_single_modifier() || selection.is_single_volume())
-        position_title = _L("Object coordinates");
-
-    float World_size    = imgui_wrapper->calc_text_size(position_title).x + space_size;
-    float caption_max   = std::max(position_size, World_size) + 2 * space_size;
-    float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
+         position_title = _L("Object");
 
     // position
     Vec3d original_position;
@@ -600,17 +613,17 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     else
         original_position = this->m_new_position;
     Vec3d display_position = m_buffered_position;
+    Vec3d relative_position = Vec3d{0.0f, 0.0f, 0.0f};
 
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
-    float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     int   index      = 1;
     int   index_unit = 1;
 
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
     ImGui::PushItemWidth(caption_max);
-    imgui_wrapper->text(position_title);
+    imgui_wrapper->text_colored(ImGuiWrapper::COL_ORCA, position_title); // Use colored text to create differentiation with Position/Rotation/Scale text
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -620,6 +633,11 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Z");
+
+    int reset_pos = caption_max + (++index_unit) * unit_size + (++index) * space_size;
+    // No reset button but there is a function for it
+    ImGui::SameLine(reset_pos + end_width);
+    ImGui::Dummy(ImVec2(1, 1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 1;
     index_unit = 1;
@@ -637,6 +655,27 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
 
+    ImGui::AlignTextToFramePadding();
+    imgui_wrapper->text(_L("Relative"));
+    ImGui::SameLine(caption_max + space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::BBLInputDouble(label_values[2][0], &relative_position[0], 0.0f, 0.0f, "%.2f");
+    ImGui::SameLine(0, space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::BBLInputDouble(label_values[2][1], &relative_position[1], 0.0f, 0.0f, "%.2f");
+    ImGui::SameLine(0, space_size);
+    ImGui::PushItemWidth(unit_size);
+    ImGui::BBLInputDouble(label_values[2][2], &relative_position[2], 0.0f, 0.0f, "%.2f");
+    
+    if (relative_position != Vec3d{ 0.0f, 0.0f, 0.0f }) {
+        m_buffered_position_relative = relative_position;
+    }
+    
+    if (current_active_id != m_last_active_item) {
+        display_position += m_buffered_position_relative;
+        m_buffered_position_relative = Vec3d{0.0f, 0.0f, 0.0f};
+    }
+
     for (int i = 0;i<display_position.size();i++)
     {
         if (display_position[i] > MAX_NUM)display_position[i] = MAX_NUM;
@@ -651,7 +690,8 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     bool focued_on_text = false;
     for (int j = 0; j < 3; j++) {
         unsigned int id = ImGui::GetID(label_values[0][j]);
-        if (current_active_id == id) {
+        unsigned int id_relative = ImGui::GetID(label_values[2][j]);
+        if (current_active_id == id || current_active_id == id_relative) {
             m_glcanvas.handle_sidebar_focus_event(label_values[0][j] + 2, true);
             focued_on_text = true;
             break;
@@ -668,15 +708,15 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
 void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
-    // BBS: GUI refactor: move gizmo to the right
-    if (abs(last_rotate_input_window_width) > 0.01f) {
-        if (x + last_rotate_input_window_width > m_glcanvas.get_canvas_size().get_width()) {
-            if (last_rotate_input_window_width > m_glcanvas.get_canvas_size().get_width())
-                x = 0;
-            else
-                x = m_glcanvas.get_canvas_size().get_width() - last_rotate_input_window_width;
-        }
-    }
+    // ORCA Calculate element start points and window dimension before draw
+    float space_size   = imgui_wrapper->get_style_scaling() * 8;
+    float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
+    float caption_max  = max_caption_width(space_size);
+    float end_width    = std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1});
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + end_width + ImGui::GetStyle().WindowPadding.x * 2;
+
+    x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
+
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
 #else
@@ -702,10 +742,10 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         return -1;
     };
 
-    float space_size    = imgui_wrapper->get_style_scaling() * 8;
-    float position_size = imgui_wrapper->calc_text_size(_L("Rotation")).x + space_size;
-    float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
-    float caption_max   = std::max(position_size, World_size) + 2 * space_size;
+    Selection& selection = m_glcanvas.get_selection();
+    auto position_title = _L("World");
+    if(selection.is_single_modifier() || selection.is_single_volume())
+         position_title = _L("Object");
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
     // position
@@ -718,14 +758,13 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     // Rotation
     Vec3d rotation   = this->m_buffered_rotation;
 
-    float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     int   index      = 1;
     int   index_unit = 1;
 
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
     ImGui::PushItemWidth(caption_max);
-    imgui_wrapper->text(_L("World coordinates"));
+    imgui_wrapper->text_colored(ImGuiWrapper::COL_ORCA, position_title); // Use colored text to create differentiation with Position/Rotation/Scale text
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -735,6 +774,16 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Z");
+
+    int reset_pos = caption_max + (++index_unit) * unit_size + (++index) * space_size;
+    if (m_show_clear_rotation) {
+        ImGui::SameLine(reset_pos);
+        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) // Use revert button after axis text to reduce width of gizmo
+            reset_rotation_value();
+    }
+
+    ImGui::SameLine(reset_pos + end_width);
+    ImGui::Dummy(ImVec2(1, 1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 1;
     index_unit = 1;
@@ -753,28 +802,65 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     ImGui::BBLInputDouble(label_values[1][2], &rotation[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(_L("°"));
+
+    auto toggle = [this](string label, ImVec2 size, bool state) -> bool {
+        ImVec4 tx  = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+        ImVec4 bg  = ImGui::GetStyleColorVec4(wxGetApp().app_config->get("dark_color_mode") == "1" ? ImGuiCol_Button : ImGuiCol_ButtonHovered);
+        bool   is_bg = label.substr(label.length() - 3, 3) == "_bg";
+        ImGui::PushStyleColor(ImGuiCol_Button,        is_bg ? bg : (state ? ImGuiWrapper::COL_ORCA : ImVec4(0, 0, 0, 0)));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, is_bg ? bg : (state ? ImGuiWrapper::COL_ORCA : ImVec4(0, 0, 0, 0)));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  is_bg ? bg : (state ? ImGuiWrapper::COL_ORCA : ImVec4(0, 0, 0, 0)));
+        ImGui::PushStyleColor(ImGuiCol_Border,        is_bg ? bg : (state ? bg : ImVec4(0, 0, 0, 0)));
+        ImGui::PushStyleColor(ImGuiCol_Text,          state ? ImVec4(1, 1, 1, 1) : tx);
+        auto btn = ImGui::Button(label.c_str(), size); 
+        ImGui::PopStyleColor(5);
+        return btn;
+    };
+
+    ImVec2    btn_size   = ImVec2(unit_size / 2, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f);
+    const int toggle_pos = ImGui::GetCursorPosX();
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, m_glcanvas.get_scale() * 2.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, m_glcanvas.get_scale() * 4.0f);
+    if (toggle("###toggle1_bg", ImVec2(unit_size, btn_size.y), true)) {m_rotate_relative = m_rotate_relative == 30 ? 45 : 30;};
+    ImGui::SameLine(toggle_pos);
+    toggle("30###toggle1_btn1", btn_size, m_rotate_relative == 30);
+    ImGui::SameLine();
+    toggle("45###toggle1_btn2", btn_size, m_rotate_relative == 45);
+    ImGui::PopStyleVar(2);
+
+    ImGui::SameLine(caption_max + space_size);
+    for (int j = 0; j < 3; j++) { // add relative rotation buttons
+        if (ImGui::Button(label_values[3][j], btn_size)) { rotation[j] -= m_rotate_relative;}
+        ImGui::SameLine();
+        if (ImGui::Button(label_values[4][j], btn_size)) { rotation[j] += m_rotate_relative;}
+        ImGui::SameLine(0, space_size);
+    }
+
     m_buffered_rotation = rotation;
     update(current_active_id, "rotation", this->m_new_rotation, m_buffered_rotation);
 
-    if (m_show_clear_rotation) {
-        ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
-        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(); }
-    } else {
-        ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
-        ImGui::InvisibleButton("", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
+    // Highlight rotation axis while hovering relative rotation buttons
+    ImGuiID hovered_id           = ImGui::GetHoveredID();
+    int     hovered_relative_btn = -1;
+    for (int j = 0; j < 3; j++) { // find index of hovered buttons
+        if (hovered_id == ImGui::GetID(label_values[3][j]) || hovered_id == ImGui::GetID(label_values[4][j])) {
+            hovered_relative_btn= j;
+            break;
+        }
     }
 
     // send focus to m_glcanvas
     bool focued_on_text = false;
     for (int j = 0; j < 3; j++) {
         unsigned int id = ImGui::GetID(label_values[1][j]);
-        if (current_active_id == id) {
+        j = hovered_relative_btn!= -1 ? hovered_relative_btn : j;
+        if (current_active_id == id || hovered_relative_btn!= -1) {
             m_glcanvas.handle_sidebar_focus_event(label_values[1][j] + 2, true);
             focued_on_text = true;
             break;
         }
     }
-    if (!focued_on_text) m_glcanvas.handle_sidebar_focus_event("", false);
+    if (!focued_on_text && hovered_relative_btn==-1) m_glcanvas.handle_sidebar_focus_event("", false);
 
     m_last_active_item = current_active_id;
     last_rotate_input_window_width = ImGui::GetWindowWidth();
@@ -787,15 +873,15 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 
 void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
-    //BBS: GUI refactor: move gizmo to the right
-    if (abs(last_scale_input_window_width) > 0.01f) {
-        if (x + last_scale_input_window_width > m_glcanvas.get_canvas_size().get_width()) {
-            if (last_scale_input_window_width > m_glcanvas.get_canvas_size().get_width())
-                x = 0;
-            else
-                x = m_glcanvas.get_canvas_size().get_width() - last_scale_input_window_width;
-        }
-    }
+    // ORCA Calculate element start points and window dimension before draw
+    float space_size   = imgui_wrapper->get_style_scaling() * 8;
+    float unit_size    = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
+    float caption_max  = max_caption_width(space_size);
+    float end_width    = std::max({ImGuiWrapper::calc_text_size(_L("mm")).x, ImGui::GetFontSize() + 1});
+    float window_width = caption_max + 3 * unit_size + 4 * space_size + end_width + ImGui::GetStyle().WindowPadding.x * 2;
+
+    x = (m_glcanvas.get_canvas_size().get_width() - window_width) / 2; // ORCA Center gizmo to canvas
+
 #if BBS_TOOLBAR_ON_TOP
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 0.f, 0.0f);
 #else
@@ -824,10 +910,10 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
         return -1;
     };
 
-    float space_size = imgui_wrapper->get_style_scaling() * 8;
-    float scale_size = imgui_wrapper->calc_text_size(_L("Scale")).x + space_size;
-    float size_len = imgui_wrapper->calc_text_size(_L("Size")).x + space_size;
-    float caption_max = std::max(scale_size, size_len) + 2 * space_size;
+    Selection& selection = m_glcanvas.get_selection();
+    auto position_title = _L("World");
+    if(selection.is_single_modifier() || selection.is_single_volume())
+         position_title = _L("Object");
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
@@ -837,16 +923,13 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     Vec3d display_position = m_buffered_position;
 
-    float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     bool imperial_units = this->m_imperial_units;
 
     int index      = 2;
     int index_unit = 1;
 
     ImGui::PushItemWidth(caption_max);
-    ImGui::Dummy(ImVec2(caption_max, -1));
-    //imgui_wrapper->text(_L(" "));
-    //ImGui::PushItemWidth(unit_size * 1.5);
+    imgui_wrapper->text_colored(ImGuiWrapper::COL_ORCA, position_title); // Use colored text to create differentiation with Position/Rotation/Scale text
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -856,6 +939,16 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("Z");
+
+    int reset_pos = caption_max + (++index_unit) * unit_size + (++index) * space_size;
+    if (m_show_clear_scale) {
+        ImGui::SameLine(reset_pos);
+        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) // Use revert button after axis text to reduce width of gizmo
+            reset_scale_value();
+    }
+
+    ImGui::SameLine(reset_pos + end_width);
+    ImGui::Dummy(ImVec2(1,1)); // Use fixed window width for all transform gizmos. so it will stay same position
 
     index      = 2;
     index_unit = 1;
@@ -875,15 +968,6 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
     imgui_wrapper->text(_L("%"));
     m_buffered_scale = scale;
-
-    if (m_show_clear_scale) {
-        ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
-        if (reset_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size))
-            reset_scale_value();
-    } else {
-        ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
-        ImGui::InvisibleButton("", ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()));
-    }
 
     //Size
     Vec3d original_size;
