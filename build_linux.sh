@@ -86,9 +86,13 @@ if [ ${OPTIND} -eq 1 ] ; then
     exit 0
 fi
 
-DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release)
-# treat ubuntu as debian
+DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release | tr -d '"')
+DISTRIBUTION_LIKE=$(awk -F= '/^ID_LIKE=/ {print $2}' /etc/os-release | tr -d '"')
+# Check for direct distribution match to Ubuntu/Debian
 if [ "${DISTRIBUTION}" == "ubuntu" ] || [ "${DISTRIBUTION}" == "linuxmint" ] ; then
+    DISTRIBUTION="debian"
+# Check if distribution is Debian/Ubuntu-like based on ID_LIKE
+elif [[ "${DISTRIBUTION_LIKE}" == *"debian"* ]] || [[ "${DISTRIBUTION_LIKE}" == *"ubuntu"* ]] ; then
     DISTRIBUTION="debian"
 fi
 
