@@ -74,9 +74,9 @@ jobs:
       matrix:
         variant:
           - arch: x86_64
-            runner: ubuntu-latest
+            runner: ubuntu-24.04
           - arch: aarch64
-            runner: ubuntu-latest
+            runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.variant.runner }}
     env:
       date:
