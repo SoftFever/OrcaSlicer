@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-01 17:37+0800\n"
+"POT-Creation-Date: 2025-03-09 14:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -986,6 +986,10 @@ msgid "Orient the text towards the camera."
 msgstr ""
 
 #, possible-boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+
+#, possible-boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1234,6 +1238,9 @@ msgstr ""
 
 #, possible-boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgstr ""
+
+msgid "No feature"
 msgstr ""
 
 msgid "Vertex"
@@ -3048,7 +3055,11 @@ msgid ""
 "program"
 msgstr ""
 
-msgid "Please save project and restart the program. "
+#, possible-boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr ""
+
+msgid "Please save project and restart the program."
 msgstr ""
 
 msgid "Processing G-Code from Previous file..."
@@ -3453,9 +3464,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -3493,7 +3504,7 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr ""
 
 msgid ""
@@ -4174,7 +4185,7 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
+#, possible-boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4558,6 +4569,14 @@ msgid "Use Perspective View"
 msgstr ""
 
 msgid "Use Orthogonal View"
+msgstr ""
+
+msgid "Auto Perspective"
+msgstr ""
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
 msgstr ""
 
 msgid "Show &G-code Window"
@@ -5972,6 +5991,22 @@ msgid ""
 "import it."
 msgstr ""
 
+msgid "INFO:"
+msgstr ""
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+
+msgid "mm/s²"
+msgstr ""
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+
+msgid "mm/s"
+msgstr ""
+
 msgid "Import SLA archive"
 msgstr ""
 
@@ -7186,8 +7221,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -7757,7 +7792,7 @@ msgid ""
 msgstr ""
 
 #, possible-boost-format
-msgid "You have changed some settings of preset \"%1%\". "
+msgid "You have changed some settings of preset \"%1%\"."
 msgstr ""
 
 msgid ""
@@ -8844,6 +8879,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
+
+msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
 msgstr ""
@@ -8853,10 +8893,21 @@ msgid ""
 "layer height"
 msgstr ""
 
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
+
 msgid "Too small line width"
 msgstr ""
 
 msgid "Too large line width"
+msgstr ""
+
+msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
 msgstr ""
 
 msgid ""
@@ -9438,7 +9489,7 @@ msgstr ""
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr ""
 
 msgid "Reverse on even"
@@ -9555,9 +9606,6 @@ msgid ""
 "overhang mode is enabled, it will be the print speed of overhang walls that "
 "are supported by less than 13%, whether they are part of a bridge or an "
 "overhang."
-msgstr ""
-
-msgid "mm/s"
 msgstr ""
 
 msgid "Internal"
@@ -9678,9 +9726,6 @@ msgstr ""
 msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
-msgstr ""
-
-msgid "mm/s²"
 msgstr ""
 
 msgid "Default filament profile"
@@ -10677,8 +10722,8 @@ msgid "mm/s² or %"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid ""
@@ -10771,10 +10816,10 @@ msgstr ""
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "layer"
@@ -10902,7 +10947,7 @@ msgstr ""
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 
 msgid ""
@@ -12136,6 +12181,15 @@ msgstr ""
 msgid "How many layers of skirt. Usually only one layer"
 msgstr ""
 
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
+
 msgid "Draft shield"
 msgstr ""
 
@@ -12190,7 +12244,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 
 msgid ""
@@ -12249,8 +12303,8 @@ msgstr ""
 #, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
-"to the spiral. Normally the spiral transition scales the flow ratio from "
-"0% to 100% during the first loop which can in some cases lead to under "
+"to the spiral. Normally the spiral transition scales the flow ratio from 0% "
+"to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
 
@@ -12733,8 +12787,8 @@ msgstr ""
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the \"machine_start_gcode"
-"\"\n"
+"activates the emitting of an M191 command before the "
+"\"machine_start_gcode\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -12966,9 +13020,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -13388,8 +13442,8 @@ msgid "Debug level"
 msgstr ""
 
 msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
 msgstr ""
 
 msgid "Enable timelapse for print"
@@ -14310,7 +14364,19 @@ msgstr ""
 msgid "PA step: "
 msgstr ""
 
+msgid "Accelerations: "
+msgstr ""
+
+msgid "Speeds: "
+msgstr ""
+
 msgid "Print numbers"
+msgstr ""
+
+msgid "Comma-separated list of printing accelerations"
+msgstr ""
+
+msgid "Comma-separated list of printing speeds"
 msgstr ""
 
 msgid ""
@@ -14653,8 +14719,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -15451,154 +15517,6 @@ msgid "Brim Ears"
 msgstr ""
 
 msgid "Please select single object."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Precise wall]
-msgid "Precise wall\nDid you know that turning on precise wall can improve precision and layer consistency?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Sandwich mode]
-msgid "Sandwich mode\nDid you know that you can use sandwich mode (inner-outer-inner) to improve precision and layer consistency if your model doesn't have very steep overhangs?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Chamber temperature]
-msgid "Chamber temperature\nDid you know that OrcaSlicer supports chamber temperature?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Calibration]
-msgid "Calibration\nDid you know that calibrating your printer can do wonders? Check out our beloved calibration solution in OrcaSlicer."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Auxiliary fan]
-msgid "Auxiliary fan\nDid you know that OrcaSlicer supports Auxiliary part cooling fan?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Air filtration]
-msgid "Air filtration/Exhaust Fan\nDid you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:G-code window]
-msgid "G-code window\nYou can turn on/off the G-code window by pressing the <b>C</b> key."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Switch workspaces]
-msgid "Switch workspaces\nYou can switch between <b>Prepare</b> and <b>Preview</b> workspaces by pressing the <b>Tab</b> key."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
-msgid "How to use keyboard shortcuts\nDid you know that Orca Slicer offers a wide range of keyboard shortcuts and 3D scene operations."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Reverse on odd]
-msgid "Reverse on odd\nDid you know that <b>Reverse on odd</b> feature can significantly improve the surface quality of your overhangs?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Cut Tool]
-msgid "Cut Tool\nDid you know that you can cut a model at any angle and position with the cutting tool?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Fix Model]
-msgid "Fix Model\nDid you know that you can fix a corrupted 3D model to avoid a lot of slicing problems on the Windows system?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Timelapse]
-msgid "Timelapse\nDid you know that you can generate a timelapse video during each print?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid "Auto-Arrange\nDid you know that you can auto-arrange all objects in your project?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Auto-Orient]
-msgid "Auto-Orient\nDid you know that you can rotate objects to an optimal orientation for printing by a simple click?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Lay on Face]
-msgid "Lay on Face\nDid you know that you can quickly orient a model so that one of its faces sits on the print bed? Select the \"Place on face\" function or press the <b>F</b> key."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Object List]
-msgid "Object List\nDid you know that you can view all objects/parts in a list and change settings for each object/part?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Search Functionality]
-msgid "Search Functionality\nDid you know that you use the Search tool to quickly find a specific Orca Slicer setting?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Simplify Model]
-msgid "Simplify Model\nDid you know that you can reduce the number of triangles in a mesh using the Simplify mesh feature? Right-click the model and select Simplify model."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
-msgid "Slicing Parameter Table\nDid you know that you can view all objects/parts on a table and change settings for each object/part?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
-msgid "Split to Objects/Parts\nDid you know that you can split a big object into small ones for easy colorizing or printing?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid "Subtract a Part\nDid you know that you can subtract one mesh from another using the Negative part modifier? That way you can, for example, create easily resizable holes directly in Orca Slicer."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:STEP]
-msgid "STEP\nDid you know that you can improve your print quality by slicing a STEP file instead of an STL?\nOrca Slicer supports slicing STEP files, providing smoother results than a lower resolution STL. Give it a try!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Z seam location]
-msgid "Z seam location\nDid you know that you can customize the location of the Z seam, and even paint it on your print, to have it in a less visible location? This improves the overall look of your model. Check it out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
-msgid "Fine-tuning for flow rate\nDid you know that flow rate can be fine-tuned for even better-looking prints? Depending on the material, you can improve the overall finish of the printed model by doing some fine-tuning."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Split your prints into plates]
-msgid "Split your prints into plates\nDid you know that you can split a model that has a lot of parts into individual plates ready to print? This will simplify the process of keeping track of all the parts."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
-msgid "Speed up your print with Adaptive Layer Height\nDid you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Support painting]
-msgid "Support painting\nDid you know that you can paint the location of your supports? This feature makes it easy to place the support material only on the sections of the model that actually need it."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Different types of supports]
-msgid "Different types of supports\nDid you know that you can choose from multiple types of supports? Tree supports work great for organic models, while saving filament and improving print speed. Check them out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
-msgid "Printing Silk Filament\nDid you know that Silk filament needs special consideration to print it successfully? Higher temperature and lower speed are always recommended for the best results."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
-msgid "Brim for better adhesion\nDid you know that when printing models have a small contact interface with the printing surface, it's recommended to use a brim?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid "Set parameters for multiple objects\nDid you know that you can set slicing parameters for all selected objects at one time?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Stack objects]
-msgid "Stack objects\nDid you know that you can stack objects as a whole one?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid "Flush into support/objects/infill\nDid you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Improve strength]
-msgid "Improve strength\nDid you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
-msgid "When need to print with the printer door opened\nDid you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Avoid warping]
-msgid "Avoid warping\nDid you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]

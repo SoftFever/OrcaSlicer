@@ -2310,6 +2310,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
         optgroup->append_single_option_line("draft_shield");
+        optgroup->append_single_option_line("single_loop_draft_shield");
         
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
@@ -5560,8 +5561,12 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
         exist_preset = true;
     }
 
-    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    m_presets->save_current_preset(name, detach, save_to_project);
+    Preset* _current_printer = nullptr;
+    if (m_presets->type() == Preset::TYPE_FILAMENT) {
+        _current_printer = const_cast<Preset*>(&wxGetApp().preset_bundle->printers.get_selected_preset_base());
+    }
+    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.json
+    m_presets->save_current_preset(name, detach, save_to_project, nullptr, _current_printer);
 
     //BBS create new settings
     new_preset = m_presets->find_preset(name, false, true);

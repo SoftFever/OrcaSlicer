@@ -10225,6 +10225,7 @@ void Plater::load_gcode(const wxString& filename)
     GCodeProcessor processor;
     try
     {
+        GCodeProcessor::s_IsBBLPrinter = wxGetApp().preset_bundle->is_bbl_vendor();
         processor.process_file(filename.ToUTF8().data());
     }
     catch (const std::exception& ex)
