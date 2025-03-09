@@ -19137,9 +19137,3 @@ msgstr ""
 #~ "Já existe um resultado de calibração histórico com o mesmo nome: %s. "
 #~ "Apenas um dos resultados com o mesmo nome é salvo. Você tem certeza de "
 #~ "que deseja substituir o resultado histórico?"
-
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
