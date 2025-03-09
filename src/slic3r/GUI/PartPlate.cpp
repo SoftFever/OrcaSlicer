@@ -2551,6 +2551,10 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 
 void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
+	// ORCA always draw simple rectangle on non BBL printers instead rounded shape
+	// problem with BBL shape other brands can use other positions for exclusion area instead bottom left. shape doesnt fit to plate in that case
+	if (0) // (wxGetApp().preset_bundle->is_bbl_vendor() && m_exclude_area.size() == 4)
+	{
 	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
 	{
 		double angle_steps;
@@ -2565,10 +2569,8 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 	};
 
 	int points_count = 8;
-	// ORCA always draw simple rectangle on non BBL printers instead rounded shape
-	// problem with BBL shape other brands can use other positions for exclusion area instead bottom left. shape doesnt fit to plate in that case
-	if (0) // (wxGetApp().preset_bundle->is_bbl_vendor() && m_exclude_area.size() == 4)
-	{
+	//if (m_exclude_area.size() == 4)
+	//{
 			//rectangle case
 			for (int i = 0; i < 4; i++)
 			{
