@@ -3229,7 +3229,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Sla uw project alstublieft op en herstart het programma."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "De G-code van het vorige bestand wordt verwerkt..."
@@ -17419,9 +17419,6 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Sla uw project alstublieft op en herstart het programma. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

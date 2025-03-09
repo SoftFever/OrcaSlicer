@@ -3160,7 +3160,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "プロジェクトを保存して、アプリケーションを再起動してください。"
 
 msgid "Processing G-Code from Previous file..."
 msgstr "G-codeを処理中"
@@ -16916,9 +16916,6 @@ msgstr ""
 "反りを避ける\n"
 "ABSのような反りやすい素材を印刷する場合、ヒートベッドの温度を適切に上げること"
 "で、反りが発生する確率を下げることができることをご存知ですか？"
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "プロジェクトを保存して、アプリケーションを再起動してください。"
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

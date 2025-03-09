@@ -3181,7 +3181,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Spara projekt och starta om programmet."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Processera G-Code från Föregående fil…"
@@ -16984,9 +16984,6 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Spara projekt och starta om programmet. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

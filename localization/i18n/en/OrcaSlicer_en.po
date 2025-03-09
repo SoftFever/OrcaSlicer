@@ -3171,7 +3171,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Please save your project and restart the application."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Processing G-Code from previous file…"
@@ -16963,9 +16963,6 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Please save your project and restart the application."
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

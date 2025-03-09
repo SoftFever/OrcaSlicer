@@ -3259,7 +3259,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Збережіть проект і перезапустіть програму."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Обробка G-коду з попереднього файлу..."
@@ -18474,6 +18474,3 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Збережіть проект і перезапустіть програму. "

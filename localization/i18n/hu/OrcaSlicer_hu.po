@@ -3197,7 +3197,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Kérjük, mentsd el a projektet és indítsd újra a programot."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "G-kód feldolgozása egy előző fájlból..."
@@ -17150,9 +17150,6 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Kérjük, mentsd el a projektet és indítsd újra a programot. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
