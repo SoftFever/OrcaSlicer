@@ -6827,7 +6827,7 @@ msgid "The selected preset is null!"
 msgstr "選擇的預設為空！"
 
 msgid "End"
-msgstr "End"
+msgstr ""
 
 msgid "Customize"
 msgstr "自訂"

@@ -3768,7 +3768,7 @@ msgid "Heatbed preheating"
 msgstr "Předehřev vyhřívané podložky"
 
 msgid "Sweeping XY mech mode"
-msgstr "Sweeping XY mech mode"
+msgstr ""
 
 msgid "Changing filament"
 msgstr "Výměna filamentu"
@@ -4211,7 +4211,7 @@ msgid "travel"
 msgstr "Cestování"
 
 msgid "Extruder"
-msgstr "Extruder"
+msgstr ""
 
 msgid "Filament change times"
 msgstr "Doby výměny Filamentu"
@@ -7804,7 +7804,7 @@ msgid "G-code output"
 msgstr "Výstup G-kódu"
 
 msgid "Post-processing Scripts"
-msgstr "Post-processing Scripts"
+msgstr ""
 
 msgid "Notes"
 msgstr "Poznámky"
@@ -17322,12 +17322,6 @@ msgstr ""
 #~ msgid "Scale"
 #~ msgstr "Měřítko"
 
-#~ msgid "Orca Slicer "
-#~ msgstr "Orca Slicer "
-
-#~ msgid "Cool plate"
-#~ msgstr "Cool podložka"
-
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Vynutit Zvednout Z"
 
@@ -17528,9 +17522,6 @@ msgstr ""
 #~ msgid "Please find the cornor with perfect degree of extrusion"
 #~ msgstr "Prosím, najděte roh s dokonalým stupněm extruze"
 
-#~ msgid "V"
-#~ msgstr "V"
-
 #~ msgid ""
 #~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
 #~ "PrusaSlicer by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro "
@@ -17563,36 +17554,8 @@ msgstr ""
 #~ msgid "Unload Filament"
 #~ msgstr "Vysunout Filament"
 
-#~ msgid ""
-#~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
-#~ "automatically load or unload filiament."
-#~ msgstr ""
-#~ "Vyberte slot AMS a poté stiskněte \" Načíst \" nebo \" Uvolnit \" pro "
-#~ "automatické načtení nebo vyjměte vlákno."
-
-#~ msgid "MC"
-#~ msgstr "MC"
-
 #~ msgid "MainBoard"
 #~ msgstr "Základní deska"
-
-#~ msgid "TH"
-#~ msgstr "TH"
-
-#~ msgid "XCam"
-#~ msgstr "XCam"
-
-#~ msgid "HMS"
-#~ msgstr "HMS"
-
-#~ msgid "- ℃"
-#~ msgstr "- ℃"
-
-#~ msgid "0.5"
-#~ msgstr "0.5"
-
-#~ msgid "0.005"
-#~ msgstr "0.005"
 
 #~ msgid "active"
 #~ msgstr "aktivní"
@@ -17715,9 +17678,6 @@ msgstr ""
 #~ "Přidá plnou výplň u šikmých ploch pro garanci tloušťky svislých stěn "
 #~ "(vrchních a spodních plných vrstev)"
 
-#~ msgid " "
-#~ msgstr " "
-
 #~ msgid "Configuration package updated to "
 #~ msgstr "Konfigurační balíček aktualizován na "
 
@@ -17793,9 +17753,6 @@ msgstr ""
 
 #~ msgid "Choose SLA archive:"
 #~ msgstr "Vyberte SLA archiv:"
-
-#~ msgid "Import file"
-#~ msgstr "Importovat soubor"
 
 #~ msgid "Import model and profile"
 #~ msgstr "Importovat model a profil"
@@ -17882,9 +17839,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid " doesn't work at 100%% density "
 #~ msgstr " nefunguje při 100%% hustotě "
-
-#~ msgid "Ctrl + Shift + Enter"
-#~ msgstr "Ctrl + Shift + Enter"
 
 #~ msgid "Tool-Lay on Face"
 #~ msgstr "Nástroj-Plochou na podložku"
@@ -18094,9 +18048,6 @@ msgstr ""
 #~ msgid "Calibration of extrusion"
 #~ msgstr "Kalibrace extruze"
 
-#~ msgid "Push new filament into the extruder"
-#~ msgstr "Zasuňte nový filament do extruderu"
-
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
@@ -18168,11 +18119,6 @@ msgstr ""
 #~ "zlepšit kvalitu horního povrchu, zejména když je nízká hustota výplně. "
 #~ "Tato hodnota určuje tloušťku podpůrných smyček. Hodnota 0 znamená, že "
 #~ "tato funkce je zakázána."
-
-#, fuzzy, c-format, boost-format
-#~ msgid ""
-#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
-#~ msgstr "Klipper max_accel_to_decel bude upraven na toto % zrychlení"
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "
