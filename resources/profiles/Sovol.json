@@ -194,10 +194,6 @@
             "sub_path": "filament/Sovol Generic PLA.json"
         },
         {
-            "name": "Sovol SV06 PLA",
-            "sub_path": "filament/Sovol SV06 PLA.json"
-        },
-        {
             "name": "Sovol Generic TPU",
             "sub_path": "filament/Sovol Generic TPU.json"
         },

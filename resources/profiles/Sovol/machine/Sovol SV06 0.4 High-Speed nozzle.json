@@ -112,6 +112,6 @@
 	"machine_start_gcode": "M140 S[bed_temperature_initial_layer_single] ;set bed temp\nM190 S[bed_temperature_initial_layer_single] ;wait for bed temp\nG28\nG90\nG1 X0 F6000\nG1 Y20\nG1 Z0.600 F600\nG1 Y0 F6000\nM400\nM104 S[nozzle_temperature_initial_layer] ;set extruder temp\nM109 S[nozzle_temperature_initial_layer];wait for extruder temp\nG91\nM83\nG1 E25 F300\nG4 P1000\nG1 E-0.200 Z5 F600\nG1 X23.000 F9000\nG1 Z-5.000 F600\nG1 X87.000 E20.88 F1800\nG1 X87.000 E13.92 F1800\nG1 Y1 E0.16 F1800\nG1 X-87.000 E13.92 F1800\nG1 X-87.000 E20.88 F1800\nG1 Y1 E0.24 F1800\nG1 X87.000 E20.88 F1800\nG1 X87.000 E13.92 F1800\nG1 E-0.200 Z1 F600\nM400\n\n",
 	"machine_end_gcode": "M117 READY\n\nG1 E0 F1000 ; reset extruder\n\nG91 ; relative positioning\nG1 Z2 F1000 ; lift nozzle\nG90 ; absolute positioning\nG1 X5 Y5 F3000\nG27 P2 ; park extruder\nM140 S0 ; turn off heatbed\nM104 S0 ; turn off temperature\nM107 ; turn off fan\nM84 X Y E ; disable motors\n",
 	"default_filament_profile": [
-		"Sovol SV06 PLA"
+		"Generic PLA @System"
 	]
 }
