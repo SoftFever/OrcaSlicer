@@ -176,10 +176,18 @@ private:
 
 class MappingContainer : public wxPanel
 {
-public:
+private:
+    int       m_slots_num = 4;/*1 or 4*/
     wxBitmap  ams_mapping_item_container;
+
+public:
     MappingContainer(wxWindow* parent, int slots_num = 4);
     ~MappingContainer();
+
+public:
+    int   get_slots_num() const { return m_slots_num;}
+
+protected:
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
     void doRender(wxDC& dc);

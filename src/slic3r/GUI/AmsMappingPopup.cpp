@@ -888,6 +888,35 @@ void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& a
     }
 }
 
+static void
+_add_containers(const AmsMapingPopup* win,
+                std::list<MappingContainer*>& one_slot_containers,
+                const std::vector<MappingContainer*>& four_slots_containers,
+                wxBoxSizer* target_sizer)
+{
+    for (auto container : four_slots_containers)
+    {
+        target_sizer->Add(container, 0, wxTOP, win->FromDIP(5));
+    }
+
+    while (!one_slot_containers.empty())
+    {
+        wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+        for (int i = 0; i < 3; i++)
+        {
+            if (one_slot_containers.empty())
+            {
+                break;
+            }
+
+            sizer->Add(one_slot_containers.front(), 0, wxLEFT, (i == 0) ? 0 : win->FromDIP(5));
+            one_slot_containers.pop_front();
+        }
+
+        target_sizer->Add(sizer, 0, wxTOP, win->FromDIP(5));
+    }
+}
+
 void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result)
 {
     //BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->m_extder_data.nozzle.size();
@@ -1004,6 +1033,10 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
 
     /*ams*/
+    std::list<MappingContainer*> left_one_slot_containers;
+    std::list<MappingContainer*> right_one_slot_containers;
+    std::vector<MappingContainer*> left_four_slots_containers;
+    std::vector<MappingContainer*> right_four_slot_containers;
     for (std::map<std::string, Ams *>::iterator ams_iter = obj->amsList.begin(); ams_iter != obj->amsList.end(); ams_iter++) {
 
         int ams_indx = atoi(ams_iter->first.c_str());
@@ -1060,34 +1093,36 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
             m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
             m_amsmapping_container_list.push_back(ams_mapping_item_container);
 
-            if (nozzle_id == 0) {   //right slot
-                m_sizer_ams_basket_right->Add(ams_mapping_item_container, 0, wxTOP, FromDIP(5));
+            if (nozzle_id == 0) {
+                if (ams_mapping_item_container->get_slots_num() == 1) {
+                    right_one_slot_containers.push_back(ams_mapping_item_container);
+                } else {
+                    right_four_slot_containers.push_back(ams_mapping_item_container);
+                }
             }
-            else if (nozzle_id == 1) {  //left slot
-                m_sizer_ams_basket_left->Add(ams_mapping_item_container, 0, wxTOP, FromDIP(5));
-            }
-
-            if (m_sizer_ams_basket_left->GetChildren().size() <= 0) {
-                m_left_split_ams_sizer->Show(false);
-            } else {
-                m_left_split_ams_sizer->Show(true);
-            }
-
-            if (m_sizer_ams_basket_right->GetChildren().size() == 0) {
-                m_right_split_ams_sizer->Show(false);
-            } else {
-                m_right_split_ams_sizer->Show(true);
+            else if (nozzle_id == 1) {
+                if (ams_mapping_item_container->get_slots_num() == 1) {
+                    left_one_slot_containers.push_back(ams_mapping_item_container);
+                } else {
+                    left_four_slots_containers.push_back(ams_mapping_item_container);
+                }
             }
         }
         else if(ams_type == 4){ //4:n3s
         }
     }
 
+    _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
+    _add_containers(this, right_one_slot_containers, right_four_slot_containers, m_sizer_ams_basket_right);
+    m_left_split_ams_sizer->Show(m_sizer_ams_basket_left->GetChildren().size() > 0);
+    m_right_split_ams_sizer->Show(m_sizer_ams_basket_right->GetChildren().size() > 0);
+
     update_items_check_state(ams_mapping_result);
 
-    Refresh();
+
     Layout();
     Fit();
+    Refresh();
 }
 
 std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, Ams*> amsList)
@@ -1847,6 +1882,7 @@ MappingContainer::MappingContainer(wxWindow* parent, int slots_num)
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingContainer::paintEvent, this);
 
+    m_slots_num = slots_num;
     if (slots_num == 1)
     {
         ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_1", this, 78);
