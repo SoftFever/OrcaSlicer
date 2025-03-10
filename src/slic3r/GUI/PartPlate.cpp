@@ -2551,7 +2551,7 @@ void PartPlate::generate_print_polygon(ExPolygon &print_polygon)
 
 void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
-	// ORCA always draw simple rectangle on non BBL printers instead rounded shape
+	// ORCA always draw simple rectangle
 	// problem with BBL shape other brands can use other positions for exclusion area instead bottom left. shape doesnt fit to plate in that case
 	if (0) // (wxGetApp().preset_bundle->is_bbl_vendor() && m_exclude_area.size() == 4)
 	{
