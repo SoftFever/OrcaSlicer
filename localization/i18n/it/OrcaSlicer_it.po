@@ -1019,7 +1019,7 @@ msgstr "Orienta il testo verso di te."
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
 msgstr ""
-"Il set di caratteri \"%1%\" non può essere utilizzato. Si prega di "
+"Il tipo di carattere \"%1%\" non può essere utilizzato. Si prega di "
 "selezionarne un altro."
 
 #, boost-format
