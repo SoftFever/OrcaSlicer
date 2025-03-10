@@ -1829,7 +1829,7 @@ bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
     return wipe_tower_size;
 }*/
 
-Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int extruder_count, int plate_extruder_size, bool use_global_objects) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects) const
 {
     Vec3d wipe_tower_size;
     double layer_height = 0.08f; // hard code layer height
@@ -1857,24 +1857,40 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
         max_height = std::max(bbox.size().z(), max_height);
     }
     wipe_tower_size(2) = max_height;
-
     //const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
     double extra_spacing     = config.option("prime_tower_infill_gap")->getFloat() / 100.;
     const ConfigOptionBool* use_rib_wall_opt = config.option<ConfigOptionBool>("prime_tower_rib_wall");
     bool use_rib_wall = use_rib_wall_opt ? use_rib_wall_opt->value: true;
+    double rib_width = config.option("prime_tower_rib_width")->getFloat();
     double depth;
+    double filament_change_volume=0.;
+    {
+        std::vector<double>             filament_change_lengths;
+        auto                filament_change_lengths_opt = m_print->config().option<ConfigOptionFloats>("filament_change_length");
+        if (filament_change_lengths_opt) filament_change_lengths = filament_change_lengths_opt->values;
+        double length = filament_change_lengths.empty() ? 0 : *std::max_element(filament_change_lengths.begin(), filament_change_lengths.end());
+        double diameter = 1.75;
+        std::vector<double> diameters;
+        auto                filament_diameter_opt = m_print->config().option<ConfigOptionFloats>("filament_diameter");
+        if (filament_diameter_opt) diameters = filament_diameter_opt->values;
+        diameter = diameters.empty() ? diameter : *std::max_element(diameters.begin(), diameters.end());
+        filament_change_volume = length * PI * diameter * diameter / 4.;
+    }
+    double volume = wipe_volume * (extruder_count == 2 ? plate_extruder_size : (plate_extruder_size - 1));
+    if (extruder_count == 2) volume += filament_change_volume * (int) (plate_extruder_size / 2);
     if (use_rib_wall) {
-        depth             = std::sqrt(d * w * (extruder_count == 2 ? plate_extruder_size : (plate_extruder_size - 1)) * extra_spacing);
+        depth = std::sqrt(volume / layer_height * extra_spacing);
         if (timelapse_enabled || plate_extruder_size > 1) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double) min_wipe_tower_depth, depth);
+            depth += rib_width / std::sqrt(2) + m_print->config().prime_tower_extra_rib_length.value;
             wipe_tower_size(0) = wipe_tower_size(1) = depth;
         }
     }
     else {
-        depth             = plate_extruder_size == 1 ? 0 : d*extra_spacing;
+        depth  =  volume/ (layer_height * w) *extra_spacing;
         if (timelapse_enabled || depth > EPSILON) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double)min_wipe_tower_depth, depth);

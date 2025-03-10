@@ -2919,22 +2919,20 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 float y = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->get_at(plate_id);
                 float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("prime_tower_width"))->value;
                 float a = dynamic_cast<const ConfigOptionFloat*>(proj_cfg.option("wipe_tower_rotation_angle"))->value;
-                float tower_brim_width = dynamic_cast<const ConfigOptionFloat*>(m_config->option("prime_tower_brim_width"))->value;
                 // BBS
                 std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(m_config->option("filament_prime_volume"))->values;
                 Vec3d plate_origin = ppl.get_plate(plate_id)->get_origin();
 
                 const Print* print = m_process->fff_print();
                 const Print* current_print = part_plate->fff_print();
-                const auto& wipe_tower_data = print->wipe_tower_data(filaments_count);
-                float brim_width = wipe_tower_data.brim_width;
+                float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 double wipe_vol = get_max_element(v);
                 int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
-                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth, nozzle_nums);
+                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums);
 
                 {
-                    const float   margin     = WIPE_TOWER_MARGIN + tower_brim_width;
+                    const float                 margin     = WIPE_TOWER_MARGIN + brim_width;
                     BoundingBoxf3               plate_bbox = part_plate->get_bounding_box();
                     BoundingBoxf                plate_bbox_2d(Vec2d(plate_bbox.min(0), plate_bbox.min(1)), Vec2d(plate_bbox.max(0), plate_bbox.max(1)));
                     const std::vector<Pointfs> &extruder_areas = part_plate->get_extruder_areas();
