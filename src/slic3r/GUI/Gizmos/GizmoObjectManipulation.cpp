@@ -752,7 +752,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_values[1][2], &rotation[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("°"));
+    imgui_wrapper->text("°");
     m_buffered_rotation = rotation;
     update(current_active_id, "rotation", this->m_new_rotation, m_buffered_rotation);
 
@@ -873,7 +873,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_scale_values[0][2], &scale[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("%"));
+    imgui_wrapper->text("%");
     m_buffered_scale = scale;
 
     if (m_show_clear_scale) {
