@@ -1418,7 +1418,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
 
     wxString action_msg;
     if (dependent_presets) {
-        action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". "), dependent_presets->get_edited_preset().name);
+        action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\"."), dependent_presets->get_edited_preset().name);
         if (!m_transfer_btn) {
             action_msg += _L("\nYou can save or discard the preset values you have modified.");
         } else {
@@ -2383,13 +2383,17 @@ void DiffPresetDialog::button_event(Action act)
 
 std::string DiffPresetDialog::get_left_preset_name(Preset::Type type)
 {
-    PresetComboBox* cb = m_preset_combos[int(type - Preset::TYPE_PRINT)].presets_left;
+    PresetComboBox* cb = std::find_if(m_preset_combos.begin(), m_preset_combos.end(), [type](const DiffPresets& p) {
+                             return p.presets_left->get_type() == type;
+                         })->presets_left;
     return Preset::remove_suffix_modified(get_selection(cb));
 }
 
 std::string DiffPresetDialog::get_right_preset_name(Preset::Type type)
 {
-    PresetComboBox* cb = m_preset_combos[int(type - Preset::TYPE_PRINT)].presets_right;
+    PresetComboBox* cb = std::find_if(m_preset_combos.begin(), m_preset_combos.end(), [type](const DiffPresets& p) {
+                             return p.presets_right->get_type() == type;
+                         })->presets_right;
     return Preset::remove_suffix_modified(get_selection(cb));
 }
 

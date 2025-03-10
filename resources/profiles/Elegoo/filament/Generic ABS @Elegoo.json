@@ -2,7 +2,7 @@
 	"type": "filament",
 	"filament_id": "GFB99",
 	"setting_id": "GFSA04",
-	"name": "Elegoo Generic ABS",
+	"name": "Generic ABS @Elegoo",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_filament_abs",

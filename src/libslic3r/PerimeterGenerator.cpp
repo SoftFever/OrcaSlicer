@@ -2974,7 +2974,7 @@ void PerimeterGenerator::process_arachne()
         const int inner_loop_number = (config->only_one_wall_top && upper_slices != nullptr) ? loop_number - 1 : -1;
 
         // Set one perimeter when TopSurfaces is selected.
-        if (config->only_one_wall_top)
+        if (config->only_one_wall_top && loop_number > 0)
             loop_number = 0;
 
         Arachne::WallToolPathsParams input_params_tmp = input_params;
@@ -3188,9 +3188,6 @@ void PerimeterGenerator::process_arachne()
                 
                 // Debug statement to print spacing values:
                 //printf("External threshold - Ext perimeter: %d Ext spacing: %d Int perimeter: %d Int spacing: %d\n", this->ext_perimeter_flow.scaled_width(),this->ext_perimeter_flow.scaled_spacing(),this->perimeter_flow.scaled_width(), this->perimeter_flow.scaled_spacing());
-               
-                // Expand by 3% to cover rounding issues
-                const float expand_factor = 1.03f;
 
                 // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by the factor
                 // rounding errors. When precise wall is enabled, the external perimeter full spacing is used.
@@ -3201,10 +3198,9 @@ void PerimeterGenerator::process_arachne()
                     // Normal ⇒ half ext spacing + half int spacing
                     : ( this->ext_perimeter_flow.scaled_spacing()/2.0
                         + this->perimeter_flow.scaled_spacing()/2.0 );
-                threshold_external *= expand_factor;
                 
                 // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by the factor to cover rounding errors.
-                coord_t threshold_internal = this->perimeter_flow.scaled_spacing() * expand_factor;
+                coord_t threshold_internal = this->perimeter_flow.scaled_spacing();
                 
                 // Re-order extrusions based on distance
                 // Alorithm will aggresively optimise for the appearance of the outermost perimeter

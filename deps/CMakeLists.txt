@@ -88,7 +88,7 @@ endif ()
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
 message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
-message(STATUS "OrcaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
+message(STATUS "OrcaSlicer download dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
