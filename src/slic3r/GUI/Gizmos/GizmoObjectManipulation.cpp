@@ -1036,7 +1036,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         is_relative_input = true;
     }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("°"));
+    imgui_wrapper->text("°");
     m_buffered_rotation = rotation;
     if (is_relative_input) {
         m_last_rotate_type = RotateType::Relative;
@@ -1093,7 +1093,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         is_absolute_input = true;
     }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("°"));
+    imgui_wrapper->text("°");
     m_buffered_absolute_rotation = absolute_rotation;
     if (is_absolute_input) {
         m_last_rotate_type = RotateType::Absolute;
@@ -1250,7 +1250,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_scale_values[0][2], &scale[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("%"));
+    imgui_wrapper->text("%");
     if (scale.x() > 0 && scale.y() > 0 && scale.z() > 0) {
         m_buffered_scale = scale;
     }
