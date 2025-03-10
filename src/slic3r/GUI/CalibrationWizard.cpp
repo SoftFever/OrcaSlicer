@@ -725,6 +725,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.max_volumetric_speed = max_volumetric_speed;
             calib_infos.calib_datas.push_back(calib_info);
         }
+        calib_infos.cali_mode = CalibMode::Calib_PA_Line;
         CalibUtils::calib_PA(calib_infos, 0, wx_err_string); // mode = 0 for auto
 
         if (!wx_err_string.empty()) {
@@ -1185,6 +1186,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
                 calib_info.flow_rate = flow_ratio;
             calib_infos.calib_datas.push_back(calib_info);
         }
+        calib_infos.cali_mode = CalibMode::Calib_Flow_Rate;
 
         wxString wx_err_string;
         CalibUtils::calib_flowrate_X1C(calib_infos, wx_err_string);

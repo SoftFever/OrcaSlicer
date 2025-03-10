@@ -69,6 +69,7 @@ public:
     };
 
     std::vector<X1CCalibInfo> calib_datas;
+    CalibMode                 cali_mode{ CalibMode::Calib_None };
 };
 
 class CaliPresetInfo

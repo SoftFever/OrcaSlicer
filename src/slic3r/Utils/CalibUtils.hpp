@@ -65,6 +65,8 @@ public:
     static void calib_retraction(const CalibInfo &calib_info, wxString &error_message);
 
     //help function
+    static bool is_support_auto_pa_cali(std::string filament_id);
+
     static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
     static bool get_pa_k_n_value_by_cali_idx(const MachineObject* obj, int cali_idx, float& out_k, float& out_n);
 

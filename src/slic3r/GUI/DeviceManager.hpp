@@ -1416,6 +1416,7 @@ public:
     static bool load_filaments_blacklist_config();
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
+    static std::vector<std::string> get_unsupport_auto_cali_filaments(std::string type_str);
     static void check_filaments_in_blacklist(std::string model_id, std::string tag_vendor, std::string tag_type, int ams_id, int slot_id, std::string tag_name, bool &in_blacklist, std::string &ac, std::string &info);
     static bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info);
     static boost::bimaps::bimap<std::string, std::string> get_all_model_id_with_name();

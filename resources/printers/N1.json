@@ -40,6 +40,7 @@
 		},
 		"model_id": "N1",
 		"compatible_machine": [],
+		"auto_cali_not_support_filaments": [ "GFU03", "GFU04" ],
 		"printer_type": "N1",
 		"ftp_folder": "sdcard/",
 		"printer_thumbnail_image": "printer_thumbnail_n1",

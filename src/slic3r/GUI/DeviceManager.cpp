@@ -7419,6 +7419,27 @@ std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_
     return compatible_machine;
 }
 
+std::vector<std::string> DeviceManager::get_unsupport_auto_cali_filaments(std::string type_str)
+{
+    std::vector<std::string> filaments;
+    std::string              config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
+    boost::nowide::ifstream  json_file(config_file.c_str());
+    try {
+        json jj;
+        if (json_file.is_open()) {
+            json_file >> jj;
+            if (jj.contains("00.00.00.00")) {
+                json const &printer = jj["00.00.00.00"];
+                if (printer.contains("auto_cali_not_support_filaments")) {
+                    for (auto res : printer["auto_cali_not_support_filaments"])
+                        filaments.emplace_back(res.get<std::string>());
+                }
+            }
+        }
+    } catch (...) {}
+    return filaments;
+}
+
 boost::bimaps::bimap<std::string, std::string> DeviceManager::get_all_model_id_with_name()
 {
     boost::bimaps::bimap<std::string, std::string> models;

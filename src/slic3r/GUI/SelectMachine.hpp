@@ -105,7 +105,8 @@ enum PrintDialogStatus {
     PrintStatusMixAmsAndVtSlotWarning,
     PrintStatusPublicInitFailed,
     PrintStatusPublicUploadFiled,
-    PrintStatusInvalidMapping
+    PrintStatusInvalidMapping,
+    PrintStatusTPUUnsupportAutoCali
 };
 
 
@@ -493,6 +494,7 @@ public:
     void set_flow_calibration_state(bool state, bool show_tips = true);
     bool has_timelapse_warning();
     void update_timelapse_enable_status();
+    bool can_support_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
     bool is_nozzle_data_valid(const ExtderData& ext_data) const;

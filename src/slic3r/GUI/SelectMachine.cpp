@@ -1004,11 +1004,18 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
             m_checkbox_list["flow_cali"]->update_options(ops_auto);
             m_checkbox_list["flow_cali"]->setValue("auto");
         } else {
-            m_checkbox_list["flow_cali"]->update_options(ops_no_auto);
-            if (config && config->get("print", "flow_cali") == "0") {
+            if (can_support_auto_cali()) {
+                m_checkbox_list["flow_cali"]->update_options(ops_no_auto);
+                if (config && config->get("print", "flow_cali") == "0") {
+                    m_checkbox_list["flow_cali"]->setValue("off");
+                } else {
+                    m_checkbox_list["flow_cali"]->setValue("on");
+                }
+            }
+            else {
                 m_checkbox_list["flow_cali"]->setValue("off");
-            } else {
-                m_checkbox_list["flow_cali"]->setValue("on");
+                if (config)
+                    config->set_str("print", "flow_cali", "0");
             }
         }
 
@@ -1924,6 +1931,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     else if (status == PrintStatusMixAmsAndVtSlotWarning) {
         wxString msg_text = _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
         update_print_status_msg(msg_text, false, true, true);
+    } else if (status == PrintStatusTPUUnsupportAutoCali) {
+        wxString msg_text = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
+        update_print_status_msg(msg_text, false, false, true);
     }
 
     // m_panel_warn m_simplebook
@@ -3404,6 +3414,11 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
+    if (!can_support_auto_cali() && m_checkbox_list["flow_cali"]->getValue() == "on") {
+        show_status(PrintDialogStatus::PrintStatusTPUUnsupportAutoCali);
+        return;
+    }
+
     // check nozzle type and diameter
     if (m_print_type == PrintFromType::FROM_NORMAL)
     {
@@ -3579,6 +3594,28 @@ bool SelectMachineDialog::has_timelapse_warning()
     }
 
     return false;
+}
+
+bool SelectMachineDialog::can_support_auto_cali()
+{
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return true;
+    MachineObject *obj = dev->get_selected_machine();
+    if (!obj)
+        return true;
+
+    std::vector<std::string> unsupport_auto_cali_filaments = DeviceManager::get_unsupport_auto_cali_filaments(obj->printer_type);
+    if (!unsupport_auto_cali_filaments.empty()) {
+        auto iter = std::find_if(m_filaments.begin(), m_filaments.end(),
+            [&unsupport_auto_cali_filaments](const FilamentInfo &item) {
+            auto iter = std::find(unsupport_auto_cali_filaments.begin(), unsupport_auto_cali_filaments.end(), item.filament_id);
+            return iter != unsupport_auto_cali_filaments.end();
+        });
+
+        return iter == m_filaments.end();
+    }
+    return true;
 }
 
 void SelectMachineDialog::update_timelapse_enable_status()

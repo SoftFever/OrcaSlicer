@@ -34,6 +34,11 @@ static std::string MachineBedTypeString[7] = {
     "pct",
 };
 
+std::vector<std::string> not_support_auto_pa_cali_filaments = {
+    "GFU03", // TPU 90A
+    "GFU04"  // TPU 85A
+};
+
 void get_default_k_n_value(const std::string &filament_id, float &k, float &n)
 {
     if (filament_id.compare("GFG00") == 0) {
@@ -1064,6 +1069,15 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     send_to_print(calib_info, error_message);
 }
 
+bool CalibUtils::is_support_auto_pa_cali(std::string filament_id)
+{
+    auto iter = std::find(not_support_auto_pa_cali_filaments.begin(), not_support_auto_pa_cali_filaments.end(), filament_id);
+    if (iter != not_support_auto_pa_cali_filaments.end()) {
+        return false;
+    }
+    return true;
+}
+
 int CalibUtils::get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx) {
     for (int i = 0; i < pa_calib_values.size(); ++i) {
         if(pa_calib_values[i].cali_idx == cali_idx)
@@ -1096,6 +1110,11 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
     float cali_diameter = cali_infos.calib_datas[0].nozzle_diameter;
     int   extruder_id   = cali_infos.calib_datas[0].extruder_id;
     for (const auto& cali_info : cali_infos.calib_datas) {
+        if (cali_infos.cali_mode == CalibMode::Calib_PA_Line && !is_support_auto_pa_cali(cali_info.filament_id)) {
+            error_message = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
+            return false;
+        }
+
         if (!is_approx(cali_diameter, cali_info.nozzle_diameter)) {
             error_message = _L("Automatic calibration only supports cases where the left and right nozzle diameters are identical.");
             return false;
