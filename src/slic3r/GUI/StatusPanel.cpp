@@ -2600,7 +2600,7 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
 
 void StatusPanel::update(MachineObject *obj)
 {
-    if (!obj)
+    if (!obj || !obj->is_info_ready())
     {
         m_nozzle_btn_panel->Disable();
         return;

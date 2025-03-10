@@ -3120,7 +3120,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                     else {
                         if (!printer_type.empty() && connection_type() == "lan")
+                        {
+                            m_full_msg_count++;/* all message package is full at LAN mode*/
                             print_json.load_compatible_settings(printer_type, "");
+                        }
+
                         print_json.diff2all_base_reset(j_pre);
                     }
                 }
