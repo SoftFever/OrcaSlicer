@@ -3181,7 +3181,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "프로젝트를 저장하고 프로그램을 다시 시작하세요."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "이전 파일의 G코드를 처리하는 중..."
@@ -17763,9 +17763,6 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 "
 "높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "프로젝트를 저장하고 프로그램을 다시 시작하세요. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
