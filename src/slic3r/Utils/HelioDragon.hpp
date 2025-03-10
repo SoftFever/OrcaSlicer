@@ -99,18 +99,10 @@ public:
     enum State {
         // m_thread  is not running yet, or it did not reach the STATE_IDLE yet (it does not wait on the condition yet).
         STATE_INITIAL = 0,
-        // m_thread is waiting for the task to execute.
-        STATE_IDLE,
         STATE_STARTED,
-        // m_thread is executing a task.
         STATE_RUNNING,
-        // m_thread finished executing a task, and it is waiting until the UI thread picks up the results.
         STATE_FINISHED,
-        // m_thread finished executing a task, the task has been canceled by the UI thread, therefore the UI thread will not be notified.
         STATE_CANCELED,
-        // m_thread exited the loop and it is going to finish. The UI thread should join on m_thread.
-        STATE_EXIT,
-        STATE_EXITED,
     };
 
     std::mutex              m_mutex;
@@ -154,6 +146,7 @@ public:
               Slic3r::GUI::Preview*         preview,
               std::function<void()>         function)
     {
+        m_state = STATE_STARTED;
         m_gcode_processor.reset();
         helio_api_key     = api_key;
         this->printer_id  = printer_id;
@@ -161,6 +154,12 @@ public:
         m_gcode_result    = gcode_result;
         m_preview         = preview;
         m_update_function = function;
+    }
+
+    void reset() {
+        m_state = STATE_INITIAL;
+        m_gcode_processor.reset();
+        m_gcode_result = nullptr;
     }
 
     void set_helio_api_key(std::string api_key);

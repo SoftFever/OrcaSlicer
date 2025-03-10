@@ -243,19 +243,21 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
                                                           BackgroundSlicingProcess::State&           slicing_state,
                                                           std::unique_ptr<GUI::NotificationManager>& notification_manager)
 {
+    m_state = STATE_RUNNING;
     std::unique_lock<std::mutex> slicing_lck(slicing_mutex);
     slicing_condition.wait(slicing_lck, [this, &slicing_state]() {
-        return slicing_state == BackgroundSlicingProcess::STATE_FINISHED || slicing_state == BackgroundSlicingProcess::STATE_CANCELED;
+        return slicing_state == BackgroundSlicingProcess::STATE_FINISHED || slicing_state == BackgroundSlicingProcess::STATE_CANCELED ||
+               slicing_state == BackgroundSlicingProcess::STATE_IDLE;
     });
     slicing_lck.unlock();
 
-    wxPostEvent(GUI::wxGetApp().plater(), GUI::SimpleEvent(GUI::EVT_HELIO_PROCESSING_STARTED));
+    if (slicing_state == BackgroundSlicingProcess::STATE_FINISHED || slicing_state == BackgroundSlicingProcess::STATE_IDLE) {
+        wxPostEvent(GUI::wxGetApp().plater(), GUI::SimpleEvent(GUI::EVT_HELIO_PROCESSING_STARTED));
 
-    Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(0.0, "Helio: Process Started");
-    Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-    wxQueueEvent(GUI::wxGetApp().plater(), evt);
+        Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(0.0, "Helio: Process Started");
+        Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+        wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
-    if (slicing_state == BackgroundSlicingProcess::STATE_FINISHED) {
         BOOST_LOG_TRIVIAL(debug) << boost::format("url: %1%, key: %2%") % helio_api_url % helio_api_key;
 
         HelioQuery::PresignedURLResult create_presigned_url_res = HelioQuery::create_presigned_url(helio_api_url, helio_api_key);
@@ -279,8 +281,9 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
                 create_simulation_step(create_gcode_res, notification_manager);
 
             } else {
-                status = Slic3r::PrintBase::SlicingStatus(100, "Helio: file upload failed");
-                evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                m_state = STATE_CANCELED;
+                status  = Slic3r::PrintBase::SlicingStatus(100, "Helio: file upload failed");
+                evt     = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
                 wxQueueEvent(GUI::wxGetApp().plater(), evt);
             }
         } else {
@@ -290,10 +293,13 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
                 presigned_url_message += "\n Please make sure you have the corrent API key set in preferences.";
             }
 
-            status = Slic3r::PrintBase::SlicingStatus(100, presigned_url_message);
-            evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            m_state = STATE_CANCELED;
+            status  = Slic3r::PrintBase::SlicingStatus(100, presigned_url_message);
+            evt     = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
             wxQueueEvent(GUI::wxGetApp().plater(), evt);
         }
+    } else {
+        m_state = STATE_CANCELED;
     }
 }
 
@@ -351,8 +357,9 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
                             break;
                         }
                     } else {
-                        status = Slic3r::PrintBase::SlicingStatus(100, "Helio: simulation failed");
-                        evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                        m_state = STATE_CANCELED;
+                        status  = Slic3r::PrintBase::SlicingStatus(100, "Helio: simulation failed");
+                        evt     = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
                         wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         break;
                     }
@@ -376,12 +383,14 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
             }
 
         } else {
-            status = Slic3r::PrintBase::SlicingStatus(100, "Helio: Failed to create simulation");
-            evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            m_state = STATE_CANCELED;
+            status  = Slic3r::PrintBase::SlicingStatus(100, "Helio: Failed to create simulation");
+            evt     = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
             wxQueueEvent(GUI::wxGetApp().plater(), evt);
         }
 
     } else {
+        m_state = STATE_CANCELED;
         Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, "Helio: Failed to create GCode");
         Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
@@ -441,6 +450,7 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
         HelioBackgroundProcess::load_simulation_to_viwer(simulated_gcode_path, tmp_path);
     } else {
+        m_state = STATE_CANCELED;
         Slic3r::PrintBase::SlicingStatus status =
             Slic3r::PrintBase::SlicingStatus(100, (boost::format("Helio: GCode download failed: %1%") % response_error).str());
         Slic3r::SlicingStatusEvent* evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
@@ -454,6 +464,7 @@ void HelioBackgroundProcess::load_simulation_to_viwer(std::string simulated_file
     auto res       = &m_gcode_processor.result();
     m_gcode_result = res;
 
+    m_state                           = STATE_FINISHED;
     Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, simulated_file_path,
                                                                          tmp_path, true);
     wxQueueEvent(GUI::wxGetApp().plater(), evt);

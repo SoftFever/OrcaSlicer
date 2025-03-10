@@ -1905,6 +1905,19 @@ bool MainFrame::get_enable_slice_status()
         {
             enable = false;
         }
+    } else if (m_slice_select == eSliceHelio) {
+        bool is_slicing_enabled = true;
+        if (current_plate->is_slice_result_valid()) {
+            is_slicing_enabled = false;
+        } else if (!current_plate->can_slice()) {
+            is_slicing_enabled = false;
+        }
+
+        int helio_process_status = m_plater->get_helio_process_status();
+        if (is_slicing_enabled || helio_process_status == 0 || helio_process_status == 4)
+            enable = true;
+        else
+            enable = false;
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": m_slice_select %1%, enable= %2% ")%m_slice_select %enable;
