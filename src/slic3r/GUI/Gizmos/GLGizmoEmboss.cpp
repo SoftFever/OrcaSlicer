@@ -3037,7 +3037,7 @@ bool GLGizmoEmboss::choose_font_by_wxdialog()
         (!use_deserialized_font && !m_style_manager.load_style(emboss_style, wx_font))) {
         m_style_manager.erase(font_index);
         wxString message = GUI::format_wxstr(
-            "Font \"%1%\" can't be used. Please select another.",
+            _L("Font \"%1%\" can't be used. Please select another."),
             emboss_style.name);
         wxString      title = "Selected font is NOT True-type.";
         MessageDialog not_loaded_font_message(nullptr, message, title, wxOK);
