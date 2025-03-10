@@ -5314,6 +5314,13 @@ int CLI::run(int argc, char **argv)
                                     else if (i->print_volume_state == ModelInstancePVS_Inside)
                                     {
                                         const Transform3d& inst_matrix = i->get_transformation().get_matrix();
+
+                                        //get object filaments
+                                        std::set<int> object_filaments;
+                                        for (const ModelVolume *vol : model_object->volumes) {
+                                            std::vector<int> filaments = vol->get_extruders();
+                                            object_filaments.insert(filaments.begin(), filaments.end());
+                                        }
                                         for (const ModelVolume* vol : model_object->volumes)
                                         {
                                             if (vol->is_model_part()) {
@@ -5332,10 +5339,13 @@ int CLI::run(int argc, char **argv)
                                                     std::vector<bool> inside_extruders;
                                                     BuildVolume::ObjectState state = build_volume.check_volume_bbox_state_with_extruder_areas(bbox, inside_extruders);
                                                     if (state == BuildVolume::ObjectState::Limited) {
-                                                        for (size_t i = 0; i < inside_extruders.size(); ++i) {
-                                                            if (!inside_extruders[i]) {
-                                                                std::vector<int> filaments = vol->get_extruders();
-                                                                unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
+                                                        if (object_filaments.size() == 1) {
+                                                            // Only check for single-color object
+                                                            for (size_t j = 0; j < inside_extruders.size(); ++j) {
+                                                                if (!inside_extruders[j]) {
+                                                                    std::vector<int> filaments = vol->get_extruders();
+                                                                    unprintable_filament_ids[j].insert(filaments.begin(), filaments.end());
+                                                                }
                                                             }
                                                         }
                                                     }
