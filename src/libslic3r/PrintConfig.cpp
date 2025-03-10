@@ -491,11 +491,11 @@ void PrintConfigDef::init_common_params()
     def->tooltip = L("LFAM print height, denotes the threshold helight at which the ambient temperature stabilizes, ceasing to rise further as the printing process advances. Typically, this marks the point where the immediate vicinity of the print reaches its peak temperature, owing to the consistent emission of heat from the printing object."); 
     def->mode = comSimple;
     def->sidetext = L("mm");
-    def->set_default_value(new ConfigOptionFloat(10));
+    def->set_default_value(new ConfigOptionFloat(40));
 
     def = this->add("helio_object_proximity_airtemp", coFloat);
-    def->label = L("Object Proximity Airtemp");
-    def->tooltip = L("Refers to the ambient air temperature at a distance of 10 centimeters from the vertical surface of the printed object. This measurement indicates the temperature stability in the immediate vicinity of the print, signifying the point at which the air temperature ceases to change as the printing process advances."); 
+    def->label = L("Initial air temperature");
+    def->tooltip = L("Refers to the ambient air temperature at a distance of 10 centimeters from the vertical surface of the printed object."); 
     def->mode = comSimple;
     def->sidetext = L("°C");
     def->set_default_value(new ConfigOptionFloat(30));

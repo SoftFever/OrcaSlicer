@@ -1914,7 +1914,7 @@ bool MainFrame::get_enable_slice_status()
         }
 
         int helio_process_status = m_plater->get_helio_process_status();
-        if (is_slicing_enabled || helio_process_status == 0 || helio_process_status == 4)
+        if (is_slicing_enabled || helio_process_status == 4)
             enable = true;
         else
             enable = false;

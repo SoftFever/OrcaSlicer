@@ -3745,8 +3745,8 @@ void TabPrinter::build_fff()
 
 		auto optgroup = page->new_optgroup(L("Helio Options"), L"param_information");
 		optgroup->append_single_option_line("helio_printer_id");
-		optgroup->append_single_option_line("helio_initial_room_air_temp");
-		optgroup->append_single_option_line("helio_layer_threshold");
+		//optgroup->append_single_option_line("helio_initial_room_air_temp");
+		//optgroup->append_single_option_line("helio_layer_threshold");
 		optgroup->append_single_option_line("helio_object_proximity_airtemp");
 
         optgroup = page->new_optgroup(L("Printable space"), "param_printable_space");
