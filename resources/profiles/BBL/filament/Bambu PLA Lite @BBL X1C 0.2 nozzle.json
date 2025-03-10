@@ -5,9 +5,6 @@
     "from": "system",
     "setting_id": "GFSA18_01",
     "instantiation": "true",
-    "filament_flow_ratio": [
-        "0.98"
-    ],
     "filament_long_retractions_when_cut": [
         "1"
     ],

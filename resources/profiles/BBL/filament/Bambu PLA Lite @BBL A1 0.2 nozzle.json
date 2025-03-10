@@ -14,9 +14,6 @@
     "fan_min_speed": [
         "60"
     ],
-    "filament_flow_ratio": [
-        "0.98"
-    ],
     "filament_long_retractions_when_cut": [
         "1"
     ],
