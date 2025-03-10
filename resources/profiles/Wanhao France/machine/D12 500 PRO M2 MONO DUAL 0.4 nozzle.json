@@ -25,7 +25,7 @@
           "YUMI PLA Bowden"
     ],
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0",
-    "change_filament_gcode": "M600",
+    "change_filament_gcode": ";M600",
     "z_hop": [
         "0.4"
     ],
