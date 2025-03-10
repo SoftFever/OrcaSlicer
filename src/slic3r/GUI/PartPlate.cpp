@@ -1954,6 +1954,11 @@ void PartPlate::get_print(PrintBase** print, GCodeResult** result, int* index)
 	return;
 }
 
+GCodeProcessorResult* PartPlate::get_gcode_result()
+{
+	return m_gcode_result;
+}
+
 //set the print object, result and it's index
 void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
 {
@@ -1967,6 +1972,12 @@ void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
 
 	m_print->set_plate_origin(m_origin);
 
+	return;
+}
+
+void PartPlate::set_gcode_result( GCodeResult* result)
+{
+	m_gcode_result = result;
 	return;
 }
 

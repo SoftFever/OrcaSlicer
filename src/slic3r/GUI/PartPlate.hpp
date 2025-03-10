@@ -277,8 +277,10 @@ public:
     //get the print's object, result and index
     void get_print(PrintBase **print, GCodeResult **result, int *index);
 
+    GCodeProcessorResult* PartPlate::get_gcode_result();
     //set the print object, result and it's index
     void set_print(PrintBase *print, GCodeResult* result = nullptr, int index = -1);
+    void PartPlate::set_gcode_result(GCodeResult* result);
 
     //get gcode filename
     std::string get_gcode_filename();

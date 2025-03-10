@@ -152,7 +152,7 @@ public:
               std::string                   filament_id,
               Slic3r::GCodeProcessorResult* gcode_result,
               Slic3r::GUI::Preview*         preview,
-    std::function<void()>         function)
+              std::function<void()>         function)
     {
         m_gcode_processor.reset();
         helio_api_key     = api_key;
@@ -160,7 +160,7 @@ public:
         this->filament_id = filament_id;
         m_gcode_result    = gcode_result;
         m_preview         = preview;
-        m_update_function          = function;
+        m_update_function = function;
     }
 
     void set_helio_api_key(std::string api_key);
@@ -169,6 +169,7 @@ public:
                                 std::unique_ptr<GUI::NotificationManager>& notification_manager);
     void save_downloaded_gcode_and_load_preview(std::string                                file_download_url,
                                                 std::string                                simulated_gcode_path,
+                                                std::string                                tmp_path,
                                                 std::unique_ptr<GUI::NotificationManager>& notification_manager);
 
     std::string create_path_for_simulated_gcode(std::string unsimulated_gcode_path)
@@ -185,7 +186,7 @@ public:
         return (parent / new_filename).string();
     }
 
-    void load_simulation_to_viwer(std::string file_path);
+    void load_simulation_to_viwer(std::string file_path, std::string tmp_path);
 };
 } // namespace Slic3r
 #endif

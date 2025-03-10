@@ -200,7 +200,7 @@ wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 
-wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, SimpleEvent);
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
 wxDEFINE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -2614,7 +2614,7 @@ struct Plater::priv
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
     void on_action_slice_plate_helio(SimpleEvent&);
-    void on_helio_processing_complete(SimpleEvent&);
+    void on_helio_processing_complete(HelioCompletionEvent&);
     void on_helio_processing_start(SimpleEvent&);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
@@ -7197,9 +7197,32 @@ void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
         notification_manager);
 }
 
-void Plater::priv::on_helio_processing_complete(SimpleEvent& a)
+void Plater::priv::on_helio_processing_complete(HelioCompletionEvent& a)
 {
-  this->update();
+    if (a.is_successful) {
+        this->reset_gcode_toolpaths();
+
+        int deleted = boost::nowide::remove(a.tmp_path.c_str());
+
+        if (deleted != 0) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Failed to delete file %1%") % a.tmp_path;
+        }
+
+        std::string copied;
+        copy_file(a.simulated_path, a.tmp_path, copied);
+
+        BOOST_LOG_TRIVIAL(debug) << boost::format("Failed to delete file %1%") % copied;
+
+        GCodeProcessorResult* res1 = partplate_list.get_curr_plate()->get_gcode_result();
+        res1->lines_ends = helio_background_process.m_gcode_result->lines_ends;
+        res1->moves                = helio_background_process.m_gcode_result->moves;
+
+        GCodeProcessorResult* res2 = background_process.get_current_gcode_result();
+        res2->lines_ends = helio_background_process.m_gcode_result->lines_ends;
+        res2->moves                = helio_background_process.m_gcode_result->moves;
+
+        this->update();
+    }
 }
 
 void Plater::priv::on_helio_processing_start(SimpleEvent& a)

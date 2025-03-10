@@ -24,6 +24,18 @@ class DynamicPrintConfig;
 class Model;
 class SLAPrint;
 
+class HelioCompletionEvent : public wxEvent
+{
+public:
+	HelioCompletionEvent(wxEventType eventType, int winid, std::string in_simulated_path, std::string in_tmp_path, bool in_is_successful) :
+		wxEvent(winid, eventType), tmp_path(in_tmp_path), simulated_path(in_simulated_path), is_successful(in_is_successful) {}
+	virtual wxEvent *Clone() const { return new HelioCompletionEvent(*this); }
+
+	std::string tmp_path;
+    std::string simulated_path;
+    bool        is_successful;
+};
+
 class SlicingStatusEvent : public wxEvent
 {
 public:

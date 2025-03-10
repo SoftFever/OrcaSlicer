@@ -50,6 +50,7 @@ class SLAPrint;
 //BBS: add partplatelist and SlicingStatusEvent
 class PartPlateList;
 class SlicingStatusEvent;
+class HelioCompletionEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class Ams;
@@ -105,7 +106,7 @@ wxDECLARE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
-wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, SimpleEvent);
+wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, Slic3r::HelioCompletionEvent);
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 

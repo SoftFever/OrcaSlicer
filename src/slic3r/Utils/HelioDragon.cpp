@@ -16,7 +16,6 @@
 #include "wx/app.h"
 #include "cstdio"
 
-
 namespace Slic3r {
 
 HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::string helio_api_url, const std::string helio_api_key)
@@ -234,11 +233,9 @@ void HelioBackgroundProcess::helio_thread_start(std::mutex&                     
                                                 BackgroundSlicingProcess::State&           slicing_state,
                                                 std::unique_ptr<GUI::NotificationManager>& notification_manager)
 {
-
     m_thread = create_thread([this, &slicing_mutex, &slicing_condition, &slicing_state, &notification_manager] {
         this->helio_threaded_process_start(slicing_mutex, slicing_condition, slicing_state, notification_manager);
     });
-
 }
 
 void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&                                slicing_mutex,
@@ -252,10 +249,10 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
     });
     slicing_lck.unlock();
 
-	wxPostEvent(GUI::wxGetApp().plater(), GUI::SimpleEvent(GUI::EVT_HELIO_PROCESSING_STARTED));
+    wxPostEvent(GUI::wxGetApp().plater(), GUI::SimpleEvent(GUI::EVT_HELIO_PROCESSING_STARTED));
 
     Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(0.0, "Helio: Process Started");
-    Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+    Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
     wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
     if (slicing_state == BackgroundSlicingProcess::STATE_FINISHED) {
@@ -264,19 +261,17 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
         HelioQuery::PresignedURLResult create_presigned_url_res = HelioQuery::create_presigned_url(helio_api_url, helio_api_key);
 
         if (create_presigned_url_res.error.empty() && create_presigned_url_res.status == 200) {
-
-			status = Slic3r::PrintBase::SlicingStatus(5, "Helio: Presigned URL Created");
-		    evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-			wxQueueEvent(GUI::wxGetApp().plater(), evt);
+            status = Slic3r::PrintBase::SlicingStatus(5, "Helio: Presigned URL Created");
+            evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
             HelioQuery::UploadFileResult upload_file_res = HelioQuery::upload_file_to_presigned_url(m_gcode_result->filename,
                                                                                                     create_presigned_url_res.url);
 
             if (upload_file_res.success) {
-
-				status = Slic3r::PrintBase::SlicingStatus(10, "Helio: file succesfully uploaded");
-				evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-				wxQueueEvent(GUI::wxGetApp().plater(), evt);
+                status = Slic3r::PrintBase::SlicingStatus(10, "Helio: file succesfully uploaded");
+                evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
                 HelioQuery::CreateGCodeResult create_gcode_res = HelioQuery::create_gcode(create_presigned_url_res.key, helio_api_url,
                                                                                           helio_api_key, printer_id, filament_id);
@@ -284,32 +279,31 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
                 create_simulation_step(create_gcode_res, notification_manager);
 
             } else {
-				status = Slic3r::PrintBase::SlicingStatus(100, "Helio: file upload failed");
-				evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-				wxQueueEvent(GUI::wxGetApp().plater(), evt);
+                status = Slic3r::PrintBase::SlicingStatus(100, "Helio: file upload failed");
+                evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                wxQueueEvent(GUI::wxGetApp().plater(), evt);
             }
         } else {
-
             std::string presigned_url_message = (boost::format("error: %1%") % create_presigned_url_res.error).str();
 
             if (create_presigned_url_res.status == 401) {
                 presigned_url_message += "\n Please make sure you have the corrent API key set in preferences.";
             }
 
-			status = Slic3r::PrintBase::SlicingStatus(100, presigned_url_message);
-		    evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-			wxQueueEvent(GUI::wxGetApp().plater(), evt);
+            status = Slic3r::PrintBase::SlicingStatus(100, presigned_url_message);
+            evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            wxQueueEvent(GUI::wxGetApp().plater(), evt);
         }
     }
 }
 
-void HelioBackgroundProcess::create_simulation_step(
-    HelioQuery::CreateGCodeResult create_gcode_res, std::unique_ptr<GUI::NotificationManager>& notification_manager)
+void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResult              create_gcode_res,
+                                                    std::unique_ptr<GUI::NotificationManager>& notification_manager)
 {
     if (create_gcode_res.success) {
-		Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(15, "Helio: GCode created successfully");
-		Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-		wxQueueEvent(GUI::wxGetApp().plater(), evt);
+        Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(15, "Helio: GCode created successfully");
+        Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+        wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
         auto              print_config             = GUI::wxGetApp().preset_bundle->full_config();
         const std::string gcode_id                 = create_gcode_res.id;
@@ -322,10 +316,9 @@ void HelioBackgroundProcess::create_simulation_step(
                                                                                                  object_proximity_airtemp);
 
         if (create_simulation_res.success) {
-
-			status = Slic3r::PrintBase::SlicingStatus(20, "Helio: simulation successfully created");
-			evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-			wxQueueEvent(GUI::wxGetApp().plater(), evt);
+            status = Slic3r::PrintBase::SlicingStatus(20, "Helio: simulation successfully created");
+            evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
             int times_tried            = 0;
             int max_unsuccessful_tries = 5;
@@ -338,37 +331,41 @@ void HelioBackgroundProcess::create_simulation_step(
                 if (check_simulation_progress_res.status == 200) {
                     times_tried = 0;
                     if (check_simulation_progress_res.error.empty()) {
-
                         std::string trailing_dots = "";
 
                         for (int i = 0; i < (times_queried % 3); i++) {
                             trailing_dots += "....";
                         }
 
-						status = Slic3r::PrintBase::SlicingStatus(35 + (80-35) * check_simulation_progress_res.progress, "Helio: simulation working" + trailing_dots);
-						evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-						wxQueueEvent(GUI::wxGetApp().plater(), evt);
+                        status = Slic3r::PrintBase::SlicingStatus(35 + (80 - 35) * check_simulation_progress_res.progress,
+                                                                  "Helio: simulation working" + trailing_dots);
+                        evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                        wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         if (check_simulation_progress_res.is_finished) {
-                            //notification_manager->push_notification((boost::format("Helio: Simulation finished.")).str());
-                            std::string simulated_gcode_path = HelioBackgroundProcess::create_path_for_simulated_gcode(m_gcode_result->filename);
+                            // notification_manager->push_notification((boost::format("Helio: Simulation finished.")).str());
+                            std::string simulated_gcode_path = HelioBackgroundProcess::create_path_for_simulated_gcode(
+                                m_gcode_result->filename);
                             HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(check_simulation_progress_res.url,
-                                                                                           simulated_gcode_path, notification_manager);
+                                                                                           simulated_gcode_path, m_gcode_result->filename,
+                                                                                           notification_manager);
                             break;
                         }
                     } else {
-						status = Slic3r::PrintBase::SlicingStatus(100, "Helio: simulation failed");
-						evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-						wxQueueEvent(GUI::wxGetApp().plater(), evt);
+                        status = Slic3r::PrintBase::SlicingStatus(100, "Helio: simulation failed");
+                        evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                        wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         break;
                     }
                 } else {
                     times_tried++;
-                    //notification_manager->push_notification(
-                        //(boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
+                    // notification_manager->push_notification(
+                    //(boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
 
-					status = Slic3r::PrintBase::SlicingStatus(35, (boost::format("Helio: Simulation check failed, %1% tries left") % (max_unsuccessful_tries - times_tried)).str());
-					evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-					wxQueueEvent(GUI::wxGetApp().plater(), evt);
+                    status = Slic3r::PrintBase::SlicingStatus(35, (boost::format("Helio: Simulation check failed, %1% tries left") %
+                                                                   (max_unsuccessful_tries - times_tried))
+                                                                      .str());
+                    evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                    wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
                     if (times_tried >= max_unsuccessful_tries)
                         break;
@@ -379,22 +376,24 @@ void HelioBackgroundProcess::create_simulation_step(
             }
 
         } else {
-			status = Slic3r::PrintBase::SlicingStatus(100, "Helio: Failed to create simulation");
-			evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-			wxQueueEvent(GUI::wxGetApp().plater(), evt);
+            status = Slic3r::PrintBase::SlicingStatus(100, "Helio: Failed to create simulation");
+            evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            wxQueueEvent(GUI::wxGetApp().plater(), evt);
         }
 
     } else {
-		Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, "Helio: Failed to create GCode");
-		Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-		wxQueueEvent(GUI::wxGetApp().plater(), evt);
+        Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, "Helio: Failed to create GCode");
+        Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+        wxQueueEvent(GUI::wxGetApp().plater(), evt);
     }
-
 }
 
-void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string file_download_url, std::string simulated_gcode_path, std::unique_ptr<GUI::NotificationManager>& notification_manager) {
-
-    auto http = Http::get(file_download_url);
+void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string                                file_download_url,
+                                                                    std::string                                simulated_gcode_path,
+                                                                    std::string                                tmp_path,
+                                                                    std::unique_ptr<GUI::NotificationManager>& notification_manager)
+{
+    auto        http            = Http::get(file_download_url);
     unsigned    response_status = 0;
     std::string downloaded_gcode;
     std::string response_error;
@@ -418,14 +417,15 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 
         if (response_status != 200) {
             number_of_attempts++;
-			Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(80, (boost::format("Helio: Could not download file. Attempts left %1%") % (max_attempts - number_of_attempts)).str());
-			Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-			wxQueueEvent(GUI::wxGetApp().plater(), evt);
-            
+            Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(
+                80, (boost::format("Helio: Could not download file. Attempts left %1%") % (max_attempts - number_of_attempts)).str());
+            Slic3r::SlicingStatusEvent* evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            wxQueueEvent(GUI::wxGetApp().plater(), evt);
+
             boost::this_thread::sleep_for(boost::chrono::seconds(2));
         }
 
-        if (response_status == 200 || number_of_attempts >= max_attempts){
+        if (response_status == 200 || number_of_attempts >= max_attempts) {
             response_error = "";
             break;
         }
@@ -436,26 +436,28 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
         fwrite(downloaded_gcode.c_str(), 1, downloaded_gcode.size(), file);
         fclose(file);
 
-		Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, "Helio: GCode downloaded successfully");
-		Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-		wxQueueEvent(GUI::wxGetApp().plater(), evt);
-        HelioBackgroundProcess::load_simulation_to_viwer(simulated_gcode_path);
+        Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, "Helio: GCode downloaded successfully");
+        Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+        wxQueueEvent(GUI::wxGetApp().plater(), evt);
+        HelioBackgroundProcess::load_simulation_to_viwer(simulated_gcode_path, tmp_path);
     } else {
-		Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, (boost::format("Helio: GCode download failed: %1%") % response_error).str());
-		Slic3r::SlicingStatusEvent *evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
-		wxQueueEvent(GUI::wxGetApp().plater(), evt);
+        Slic3r::PrintBase::SlicingStatus status =
+            Slic3r::PrintBase::SlicingStatus(100, (boost::format("Helio: GCode download failed: %1%") % response_error).str());
+        Slic3r::SlicingStatusEvent* evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+        wxQueueEvent(GUI::wxGetApp().plater(), evt);
     }
-
-
 }
 
-void HelioBackgroundProcess::load_simulation_to_viwer(std::string file_path) { 
-        m_gcode_processor.process_file(file_path);
-        m_gcode_result = &m_gcode_processor.result();
-        m_preview->update_gcode_result(m_gcode_result);
-        GUI::SimpleEvent evt = GUI::SimpleEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED);
-        wxPostEvent(GUI::wxGetApp().plater(), evt);
-    }
+void HelioBackgroundProcess::load_simulation_to_viwer(std::string simulated_file_path, std::string tmp_path)
+{
+    m_gcode_processor.process_file(simulated_file_path);
+    auto res       = &m_gcode_processor.result();
+    m_gcode_result = res;
+
+    Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, simulated_file_path,
+                                                                         tmp_path, true);
+    wxQueueEvent(GUI::wxGetApp().plater(), evt);
+}
 
 void HelioBackgroundProcess::set_helio_api_key(std::string api_key) { helio_api_key = api_key; }
 void HelioBackgroundProcess::set_gcode_result(Slic3r::GCodeProcessorResult* gcode_result) { m_gcode_result = gcode_result; }
