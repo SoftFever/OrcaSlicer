@@ -3247,10 +3247,10 @@ msgstr ""
 
 #, boost-format
 msgid "A fatal error occurred: \"%1%\""
-msgstr ""
+msgstr "Ocorreu um erro fatal: \"%1%\""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Por favor, salve o projeto e reinicie o programa."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Processando G-Code do arquivo anterior..."
@@ -18405,9 +18405,6 @@ msgstr ""
 "Você sabia que ao imprimir materiais propensos ao empenamento, como ABS, "
 "aumentar adequadamente a temperatura da mesa aquecida pode reduzir a "
 "probabilidade de empenamento?"
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Por favor, salve o projeto e reinicie o programa. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

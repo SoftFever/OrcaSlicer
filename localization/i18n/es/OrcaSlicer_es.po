@@ -3289,7 +3289,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Guarde el proyecto y reinicie el programa."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Procesando el G-Code del archivo anterior..."
@@ -18524,9 +18524,6 @@ msgstr ""
 "Sabías que al imprimir materiales propensos a la deformación como el ABS, "
 "aumentar adecuadamente la temperatura de la cama térmica puede reducir la "
 "probabilidad de deformaciones."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Guarde el proyecto y reinicie el programa. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

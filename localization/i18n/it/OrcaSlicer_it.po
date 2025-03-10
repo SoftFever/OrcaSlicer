@@ -18814,9 +18814,6 @@ msgstr ""
 #~ "OrcaSlicer ha esaurito la memoria e verrà chiuso. Questo potrebbe essere "
 #~ "un bug. Si prega di segnalare questo errore al supporto tecnico."
 
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Salva il progetto e riavvia l'applicazione. "
-
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
 #~ "support volume but weaker strength.\n"

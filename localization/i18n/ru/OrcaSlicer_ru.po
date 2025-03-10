@@ -3284,7 +3284,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Пожалуйста, сохраните проект и перезапустите программу."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Обработка G-кода из предыдущего файла..."
@@ -18821,9 +18821,6 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Пожалуйста, сохраните проект и перезапустите программу. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
