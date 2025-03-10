@@ -3293,7 +3293,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr ""
 
 msgid "Please save project and restart the program."
-msgstr ""
+msgstr "Veuillez enregistrer le projet et redémarrer le programme."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Traitement du G-Code du fichier précédent…"
@@ -15977,7 +15977,7 @@ msgstr ""
 "2 :avertissement, 3 :info, 4 :débogage, 5 :trace\n"
 
 msgid "Enable timelapse for print"
-msgstr ""
+msgstr "Activer le timelapse pour l’impression"
 
 msgid "If enabled, this slicing will be considered using timelapse"
 msgstr ""
@@ -18910,12 +18910,6 @@ msgstr ""
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se "
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Veuillez enregistrer le projet et redémarrer le programme. "
-
-#~ msgid "Enable timeplapse for print"
-#~ msgstr "Activer le timelapse pour l’impression"
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
