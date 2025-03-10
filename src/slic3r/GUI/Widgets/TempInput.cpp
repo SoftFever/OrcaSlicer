@@ -40,6 +40,61 @@ TempInput::TempInput(wxWindow *parent, int type, wxString text, TempInputType  i
     Create(parent, text, label, normal_icon, actice_icon, pos, size, style);
 }
 
+void TempInput::ResetWaringDlg()
+{
+    if (wdialog) { wdialog->Dismiss(); }
+    if (warning_mode) { Warning(false, WARNING_TOO_HIGH); }
+}
+
+bool TempInput::CheckIsValidVal(bool show_warning)
+{
+    auto temp = text_ctrl->GetValue();
+    if (temp.ToStdString().empty())
+    {
+        return false;
+    }
+
+    if (!AllisNum(temp.ToStdString()))
+    {
+        return false;
+    }
+
+    /*show temperature range warnings*/
+    auto tempint = std::stoi(temp.ToStdString());
+    if (tempint > max_temp)
+    {
+        if (show_warning)
+        {
+            Warning(true, WARNING_TOO_HIGH);
+        }
+
+        return false;
+    }
+    else if (tempint < min_temp)
+    {
+        if (show_warning)
+        {
+            Warning(true, WARNING_TOO_LOW);
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+void TempInput::OnEdit()
+{
+    /*clear previous status*/
+    ResetWaringDlg();
+
+    /*check the value is valid or not*/
+    if (CheckIsValidVal(true))
+    {
+        SetFinish();
+    }
+}
+
 void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString normal_icon, wxString actice_icon, const wxPoint &pos, const wxSize &size, long style)
 {
     StaticBox::Create(parent, wxID_ANY, pos, size, style);
@@ -70,49 +125,19 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         e.SetId(GetId());
         ProcessEventLocally(e);
         e.Skip();
-        OnEdit();
-        auto temp = text_ctrl->GetValue();
-        if (temp.ToStdString().empty()) {
-            text_ctrl->SetValue(wxString("_"));
-            return;
+
+        if (!m_on_changing) /*the wxCUSTOMEVT_SET_TEMP_FINISH event may popup a dialog, which may generate dead loop*/
+        {
+            ResetWaringDlg();
+            SetFinish();
         }
-
-        if (!AllisNum(temp.ToStdString())) return;
-        if (max_temp <= 0) return;
-
-       /* auto tempint = std::stoi(temp.ToStdString());
-         if ((tempint > max_temp || tempint < min_temp) && !warning_mode) {
-             if (tempint > max_temp)
-                 Warning(true, WARNING_TOO_HIGH);
-             else if (tempint < min_temp)
-                 Warning(true, WARNING_TOO_LOW);
-             return;
-         } else {
-             Warning(false);
-         }*/
-        SetFinish();
     });
-    text_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
-        /*the wxEVT_KILL_FOCUS will be triggered in Slic3r::GUI::wxGetApp().GetMainTopWindow()->SetFocus() for win or linux, but not APPLE*/
-#ifdef __APPLE__
-        OnEdit();
-        auto temp = text_ctrl->GetValue();
-        if (temp.ToStdString().empty()) return;
-        if (!AllisNum(temp.ToStdString())) return;
-        if (max_temp <= 0) return;
-
-        auto tempint = std::stoi(temp.ToStdString());
-        if (tempint > max_temp) {
-            Warning(true, WARNING_TOO_HIGH);
-            return;
+    text_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e)
+    {
+        if (!m_on_changing) /*the wxCUSTOMEVT_SET_TEMP_FINISH event may popup a dialog, which may generate dead loop*/
+        {
+            OnEdit();
         }
-        else {
-            Warning(false, WARNING_TOO_LOW);
-        }
-        SetFinish();
-#endif
-
-        Slic3r::GUI::wxGetApp().GetMainTopWindow()->SetFocus();
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     text_ctrl->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
@@ -259,6 +284,8 @@ void TempInput::Warning(bool warn, WarningType type)
         else if (type == WarningType::WARNING_TOO_LOW)
              warning_string = _L("The minmum temperature should not be less than ") + wxString::Format("%d", min_temp);
         warning_text->SetLabel(warning_string);
+        warning_text->Wrap(-1);
+        warning_text->Fit();
         wdialog->Fit();
         wdialog->Popup();
     } else {

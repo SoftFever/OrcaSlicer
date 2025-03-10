@@ -2258,18 +2258,29 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(wxCUSTOMEVT_SET_TEMP_FINISH, [this](wxCommandEvent e) {
         int  id   = e.GetInt();
         if (id == m_tempCtrl_bed->GetType()) {
+            m_tempCtrl_bed->SetOnChanging();
             on_set_bed_temp();
+            m_tempCtrl_bed->ReSetOnChanging();
+
         } else if (id == m_tempCtrl_nozzle->GetType()) {
 
             if (e.GetString() == wxString::Format("%d", MAIN_NOZZLE_ID)) {
+                m_tempCtrl_nozzle->SetOnChanging();
                 on_set_nozzle_temp(MAIN_NOZZLE_ID);
+                m_tempCtrl_nozzle->ReSetOnChanging();
             } else if (e.GetString() == wxString::Format("%d", DEPUTY_NOZZLE_ID)) {
+                m_tempCtrl_nozzle_deputy->SetOnChanging();
                 on_set_nozzle_temp(DEPUTY_NOZZLE_ID);
+                m_tempCtrl_nozzle_deputy->ReSetOnChanging();
             } else {
+                m_tempCtrl_nozzle->SetOnChanging();
                 on_set_nozzle_temp(UNIQUE_NOZZLE_ID);//there is only one nozzle
+                m_tempCtrl_nozzle->ReSetOnChanging();
             }
         } else if (id == m_tempCtrl_chamber->GetType()) {
+            m_tempCtrl_chamber->SetOnChanging();
             on_set_chamber_temp();
+            m_tempCtrl_chamber->ReSetOnChanging();
         }
     });
 
@@ -4135,10 +4146,7 @@ void StatusPanel::on_set_chamber_temp()
                         wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
                 }
 
-                /*the dialog will be blocked APPLE, let the printer send back message*/
-#ifndef __APPLE__
                 if (champer_switch_head_dlg->ShowModal() != wxID_OK) { return; }
-#endif // __APPLE__
             }
 
             obj->command_set_chamber(chamber_temp);

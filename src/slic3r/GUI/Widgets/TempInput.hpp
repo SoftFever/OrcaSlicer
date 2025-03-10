@@ -19,6 +19,7 @@ class TempInput : public wxNavigationEnabled<StaticBox>
     bool   hover;
 
     bool           m_read_only{false};
+    bool           m_on_changing {false};
     wxSize         labelSize;
     ScalableBitmap normal_icon;
     ScalableBitmap actice_icon;
@@ -117,14 +118,20 @@ public:
 
     wxTextCtrl const *GetTextCtrl() const { return text_ctrl; }
 
+    void  SetOnChanging() { m_on_changing = true; }
+    void  ReSetOnChanging() { m_on_changing = false; }
+
 protected:
-    virtual void OnEdit() {}
+    virtual void OnEdit();
 
     virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 
     void DoSetToolTipText(wxString const &tip) override;
 
 private:
+    void ResetWaringDlg();
+    bool CheckIsValidVal(bool show_warning);
+
     void paintEvent(wxPaintEvent &evt);
 
     void render(wxDC &dc);
