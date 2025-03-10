@@ -451,8 +451,8 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 
 void HelioBackgroundProcess::load_simulation_to_viwer(std::string file_path) { 
         m_gcode_processor.process_file(file_path);
-        GCodeProcessorResult* res = &m_gcode_processor.result();
-        m_preview->update_gcode_result(res);
+        m_gcode_result = &m_gcode_processor.result();
+        m_preview->update_gcode_result(m_gcode_result);
         GUI::SimpleEvent evt = GUI::SimpleEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED);
         wxPostEvent(GUI::wxGetApp().plater(), evt);
     }
