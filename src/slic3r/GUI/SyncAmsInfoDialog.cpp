@@ -968,7 +968,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
     {//new content//tip confirm ok button
         wxBoxSizer *tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-        m_attention_text      = new wxStaticText(m_scrolledWindow, wxID_ANY, _L("Attention") + ": ");
+        m_attention_text      = new wxStaticText(m_scrolledWindow, wxID_ANY, _L("Tip") + ": ");
         tip_sizer->Add(m_attention_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
         m_tip_attention_color_map = _L("Only synchronize filament type and color, not including AMS slot information.");
         m_tip_attention_override  = _L("Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list.");
@@ -1012,7 +1012,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_append_color_checkbox->Hide();
         m_append_color_sizer->Add(m_append_color_checkbox, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
         const int gap_between_checebox_and_text = 2;
-        m_append_color_text                     = new wxStaticText(m_scrolledWindow, wxID_ANY, _L("Unused AMS filaments should also be added to the filament list."));
+        m_append_color_text                     = new wxStaticText(m_scrolledWindow, wxID_ANY, _L("Add unused AMS filaments to filaments list."));
         m_append_color_text->Hide();
         m_append_color_sizer->AddSpacer(FromDIP(gap_between_checebox_and_text));
         m_append_color_sizer->Add(m_append_color_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
@@ -1371,8 +1371,8 @@ void SyncAmsInfoDialog::deal_only_exist_ext_spool(MachineObject *obj_) {
     if (!m_append_color_text) { return; }
     bool only_exist_ext_spool_flag = m_only_exist_ext_spool_flag = obj_->only_exist_ext_spool();
     SetTitle(only_exist_ext_spool_flag ? _L("Synchronize Filament Information") : _L("Synchronize AMS Filament Information"));
-    m_append_color_text->SetLabel(only_exist_ext_spool_flag ? _L("Unused filaments should also be added to the filament list.") :
-                                                              _L("Unused AMS filaments should also be added to the filament list."));
+    m_append_color_text->SetLabel(only_exist_ext_spool_flag ? _L("Add unused filaments to filaments list.") :
+                                                              _L("Add unused AMS filaments to filaments list."));
     if (m_map_mode == MapModeEnum::ColorMap) {
         m_tip_attention_color_map = only_exist_ext_spool_flag ? _L("Only synchronize filament type and color, not including slot information.") :
                                                                 _L("Only synchronize filament type and color, not including AMS slot information.");
