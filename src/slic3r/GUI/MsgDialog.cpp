@@ -21,9 +21,7 @@
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
-
-#define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
-#define MSG_DLG_MAX_SIZE wxSize(FromDIP(700), -1)
+#define MSG_DLG_MAX_SIZE wxSize(-1, FromDIP(200))//notice:ban setting the maximum width value
 namespace Slic3r {
 namespace GUI {
 
@@ -277,7 +275,7 @@ static void add_msg_content(wxWindow   *parent,
         em = std::max<size_t>(10, 10.0f * scale_factor);
 #endif // __WXGTK__
     }
-
+    auto info_width = 68 * em;
     // if message containes the table
     if (msg.Contains("<tr>")) {
         int lines = msg.Freq('\n') + 1;
@@ -286,22 +284,38 @@ static void add_msg_content(wxWindow   *parent,
             pos = msg.find("<tr>", pos + 1);
             lines += 2;
         }
-        int page_height = std::min(int(font.GetPixelSize().y+2) * lines, 68 * em);
-        page_size = wxSize(68 * em, page_height);
+        int page_height = std::min(int(font.GetPixelSize().y + 2) * lines, info_width);
+        page_size       = wxSize(info_width, page_height);
     }
     else {
 // Extra line breaks in message dialog
-//#ifdef __WINDOWS__
-//        Label* wrapped_text = new Label(html, msg);
-//        wrapped_text->Wrap(68 * em);
-//        msg = wrapped_text->GetLabel();
-//        wrapped_text->Destroy();
-//#endif //__WINDOWS__
+        if (link_text.IsEmpty() && !link_callback && is_marked_msg == false) {//for common text
+            html->Destroy();
+
+            wxScrolledWindow *scrolledWindow = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+            scrolledWindow->SetBackgroundColour(*wxWHITE);
+            scrolledWindow->SetScrollRate(0, 20);
+            scrolledWindow->SetMinSize(wxSize(info_width, -1));
+            scrolledWindow->SetMaxSize(wxSize(info_width, -1));
+            scrolledWindow->EnableScrolling(false, true);
+            wxBoxSizer *sizer_scrolled = new wxBoxSizer(wxHORIZONTAL);
+            Label *wrapped_text = new Label(scrolledWindow, font, msg, LB_AUTO_WRAP, wxSize(info_width, -1));
+            wrapped_text->SetMinSize(wxSize(info_width, -1));
+            wrapped_text->SetMaxSize(wxSize(info_width, -1));
+            wrapped_text->Wrap(info_width);
+            sizer_scrolled->Add(wrapped_text, wxALIGN_LEFT ,0);
+            sizer_scrolled->AddSpacer(5);
+            sizer_scrolled->AddStretchSpacer();
+            scrolledWindow->SetSizer(sizer_scrolled);
+            scrolledWindow->FitInside();
+            content_sizer->Add(scrolledWindow, 1, wxEXPAND | wxRIGHT, 8);
+            return;
+        }
+
         wxClientDC dc(parent);
         wxSize msg_sz = dc.GetMultiLineTextExtent(msg);
 
-        page_size = wxSize(std::min(msg_sz.GetX(), 68 * em),
-                           std::min(msg_sz.GetY(), 68 * em));
+        page_size = wxSize(std::min(msg_sz.GetX(), info_width), std::min(msg_sz.GetY(), info_width));
     }
     html->SetMinSize(page_size);
 
@@ -328,17 +342,17 @@ static void add_msg_content(wxWindow   *parent,
 
 // ErrorDialog
 
-ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_font)
-    : MsgDialog(parent, wxString::Format(_(L("%s error")), SLIC3R_APP_FULL_NAME), 
+ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &temp_msg, bool monospaced_font)
+    : MsgDialog(parent, wxString::Format(_(L("%s error")), SLIC3R_APP_FULL_NAME),
                         wxString::Format(_(L("%s has encountered an error")), SLIC3R_APP_FULL_NAME), wxOK)
-	, msg(msg)
+    , msg(temp_msg)
 {
     add_msg_content(this, content_sizer, msg, monospaced_font);
 
 	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
 	logo->SetBitmap(create_scaled_bitmap("OrcaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
 
-    SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
+    SetMaxSize(MSG_DLG_MAX_SIZE);
 
     finalize();
 }
