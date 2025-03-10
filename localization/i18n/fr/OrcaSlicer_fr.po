@@ -15211,7 +15211,7 @@ msgid "Speed of top surface infill which is solid"
 msgstr "Vitesse de remplissage de la surface supérieure qui est solide"
 
 msgid "Top shell layers"
-msgstr "Couches de coque supérieures"
+msgstr "Couches supérieures de la coque"
 
 msgid ""
 "This is the number of solid layers of top shell, including the top surface "
