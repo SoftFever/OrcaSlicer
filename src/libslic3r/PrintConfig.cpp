@@ -542,7 +542,7 @@ void PrintConfigDef::init_common_params()
     def = this->add("preferred_orientation", coFloat);
     def->label = L("Preferred orientation");
     def->tooltip = L("Automatically orient stls on the Z-axis upon initial import");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->max = 360;
     def->min = -360;
     def->mode = comAdvanced;
@@ -695,7 +695,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -705,7 +705,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the Textured Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -715,7 +715,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -725,7 +725,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -735,7 +735,7 @@ void PrintConfigDef::init_fff_params()
     def->label      = L("Other layers");
     def->tooltip    = L("Bed temperature for layers except the initial one. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
+    def->sidetext   = "°C";
     def->full_label = L("Bed temperature");
     def->min        = 0;
     def->max        = 300;
@@ -756,7 +756,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
@@ -766,7 +766,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Textured Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 40 });
@@ -776,7 +776,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
@@ -786,7 +786,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
@@ -795,7 +795,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip    = L("Bed temperature of the initial layer. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
+    def->sidetext   = "°C";
     def->min        = 0;
     def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
@@ -934,7 +934,7 @@ void PrintConfigDef::init_fff_params()
                      "and bridges can improve the overall print quality of these features.\n\n"
                      "Please note, this fan speed is clamped on the lower end by the minimum fan speed threshold set above. It is also adjusted "
                      "upwards up to the maximum fan speed threshold when the minimum layer time threshold is not met.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comAdvanced;
@@ -970,7 +970,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
         "Use 180°for zero angle.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -982,7 +982,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Internal bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for internal bridges. "
         "Use 180°for zero angle.\n\nIt is recommended to leave it at 0 unless there is a specific model need not to.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -993,7 +993,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Controls the density (spacing) of external bridge lines. 100% means solid bridge. Default is 100%.\n\n"
                      "Lower density external bridges can help improve reliability as there is more space for air to circulate "
                      "around the extruded bridge, improving its cooling speed.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 10;
     def->max = 100;
     def->mode = comAdvanced;
@@ -1007,7 +1007,7 @@ void PrintConfigDef::init_fff_params()
                      "air to circulate around the extruded bridge, improving its cooling speed. \n\n"
                      "This option works particularly well when combined with the second internal bridge over infill option, "
                      "further improving internal bridging structure before solid infill is extruded.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 10;
     def->max = 100;
     def->mode = comAdvanced;
@@ -1300,7 +1300,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("Maximum angle to let a brim ear appear. \nIf set to 0, no brim will be created. \nIf set to "
                      "~180, brim will be created on everything but straight sections.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 180;
     def->mode = comAdvanced;
@@ -1430,7 +1430,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("during_print_exhaust_fan_speed", coInts);
     def->label   = L("Fan speed");
     def->tooltip=L("Speed of exhaust fan during printing.This speed will overwrite the speed in filament custom gcode");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min=0;
     def->max=100;
     def->mode = comSimple;
@@ -1438,7 +1438,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("complete_print_exhaust_fan_speed", coInts);
     def->label = L("Fan speed");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->tooltip=L("Speed of exhaust fan after printing completes");
     def->min=0;
     def->max=100;
@@ -2060,7 +2060,7 @@ void PrintConfigDef::init_fff_params()
         " The part will be scaled in xy to compensate."
         " Only the filament used for the perimeter is taken into account."
         "\nBe sure to allow enough space between objects, as this compensation is done after the checks.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->ratio_over = "";
     def->min = 10;
     def->mode = comAdvanced;
@@ -2071,7 +2071,7 @@ void PrintConfigDef::init_fff_params()
     // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Enter the shrinkage percentage that the filament will get after cooling (94% if you measure 94mm instead of 100mm)."
         " The part will be scaled in Z to compensate.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->ratio_over = "";
     def->min = 10;
     def->mode = comAdvanced;
@@ -2273,7 +2273,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
     def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid clogging.");
-    def->sidetext = L("°C"); // ORCA add side text
+    def->sidetext = "°C"; // ORCA add side text
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 
@@ -2305,7 +2305,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Sparse infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 360;
     def->mode = comAdvanced;
@@ -2315,7 +2315,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Solid infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 360;
     def->mode = comAdvanced;
@@ -2333,7 +2333,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Density of internal sparse infill, 100% turns all sparse infill into solid infill and internal solid infill pattern will be used");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(20));
@@ -2389,7 +2389,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Lattice angle 1");
     def->category = L("Strength");
     def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min      = -75;
     def->max      = 75;
     def->mode     = comAdvanced;
@@ -2399,7 +2399,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Lattice angle 2");
     def->category = L("Strength");
     def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min      = -75;
     def->max      = 75;
     def->mode     = comAdvanced;
@@ -2538,7 +2538,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("accel_to_decel_factor", coPercent);
     def->label = L("accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted to this %% of acceleration");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 1;
     def->max = 100;
     def->mode = comAdvanced;
@@ -2669,7 +2669,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer nozzle temperature");
     def->tooltip = L("Nozzle temperature to print initial layer when using this filament");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
@@ -2692,7 +2692,7 @@ void PrintConfigDef::init_fff_params()
                      " reduces the layer binding strength between supports and the supported part, making them easier to separate."
                     "\nSet to -1 to disable it."
                      "\nThis setting is overridden by disable_fan_first_layers.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = -1;
     def->max = 100;
     def->mode = comAdvanced;
@@ -2704,7 +2704,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The part cooling fan speed used for all internal bridges. Set to -1 to use the overhang fan speed settings instead.\n\n"
                      "Reducing the internal bridges fan speed, compared to your regular fan speed, can help reduce part warping due to excessive "
                      "cooling applied over a large surface for a prolonged period of time.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = -1;
     def->max = 100;
     def->mode = comAdvanced;
@@ -3089,7 +3089,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(15));
@@ -3099,7 +3099,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(25));
@@ -3175,7 +3175,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("interlocking_orientation", coFloat);
     def->label    = L("Interlocking direction");
     def->tooltip  = L("Orientation of interlock beams.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min      = 0;
     def->max      = 360;
     def->category = L("Advanced");
@@ -3245,7 +3245,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("The amount of material to extrude during ironing. Relative to flow of normal layer height. "
                      "Too high value results in overextrusion on the surface");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->ratio_over = "layer_height";
     def->min = 0;
     def->max = 100;
@@ -3285,7 +3285,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Ironing angle");
     def->category = L("Quality");
     def->tooltip  = L("The angle ironing is done at. A negative number disables this function and uses the default method.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min      = -1;
     def->max      = 359;
     def->mode     = comAdvanced;
@@ -3497,7 +3497,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Fan speed");
     def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
                      "This is the maximum speed limitation of part cooling fan");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
@@ -3556,7 +3556,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Minimum speed for part cooling fan");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
@@ -3566,7 +3566,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Fan speed");
     def->tooltip = L("Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers "
                      "which is defined by no cooling layers.\nPlease enable auxiliary_fan in printer settings to use this feature. G-code command: M106 P2 S(0-255)");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
@@ -3738,7 +3738,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum angle of overhangs to allow after making more steep overhangs printable."
                      "90° will not change the model at all and allow any overhang, while 0 will "
                      "replace all overhangs with conical material.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
@@ -3874,7 +3874,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer density");
     def->category = L("Support");
     def->tooltip = L("Density of the first raft or support layer");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 10;
     def->max = 100;
     def->mode = comAdvanced;
@@ -3920,7 +3920,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("retract_before_wipe", coPercents);
     def->label = L("Retract amount before wipe");
     def->tooltip = L("The length of fast retraction before wipe, relative to retraction length");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents { 100 });
 
@@ -4021,7 +4021,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("travel_slope", coFloats);
     def->label = L("Traveling angle");
     def->tooltip = L("Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results in Normal Lift");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->mode = comAdvanced;
     def->min = 1;
     def->max = 90;
@@ -4163,7 +4163,7 @@ void PrintConfigDef::init_fff_params()
         "This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the maximum angle within the perimeter loop "
         "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
     def->mode = comAdvanced;
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 180;
     def->set_default_value(new ConfigOptionInt(155));
@@ -4175,7 +4175,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This option determines the overhang threshold for the application of scarf joint seams. If the unsupported portion "
                        "of the perimeter is less than this threshold, scarf joint seams will be applied. The default threshold is set at 40% "
                        "of the external wall's width. Due to performance considerations, the degree of overhang is estimated.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(40));
@@ -4284,7 +4284,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("skirt_start_angle", coFloat);
     def->label = L("Skirt start point");
     def->tooltip = L("Angle from the object center to skirt start point. Zero is the most right position, counter clockwise is positive angle.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = -180;
     def->max = 180;
     def->mode = comAdvanced;
@@ -4651,7 +4651,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Pattern angle");
     def->category = L("Support");
     def->tooltip = L("Use this setting to rotate the support pattern on the horizontal plane.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 359;
     def->mode = comAdvanced;
@@ -4934,7 +4934,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Threshold angle");
     def->category = L("Support");
     def->tooltip = L("Support will be generated for overhangs whose slope angle is below the threshold.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 90;
     def->mode = comSimple;
@@ -4956,7 +4956,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 60;
     def->mode = comAdvanced;
@@ -4967,7 +4967,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 60;
     def->mode = comAdvanced;
@@ -4979,7 +4979,7 @@ void PrintConfigDef::init_fff_params()
     // TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
     def->tooltip = L("The preferred angle of the branches, when they do not have to avoid the model. "
                      "Use a lower angle to make them more vertical and more stable. Use a higher angle for branches to merge faster.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 10;
     def->max = 85;
     def->mode = comAdvanced;
@@ -5013,7 +5013,7 @@ void PrintConfigDef::init_fff_params()
                      "A higher value results in better overhangs but the supports are harder to remove, "
                      "thus it is recommended to enable top support interfaces instead of a high branch density value "
                      "if dense interfaces are needed.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->min = 5;
     def->max_literal = 35;
     def->mode = comAdvanced;
@@ -5067,7 +5067,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The angle of the branches' diameter as they gradually become thicker towards the bottom. "
                      "An angle of 0 will cause the branches to have uniform thickness over their length. "
                      "A bit of an angle can increase stability of the organic support.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 15;
     def->mode = comAdvanced;
@@ -5117,7 +5117,7 @@ void PrintConfigDef::init_fff_params()
                      "or a heat soak macro like this: PRINT_START (other variables) CHAMBER_TEMP=[chamber_temperature]. This may be useful if your printer does not support M141/M191 commands, or if you desire "
                      "to handle heat soaking in the print start macro if no active chamber heater is installed."
                     );
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Chamber temperature");
     def->min = 0;
     def->max = max_temp;
@@ -5126,7 +5126,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Nozzle temperature for layers after the initial one");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->full_label = L("Nozzle temperature");
     def->min = 0;
     def->max = max_temp;
@@ -5135,7 +5135,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
     //def->tooltip = "";
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 190 });
@@ -5143,7 +5143,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature_range_high", coInts);
     def->label = L("Max");
     //def->tooltip = "";
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
@@ -5324,7 +5324,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
     def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
@@ -5340,7 +5340,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Stabilization cone apex angle");
     def->tooltip = L("Angle at the apex of the cone that is used to stabilize the wipe tower. "
                      "Larger angle means wider base.");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
@@ -5411,7 +5411,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_extra_spacing", coPercent);
     def->label = L("Wipe tower purge lines spacing");
     def->tooltip = L("Spacing of purge lines on the wipe tower.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 100.;
     def->max = 300.;
@@ -5421,7 +5421,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Extra flow for purging");
     def->tooltip = L("Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower "
                      "than they normally would be. The spacing is adjusted automatically.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 100.;
     def->max = 300.;
@@ -5431,7 +5431,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Idle temperature");
     def->tooltip = L("Nozzle temperature when the tool is currently not used in multi-tool setups."
                      "This is only used when 'Ooze prevention' is active in Print Settings. Set to 0 to disable.");
-    def->sidetext = L("°C");
+    def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts{0});
@@ -5538,7 +5538,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("When transitioning between different numbers of walls as the part becomes "
         "thinner, a certain amount of space is allotted to split or join the wall segments. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(100));
@@ -5553,7 +5553,7 @@ void PrintConfigDef::init_fff_params()
         "starts/stops and travel time. However, large extrusion width variation can lead to "
         "under- or overextrusion problems. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(25));
@@ -5565,7 +5565,7 @@ void PrintConfigDef::init_fff_params()
         " an angle greater than this setting will not have transitions and no walls will be "
         "printed in the center to fill the remaining space. Reducing this setting reduces "
         "the number and length of these center walls, but may leave gaps or overextrude");
-    def->sidetext = L("°");
+    def->sidetext = "°";
     def->mode = comAdvanced;
     def->min = 1.;
     def->max = 59.;
@@ -5587,7 +5587,7 @@ void PrintConfigDef::init_fff_params()
         "not be printed, while features thicker than the Minimum feature size will be widened to "
         "the Minimum wall width. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(25));
@@ -5611,7 +5611,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("The minimum wall width that should be used for the first layer is recommended to be set "
                      "to the same size as the nozzle. This adjustment is expected to enhance adhesion.");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(85));
@@ -5623,7 +5623,7 @@ void PrintConfigDef::init_fff_params()
         "of the model. If the Minimum wall width is thinner than the thickness of the feature,"
         " the wall will become as thick as the feature itself. "
         "It's expressed as a percentage over nozzle diameter");
-    def->sidetext = L("%");
+    def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(85));
@@ -7451,16 +7451,19 @@ CLITransformConfigDef::CLITransformConfigDef()
     def = this->add("rotate", coFloat);
     def->label = L("Rotate");
     def->tooltip = L("Rotation angle around the Z axis in degrees.");
+    def->sidetext = "°";
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_x", coFloat);
-    def->label = "Rotate around X";
-    def->tooltip = "Rotation angle around the X axis in degrees.";
+    def->label = L("Rotate around X");
+    def->tooltip = L("Rotation angle around the X axis in degrees.");
+    def->sidetext = "°";
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_y", coFloat);
     def->label = L("Rotate around Y");
     def->tooltip = L("Rotation angle around the Y axis in degrees.");
+    def->sidetext = "°";
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("scale", coFloat);
