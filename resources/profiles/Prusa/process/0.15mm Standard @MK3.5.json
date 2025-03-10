@@ -24,15 +24,10 @@
   "top_surface_speed": "45",
   "sparse_infill_speed": "110",
   "bridge_speed": "25",
-  "default_acceleration": "2000",
-  "initial_layer_acceleration": "500",
-  "top_surface_acceleration": "1000",
-  "travel_acceleration": "4000",
-  "sparse_infill_acceleration": "4000",
-  "internal_solid_infill_acceleration": "3000",
+  "sparse_infill_acceleration": "2500",
+  "internal_solid_infill_acceleration": "2500",
   "inner_wall_acceleration": "2000",
   "outer_wall_acceleration": "1500",
-  "bridge_acceleration": "1500",
   "compatible_printers": [
     "Prusa MK3.5 0.4 nozzle"
   ]
