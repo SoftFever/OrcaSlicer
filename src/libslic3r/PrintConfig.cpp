@@ -2022,33 +2022,47 @@ void PrintConfigDef::init_fff_params()
         Large format printers with print volumes in the order of 1m^3 generally use pellets for printing.
         The overall tech is very similar to FDM printing. 
         It is FDM printing, but instead of filaments, it uses pellets.
-
+        
         The difference here is that where filaments have a filament_diameter that is used to calculate 
         the volume of filament ingested, pellets have a particular flow_coefficient that is empirically 
         devised for that particular pellet.
-
+        
         pellet_flow_coefficient is basically a measure of the packing density of a particular pellet.
         Shape, material and density of an individual pellet will determine the packing density and
         the only thing that matters for 3d printing is how much of that pellet material is extruded by 
         one turn of whatever feeding mehcanism/gear your printer uses. You can emperically derive that
         for your own pellets for a particular printer model.
-
+        
         We are translating the pellet_flow_coefficient into filament_diameter so that everything works just like it 
         does already with very minor adjustments.
-
+        
         filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )
-
+        
         sqrt just makes the relationship between flow_coefficient and volume linear.
-
+        
         higher packing density -> more material extruded by single turn -> higher pellet_flow_coefficient -> treated as if a filament of larger diameter is being used
         All other calculations remain the same for slicing.
     */
 
     def = this->add("pellet_flow_coefficient", coFloats);
     def->label = L("Pellet flow coefficient");
-    def->tooltip = L("Pellet flow coefficient is empirically derived and allows for volume calculation for pellet printers.\n\nInternally it is converted to filament_diameter. All other volume calculations remain the same.\n\nfilament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )");
+    def->tooltip = L("A value representing the extrusion capacity of pellets, influenced by factors such as shape, material, and viscosity. It determines how much material is extruded per turn and is converted to an equivalent filament diameter for volumetric calculations.");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
+
+    def           = this->add("extruder_rotation_volume", coFloats);
+    def->label    = L("Extruder rotation volume");
+    def->tooltip  = L("The volume of material extruded (in mm³) for each full turn of the extruder motor. This parameter is crucial for configuring precise extrusion settings during printing.");
+    def->sidetext = L("mm³");
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloats{456});    
+    
+    def           = this->add("mixing_stepper_rotation_volume", coFloats);
+    def->label    = L("Mixing stepper rotation volume");
+    def->tooltip  = L("The value controlling how much material is actively fed into the extruder by the feeding mechanism. Used for fine-tuning the material flow in multi-material or pellet-based printing.");
+    def->sidetext = L("mm³");
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloats{6000});
 
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage (XY)");
@@ -2670,6 +2684,28 @@ void PrintConfigDef::init_fff_params()
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
 
+    for (int zone = 1; zone <= 10; zone++) {
+        std::string zone_str = std::to_string(zone);
+
+        def             = this->add("multi_zone_" + zone_str + "_initial_layer", coInts);
+        def->label      = L("Initial layer");
+        def->full_label = L("Initial layer Zone " + zone_str + " temperature");
+        def->tooltip    = L("Zone " + zone_str + " temperature to print initial layer when using this filament");
+        def->sidetext   = L("°C");
+        def->min        = 0;
+        def->max        = max_temp;
+        def->set_default_value(new ConfigOptionInts{200});
+
+        def             = this->add("multi_zone_" + zone_str + "_temperature", coInts);
+        def->label      = L("Other layers");
+        def->tooltip    = L("Zone " + zone_str + " temperature for layers after the initial one");
+        def->sidetext   = L("°C");
+        def->full_label = L("Zone " + zone_str + " temperature");
+        def->min        = 0;
+        def->max        = max_temp;
+        def->set_default_value(new ConfigOptionInts{200});
+    }
+
     def = this->add("full_fan_speed_layer", coInts);
     def->label = L("Full fan speed at layer");
     def->tooltip = L("Fan speed will be ramped up linearly from zero at layer \"close_fan_the_first_x_layers\" "
@@ -3006,6 +3042,38 @@ void PrintConfigDef::init_fff_params()
     def          = this->add("pellet_modded_printer", coBool);
     def->label   = L("Pellet Modded Printer");
     def->tooltip = L("Enable this option if your printer uses pellets instead of filaments");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def          = this->add("multi_zone", coBool);
+    def->label   = L("Multi heating zone");
+    def->tooltip = L("Enable this option if your printer uses multi heating zone");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def          = this->add("multi_zone_number", coInt);
+    def->label   = L("Zones");
+    def->tooltip = L("Number of heating zones");
+    def->mode    = comSimple;
+    def->min     = 1;
+    def->max     = 10;
+    def->set_default_value(new ConfigOptionInt(1));
+  
+    def          = this->add("use_extruder_rotation_volume", coBool);
+    def->label   = L("Use extruder rotation volume");
+    def->tooltip = L("Enable extruder rotation volume in material settings");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(true));
+    
+    def          = this->add("active_feeder_motor_name", coStrings);
+    def->label   = L("Active feeder motor name");
+    def->tooltip = "Name that identify the feeder motor";
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionStrings{""});
+
+    def          = this->add("use_active_pellet_feeding", coBool);
+    def->label   = L("Use forded pellet feeding");
+    def->tooltip = L("Enable this option if your printer has active pellet feeding");
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
