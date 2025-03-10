@@ -3260,7 +3260,7 @@ msgid "A fatal error occurred: \"%1%\""
 msgstr "Wystąpił błąd krytyczny: \"%1%\""
 
 msgid "Please save project and restart the program."
-msgstr "Zapisz projekt i uruchom ponownie program."
+msgstr "Zapisz projekt i uruchom program ponownie."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Przetwarzanie G-code z poprzedniego pliku..."
@@ -18469,9 +18469,6 @@ msgstr ""
 "Czy wiesz, że podczas drukowania filamentami podatnymi na odkształcenia, "
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
-
-#~ msgid "Please save project and restart the program. "
-#~ msgstr "Proszę zapisać projekt i ponownie uruchomić program. "
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
