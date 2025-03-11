@@ -1687,19 +1687,16 @@ void CalibrationPresetPage::update_show_status()
         return;
     }
 
-    if (obj_->need_SD_card()) {
-        if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
-            show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
+    // check sdcard when if lan mode printer
+    if (obj_->is_lan_mode_printer()) {
+        if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+            show_status(CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard);
             return;
         }
-
-        // check sdcard when if lan mode printer
-        if (obj_->is_lan_mode_printer()) {
-            if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
-                show_status(CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard);
-                return;
-            }
-        }
+    }
+    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
+        return;
     }
 
     if (m_has_filament_incompatible) {
@@ -1793,7 +1790,7 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
     else if (status == CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
         update_print_status_msg(msg_text, true);
-        Enable_Send_Button(true);
+        Enable_Send_Button(false);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing.");
