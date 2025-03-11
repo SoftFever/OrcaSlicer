@@ -588,7 +588,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
 
      auto title_panel = new wxPanel(this, wxID_ANY);
-     title_panel->SetBackgroundColour("#ACACAC");
+     title_panel->SetBackgroundColour(StateColor::darkModeColorFor("#F1F1F1"));
      title_panel->SetSize(wxSize(-1, FromDIP(30)));
      title_panel->SetMinSize(wxSize(-1, FromDIP(30)));
 
@@ -646,7 +646,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams_left_horizonal->Add(m_left_tips, 0, wxEXPAND, 0);
      m_left_first_text_panel->SetSizer(m_sizer_ams_left_horizonal);
 
-     m_sizer_ams_left->Add(m_left_first_text_panel, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+     m_sizer_ams_left->Add(m_left_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP , FromDIP(8));
      m_left_split_ams_sizer = create_split_sizer(m_left_marea_panel, _L("Left AMS"));
      m_sizer_ams_left->Add(m_left_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_left->Add(m_sizer_ams_basket_left, 0, wxEXPAND|wxTOP, FromDIP(8));
@@ -674,7 +674,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_left_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
      m_right_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
 
-     m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+     m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
      m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
      m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
      m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
