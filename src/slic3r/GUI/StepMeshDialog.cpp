@@ -312,7 +312,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     bSizer->Add(bSizer_button, 1, wxEXPAND | wxALL, LEFT_RIGHT_PADING);
 
     this->SetSizer(bSizer);
-    // update_mesh_number_text();
+    update_mesh_number_text();
     this->Layout();
     bSizer->Fit(this);
 
