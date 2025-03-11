@@ -500,6 +500,7 @@ struct Sidebar::priv
 
 void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 {
+    isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
     // Printer - preset
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
             sizer == nullptr || isDual != (sizer->GetOrientation() == wxVERTICAL)) {
