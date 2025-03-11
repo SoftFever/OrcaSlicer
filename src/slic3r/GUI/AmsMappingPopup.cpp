@@ -91,9 +91,10 @@ void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vect
 
 void MaterialItem::reset_ams_info() {
     m_ams_name   = "-";
-    m_ams_coloul = wxColour(0xEE, 0xEE, 0xEE);
+    m_ams_coloul = wxColour(0xCE, 0xCE, 0xCE);
     m_ams_cols.clear();
     m_ams_ctype = 0;
+    Refresh();
 }
 
 void MaterialItem::disable()
@@ -660,7 +661,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_tips->SetLabel(m_right_tip_text);
      m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND , 0);
 
-     m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, "text_undo", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 14);
+     m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, "erase", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 14);
      m_reset_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { reset_ams_info(); });
      m_reset_btn->SetBackgroundColour(*wxWHITE);
      m_reset_btn->SetToolTip(_L("Reset current filament mapping"));

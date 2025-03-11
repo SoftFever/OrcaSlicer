@@ -168,7 +168,8 @@ public:
     void     reset_timeout();
     void     update_user_printer();
     void     reset_ams_material();
-    void     reset_one_ams_material(const std::string & index_str);
+    void     reset_all_ams_info();
+    void     reset_one_ams_material(const std::string & index_str,bool reset_to_first =false);
     void     update_show_status();
     void     update_printer_combobox(wxCommandEvent &event);
     void     on_cancel(wxCloseEvent &event);
@@ -192,7 +193,6 @@ public:
     void     unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data,bool allow_clone_ams_color);
     void     change_default_normal(int old_filament_id, wxColour temp_ams_color);
     void     on_timer(wxTimerEvent &event);
-    void     update_flow_cali_check(MachineObject *obj);
     void     update_user_machine_list();
     void     update_lan_machine_list();
     void     stripWhiteSpace(std::string &str);
@@ -200,7 +200,6 @@ public:
     void     update_priner_status_msg(wxString msg, bool is_warning = false);
     void     update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
     void     update_print_error_info(int code, std::string msg, std::string extra);
-    void     set_flow_calibration_state(bool state, bool show_tips = true);
     bool     has_timelapse_warning();
     void     update_timelapse_enable_status();
     bool     is_same_printer_model();
@@ -319,6 +318,7 @@ private:
 
     CapsuleButton *  m_colormap_btn = nullptr;
     CapsuleButton *  m_override_btn = nullptr;
+    ScalableButton * m_reset_all_btn{nullptr};
     wxBoxSizer *     m_advace_setting_sizer = nullptr;
     wxStaticText *   m_more_setting_tips = nullptr;
     wxStaticBitmap * m_advanced_options_icon{nullptr};

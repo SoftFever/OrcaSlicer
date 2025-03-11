@@ -92,6 +92,7 @@ bool SyncAmsInfoDialog::Show(bool show)
         m_are_you_sure_title->Show(true);
         if (m_mode_combox_sizer) {
             m_mode_combox_sizer->Show(true);
+            m_reset_all_btn->Hide();
         }
         m_confirm_title->SetLabel(m_undone_str);
     }
@@ -138,7 +139,6 @@ void SyncAmsInfoDialog::update_select_layout(MachineObject *obj)
     m_checkbox_list["timelapse"]->Hide();
     m_checkbox_list["bed_leveling"]->Hide();
     m_checkbox_list["use_ams"]->Hide();
-    m_checkbox_list["flow_cali"]->Hide();
     m_checkbox_list["nozzle_offset_cali"]->Hide();
 
     if (!obj) { return; }
@@ -148,30 +148,20 @@ void SyncAmsInfoDialog::update_select_layout(MachineObject *obj)
         m_checkbox_list["nozzle_offset_cali"]->Show();
         m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
         m_checkbox_list["bed_leveling"]->update_options(ops_auto);
-        m_checkbox_list["flow_cali"]->update_options(ops_auto);
 
         m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         m_checkbox_list["bed_leveling"]->setValue("auto");
-        m_checkbox_list["flow_cali"]->setValue("auto");
     } else {
         m_checkbox_list["bed_leveling"]->update_options(ops_no_auto);
-        m_checkbox_list["flow_cali"]->update_options(ops_auto);
 
         if (config && config->get("print", "bed_leveling") == "0") {
             m_checkbox_list["bed_leveling"]->setValue("off");
         } else {
             m_checkbox_list["bed_leveling"]->setValue("on");
         }
-
-        if (config && config->get("print", "flow_cali") == "0") {
-            m_checkbox_list["flow_cali"]->setValue("off");
-        } else {
-            m_checkbox_list["flow_cali"]->setValue("on");
-        }
     }
 
     update_timelapse_enable_status();
-    update_flow_cali_check(obj);
 
     if (config && config->get("print", "timelapse") == "0") {
         m_checkbox_list["timelapse"]->setValue("off");
@@ -771,6 +761,13 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_mode_combox_sizer->AddSpacer(FromDIP(8));
         m_mode_combox_sizer->Add(m_override_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
         m_mode_combox_sizer->AddStretchSpacer();
+        m_reset_all_btn = new ScalableButton(m_scrolledWindow, wxID_ANY, "reset_gray", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,
+                                                        true, 14);
+        m_reset_all_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { reset_all_ams_info(); });
+        m_reset_all_btn->SetBackgroundColour(*wxWHITE);
+        m_reset_all_btn->SetToolTip(_L("Reset all filament mapping"));
+        m_mode_combox_sizer->Add(m_reset_all_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
+        m_mode_combox_sizer->AddSpacer(FromDIP(30));
 
         m_colormap_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this); // update_when_change_map_mode(e.GetSelection());
         m_override_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this);
@@ -919,10 +916,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
                         _L("Check heatbed flatness. Leveling makes extruded height uniform.\n*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."),
                         ops_auto, "bed_leveling");
 
-    auto option_flow_dynamics_cali =
-        new PrintOption(m_options_other, _L("Flow Dynamics Calibration"),
-                        _L("Find the best coefficient for dynamic flow calibration to enhance print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
-                        ops_auto, "flow_cali");
 
     auto option_nozzle_offset_cali_cali =
         new PrintOption(m_options_other, _L("Nozzle Offset Calibration"),
@@ -939,7 +932,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_use_ams, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_auto_bed_level, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
-    m_sizer_options_other->Add(option_flow_dynamics_cali, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
 
     m_options_other->SetSizer(m_sizer_options_other);
@@ -947,12 +939,10 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_checkbox_list["timelapse"]          = option_timelapse;
     m_checkbox_list["bed_leveling"]       = option_auto_bed_level;
     m_checkbox_list["use_ams"]            = option_use_ams;
-    m_checkbox_list["flow_cali"]          = option_flow_dynamics_cali;
     m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
 
     option_timelapse->Hide();
     option_auto_bed_level->Hide();
-    option_flow_dynamics_cali->Hide();
     option_nozzle_offset_cali_cali->Hide();
     option_use_ams->Hide();
 
@@ -2217,6 +2207,11 @@ void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
             change_default_normal(old_filament_id, ams_colour);
             final_deal_edge_pixels_data(m_preview_thumbnail_data);
             set_default_normal(m_preview_thumbnail_data); // do't reset ams
+            if (!m_reset_all_btn->IsShown()) {
+                m_reset_all_btn->Show();
+                Layout();
+                Fit();
+            }
         }
 
         int                      ctype = 0;
@@ -2401,16 +2396,6 @@ void SyncAmsInfoDialog::on_timer(wxTimerEvent &event)
             Fit();
         }
     }
-}
-
-void SyncAmsInfoDialog::update_flow_cali_check(MachineObject *obj)
-{
-    auto bed_type       = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
-    auto show_cali_tips = true;
-
-    if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3) { show_cali_tips = false; }
-
-    set_flow_calibration_state(true, show_cali_tips);
 }
 
 void SyncAmsInfoDialog::update_show_status()
@@ -2716,7 +2701,16 @@ void SyncAmsInfoDialog::reset_ams_material()
     }
 }
 
-void SyncAmsInfoDialog::reset_one_ams_material(const std::string& index_str)
+void SyncAmsInfoDialog::reset_all_ams_info()
+{
+    for (int i = 0; i < m_ams_mapping_result.size(); i++) {
+        reset_one_ams_material(std::to_string(i+1),true);
+    }
+    m_reset_all_btn->Hide();
+    Refresh();
+}
+
+void SyncAmsInfoDialog::reset_one_ams_material(const std::string &index_str, bool reset_to_first)
 {
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
@@ -2724,10 +2718,21 @@ void SyncAmsInfoDialog::reset_one_ams_material(const std::string& index_str)
         Material *item    = iter->second;
         auto m    = dynamic_cast<MaterialSyncItem*> (item->item);
         if (m && m->get_material_index_str() == index_str) {
-            m->reset_valid_info();
+            if (reset_to_first) {
+                m->reset_valid_info();
+            } else {
+                m->reset_ams_info();
+            }
+
             int index = std::atoi(index_str.c_str()) - 1;
             if (index >=0 && index < m_back_ams_mapping_result.size()) {
-                m_ams_mapping_result[index] = m_back_ams_mapping_result[index];
+                if (reset_to_first) {
+                    m_ams_mapping_result[index] = m_back_ams_mapping_result[index];
+                } else {
+                    m_ams_mapping_result[index].ams_id = "";
+                    m_ams_mapping_result[index].slot_id = "";
+                    m_ams_mapping_result[index].color = "";
+                }
             }
             break;
         }
@@ -2752,23 +2757,6 @@ void SyncAmsInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     Fit();
     Refresh();
-}
-
-void SyncAmsInfoDialog::set_flow_calibration_state(bool state, bool show_tips)
-{
-    if (!state) {
-        m_checkbox_list["flow_cali"]->setValue(state ? "on" : "off");
-        m_checkbox_list["flow_cali"]->Enable();
-    } else {
-        AppConfig *config = wxGetApp().app_config;
-        if (config && config->get("print", "flow_cali") == "0") {
-            m_checkbox_list["flow_cali"]->setValue("off");
-        } else {
-            m_checkbox_list["flow_cali"]->setValue("on");
-        }
-
-        m_checkbox_list["flow_cali"]->Enable();
-    }
 }
 
 void SyncAmsInfoDialog::set_default(bool hide_some)
@@ -2991,6 +2979,9 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                         reset_one_ams_material(item_index_str);
                         m_mapping_popup.update_items_check_state(m_ams_mapping_result);
                         m_mapping_popup.Refresh();
+                        if (!m_reset_all_btn->IsShown()) {
+                            m_reset_all_btn->Show();
+                        }
                     };
                     m_mapping_popup.set_reset_callback(reset_call_back);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
