@@ -35,7 +35,9 @@
 
 #define HOLD_COUNT_MAX          3
 #define HOLD_COUNT_CAMERA       6
+
 #define HOLD_TIME_MAX           3 // 3 seconds
+#define HOLD_TIME_SWITCHING     6 // 6 seconds
 
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000

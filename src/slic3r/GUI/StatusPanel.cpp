@@ -409,10 +409,17 @@ ExtruderSwithingStatus::ExtruderSwithingStatus(wxWindow *parent)
 void ExtruderSwithingStatus::updateBy(MachineObject *obj)
 {
     m_obj = obj;
-    Show(m_obj != nullptr);
-    if (m_obj && (time(nullptr) - m_last_ctrl_time) > HOLD_TIME_MAX)
+    if (!m_obj)
     {
-        updateBy(obj->m_extder_data);
+        Show(false);
+    }
+    else
+    {
+        /*do not display while command sended in a mean while*/
+        if ((time(nullptr) - m_last_ctrl_time) > HOLD_TIME_SWITCHING)
+        {
+            updateBy(obj->m_extder_data);
+        }
     }
 }
 
