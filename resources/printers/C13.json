@@ -34,6 +34,7 @@
 			"support_print_all": true,
 			"support_print_without_sd": true,
 			"support_flow_calibration": true,
+			"support_auto_flow_calibration": true,
 			"support_build_plate_marker_detect": true,
 			"support_lidar_calibration": true,
 			"support_ai_monitoring": true,

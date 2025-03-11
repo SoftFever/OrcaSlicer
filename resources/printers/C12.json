@@ -28,6 +28,7 @@
 			"support_print_all": false,
 			"support_print_without_sd": false,
 			"support_flow_calibration": false,
+			"support_auto_flow_calibration": false,
 			"support_build_plate_marker_detect": false,
 			"support_lidar_calibration": false,
 			"support_ai_monitoring": false,

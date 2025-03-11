@@ -3397,10 +3397,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
 
-                if (jj.contains("support_flow_calibration")) {
-                    if (jj["support_flow_calibration"].is_boolean()) {
-                        is_support_auto_flow_calibration = jj["support_flow_calibration"].get<bool>();
-                    }
+                if (jj.contains("support_flow_calibration") && jj["support_flow_calibration"].is_boolean())
+                {
+                    is_support_flow_calibration = jj["support_flow_calibration"].get<bool>();
+                }
+
+                if (jj.contains("support_auto_flow_calibration") && jj["support_auto_flow_calibration"].is_boolean())
+                {
+                    is_support_auto_flow_calibration = jj["support_auto_flow_calibration"].get<bool>();
                 }
 
                 if (jj.contains("support_print_without_sd")) {

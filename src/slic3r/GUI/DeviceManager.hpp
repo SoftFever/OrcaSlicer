@@ -1003,7 +1003,7 @@ public:
     bool is_support_build_plate_marker_detect{false};
     bool is_support_pa_calibration{false};
     bool is_support_flow_calibration{false};
-    bool is_support_auto_flow_calibration{false};
+    bool is_support_auto_flow_calibration{false};/*The flag is used to distinguish auto/on/off or on/off */
     bool is_support_print_without_sd{false};
     bool is_support_print_all{false};
     bool is_support_send_to_sdcard {false};

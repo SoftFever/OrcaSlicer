@@ -985,27 +985,34 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         m_checkbox_list["nozzle_offset_cali"]->Show();
         m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
         m_checkbox_list["bed_leveling"]->update_options(ops_auto);
-        m_checkbox_list["flow_cali"]->update_options(ops_auto);
 
         m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         m_checkbox_list["bed_leveling"]->setValue("auto");
-        m_checkbox_list["flow_cali"]->setValue("auto");
     }
     else {
         m_checkbox_list["bed_leveling"]->update_options(ops_no_auto);
-        m_checkbox_list["flow_cali"]->update_options(ops_auto);
 
         if (config && config->get("print", "bed_leveling") == "0") {
             m_checkbox_list["bed_leveling"]->setValue("off");
         } else {
             m_checkbox_list["bed_leveling"]->setValue("on");
         }
+    }
 
-        if (config && config->get("print", "flow_cali") == "0") {
-            m_checkbox_list["flow_cali"]->setValue("off");
+    if (obj->is_support_flow_calibration) {
+        if (obj->is_support_auto_flow_calibration) {
+            m_checkbox_list["flow_cali"]->update_options(ops_auto);
+            m_checkbox_list["flow_cali"]->setValue("auto");
         } else {
-            m_checkbox_list["flow_cali"]->setValue("on");
+            m_checkbox_list["flow_cali"]->update_options(ops_no_auto);
+            if (config && config->get("print", "flow_cali") == "0") {
+                m_checkbox_list["flow_cali"]->setValue("off");
+            } else {
+                m_checkbox_list["flow_cali"]->setValue("on");
+            }
         }
+
+        m_checkbox_list["flow_cali"]->Show();
     }
 
     update_timelapse_enable_status();
@@ -1014,10 +1021,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         m_checkbox_list["timelapse"]->setValue("off");
     } else {
         m_checkbox_list["timelapse"]->setValue("on");
-    }
-
-    if (obj && obj->is_support_auto_flow_calibration) {
-        m_checkbox_list["flow_cali"]->Show();
     }
 
     if (obj && obj->is_support_auto_leveling) {
