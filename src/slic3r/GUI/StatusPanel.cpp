@@ -360,7 +360,6 @@ void ExtruderImage::doRender(wxDC& dc)
     }
 }
 
-
 #define SWITCHING_STATUS_BTN_SIZE wxSize(FromDIP(25), FromDIP(26))
 ExtruderSwithingStatus::ExtruderSwithingStatus(wxWindow *parent)
     : wxPanel(parent)
@@ -374,7 +373,7 @@ ExtruderSwithingStatus::ExtruderSwithingStatus(wxWindow *parent)
     StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
 
-    m_button_quit = new Button(this, L_CONTEXT("Quit", "Quit_Switching"), "", 0, FromDIP(22));
+    m_button_quit = new Button(this, _CTX(L_CONTEXT("Quit", "Quit_Switching"); , "Quit_Switching"), "", 0, FromDIP(22));
     m_button_quit->SetFont(::Label::Body_13);
     m_button_quit->Bind(wxEVT_BUTTON, &ExtruderSwithingStatus::on_quit, this);
     m_button_quit->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
