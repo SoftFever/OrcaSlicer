@@ -982,11 +982,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     AppConfig *config = wxGetApp().app_config;
 
     if (obj->is_enable_np) {
-        m_checkbox_list["nozzle_offset_cali"]->Show();
-        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
         m_checkbox_list["bed_leveling"]->update_options(ops_auto);
-
-        m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         m_checkbox_list["bed_leveling"]->setValue("auto");
     }
     else {
@@ -997,6 +993,12 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         } else {
             m_checkbox_list["bed_leveling"]->setValue("on");
         }
+    }
+
+    if (obj->is_support_nozzle_offset_cali) {
+        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
+        m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+        m_checkbox_list["nozzle_offset_cali"]->Show();
     }
 
     if (obj->is_support_flow_calibration) {
