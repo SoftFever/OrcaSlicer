@@ -73,11 +73,20 @@ The pattern method is adapted from [Andrew Ellis' pattern method generator](http
 
 [Instructions for using and reading the pattern method](https://ellis3dp.com/Print-Tuning-Guide/articles/pressure_linear_advance/pattern_method.html) are provided in [Ellis' Print Tuning Guide](https://ellis3dp.com/Print-Tuning-Guide/), with only a few Orca Slicer differences to note.
 
-First and foremost, when you initiate the test, you'll only see a small rectangular prism on the plate. This object serves a few purposes:
+Test configuration window allow user to generate one or more tests in a single projects. Multiple tests will be placed on each plate with extra plates added if needed.
 
-1. The test pattern itself is added in as custom G-Code at each layer, same as you could do by hand actually. The rectangular prism gives us the layers in which to insert that G-Code. This also means that **you'll see the full test pattern when you move to the Preview pane**
+1. Single test \
+![PA pattern single test](./images/pa/pa-pattern-single.png)
+2. Batch mode testing (multiple tests on a sinle plate) \
+![PA pattern batch mode](./images/pa/pa-pattern-batch.png)
+
+Once test generated, one or more small rectangular prisms could be found on the plate, one for each test case. This object serves a few purposes:
+
+1. The test pattern itself is added in as custom G-Code at each layer, same as you could do by hand actually. The rectangular prism gives us the layers in which to insert that G-Code. This also means that **you'll see the full test pattern when you move to the Preview pane**:
+![PA pattern batch mode plater](./images/pa/pa-pattern-batch-plater.png)
 2. The prism acts as a handle, enabling you to move the test pattern wherever you'd like on the plate by moving the prism
-3. The filament selected for the prism is also used for the test pattern
+3. Each test object is pre-configured with target parameters which are reflected in the objects name. However, test parameters may be adjusted for each prism individually by referring to the object list pane:
+![PA pattern batch mode object list](./images/pa/pa-pattern-batch-objects.png)
 
 Next, Ellis' generator provided the ability to adjust specific printer, filament, and print profile settings. You can make these same changes in Orca Slicer by adjusting the settings in the Prepare pane as you would with any other print. When you initiate the calibration test, Ellis' default settings are applied. A few things to note about these settings:
 

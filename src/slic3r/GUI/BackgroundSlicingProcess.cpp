@@ -81,8 +81,8 @@ std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format
 			                  "of the program"))).str());
         error = std::string(errmsg.ToUTF8()) + "\n" + std::string(ex.what());
     } catch (const HardCrash &ex) {
-        error = GUI::format("A fatal error occurred: \"%1%\"", ex.what()) + "\n" +
-        		_u8L("Please save project and restart the program. ");
+        error = GUI::format(_u8L("A fatal error occurred: \"%1%\""), ex.what()) + "\n" +
+                            _u8L("Please save project and restart the program.");
     } catch (PlaceholderParserError &ex) {
 		error = ex.what();
 		monospace = 1;
@@ -690,6 +690,15 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	DynamicPrintConfig new_config = config;
 	new_config.apply(*m_current_plate->config());
 	Print::ApplyStatus invalidated = m_print->apply(model, new_config);
+
+	// Orca: prevent resetting under gcode viewer mode
+    if (invalidated != PrintBase::APPLY_STATUS_UNCHANGED) {
+        const auto plater = GUI::wxGetApp().mainframe->m_plater;
+        if (plater && plater->only_gcode_mode()) {
+            invalidated = PrintBase::APPLY_STATUS_UNCHANGED;
+        }
+    }
+
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
 		!m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.

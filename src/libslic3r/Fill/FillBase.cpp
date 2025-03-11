@@ -57,7 +57,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipOctagramSpiral:      return new FillOctagramSpiral();
     case ipAdaptiveCubic:       return new FillAdaptive::Filler();
     case ipSupportCubic:        return new FillAdaptive::Filler();
-    case ipSupportBase:         return new FillSupportBase();
+    case ipSupportBase:         return new FillSupportBase();  // simply line fill
     case ipLightning:           return new FillLightning::Filler();
     // BBS: for internal solid infill only
     case ipConcentricInternal:  return new FillConcentricInternal();

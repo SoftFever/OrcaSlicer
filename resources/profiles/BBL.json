@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.10.00.34",
+    "version": "01.10.00.35",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -995,7 +995,7 @@
         },
         {
             "name": "eSUN PLA+ @base",
-            "sub_path": "filament/eSUN PLA+ @base.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @base.json"
         },
         {
             "name": "Generic PP @base",
@@ -2763,19 +2763,19 @@
         },
         {
             "name": "eSUN PLA+ @BBL A1",
-            "sub_path": "filament/eSUN PLA+ @BBL A1.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL A1 0.2 nozzle.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1 0.2 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1M",
-            "sub_path": "filament/eSUN PLA+ @BBL A1M.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1M.json"
         },
         {
             "name": "eSUN PLA+ @BBL A1M 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL A1M 0.2 nozzle.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL A1M 0.2 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL P1P",
@@ -2787,15 +2787,15 @@
         },
         {
             "name": "eSUN PLA+ @BBL X1",
-            "sub_path": "filament/eSUN PLA+ @BBL X1.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL X1.json"
         },
         {
             "name": "eSUN PLA+ @BBL X1C",
-            "sub_path": "filament/eSUN PLA+ @BBL X1C.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL X1C.json"
         },
         {
             "name": "eSUN PLA+ @BBL X1C 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL X1C 0.2 nozzle.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL X1C 0.2 nozzle.json"
         },
         {
             "name": "Generic PP @BBL A1",

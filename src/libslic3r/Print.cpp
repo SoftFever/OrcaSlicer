@@ -228,6 +228,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
             || opt_key == "min_skirt_length"
+            || opt_key == "single_loop_draft_shield"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "skirt_start_angle"
@@ -1167,7 +1168,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     // Custom layering is not allowed for tree supports as of now.
     for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx)
         if (const PrintObject &print_object = *m_objects[print_object_idx];
-            print_object.has_support_material() && is_tree(print_object.config().support_type.value) && (print_object.config().support_style.value == smsOrganic || 
+            print_object.has_support_material() && is_tree(print_object.config().support_type.value) && (print_object.config().support_style.value == smsTreeOrganic || 
                 // Orca: use organic as default
                 print_object.config().support_style.value == smsDefault) &&
             print_object.model_object()->has_custom_layering()) {
@@ -1240,7 +1241,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 #if 0
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
-                    return  {("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
+                    return  {L("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
@@ -1300,7 +1301,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         unsigned int total_extruders_count = m_config.nozzle_diameter.size();
         for (const auto& extruder_idx : extruders)
             if ( extruder_idx >= total_extruders_count )
-                return ("One or more object were assigned an extruder that the printer does not have.");
+                return {L("One or more object were assigned an extruder that the printer does not have.")};
 #endif
 
         auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
@@ -1325,7 +1326,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     // The object has some form of support and either support_filament or support_interface_filament
                     // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
                     // are of the same diameter.
-                    return {("Printing with multiple extruders of differing nozzle diameters. "
+                    return {L("Printing with multiple extruders of differing nozzle diameters. "
                            "If support is to be printed with the current filament (support_filament == 0 or support_interface_filament == 0), "
                            "all nozzles have to be of the same diameter."), object, "support_filament"};
                 }
@@ -1340,7 +1341,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
                 // Prusa: Fixing crashes with invalid tip diameter or branch diameter
                 // https://github.com/prusa3d/PrusaSlicer/commit/96b3ae85013ac363cd1c3e98ec6b7938aeacf46d
-                if (is_tree(object->config().support_type.value) && (object->config().support_style == smsOrganic ||
+                if (is_tree(object->config().support_type.value) && (object->config().support_style == smsTreeOrganic ||
                     // Orca: use organic as default
                     object->config().support_style == smsDefault)) {
                     float extrusion_width = std::min(
@@ -2942,6 +2943,7 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
 {
     try {
         GCodeProcessor processor;
+        GCodeProcessor::s_IsBBLPrinter = is_BBL_printer();
         const Vec3d origin = this->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
         //processor.enable_producers(true);
