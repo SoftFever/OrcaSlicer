@@ -96,6 +96,7 @@ public:
 class HelioBackgroundProcess
 {
 public:
+
     enum State {
         // m_thread  is not running yet, or it did not reach the STATE_IDLE yet (it does not wait on the condition yet).
         STATE_INITIAL = 0,
@@ -105,10 +106,13 @@ public:
         STATE_CANCELED,
     };
 
+private:
+    State m_state;
+
+public:
     std::mutex              m_mutex;
     std::condition_variable m_condition;
     boost::thread           m_thread;
-    State                   m_state = STATE_INITIAL;
     std::string             helio_api_key;
     std::string             helio_api_url;
     std::string             printer_id;
@@ -118,6 +122,46 @@ public:
     Slic3r::GCodeProcessor        m_gcode_processor;
     Slic3r::GUI::Preview*         m_preview;
     std::function<void()>         m_update_function;
+
+    void stop()
+    {
+        m_mutex.lock();
+        m_state = STATE_CANCELED;
+        m_mutex.unlock();
+    }
+
+    bool is_running()
+    {
+        m_mutex.lock();
+        bool running_state = (m_state == STATE_STARTED || m_state == STATE_RUNNING);
+        m_mutex.unlock();
+
+        return running_state;
+    }
+
+    bool was_canceled()
+    {
+        m_mutex.lock();
+        bool canceled_state = (m_state == STATE_CANCELED);
+        m_mutex.unlock();
+        return canceled_state;
+    }
+
+    void set_state(State state)
+    {
+        m_mutex.lock();
+        m_state = state;
+        m_mutex.unlock();
+    }
+
+    State get_state()
+    {
+        m_mutex.lock();
+        auto state = m_state;
+        m_mutex.unlock();
+        
+        return state;
+    }
 
     void helio_threaded_process_start(std::mutex&                                slicing_mutex,
                                       std::condition_variable&                   slicing_condition,
@@ -156,7 +200,8 @@ public:
         m_update_function = function;
     }
 
-    void reset() {
+    void reset()
+    {
         m_state = STATE_INITIAL;
         m_gcode_processor.reset();
         m_gcode_result = nullptr;

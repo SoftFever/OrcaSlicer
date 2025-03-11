@@ -7185,18 +7185,18 @@ void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
 {
     BOOST_LOG_TRIVIAL(debug) << boost::format("helio process called");
     on_action_slice_plate(a);
-    std::string            helio_api_key            = wxGetApp().app_config->get("helio_api_key");
-    const Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
-    auto        g_result      = background_process.get_current_gcode_result();
 
-    helio_background_process.init(helio_api_key, config.opt_string("helio_printer_id"), 
-        config.opt_string("helio_filament_id"), g_result,
-                                  preview, [this]() {});
+    if (!(partplate_list.get_curr_plate()->empty())) {
+        std::string                      helio_api_key = wxGetApp().app_config->get("helio_api_key");
+        const Slic3r::DynamicPrintConfig config        = wxGetApp().preset_bundle->full_config();
+        auto                             g_result      = background_process.get_current_gcode_result();
 
-    helio_background_process.helio_thread_start(background_process.m_mutex, 
-        background_process.m_condition,
-        background_process.m_state, 
-        notification_manager);
+        helio_background_process.init(helio_api_key, config.opt_string("helio_printer_id"), config.opt_string("helio_filament_id"),
+                                      g_result, preview, [this]() {});
+
+        helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state,
+                                                    notification_manager);
+    }
 }
 
 void Plater::priv::on_helio_processing_complete(HelioCompletionEvent& a)
@@ -7909,11 +7909,27 @@ void Plater::priv::init_notification_manager()
     notification_manager->init();
 
     auto cancel_callback = [this]() {
+        bool res1;
+        bool res2;
+
+        if (!this->helio_background_process.is_running())
+            res1 = false;
+
+        else {
+            this->helio_background_process.stop();
+            res1 = true;
+        }
+
         if (this->background_process.idle())
-            return false;
-        this->background_process.stop();
-        return true;
+            res2 = false;
+        else {
+            this->background_process.stop();
+            res2 = true;
+        }
+
+        return res1 || res2;
     };
+
     notification_manager->init_slicing_progress_notification(cancel_callback);
     notification_manager->set_fff(printer_technology == ptFFF);
     notification_manager->init_progress_indicator();
@@ -14262,7 +14278,8 @@ bool Plater::is_background_process_slicing() const
 //returns the state enum. The header file could not be imported here so the return type is int.
 int Plater::get_helio_process_status() const
 {
-    return p->helio_background_process.m_state;
+    int  helio_state = p->helio_background_process.get_state();
+    return helio_state;
 }
 
 //BBS: update slicing context

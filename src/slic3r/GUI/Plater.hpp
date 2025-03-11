@@ -42,6 +42,7 @@ namespace Slic3r {
 
 class BuildVolume;
 enum class BuildVolume_Type : unsigned char;
+class HelioBackgroundProcess;
 class Model;
 class ModelObject;
 class ModelInstance;
