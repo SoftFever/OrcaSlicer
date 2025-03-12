@@ -2811,6 +2811,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
             }
         }
 
+
         int use_ext_count = 0;
         int use_ams_count = 0;
 
@@ -2828,7 +2829,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 
                 if (m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                     use_ext_count++;
-                } else if (m_ams_mapping_result[i].ams_id >= std::to_string(0)) {
+                }else if (m_ams_mapping_result[i].ams_id >= std::to_string(0)) {
                     use_ams_count++;
                 }
             }
@@ -4016,7 +4017,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Move(pos);
 
-                if (obj_ && m_checkbox_list["use_ams"]->getValue() == "on" && obj_->dev_id == m_printer_last_select) {
+                if (obj_ && obj_->dev_id == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_only_show_ext_spool(false);
                     m_mapping_popup.set_current_filament_id(extruder);
