@@ -3,6 +3,7 @@
 import json
 import argparse
 import os
+import shutil
 
 def bundle_profile(base_dir, item):
     # Read the file content specified by 'sub_path' then store them into 'content' field
@@ -27,7 +28,8 @@ def process_vendor(path, dest):
 
     # Make sure it's vendor profile
     if 'name' not in vendor_profile or 'version' not in vendor_profile:
-        print('Not a vendor profile, ignored')
+        # Copy non-profile file as-is
+        shutil.copy2(path, dest)
         return
     
     vendor_name = os.path.splitext(os.path.basename(path))[0]
