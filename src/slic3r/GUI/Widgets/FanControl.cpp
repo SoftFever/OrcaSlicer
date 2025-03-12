@@ -189,16 +189,7 @@ void FanOperate::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
 void FanOperate::on_left_down(wxMouseEvent& event)
 {
-
-     auto mouse_pos = wxPoint(0,0);
-
-#ifdef __APPLE__
-     mouse_pos= GetParent()->GetParent()->ClientToScreen(event.GetPosition());
-#else
-     mouse_pos = ClientToScreen(event.GetPosition());
-#endif // __APPLE__
-
-
+     auto mouse_pos = ClientToScreen(event.GetPosition());
      auto win_pos = ClientToScreen(wxPoint(0, 0));
 
      auto decrease_fir = FromDIP(24);
