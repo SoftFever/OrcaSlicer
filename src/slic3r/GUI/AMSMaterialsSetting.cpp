@@ -297,7 +297,11 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_ratio_text->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
 
     m_ratio_text->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        wxLaunchDefaultBrowser(wxT("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa"));
+        std::string language = wxGetApp().app_config->get("language");
+        wxString    region   = "en";
+        if (language.find("zh") == 0)
+            region = "zh";
+        wxLaunchDefaultBrowser(wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region));
     });
 
 

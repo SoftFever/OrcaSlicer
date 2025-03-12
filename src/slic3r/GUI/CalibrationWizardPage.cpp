@@ -34,17 +34,22 @@ wxString get_cali_mode_caption_string(CalibMode mode)
 
 wxString get_calibration_wiki_page(CalibMode cali_mode)
 {
+    std::string language = wxGetApp().app_config->get("language");
+    wxString    region   = "en";
+    if (language.find("zh") == 0)
+        region = "zh";
+
     switch (cali_mode) {
     case CalibMode::Calib_PA_Line:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
     case CalibMode::Calib_Flow_Rate:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_flow_rate");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_flow_rate", region);
     case CalibMode::Calib_Vol_speed_Tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_volumetric");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_volumetric", region);
     case CalibMode::Calib_Temp_Tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_temperature");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_temperature", region);
     case CalibMode::Calib_Retraction_tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_retraction");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_retraction", region);
     default:
         return "";
     }
