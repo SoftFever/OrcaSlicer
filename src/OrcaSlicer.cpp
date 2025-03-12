@@ -3030,8 +3030,13 @@ int CLI::run(int argc, char **argv)
                             }
                         }
                     }
-                    else
-                        opt_vec_dst->set_at(opt_vec_src, filament_index-1, 0);
+                    else {
+                        if (current_is_multi_extruder && !new_is_multi_extruder && filament_options_with_variant.find(opt_key) != filament_options_with_variant.end()) {
+                            if (opt_vec_dst->size() > filament_count)
+                                opt_vec_dst->resize(filament_count);
+                        }
+                        opt_vec_dst->set_at(opt_vec_src, filament_index - 1, 0);
+                    }
                 }
             }
 
@@ -5485,6 +5490,10 @@ int CLI::run(int argc, char **argv)
                         std::vector<int>& final_filament_maps = new_print_config.option<ConfigOptionInts>("filament_map", true)->values;
                         if (final_filament_maps.size() < filament_count)
                             final_filament_maps.resize(filament_count, 1);
+                        if (new_extruder_count == 1) {
+                            for (int index = 0; index < filament_count; index++)
+                                final_filament_maps[index] = 1;
+                        }
                         print->apply(model, new_print_config);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
