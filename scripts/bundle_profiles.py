@@ -37,6 +37,7 @@ def process_vendor(path, dest):
         bundle_category(base_dir, vendor_profile, category)
 
     # Save bundle file
+    vendor_profile['bundle'] = True
     dest_path = os.path.join(dest, f'{vendor_name}.bundle.json')
     with open(dest_path, 'w', encoding='utf-8') as f:
         json.dump(vendor_profile, f, indent=4, ensure_ascii=False)
