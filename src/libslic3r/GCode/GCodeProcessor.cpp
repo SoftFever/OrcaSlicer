@@ -1662,7 +1662,7 @@ void GCodeProcessor::register_commands()
         if (auto lowercase_cmd = to_lowercase(uppercase_cmd); lowercase_cmd != uppercase_cmd)
             m_command_processor.register_command(lowercase_cmd, handler,early_quit);
     }
-} 
+}
 
 bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<double>& printable_heights, const std::vector<int> &filament_map)
 {
@@ -2343,6 +2343,13 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
             // Showing substitution log or errors may make sense, but we are not really reading many values from the G-code config,
             // thus a probability of incorrect substitution is low and the G-code viewer is a consumer-only anyways.
             config.load_from_gcode_file(filename, ForwardCompatibilitySubstitutionRule::EnableSilent);
+
+            ConfigOptionStrings *filament_color = config.opt<ConfigOptionStrings>("filament_colour");
+            ConfigOptionInts    *filament_map   = config.opt<ConfigOptionInts>("filament_map", true);
+            if (filament_color && filament_color->size() != filament_map->size()) {
+                filament_map->values.resize(filament_color->size(), 1);
+            }
+
             apply_config(config);
         }
         else if (m_producer == EProducer::Simplify3D)
