@@ -3787,6 +3787,12 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 
 wxString GUI_App::transition_tridid(int trid_id) const
 {
+    if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID)
+    {
+        assert(0);
+        return wxString("Ext");
+    }
+
     wxString maping_dict[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
     if (trid_id >= 128 * 4) {
