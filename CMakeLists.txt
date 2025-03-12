@@ -771,15 +771,20 @@ endif()
 
 
 # Resources install target, configure fhs.hpp on UNIX
+set (ORCA_PROFILE_BUNDLE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/resources/profiles")
 if (WIN32)
-    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "./resources")
+    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "./resources"
+        REGEX "profiles/.*\\.json" EXCLUDE
+    )
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
     include(InstallRequiredSystemLibraries) 
     install (PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ".")
 elseif (SLIC3R_FHS)
     # CMAKE_INSTALL_FULL_DATAROOTDIR: read-only architecture-independent data root (share)
     set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/OrcaSlicer")
+    set (ORCA_PROFILE_BUNDLE_INSTALL_DIR "${SLIC3R_FHS_RESOURCES}/profiles")
     install(DIRECTORY ${SLIC3R_RESOURCES_DIR}/ DESTINATION ${SLIC3R_FHS_RESOURCES}
+        REGEX "profiles/.*\\.json" EXCLUDE
         PATTERN "*/udev" EXCLUDE
     )
     install(FILES src/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
@@ -792,8 +797,23 @@ elseif (CMAKE_MACOSX_BUNDLE)
     # install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/OrcaSlicer.app/Contents/resources")
 else ()
     install(FILES src/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
-    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
+    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources"
+        REGEX "profiles/.*\\.json" EXCLUDE
+    )
 endif ()
+
+include(FindPythonInterpreter)
+find_python_interpreter(
+	VERSION 3
+	INTERPRETER_OUT_VAR PYTHON_INTERPRETER
+	REQUIRED
+)
+install(CODE "execute_process( \
+    COMMAND ${PYTHON_INTERPRETER} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bundle_profiles.py \
+    -s ${SLIC3R_RESOURCES_DIR}/profiles \
+    -d ${ORCA_PROFILE_BUNDLE_INSTALL_DIR} \
+    )"
+)
 
 install(FILES ${CMAKE_SOURCE_DIR}/LICENSE.txt DESTINATION ".")
 configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fhs.hpp)
