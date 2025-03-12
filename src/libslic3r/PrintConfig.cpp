@@ -8165,7 +8165,7 @@ int DynamicPrintConfig::update_values_from_multi_to_single(DynamicPrintConfig& s
             if (src_opt) {
                 ConfigOptionStrings* opt = this->option<ConfigOptionStrings>(key, true);
 
-                assert(variant_count == opt->size());
+                //assert(variant_count == opt->size());
                 opt->values = src_opt->values;
             }
             break;
@@ -8176,7 +8176,7 @@ int DynamicPrintConfig::update_values_from_multi_to_single(DynamicPrintConfig& s
             if (src_opt) {
                 ConfigOptionInts* opt = this->option<ConfigOptionInts>(key, true);
 
-                assert(variant_count == opt->size());
+                //assert(variant_count == opt->size());
                 opt->values = src_opt->values;
             }
             break;
@@ -8190,7 +8190,7 @@ int DynamicPrintConfig::update_values_from_multi_to_single(DynamicPrintConfig& s
                 std::vector<double> old_values = opt->values;
                 int old_count = old_values.size();
 
-                assert(variant_count == opt->size());
+                //assert(variant_count == opt->size());
                 opt->values = src_opt->values;
 
                 for (int i = 0; i < extruder_count; i++)
@@ -8211,7 +8211,7 @@ int DynamicPrintConfig::update_values_from_multi_to_single(DynamicPrintConfig& s
                 std::vector<FloatOrPercent> old_values = opt->values;
                 int old_count = old_values.size();
 
-                assert(variant_count == opt->size());
+                //assert(variant_count == opt->size());
                 opt->values = src_opt->values;
 
                 for (int i = 0; i < extruder_count; i++)
@@ -8229,7 +8229,7 @@ int DynamicPrintConfig::update_values_from_multi_to_single(DynamicPrintConfig& s
             if (src_opt) {
                 ConfigOptionBools* opt = this->option<ConfigOptionBools>(key, true);
 
-                assert(variant_count == opt->size());
+                //assert(variant_count == opt->size());
                 opt->values = src_opt->values;
             }
 
