@@ -1031,7 +1031,8 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
         return false;
         };
 
-    std::vector<int>ret(filament_nums, 0);
+    int master_extruder_id = print_config.master_extruder_id.value -1; // switch to 0 based idx
+    std::vector<int>ret(filament_nums, master_extruder_id);
     bool ignore_ext_filament = false; // TODO: read from config
     // if mutli_extruder, calc group,otherwise set to 0
     if (extruder_nums == 2) {
@@ -1070,7 +1071,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
 
             context.machine_info.machine_filament_info = machine_filament_info;
             context.machine_info.max_group_size = std::move(group_size);
-            context.machine_info.master_extruder_id = print_config.master_extruder_id.value - 1; // switch to 0 based idx
+            context.machine_info.master_extruder_id = master_extruder_id;
 
             context.group_info.total_filament_num = (int)(filament_nums);
             context.group_info.max_gap_threshold = 0.01;

@@ -4490,8 +4490,10 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     int   delta_change_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count;
     int   delta_change_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.filament_change_count;
 
-    bool less_to_single_ext = delta_weight_to_single_ext > EPSILON || delta_change_to_single_ext > 0;
-    bool more_to_best = delta_weight_to_best > EPSILON || delta_change_to_best > 0;
+    bool any_less_to_single_ext = delta_weight_to_single_ext > EPSILON || delta_change_to_single_ext > 0;
+    bool any_more_to_best = delta_weight_to_best > EPSILON || delta_change_to_best > 0;
+    bool all_less_to_single_ext = delta_weight_to_single_ext > EPSILON && delta_change_to_single_ext > 0;
+    bool all_more_to_best = delta_weight_to_best > EPSILON && delta_change_to_best > 0;
 
     auto get_filament_display_type = [](const ExtruderFilament& filament) {
         if (filament.is_support_filament && (filament.type == "PLA" || filament.type == "PA" || filament.type == "ABS"))
@@ -4527,10 +4529,16 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     }
 
     int tips_count = 8;
-    if (more_to_best)
+    if (any_more_to_best) {
         tips_count = 8;
-    else if (less_to_single_ext)
+        if (!all_more_to_best)
+            tips_count += 1;
+    }
+    else if (any_less_to_single_ext) {
         tips_count = 6;
+        if (!all_less_to_single_ext)
+            tips_count += 1;
+    }
     else
         tips_count = 5;
 
@@ -4614,17 +4622,45 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             return static_cast<int>(num);
         };
 
-        if (more_to_best) {
+        if (any_more_to_best) {
             is_optimal_group = false;
             ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
             imgui.text(_u8L("Tips:"));
             imgui.text(_u8L("Current grouping of slice result is not optimal."));
-            imgui.text_wrapped(from_u8((boost::format(_u8L("Cost %1%g filament and %2% changes more than optimal grouping.")) % number_format(delta_weight_to_best) % delta_change_to_best).str()), parent_width);
+            wxString tip;
+            if (delta_weight_to_best >= 0 && delta_change_to_best >= 0)
+                tip = from_u8((boost::format(_u8L("Cost %1%g filament and %2% changes more than optimal grouping."))
+                    % number_format(delta_weight_to_best)
+                    % delta_change_to_best).str());
+            else if (delta_weight_to_best >= 0 && delta_change_to_best < 0)
+                tip = from_u8((boost::format(_u8L("Increase %1%g filament and reduce %2% changes compared to optimal grouping."))
+                    % number_format(delta_weight_to_best)
+                    % std::abs(delta_change_to_best)).str());
+            else if (delta_weight_to_best < 0 && delta_change_to_best >= 0)
+                tip = from_u8((boost::format(_u8L("Reduce %1%g filament and increase %2% changes compared to optimal grouping."))
+                    % number_format(std::abs(delta_weight_to_best))
+                    % delta_change_to_best).str());
+
+            imgui.text_wrapped(tip, parent_width);
             ImGui::PopStyleColor(1);
         }
-        else if (less_to_single_ext) {
-            imgui.text_wrapped(from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-nozzle printer.")) % number_format(delta_weight_to_single_ext) % delta_change_to_single_ext).str()), parent_width);
+        else if (any_less_to_single_ext) {
+            wxString tip;
+            if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext >= 0)
+                tip = from_u8((boost::format(_u8L("Save %1%g filament and %2% changes than one-nozzle printer."))
+                    % number_format(delta_weight_to_single_ext)
+                    % delta_change_to_single_ext).str());
+            else if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext < 0)
+                tip = from_u8((boost::format(_u8L("Reduce %1%g filament and increase %2% changes compared to one-nozzle printer."))
+                    % number_format(delta_weight_to_single_ext)
+                    % std::abs(delta_change_to_single_ext)).str());
+            else if (delta_weight_to_single_ext < 0 && delta_change_to_single_ext >= 0)
+                tip = from_u8((boost::format(_u8L("Increase %1%g filament and reduce %2% changes compared to one-nozzle printer."))
+                    % number_format(std::abs(delta_weight_to_single_ext))
+                    % delta_change_to_single_ext).str());
+
+            imgui.text_wrapped(tip, parent_width);
         }
 
         ImGui::Dummy({window_padding, window_padding});
