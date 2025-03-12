@@ -1371,7 +1371,7 @@ msgstr ""
 msgid "Center coincidence"
 msgstr ""
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr ""
 
 msgid "Reverse rotation"
@@ -2971,7 +2971,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Note: if a new filament is inserted during  printing, the AMS will not "
+"Note: if a new filament is inserted during printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
 
@@ -3310,7 +3310,7 @@ msgstr ""
 msgid "Select Printers"
 msgstr ""
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr ""
 
 msgid "Printing Options"
@@ -7164,7 +7164,7 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the "
+"When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
