@@ -247,7 +247,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     Fit();
 
     CenterOnParent();
-    GUI::wxGetApp().UpdateDarkUIWin(this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 FilamentMapMode FilamentMapDialog::get_mode()

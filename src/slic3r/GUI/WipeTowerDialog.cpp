@@ -328,6 +328,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
     main_sizer->SetSizeHints(this);
     main_sizer->Fit(this);
     CenterOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
 
     //m_webview->Bind(wxEVT_WEBVIEW_NAVIGATED, [this](auto& evt) {
     //    auto table_obj_str = BuildTableObjStr();

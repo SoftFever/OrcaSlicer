@@ -112,6 +112,15 @@
           margin: 0;
       }
 
+      input[type="number"].multiplier-input {
+        width: 60px;
+      }
+      body.dark-mode input[type="number"].multiplier-input {
+        width: 60px;
+        background-color: #4c4c55;
+        color: white;
+      }
+
       .warning-text {
         color: red;
         font-size: 12px;
@@ -153,6 +162,12 @@
       }
       .btn-cancel:hover {
         background-color: #eeeeee;
+      }
+
+      body.dark-mode button.btn-cancel {
+          background-color: #2d2d31;
+          color: #e0e0e0;
+          border: 1px solid #e0e0e0;
       }
 
       select {
@@ -208,6 +223,17 @@
       body.dark-mode table {
         background: inherit;
         border-color: #4c4c55;
+      }
+
+      body.dark-mode input[type="number"].table-input {
+        width: 30px;
+        height: 20px;
+        text-align: center;
+        -moz-appearance: textfield;
+        appearance: textfield;
+        border: none;
+        color: #e0e0e0;
+        background-color: inherit;
       }
 
       body.dark-mode th, body.dark-mode td {
@@ -326,7 +352,7 @@
             type="number"
             step="0.1"
             id="multiplierInput"
-            style="width:70px;"
+            class="multiplier-input"
             value="1.00"
             oninput="onMultiplierChange()"
           />
@@ -626,7 +652,7 @@
               input.style.color = "red";
               hasException = true;
             } else {
-              input.style.color = "black";
+              input.style.removeProperty("color"); 
             }
           }
         }
