@@ -7984,57 +7984,68 @@ int DynamicPrintConfig::update_values_from_single_to_multi(DynamicPrintConfig& m
         switch (optdef->type) {
             case coStrings:
             {
-                ConfigOptionStrings * opt = this->option<ConfigOptionStrings>(key);
-                ConfigOptionStrings * src_opt = multi_config.option<ConfigOptionStrings>(key);
+                ConfigOptionStrings* src_opt = multi_config.option<ConfigOptionStrings>(key);
+                if (src_opt) {
+                    ConfigOptionStrings* opt = this->option<ConfigOptionStrings>(key, true);
 
-                opt->values = src_opt->values;
+                    opt->values = src_opt->values;
+                }
                 break;
             }
             case coInts:
             {
-                ConfigOptionInts * opt = this->option<ConfigOptionInts>(key);
-                ConfigOptionInts * src_opt = multi_config.option<ConfigOptionInts>(key);
+                ConfigOptionInts* src_opt = multi_config.option<ConfigOptionInts>(key);
+                if (src_opt) {
+                    ConfigOptionInts* opt = this->option<ConfigOptionInts>(key, true);
 
-                opt->values = src_opt->values;
+                    opt->values = src_opt->values;
+                }
                 break;
             }
             case coFloats:
             {
-                ConfigOptionFloats * opt = this->option<ConfigOptionFloats>(key);
                 ConfigOptionFloats * src_opt = multi_config.option<ConfigOptionFloats>(key);
+                if (src_opt) {
+                    ConfigOptionFloats * opt = this->option<ConfigOptionFloats>(key, true);
 
-                assert(variant_count == src_opt->size());
-                opt->resize(variant_count, opt);
+                    assert(variant_count == src_opt->size());
+                    opt->resize(variant_count, opt);
 
-                for (int index = 0; index < variant_count; index++)
-                {
-                    if (opt->values[index] > src_opt->values[index])
-                        opt->values[index] = src_opt->values[index];
+                    for (int index = 0; index < variant_count; index++)
+                    {
+                        if (opt->values[index] > src_opt->values[index])
+                            opt->values[index] = src_opt->values[index];
+                    }
                 }
                 break;
             }
             case coFloatsOrPercents:
             {
-                ConfigOptionFloatsOrPercents * opt = this->option<ConfigOptionFloatsOrPercents>(key);
                 ConfigOptionFloatsOrPercents * src_opt = multi_config.option<ConfigOptionFloatsOrPercents>(key);
+                if (src_opt) {
+                    ConfigOptionFloatsOrPercents * opt = this->option<ConfigOptionFloatsOrPercents>(key, true);
 
-                assert(variant_count == src_opt->size());
-                opt->resize(variant_count, opt);
+                    assert(variant_count == src_opt->size());
+                    opt->resize(variant_count, opt);
 
-                for (int index = 0; index < variant_count; index++)
-                {
-                    if (opt->values[index].value > src_opt->values[index].value)
-                        opt->values[index] = src_opt->values[index];
+                    for (int index = 0; index < variant_count; index++)
+                    {
+                        if (opt->values[index].value > src_opt->values[index].value)
+                            opt->values[index] = src_opt->values[index];
+                    }
                 }
                 break;
             }
             case coBools:
             {
-                ConfigOptionBools * opt = this->option<ConfigOptionBools>(key);
                 ConfigOptionBools * src_opt = multi_config.option<ConfigOptionBools>(key);
+                if (src_opt)
+                {
+                    ConfigOptionBools * opt = this->option<ConfigOptionBools>(key, true);
 
-                assert(variant_count == src_opt->size());
-                opt->resize(variant_count, opt);
+                    assert(variant_count == src_opt->size());
+                    opt->resize(variant_count, opt);
+                }
 
                 break;
             }
@@ -8074,7 +8085,7 @@ int DynamicPrintConfig::update_values_from_single_to_multi_2(DynamicPrintConfig&
                 ConfigOptionFloatsNullable * opt = this->option<ConfigOptionFloatsNullable>(key);
                 ConfigOptionFloatsNullable* src_opt = multi_config.option<ConfigOptionFloatsNullable>(key);
 
-                if (!opt->is_nil(0))
+                if (src_opt && !opt->is_nil(0))
                     opt->values.resize(src_opt->size(), opt->values[0]);
                 break;
             }
@@ -8083,7 +8094,7 @@ int DynamicPrintConfig::update_values_from_single_to_multi_2(DynamicPrintConfig&
                 ConfigOptionFloatsOrPercentsNullable* opt = this->option<ConfigOptionFloatsOrPercentsNullable>(key);
                 ConfigOptionFloatsOrPercentsNullable* src_opt = multi_config.option<ConfigOptionFloatsOrPercentsNullable>(key);
 
-                if (!opt->is_nil(0))
+                if (src_opt &&!opt->is_nil(0))
                     opt->values.resize(src_opt->size(), opt->values[0]);
                 break;
             }
@@ -8092,7 +8103,7 @@ int DynamicPrintConfig::update_values_from_single_to_multi_2(DynamicPrintConfig&
                 ConfigOptionBoolsNullable* opt = this->option<ConfigOptionBoolsNullable>(key);
                 ConfigOptionBoolsNullable* src_opt = multi_config.option<ConfigOptionBoolsNullable>(key);
 
-                if (!opt->is_nil(0))
+                if (src_opt &&!opt->is_nil(0))
                     opt->values.resize(src_opt->size(), opt->values[0]);
 
                 break;
@@ -8150,64 +8161,77 @@ int DynamicPrintConfig::update_values_from_multi_to_single(DynamicPrintConfig& s
         switch (optdef->type) {
         case coStrings:
         {
-            ConfigOptionStrings* opt = this->option<ConfigOptionStrings>(key);
             ConfigOptionStrings* src_opt = single_config.option<ConfigOptionStrings>(key);
+            if (src_opt) {
+                ConfigOptionStrings* opt = this->option<ConfigOptionStrings>(key, true);
 
-            assert(variant_count == opt->size());
-            opt->values = src_opt->values;
+                assert(variant_count == opt->size());
+                opt->values = src_opt->values;
+            }
             break;
         }
         case coInts:
         {
-            ConfigOptionInts* opt = this->option<ConfigOptionInts>(key);
             ConfigOptionInts* src_opt = single_config.option<ConfigOptionInts>(key);
+            if (src_opt) {
+                ConfigOptionInts* opt = this->option<ConfigOptionInts>(key, true);
 
-            assert(variant_count == opt->size());
-            opt->values = src_opt->values;
+                assert(variant_count == opt->size());
+                opt->values = src_opt->values;
+            }
             break;
         }
         case coFloats:
         {
-            ConfigOptionFloats* opt = this->option<ConfigOptionFloats>(key);
             ConfigOptionFloats* src_opt = single_config.option<ConfigOptionFloats>(key);
-            std::vector<double> old_values = opt->values;
+            if (src_opt) {
+                ConfigOptionFloats* opt = this->option<ConfigOptionFloats>(key, true);
 
-            assert(variant_count == opt->size());
-            opt->values = src_opt->values;
+                std::vector<double> old_values = opt->values;
+                int old_count = old_values.size();
 
-            for (int i = 0; i < extruder_count; i++)
-            {
-                assert(extruder_index[i] != -1);
-                if (old_values[extruder_index[i]] < opt->values[0])
-                    opt->values[0] = old_values[extruder_index[i]];
+                assert(variant_count == opt->size());
+                opt->values = src_opt->values;
+
+                for (int i = 0; i < extruder_count; i++)
+                {
+                    assert(extruder_index[i] != -1);
+                    if ((old_count > extruder_index[i]) && (old_values[extruder_index[i]] < opt->values[0]))
+                        opt->values[0] = old_values[extruder_index[i]];
+                }
             }
             break;
         }
         case coFloatsOrPercents:
         {
-            ConfigOptionFloatsOrPercents* opt = this->option<ConfigOptionFloatsOrPercents>(key);
             ConfigOptionFloatsOrPercents* src_opt = single_config.option<ConfigOptionFloatsOrPercents>(key);
+            if (src_opt) {
+                ConfigOptionFloatsOrPercents* opt = this->option<ConfigOptionFloatsOrPercents>(key, true);
 
-            std::vector<FloatOrPercent> old_values = opt->values;
+                std::vector<FloatOrPercent> old_values = opt->values;
+                int old_count = old_values.size();
 
-            assert(variant_count == opt->size());
-            opt->values = src_opt->values;
+                assert(variant_count == opt->size());
+                opt->values = src_opt->values;
 
-            for (int i = 0; i < extruder_count; i++)
-            {
-                assert(extruder_index[i] != -1);
-                if (old_values[extruder_index[i]].value < opt->values[0].value)
-                    opt->values[0] = old_values[extruder_index[i]];
+                for (int i = 0; i < extruder_count; i++)
+                {
+                    assert(extruder_index[i] != -1);
+                    if ((old_count > extruder_index[i]) && (old_values[extruder_index[i]] < opt->values[0]))
+                        opt->values[0] = old_values[extruder_index[i]];
+                }
             }
             break;
         }
         case coBools:
         {
-            ConfigOptionBools* opt = this->option<ConfigOptionBools>(key);
             ConfigOptionBools* src_opt = single_config.option<ConfigOptionBools>(key);
+            if (src_opt) {
+                ConfigOptionBools* opt = this->option<ConfigOptionBools>(key, true);
 
-            assert(variant_count == opt->size());
-            opt->values = src_opt->values;
+                assert(variant_count == opt->size());
+                opt->values = src_opt->values;
+            }
 
             break;
         }
