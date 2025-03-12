@@ -982,6 +982,11 @@ bool is_json_file(const std::string& path)
 	return boost::iends_with(path, ".json");
 }
 
+bool is_preset_bundle_file(const std::string& path)
+{
+	return boost::iends_with(path, ".bundle.json");
+}
+
 bool is_img_file(const std::string &path)
 {
 	return boost::iends_with(path, ".png") || boost::iends_with(path, ".svg");
@@ -1531,7 +1536,7 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
 
         if (boost::filesystem::is_directory(dir_entry)) {
             const auto target_path = target / name;
-            copy_directory_recursively(dir_entry, target_path);
+            copy_directory_recursively(dir_entry, target_path, filter);
         }
         else {
 			if(filter && filter(name))
