@@ -229,9 +229,9 @@ void ObjectDataViewModelNode::set_action_icon(bool enable)
 }
 
 // BBS
-void ObjectDataViewModelNode::set_color_icon(bool enable)
+void ObjectDataViewModelNode::set_color_icon(bool enable, bool force)
 {
-    if (m_color_enable == enable)
+    if (!force && m_color_enable == enable)
         return;
     m_color_enable = enable;
     if ((m_type & itObject) && enable)
@@ -240,9 +240,9 @@ void ObjectDataViewModelNode::set_color_icon(bool enable)
         m_color_icon = create_scaled_bitmap("dot");
 }
 
-void ObjectDataViewModelNode::set_support_icon(bool enable)
+void ObjectDataViewModelNode::set_support_icon(bool enable, bool force)
 {
-    if (m_support_enable == enable)
+    if (!force && m_support_enable == enable)
         return;
     m_support_enable = enable;
     if ((m_type & itObject) && enable)
@@ -251,9 +251,9 @@ void ObjectDataViewModelNode::set_support_icon(bool enable)
         m_support_icon = create_scaled_bitmap("dot");
 }
 
-void ObjectDataViewModelNode::set_sinking_icon(bool enable)
+void ObjectDataViewModelNode::set_sinking_icon(bool enable, bool force)
 {
-    if (m_sink_enable == enable)
+    if (!force && m_sink_enable == enable)
         return;
     m_sink_enable = enable;
     if ((m_type & itObject) && enable)
@@ -2340,32 +2340,32 @@ bool ObjectDataViewModel::IsSinked(wxDataViewItem &item) const
     return node->m_sink_enable;
 }
 
-void ObjectDataViewModel::SetColorPaintState(const bool painted, wxDataViewItem obj_item)
+void ObjectDataViewModel::SetColorPaintState(const bool painted, wxDataViewItem obj_item, bool force)
 {
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
     if (!node)
         return;
 
-    node->set_color_icon(painted);
+    node->set_color_icon(painted, force);
     ItemChanged(obj_item);
 }
 
-void ObjectDataViewModel::SetSupportPaintState(const bool painted, wxDataViewItem obj_item)
+void ObjectDataViewModel::SetSupportPaintState(const bool painted, wxDataViewItem obj_item, bool force)
 {
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
     if (!node)
         return;
 
-    node->set_support_icon(painted);
+    node->set_support_icon(painted, force);
     ItemChanged(obj_item);
 }
 
-void ObjectDataViewModel::SetSinkState(const bool painted, wxDataViewItem obj_item)
+void ObjectDataViewModel::SetSinkState(const bool painted, wxDataViewItem obj_item, bool force)
 {
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(obj_item.GetID());
     if (!node) return;
 
-    node->set_sinking_icon(painted);
+    node->set_sinking_icon(painted, force);
     ItemChanged(obj_item);
 }
 

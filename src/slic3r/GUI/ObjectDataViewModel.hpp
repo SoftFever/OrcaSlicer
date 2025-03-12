@@ -299,9 +299,9 @@ public:
     void        set_variable_height_icon(VaryHeightIndicator vari_height);
     void        set_action_icon(bool enable);
     // BBS
-    void        set_color_icon(bool enable);
-    void        set_support_icon(bool enable);
-    void        set_sinking_icon(bool enable);
+    void        set_color_icon(bool enable, bool force = false);
+    void        set_support_icon(bool enable,bool force = false);
+    void        set_sinking_icon(bool enable, bool force = false);
 
     // Set warning icon for node
     void        set_warning_icon(const std::string& warning_icon);
@@ -508,9 +508,9 @@ public:
     bool    IsColorPainted(wxDataViewItem& item) const;
     bool    IsSupportPainted(wxDataViewItem &item) const;
     bool    IsSinked(wxDataViewItem &item) const;
-    void    SetColorPaintState(const bool painted, wxDataViewItem obj_item);
-    void    SetSupportPaintState(const bool painted, wxDataViewItem obj_item);
-    void    SetSinkState(const bool painted, wxDataViewItem obj_item);
+    void    SetColorPaintState(const bool painted, wxDataViewItem obj_item,bool force = false);
+    void    SetSupportPaintState(const bool painted, wxDataViewItem obj_item,bool force = false);
+    void    SetSinkState(const bool painted, wxDataViewItem obj_item,bool force = false);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items
