@@ -247,6 +247,8 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	int child_window_flags = ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoScrollbar |
 		ImGuiWindowFlags_NoScrollWithMouse;
+
+	ImGui::SetNextWindowFocus();
 	if (imgui.begin(name, window_flags)) {
 		ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
 

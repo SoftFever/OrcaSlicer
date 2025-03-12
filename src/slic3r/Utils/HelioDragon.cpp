@@ -155,8 +155,9 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
 					}
 				} )";
 
-    std::string query_body =
-        (boost::format(query_body_template) % gcode_id % gcode_id % initial_room_airtemp % layer_threshold % object_proximity_airtemp).str();
+    std::string query_body = (boost::format(query_body_template) % generateTimestampedString() % gcode_id % initial_room_airtemp %
+                              layer_threshold % object_proximity_airtemp)
+                                 .str();
 
     auto http = Http::post(helio_api_url);
 

@@ -5,6 +5,7 @@
 #include <wx/string.h>
 #include <boost/optional.hpp>
 #include <boost/asio/ip/address.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <condition_variable>
 #include <mutex>
@@ -91,12 +92,23 @@ public:
     static CheckSimulationProgressResult check_simulation_progress(const std::string helio_api_url,
                                                                    const std::string helio_api_key,
                                                                    const std::string simulation_id);
+
+    static std::string generateTimestampedString()
+    {
+        // Get the current UTC time
+        boost::posix_time::ptime now = boost::posix_time::second_clock::universal_time();
+
+        // Format as ISO 8601 (e.g., "2025-03-12T14:23:45")
+        std::string iso_datetime = boost::posix_time::to_iso_extended_string(now);
+
+        // Combine with your desired prefix
+        return "OrcaSlicer " + iso_datetime;
+    }
 };
 
 class HelioBackgroundProcess
 {
 public:
-
     enum State {
         // m_thread  is not running yet, or it did not reach the STATE_IDLE yet (it does not wait on the condition yet).
         STATE_INITIAL = 0,
@@ -159,7 +171,7 @@ public:
         m_mutex.lock();
         auto state = m_state;
         m_mutex.unlock();
-        
+
         return state;
     }
 
