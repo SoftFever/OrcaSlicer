@@ -1687,6 +1687,18 @@ void CalibrationPresetPage::update_show_status()
         return;
     }
 
+    if (obj_->is_multi_extruders()) {
+        float diameter = obj_->m_extder_data.extders[0].current_nozzle_diameter;
+        bool  is_same_diameter = std::all_of(obj_->m_extder_data.extders.begin(), obj_->m_extder_data.extders.end(),
+           [diameter](const Extder& extruder) {
+                return std::fabs(extruder.current_nozzle_diameter - diameter) < EPSILON;
+           });
+        if (!is_same_diameter) {
+            show_status(CaliPresetPageStatus::CaliPresetStatusDifferentNozzleDiameters);
+            return;
+        }
+    }
+
     // check sdcard when if lan mode printer
     if (obj_->is_lan_mode_printer()) {
         if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
@@ -1813,6 +1825,11 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusInConnecting) {
         wxString msg_text = _L("Connecting to printer");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusDifferentNozzleDiameters) {
+        wxString msg_text = _L("Calibration only supports cases where the left and right nozzle diameters are identical.");
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
     }
