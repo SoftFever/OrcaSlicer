@@ -53,6 +53,7 @@ wxDECLARE_EVENT(EVT_LOAD_VAMS_TRAY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_JUMP_TO_HMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_TEXT_MSG, wxCommandEvent);
+wxDECLARE_EVENT(EVT_ERROR_DIALOG_BTN_CLICKED, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
 {
@@ -169,7 +170,7 @@ class PrintErrorDialog : public DPIFrame
 private:
     wxWindow* event_parent{ nullptr };
 public:
-    enum PrintErrorButton {
+    enum PrintErrorButton : int {
         RESUME_PRINTING = 2,
         RESUME_PRINTING_DEFECTS = 3,
         RESUME_PRINTING_PROBELM_SOLVED = 4,
@@ -180,8 +181,16 @@ public:
         CONTINUE = 9,
         LOAD_VIRTUAL_TRAY = 10,
         OK_BUTTON = 11,
-        FILAMENT_LOAD_RESUME,
+        FILAMENT_LOAD_RESUME = 12,
         JUMP_TO_LIVEVIEW,
+
+        NO_REMINDER_NEXT_TIME = 23,
+        IGNORE_NO_REMINDER_NEXT_TIME = 25,
+        //LOAD_FILAMENT = 26, /*TODO*/
+        IGNORE_RESUME = 27,
+        PROBLEM_SOLVED_RESUME = 28,
+        STOP_BUZZER = 29,
+
         ERROR_BUTTON_COUNT
     };
     PrintErrorDialog(
@@ -196,6 +205,7 @@ public:
     void on_show();
     void on_hide();
     void update_title_style(wxString title, std::vector<int> style, wxWindow* parent = nullptr);
+    void post_event(wxCommandEvent& event);
     void post_event(wxCommandEvent&& event);
     void rescale();
     ~PrintErrorDialog();

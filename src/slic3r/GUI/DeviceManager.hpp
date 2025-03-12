@@ -1149,6 +1149,13 @@ public:
     int command_task_cancel(std::string job_id);
     int command_task_pause();
     int command_task_resume();
+    int command_hms_idle_ignore(const std::string &error_str, int type);
+    int command_hms_resume(const std::string& error_str, const std::string& job_id);
+    int command_hms_ignore(const std::string& error_str, const std::string& job_id);
+    /* buzzer*/
+    int command_stop_buzzer();
+
+    /* temp*/
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
     int command_set_nozzle_new(int nozzle_id, int temp);

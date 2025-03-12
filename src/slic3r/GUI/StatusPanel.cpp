@@ -2332,7 +2332,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
         if (m_print_error_dlg)
             m_print_error_dlg->on_hide();
     });
-
+    Bind(EVT_ERROR_DIALOG_BTN_CLICKED, &StatusPanel::on_print_error_dlg_btn_clicked, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -4648,6 +4648,37 @@ void StatusPanel::on_print_error_done(wxCommandEvent& event)
         }if (m_print_error_dlg_no_action) {
             m_print_error_dlg_no_action->on_hide();
         }
+    }
+}
+
+void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
+{
+    if (obj)
+    {
+        int id = event.GetInt();
+        if (id == PrintErrorDialog::NO_REMINDER_NEXT_TIME)
+        {
+            obj->command_hms_idle_ignore(std::to_string(before_error_code), 0);/*the type is 0, supported by AP*/
+        }
+        else if (id == PrintErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME)
+        {
+            obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
+        }
+        else if (id == PrintErrorDialog::IGNORE_RESUME)
+        {
+            obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
+        }
+        else if (id == PrintErrorDialog::PROBLEM_SOLVED_RESUME)
+        {
+            obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
+        }
+        else if (id == PrintErrorDialog::STOP_BUZZER)
+        {
+            obj->command_stop_buzzer();
+        }
+
+        if (m_print_error_dlg) { m_print_error_dlg->on_hide(); }
+        if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->on_hide();}
     }
 }
 

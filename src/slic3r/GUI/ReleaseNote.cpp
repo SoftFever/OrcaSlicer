@@ -43,6 +43,7 @@ wxDEFINE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_JUMP_TO_HMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_TEXT_MSG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_ERROR_DIALOG_BTN_CLICKED, wxCommandEvent);
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -909,7 +910,17 @@ PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxStri
     wxGetApp().UpdateFrameDarkUI(this);
 }
 
-void PrintErrorDialog::post_event(wxCommandEvent&& event)
+void PrintErrorDialog::post_event(wxCommandEvent& event)
+{
+    if (event_parent) {
+        event.SetString("");
+        event.SetEventObject(event_parent);
+        wxPostEvent(event_parent, event);
+        event.Skip();
+    }
+}
+
+void PrintErrorDialog::post_event(wxCommandEvent &&event)
 {
     if (event_parent) {
         event.SetString("");
@@ -1163,6 +1174,49 @@ void PrintErrorDialog::init_button_list()
         post_event(wxCommandEvent(EVT_JUMP_TO_LIVEVIEW));
         e.Skip();
     });
+
+    init_button(NO_REMINDER_NEXT_TIME, _L("No Reminder Next Time"));
+    m_button_list[NO_REMINDER_NEXT_TIME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+        evt.SetInt(NO_REMINDER_NEXT_TIME);
+        post_event(evt);
+        e.Skip();
+    });
+
+    init_button(IGNORE_NO_REMINDER_NEXT_TIME, _L("Ignore. Don't Remind Next Time"));
+    m_button_list[IGNORE_NO_REMINDER_NEXT_TIME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+        evt.SetInt(IGNORE_NO_REMINDER_NEXT_TIME);
+        post_event(evt);
+        e.Skip();
+    });
+
+    init_button(IGNORE_RESUME, _L("Ignore this and Resume"));
+    m_button_list[IGNORE_RESUME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e)
+        {
+            wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+            evt.SetInt(IGNORE_RESUME);
+            post_event(evt);
+            e.Skip();
+        });
+
+    init_button(PROBLEM_SOLVED_RESUME, _L("Problem Solved and Resume"));
+    m_button_list[PROBLEM_SOLVED_RESUME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e)
+        {
+            wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+            evt.SetInt(PROBLEM_SOLVED_RESUME);
+            post_event(evt);
+            e.Skip();
+        });
+
+    init_button(STOP_BUZZER, _L("Stop Buzzer"));
+    m_button_list[STOP_BUZZER]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e)
+        {
+            wxCommandEvent evt(EVT_ERROR_DIALOG_BTN_CLICKED);
+            evt.SetInt(STOP_BUZZER);
+            post_event(evt);
+            e.Skip();
+        });
 }
 
 PrintErrorDialog::~PrintErrorDialog()

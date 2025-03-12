@@ -696,6 +696,7 @@ protected:
     void on_ams_guide(wxCommandEvent &event);
     void on_ams_retry(wxCommandEvent &event);
     void on_print_error_done(wxCommandEvent& event);
+    void on_print_error_dlg_btn_clicked(wxCommandEvent& event);
 
     void on_fan_changed(wxCommandEvent& event);
     void on_cham_temp_kill_focus(wxFocusEvent& event);
