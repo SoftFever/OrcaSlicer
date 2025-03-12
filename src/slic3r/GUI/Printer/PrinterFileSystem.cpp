@@ -1098,6 +1098,10 @@ boost::uint32_t PrinterFileSystem::RequestMediaAbility(int api_version)
 
 void PrinterFileSystem::RequestUploadFile()
 {
+    if (!m_upload_file) {
+        return;
+    }
+
     json req;
     req["type"]    = "model";
     req["storage"] = m_upload_file->select_storage;
