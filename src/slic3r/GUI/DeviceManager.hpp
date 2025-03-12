@@ -960,6 +960,12 @@ public:
         FR_TutkAgora
     } file_remote{ FR_None };
 
+    enum PlateMakerDectect : int
+    {
+        POS_CHECK      = 1,
+        TYPE_POS_CHECK = 2,
+    };
+
     enum DoorOpenCheckState : int
     {
         DOOR_OPEN_CHECK_DISABLE            = 0,/*do nothing*/
@@ -1002,7 +1008,10 @@ public:
     bool is_support_first_layer_inspect{false};
     bool is_support_ai_monitoring {false};
     bool is_support_lidar_calibration {false};
+
     bool is_support_build_plate_marker_detect{false};
+    PlateMakerDectect m_plate_maker_detect_type{ POS_CHECK };
+
     bool is_support_pa_calibration{false};
     bool is_support_flow_calibration{false};
     bool is_support_auto_flow_calibration{false};/*The flag is used to distinguish auto/on/off or on/off */

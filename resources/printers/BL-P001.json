@@ -65,6 +65,7 @@
 			"support_filament_backup": true,
 			"support_send_to_sd": true,
 			"support_build_plate_marker_detect": true,
+			"support_build_plate_marker_detect_type": 1,
 			"support_ai_monitoring": true
 		}
 	},

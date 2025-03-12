@@ -36,6 +36,7 @@
 			"support_flow_calibration": true,
 			"support_auto_flow_calibration": true,
 			"support_build_plate_marker_detect": true,
+			"support_build_plate_marker_detect_type": 1,
 			"support_lidar_calibration": true,
 			"support_ai_monitoring": true,
 			"support_first_layer_inspect": true,

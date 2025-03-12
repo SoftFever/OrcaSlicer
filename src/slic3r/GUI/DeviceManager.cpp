@@ -3397,6 +3397,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
 
+                if(jj.contains("support_build_plate_marker_detect_type") && jj["support_build_plate_marker_detect_type"].is_number()) {
+                    m_plate_maker_detect_type = (PlateMakerDectect)jj["support_build_plate_marker_detect_type"].get<int>();
+                }
+
                 if (jj.contains("support_flow_calibration") && jj["support_flow_calibration"].is_boolean())
                 {
                     is_support_flow_calibration = jj["support_flow_calibration"].get<bool>();

@@ -151,6 +151,16 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     }
 
     if (obj_->is_support_build_plate_marker_detect) {
+        if (obj_->m_plate_maker_detect_type == MachineObject::POS_CHECK && (text_plate_mark->GetLabel() != _L("Enable detection of build plate position"))) {
+            text_plate_mark->SetLabel(_L("Enable detection of build plate position"));
+            text_plate_mark_caption->SetLabel(_L("The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."));
+            text_plate_mark_caption->Wrap(FromDIP(260));
+        } else if (obj_->m_plate_maker_detect_type == MachineObject::TYPE_POS_CHECK && (text_plate_mark->GetLabel() != _L("Build Plate Detection"))) {
+            text_plate_mark->SetLabel(_L("Build Plate Detection"));
+            text_plate_mark_caption->SetLabel(_L("Identifies the type and position of the build plate on the heatbed. Pausing printing if a mismatch is detected."));
+            text_plate_mark_caption->Wrap(FromDIP(260));
+        }
+
         text_plate_mark->Show();
         m_cb_plate_mark->Show();
         text_plate_mark_caption->Show();
