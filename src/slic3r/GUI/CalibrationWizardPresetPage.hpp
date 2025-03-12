@@ -259,6 +259,7 @@ protected:
     void update_plate_type_collection(CalibrationMethod method);
     void update_combobox_filaments(MachineObject* obj);
     void update_show_status();
+    void update_sync_button_status();
     void show_status(CaliPresetPageStatus status);
     void Enable_Send_Button(bool enable);
     bool is_blocking_printing();
@@ -294,6 +295,8 @@ protected:
     void update_multi_extruder_filament_combobox(const std::string &ams_id, int nozzle_id);
     void create_multi_extruder_filament_list_panel(wxWindow *parent);
     void on_select_nozzle_volume_type(wxCommandEvent &evt, size_t extruder_id);
+
+    Button *m_btn_sync{nullptr};
 
     wxPanel*    m_single_nozzle_info_panel{nullptr};
     wxPanel*    m_multi_nozzle_info_panel{nullptr};

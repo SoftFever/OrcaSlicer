@@ -551,21 +551,21 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
     auto sync_button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto btn_sync = new Button(parent, "", "ams_nozzle_sync");
-    btn_sync->SetToolTip(_L("Synchronize nozzle and AMS information"));
-    btn_sync->SetCornerRadius(8);
+    m_btn_sync = new Button(parent, "", "ams_nozzle_sync");
+    m_btn_sync->SetToolTip(_L("Synchronize nozzle and AMS information"));
+    m_btn_sync->SetCornerRadius(8);
     StateColor btn_sync_bg_col(std::pair<wxColour, int>(wxColour(0xCECECE), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Hovered),
                                std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Normal));
     StateColor btn_sync_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
                                std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
-    btn_sync->SetBackgroundColor(btn_sync_bg_col);
-    btn_sync->SetBorderColor(btn_sync_bd_col);
-    btn_sync->SetCanFocus(false);
-    btn_sync->SetPaddingSize({FromDIP(6), FromDIP(12)});
-    btn_sync->SetMinSize(SYNC_BUTTON_SIZE);
-    btn_sync->SetMaxSize(SYNC_BUTTON_SIZE);
-    btn_sync->SetVertical();
-    btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+    m_btn_sync->SetBackgroundColor(btn_sync_bg_col);
+    m_btn_sync->SetBorderColor(btn_sync_bd_col);
+    m_btn_sync->SetCanFocus(false);
+    m_btn_sync->SetPaddingSize({FromDIP(6), FromDIP(12)});
+    m_btn_sync->SetMinSize(SYNC_BUTTON_SIZE);
+    m_btn_sync->SetMaxSize(SYNC_BUTTON_SIZE);
+    m_btn_sync->SetVertical();
+    m_btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (!curr_obj) {
             MessageDialog msg_dlg(nullptr, _L("Please connect the printer first before synchronizing."), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
@@ -595,7 +595,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     auto sync_button_text = new Label(parent, _L("Sync printer information"));
     sync_button_text->SetFont(Label::Head_14);
     sync_button_text->Wrap(-1);
-    sync_button_sizer->Add(btn_sync);
+    sync_button_sizer->Add(m_btn_sync);
     sync_button_sizer->AddSpacer(FromDIP(20));
     sync_button_sizer->Add(sync_button_text, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
     panel_sizer->Add(sync_button_sizer);
@@ -1626,6 +1626,69 @@ bool CalibrationPresetPage::is_blocking_printing()
     return false;
 }
 
+void CalibrationPresetPage::update_sync_button_status()
+{
+    auto set_status = [this](bool synced) {
+        StateColor synced_colour(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal));
+        StateColor not_synced_colour(std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Normal));
+        if (synced) {
+            m_btn_sync->SetBorderColor(synced_colour);
+            m_btn_sync->SetIcon("ams_nozzle_sync");
+        } else {
+            m_btn_sync->SetBorderColor(not_synced_colour);
+            m_btn_sync->SetIcon("printer_sync");
+        }
+    };
+
+    if (!curr_obj || !curr_obj->is_info_ready()) {
+        set_status(false);
+        return;
+    }
+
+    struct CaliNozzleInfo
+    {
+        float nozzle_diameter{0.4f};
+        int   nozzle_volume_type{0};
+
+        bool operator==(const CaliNozzleInfo &other) const
+        {
+            return abs(nozzle_diameter - other.nozzle_diameter) < EPSILON
+                && nozzle_volume_type == other.nozzle_volume_type;
+        }
+    };
+
+    if (curr_obj->is_multi_extruders()) {
+        std::vector<CaliNozzleInfo> machine_obj_nozzle_infos;
+        machine_obj_nozzle_infos.resize(2);
+        for (Extder extruder : curr_obj->m_extder_data.extders) {
+            machine_obj_nozzle_infos[extruder.id].nozzle_diameter = extruder.current_nozzle_diameter;
+            machine_obj_nozzle_infos[extruder.id].nozzle_volume_type = int(extruder.current_nozzle_flow_type) - 1;
+        }
+
+        std::vector<CaliNozzleInfo> cali_nozzle_infos;
+        cali_nozzle_infos.resize(2);
+        for (size_t extruder_id = 0; extruder_id < 2; ++extruder_id) {
+            cali_nozzle_infos[extruder_id].nozzle_diameter = get_nozzle_diameter(extruder_id);
+            cali_nozzle_infos[extruder_id].nozzle_volume_type = int(get_nozzle_volume_type(extruder_id));
+        }
+
+        if (machine_obj_nozzle_infos == cali_nozzle_infos) {
+            set_status(true);
+        }
+        else {
+            set_status(false);
+        }
+    }
+    else {
+        if (abs(curr_obj->m_extder_data.extders[0].current_nozzle_diameter - get_nozzle_diameter(0)) < EPSILON) {
+            set_status(true);
+        }
+        else {
+            set_status(false);
+        }
+    }
+}
+
 void CalibrationPresetPage::update_show_status()
 {
     NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
@@ -1863,6 +1926,7 @@ void CalibrationPresetPage::update(MachineObject* obj)
     //update printer status
     update_show_status();
 
+    update_sync_button_status();
 }
 
 void CalibrationPresetPage::on_device_connected(MachineObject* obj)
