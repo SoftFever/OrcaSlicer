@@ -115,7 +115,7 @@ msgstr "選擇底面"
 
 #, boost-format
 msgid ""
-"Filament count exceeds the maximum number that painting tool supports. only "
+"Filament count exceeds the maximum number that painting tool supports. Only "
 "the first %1% filaments will be available in painting tool."
 msgstr "線材數量超過上色工具支援的最大值，僅前 %1% 個線材可在上色工具中使用。"
 
@@ -1302,7 +1302,7 @@ msgid "Measure"
 msgstr "測量"
 
 msgid ""
-"Please confirm explosion ratio = 1,and please select at least one object"
+"Please confirm explosion ratio = 1, and please select at least one object"
 msgstr "請確認爆炸比例設為 1，並至少選擇一個物件"
 
 msgid "Please select at least one object."
@@ -1332,12 +1332,12 @@ msgstr " (移動)"
 
 msgid ""
 "Select 2 faces on objects and \n"
-" make objects assemble together."
+"make objects assemble together."
 msgstr "選擇物件上的兩個面，使物件組裝在一起。"
 
 msgid ""
 "Select 2 points or circles on objects and \n"
-" specify distance between them."
+"specify distance between them."
 msgstr "選擇物件上的兩個點或圓，指定它們之間的距離。"
 
 msgid "Face"
@@ -1356,13 +1356,13 @@ msgstr ""
 "特徵 1 已重設，\n"
 "特徵 2 已變為特徵 1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: please select Plane's feature."
 msgstr "警告：請選擇平面的特徵。"
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: please select Point's or Circle's feature."
 msgstr "警告：請選擇點或圓的特徵。"
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: please select two different meshes."
 msgstr "警告：請選擇兩個不同的網格。"
 
 msgid "Copy to clipboard"
@@ -1429,12 +1429,12 @@ msgstr "線材"
 msgid "Machine"
 msgstr "列印設備"
 
-msgid "Configuration package was loaded, but some values were not recognized."
+msgid "The configuration package was loaded, but some values were not recognized."
 msgstr "設定檔已被載入，但部分數值無法識別。"
 
 #, boost-format
 msgid ""
-"Configuration file \"%1%\" was loaded, but some values were not recognized."
+"The configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr "設定檔「%1%」 已被載入，但部分數值無法識別。"
 
 msgid ""
@@ -1506,7 +1506,7 @@ msgstr "正在讀取設定檔"
 msgid "Click to download new version in default browser: %s"
 msgstr "在預設瀏覽器中開啟頁面下載最新版本： %s"
 
-msgid "The Orca Slicer needs an upgrade"
+msgid "Orca Slicer needs an upgrade"
 msgstr "Orca Slicer 需要進行升級"
 
 msgid "This is the newest version."
@@ -1553,7 +1553,7 @@ msgid "Some presets are modified."
 msgstr "部分預設已被修改。"
 
 msgid ""
-"You can keep the modified presets to the new project, discard or save "
+"You can keep the modified presets for the new project, discard, or save "
 "changes as new presets."
 msgstr "你可以保留尚未儲存修改的預設應用到新項目中，或者選擇忽略。"
 
@@ -1884,10 +1884,10 @@ msgstr "恢復到公尺"
 msgid "Assemble"
 msgstr "組合"
 
-msgid "Assemble the selected objects to an object with multiple parts"
+msgid "Assemble the selected objects into an object with multiple parts"
 msgstr "組合所選物件為一個多零件物件"
 
-msgid "Assemble the selected objects to an object with single part"
+msgid "Assemble the selected objects into an object with single part"
 msgstr "組合所選物件為一個單零件物件"
 
 msgid "Mesh boolean"
@@ -2064,16 +2064,16 @@ msgstr[0] "%1$d 個非流形邊緣"
 msgid "Right click the icon to fix model object"
 msgstr "滑鼠右鍵點擊此圖示修復物件模型"
 
-msgid "Right button click the icon to drop the object settings"
+msgid "Right click the icon to drop the object settings"
 msgstr "滑鼠右鍵點擊此圖示以放棄物件的列印設定"
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "滑鼠左鍵點擊此圖示可重設物件的所有列印設定"
 
-msgid "Right button click the icon to drop the object printable property"
+msgid "Right click the icon to drop the object printable property"
 msgstr "滑鼠右鍵點擊此圖示以捨棄物件的可列印屬性"
 
-msgid "Click the icon to toggle printable property of the object"
+msgid "Click the icon to toggle printable properties of the object"
 msgstr "滑鼠左點擊此圖示可切換這個物件的可列印屬性"
 
 msgid "Click the icon to edit support painting of the object"
@@ -2124,7 +2124,7 @@ msgstr "為保證切割關係，你可以將所有關聯物件的連接件一起
 
 msgid ""
 "This action will break a cut correspondence.\n"
-"After that model consistency can't be guaranteed .\n"
+"After that, model consistency can't be guaranteed .\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
 "cut information first."
@@ -2183,15 +2183,15 @@ msgid "Selection conflicts"
 msgstr "選擇衝突"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr "如果第一個選擇的是物件，那麼第二個選擇的也必須是物件。"
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr "如果第一個選擇的是零件，那麼第二個選擇的也必須是同一個物件中的零件。"
 
-msgid "The type of the last solid object part is not to be changed."
+msgid "The type of the last solid object part cannot be changed."
 msgstr "不允許修改物件中最後一個實體零件的類型。"
 
 msgid "Negative Part"
@@ -2215,12 +2215,12 @@ msgstr "輸入新名稱"
 msgid "Renaming"
 msgstr "重新命名"
 
-msgid "Following model object has been repaired"
-msgid_plural "Following model objects have been repaired"
+msgid "The following model object has been repaired"
+msgid_plural "The following model objects have been repaired"
 msgstr[0] "以下模型物件已被修復"
 
-msgid "Failed to repair following model object"
-msgid_plural "Failed to repair following model objects"
+msgid "Failed to repair the following model object"
+msgid_plural "Failed to repair the following model objects"
 msgstr[0] "以下模型物件修復失敗"
 
 msgid "Repairing was canceled"
@@ -2973,7 +2973,7 @@ msgstr "不使用 AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "使用安裝在機箱背面的線材進行列印"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "使用 AMS 裡的線材列印"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -6047,7 +6047,7 @@ msgstr "刪除切割物件的一部分"
 msgid ""
 "You try to delete an object which is a part of a cut object.\n"
 "This action will break a cut correspondence.\n"
-"After that model consistency can't be guaranteed."
+"After that, model consistency can't be guaranteed."
 msgstr ""
 "你正在嘗試刪除一個屬於切割物件的部分。\n"
 "此操作將破壞切割對應關係。\n"
@@ -6122,7 +6122,7 @@ msgstr ""
 "僅預覽模式：\n"
 "被載入的檔案僅包含 G-Code，不支援進入準備頁面"
 
-msgid "You can keep the modified presets to the new project or discard them"
+msgid "You can keep the modified presets for the new project or discard them"
 msgstr "你可以將修改後的預設檔保留到新專案項目中或者忽略這些修改"
 
 msgid "Creating a new project"
@@ -8244,15 +8244,15 @@ msgid "Map Filament"
 msgstr "映射線材"
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
+"Note: The color has been selected, you can choose OK \n"
+"to continue or manually adjust it."
 msgstr ""
 "注意：顏色已選擇，你可以點擊確定繼續，\n"
 "或者手動進行調整。"
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
+"Warning: The count of newly added and \n"
+"current extruders exceeds 16."
 msgstr "警告：新增的擠出機量與當前擠出機總數超過 16。"
 
 msgid "Ramming customization"
@@ -10809,7 +10809,7 @@ msgid ""
 "external perimeters, the speed of the internal perimeters and the fastest "
 "feature print speed in your profile (usually its the sparse or solid "
 "infill). Then run them for the same speeds for the slowest and fastest print "
-"accelerations,and no faster than the recommended maximum acceleration as "
+"accelerations, and no faster than the recommended maximum acceleration as "
 "given by the Klipper input shaper.\n"
 "2. Take note of the optimal PA value for each volumetric flow speed and "
 "acceleration. You can find the flow number by selecting flow from the color "

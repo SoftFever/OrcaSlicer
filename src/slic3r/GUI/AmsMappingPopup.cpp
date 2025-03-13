@@ -1169,7 +1169,7 @@ void AmsIntroducePopup::set_mode(bool enable_ams)
 {
     if (enable_ams) {
         m_staticText_top->SetLabelText(_L("Enable AMS"));
-        m_staticText_bottom->SetLabelText(_L("Print with filaments in ams"));
+        m_staticText_bottom->SetLabelText(_L("Print with filaments in AMS"));
         m_img_enable_ams->Show();
         m_img_disable_ams->Hide();
     }

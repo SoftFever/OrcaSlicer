@@ -4935,7 +4935,7 @@ bool Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immedia
         InfoDialog dialog(q, _L("Delete object which is a part of cut object"),
                           _L("You try to delete an object which is a part of a cut object.\n"
                              "This action will break a cut correspondence.\n"
-                             "After that model consistency can't be guaranteed."),
+                             "After that, model consistency can't be guaranteed."),
                           false, wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxICON_WARNING);
         dialog.SetButtonLabel(wxID_YES, _L("Delete"));
         if (dialog.ShowModal() == wxID_CANCEL)
@@ -8870,8 +8870,8 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     // BBS: save confirm
     auto check = [&transfer_preset_changes](bool yes_or_no) {
         wxString header = _L("Some presets are modified.") + "\n" +
-            (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
-                _L("You can keep the modified presets to the new project, discard or save changes as new presets."));
+            (yes_or_no ? _L("You can keep the modified presets for the new project or discard them") :
+                _L("You can keep the modified presets for the new project, discard, or save changes as new presets."));
         int act_buttons = ActionButtons::KEEP | ActionButtons::REMEMBER_CHOISE;
         if (!yes_or_no)
             act_buttons |= ActionButtons::SAVE;

@@ -3300,7 +3300,7 @@ void MainFrame::load_config_file()
     if (!cfiles.empty()) {
         wxGetApp().app_config->update_config_dir(get_dir_name(cfiles.back()));
         wxGetApp().load_current_presets();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " presets has been import,and size is" << cfiles.size();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " presets have been imported, and size is" << cfiles.size();
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " user is: " << agent->get_user_id();

@@ -480,7 +480,7 @@ std::string GLGizmoMeasure::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1,and please select at least one object");
+            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1, and please select at least one object");
         }
         else {
             return _u8L("Measure") + ":\n" + _u8L("Please select at least one object.");
@@ -1834,9 +1834,9 @@ void GLGizmoMeasure::show_selection_ui()
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             m_only_select_plane = m_assembly_mode == AssemblyMode::FACE_FACE ? true : false;
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
-                m_imgui->text(_u8L("Select 2 faces on objects and \n make objects assemble together.")); // tip
+                m_imgui->text(_u8L("Select 2 faces on objects and \nmake objects assemble together.")); // tip
             } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
-                m_imgui->text(_u8L("Select 2 points or circles on objects and \n specify distance between them.")); // tip
+                m_imgui->text(_u8L("Select 2 points or circles on objects and \nspecify distance between them.")); // tip
             }
         }
         ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(SELECTED_1ST_COLOR));
@@ -1902,14 +1902,14 @@ void GLGizmoMeasure::show_selection_ui()
     if (m_selected_wrong_feature_waring_tip) {
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
-                m_imgui->warning_text(_L("Warning:please select Plane's feature."));
+                m_imgui->warning_text(_L("Warning: please select Plane's feature."));
             } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
-                m_imgui->warning_text(_L("Warning:please select Point's or Circle's feature."));
+                m_imgui->warning_text(_L("Warning: please select Point's or Circle's feature."));
             }
         }
     }
     if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 1) {
-        m_imgui->warning_text(_L("Warning:please select two different mesh."));
+        m_imgui->warning_text(_L("Warning: please select two different meshes."));
     }
 }
 
