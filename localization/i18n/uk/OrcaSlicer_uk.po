@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-01 17:37+0800\n"
+"POT-Creation-Date: 2025-03-09 14:32+0800\n"
 "PO-Revision-Date: 2025-03-07 09:30+0200\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
@@ -1015,6 +1015,10 @@ msgid "Orient the text towards the camera."
 msgstr "Зорієнтувати текст у напрямку камери."
 
 #, boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+
+#, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1274,6 +1278,9 @@ msgstr "Парсер NanoSVG не може прочитати файл (%1%)."
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "Файл SVG не містить жодного шляху для рельєфного тексту (%1%)."
+
+msgid "No feature"
+msgstr ""
 
 msgid "Vertex"
 msgstr "Вершина"
@@ -2848,8 +2855,8 @@ msgid ""
 "This software uses open source components whose copyright and other "
 "proprietary rights belong to their respective owners"
 msgstr ""
-"Це програмне забезпечення використовує компоненти з відкритим вихідним кодом,"
-"авторські права та інші\n"
+"Це програмне забезпечення використовує компоненти з відкритим вихідним "
+"кодом,авторські права та інші\n"
 "права власності належать їх відповідним власникам"
 
 #, c-format, boost-format
@@ -3247,8 +3254,12 @@ msgstr ""
 "Відбулася помилка. Можливо не вистачає системноъ пам'яті або це баг самої "
 "програми"
 
-msgid "Please save project and restart the program. "
-msgstr "Збережіть проект і перезапустіть програму. "
+#, boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr ""
+
+msgid "Please save project and restart the program."
+msgstr "Збережіть проект і перезапустіть програму."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Обробка G-коду з попереднього файлу..."
@@ -3691,9 +3702,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Поточна температура камери вища, ніж безпечна температура матеріалу, це може "
 "призвести до розм’якшення матеріалу та його забивання. Максимально безпечна "
@@ -4481,7 +4492,7 @@ msgstr "Об'єм:"
 msgid "Size:"
 msgstr "Розмір:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4507,8 +4518,8 @@ msgid ""
 "confirming that the height is within the build volume."
 msgstr ""
 "Об'єкт знаходиться за кордоном пластини або перевищує обмеження по висоті.\n"
-"Будь ласка, вирішіть проблему, перемістивши її повністю на тарілку або з неї,"
-"і підтвердження того, що висота знаходиться в межах обсягу збирання."
+"Будь ласка, вирішіть проблему, перемістивши її повністю на тарілку або з "
+"неї,і підтвердження того, що висота знаходиться в межах обсягу збирання."
 
 msgid "Calibration step selection"
 msgstr "Вибір кроку калібрування"
@@ -4876,6 +4887,14 @@ msgstr "Використовувати вид у перспективі"
 
 msgid "Use Orthogonal View"
 msgstr "Використовувати ортогональний вид"
+
+msgid "Auto Perspective"
+msgstr ""
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
+msgstr ""
 
 msgid "Show &G-code Window"
 msgstr "Показати вікно G-коду"
@@ -6445,6 +6464,22 @@ msgid ""
 msgstr ""
 "Не вдалося імпортувати файл до Orca Slicer. Завантажте файл і імпортуйте "
 "його вручну."
+
+msgid "INFO:"
+msgstr ""
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+
+msgid "mm/s²"
+msgstr "мм/с²"
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+
+msgid "mm/s"
+msgstr "мм/с"
 
 msgid "Import SLA archive"
 msgstr "Імпорт SLА-архіву"
@@ -9659,6 +9694,11 @@ msgstr ""
 "шарів підкладки"
 
 msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
+
+msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
 msgstr ""
@@ -9672,11 +9712,22 @@ msgstr ""
 "Підготовча вежа підтримується лише в тому випадку, якщо всі об'єкти мають "
 "однакову змінну висоту шару"
 
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
+
 msgid "Too small line width"
 msgstr "Надто мала ширина лінії"
 
 msgid "Too large line width"
 msgstr "Занадто велика ширина лінії"
+
+msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
+msgstr ""
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -10654,9 +10705,6 @@ msgstr ""
 "на 13%, незалежно від того, чи є вони частиною мосту або звичайного "
 "нависання."
 
-msgid "mm/s"
-msgstr "мм/с"
-
 msgid "Internal"
 msgstr "Внутрішні"
 
@@ -10800,9 +10848,6 @@ msgid ""
 msgstr ""
 "Прискорення за умовчанням як для звичайного друку, так і для переміщення за "
 "виключенням першого шару"
-
-msgid "mm/s²"
-msgstr "мм/с²"
 
 msgid "Default filament profile"
 msgstr "Профіль стандартного філаменту"
@@ -12090,8 +12135,8 @@ msgstr ""
 "знайдено, лінія заповнення з'єднується з сегментом периметра лише з одного "
 "боку, і довжина взятого сегменту периметра обмежена цим параметром, але не "
 "більше anchor_length_max.\n"
-"Встановіть цей параметр рівним нулю, щоб вимкнути периметри прив'язки."
-"пов'язані з однією лінією заповнення."
+"Встановіть цей параметр рівним нулю, щоб вимкнути периметри "
+"прив'язки.пов'язані з однією лінією заповнення."
 
 msgid "0 (no open anchors)"
 msgstr "0 (немає відкритих прив'язок)"
@@ -12161,8 +12206,8 @@ msgid "mm/s² or %"
 msgstr "мм/с² або %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Прискорення заповнення. Якщо значення виражено у відсотках (наприклад, "
 "100%), воно буде розраховане на основі прискорення за умовчанням."
@@ -13944,8 +13989,8 @@ msgid ""
 "To minimize the visibility of the seam in a closed loop extrusion, a small "
 "inward movement is executed before the extruder leaves the loop."
 msgstr ""
-"Щоб звести до мінімуму видимість шва при екструзії із замкнутим контуром,"
-"Невеликий рух усередину виконується до виходу екструдера з контуру."
+"Щоб звести до мінімуму видимість шва при екструзії із замкнутим "
+"контуром,Невеликий рух усередину виконується до виходу екструдера з контуру."
 
 msgid "Wipe before external loop"
 msgstr "Протирати перед зовнішнім контуром"
@@ -14006,6 +14051,15 @@ msgstr "Висота спідниці"
 
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Скільки буде шарів спідниці. Зазвичай лише один шар"
+
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
 
 msgid "Draft shield"
 msgstr "Захисний екран"
@@ -14406,8 +14460,8 @@ msgid ""
 "Only create support for critical regions including sharp tail, cantilever, "
 "etc."
 msgstr ""
-"Створювати підтримку тільки для критичних областей, включаючи гострий хвіст,"
-"консоль і т.д."
+"Створювати підтримку тільки для критичних областей, включаючи гострий "
+"хвіст,консоль і т.д."
 
 msgid "Remove small overhangs"
 msgstr "Видалити невеликі виступи"
@@ -15074,9 +15128,9 @@ msgid "Idle temperature"
 msgstr "Температура очікування"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 "Температура сопла, коли інструмент наразі не використовується в "
 "багатоголових налаштуваннях. Використовується лише тоді, коли у параметрах "
@@ -15571,8 +15625,8 @@ msgid "Debug level"
 msgstr "Рівень налагодження"
 
 msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
 msgstr ""
 "Встановлює рівень реєстрації налагодження. 0: непереборний, 1: помилка, 2: "
 "попередження, 3: інформація, 4: налагодження, 5: трасування\n"
@@ -16009,8 +16063,8 @@ msgstr "Підтримка: створення точок контакту"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Невідомий формат файлу: вхідний файл повинен мати розширення .stl, .obj або ."
-"amf (.xml)."
+"Невідомий формат файлу: вхідний файл повинен мати розширення .stl, .obj "
+"або .amf (.xml)."
 
 msgid "Loading of a model file failed."
 msgstr "Не вдалося завантажити файл моделі."
@@ -16020,8 +16074,8 @@ msgstr "Наданий файл не вдалося прочитати, оскі
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Невідомий формат файлу: вхідний файл повинен мати розширення .3mf або .zip."
-"amf."
+"Невідомий формат файлу: вхідний файл повинен мати розширення .3mf "
+"або .zip.amf."
 
 msgid "Canceled"
 msgstr "Скасовано"
@@ -16650,8 +16704,20 @@ msgstr "Кінцеве ВТ (РА): "
 msgid "PA step: "
 msgstr "Крок ВТ (PA): "
 
+msgid "Accelerations: "
+msgstr ""
+
+msgid "Speeds: "
+msgstr ""
+
 msgid "Print numbers"
 msgstr "Друк значень"
+
+msgid "Comma-separated list of printing accelerations"
+msgstr ""
+
+msgid "Comma-separated list of printing speeds"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"

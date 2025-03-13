@@ -522,7 +522,7 @@ public:
     // a new preset is stored into the list of presets.
     // All presets are marked as not modified and the new preset is activated.
     //BBS: add project embedded preset logic
-    void            save_current_preset(const std::string &new_name, bool detach = false, bool save_to_project = false, Preset* _curr_preset = nullptr);
+    void            save_current_preset(const std::string &new_name, bool detach = false, bool save_to_project = false, Preset* _curr_preset = nullptr, const Preset* _current_printer = nullptr);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
@@ -565,6 +565,8 @@ public:
 	// Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
+
+    const Preset& get_selected_preset_base() const { return *get_preset_base(m_presets[m_idx_selected]); }
 
     // Return the last saved preset.
 //  const Preset&   get_saved_preset() const { return m_saved_preset; }

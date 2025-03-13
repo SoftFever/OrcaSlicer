@@ -1241,7 +1241,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 #if 0
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
-                    return  {("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
+                    return  {L("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
@@ -1301,7 +1301,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         unsigned int total_extruders_count = m_config.nozzle_diameter.size();
         for (const auto& extruder_idx : extruders)
             if ( extruder_idx >= total_extruders_count )
-                return ("One or more object were assigned an extruder that the printer does not have.");
+                return {L("One or more object were assigned an extruder that the printer does not have.")};
 #endif
 
         auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
@@ -1326,7 +1326,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     // The object has some form of support and either support_filament or support_interface_filament
                     // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
                     // are of the same diameter.
-                    return {("Printing with multiple extruders of differing nozzle diameters. "
+                    return {L("Printing with multiple extruders of differing nozzle diameters. "
                            "If support is to be printed with the current filament (support_filament == 0 or support_interface_filament == 0), "
                            "all nozzles have to be of the same diameter."), object, "support_filament"};
                 }

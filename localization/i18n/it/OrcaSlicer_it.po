@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-01 17:37+0800\n"
+"POT-Creation-Date: 2025-03-09 14:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -18,7 +18,7 @@ msgid "Supports Painting"
 msgstr "Dipingi supporti"
 
 msgid "Alt + Mouse wheel"
-msgstr "Alt + Rotella del mouse"
+msgstr "Alt + Rotellina del mouse"
 
 msgid "Section view"
 msgstr "Vista in sezione"
@@ -27,7 +27,7 @@ msgid "Reset direction"
 msgstr "Ripristina direzione"
 
 msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Rotella del mouse"
+msgstr "Ctrl + Rotellina del mouse"
 
 msgid "Pen size"
 msgstr "Dimensione penna"
@@ -1017,6 +1017,12 @@ msgid "Orient the text towards the camera."
 msgstr "Orienta il testo verso di te."
 
 #, boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+"Il tipo di carattere \"%1%\" non può essere utilizzato. Si prega di "
+"selezionarne un altro."
+
+#, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1284,6 +1290,9 @@ msgstr "Il parser Nano SVG non può essere caricato dal file (%1%)."
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "Il file SVG NON ​​contiene alcun percorso per il rilievo (%1%)."
 
+msgid "No feature"
+msgstr "Nessun elemento"
+
 msgid "Vertex"
 msgstr "Vertice"
 
@@ -1478,11 +1487,11 @@ msgstr ""
 "sono stati riconosciuti."
 
 msgid ""
-"Orca Slicer will terminate because of running out of memory.It may be a bug. "
+"OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"OrcaSlicer ha esaurito la memoria e verrà chiuso. Questo potrebbe essere \n"
-"un bug. Si prega di segnalare questo errore al supporto tecnico."
+"OrcaSlicer ha esaurito la memoria e verrà chiuso. Questo potrebbe essere un "
+"bug. Si prega di segnalare questo errore al supporto tecnico."
 
 msgid "Fatal error"
 msgstr "Errore irreversibile"
@@ -3277,8 +3286,12 @@ msgstr ""
 "Si è verificato un errore. È possibile che la memoria del sistema sia "
 "esaurita o che si sia verificato un bug"
 
-msgid "Please save project and restart the program. "
-msgstr "Salva il progetto e riavvia l'applicazione. "
+#, boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr "Si è verificato un errore irreversibile: \"%1%\""
+
+msgid "Please save project and restart the program."
+msgstr "Salva il progetto e riavvia l'applicazione."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Elaborazione G-Code dal file precedente..."
@@ -4524,7 +4537,7 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Dimensione:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4735,41 +4748,41 @@ msgstr "Vista predefinita"
 
 #. TRN To be shown in the main menu View->Top
 msgid "Top"
-msgstr "Superiore"
+msgstr "Dall'alto"
 
 msgid "Top View"
-msgstr "Vista superiore"
+msgstr "Vista dall'alto"
 
 #. TRN To be shown in the main menu View->Bottom
 msgid "Bottom"
-msgstr "Inferiore"
+msgstr "Dal basso"
 
 msgid "Bottom View"
-msgstr "Vista inferiore"
+msgstr "Vista dal basso"
 
 msgid "Front"
-msgstr "Anteriore"
+msgstr "Di fronte"
 
 msgid "Front View"
-msgstr "Vista anteriore"
+msgstr "Vista di fronte"
 
 msgid "Rear"
-msgstr "Posteriore"
+msgstr "Da dietro"
 
 msgid "Rear View"
-msgstr "Vista posteriore"
+msgstr "Vista da dietro"
 
 msgid "Left"
-msgstr "Sinistra"
+msgstr "Da sinistra"
 
 msgid "Left View"
-msgstr "Vista sinistra"
+msgstr "Vista da sinistra"
 
 msgid "Right"
-msgstr "Destra"
+msgstr "Da Destra"
 
 msgid "Right View"
-msgstr "Vista destra"
+msgstr "Vista da destra"
 
 msgid "Start a new window"
 msgstr "Inizia in una nuova finestra"
@@ -4920,6 +4933,16 @@ msgstr "Usa vista prospettica"
 
 msgid "Use Orthogonal View"
 msgstr "Usa vista ortogonale"
+
+msgid "Auto Perspective"
+msgstr "Vista prospettica automatica"
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
+msgstr ""
+"Passa automaticamente dalla vista ortogonale a quella prospettica quando si "
+"selezionano le viste dall'alto/dal basso/da destra/da sinistra"
 
 msgid "Show &G-code Window"
 msgstr "Mostra finestra del G-code"
@@ -6471,6 +6494,26 @@ msgid ""
 msgstr ""
 "L'importazione in OrcaSlicer non è riuscita. Si prega di scaricare il file e "
 "importarlo manualmente."
+
+msgid "INFO:"
+msgstr "INFORMAZIONI:"
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+"Nessun valore di accelerazione fornito per la calibrazione. Verrà utilizzato "
+"il valore di accelerazione predefinito "
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+"Nessun valore di velocità fornito per la calibrazione. Verrà utilizzato il "
+"valore di velocità ottimale predefinito "
+
+msgid "mm/s"
+msgstr "mm/s"
 
 msgid "Import SLA archive"
 msgstr "Importa archivio SLA"
@@ -8214,10 +8257,10 @@ msgid "Complete print"
 msgstr "Stampa completa"
 
 msgid "Filament start G-code"
-msgstr "G-code Iniziale Filamento"
+msgstr "G-code iniziale filamento"
 
 msgid "Filament end G-code"
-msgstr "G-code Finale Filamento"
+msgstr "G-code finale filamento"
 
 msgid "Wipe tower parameters"
 msgstr "Parametri torre di spurgo"
@@ -8255,7 +8298,7 @@ msgid "Fan speed-up time"
 msgstr "Tempo di accelerazione della ventola"
 
 msgid "Extruder Clearance"
-msgstr "Ingombro estrusore"
+msgstr "Spazio libero estrusore"
 
 msgid "Adaptive bed mesh"
 msgstr "Matrice del piatto adattiva"
@@ -8267,10 +8310,10 @@ msgid "Machine gcode"
 msgstr "G-code macchina"
 
 msgid "Machine start G-code"
-msgstr "G-code avvio macchina"
+msgstr "G-code iniziale macchina"
 
 msgid "Machine end G-code"
-msgstr "G-code arresto macchina"
+msgstr "G-code finale macchina"
 
 msgid "Printing by object G-code"
 msgstr "G-code stampa per oggetto"
@@ -9740,6 +9783,13 @@ msgstr ""
 "zattera (o base di stampa) con lo stesso numero di strati"
 
 msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
+"La torre di spurgo è supportata per oggetti multipli solo se questi vengono "
+"stampati con la stessa 'Distanza Z superiore' (support_top_z_distance)"
+
+msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
 msgstr ""
@@ -9753,11 +9803,28 @@ msgstr ""
 "La torre di spurgo è supportata solo se tutti gli oggetti hanno la stessa "
 "Altezza strato adattiva"
 
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
+"A uno o più oggetti è stato assegnato un estrusore di cui la stampante non è "
+"dotata."
+
 msgid "Too small line width"
 msgstr "Larghezza linea troppo piccola"
 
 msgid "Too large line width"
 msgstr "Larghezza linea troppo grande"
+
+msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
+msgstr ""
+"Stampa con più estrusori con diametri di ugello diversi. Se il supporto deve "
+"essere stampato con il filamento corrente (support_filament == 0 o "
+"support_interface_filament == 0), tutti gli ugelli devono avere lo stesso "
+"diametro."
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -10757,9 +10824,6 @@ msgstr ""
 "supportate sarà inferiore al 13%, indipendentemente dal fatto che facciano "
 "parte di un ponte o di una sporgenza."
 
-msgid "mm/s"
-msgstr "mm/s"
-
 msgid "Internal"
 msgstr "Interno"
 
@@ -10908,9 +10972,6 @@ msgid ""
 msgstr ""
 "Accelerazione predefinita sia per la stampa normale che per gli spostamenti, "
 "eccetto lo strato iniziale"
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "Profilo filamento predefinito"
@@ -13926,8 +13987,8 @@ msgid ""
 "handle the retraction. This is only supported in recent Marlin."
 msgstr ""
 "Questa impostazione sperimentale utilizza i comandi G10 e G11 per fare in "
-"modo che il firmware gestisca la ritrazione. Questo è supportato solo nel "
-"recente Marlin."
+"modo che il firmware gestisca la retrazione. Questo è supportato solo nella "
+"versione recente di Marlin."
 
 msgid "Show auto-calibration marks"
 msgstr "Mostra segni di autocalibrazione"
@@ -14194,6 +14255,18 @@ msgstr "Altezza gonna"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Numero di strati della gonna. Di solito solo uno"
 
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
+"Dopo il primo strato, limita i perimetri dello scudo protettivo a una sola "
+"parete. Questo è utile a volte per ridurre l'utilizzo del filamento, ma può "
+"causare la deformazione/crepa dello scudo protettivo."
+
 msgid "Draft shield"
 msgstr "Scudo protettivo"
 
@@ -14349,8 +14422,8 @@ msgstr "Flusso iniziale spirale"
 #, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
-"to the spiral. Normally the spiral transition scales the flow ratio from "
-"0% to 100% during the first loop which can in some cases lead to under "
+"to the spiral. Normally the spiral transition scales the flow ratio from 0% "
+"to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
 "Imposta il flusso di stampa iniziale durante la transizione dall'ultimo "
@@ -14369,9 +14442,9 @@ msgid ""
 "can in some cases lead to under extrusion at the end of the spiral."
 msgstr ""
 "Imposta il flusso di stampa finale mentre termina la spirale. Normalmente "
-"nella transizione alla spirale, il flusso di stampa viene scalato dal "
-"100% allo 0% durante l'estrusione dell'ultimo perimetro, il che può in "
-"alcuni casi portare a una sottoestrusione alla fine della spirale."
+"nella transizione alla spirale, il flusso di stampa viene scalato dal 100% "
+"allo 0% durante l'estrusione dell'ultimo perimetro, il che può in alcuni "
+"casi portare a una sottoestrusione alla fine della spirale."
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -16944,8 +17017,20 @@ msgstr "Fine AP: "
 msgid "PA step: "
 msgstr "Incremento AP: "
 
+msgid "Accelerations: "
+msgstr "Accelerazioni: "
+
+msgid "Speeds: "
+msgstr "Velocità: "
+
 msgid "Print numbers"
 msgstr "Stampa numeri"
+
+msgid "Comma-separated list of printing accelerations"
+msgstr "Elenco separato da virgole delle accelerazioni di stampa"
+
+msgid "Comma-separated list of printing speeds"
+msgstr "Elenco separato da virgole delle velocità di stampa"
 
 msgid ""
 "Please input valid values:\n"
@@ -17630,38 +17715,34 @@ msgid ""
 "Only display printer names with changes to printer, filament, and process "
 "presets."
 msgstr ""
-"Mostrare solo i nomi delle stampanti con modifiche ai profili di stampante, "
-"filamento e processo."
+"Nomi delle stampanti con modifiche ai profili di stampante, filamento e "
+"processo."
 
 msgid "Only display the filament names with changes to filament presets."
-msgstr ""
-"Mostrare solo i nomi dei filamenti con modifiche ai profili di filamento."
+msgstr "Nomi dei filamenti con modifiche ai profili di filamento."
 
 msgid ""
 "Only printer names with user printer presets will be displayed, and each "
 "preset you choose will be exported as a zip."
 msgstr ""
-"Verranno visualizzati solo i nomi delle stampanti con profili utente e ogni "
-"profilo scelto sarà esportato come file zip."
+"Nomi delle stampanti con profili creati dell'utente. \n"
+"Tutti i profili selezionati saranno esportati come file zip."
 
 msgid ""
 "Only the filament names with user filament presets will be displayed, \n"
 "and all user filament presets in each filament name you select will be "
 "exported as a zip."
 msgstr ""
-"Verranno visualizzati solo i nomi dei filamenti con profili utente \n"
-"e tutti i profili utente in cianscun nome del filamento selezionato saranno "
-"esportati come file zip."
+"Nomi dei filamenti con profili creati dell'utente. \n"
+"Tutti i profili selezionati saranno esportati come file zip."
 
 msgid ""
 "Only printer names with changed process presets will be displayed, \n"
 "and all user process presets in each printer name you select will be "
 "exported as a zip."
 msgstr ""
-"Verranno visualizzati solo i nomi delle stampanti con profili del processo "
-"modificati \n"
-"e tutti i profili utente in cianscun nome di stampante selezionato saranno "
-"esportati come file zip."
+"Nomi delle stampanti con profili di processo modificati. \n"
+"Tutti i profili selezionati saranno esportati come file zip."
 
 msgid "Please select at least one printer or filament."
 msgstr "Seleziona almeno una stampante o un filamento."
@@ -18727,6 +18808,13 @@ msgstr ""
 "ridurre la probabilità di deformazione?"
 
 #~ msgid ""
+#~ "Orca Slicer will terminate because of running out of memory.It may be a "
+#~ "bug. It will be appreciated if you report the issue to our team."
+#~ msgstr ""
+#~ "OrcaSlicer ha esaurito la memoria e verrà chiuso. Questo potrebbe essere "
+#~ "un bug. Si prega di segnalare questo errore al supporto tecnico."
+
+#~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
 #~ "support volume but weaker strength.\n"
 #~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
@@ -18760,7 +18848,6 @@ msgstr ""
 #~ msgid "Branch Diameter with double walls"
 #~ msgstr "Diametro diramazioni con pareti doppie"
 
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
 #~ msgid ""
 #~ "Branches with area larger than the area of a circle of this diameter will "
 #~ "be printed with double walls for stability. Set this value to zero for no "

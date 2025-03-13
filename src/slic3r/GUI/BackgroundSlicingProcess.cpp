@@ -81,8 +81,8 @@ std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format
 			                  "of the program"))).str());
         error = std::string(errmsg.ToUTF8()) + "\n" + std::string(ex.what());
     } catch (const HardCrash &ex) {
-        error = GUI::format("A fatal error occurred: \"%1%\"", ex.what()) + "\n" +
-        		_u8L("Please save project and restart the program. ");
+        error = GUI::format(_u8L("A fatal error occurred: \"%1%\""), ex.what()) + "\n" +
+                            _u8L("Please save project and restart the program.");
     } catch (PlaceholderParserError &ex) {
 		error = ex.what();
 		monospace = 1;
