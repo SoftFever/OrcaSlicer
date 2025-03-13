@@ -3030,7 +3030,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             std::vector<DynamicPrintConfig> configs(num_filaments, this->filaments.default_preset().config);
             // loop through options and scatter them into configs.
             for (const t_config_option_key &key : this->filaments.default_preset().config.keys()) {
-                const ConfigOption *other_opt = config.option(key);
+                ConfigOption *other_opt = config.option(key);
                 if (other_opt == nullptr)
                     continue;
                 if (other_opt->is_scalar()) {
@@ -3040,9 +3040,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 else if (key != "compatible_printers" && key != "compatible_prints") {
                     for (size_t i = 0; i < configs.size(); ++i) {
                         if (process_multi_extruder && (filament_options_with_variant.find(key) != filament_options_with_variant.end())) {
-                            const ConfigOptionVectorBase* other_opt_vec = static_cast<const ConfigOptionVectorBase*>(other_opt);
+                            ConfigOptionVectorBase* other_opt_vec = static_cast<ConfigOptionVectorBase*>(other_opt);
                             if (other_opt_vec->size() != extruder_variant_count) {
-                                throw Slic3r::RuntimeError(std::string("Invalid values of \"") + key + std::string("\" found in ") + name_or_path);
+                                other_opt_vec->resize(extruder_variant_count);
                             }
                             size_t next_index = (i < (configs.size() - 1)) ? filament_variant_index[i + 1] : extruder_variant_count;
                             static_cast<ConfigOptionVectorBase*>(configs[i].option(key, false))->set(other_opt, filament_variant_index[i], next_index - filament_variant_index[i]);
