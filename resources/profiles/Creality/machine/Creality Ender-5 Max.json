@@ -8,5 +8,5 @@
     "bed_model": "creality_ender5max_buildplate_model.stl",
     "bed_texture": "creality_ender5max_buildplate_texture.png",
     "hotend_model": "",
-    "default_materials": "Creality Generic PLA;Creality Generic PETG;Creality Generic ABS"
+    "default_materials": "Creality Hyper PLA-CF @Ender-5Max-all;Creality Hyper PLA @Ender-5Max-all;Creality Hyper ABS @Ender-5Max-all;Creality Generic TPU @Ender-5Max-all;Creality Generic ASA @Ender-5Max-all;Creality Silk PLA @Ender-5Max-all;Creality Generic PLA @Ender-5Max-all;Creality Generic PETG @Ender-5Max-all;Creality Generic ABS @Ender-5Max-all;Creality Generic Nylon @Ender-5Max-all"
 }
