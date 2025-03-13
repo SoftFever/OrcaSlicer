@@ -10266,7 +10266,7 @@ void Plater::load_gcode(const wxString& filename)
     p->preview->get_canvas3d()->zoom_to_plate(0);
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
-        MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
+        MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid G-code."),
             wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error occurs while loading G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
         set_project_filename(DEFAULT_PROJECT_NAME);
     } else {
