@@ -681,20 +681,20 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     // BBS
-    def             = this->add("supertack_plate_temp", coInts);
-    def->label      = L("Other layers");
-    def->tooltip    = L("Bed temperature for layers except the initial one. "
-                     "Value 0 means the filament does not support to print on the Cool Plate");
-    def->sidetext   = "°C";
+    def = this->add("supertack_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+                     "A value of 0 means the filament does not support printing on the Cool Plate SuperTack.");
+    def->sidetext = "°C";
     def->full_label = L("Bed temperature");
-    def->min        = 0;
-    def->max        = 120;
+    def->min = 0;
+    def->max = 120;
     def->set_default_value(new ConfigOptionInts{35});
 
     def = this->add("cool_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
-        "Value 0 means the filament does not support to print on the Cool Plate");
+                     "A value of 0 means the filament does not support printing on the Cool Plate.");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
@@ -704,7 +704,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("textured_cool_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
-        "Value 0 means the filament does not support to print on the Textured Cool Plate");
+                     "A value of 0 means the filament does not support printing on the Textured Cool Plate.");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
@@ -714,7 +714,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("eng_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
-        "Value 0 means the filament does not support to print on the Engineering Plate");
+                     "A value of 0 means the filament does not support printing on the Engineering Plate.");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
@@ -724,28 +724,28 @@ void PrintConfigDef::init_fff_params()
     def = this->add("hot_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
-        "Value 0 means the filament does not support to print on the High Temp Plate");
+                     "A value of 0 means the filament does not support printing on the High Temp Plate.");
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
-    def             = this->add("textured_plate_temp", coInts);
-    def->label      = L("Other layers");
-    def->tooltip    = L("Bed temperature for layers except the initial one. "
-                     "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
+    def = this->add("textured_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+                     "A value of 0 means the filament does not support printing on the Textured PEI Plate.");
+    def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
-    def->min        = 0;
-    def->max        = 300;
+    def->min = 0;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("supertack_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
-        "Value 0 means the filament does not support to print on the Cool Plate SuperTack");
+                     "A value of 0 means the filament does not support printing on the Cool Plate SuperTack.");
     def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
@@ -755,7 +755,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
-        "Value 0 means the filament does not support to print on the Cool Plate");
+                     "A value of 0 means the filament does not support printing on the Cool Plate.");
     def->sidetext = L("°C");
     def->min = 0;
     def->max = 120;
@@ -765,7 +765,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
-        "Value 0 means the filament does not support to print on the Textured Cool Plate");
+                     "A value of 0 means the filament does not support printing on the Textured Cool Plate.");
     def->sidetext = L("°C");
     def->min = 0;
     def->max = 120;
@@ -775,7 +775,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
-        "Value 0 means the filament does not support to print on the Engineering Plate");
+                     "A value of 0 means the filament does not support printing on the Engineering Plate.");
     def->sidetext = L("°C");
     def->min = 0;
     def->max = 300;
@@ -785,19 +785,19 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
-        "Value 0 means the filament does not support to print on the High Temp Plate");
+                     "A value of 0 means the filament does not support printing on the High Temp Plate.");
     def->sidetext = L("°C");
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
-    def             = this->add("textured_plate_temp_initial_layer", coInts);
-    def->label      = L("Initial layer");
+    def = this->add("textured_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
-    def->tooltip    = L("Bed temperature of the initial layer. "
-                     "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
-    def->min        = 0;
-    def->max        = 300;
+    def->tooltip = L("Bed temperature of the initial layer. "
+                     "A value of 0 means the filament does not support printing on the Textured PEI Plate.");
+    def->sidetext = L("°C");
+    def->min = 0;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("curr_bed_type", coEnum);
@@ -1459,7 +1459,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Don't support bridges");
     def->category = L("Support");
     def->tooltip = L("Don't support the whole bridge area which make support very large. "
-                     "Bridge usually can be printing directly without support if not very long");
+                     "Bridges can usually be printed directly without support if not very long.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -1547,7 +1547,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_end_gcode", coString);
     def->label = L("End G-code");
-    def->tooltip = L("End G-code when finish the whole printing");
+    def->tooltip = L("End G-code when finishing the entire print.");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
@@ -2677,7 +2677,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer nozzle temperature");
-    def->tooltip = L("Nozzle temperature to print initial layer when using this filament");
+    def->tooltip = L("Nozzle temperature for printing initial layer when using this filament");
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
@@ -3912,7 +3912,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Raft layers");
     def->category = L("Support");
     def->tooltip = L("Object will be raised by this number of support layers. "
-                     "Use this function to avoid wrapping when print ABS");
+                     "Use this function to avoid warping when printing ABS.");
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 100;
@@ -4528,7 +4528,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_start_gcode", coString);
     def->label = L("Start G-code");
-    def->tooltip = L("Start G-code when start the whole printing");
+    def->tooltip = L("Start G-code when starting the entire print.");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
@@ -5260,8 +5260,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe", coBools);
     def->label = L("Wipe while retracting");
-    def->tooltip = L("Move nozzle along the last extrusion path when retracting to clean leaked material on nozzle. "
-                     "This can minimize blob when print new part after travel");
+    def->tooltip = L("Move nozzle along the last extrusion path when retracting to clean any leaked material on the nozzle. "
+                     "This can minimize blobs when printing a new part after traveling.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
@@ -5691,9 +5691,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("detect_narrow_internal_solid_infill", coBool);
     def->label = L("Detect narrow internal solid infill");
     def->category = L("Strength");
-    def->tooltip = L("This option will auto detect narrow internal solid infill area."
-                   " If enabled, concentric pattern will be used for the area to speed printing up."
-                   " Otherwise, rectilinear pattern is used by default.");
+    def->tooltip = L("This option will auto-detect narrow internal solid infill areas. "
+                     "If enabled, the concentric pattern will be used for the area to speed up printing. "
+                     "Otherwise, the rectilinear pattern will be used by default.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 }
