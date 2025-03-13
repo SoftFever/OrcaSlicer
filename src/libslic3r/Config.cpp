@@ -800,6 +800,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
         reason = std::string("JsonParseError: ") + err.what();
         // throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, err.what()));
     }
+    return -1;
 }
 
 int ConfigBase::load_from_json(const std::string &file, const json &j, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values, std::string& reason)
