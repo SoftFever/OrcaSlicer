@@ -1426,7 +1426,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("during_print_exhaust_fan_speed", coInts);
     def->label   = L("Fan speed");
-    def->tooltip=L("Speed of exhaust fan during printing.This speed will overwrite the speed in filament custom gcode");
+    def->tooltip=L("Speed of exhaust fan during printing.This speed will overwrite the speed in filament custom G-code");
     def->sidetext = L("%");
     def->min=0;
     def->max=100;
@@ -2923,8 +2923,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Start the fan this number of seconds earlier than its target start time (you can use fractional seconds)."
         " It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting"
         " is unsupported)."
-        "\nIt won't move fan commands from custom gcodes (they act as a sort of 'barrier')."
-        "\nIt won't move fan commands into the start gcode if the 'only custom start gcode' is activated."
+        "\nIt won't move fan commands from custom G-codes (they act as a sort of 'barrier')."
+        "\nIt won't move fan commands into the start G-code if the 'only custom start G-code' is activated."
         "\nUse 0 to deactivate.");
     def->sidetext = L("s");
     def->mode = comAdvanced;
@@ -3526,7 +3526,7 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coFloat);
     def->label = L("Smoothing segment length");
-    def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
+    def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger G-code file "
     				 "and more instructions for the printer to process. \n\n"
     				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
     				 "Allowed values: 0.5-5");
@@ -3895,7 +3895,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("resolution", coFloat);
     def->label = L("Resolution");
     def->tooltip = L("G-code path is generated after simplifying the contour of model to avoid too much points and gcode lines "
-                     "in gcode file. Smaller value means higher resolution and more time to slice");
+                     "in G-code file. Smaller value means higher resolution and more time to slice");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -7314,7 +7314,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     // must define new params here, otherwise comamnd param check will fail
     def = this->add("no_check", coBool);
     def->label = L("No check");
-    def->tooltip = L("Do not run any validity checks, such as gcode path conflicts check.");
+    def->tooltip = L("Do not run any validity checks, such as G-code path conflicts check.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("normative_check", coBool);
@@ -7597,8 +7597,8 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 #endif /* _MSC_VER */
 
     def = this->add("load_custom_gcodes", coString);
-    def->label = L("Load custom gcode");
-    def->tooltip = L("Load custom gcode from json");
+    def->label = L("Load custom G-code");
+    def->tooltip = L("Load custom G-code from json");
     def->cli_params = "custom_gcode_toolchange.json";
     def->set_default_value(new ConfigOptionString());
 
@@ -7624,8 +7624,8 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("skip_modified_gcodes", coBool);
-    def->label = L("Skip modified gcodes in 3mf");
-    def->tooltip = L("Skip the modified gcodes in 3mf from Printer or filament Presets");
+    def->label = L("Skip modified G-codes in 3mf");
+    def->tooltip = L("Skip the modified G-codes in 3mf from Printer or filament Presets");
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 

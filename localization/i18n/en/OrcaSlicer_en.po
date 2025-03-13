@@ -2687,10 +2687,10 @@ msgstr "Successfully sent. Will automatically jump to the next page in %ss"
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "A MicroSD card needs to be inserted before printing via LAN."
 
-msgid "Sending gcode file over LAN"
+msgid "Sending G-code file over LAN"
 msgstr "Sending G-code file over LAN"
 
-msgid "Sending gcode file to sdcard"
+msgid "Sending G-code file to sdcard"
 msgstr "Sending G-code file to MicroSD card"
 
 #, c-format, boost-format
@@ -3248,7 +3248,7 @@ msgstr "Unknown error with G-code export"
 
 #, boost-format
 msgid ""
-"Failed to save gcode file.\n"
+"Failed to save G-code file.\n"
 "Error message: %1%.\n"
 "Source file %2%."
 msgstr ""
@@ -4374,7 +4374,7 @@ msgstr "Size:"
 
 #, boost-format
 msgid ""
-"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
@@ -5719,7 +5719,7 @@ msgstr "WARNING:"
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Your model needs support! Please enable support material."
 
-msgid "Gcode path overlap"
+msgid "G-code path overlap"
 msgstr "G-code path overlap"
 
 msgid "Support painting"
@@ -10319,7 +10319,7 @@ msgstr "Fan speed"
 
 msgid ""
 "Speed of exhaust fan during printing.This speed will overwrite the speed in "
-"filament custom gcode"
+"filament custom G-code"
 msgstr ""
 "Speed of exhaust fan during printing.This speed will override the speed in "
 "filament custom g-code"
@@ -11710,10 +11710,10 @@ msgid ""
 "can use fractional seconds). It assumes infinite acceleration for this time "
 "estimation, and will only take into account G1 and G0 moves (arc fitting is "
 "unsupported).\n"
-"It won't move fan commands from custom gcodes (they act as a sort of "
+"It won't move fan commands from custom G-codes (they act as a sort of "
 "'barrier').\n"
-"It won't move fan commands into the start gcode if the 'only custom start "
-"gcode' is activated.\n"
+"It won't move fan commands into the start G-code if the 'only custom start "
+"G-code' is activated.\n"
 "Use 0 to deactivate."
 msgstr ""
 
@@ -12221,7 +12221,7 @@ msgstr ""
 
 msgid ""
 "A lower value results in smoother extrusion rate transitions. However, this "
-"results in a significantly larger gcode file and more instructions for the "
+"results in a significantly larger G-code file and more instructions for the "
 "printer to process. \n"
 "\n"
 "Default value of 3 works well for most cases. If your printer is stuttering, "
@@ -12496,7 +12496,7 @@ msgstr ""
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
-"much points and gcode lines in gcode file. Smaller value means higher "
+"much points and gcode lines in G-code file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
 "The G-code path is generated after simplifying the contour of models to "
@@ -14143,8 +14143,8 @@ msgstr "max slicing time per plate in seconds"
 msgid "No check"
 msgstr "No check"
 
-msgid "Do not run any validity checks, such as gcode path conflicts check."
-msgstr "Do not run any validity checks, such as gcode path conflicts check."
+msgid "Do not run any validity checks, such as G-code path conflicts check."
+msgstr "Do not run any validity checks, such as G-code path conflicts check."
 
 msgid "Normative check"
 msgstr "Normative check"
@@ -14307,10 +14307,10 @@ msgstr ""
 msgid "If enabled, this slicing will be considered using timelapse"
 msgstr ""
 
-msgid "Load custom gcode"
+msgid "Load custom G-code"
 msgstr ""
 
-msgid "Load custom gcode from json"
+msgid "Load custom G-code from json"
 msgstr ""
 
 msgid "Load filament ids"
@@ -14339,10 +14339,10 @@ msgid ""
 "object"
 msgstr ""
 
-msgid "Skip modified gcodes in 3mf"
+msgid "Skip modified G-codes in 3mf"
 msgstr ""
 
-msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgid "Skip the modified G-codes in 3mf from Printer or filament Presets"
 msgstr ""
 
 msgid "MakerLab name"

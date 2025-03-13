@@ -2767,10 +2767,12 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Перед друком через локальну мережу необхідно вставити картку SD."
 
-msgid "Sending gcode file over LAN"
+#, fuzzy
+msgid "Sending G-code file over LAN"
 msgstr "Надсилання файлу gcode по локальній мережі"
 
-msgid "Sending gcode file to sdcard"
+#, fuzzy
+msgid "Sending G-code file to sdcard"
 msgstr "Надсилання файлу gcode на карту SD"
 
 #, c-format, boost-format
@@ -3348,9 +3350,9 @@ msgstr "Файл G-коду експортується до %1%"
 msgid "Unknown error when export G-code."
 msgstr "Невідома помилка під час експорту G-коду."
 
-#, boost-format
+#, fuzzy, boost-format
 msgid ""
-"Failed to save gcode file.\n"
+"Failed to save G-code file.\n"
 "Error message: %1%.\n"
 "Source file %2%."
 msgstr ""
@@ -4492,9 +4494,9 @@ msgstr "Об'єм:"
 msgid "Size:"
 msgstr "Розмір:"
 
-#, boost-format
+#, fuzzy, boost-format
 msgid ""
-"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 "Виявлено конфлікти шляхів gcode на рівні %d, z = %.2lf мм. Будь ласка \n"
@@ -5893,7 +5895,8 @@ msgstr "ПОПЕРЕДЖЕННЯ:"
 msgid "Your model needs support ! Please make support material enable."
 msgstr "Вашій моделі потрібна підтримка! Увімкніть допоміжний матеріал."
 
-msgid "Gcode path overlap"
+#, fuzzy
+msgid "G-code path overlap"
 msgstr "Перекриття шляху Gcode"
 
 msgid "Support painting"
@@ -10873,7 +10876,7 @@ msgstr "Швидкість вентилятора"
 
 msgid ""
 "Speed of exhaust fan during printing.This speed will overwrite the speed in "
-"filament custom gcode"
+"filament custom G-code"
 msgstr ""
 "Швидкість вентилятора відсмоктування під час друку. Ця швидкість перезапише "
 "швидкість у користувацькому G-коді філаменту"
@@ -12618,15 +12621,16 @@ msgstr ""
 "Увімкніть цю опцію, якщо принтер має вентилятор охолодження допоміжної "
 "частини. Команда G-коду: M106 P2 S(0-255)."
 
+#, fuzzy
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
 "can use fractional seconds). It assumes infinite acceleration for this time "
 "estimation, and will only take into account G1 and G0 moves (arc fitting is "
 "unsupported).\n"
-"It won't move fan commands from custom gcodes (they act as a sort of "
+"It won't move fan commands from custom G-codes (they act as a sort of "
 "'barrier').\n"
-"It won't move fan commands into the start gcode if the 'only custom start "
-"gcode' is activated.\n"
+"It won't move fan commands into the start G-code if the 'only custom start "
+"G-code' is activated.\n"
 "Use 0 to deactivate."
 msgstr ""
 "Запустіть вентилятор на таку кількість секунд раніше за цільовий час початку "
@@ -13246,9 +13250,10 @@ msgstr "мм³/с²"
 msgid "Smoothing segment length"
 msgstr "Довжина сегмента згладжування"
 
+#, fuzzy
 msgid ""
 "A lower value results in smoother extrusion rate transitions. However, this "
-"results in a significantly larger gcode file and more instructions for the "
+"results in a significantly larger G-code file and more instructions for the "
 "printer to process. \n"
 "\n"
 "Default value of 3 works well for most cases. If your printer is stuttering, "
@@ -13577,9 +13582,10 @@ msgstr ""
 "Об'єкт буде піднятий такою кількістю опорних шарів. Використовуйте цю "
 "функцію, щоб уникнути обтікання під час друку ABS"
 
+#, fuzzy
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
-"much points and gcode lines in gcode file. Smaller value means higher "
+"much points and gcode lines in G-code file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
 "Контур G-коду генерується після спрощення контуру моделей, щоб уникнути "
@@ -15465,7 +15471,8 @@ msgstr "максимальний час нарізки на стіл у секу
 msgid "No check"
 msgstr "Без перевірки"
 
-msgid "Do not run any validity checks, such as gcode path conflicts check."
+#, fuzzy
+msgid "Do not run any validity checks, such as G-code path conflicts check."
 msgstr ""
 "Не виконуйте перевірки дійсності, наприклад, перевірку конфліктів шляхуgcode."
 
@@ -15634,10 +15641,12 @@ msgstr "Увімкнути таймлапс для друку"
 msgid "If enabled, this slicing will be considered using timelapse"
 msgstr "Якщо ввімкнено, це нарізання враховуватиме використання таймлапсу"
 
-msgid "Load custom gcode"
+#, fuzzy
+msgid "Load custom G-code"
 msgstr "Завантажити користувацький gcode"
 
-msgid "Load custom gcode from json"
+#, fuzzy
+msgid "Load custom G-code from json"
 msgstr "Завантажити користувацький код з json"
 
 msgid "Load filament ids"
@@ -15669,10 +15678,11 @@ msgid ""
 msgstr ""
 "Якщо ввімкнено, розташування моделей уникатиме області калібрування екструзії"
 
-msgid "Skip modified gcodes in 3mf"
+#, fuzzy
+msgid "Skip modified G-codes in 3mf"
 msgstr "Пропустити змінені gcodes в 3mf"
 
-msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgid "Skip the modified G-codes in 3mf from Printer or filament Presets"
 msgstr ""
 
 msgid "MakerLab name"

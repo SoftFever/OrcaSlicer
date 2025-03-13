@@ -2667,10 +2667,12 @@ msgstr "已成功发送。将自动跳转到%ss中的下一页。"
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
 
-msgid "Sending gcode file over LAN"
+#, fuzzy
+msgid "Sending G-code file over LAN"
 msgstr "通过局域网发送gcode文件"
 
-msgid "Sending gcode file to sdcard"
+#, fuzzy
+msgid "Sending G-code file to sdcard"
 msgstr "发送gcode文件到sd卡"
 
 #, c-format, boost-format
@@ -3201,9 +3203,9 @@ msgstr "G 代码文件导出到 %1%"
 msgid "Unknown error when export G-code."
 msgstr "导出G-code文件发生未知错误。"
 
-#, boost-format
+#, fuzzy, boost-format
 msgid ""
-"Failed to save gcode file.\n"
+"Failed to save G-code file.\n"
 "Error message: %1%.\n"
 "Source file %2%."
 msgstr ""
@@ -4302,9 +4304,9 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, boost-format
+#, fuzzy, boost-format
 msgid ""
-"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 "发现gcode路径在层%d，高为%.2lf mm处的冲突。请将有冲突的对象分离得更远(%s <-> "
@@ -5619,7 +5621,8 @@ msgstr "警告："
 msgid "Your model needs support ! Please make support material enable."
 msgstr "你的模型需要支撑才能打印。请开启材料支撑选项。"
 
-msgid "Gcode path overlap"
+#, fuzzy
+msgid "G-code path overlap"
 msgstr "Gcode路径有重叠"
 
 msgid "Support painting"
@@ -10118,9 +10121,10 @@ msgstr "启用空气过滤/排气风扇。G-code命令：M106 P3 S(0-255)"
 msgid "Fan speed"
 msgstr "风扇速度"
 
+#, fuzzy
 msgid ""
 "Speed of exhaust fan during printing.This speed will overwrite the speed in "
-"filament custom gcode"
+"filament custom G-code"
 msgstr "打印过程中排气风扇的速度。此速度将覆盖耗材丝自定义gcode中的速度"
 
 msgid "Speed of exhaust fan after printing completes"
@@ -11551,10 +11555,10 @@ msgid ""
 "can use fractional seconds). It assumes infinite acceleration for this time "
 "estimation, and will only take into account G1 and G0 moves (arc fitting is "
 "unsupported).\n"
-"It won't move fan commands from custom gcodes (they act as a sort of "
+"It won't move fan commands from custom G-codes (they act as a sort of "
 "'barrier').\n"
-"It won't move fan commands into the start gcode if the 'only custom start "
-"gcode' is activated.\n"
+"It won't move fan commands into the start G-code if the 'only custom start "
+"G-code' is activated.\n"
 "Use 0 to deactivate."
 msgstr ""
 
@@ -12083,7 +12087,7 @@ msgstr "平滑段长度"
 
 msgid ""
 "A lower value results in smoother extrusion rate transitions. However, this "
-"results in a significantly larger gcode file and more instructions for the "
+"results in a significantly larger G-code file and more instructions for the "
 "printer to process. \n"
 "\n"
 "Default value of 3 works well for most cases. If your printer is stuttering, "
@@ -12366,7 +12370,7 @@ msgstr ""
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
-"much points and gcode lines in gcode file. Smaller value means higher "
+"much points and gcode lines in G-code file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
 "为了避免G-code文件中过密集的点和走线，G-code走线通常是在简化模型的外轮廓之后"
@@ -14008,7 +14012,8 @@ msgstr "每个盘的最大切片时间（秒）。"
 msgid "No check"
 msgstr "不要检查"
 
-msgid "Do not run any validity checks, such as gcode path conflicts check."
+#, fuzzy
+msgid "Do not run any validity checks, such as G-code path conflicts check."
 msgstr "不要运行任何有效性检查，如gcode路径冲突检查。"
 
 msgid "Normative check"
@@ -14173,10 +14178,10 @@ msgstr ""
 msgid "If enabled, this slicing will be considered using timelapse"
 msgstr ""
 
-msgid "Load custom gcode"
+msgid "Load custom G-code"
 msgstr "加载自定义G-code"
 
-msgid "Load custom gcode from json"
+msgid "Load custom G-code from json"
 msgstr "从json文件加载自定义G-code"
 
 msgid "Load filament ids"
@@ -14205,10 +14210,10 @@ msgid ""
 "object"
 msgstr ""
 
-msgid "Skip modified gcodes in 3mf"
+msgid "Skip modified G-codes in 3mf"
 msgstr ""
 
-msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgid "Skip the modified G-codes in 3mf from Printer or filament Presets"
 msgstr ""
 
 msgid "MakerLab name"
@@ -17027,10 +17032,10 @@ msgstr ""
 #~ "(you can use fractional seconds). It assumes infinite acceleration for "
 #~ "this time estimation, and will only take into account G1 and G0 moves "
 #~ "(arc fitting is unsupported).\n"
-#~ "It won't move fan commands from custom gcodes (they act as a sort of "
+#~ "It won't move fan commands from custom G-codes (they act as a sort of "
 #~ "'barrier').\n"
-#~ "It won't move fan comands into the start gcode if the 'only custom start "
-#~ "gcode' is activated.\n"
+#~ "It won't move fan comands into the start G-code if the 'only custom start "
+#~ "G-code' is activated.\n"
 #~ "Use 0 to deactivate."
 #~ msgstr ""
 #~ "把风扇启动指令往前移动指定时间以补偿风扇的启动时间。目前支支持G1 G0指令\n"

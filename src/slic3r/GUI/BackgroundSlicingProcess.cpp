@@ -886,7 +886,7 @@ void BackgroundSlicingProcess::export_gcode()
 		//break;
 	default:
 		BOOST_LOG_TRIVIAL(error) << "Fail code(" << (int)copy_ret_val << ") when copy "<<output_path<<" to " << export_path << ".";
-		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save gcode file.\nError message: %1%.\nSource file %2%."))) % error_message % output_path).str());
+		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save G-code file.\nError message: %1%.\nSource file %2%."))) % error_message % output_path).str());
 		//throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
 		break;
 	}
