@@ -8048,7 +8048,7 @@ msgstr "G-kód Před změnou vrstvy"
 msgid "Layer change G-code"
 msgstr "G-kód Změna vrstvy"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr "Časosběrný G-kód"
 
 msgid "Change filament G-code"

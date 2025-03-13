@@ -7851,7 +7851,7 @@ msgstr "換層前 G-code"
 msgid "Layer change G-code"
 msgstr "換層 G-code"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr "縮時錄影 G-code"
 
 msgid "Change filament G-code"
