@@ -1,7 +1,7 @@
 {
   "name": "Creality",
-  "version": "02.03.00.02",
-  "force_update": "0",
+  "version": "02.03.00.03",
+  "force_update": "1",
   "description": "Creality configurations",
   "machine_model_list": [
     {
@@ -547,11 +547,11 @@
       "sub_path": "process/0.16mm Optimal @Creality Ender5.json"
     },
     {
-      "name": "0.2mm Standard @Creality Ender-5 Max 0.4mm nozzle",
+      "name": "0.20mm Standard @Creality Ender-5 Max 0.4mm nozzle",
       "sub_path": "process/0.20mm Standard @Creality Ender-5 Max 0.4mm nozzle.json"
     },
     {
-      "name": "0.2mm Ultrafast @Creality Ender-5 Max 0.4mm nozzle",
+      "name": "0.20mm Ultrafast @Creality Ender-5 Max 0.4mm nozzle",
       "sub_path": "process/0.20mm Ultrafast @Creality Ender-5 Max 0.4mm nozzle.json"
     },
     {
@@ -1405,52 +1405,8 @@
       "sub_path": "filament/Creality Generic ASA @Ender-5Max-all.json"
     },
     {
-      "name": "Creality Generic Nylon @Ender-5Max-all",
-      "sub_path": "filament/Creality Generic Nylon @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Generic PETG @Ender-5Max-all",
-      "sub_path": "filament/Creality Generic PETG @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Generic PLA @Ender-5Max-all",
-      "sub_path": "filament/Creality Generic PLA @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Generic TPU @Ender-5Max-all",
-      "sub_path": "filament/Creality Generic TPU @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Hyper ABS @Ender-5Max-all",
-      "sub_path": "filament/Creality Hyper ABS @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Hyper PLA @Ender-5Max-all",
-      "sub_path": "filament/Creality Hyper PLA @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Hyper PLA-CF @Ender-5Max-all",
-      "sub_path": "filament/Creality Hyper PLA-CF @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Silk PLA @Ender-5Max-all",
-      "sub_path": "filament/Creality Silk PLA @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Generic ASA-CF @Hi-all",
-      "sub_path": "filament/Crent/Creality Generic ASA @Hi-all.json"
-    },
-    {
-      "name": "Creality Generic ABS @Ender-5Max-all",
-      "sub_path": "filament/Creality Generic ABS @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Generic ASA @Ender-5Max-all",
-      "sub_path": "filament/Creality Generic ASA @Ender-5Max-all.json"
-    },
-    {
-      "name": "Creality Generic Nylon @Ender-5Max-all",
-      "sub_path": "filament/Creality Generic Nylon @Ender-5Max-all.json"
+      "name": "Creality Generic PA @Ender-5Max-all",
+      "sub_path": "filament/Creality Generic PA @Ender-5Max-all.json"
     },
     {
       "name": "Creality Generic PETG @Ender-5Max-all",
