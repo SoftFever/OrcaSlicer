@@ -503,9 +503,9 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	}
     }
 
-    // ORCA draw grid lines relative to origin 
+    // ORCA draw grid lines relative to origin
     for (coord_t x = m_origin.x(); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
-        ((count % 5) == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(x, pp_bbox.min(1)),
             Point(x, pp_bbox.max(1))
         ));
@@ -513,23 +513,23 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     }
     count = 0;
     for (coord_t x = m_origin.x(); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
-        ((count % 5) == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(x, pp_bbox.min(1)),
             Point(x, pp_bbox.max(1))
         ));
         count ++;
     }
     count = 0;
-    for (coord_t y = m_origin.x(); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
-        ((count % 5) == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+    for (coord_t y = m_origin.y(); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(pp_bbox.min(0), y),
             Point(pp_bbox.max(0), y)
         ));
         count ++;
     }
     count = 0;
-    for (coord_t y = m_origin.x(); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
-        ((count % 5) == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+    for (coord_t y = m_origin.y(); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(pp_bbox.min(0), y),
             Point(pp_bbox.max(0), y)
         ));
