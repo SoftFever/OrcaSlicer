@@ -4344,7 +4344,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();
                         if (result == "FAIL") {
-                            wxString text = _L("Failed to start printing job");
+                            wxString text = _L("Failed to start print job");
                             GUI::wxGetApp().push_notification(text);
                         }
                     }
