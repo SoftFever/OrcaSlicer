@@ -46,6 +46,14 @@ static void set_prefered_map_mode(FilamentMapMode mode)
     app_config->set("prefered_filament_map_mode", mode_str);
 }
 
+void FilamentGroupPopup::CreateBmps()
+{
+    checked_bmp = create_scaled_bitmap("map_mode_on", nullptr, 16);;
+    unchecked_bmp = create_scaled_bitmap("map_mode_off", nullptr, 16);
+    disabled_bmp = create_scaled_bitmap("map_mode_disabled", nullptr, 16);
+    checked_hover_bmp = create_scaled_bitmap("map_mode_on_hovered", nullptr, 16);
+    unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr, 16);
+}
 
 FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
@@ -81,12 +89,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     std::vector<wxString> mode_details = {AutoForFlushDetail, AutoForMatchDetail, ManualDetail};
 
     top_sizer->AddSpacer(vertical_margin);
-    checked_bmp = create_scaled_bitmap("map_mode_on", nullptr, 16);;
-    unchecked_bmp = create_scaled_bitmap("map_mode_off", nullptr, 16);
-    disabled_bmp = create_scaled_bitmap("map_mode_disabled", nullptr, 16);
-    checked_hover_bmp = create_scaled_bitmap("map_mode_on_hovered", nullptr, 16);
-    unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr, 16);
-    global_tag_bmp = create_scaled_bitmap("global_map_mode_tag", nullptr, 16);
+    CreateBmps();
 
     for (size_t idx = 0; idx < ButtonType::btCount; ++idx) {
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -190,10 +193,15 @@ void FilamentGroupPopup::DrawRoundedCorner(int radius)
 
 void FilamentGroupPopup::Init()
 {
+    static bool is_dark_mode = wxGetApp().dark_mode();
+    if (is_dark_mode != wxGetApp().dark_mode()) {
+        CreateBmps();
+        is_dark_mode = wxGetApp().dark_mode();
+    }
+
     const wxString AutoForMatchDesp = "";// _L("(Pre-slicing arrangement)");
     const wxString MachineSyncTip   = _L("(Sync with printer)");
 
-    radio_btns[ButtonType::btForMatch]->Enable(m_connected);
     if (m_connected) {
         button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
         button_desps[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
@@ -319,7 +327,6 @@ void FilamentGroupPopup::OnEnterWindow(wxMouseEvent &) { ResetTimer(); }
 
 void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
 {
-    auto global_mode = plater_ref->get_global_filament_map_mode();
     for (int i = 0; i < ButtonType::btCount; ++i) {
 #if 0  // do not display global mode tag
         if (mode_list.at(i) == global_mode)

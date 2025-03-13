@@ -29,6 +29,8 @@ private:
     void OnTimer(wxTimerEvent &event);
     void Dismiss();
 
+    void CreateBmps();
+
     void Init();
     void UpdateButtonStatus(int hover_idx = -1);
     void DrawRoundedCorner(int radius);
@@ -50,7 +52,6 @@ private:
     wxTimer        *m_timer;
 
     std::vector<wxBitmapButton*> radio_btns;
-    std::vector<wxBitmapButton*> global_mode_tags;
     std::vector<Label *>   button_labels;
     std::vector<Label *>   button_desps;
     std::vector<Label *>   detail_infos;
