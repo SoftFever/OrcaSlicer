@@ -3918,7 +3918,7 @@ msgstr ""
 "Pokud nastavíte teplotu komory pod 40℃, řízení teploty komory se neaktivuje "
 "a cílová teplota komory bude automaticky nastavena na 0℃."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Nepodařilo se spustit tiskovou úlohu"
 
 msgid ""

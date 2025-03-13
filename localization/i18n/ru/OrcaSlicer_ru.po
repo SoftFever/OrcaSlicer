@@ -4047,7 +4047,7 @@ msgstr ""
 "температуры не запустится, а целевая температура в ней будет автоматически "
 "установлена на 0℃."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Не удалось запустить задание на печать."
 
 msgid ""

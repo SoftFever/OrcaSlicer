@@ -4050,7 +4050,7 @@ msgstr ""
 "Kammertemperaturregelung nicht aktiviert. Die Ziel-Kammertemperatur wird "
 "automatisch auf 0℃ eingestellt."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Druckauftrag konnte nicht gestartet werden"
 
 msgid ""

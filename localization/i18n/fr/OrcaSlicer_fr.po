@@ -4043,7 +4043,7 @@ msgstr ""
 "de la température du caisson ne sera pas activé. Et la température cible du "
 "caisson sera automatiquement réglée sur 0℃."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Échec du lancement de la tâche d'impression"
 
 msgid ""

@@ -4042,7 +4042,7 @@ msgstr ""
 "controllo della temperatura della camera non verrà attivato. La temperatura "
 "obiettivo della camera sarà automaticamente impostata su 0℃."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Impossibile avviare il processo di stampa"
 
 msgid ""

@@ -3702,7 +3702,7 @@ msgid ""
 "automatically be set to 0℃."
 msgstr ""
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr ""
 
 msgid ""

@@ -4009,7 +4009,7 @@ msgstr ""
 "temperatura de la cambra no s'activarà. I la temperatura de la cambra "
 "objectiu s'establirà automàticament a 0 °C."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "No s'ha pogut començar a imprimir"
 
 msgid ""

@@ -3894,7 +3894,7 @@ msgstr ""
 "챔버 온도를 40℃ 이하로 설정하면 챔버 온도 제어가 활성화되지 않습니다. 그리고 "
 "목표 챔버 온도는 자동으로 0℃ 로 설정됩니다."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "출력 작업을 시작하지 못했습니다"
 
 msgid ""

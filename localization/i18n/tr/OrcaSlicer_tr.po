@@ -3963,7 +3963,7 @@ msgstr ""
 "etkinleştirilmeyecektir. Ve hedef hazne sıcaklığı otomatik olarak 0°C'ye "
 "ayarlanacaktır."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Yazdırma işi başlatılamadı"
 
 msgid ""

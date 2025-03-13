@@ -3822,7 +3822,7 @@ msgstr ""
 "當機箱溫度設置低於 40℃時，機箱溫度控制將不會啟動，並且目標機箱溫度將自動設為 "
 "0℃。"
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "無法啟動列印作業"
 
 msgid ""
