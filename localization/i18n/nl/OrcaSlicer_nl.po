@@ -3962,7 +3962,7 @@ msgstr ""
 "control will not be activated, and the target chamber temperature will "
 "automatically be set to 0℃."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Het starten van de printopdracht is mislukt"
 
 msgid ""

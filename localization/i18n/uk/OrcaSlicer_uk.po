@@ -3999,7 +3999,7 @@ msgstr ""
 "не буде активований, і цільова температура камери автоматично буде "
 "встановлена на 0℃."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Не вдалося запустити завдання друку"
 
 msgid ""

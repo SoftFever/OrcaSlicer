@@ -4002,7 +4002,7 @@ msgstr ""
 "nie będzie aktywowana. Docelowa temperatura komory zostanie automatycznie "
 "ustawiona na 0℃."
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "Nie udało się rozpocząć zadania drukowania"
 
 msgid ""
