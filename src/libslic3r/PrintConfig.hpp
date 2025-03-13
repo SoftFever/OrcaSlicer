@@ -1238,7 +1238,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInts,                required_nozzle_HRC))
     ((ConfigOptionEnum<FilamentMapMode>, filament_map_mode))
     ((ConfigOptionInts,                filament_map))
-    ((ConfigOptionIntsGroups,          unprintable_filament_map))
     //((ConfigOptionInts,                filament_extruder_id))
     ((ConfigOptionStrings,             filament_extruder_variant))
     ((ConfigOptionEnum<BedTempFormula>, bed_temperature_formula))

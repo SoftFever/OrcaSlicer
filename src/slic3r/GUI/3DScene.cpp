@@ -1221,8 +1221,6 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
         unprintable_filament_vec.emplace_back(std::vector<int>(filamnt_ids.begin(), filamnt_ids.end()));
     }
 
-    curr_plate->set_unprintable_filament_ids(unprintable_filament_vec);
-
     if (object_results && !partly_objects_set.empty()) {
         object_results->partly_outside_objects = std::vector<ModelObject*>(partly_objects_set.begin(), partly_objects_set.end());
     }

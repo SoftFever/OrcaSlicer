@@ -255,15 +255,6 @@ static t_config_option_keys print_config_diffs(
                 else if ((plate_index < option_new->values.size())||(plate_index < option_old->values.size()))
                     print_diff.emplace_back(opt_key);
             }
-            else if (opt_key == "unprintable_filament_map") {
-                size_t extruder_nums = new_full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-                std::vector<std::vector<int>> old_map = current_config.option<ConfigOptionIntsGroups>("unprintable_filament_map")->values;
-                std::vector<std::vector<int>> new_map = new_full_config.option<ConfigOptionIntsGroups>("unprintable_filament_map")->values;
-                old_map.resize(extruder_nums, std::vector<int>());
-                new_map.resize(extruder_nums, std::vector<int>());
-                if (old_map != new_map)
-                    print_diff.emplace_back(opt_key);
-            }
             else
                 print_diff.emplace_back(opt_key);
         }
@@ -293,18 +284,6 @@ static t_config_option_keys full_print_config_diffs(const DynamicPrintConfig &cu
                         full_config_diff.emplace_back(opt_key);
                 }
                 else if ((plate_index < option_new->values.size())||(plate_index < option_old->values.size()))
-                    full_config_diff.emplace_back(opt_key);
-            }
-            else if (opt_key == "unprintable_filament_map") {
-                size_t                        extruder_nums = new_full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-                std::vector<std::vector<int>> old_map;
-                if (opt_old) {
-                    old_map = current_full_config.option<ConfigOptionIntsGroups>("unprintable_filament_map")->values;
-                }
-                std::vector<std::vector<int>> new_map  = new_full_config.option<ConfigOptionIntsGroups>("unprintable_filament_map")->values;
-                old_map.resize(extruder_nums, std::vector<int>());
-                new_map.resize(extruder_nums, std::vector<int>());
-                if (old_map != new_map)
                     full_config_diff.emplace_back(opt_key);
             }
             else

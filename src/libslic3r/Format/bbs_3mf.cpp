@@ -296,7 +296,6 @@ static constexpr const char* OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR = "other_laye
 static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* FILAMENT_MAP_MODE_ATTR = "filament_map_mode";
 static constexpr const char* FILAMENT_MAP_ATTR = "filament_maps";
-static constexpr const char* UNPRINTABLE_FILAMENT_MAP_ATTR = "unprintable_filament_maps";
 static constexpr const char* LIMIT_FILAMENT_MAP_ATTR = "limit_filament_maps";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
@@ -4247,10 +4246,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(filament_map));
                 }
             }
-            else if (key == UNPRINTABLE_FILAMENT_MAP_ATTR)
-            {
-                m_curr_plater->config.set_key_value("unprintable_filament_map", new ConfigOptionIntsGroups(get_vector_array_from_string(value)));
-            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -7712,23 +7707,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         stream << values[i];
                         if (i != (values.size() - 1))
                             stream << " ";
-                    }
-                    stream << "\"/>\n";
-                }
-
-                ConfigOptionIntsGroups *unprintable_filament_maps_opt = plate_data->config.option<ConfigOptionIntsGroups>("unprintable_filament_map");
-                if (unprintable_filament_maps_opt != nullptr) {
-                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << UNPRINTABLE_FILAMENT_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
-                    const std::vector<std::vector<int>> &values = unprintable_filament_maps_opt->values;
-                    for (size_t i = 0; i < values.size(); ++i) {
-                        if (i > 0)
-                            stream << "#";
-                        std::vector<int> index_values = values[i];
-                        for (int j = 0; j < index_values.size(); ++j) {
-                            if (j > 0)
-                                stream << " ";
-                            stream << index_values[j];
-                        }
                     }
                     stream << "\"/>\n";
                 }

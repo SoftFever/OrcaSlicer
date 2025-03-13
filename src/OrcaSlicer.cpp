@@ -5382,7 +5382,6 @@ int CLI::run(int argc, char **argv)
                                 else
                                     mode = part_plate->get_real_filament_map_mode(m_print_config);
                                 if (mode < FilamentMapMode::fmmManual) {
-                                    part_plate->set_unprintable_filament_ids(unprintable_filament_vec);
                                     std::vector<int> conflict_filament_vector;
                                     for (int index = 0; index < new_extruder_count; index++)
                                     {

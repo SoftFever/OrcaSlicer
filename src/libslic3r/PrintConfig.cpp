@@ -2165,12 +2165,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInts{0});
 
-    def          = this->add("unprintable_filament_map", coIntsGroups);
-    def->label   = L("Unprintable filament map to extruder");
-    def->tooltip = L("Unprintable filament map to extruder");
-    def->mode    = comDevelop;
-    def->set_default_value(new ConfigOptionIntsGroups{});
-
     def                = this->add("filament_map_mode", coEnum);
     def->label         = L("filament mapping mode");
     def->tooltip = ("filament mapping mode used as plate param");
