@@ -1052,6 +1052,21 @@ bool PresetUpdater::priv::install_bundles_rsrc(const std::vector<std::string>& b
 		auto path_in_rsrc = (this->rsrc_path / bundle).replace_extension(".bundle.json");
 		auto path_in_vendors = (this->vendor_path / bundle).replace_extension(".json");
 		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "", "");
+
+#if PRESET_BUNDLE_COMPATIBLE
+        //BBS: add directory support
+        auto print_in_rsrc = this->rsrc_path / bundle;
+		auto print_in_vendors = this->vendor_path / bundle;
+        fs::path print_folder(print_in_vendors);
+        if (fs::exists(print_folder))
+            fs::remove_all(print_folder);
+        fs::create_directories(print_folder);
+		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "",[](const std::string name){
+        // return false if name is end with .stl, case insensitive
+        return boost::iends_with(name, ".stl") || boost::iends_with(name, ".png") || boost::iends_with(name, ".svg") ||
+               boost::iends_with(name, ".jpeg") || boost::iends_with(name, ".jpg") || boost::iends_with(name, ".3mf");
+        }, false, true);
+#endif
 	}
 
 	return perform_updates(std::move(updates), snapshot);
