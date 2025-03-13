@@ -288,10 +288,16 @@ static void add_msg_content(wxWindow   *parent,
         page_size       = wxSize(info_width, page_height);
     }
     else {
-// Extra line breaks in message dialog
+        wxClientDC dc(parent);
+        wxSize     msg_sz = dc.GetMultiLineTextExtent(msg);
+
+        page_size = wxSize(std::min(msg_sz.GetX(), info_width), std::min(msg_sz.GetY(), info_width));
+        // Extra line breaks in message dialog
         if (link_text.IsEmpty() && !link_callback && is_marked_msg == false) {//for common text
             html->Destroy();
-
+            if (msg_sz.GetX() < info_width) {//No need for line breaks
+                info_width = msg_sz.GetX();
+            }
             wxScrolledWindow *scrolledWindow = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
             scrolledWindow->SetBackgroundColour(*wxWHITE);
             scrolledWindow->SetScrollRate(0, 20);
@@ -311,11 +317,6 @@ static void add_msg_content(wxWindow   *parent,
             content_sizer->Add(scrolledWindow, 1, wxEXPAND | wxRIGHT, 8);
             return;
         }
-
-        wxClientDC dc(parent);
-        wxSize msg_sz = dc.GetMultiLineTextExtent(msg);
-
-        page_size = wxSize(std::min(msg_sz.GetX(), info_width), std::min(msg_sz.GetY(), info_width));
     }
     html->SetMinSize(page_size);
 
