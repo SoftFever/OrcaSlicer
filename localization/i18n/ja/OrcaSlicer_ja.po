@@ -7950,8 +7950,8 @@ msgstr "積層変更前のG-code"
 msgid "Layer change G-code"
 msgstr "積層変更時のG-code"
 
-msgid "Time lapse G-code"
-msgstr "Time lapse G-code"
+msgid "Timelapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "フィラメント変更G-code"

@@ -8037,8 +8037,8 @@ msgstr "Före lagerskifte G-kod"
 msgid "Layer change G-code"
 msgstr "Lagerskifte G-kod"
 
-msgid "Time lapse G-code"
-msgstr "Time lapse G-kod"
+msgid "Timelapse G-code"
+msgstr "Timelapse G-kod"
 
 msgid "Change filament G-code"
 msgstr "Byta filament G-kod"

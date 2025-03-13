@@ -8365,7 +8365,7 @@ msgstr "G-код перед сменой слоя"
 msgid "Layer change G-code"
 msgstr "G-код после смены слоя"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr "G-код таймлапса"
 
 msgid "Change filament G-code"

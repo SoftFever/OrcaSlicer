@@ -8011,8 +8011,8 @@ msgstr "Before layer change G-code"
 msgid "Layer change G-code"
 msgstr "Layer change G-code"
 
-msgid "Time lapse G-code"
-msgstr "Time lapse G-code"
+msgid "Timelapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Change filament G-code"

@@ -7594,7 +7594,7 @@ msgstr ""
 msgid "Layer change G-code"
 msgstr ""
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr ""
 
 msgid "Change filament G-code"

@@ -8291,7 +8291,7 @@ msgstr "Codi-G per abans d'un canvi de capa"
 msgid "Layer change G-code"
 msgstr "Codi-G per després d'un canvi de capa"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr "Codi-G time lapse"
 
 msgid "Change filament G-code"
