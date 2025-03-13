@@ -76,16 +76,16 @@ public:
     int LoadProfile();
     int LoadProfileFamily(std::string strVendor, std::string strFilePath);
     int SaveProfile();
-    int GetFilamentInfo( std::string VendorDirectory,json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType);
+    int GetFilamentInfo(const std::string& VendorDirectory,const json& pFilaList, const std::string& name, std::string &sVendor, std::string &sType) const;
 
 
     bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
     bool run();
 
     void        StrReplace(std::string &strBase, std::string strSrc, std::string strDes);
-    std::string w2s(wxString sSrc);
+    static std::string w2s(wxString sSrc);
     void        GetStardardFilePath(std::string &FilePath);
-    bool LoadFile(std::string jPath, std::string & sContent);
+    static bool LoadFile(std::string jPath, std::string & sContent);
 
     // install plugin
     int DownloadPlugin();

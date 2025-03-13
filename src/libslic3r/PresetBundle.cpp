@@ -1272,10 +1272,9 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_mod
     std::string                errors_cummulative;
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir)) {
         std::string vendor_file = dir_entry.path().string();
-        if (Slic3r::is_json_file(vendor_file)) {
-            std::string vendor_name = dir_entry.path().filename().string();
-            // Remove the .json suffix.
-            vendor_name.erase(vendor_name.size() - 5);
+        if (Slic3r::is_preset_bundle_file(vendor_file)) {
+            // Remove the .bundle.json suffix.
+            std::string vendor_name = dir_entry.path().filename().stem().stem().string();
             try {
                 // Load the config bundle, flatten it.
                 append(substitutions, load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadVendorOnly, compatibility_rule).first);
@@ -1307,10 +1306,9 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_fil
     bool                       first = true;
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir)) {
         std::string vendor_file = dir_entry.path().string();
-        if (Slic3r::is_json_file(vendor_file)) {
-            std::string vendor_name = dir_entry.path().filename().string();
-            // Remove the .json suffix.
-            vendor_name.erase(vendor_name.size() - 5);
+        if (Slic3r::is_preset_bundle_file(vendor_file)) {
+            // Remove the .bundle.json suffix.
+            std::string vendor_name = dir_entry.path().filename().stem().stem().string();
             try {
                 if (first) {
                     // Reset this PresetBundle and load the first vendor config.
@@ -2649,16 +2647,33 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
 
     // 1) load the vroot json and construct the vendor profile
     VendorProfile vendor_profile(vendor_name);
-    std::string root_file = path + "/" + vendor_name + ".json";
-    std::vector<std::pair<std::string, std::string>> machine_model_subfiles;
-    std::vector<std::pair<std::string, std::string>> process_subfiles;
-    std::vector<std::pair<std::string, std::string>> filament_subfiles;
-    std::vector<std::pair<std::string, std::string>> machine_subfiles;
-    auto get_name_and_subpath = [this](json::iterator& it, std::vector<std::pair<std::string, std::string>>& subfile_map) {
+    std::string root_file = path + "/" + vendor_name + ".bundle.json";
+    if (!boost::filesystem::exists(root_file)) {
+        root_file = path + "/" + vendor_name + ".json";
+    }
+
+    struct SubFile
+    {
+        std::string name;
+        std::string sub_path;
+        json        content;
+
+        SubFile(std::string&& name, std::string&& sub_path, json&& content)
+            : name(std::move(name)), sub_path(std::move(sub_path)), content(std::move(content))
+        {}
+    };
+
+    bool                 is_bundled = false;
+    std::vector<SubFile> machine_model_subfiles;
+    std::vector<SubFile> process_subfiles;
+    std::vector<SubFile> filament_subfiles;
+    std::vector<SubFile> machine_subfiles;
+    auto get_name_and_subpath = [this](json::iterator& it, std::vector<SubFile>& subfile_map) {
         if (it.value().is_array()) {
             for (auto iter1 = it.value().begin(); iter1 != it.value().end(); iter1++) {
                 if (iter1.value().is_object()) {
                     std::string name, subpath;
+                    json        content;
                     for (auto iter2 = iter1.value().begin(); iter2 != iter1.value().end(); iter2++) {
                         if (iter2.value().is_string()) {
                             if (boost::iequals(iter2.key(), BBL_JSON_KEY_NAME)) {
@@ -2667,13 +2682,18 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                                 subpath = iter2.value();
                             }
                         }
+                        else if (iter2.value().is_object()) {
+                            if (boost::iequals(iter2.key(), ORCA_JSON_KEY_CONTENT)) {
+                                content = iter2.value();
+                            }
+                        }
                         else {
                             ++m_errors;
                             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": invalid value type for " << iter2.key();
                         }
                     }
                     if (!name.empty() && !subpath.empty())
-                        subfile_map.push_back(std::make_pair(name, subpath));
+                        subfile_map.emplace_back(std::move(name), std::move(subpath), std::move(content));
                 } else {
                     ++m_errors;
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": invalid type for " << iter1.key();
@@ -2728,6 +2748,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             else if (boost::iequals(it.key(), BBL_JSON_KEY_MACHINE_LIST)) {
                 //get machine list
                 get_name_and_subpath(it, machine_subfiles);
+            } else if (boost::iequals(it.key(), ORCA_JSON_KEY_BUNDLE)) {
+                is_bundled = it.value();
             }
         }
     }
@@ -2747,13 +2769,17 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     //2) paste the machine model
     for (auto& machine_model : machine_model_subfiles)
     {
-        std::string subfile = path + "/" + vendor_name + "/" + machine_model.second;
+        std::string subfile = path + "/" + vendor_name + "/" + machine_model.sub_path;
         VendorProfile::PrinterModel model;
-        model.id = machine_model.first;
+        model.id = machine_model.name;
         try {
-            boost::nowide::ifstream ifs(subfile);
             json j;
-            ifs >> j;
+            if (is_bundled) {
+                j = std::move(machine_model.content);
+            } else {
+                boost::nowide::ifstream ifs(subfile);
+                ifs >> j;
+            }
             //parse the json elements
             for (auto it = j.begin(); it != j.end(); it++) {
                 if (boost::iequals(it.key(), BBL_JSON_KEY_VERSION)) {
@@ -2844,17 +2870,17 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     PresetCollection         *presets = nullptr;
     size_t                   presets_loaded = 0;
 
-    auto parse_subfile = [this, path, vendor_name, presets_loaded, current_vendor_profile, base_bundle](
+    auto parse_subfile = [this, path, vendor_name, presets_loaded, current_vendor_profile, base_bundle, is_bundled](
         ConfigSubstitutionContext& substitution_context,
         PresetsConfigSubstitutions& substitutions,
         LoadConfigBundleAttributes& flags,
-        std::pair<std::string, std::string>& subfile_iter,
+        SubFile& subfile_iter,
         std::map<std::string, DynamicPrintConfig>& config_maps,
         std::map<std::string, std::string>& filament_id_maps,
         PresetCollection* presets_collection,
         size_t& count, bool is_from_lib = false) -> std::string {
 
-        std::string subfile = path + "/" + vendor_name + "/" + subfile_iter.second;
+        std::string subfile = path + "/" + vendor_name + "/" + subfile_iter.sub_path;
         // Load the print, filament or printer preset.
         std::string               preset_name;
         DynamicPrintConfig        config;
@@ -2869,7 +2895,11 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse the json elements
             DynamicPrintConfig config_src;
             std::string _renamed_from_str;
-            config_src.load_from_json(subfile, substitution_context, false, key_values, reason);
+            if (is_bundled) {
+                config_src.load_from_json(subfile, subfile_iter.content, substitution_context, false, key_values, reason);
+            } else {
+                config_src.load_from_json(subfile, substitution_context, false, key_values, reason);
+            }
             if (!reason.empty()) {
                 ++m_errors;
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load config file "<<subfile<<" Failed!";
@@ -3015,9 +3045,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             return reason;
         }
 
-        auto file_path = (boost::filesystem::path(data_dir())  /PRESET_SYSTEM_DIR/ vendor_name / subfile_iter.second).make_preferred();
+        auto file_path = (boost::filesystem::path(data_dir())  /PRESET_SYSTEM_DIR/ vendor_name / subfile_iter.sub_path).make_preferred();
         if(validation_mode)
-            file_path = (boost::filesystem::path(data_dir()) / vendor_name / subfile_iter.second).make_preferred();
+            file_path = (boost::filesystem::path(data_dir()) / vendor_name / subfile_iter.sub_path).make_preferred();
 
         // Load the preset into the list of presets, save it to disk.
         Preset &loaded = presets_collection->load_preset(file_path.string(), preset_name, std::move(config), false);
@@ -3085,7 +3115,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         if (!reason.empty()) {
             ++m_errors;
             //parse error
-            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.sub_path;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse process setting from %1%") % subfile_path;
             throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
@@ -3103,7 +3133,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         if (!reason.empty()) {
             ++m_errors;
             //parse error
-            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.sub_path;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse filament setting from %1%") % subfile_path;
             throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
@@ -3123,7 +3153,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         if (!reason.empty()) {
             ++m_errors;
             //parse error
-            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
+            std::string subfile_path = path + "/" + vendor_name + "/" + subfile.sub_path;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse printer setting from %1%") % subfile_path;
             throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
