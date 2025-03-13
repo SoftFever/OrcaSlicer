@@ -51,13 +51,10 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
     });
 
     m_cb_open_door->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
-        if (m_cb_open_door->GetValue())
-        {
-            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_DISABLE); }
-        }
-        else
-        {
+        if (m_cb_open_door->GetValue()) {
             if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING); }
+        } else {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_DISABLE); }
         }
 
         evt.Skip();
@@ -276,6 +273,10 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj) {
         m_cb_open_door->SetValue(false);
         open_door_switch_board->Disable();
     }
+
+    m_cb_open_door->Show();
+    text_open_door->Show();
+    open_door_switch_board->Show();
 }
 
 void PrintOptionsDialog::UpdateOptionSavePrintFileToStorage(MachineObject *obj)
