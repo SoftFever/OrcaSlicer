@@ -8279,7 +8279,7 @@ msgstr "G-code antes da mudança de camada"
 msgid "Layer change G-code"
 msgstr "G-code de mudança de camada"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr "G-code de timelapse"
 
 msgid "Change filament G-code"

@@ -8266,7 +8266,7 @@ msgstr "G-code перед зміною шару"
 msgid "Layer change G-code"
 msgstr "G-code Зміни шару"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr "G-код для часової зйомки"
 
 msgid "Change filament G-code"
