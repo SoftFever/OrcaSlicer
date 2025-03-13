@@ -2440,7 +2440,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type && (m_print_type == PrintFromType::FROM_NORMAL)) {
-        confirm_text.push_back(ConfirmBeforeSendInfo(_L("The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.")));
+        confirm_text.push_back(ConfirmBeforeSendInfo(_L("The printer type selected when generating G-code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.")));
         has_slice_warnings = true;
     }
 
