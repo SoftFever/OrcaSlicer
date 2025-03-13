@@ -3452,10 +3452,19 @@ void StatusPanel::update_ams(MachineObject *obj)
                 std::string tray_id     = tray_it->first;
                 int         tray_id_int = atoi(tray_id.c_str());
                 // new protocol
-                if ((obj->tray_reading_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0) {
-                    m_ams_control->PlayRridLoading(ams_id, tray_id);
+                if (ams_id_int < 128) {
+                    if ((obj->tray_reading_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0) {
+                        m_ams_control->PlayRridLoading(ams_id, tray_id);
+                    } else {
+                        m_ams_control->StopRridLoading(ams_id, tray_id);
+                    }
                 } else {
-                    m_ams_control->StopRridLoading(ams_id, tray_id);
+                    int check_flag = (1 << 16) + ams_id_int - 128;
+                    if ((obj->tray_reading_bits & check_flag) != 0) {
+                        m_ams_control->PlayRridLoading(ams_id, tray_id);
+                    } else {
+                        m_ams_control->StopRridLoading(ams_id, tray_id);
+                    }
                 }
             }
         } catch (...) {}
