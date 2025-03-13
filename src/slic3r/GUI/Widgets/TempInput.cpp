@@ -255,10 +255,9 @@ void TempInput::Warning(bool warn, WarningType type)
 
         wxString warning_string;
         if (type == WarningType::WARNING_TOO_HIGH)
-             warning_string = _L("The maximum temperature cannot exceed " + wxString::Format("%d", max_temp));
+             warning_string = _L("The maximum temperature cannot exceed ") + wxString::Format("%d", max_temp);
         else if (type == WarningType::WARNING_TOO_LOW)
-             warning_string = _L("The minmum temperature should not be less than " + wxString::Format("%d", max_temp));
-
+             warning_string = _L("The minmum temperature should not be less than ") + wxString::Format("%d", min_temp);
         warning_text->SetLabel(warning_string);
         wdialog->Fit();
         wdialog->Popup();
