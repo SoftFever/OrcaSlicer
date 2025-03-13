@@ -3,7 +3,7 @@
     "filament_id": "GFL99",
 	"setting_id": "GFSL99",
     "name": "Elegoo PLA Matte @Elegoo Giga",
-    "inherits": "Elegoo Generic PLA Matte",
+    "inherits": "Generic PLA Matte @Elegoo",
     "from": "system",
     "instantiation": "true",
     "fan_cooling_layer_time": [

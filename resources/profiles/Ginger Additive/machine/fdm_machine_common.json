@@ -14,7 +14,7 @@
   "change_filament_gcode": "",
   "cooling_tube_length": "5",
   "cooling_tube_retraction": "91.5",
-  "default_filament_profile": ["My Generic ABS"],
+  "default_filament_profile": ["Generic PLA @System"],
   "default_print_profile": "0.20mm Standard @MyKlipper",
   "deretraction_speed": ["30"],
   "disable_m73": "0",

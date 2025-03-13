@@ -125,7 +125,7 @@
     "1"
   ],
   "default_filament_profile": [
-    "BIQU Generic PLA"
+    "Generic PLA @System"
   ],
   "bed_exclude_area": [
     "0x0"
