@@ -141,7 +141,7 @@ wxString get_stage_string(int stage)
     case 29:
         return _L("Cooling chamber");
     case 30:
-        return _L("Paused by the Gcode inserted by user");
+        return _L("Paused by the G-code inserted by user");
     case 31:
         return _L("Motor noise showoff");
     case 32:
