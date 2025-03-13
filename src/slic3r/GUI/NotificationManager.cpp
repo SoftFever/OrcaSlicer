@@ -304,10 +304,10 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		bbl_render_left_sign(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
 		render_left_sign(imgui);
 		render_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-		render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
         m_minimize_b_visible = false;
         if (m_multiline && m_lines_count > 3)
 			render_minimize_button(imgui, win_pos.x, win_pos.y);
+        render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y); // ORCA draw it after minimize button since its position related to minimize button
 	}
 	imgui.end();
 

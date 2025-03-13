@@ -380,7 +380,7 @@ class Print;
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
             unsigned int g1_line_id{ 0 };
-            unsigned int remaining_internal_g1_lines;
+            unsigned int remaining_internal_g1_lines{ 0 };
             unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
@@ -429,7 +429,7 @@ class Print;
             struct G1LinesCacheItem
             {
                 unsigned int id;
-                unsigned int remaining_internal_g1_lines;
+                unsigned int remaining_internal_g1_lines{ 0 };
                 float elapsed_time;
             };
 
@@ -495,15 +495,10 @@ class Print;
             float filament_unload_times;
             //Orca:  time for tool change
             float machine_tool_change_time;
-            bool  disable_m73;
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
 
             void reset();
-
-            // post process the file with the given filename to add remaining time lines M73
-            // and updates moves' gcode ids accordingly
-            void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num);
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -735,6 +730,7 @@ class Print;
         bool m_single_extruder_multi_material;
         float m_preheat_time;
         int m_preheat_steps;
+        bool m_disable_m73;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

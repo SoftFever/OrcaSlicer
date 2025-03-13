@@ -1,4 +1,3 @@
-
 var m_ProfileItem;
 
 var FilamentPriority=new Array( "pla","abs","pet","tpu","pc");
@@ -24,15 +23,6 @@ function RequestProfile()
 	
 	SendWXMessage( JSON.stringify(tSend) );
 }
-
-//function RequestModelSelect()
-//{
-//	var tSend={};
-//	tSend['sequence_id']=Math.round(new Date() / 1000);
-//	tSend['command']="request_userguide_modelselected";
-//	
-//	SendWXMessage( JSON.stringify(tSend) );
-//}
 
 function HandleStudio(pVal)
 {
@@ -261,10 +251,10 @@ function MachineClick()
 
 function ChooseAllFilament()
 {
-	let bCheck=$("#FilatypeList input:first").prop("checked");	
+    let bCheck=$("#FilatypeList input:first").prop("checked");	
 	$("#FilatypeList input").prop("checked",bCheck);	
-	
-	SortFilament();
+    
+    SortFilament();
 }
 
 function FilaClick()
@@ -446,11 +436,11 @@ function SelectAllFilament( nShow )
 {
 	if( nShow==0 )
 	{
-		$('#ItemBlockArea input').prop("checked",false);
+		$('#ItemBlockArea .MItem:visible input').prop("checked",false);
 	}
 	else
 	{
-		$('#ItemBlockArea input').prop("checked",true);
+		$('#ItemBlockArea .MItem:visible input').prop("checked",true);
 	}
 }
 

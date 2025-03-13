@@ -67,7 +67,7 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist)
+std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
@@ -84,20 +84,58 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
     std::vector<wxString>::iterator iter;
-    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+    for (iter = vlist.begin(); iter != vlist.end(); iter++) {
+        combobox->Append(*iter);
+    }
 
-
-    auto use_inch = app_config->get(param);
-    if (!use_inch.empty()) { combobox->SetSelection(atoi(use_inch.c_str())); }
+    combobox->SetSelection(current_index);
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
+    return {m_sizer_combox, combobox};
+}
+
+wxBoxSizer* PreferencesDialog::create_item_combobox(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist)
+{
+    unsigned int current_index = 0;
+
+    auto current_setting = app_config->get(param);
+    if (!current_setting.empty()) {
+        current_index = atoi(current_setting.c_str());
+    }
+
+    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index);
+
     //// save config
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent &e) {
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent& e) {
         app_config->set(param, std::to_string(e.GetSelection()));
         e.Skip();
     });
-    return m_sizer_combox;
+
+    return sizer;
+}
+
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index)
+{
+    assert(vlist.size() == config_name_index.size());
+    unsigned int current_index = 0;
+
+    auto current_setting = app_config->get(param);
+    if (!current_setting.empty()) {
+        auto compare  = [current_setting](string possible_setting) { return current_setting == possible_setting; };
+        auto iterator = find_if(config_name_index.begin(), config_name_index.end(), compare); 
+        current_index = iterator - config_name_index.begin();
+    }
+
+    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index);
+
+    //// save config
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, config_name_index](wxCommandEvent& e) {
+        app_config->set(param, config_name_index[e.GetSelection()]);
+        e.Skip();
+    });
+
+    return sizer;
 }
 
 wxBoxSizer *PreferencesDialog::create_item_language_combobox(
@@ -1166,6 +1204,11 @@ wxWindow* PreferencesDialog::create_general_page()
     // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
 
     auto title_project = create_item_title(_L("Project"), page, "");
+
+    std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
+    std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
+    auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
@@ -1241,6 +1284,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // update_modelmall(eee);
     // item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));

@@ -6,10 +6,10 @@
                 "resolution_supported": [ "720p", "1080p" ],
                 "virtual_camera": "enabled",
                 "liveview": {
-                    "remote": "enabled"
+                    "remote": "tutk"
                 },
                 "file": {
-                    "remote": "enabled",
+                    "remote": "tutk",
                     "model_download": "enabled"
                 }
             },

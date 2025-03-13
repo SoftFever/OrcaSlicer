@@ -60,7 +60,7 @@
         "print": {
             "ipcam": {
                 "liveview": {
-                    "remote": "enabled"
+                    "remote": "tutk"
                 }
             },
             "support_mqtt_alive":true,
@@ -71,7 +71,7 @@
         "print": {
             "ipcam": {
                 "file": {
-                    "remote": "enabled"
+                    "remote": "tutk"
                 }
             },
             "support_user_preset":true

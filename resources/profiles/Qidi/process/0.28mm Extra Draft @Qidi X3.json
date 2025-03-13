@@ -21,7 +21,7 @@
 	"line_width": "0.42",
 	"infill_direction": "45",
 	"sparse_infill_density": "15%",
-	"sparse_infill_pattern": "crosshatch",
+	"sparse_infill_pattern": "grid",
 	"initial_layer_line_width": "0.5",
 	"infill_combination": "0",
 	"sparse_infill_line_width": "0.45",
@@ -41,7 +41,7 @@
 	"skirt_distance": "2",
 	"skirt_height": "1",
 	"skirt_loops": "2",
-	"internal_solid_infill_line_width": "0",
+	"internal_solid_infill_line_width": "0.42",
 	"spiral_mode": "0",
 	"standby_temperature_delta": "-5",
 	"enable_support": "0",
@@ -88,7 +88,7 @@
     "outer_wall_speed": "200",
     "seam_gap": "15%",
     "sparse_infill_speed": "200",
-    "top_shell_layers": "3",
-    "top_shell_thickness": "0.84",
+    "top_shell_layers": "4",
+    "top_shell_thickness": "1",
     "wall_generator": "classic"
 }

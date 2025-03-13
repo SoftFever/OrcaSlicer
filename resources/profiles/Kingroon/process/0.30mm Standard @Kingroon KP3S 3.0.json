@@ -1,9 +1,10 @@
 {
     "type": "process",
     "compatible_printers": [
-      "Kingroon KP3S 3.0 0.4 nozzle"
+        "Kingroon KP3S 3.0 0.4 nozzle"
     ],
     "name": "0.30mm Standard @Kingroon KP3S 3.0",
+    "instantiation": "true",
     "inherits": "fdm_process_common",
     "print_settings_id": "0.30mm Standard @Kingroon KP3S 3.0",
     "bottom_surface_pattern": "monotonicline",

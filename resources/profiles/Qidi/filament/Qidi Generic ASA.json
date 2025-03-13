@@ -33,6 +33,9 @@
     "activate_chamber_temp_control": [
         "0"
     ],
+    "filament_vendor": [
+        "Generic"
+    ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",
         "Qidi X-Max 0.2 nozzle",

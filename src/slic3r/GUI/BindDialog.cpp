@@ -2,10 +2,10 @@
 #include "GUI_App.hpp"
 
 #include <wx/wx.h>
+#include <wx/mstream.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include "wx/evtloop.h"
-#include <wx/mstream.h>
 #include <wx/tokenzr.h>
 #include <wx/richmsgdlg.h>
 #include <wx/richtext/richtextctrl.h>
@@ -760,7 +760,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          json j = json::parse(str.utf8_string());
          if (j.contains("err_code")) {
              int error_code = j["err_code"].get<int>();
-             extra = wxGetApp().get_hms_query()->query_print_error_msg(error_code);
+             wxGetApp().get_hms_query()->query_print_error_msg(error_code, extra);
          }
      }
      catch (...) {

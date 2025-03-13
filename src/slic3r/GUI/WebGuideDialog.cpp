@@ -178,7 +178,11 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     // Bind(wxEVT_IDLE, &GuideFrame::OnIdle, this);
     // Bind(wxEVT_CLOSE_WINDOW, &GuideFrame::OnClose, this);
 
+    auto start = std::chrono::high_resolution_clock::now();
     LoadProfile();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": LoadProfile() took " << duration.count() << " milliseconds";
 
     // UI
     SetStartPage(BBL_REGION);
@@ -1112,13 +1116,10 @@ int GuideFrame::LoadProfile()
         m_ProfileJson["stealth_mode"] = StealthMode;
     }
     catch (std::exception &e) {
-        //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
-        // wxMessageBox(e.what(), "", MB_OK);
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", error: "<< e.what() <<std::endl;
     }
 
     std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
-    //wxLogMessage("GUIDE: profile_json_s2  %s ", m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore));
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished, json contents: "<< std::endl<<strAll;
     return 0;
