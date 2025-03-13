@@ -3815,7 +3815,7 @@ msgid ""
 msgstr ""
 "当您将仓温设置在40℃以下时，仓温控制将不会激活。目标仓温将自动设置为0℃。"
 
-msgid "Failed to start printing job"
+msgid "Failed to start print job"
 msgstr "发起打印任务失败"
 
 msgid ""
