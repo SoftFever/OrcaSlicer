@@ -118,6 +118,7 @@ public:
 
     wxTextCtrl const *GetTextCtrl() const { return text_ctrl; }
 
+    bool  IsOnChanging() const { return m_on_changing; }
     void  SetOnChanging() { m_on_changing = true; }
     void  ReSetOnChanging() { m_on_changing = false; }
 
