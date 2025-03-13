@@ -11459,7 +11459,7 @@ msgid "Stamping distance measured from the center of the cooling tube"
 msgstr "냉각 튜브 중심에서 측정한 스탬핑 거리"
 
 msgid ""
-"If set to nonzero value, filament is moved toward the nozzle between the "
+"If set to non-zero value, filament is moved toward the nozzle between the "
 "individual cooling moves (\"stamping\"). This option configures how long "
 "this movement should be before the filament is retracted again."
 msgstr ""

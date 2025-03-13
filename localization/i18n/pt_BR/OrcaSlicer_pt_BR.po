@@ -11917,7 +11917,7 @@ msgstr ""
 "Distância de estampagem medida a partir do centro do tubo de resfriamento"
 
 msgid ""
-"If set to nonzero value, filament is moved toward the nozzle between the "
+"If set to non-zero value, filament is moved toward the nozzle between the "
 "individual cooling moves (\"stamping\"). This option configures how long "
 "this movement should be before the filament is retracted again."
 msgstr ""

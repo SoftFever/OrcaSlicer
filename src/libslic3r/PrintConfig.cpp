@@ -2135,7 +2135,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_stamping_distance", coFloats);
     def->label = L("Stamping distance measured from the center of the cooling tube");
-    def->tooltip = L("If set to nonzero value, filament is moved toward the nozzle between the individual cooling moves (\"stamping\"). "
+    def->tooltip = L("If set to non-zero value, filament is moved toward the nozzle between the individual cooling moves (\"stamping\"). "
                      "This option configures how long this movement should be before the filament is retracted again.");
     def->min = 0;
     def->mode = comAdvanced;
