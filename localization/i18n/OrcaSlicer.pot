@@ -2108,7 +2108,7 @@ msgstr ""
 msgid "Deleting the last solid part is not allowed."
 msgstr ""
 
-msgid "The target object contains only one part and can not be split."
+msgid "The target object contains only one part and cannot be split."
 msgstr ""
 
 msgid "Assembly"
@@ -2475,16 +2475,16 @@ msgid "Edit"
 msgstr ""
 
 msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-arrange on these objects."
+"All the selected objects are on a locked plate.\n"
+"Cannot auto-arrange these objects."
 msgstr ""
 
 msgid "No arrangeable objects are selected."
 msgstr ""
 
 msgid ""
-"This plate is locked,\n"
-"We can not do auto-arrange on this plate."
+"This plate is locked.\n"
+"Cannot auto-arrange on this plate."
 msgstr ""
 
 msgid "Arranging..."
@@ -2515,13 +2515,13 @@ msgid ""
 msgstr ""
 
 msgid ""
-"All the selected objects are on the locked plate,\n"
-"We can not do auto-orient on these objects."
+"All the selected objects are on a locked plate.\n"
+"Cannot auto-orient these objects."
 msgstr ""
 
 msgid ""
-"This plate is locked,\n"
-"We can not do auto-orient on this plate."
+"This plate is locked.\n"
+"Cannot auto-orient on this plate."
 msgstr ""
 
 msgid "Orienting..."
@@ -5235,7 +5235,7 @@ msgstr ""
 msgid " No corresponding storage bucket\n"
 msgstr ""
 
-msgid " can not be opened\n"
+msgid " cannot be opened\n"
 msgstr ""
 
 msgid ""
@@ -5943,7 +5943,7 @@ msgstr ""
 
 msgid ""
 "Preview only mode:\n"
-"The loaded file contains gcode only, Can not enter the Prepare page"
+"The loaded file contains G-code only, cannot enter the Prepare page."
 msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
@@ -6052,10 +6052,10 @@ msgstr ""
 msgid "G-code loading"
 msgstr ""
 
-msgid "G-code files can not be loaded with models together!"
+msgid "G-code files cannot be loaded with models together!"
 msgstr ""
 
-msgid "Can not add models when in preview mode!"
+msgid "Cannot add models when in preview mode!"
 msgstr ""
 
 msgid "All objects will be removed, continue?"
@@ -7675,7 +7675,7 @@ msgid ""
 "presets would be deleted if the printer is deleted."
 msgstr ""
 
-msgid "Presets inherited by other presets can not be deleted!"
+msgid "Presets inherited by other presets cannot be deleted!"
 msgstr ""
 
 msgid "The following presets inherit this preset."
@@ -8658,7 +8658,7 @@ msgid "Multiple"
 msgstr ""
 
 #, possible-boost-format
-msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
+msgid "Failed to calculate line width of %1%. Cannot get value of \"%2%\" "
 msgstr ""
 
 msgid ""
@@ -8788,7 +8788,7 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr ""
 
 msgid ""
-"Can not print multiple filaments which have large difference of temperature "
+"Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
 "during printing"
 msgstr ""
@@ -13815,7 +13815,7 @@ msgstr ""
 msgid ""
 "An object's XY size compensation will not be used because it is also color-"
 "painted.\n"
-"XY Size compensation can not be combined with color-painting."
+"XY Size compensation cannot be combined with color-painting."
 msgstr ""
 
 msgid "Support: generate contact points"
@@ -14665,7 +14665,7 @@ msgid "Custom vendor is not input, please input custom vendor."
 msgstr ""
 
 msgid ""
-"\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."
+"\"Bambu\" or \"Generic\" cannot be used as a Vendor for custom filaments."
 msgstr ""
 
 msgid "Filament type is not selected, please reselect type."
@@ -14682,7 +14682,7 @@ msgstr ""
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
 
-msgid "The vendor can not be a number. Please re-enter."
+msgid "The vendor cannot be a number. Please re-enter."
 msgstr ""
 
 msgid ""
@@ -14993,7 +14993,7 @@ msgid ""
 "be deleted after exiting the dialog."
 msgstr ""
 
-msgid "Presets inherited by other presets can not be deleted"
+msgid "Presets inherited by other presets cannot be deleted"
 msgstr ""
 
 msgid "The following presets inherits this preset."
