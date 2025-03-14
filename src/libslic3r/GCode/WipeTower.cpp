@@ -3949,16 +3949,25 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 }
                 int id = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&](const WipeTowerBlock &b) { return &b == &block; }) - m_wipe_tower_blocks.begin();
                 bool interface_solid     = solid_blocks_id.count(id);
-                int finish_layer_filament = wall_idx;
+                int finish_layer_filament = -1;
                 if (block.last_filament_change_id != -1) {
                     finish_layer_filament = block.last_filament_change_id;
                 } else if (block.last_nozzle_change_id != -1) {
                     finish_layer_filament = block.last_nozzle_change_id;
                 }
 
+                WipeTowerBlock * last_layer_finish_block = get_block_by_category(get_filament_category(layer.tool_changes.front().old_tool), false);
+                if (!layer.tool_changes.empty() && last_layer_finish_block && last_layer_finish_block->block_id == block.block_id && finish_layer_filament == -1) {
+                    finish_layer_filament = layer.tool_changes.front().old_tool;
+                }
+
+                if (finish_layer_filament == -1) {
+                    finish_layer_filament = wall_idx;
+                }
+
                 ToolChangeResult finish_block_tcr;
-                if (interface_solid ||(block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx])) {
-                    interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx]));//noly reduce speed when
+                if (interface_solid || (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[finish_layer_filament])) {
+                    interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[finish_layer_filament]));//noly reduce speed when
                     finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill, interface_solid);
                     block.finish_depth[m_cur_layer_id] = block.start_depth + block.depth;
                 }
