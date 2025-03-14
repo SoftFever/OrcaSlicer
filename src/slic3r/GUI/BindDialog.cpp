@@ -545,7 +545,15 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_notice_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
      m_link_notice_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
      m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         wxString txt = _L("In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. %s follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training %s to be smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in  Privacy Policy. We will not collect any Personal Data by which an individual can be identified directly or indirectly, including without limitation names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy.");
+         wxString txt = _L("In the 3D Printing community, we learn from each other's successes and failures to adjust "
+                           "our own slicing parameters and settings. %s follows the same principle and uses machine "
+                           "learning to improve its performance from the successes and failures of the vast number of "
+                           "prints by our users. We are training %s to be smarter by feeding them the real-world data. "
+                           "If you are willing, this service will access information from your error logs and usage "
+                           "logs, which may include information described in Privacy Policy. We will not collect any "
+                           "Personal Data by which an individual can be identified directly or indirectly, including "
+                           "without limitation names, addresses, payment information, or phone numbers. By enabling "
+                           "this service, you agree to these terms and the statement about Privacy Policy.");
          ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Statement on User Experience Improvement Plan"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
 
          wxString model_id_text;
