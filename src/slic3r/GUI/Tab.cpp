@@ -5759,7 +5759,7 @@ void Tab::delete_preset()
                 presets += "\n - " + preset2.name;
             }
         if (count > 0) {
-            msg = _L("Presets inherited by other presets can not be deleted!");
+            msg = _L("Presets inherited by other presets cannot be deleted!");
             msg += "\n";
             msg += _L_PLURAL("The following presets inherit this preset.",
                             "The following preset inherits this preset.", count);

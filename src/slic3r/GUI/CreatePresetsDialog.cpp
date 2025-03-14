@@ -1018,7 +1018,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             } else {
                 vendor_name = into_u8(m_filament_custom_vendor_input->GetTextCtrl()->GetValue());
                 if (vendor_name == "Bambu" || vendor_name == "Generic") {
-                    MessageDialog dlg(this, _L("\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                    MessageDialog dlg(this, _L("\"Bambu\" or \"Generic\" cannot be used as a Vendor for custom filaments."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     dlg.ShowModal();
                     return;
@@ -1065,7 +1065,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             return;
         }
         if (m_can_not_find_vendor_checkbox->GetValue() && str_is_all_digit(vendor_name)) {
-            MessageDialog dlg(this, _L("The vendor can not be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            MessageDialog dlg(this, _L("The vendor cannot be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
@@ -4499,7 +4499,7 @@ void EditFilamentPresetDialog::delete_preset()
                 }
             wxString msg;
             if (count > 0) {
-                msg = _L("Presets inherited by other presets can not be deleted");
+                msg = _L("Presets inherited by other presets cannot be deleted");
                 msg += "\n";
                 msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
                 wxString title = _L("Delete Preset");

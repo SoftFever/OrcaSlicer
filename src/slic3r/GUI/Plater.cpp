@@ -3831,7 +3831,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //     load_config = false;
                     //     if (!load_model) {
                     //         // only load config case, return directly
-                    //         show_info(q, _L("The Config can not be loaded."), _L("Load 3mf"));
+                    //         show_info(q, _L("The Config cannot be loaded."), _L("Load 3mf"));
                     //         q->skip_thumbnail_invalid = false;
                     //         return empty_result;
                     //     }
@@ -7509,7 +7509,7 @@ void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
 
 void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
 {
-    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only, Can not enter the Prepare page")));
+    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains G-code only, cannot enter the Prepare page.")));
 }
 
 void Plater::priv::on_apple_change_color_mode(wxSysColourChangedEvent& evt) {
@@ -11107,7 +11107,7 @@ bool Plater::load_files(const wxArrayString& filenames)
     }
 
     if (!gcode_paths.empty()) {
-        show_info(this, _L("G-code files can not be loaded with models together!"), _L("G-code loading"));
+        show_info(this, _L("G-code files cannot be loaded with models together!"), _L("G-code loading"));
         return false;
     }
 
@@ -11159,7 +11159,7 @@ bool Plater::load_files(const wxArrayString& filenames)
     if (this->m_only_gcode || this->m_exported_file) {
         if ((loadfiles_type == LoadFilesType::SingleOther)
             || (loadfiles_type == LoadFilesType::MultipleOther)) {
-            show_info(this, _L("Can not add models when in preview mode!"), _L("Add Models"));
+            show_info(this, _L("Cannot add models when in preview mode!"), _L("Add Models"));
             return false;
         }
     }
