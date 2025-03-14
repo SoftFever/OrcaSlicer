@@ -38,6 +38,8 @@
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
+#define MAPPING_ITEM_INVALID_REMAIN -1
+
 namespace Slic3r { namespace GUI {
 
 
@@ -60,6 +62,7 @@ struct TrayData
     TrayType        type;
     int             id;
     int             ctype = 0;
+    int             remain = MAPPING_ITEM_INVALID_REMAIN;
     std::string     name;
     std::string     filament_type;
     wxColour        colour;
@@ -159,7 +162,7 @@ public:
 public:
     void update_data(TrayData data);
     void send_event(int fliament_id);
-    void set_data(wxColour colour, wxString name, TrayData data, bool unmatch = false);
+    void set_data(wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false);
     void set_checked(bool checked);
     void set_tray_index(wxString t_index) { m_tray_index = t_index; };
 
@@ -172,16 +175,18 @@ private:
 
 private:
     bool m_checked = false;
+    bool m_support_remain_detect = false;
 };
 
 class MappingContainer : public wxPanel
 {
 private:
     int       m_slots_num = 4;/*1 or 4*/
+    wxString  m_ams_type;
     wxBitmap  ams_mapping_item_container;
 
 public:
-    MappingContainer(wxWindow* parent, int slots_num = 4);
+    MappingContainer(wxWindow* parent, const wxString& ams_type, int slots_num = 4);
     ~MappingContainer();
 
 public:
@@ -196,6 +201,7 @@ protected:
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
+    bool m_ams_remain_detect_flag = false;
     wxStaticText* m_title_text{ nullptr };
 
 public:
@@ -252,8 +258,8 @@ public:
     void         update_title(MachineObject* obj);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
-    void         add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* container, wxBoxSizer* sizer);
-    void         add_ext_ams_mapping(TrayData tray_data, MappingItem* item);
+    void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
+    void         add_ext_ams_mapping(TrayData tray_data, MappingItem *item);
     void         set_current_filament_id(int id) { m_current_filament_id = id; };
     int          get_current_filament_id(){return m_current_filament_id;};
     bool         is_match_material(std::string material);

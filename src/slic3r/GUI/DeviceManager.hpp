@@ -379,6 +379,32 @@ public:
 
     int nozzle;
     int type{1}; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+
+public:
+    wxString get_ams_device_name() const
+    {
+        wxString ams_device_name;
+        if (type == 1) {
+            ams_device_name = "AMS-%d";
+        } else if (type == 2) {
+            ams_device_name = "AMS Lite-%d";
+        } else if (type == 3) {
+            ams_device_name = "AMS 2 PRO-%d";
+        } else if (type == 4) {
+            ams_device_name = "AMS HT-%d";
+        } else {
+            assert(0);
+            ams_device_name = "AMS-%d";
+        }
+
+        int num_id;
+        try {
+            num_id = std::stoi(id);
+        } catch (...) {}
+
+        int loc = (num_id > 127) ? (num_id - 127) : (num_id + 1);
+        return wxString::Format(ams_device_name, loc);
+    };
 };
 
 enum PrinterFirmwareType {
