@@ -288,22 +288,24 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
+    auto cali_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     // title
-    m_ratio_text = new wxStaticText(parent, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
+    m_ratio_text   = new wxStaticText(parent, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
     m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     m_ratio_text->SetFont(Label::Head_14);
 
-    m_ratio_text->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    m_ratio_text->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    m_ratio_text->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        std::string language = wxGetApp().app_config->get("language");
-        wxString    region   = "en";
-        if (language.find("zh") == 0)
-            region = "zh";
-        wxLaunchDefaultBrowser(wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region));
-    });
-
+    std::string language = wxGetApp().app_config->get("language");
+    wxString    region   = "en";
+    if (language.find("zh") == 0)
+        region = "zh";
+    wxString link_url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
+    m_wiki_ctrl = new wxHyperlinkCtrl(parent, wxID_ANY, "Wiki", link_url);
+    m_wiki_ctrl->SetNormalColour(*wxBLUE);
+    m_wiki_ctrl->SetHoverColour(wxColour(0, 0, 200));
+    m_wiki_ctrl->SetVisitedColour(*wxBLUE);
+    m_wiki_ctrl->SetFont(Label::Head_14);
+    cali_title_sizer->Add(m_ratio_text, 0, wxALIGN_CENTER_VERTICAL);
+    cali_title_sizer->Add(m_wiki_ctrl, 0, wxALIGN_CENTER_VERTICAL);
 
     wxBoxSizer *m_sizer_cali_resutl = new wxBoxSizer(wxHORIZONTAL);
     // pa profile
@@ -352,12 +354,20 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_n_param->Hide();
     m_input_n_val->Hide();
 
+    // tips info
+    m_k_value_tips = new wxStaticText(parent, wxID_ANY, _L("Tips: When starting a print, disable dynamic flow calibration to enable custom values for this task."));
+    m_k_value_tips->SetForegroundColour(wxColour(50, 58, 61));
+    m_k_value_tips->Wrap(FromDIP(300));
+    m_k_value_tips->Hide();
+
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    sizer->Add(m_ratio_text, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    sizer->Add(cali_title_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
     sizer->Add(m_sizer_cali_resutl, 0, wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(kn_val_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    sizer->Add(m_k_value_tips, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     parent->SetSizer(sizer);
 }
@@ -811,17 +821,8 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
 
-        /*if (obj && (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI) || obj->is_high_printer_type())) {
-            m_ratio_text->Show();
-            m_k_param->Show();
-            m_input_k_val->Show();
-        }
-        else {
-            m_ratio_text->Hide();
-            m_k_param->Hide();
-            m_input_k_val->Hide();
-        }*/
         m_ratio_text->Show();
+        m_wiki_ctrl->Show();
         m_k_param->Show();
         m_input_k_val->Show();
         Layout();
@@ -1088,8 +1089,16 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
     if (m_pa_cali_select_id >= 0) {
+        if (m_pa_cali_select_id > 0) {
+            m_k_value_tips->Show();
+        } else {
+            m_k_value_tips->Hide();
+        }
         m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].k_value));
         m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].n_coef));
+        Layout();
+        Fit();
+        Refresh();
     }
     else{
         m_input_k_val->GetTextCtrl()->SetValue(std::to_string(0.00));
@@ -1313,8 +1322,16 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         if (cali_select_idx >= 0) {
+            if (cali_select_idx > 0) {
+                m_k_value_tips->Show();
+            } else {
+                m_k_value_tips->Hide();
+            }
             m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].k_value));
             m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].n_coef));
+            Layout();
+            Fit();
+            Refresh();
         }
         else {
             m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[0].k_value));
