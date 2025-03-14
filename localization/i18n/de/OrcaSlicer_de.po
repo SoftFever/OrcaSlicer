@@ -1389,13 +1389,13 @@ msgstr ""
 "Feature 1 wurde zurückgesetzt, \n"
 "Feature 2 wurde zu Feature 1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: please select Plane's feature."
 msgstr "Warnung: Bitte wählen Sie die Funktion der Ebene."
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: please select Point's or Circle's feature."
 msgstr "Warnung: Bitte wählen Sie die Funktion des Punktes oder Kreises."
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: please select two different meshes."
 msgstr "Warnung: Bitte wählen Sie zwei verschiedene Mesh-Netze."
 
 msgid "Copy to clipboard"
@@ -7307,7 +7307,7 @@ msgstr "Hochladen der 3mf"
 msgid "Jump to model publish web page"
 msgstr "Zur Modellveröffentlichungs-Webseite springen"
 
-msgid "Note: The preparation may takes several minutes. Please be patient."
+msgid "Note: The preparation may take several minutes. Please be patient."
 msgstr ""
 "Hinweis: Die Vorbereitung kann einige Minuten dauern. Bitte haben Sie Geduld."
 
@@ -8784,18 +8784,14 @@ msgid "Map Filament"
 msgstr "Map Filament"
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
+"Note: The color has been selected, you can choose OK \n"
+"to continue or manually adjust it."
 msgstr ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
 "Warning: The count of newly added and \n"
-" current extruders exceeds 16."
+"current extruders exceeds 16."
+msgstr ""
 
 msgid "Ramming customization"
 msgstr "Ramming-Anpassung"

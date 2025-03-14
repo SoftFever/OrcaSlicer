@@ -1348,13 +1348,13 @@ msgstr ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: please select Plane's feature."
 msgstr "Warning: please select Plane's feature."
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: please select Point's or Circle's feature."
 msgstr "Warning: please select Point's or Circle's feature."
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: please select two different meshes."
 msgstr "Warning: please select two different meshes."
 
 msgid "Copy to clipboard"
@@ -7072,7 +7072,7 @@ msgstr "3mf feltöltése"
 msgid "Jump to model publish web page"
 msgstr "Ugrás a modell közzététele weboldalra"
 
-msgid "Note: The preparation may takes several minutes. Please be patient."
+msgid "Note: The preparation may take several minutes. Please be patient."
 msgstr "Megjegyzés: Az előkészítés több percig is eltarthat. Kérjük várj."
 
 msgid "Publish"
@@ -8474,18 +8474,14 @@ msgid "Map Filament"
 msgstr "Map Filament"
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
+"Note: The color has been selected, you can choose OK \n"
+"to continue or manually adjust it."
 msgstr ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
 "Warning: The count of newly added and \n"
-" current extruders exceeds 16."
+"current extruders exceeds 16."
+msgstr ""
 
 msgid "Ramming customization"
 msgstr "Tömörítés testreszabása"
