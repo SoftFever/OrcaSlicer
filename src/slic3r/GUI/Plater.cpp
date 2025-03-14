@@ -7467,7 +7467,7 @@ void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
 
 void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
 {
-    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only, Can not enter the Prepare page")));
+    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only, cannot enter the Prepare page")));
 }
 
 void Plater::priv::on_apple_change_color_mode(wxSysColourChangedEvent& evt) {

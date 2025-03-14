@@ -5946,7 +5946,7 @@ msgstr ""
 
 msgid ""
 "Preview only mode:\n"
-"The loaded file contains gcode only, Can not enter the Prepare page"
+"The loaded file contains gcode only, cannot enter the Prepare page"
 msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
@@ -7164,7 +7164,7 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the "
+"When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
