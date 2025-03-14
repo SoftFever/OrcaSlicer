@@ -4176,7 +4176,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip  = L(
         "This option sets the printing speed for scarf joints. It is recommended to print scarf joints at a slow speed (less than 100 "
-         "mm/s).  It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
+         "mm/s). It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
          "outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default "
          "to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective "
          "outer or inner wall speed. The default value is set to 100%.");
