@@ -1564,8 +1564,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_floor));
                 m_config_manipulation.apply(m_config, &new_conf);
             } else {
-                wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may "
-                                        "cause printing quality issues."));
+                wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, "
+                                        "this may cause printing quality issues."));
                 msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
                 dialog.SetButtonLabel(wxID_YES, _L("Adjust"));
@@ -1613,8 +1613,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         unsigned char activate = boost::any_cast<unsigned char>(value);
         if (activate == 1) {
             MessageDialog dialog(wxGetApp().plater(), 
-            _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. "
-            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
+                _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. "
+                   "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications. "
+                   "Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
     }
