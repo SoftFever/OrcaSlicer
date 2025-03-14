@@ -1356,13 +1356,13 @@ msgstr ""
 "特徵 1 已重設，\n"
 "特徵 2 已變為特徵 1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: please select Plane's feature."
 msgstr "警告：請選擇平面的特徵。"
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: please select Point's or Circle's feature."
 msgstr "警告：請選擇點或圓的特徵。"
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: please select two different meshes."
 msgstr "警告：請選擇兩個不同的網格。"
 
 msgid "Copy to clipboard"
@@ -6891,7 +6891,7 @@ msgstr "正在上傳 3mf"
 msgid "Jump to model publish web page"
 msgstr "發布頁面"
 
-msgid "Note: The preparation may takes several minutes. Please be patient."
+msgid "Note: The preparation may take several minutes. Please be patient."
 msgstr "提示：發布前需要一些準備時間，請耐心等待。"
 
 msgid "Publish"
@@ -8244,15 +8244,15 @@ msgid "Map Filament"
 msgstr "映射線材"
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
+"Note: The color has been selected, you can choose OK \n"
+"to continue or manually adjust it."
 msgstr ""
 "注意：顏色已選擇，你可以點擊確定繼續，\n"
 "或者手動進行調整。"
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
+"Warning: The count of newly added and \n"
+"current extruders exceeds 16."
 msgstr "警告：新增的擠出機量與當前擠出機總數超過 16。"
 
 msgid "Ramming customization"

@@ -1367,13 +1367,13 @@ msgid ""
 "feature 2 has been feature 1"
 msgstr ""
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: please select Plane's feature."
 msgstr ""
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: please select Point's or Circle's feature."
 msgstr ""
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: please select two different meshes."
 msgstr ""
 
 msgid "Copy to clipboard"
@@ -7062,7 +7062,7 @@ msgstr "Nahrávání 3mf"
 msgid "Jump to model publish web page"
 msgstr "Přejít na webovou stránku pro publikování modelu"
 
-msgid "Note: The preparation may takes several minutes. Please be patient."
+msgid "Note: The preparation may take several minutes. Please be patient."
 msgstr "Poznámka: Příprava může trvat několik minut. Buďte prosím trpěliví."
 
 msgid "Publish"
@@ -8441,13 +8441,13 @@ msgid "Map Filament"
 msgstr ""
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
+"Note: The color has been selected, you can choose OK \n"
+"to continue or manually adjust it."
 msgstr ""
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
+"Warning: The count of newly added and \n"
+"current extruders exceeds 16."
 msgstr ""
 
 msgid "Ramming customization"
