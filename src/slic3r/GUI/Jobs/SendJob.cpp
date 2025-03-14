@@ -22,7 +22,7 @@ static auto upload_ftp_failed_str = _u8L("Failed to upload file to ftp. Please t
 
 static auto desc_network_error     = _u8L("Check the current status of the bambu server by clicking on the link above.");
 static auto desc_file_too_large    = _u8L("The size of the print file is too large. Please adjust the file size and try again.");
-static auto desc_fail_not_exist    = _u8L("Print file not found, Please slice it again and send it for printing.");
+static auto desc_fail_not_exist    = _u8L("Print file not found, please slice it again and send it for printing.");
 static auto desc_upload_ftp_failed = _u8L("Failed to upload print file to FTP. Please check the network status and try again.");
 
 static auto sending_over_lan_str   = _u8L("Sending print job over LAN");

@@ -2637,7 +2637,7 @@ msgid ""
 "again."
 msgstr ""
 
-msgid "Print file not found, Please slice it again and send it for printing."
+msgid "Print file not found, please slice it again and send it for printing."
 msgstr ""
 
 msgid ""
@@ -3831,7 +3831,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"CF/GF filaments are hard and brittle, it's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
 
@@ -4933,7 +4933,7 @@ msgid "Connection Failed. Please check the network and try again"
 msgstr ""
 
 msgid ""
-"Please check the network and try again, You can restart or update the "
+"Please check the network and try again. You can restart or update the "
 "printer if the issue persists."
 msgstr ""
 
@@ -5872,8 +5872,8 @@ msgstr "3mfを読込み"
 
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+"The 3mf's version %s is newer than %s's version %s, found following "
+"unrecognized keys:"
 msgstr ""
 "3mfのバージョン %s は %sのバージョン %sより新しい為、下記のキーを認識できませ"
 "ん"
@@ -5968,8 +5968,8 @@ msgid "The file does not contain any geometry data."
 msgstr "このファイルにはジオメトリデータが含まれていません。"
 
 msgid ""
-"Your object appears to be too large, Do you want to scale it down to fit the "
-"heat bed automatically?"
+"Your object appears to be too large, do you want to scale it down to fit the "
+"print bed automatically?"
 msgstr "オブジェクトが大きすぎのようです、ベッドに合わせてスケールしますか？"
 
 msgid "Object too large"
@@ -6734,7 +6734,7 @@ msgstr "デバッグ設定を保存"
 msgid "DEBUG settings have saved successfully!"
 msgstr "デバッグ設定"
 
-msgid "Switch cloud environment, Please login again!"
+msgid "Cloud environment switched, please login again!"
 msgstr "クラウド環境を切り替えました、再度サインインしてください。"
 
 msgid "System presets"
@@ -7315,7 +7315,7 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the "
+"When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
@@ -8071,7 +8071,7 @@ msgstr "新しいバージョンが利用可能です"
 msgid "Configuration update"
 msgstr "構成の更新"
 
-msgid "A new configuration package available, Do you want to install it?"
+msgid "A new configuration package is available. Do you want to install it?"
 msgstr "新しい構成パッケージが利用できます。インストールしますか？"
 
 msgid "Description:"
@@ -8080,13 +8080,13 @@ msgstr "詳細:"
 msgid "Configuration incompatible"
 msgstr "構成ファイルは互換性がありません"
 
-msgid "the configuration package is incompatible with current application."
+msgid "the configuration package is incompatible with the current application."
 msgstr "構成パッケージが現在のアプリケーションと互換性がありません"
 
 #, c-format, boost-format
 msgid ""
-"The configuration package is incompatible with current application.\n"
-"%s will update the configuration package, Otherwise it won't be able to start"
+"The configuration package is incompatible with the current application.\n"
+"%s will update the configuration package to allow the application to start."
 msgstr ""
 "構成パッケージは現在のバージョンと互換性ありません。\n"
 "%sで構成パッケージを更新しアプリケーションを再起動します"
@@ -8572,7 +8572,7 @@ msgstr ""
 "が更新されます。"
 
 #, c-format, boost-format
-msgid "A new Network plug-in (%s) available, Do you want to install it?"
+msgid "A new Network plug-in (%s) is available. Do you want to install it?"
 msgstr "新しいプラグイン (%s) が発見しました、インストールしますか？"
 
 msgid "New version of Orca Slicer"
@@ -15277,7 +15277,7 @@ msgstr ""
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you "
 "selected\".\n"
-"To add preset for more printers, Please go to printer selection"
+"To add preset for more printers, please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -16666,7 +16666,7 @@ msgstr ""
 #~ msgstr "初期化失敗 (カメラ無し)"
 
 #~ msgid ""
-#~ "Printer is busy downloading, Please wait for the downloading to finish."
+#~ "Printer is busy downloading, please wait for the download to finish."
 #~ msgstr "プリンターがダウンロード中、完了までお待ちください"
 
 #~ msgid "Initialize failed (Not accessible in LAN-only mode)!"
