@@ -3682,7 +3682,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Extra loading distance");
     def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
                       "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
-                      " if negative, the loading move is shorter than unloading.");
+                      "if negative, the loading move is shorter than unloading.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-2.));
