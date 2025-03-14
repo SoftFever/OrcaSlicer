@@ -222,8 +222,8 @@ void KBShortcutsDialog::fill_shortcuts()
             { "A", L("Arrange all objects") },
             { L("Shift+A"), L("Arrange objects on selected plates") },
 
-            //{ "R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project.") },
-            {L("Shift+R"), L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
+            //{ "R", L("Auto orients selected objects or all objects. If there are selected objects, it just orients the selected ones. Otherwise, it will orient all objects in the project.") },
+            {L("Shift+R"), L("Auto orients selected objects or all objects. If there are selected objects, it just orients the selected ones. Otherwise, it will orient all objects in the current plate.")},
 
             {L("Shift+Tab"), L("Collapse/Expand the sidebar")},
             #ifdef __APPLE__
