@@ -97,25 +97,43 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
             Slic3r::Utils::SerialMessage dataCommand = {std::string(result.begin(), result.end()), Slic3r::Utils::Data};
             client.enqueue_cmd(dataCommand);
             newfile.close(); // close the file object.
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sent %1% ") % result.size();
-        }
-        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sending file save command ");
-        client.enqueue_cmd(saveFileCommand);
-        if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Starting print %1%") % upload_data.upload_path.string();
-            Slic3r::Utils::SerialMessage startPrintCommand = {(boost::format("~M23 0:/user/%1%") % upload_data.upload_path.string()).str(),
-                                                              Slic3r::Utils::Command};
-            client.enqueue_cmd(startPrintCommand);
-        }
+            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Data transfer bytes %1% ") % result.size();
 
-        res = client.run_queue();
+            res = client.run_queue();
 
-        if (!res) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] error %1%") % client.error_message().c_str();
-            errormsg = wxString::FromUTF8(client.error_message().c_str());
-        }
-        if (!res) {
-            error_fn(std::move(errormsg));
+            if (!res) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Data transfer error %1%") % client.error_message().c_str();
+                errormsg = wxString::FromUTF8(client.error_message().c_str());
+                error_fn(std::move(errormsg));
+            } else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sending file save command ");
+                client.enqueue_cmd(saveFileCommand);
+                
+                // Allow some time for printer to flush the file to disk.
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                res = client.run_queue();
+                
+                if (!res) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sending file save command error %1%") % client.error_message().c_str();
+                    errormsg = wxString::FromUTF8(client.error_message().c_str());
+                    error_fn(std::move(errormsg));
+                } else {
+                    if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Starting print %1%") % upload_data.upload_path.string();
+                        Slic3r::Utils::SerialMessage startPrintCommand = {(boost::format("~M23 0:/user/%1%") % upload_data.upload_path.string()).str(),
+                            Slic3r::Utils::Command};
+                        client.enqueue_cmd(startPrintCommand);
+                        
+                        res = client.run_queue();
+                        
+                        if (!res) {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Start print error %1%") % client.error_message().c_str();
+                            errormsg = wxString::FromUTF8(client.error_message().c_str());
+                            error_fn(std::move(errormsg));
+                        }
+                    }
+                }
+            }
         }
     } catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] error %1%") % e.what();
