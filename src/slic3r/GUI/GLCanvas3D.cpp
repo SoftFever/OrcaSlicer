@@ -4340,8 +4340,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             else {
                                 if (!m_selection.is_empty())
                                     rotate_target = m_selection.get_bounding_box().center();
-                                else 
-                                    rotate_target = volumes_bounding_box(true).center();
+                                else {
+                                    // Rotate around the center of objects on current plate
+                                    auto bbox = volumes_bounding_box(true);
+                                    if (!bbox.defined) {
+                                        // Rotate around current plate center if current plate is empty
+                                        bbox = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box();
+                                    }
+                                    rotate_target = bbox.center();
+                                }
                             }
 
                             if (!rotate_target.isZero())
