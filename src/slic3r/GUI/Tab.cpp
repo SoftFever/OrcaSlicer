@@ -1069,17 +1069,21 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                 to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                 load_key_value("compatible_printers", true/*some value*/, true);
 
-                bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-                m_compatible_printers.checkbox->SetValue(is_empty);
-                is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+                if (m_compatible_printers.checkbox) {
+                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+                    m_compatible_printers.checkbox->SetValue(is_empty);
+                    is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+                }
             }
             if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                 load_key_value("compatible_prints", true/*some value*/, true);
 
-                bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
-                m_compatible_prints.checkbox->SetValue(is_empty);
-                is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+                if (m_compatible_prints.checkbox) {
+                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+                    m_compatible_prints.checkbox->SetValue(is_empty);
+                    is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+                }
             }
         }
         for (const auto &kvp : group->opt_map()) {
