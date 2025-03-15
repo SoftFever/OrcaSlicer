@@ -10,7 +10,6 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
-#include <cmath>
 
 #include <wx/frame.h>
 #include <wx/event.h>
@@ -38,6 +37,7 @@ Flashforge::Flashforge(DynamicPrintConfig* config)
     : m_host(config->opt_string("print_host"))
     , m_console_port("8899")
     , m_gcFlavor(config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value)
+    , m_bufferSize(4096) // 4K buffer size
 {}
 
 const char* Flashforge::get_name() const { return "Flashforge"; }
@@ -146,11 +146,11 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
              Slic3r::Utils::Command};
         client.enqueue_cmd(fileuploadCommand);
 
-        //res = client.run_queue();
+        //client.set_tcp_queue_delay(std::chrono::nanoseconds(10000));
 
-        for (int bytePos = 0; bytePos < gcodeFile.size(); bytePos += 16384) { // TODO: Find more efficient way of breaking ifstream
+        for (int bytePos = 0; bytePos < gcodeFile.size(); bytePos += m_bufferSize) { // TODO: Find more efficient way of breaking ifstream
 
-            int bytePosEnd  = (gcodeFile.size() - bytePos > 16383) ? 16384 : gcodeFile.size();
+            int bytePosEnd  = (gcodeFile.size() - bytePos > m_bufferSize - 1) ? m_bufferSize : gcodeFile.size();
             Slic3r::Utils::SerialMessage dataCommand = {gcodeFile.substr(bytePos, bytePosEnd), Slic3r::Utils::Data}; // Break into smaller byte chunks
 
             client.enqueue_cmd(dataCommand);
@@ -169,7 +169,7 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
             error_fn(std::move(errormsg));
         } else {
 
-            client.set_tcp_queue_delay(std::chrono::milliseconds(500));
+            client.set_tcp_queue_delay(std::chrono::milliseconds(3000));
 
             BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge Serial] Sending file save command ");
             

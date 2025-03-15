@@ -32,6 +32,7 @@ public:
 private:
     std::string m_host;
     std::string m_console_port;
+    const int m_bufferSize;
     GCodeFlavor m_gcFlavor;
     Slic3r::Utils::SerialMessage controlCommand          = {"~M601 S1\r\n",Slic3r::Utils::Command};
     Slic3r::Utils::SerialMessage connectKlipperCommand   = {"~M640\r\n",Slic3r::Utils::Command};
