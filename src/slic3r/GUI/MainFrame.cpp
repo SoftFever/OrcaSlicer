@@ -2676,10 +2676,19 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().app_config->set_bool("use_perspective_camera", false);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
-        if (wxGetApp().app_config->get("use_perspective_camera").compare("true") == 0)
-            viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
-        else
-            viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
+        this->Bind(wxEVT_UPDATE_UI, [viewMenu, camera_id_base](wxUpdateUIEvent& evt) {
+                if (wxGetApp().app_config->get("use_perspective_camera").compare("true") == 0)
+                    viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
+                else
+                    viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
+            }, wxID_ANY);
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Auto Perspective"), _L("Automatically switch between orthographic and perspective when changing from top/bottom/side views"),
+            [this](wxCommandEvent&) {
+                wxGetApp().app_config->set_bool("auto_perspective", !wxGetApp().app_config->get_bool("auto_perspective"));
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview; },
+            [this]() { return wxGetApp().app_config->get_bool("auto_perspective"); }, this);
 
         viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &G-code Window") + "\tC", _L("Show g-code window in Preview scene"),
@@ -3217,10 +3226,10 @@ struct ConfigsOverwriteConfirmDialog : MessageDialog
 {
     ConfigsOverwriteConfirmDialog(wxWindow *parent, wxString name, bool exported)
         : MessageDialog(parent,
-                        wxString::Format(exported ? _L("A file exists with the same name: %s, do you want to override it.") :
-                                                  _L("A config exists with the same name: %s, do you want to override it."),
+                        wxString::Format(exported ? _L("A file exists with the same name: %s, do you want to overwrite it?") :
+                                                  _L("A config exists with the same name: %s, do you want to overwrite it?"),
                                          name),
-                        _L(exported ? "Overwrite file" : "Overwrite config"),
+                        exported ? _L("Overwrite file") : _L("Overwrite config"),
                         wxYES_NO | wxNO_DEFAULT)
     {
         add_button(wxID_YESTOALL, false, _L("Yes to All"));

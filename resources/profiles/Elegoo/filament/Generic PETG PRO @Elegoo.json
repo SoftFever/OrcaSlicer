@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFG99",
 	  "setting_id": "GFSG99",
-    "name": "Elegoo Generic PETG PRO",
+    "name": "Generic PETG PRO @Elegoo",
     "inherits": "fdm_filament_pet",
     "from": "system",
     "instantiation": "true",
