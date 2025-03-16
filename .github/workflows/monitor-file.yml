@@ -1,0 +1,112 @@
+name: Check Translation Consistency
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天執行
+  workflow_dispatch: # 允許手動觸發
+jobs:
+  check-translation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚀 檢查並同步倉庫
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: 🔄 取得上游翻譯文件
+        run: |
+          git remote add upstream https://github.com/SoftFever/OrcaSlicer.git || true
+          git fetch upstream main
+      - name: 🔍 比對翻譯文件差異
+        run: |
+          DIFF_FILES=""
+          DIFF_SUMMARY=""
+          if ! git diff --quiet upstream/main -- localization/i18n/zh_TW/OrcaSlicer_zh_TW.po; then
+            DIFF_FILES="$DIFF_FILES localization/i18n/zh_TW/OrcaSlicer_zh_TW.po"
+            DIFF_SUMMARY+="| 📄 localization/i18n/zh_TW/OrcaSlicer_zh_TW.po | $(git diff --shortstat upstream/main -- localization/i18n/zh_TW/OrcaSlicer_zh_TW.po) |
+            "
+          fi
+          if ! git diff --quiet upstream/main -- localization/i18n/OrcaSlicer.pot; then
+            DIFF_FILES="$DIFF_FILES localization/i18n/OrcaSlicer.pot"
+            DIFF_SUMMARY+="| 📄 localization/i18n/OrcaSlicer.pot | $(git diff --shortstat upstream/main -- localization/i18n/OrcaSlicer.pot) |
+            "
+          fi
+          if [[ -n "$DIFF_FILES" ]]; then
+            echo "🔄 檔案不一致: $DIFF_FILES"
+            echo "changed=true" >> $GITHUB_ENV
+            echo "diff_files=\"$DIFF_FILES\"" >> $GITHUB_ENV
+            printf "diff_summary<<EOF\n%s\nEOF\n" "$DIFF_SUMMARY" >> $GITHUB_ENV
+          else
+            echo "✅ 檔案一致，無需同步"
+            echo "changed=false" >> $GITHUB_ENV
+          fi
+      - name: 🔍 確保 "translation" 標籤存在
+        run: |
+          echo "🔍 檢查是否已有 'translation' 標籤..."
+          LABELS=$(gh label list --repo shuwn/OrcaSlicer --json name --jq '.[].name' || true)
+          if [[ ! "$LABELS" =~ "translation" ]]; then
+            echo "➕ 創建 'translation' 標籤"
+            gh label create "translation" --repo shuwn/OrcaSlicer --description "翻譯同步相關議題"
+          else
+            echo "✅ 'translation' 標籤已存在"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📝 創建或更新 Issue
+        if: env.changed == 'true'
+        id: create_issue
+        run: |
+          echo "🔍 檢查是否已有未解決的翻譯問題..."
+          ISSUE_NUMBER=$(gh issue list --repo shuwn/OrcaSlicer --state open --label "translation" --json number --jq '.[0].number' || true)
+          ISSUE_BODY=$(printf "**🔄 翻譯檔案同步通知**\n\n
+          🔗 **上游倉庫**: [SoftFever/OrcaSlicer](https://github.com/SoftFever/OrcaSlicer)\n\n
+          🔹 **影響的檔案**:\n\n
+          | 文件名稱 | 變更摘要 |
+          |----------|---------|
+          %s\n\n
+          🔄 **請確認是否需要同步更新！**\n
+          🔍 **如已同步，請關閉此 Issue** 🙌" \
+          "${{ env.diff_summary }}")
+          
+          if [[ -n "$ISSUE_NUMBER" ]]; then
+            echo "📝 已有 Issue #$ISSUE_NUMBER，新增留言補充變更..."
+            gh issue comment "$ISSUE_NUMBER" --repo shuwn/OrcaSlicer --body "$ISSUE_BODY"
+            echo "issue_url=https://github.com/shuwn/OrcaSlicer/issues/$ISSUE_NUMBER" >> $GITHUB_ENV
+            echo "comment_url=https://github.com/shuwn/OrcaSlicer/issues/$ISSUE_NUMBER#issuecomment-new" >> $GITHUB_ENV
+            echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_ENV
+            echo "is_new_issue=false" >> $GITHUB_ENV
+          else
+            echo "🚀 創建新 Issue..."
+            ISSUE_URL=$(gh issue create --repo shuwn/OrcaSlicer \
+              --title "⚠️ 翻譯檔案與上游不同！" \
+              --body "$ISSUE_BODY" \
+              --label "translation")
+            echo "issue_url=$ISSUE_URL" >> $GITHUB_ENV
+            ISSUE_NUMBER=$(echo "$ISSUE_URL" | grep -o '[0-9]*$')
+            echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_ENV
+            echo "is_new_issue=true" >> $GITHUB_ENV
+          fi
+          
+          # 為 Discord 訊息準備格式化的差異摘要
+          DISCORD_DIFF_TABLE="🔹 **影響的檔案**:
+          $(echo "${{ env.diff_summary }}" | awk -F'|' '{ if (NF > 2) print "- **" $2 "**\n  `" $3 "`" }')"
+          echo "discord_diff_table<<EOF" >> $GITHUB_ENV
+          echo "$DISCORD_DIFF_TABLE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 🔔 發送 Discord 通知
+        if: env.changed == 'true'
+        uses: Ilshidur/action-discord@master
+        with:
+          args: |
+            ${{ env.is_new_issue == 'true' && '⚠️ **新的翻譯同步問題!**' || '🔄 **翻譯同步問題更新!**' }}
+            
+            發現翻譯文件與上游不一致，請檢查！
+            
+            ${{ env.discord_diff_table }}
+            
+            🔄 **請確認是否需要同步更新！**
+            
+            ${{ env.is_new_issue == 'true' && format('🔗 **Issue 連結**: {0}', env.issue_url) || format('🔗 **更新留言連結**: {0}', env.comment_url) }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
