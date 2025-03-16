@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "TCPConsole.hpp"
 #include "SerialMessage.hpp"
