@@ -963,7 +963,6 @@ void SelectMachineDialog::popup_filament_backup()
     if (!dev) return;
     if (dev->get_selected_machine()/* && dev->get_selected_machine()->filam_bak.size() > 0*/) {
         AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
-        m_replace_material_popup->update_mapping_result(m_ams_mapping_result);
         m_replace_material_popup->update_machine_obj(dev->get_selected_machine());
         m_replace_material_popup->ShowModal();
     }

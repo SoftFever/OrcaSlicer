@@ -433,7 +433,6 @@ public:
 
 public:
     void        update_machine_obj(MachineObject* obj);
-    void        update_mapping_result(std::vector<FilamentInfo> result);
     void        paintEvent(wxPaintEvent& evt);
     void        on_dpi_changed(const wxRect& suggested_rect) override;
 

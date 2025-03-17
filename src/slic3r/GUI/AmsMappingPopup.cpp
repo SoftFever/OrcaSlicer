@@ -2069,20 +2069,6 @@ void AmsReplaceMaterialDialog::create()
     Fit();
 }
 
-void AmsReplaceMaterialDialog::update_mapping_result( std::vector<FilamentInfo> result)
-{
-    m_tray_used.clear();
-    for (int i = 0; i < result.size(); i++) {
-
-        if (result[i].tray_id == VIRTUAL_TRAY_MAIN_ID || result[i].tray_id == VIRTUAL_TRAY_DEPUTY_ID)
-        {
-            continue;
-        }
-
-        m_tray_used.push_back(wxGetApp().transition_tridid(result[i].tray_id).ToStdString());
-    }
-}
-
 void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
 {
     if (obj)
