@@ -18797,6 +18797,7 @@ msgstr ""
 #~ msgid "Limited"
 #~ msgstr "Sınırlı"
 
+#~ msgid ""
 #~ "Adjust this value to prevent short, unclosed walls from being printed, "
 #~ "which could increase print time. Higher values remove more and longer "
 #~ "walls.\n"
