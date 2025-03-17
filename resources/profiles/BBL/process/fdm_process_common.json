@@ -111,5 +111,8 @@
     "infill_shift_step": "0.4",
     "infill_rotate_step": "0",
     "prime_tower_enable_framework": "0",
-    "symmetric_infill_y_axis": "0"
+    "symmetric_infill_y_axis": "0",
+    "prime_tower_lift_speed": "90",
+    "prime_tower_lift_height": "-1",
+    "prime_tower_max_speed": "90"
 }
