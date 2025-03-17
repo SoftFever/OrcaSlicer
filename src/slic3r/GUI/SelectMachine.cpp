@@ -1991,6 +1991,30 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     return false;
 }
 
+static std::unordered_set<int> _get_used_nozzle_idxes()
+{
+    std::unordered_set<int> used_nozzle_idxes;
+
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (dev) {
+        MachineObject *obj_ = dev->get_selected_machine();
+        if (obj_) {
+            try {
+                PresetBundle *preset_bundle   = wxGetApp().preset_bundle;
+                PartPlate *cur_plate          = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+                auto       used_filament_idxs = cur_plate->get_used_filaments(); /*the index is started from 1*/
+                for (int used_filament_idx : used_filament_idxs) {
+                    int used_nozzle_idx = cur_plate->get_physical_extruder_by_filament_id(preset_bundle->full_config(), used_filament_idx);
+                    used_nozzle_idxes.insert(used_nozzle_idx);
+                }
+            } catch (const std::exception &) {}
+        }
+    }
+
+    return used_nozzle_idxes;
+}
+
+
 bool SelectMachineDialog::is_nozzle_data_valid(const ExtderData &ext_data) const
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -3459,8 +3483,11 @@ void SelectMachineDialog::update_show_status()
             return show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, msg_params);
         }
 
+        const auto &used_nozzle_idxes = _get_used_nozzle_idxes();
         for (const auto& extder : obj_->m_extder_data.extders)
         {
+            if (used_nozzle_idxes.count(extder.nozzle_id) == 0) { continue; }
+
             std::string filament_type;
             if (!is_same_nozzle_type(extder, filament_type))
             {
