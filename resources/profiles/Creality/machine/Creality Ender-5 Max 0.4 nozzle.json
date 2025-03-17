@@ -78,7 +78,7 @@
     "support_chamber_temp_control": "0",
     "support_multi_bed_types": "1",
     "thumbnails": "96x96,300x300",
-    "thumbnails_format": "CR_PNG",
+    "thumbnails_format": "PNG",
     "time_cost": "0",
     "use_firmware_retraction": "0",
     "use_relative_e_distances": "1",

@@ -24,8 +24,6 @@
     "enable_pressure_advance": "1",
     "eng_plate_temp": "50",
     "eng_plate_temp_initial_layer": "50",
-    "textured_plate_temp": "90",
-    "textured_plate_temp_initial_layer": "90",
     "fan_cooling_layer_time": "30",
     "fan_max_speed": "20",
     "fan_min_speed": "20",
