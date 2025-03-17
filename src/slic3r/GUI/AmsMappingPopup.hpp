@@ -173,9 +173,12 @@ private:
     void render(wxDC &dc);
     void doRender(wxDC &dc);
 
+    int get_remain_area_height() const;
+
 private:
     bool m_checked = false;
-    bool m_support_remain_detect = false;
+    bool m_support_remain_detect = false;/*paint the area as 100 percent*/
+    bool m_to_paint_remain = false;/*do not paint the area*/
 };
 
 class MappingContainer : public wxPanel

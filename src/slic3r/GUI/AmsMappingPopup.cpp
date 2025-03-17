@@ -28,7 +28,6 @@ namespace Slic3r { namespace GUI {
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
 #define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(60))
 
-#define MAPPING_ITEM_REMAIN_AREA_H FromDIP(10)
 
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 const int LEFT_OFFSET = 2;
@@ -1349,7 +1348,6 @@ static void _DrawRemainArea(const MappingItem *item, const TrayData &dd, bool su
 
      /*paint invalid data as 100*/
     if (!support_remain_dect) { to_paint_remain = 100;}
-    if (dd.ams_id == VIRTUAL_TRAY_MAIN_ID || dd.ams_id == VIRTUAL_TRAY_DEPUTY_ID) { to_paint_remain = 100; }
     if (0 > to_paint_remain || to_paint_remain > 100) { to_paint_remain = 100; }
 
     wxSize size          = item->GetSize();
@@ -1398,8 +1396,12 @@ void MappingItem::render(wxDC &dc)
 #endif
 
     /*remain*/
-    _DrawRemainArea(this, m_tray_data, m_support_remain_detect, dc);
-    auto top = MAPPING_ITEM_REMAIN_AREA_H;
+    auto top = 0;
+    if (m_to_paint_remain)
+    {
+        _DrawRemainArea(this, m_tray_data, m_support_remain_detect, dc);
+        top += get_remain_area_height();
+    }
 
     // checked
     if (m_checked)
@@ -1422,7 +1424,7 @@ void MappingItem::render(wxDC &dc)
 
 
     top += txt_size.y + FromDIP(7);
-    dc.SetFont(::Label::Body_12);
+    m_name.size() > 4 ? dc.SetFont(::Label::Body_9) : dc.SetFont(::Label::Body_12);
     txt_size = dc.GetTextExtent(m_name);
     dc.DrawText(m_name, wxPoint((GetSize().x - txt_size.x) / 2, top));
 }
@@ -1436,6 +1438,7 @@ void MappingItem::set_data(wxColour colour, wxString name, bool remain_dect, Tra
         m_coloul = colour;
         m_name   = name;
         m_support_remain_detect = remain_dect;
+        m_to_paint_remain       = (m_tray_data.ams_id != VIRTUAL_TRAY_MAIN_ID && m_tray_data.ams_id != VIRTUAL_TRAY_DEPUTY_ID);
         Refresh();
     }
 
@@ -1475,7 +1478,7 @@ void MappingItem::doRender(wxDC &dc)
         //gradient
         if (m_tray_data.ctype == 0) {
             for (int i = 0; i < m_tray_data.material_cols.size() - 1; i++) {
-                auto rect = wxRect(left, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + MAPPING_ITEM_REMAIN_AREA_H, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+                auto rect = wxRect(left, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height(), MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
                 dc.GradientFillLinear(rect, m_tray_data.material_cols[i], m_tray_data.material_cols[i + 1], wxEAST);
                 left += gwidth;
             }
@@ -1485,23 +1488,29 @@ void MappingItem::doRender(wxDC &dc)
             for (int i = 0; i < cols_size; i++) {
                 dc.SetBrush(wxBrush(m_tray_data.material_cols[i]));
                 float x = (float)MAPPING_ITEM_REAL_SIZE.x * i / cols_size;
-                dc.DrawRectangle(x, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + MAPPING_ITEM_REMAIN_AREA_H, (float) MAPPING_ITEM_REAL_SIZE.x / cols_size, MAPPING_ITEM_REAL_SIZE.y);
+                dc.DrawRectangle(x, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height(), (float) MAPPING_ITEM_REAL_SIZE.x / cols_size, MAPPING_ITEM_REAL_SIZE.y);
             }
         }
     }
     else if (color.Alpha() == 0 && !m_unmatch) {
-        dc.DrawBitmap(m_transparent_mapping_item.bmp(), 0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + MAPPING_ITEM_REMAIN_AREA_H);
+        dc.DrawBitmap(m_transparent_mapping_item.bmp(), 0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height());
     }
     else {
-        dc.DrawRectangle(0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + MAPPING_ITEM_REMAIN_AREA_H, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+        dc.DrawRectangle(0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height(), MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
     }
 
     wxColour side_colour = wxColour(0xE4E4E4);
 
     dc.SetPen(side_colour);
     dc.SetBrush(wxBrush(side_colour));
-    dc.DrawRectangle(0,                   MAPPING_ITEM_REMAIN_AREA_H, FromDIP(4), size.y);
-    dc.DrawRectangle(size.x - FromDIP(4), MAPPING_ITEM_REMAIN_AREA_H, FromDIP(4), size.y);
+    dc.DrawRectangle(0,                   get_remain_area_height(), FromDIP(4), size.y);
+    dc.DrawRectangle(size.x - FromDIP(4), get_remain_area_height(), FromDIP(4), size.y);
+}
+
+int MappingItem::get_remain_area_height() const
+{
+    if (m_to_paint_remain) { return FromDIP(10);}
+    return 0;
 }
 
 
