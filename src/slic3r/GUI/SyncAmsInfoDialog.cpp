@@ -2753,6 +2753,7 @@ void SyncAmsInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_swipe_right_button->msw_rescale();
     m_button_ok->Rescale();
     m_button_cancel->Rescale();
+    m_mapping_popup.msw_rescale();
 
     Fit();
     Refresh();

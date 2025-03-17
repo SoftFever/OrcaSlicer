@@ -349,6 +349,8 @@ void SendMultiMachinePage::on_dpi_changed(const wxRect& suggested_rect)
         it->second->Refresh();
     }
 
+    if (m_mapping_popup) { m_mapping_popup->msw_rescale();}
+
     Fit();
     Layout();
     Refresh();

@@ -3730,6 +3730,8 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
         opt.second->msw_rescale();
     }
 
+    m_mapping_popup.msw_rescale();
+
     Fit();
     Refresh();
 }

@@ -721,8 +721,18 @@ void AmsMapingPopup::set_reset_callback(ResetCallback callback) {
 }
 
 void AmsMapingPopup::show_reset_button() {
-    m_reset_btn->Show();
-}
+    m_reset_btn->Show(); }
+
+void AmsMapingPopup::msw_rescale()
+{
+    m_left_extra_slot->msw_rescale();
+    m_right_extra_slot->msw_rescale();
+    for (auto item : m_mapping_item_list) { item->msw_rescale(); }
+    for (auto container : m_amsmapping_container_list) { container->msw_rescale(); }
+
+    Fit();
+    Refresh();
+};
 
  void AmsMapingPopup::set_sizer_title(wxBoxSizer *sizer, wxString text) {
      if (!sizer) { return; }
@@ -1329,9 +1339,11 @@ void MappingItem::send_event(int fliament_id)
 }
 
  void MappingItem::msw_rescale()
-{
-
-}
+ {
+     m_transparent_mapping_item.msw_rescale();
+     mapping_item_checked.msw_rescale();
+     Refresh();
+ }
 
 void MappingItem::paintEvent(wxPaintEvent &evt)
 {
@@ -1419,11 +1431,10 @@ void MappingItem::render(wxDC &dc)
     dc.SetTextForeground(txt_colour);
 
     auto txt_size = dc.GetTextExtent(m_tray_index);
-    top += ((GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
+    top += FromDIP(2);
     dc.DrawText(m_tray_index, wxPoint((GetSize().x - txt_size.x) / 2, top));
 
-
-    top += txt_size.y + FromDIP(7);
+    top += txt_size.y + FromDIP(2);
     m_name.size() > 4 ? dc.SetFont(::Label::Body_9) : dc.SetFont(::Label::Body_12);
     txt_size = dc.GetTextExtent(m_name);
     dc.DrawText(m_name, wxPoint((GetSize().x - txt_size.x) / 2, top));
@@ -1953,7 +1964,18 @@ MappingContainer::~MappingContainer()
 }
 
 
-void MappingContainer::paintEvent(wxPaintEvent& evt)
+void MappingContainer::msw_rescale()
+{
+    if (m_slots_num == 1) {
+        ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_1", this, 82);
+    } else {
+        ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_4", this, 82);
+    }
+
+    Refresh();
+}
+
+void MappingContainer::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     render(dc);

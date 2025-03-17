@@ -195,6 +195,8 @@ public:
 public:
     int   get_slots_num() const { return m_slots_num;}
 
+    void  msw_rescale();
+
 protected:
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
@@ -216,7 +218,7 @@ public:
     wxWindow* send_win{ nullptr };
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
-    std::vector<wxWindow*>   m_amsmapping_container_list;
+    std::vector<MappingContainer*> m_amsmapping_container_list;
     std::vector<MappingItem*> m_mapping_item_list;
 
     bool        m_has_unmatch_filament {false};
@@ -280,6 +282,9 @@ public:
     void  show_reset_button();
     void  set_material_index_str(std::string str) { m_material_index = str; }
     const std::string &get_material_index_str() { return m_material_index; }
+
+public:
+    void msw_rescale();
 
 private:
     ResetCallback m_reset_callback{nullptr};
