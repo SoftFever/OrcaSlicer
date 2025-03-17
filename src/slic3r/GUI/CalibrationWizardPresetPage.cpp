@@ -589,6 +589,17 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
                                     << ", settring_id = " << preset_info.setting_id
                                     << ", name = " << preset_info.name;
         }
+
+        for (auto extruder : curr_obj->m_extder_data.extders) {
+            if (extruder.current_nozzle_type == NozzleType::ntUndefine) {
+                wxString name = _L("left");
+                if (extruder.id == 0) { name = _L("right"); }
+                wxString msg = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
+                MessageDialog msg_dlg(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+                break;
+            }
+        }
         on_device_connected(curr_obj);
     });
 
