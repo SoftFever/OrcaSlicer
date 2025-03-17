@@ -7225,6 +7225,9 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent& a)
 
         this->update();
     }
+    else {
+		notification_manager->push_helio_error_notification(a.error_message);
+    }
 }
 
 void Plater::priv::on_helio_processing_start(SimpleEvent& a)

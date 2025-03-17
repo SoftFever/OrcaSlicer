@@ -1874,6 +1874,13 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
 	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
 	set_slicing_progress_hidden();
 }
+
+void NotificationManager::push_helio_error_notification(const std::string& text) {
+    set_all_slicing_errors_gray(false);
+    push_notification_data({NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text, ""}, 0);
+	set_slicing_progress_hidden();
+}
+
 void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level/* = NotificationLevel::WarningNotificationLevel*/)
 {
 	std::function<bool(wxEvtHandler*)> callback;
