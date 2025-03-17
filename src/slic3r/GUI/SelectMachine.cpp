@@ -3662,7 +3662,7 @@ bool SelectMachineDialog::is_show_timelapse()
         return false;
     };
 
-    std::string standard_version = "01.04.00.00";
+    std::string standard_version = "2.2.0";
     PartPlate *plate      = m_plater->get_partplate_list().get_curr_plate();
     fs::path   gcode_path = plate->get_tmp_gcode_path();
 
@@ -3680,7 +3680,7 @@ bool SelectMachineDialog::is_show_timelapse()
                 }
                 break;
             }
-            if (line == "BambuStudio")
+            if (line == "OrcaSlicer")
                 is_version = true;
         }
     }
