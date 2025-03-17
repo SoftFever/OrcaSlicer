@@ -3956,9 +3956,10 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                     finish_layer_filament = block.last_nozzle_change_id;
                 }
 
-                WipeTowerBlock * last_layer_finish_block = get_block_by_category(get_filament_category(layer.tool_changes.front().old_tool), false);
-                if (!layer.tool_changes.empty() && last_layer_finish_block && last_layer_finish_block->block_id == block.block_id && finish_layer_filament == -1) {
-                    finish_layer_filament = layer.tool_changes.front().old_tool;
+                if (!layer.tool_changes.empty()) {
+                    WipeTowerBlock * last_layer_finish_block = get_block_by_category(get_filament_category(layer.tool_changes.front().old_tool), false);
+                    if (last_layer_finish_block && last_layer_finish_block->block_id == block.block_id && finish_layer_filament == -1)
+                        finish_layer_filament = layer.tool_changes.front().old_tool;
                 }
 
                 if (finish_layer_filament == -1) {
