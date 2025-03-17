@@ -19377,13 +19377,6 @@ msgstr ""
 #~ "4’ten fazla stüdyo/kullanışlı uzaktan erişim kullanıyor, bazılarını "
 #~ "kapatıp tekrar deneyebilirsiniz."
 
-#~ msgid ""
-#~ "The 3mf file version is in Beta and it is newer than the current Bambu "
-#~ "Studio version."
-#~ msgstr ""
-#~ "3mf dosya sürümü Beta aşamasındadır ve mevcut Bambu Studio sürümünden "
-#~ "daha yenidir."
-
 #~ msgid "If you would like to try Bambu Studio Beta, you may click to"
 #~ msgstr "Bambu Studio Beta’yı denemek isterseniz tıklayabilirsiniz."
 

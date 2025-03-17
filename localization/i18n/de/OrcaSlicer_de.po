@@ -19837,13 +19837,6 @@ msgstr ""
 #~ msgid "New Flow Dynamics Calibration"
 #~ msgstr "Neue Flussdynamik-Kalibrierung"
 
-#~ msgid ""
-#~ "The 3mf file version is in Beta and it is newer than the current "
-#~ "OrcaSlicer version."
-#~ msgstr ""
-#~ "Die 3mf-Dateiversion ist in Beta und neuer als die aktuelle Bambu Studio-"
-#~ "Version."
-
 #~ msgid "active"
 #~ msgstr "Aktiv"
 

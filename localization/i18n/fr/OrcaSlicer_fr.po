@@ -20111,13 +20111,6 @@ msgstr ""
 #~ msgid "New Flow Dynamics Calibration"
 #~ msgstr "Nouvelle calibration de la dynamique du flux"
 
-#~ msgid ""
-#~ "The 3mf file version is in Beta and it is newer than the current "
-#~ "OrcaSlicer version."
-#~ msgstr ""
-#~ "La version du fichier 3mf est en Beta et est plus récente que la version "
-#~ "actuelle d’OrcaSlicer."
-
 #~ msgid "active"
 #~ msgstr "actif"
 
