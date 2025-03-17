@@ -1768,6 +1768,11 @@ void CalibrationPresetPage::update_show_status()
             show_status(CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard);
             return;
         }
+        else if (obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL
+            || obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_READONLY) {
+            show_status(CaliPresetPageStatus::CaliPresetStatusLanModeSDcardNotAvailable);
+            return;
+        }
     }
     else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
         show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
@@ -1864,6 +1869,11 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusLanModeSDcardNotAvailable) {
+        wxString msg_text = _L("Storage is not available or is in read-only mode.");
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
     }
