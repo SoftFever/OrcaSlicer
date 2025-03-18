@@ -574,6 +574,10 @@ void CalibrationPanel::update_all() {
     }
 
     if (obj) {
+        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
+    }
+
+    if (obj) {
         wxGetApp().reset_to_active();
         if (obj->connection_type() != last_conn_type) {
             last_conn_type = obj->connection_type();
