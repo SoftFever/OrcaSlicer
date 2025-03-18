@@ -369,86 +369,23 @@ bool PresetBundle::use_bbl_device_tab() {
 
 bool PresetBundle::backup_user_folder() const
 {
-    const std::string backup_filename = (boost::format("Orca_user_folder_backup_%1%.zip") % SoftFever_VERSION).str();
-    const std::string backup_filepath = data_dir() + "/" + backup_filename;
+    const std::string backup_folderpath = data_dir() + "/" + (boost::format("user_backup-v%1%") % SoftFever_VERSION).str();
 
     // Check if backup file already exists
-    if (boost::filesystem::exists(boost::filesystem::path(backup_filepath))) {
-        BOOST_LOG_TRIVIAL(info) << "User folder backup already exists at: " << backup_filepath;
+    if (boost::filesystem::exists(boost::filesystem::path(backup_folderpath)))
         return false;
-    }
 
-    BOOST_LOG_TRIVIAL(info) << "Backing up user folder to: " << backup_filepath;
-
+    BOOST_LOG_TRIVIAL(info) << "Backing up user folder to: " << backup_folderpath;
     try {
-        // Create a temporary zip archive
-        mz_zip_archive zip_archive;
-        mz_zip_zero_struct(&zip_archive);
-
-        if (!mz_zip_writer_init_file(&zip_archive, backup_filepath.c_str(), 0)) {
-            BOOST_LOG_TRIVIAL(error) << "Failed to initialize zip writer for backup";
-            return false;
-        }
-
-        // Recursively add all files from the user directory to the zip
-        boost::filesystem::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
-
-        // Helper lambda to recursively add files to zip
-        std::function<bool(const boost::filesystem::path&, const std::string&)> add_dir_to_zip;
-        add_dir_to_zip = [&zip_archive, &add_dir_to_zip, &user_folder](const boost::filesystem::path& dir_path,
-                                                                       const std::string&             zip_path) -> bool {
-            if (!boost::filesystem::exists(dir_path) || !boost::filesystem::is_directory(dir_path))
-                return false;
-
-            for (auto& entry : boost::filesystem::directory_iterator(dir_path)) {
-                boost::filesystem::path entry_path = entry.path();
-                // get relative path of entry_path compare to backup_dir
-                std::string rel_path = boost::filesystem::relative(entry_path, user_folder).string();
-                if (boost::filesystem::is_directory(entry_path)) {
-                    // Recursively add contents
-                    if (!add_dir_to_zip(entry_path, rel_path))
-                        return false;
-                } else {
-                    // Skip adding the backup file itself
-                    if (entry_path.filename().extension() == ".zip")
-                        continue;
-
-                    // Add file to zip
-                    if (!mz_zip_writer_add_file(&zip_archive, rel_path.c_str(), encode_path(entry_path.string().c_str()).c_str(), nullptr,
-                                                0, MZ_DEFAULT_COMPRESSION)) {
-                        BOOST_LOG_TRIVIAL(error) << "Failed to add file to zip: " << entry_path.string();
-                        return false;
-                    }
-                }
-            }
-            return true;
-        };
-
-        // Start the recursive addition from the user folder, with the base path being empty
-        if (!add_dir_to_zip(user_folder, "")) {
-            mz_zip_writer_end(&zip_archive);
-            boost::filesystem::remove(boost::filesystem::path(backup_filepath));
-            return false;
-        }
-
-        // Finalize the zip file
-        if (!mz_zip_writer_finalize_archive(&zip_archive)) {
-            BOOST_LOG_TRIVIAL(error) << "Failed to finalize zip archive for backup";
-            mz_zip_writer_end(&zip_archive);
-            boost::filesystem::remove(boost::filesystem::path(backup_filepath));
-            return false;
-        }
-
-        // Close the zip writer
-        mz_zip_writer_end(&zip_archive);
-
+        // Copy the user folder to the backup folder
+        boost::filesystem::copy(data_dir() + "/" + PRESET_USER_DIR, backup_folderpath, boost::filesystem::copy_options::recursive);
         BOOST_LOG_TRIVIAL(info) << "User folder backup completed successfully";
         return true;
     } catch (const std::exception& ex) {
         BOOST_LOG_TRIVIAL(error) << "Exception during user folder backup: " << ex.what();
-        // Try to clean up partially created zip file
-        if (boost::filesystem::exists(boost::filesystem::path(backup_filepath)))
-            boost::filesystem::remove(boost::filesystem::path(backup_filepath));
+        // Try to clean up partially copied backup folder
+        if (boost::filesystem::exists(boost::filesystem::path(backup_folderpath)))
+            boost::filesystem::remove_all(boost::filesystem::path(backup_folderpath));
         return false;
     }
 }
