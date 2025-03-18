@@ -2742,8 +2742,24 @@ FilamentMapMode Print::get_filament_map_mode() const
 
 std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const
 {
-    // master saved in config is 1 based,so we should transfer to 0 based here
-    int master_extruder_id = m_config.master_extruder_id.value - 1;
+    int extruder_num = m_config.nozzle_diameter.size();
+    std::vector<std::set<int>>physical_unprintables(extruder_num);
+    if (extruder_num < 2)
+        return physical_unprintables;
+
+    auto get_unprintable_extruder_id = [&](unsigned int filament_idx)->int {
+        if (m_config.unprintable_filament_types.empty())
+            return -1;
+        for (int eid = 0; eid < m_config.unprintable_filament_types.values.size(); ++eid) {
+            std::vector<std::string> extruder_unprintables = split_string(m_config.unprintable_filament_types.values[eid], ',');
+            auto iter = std::find(extruder_unprintables.begin(), extruder_unprintables.end(), m_config.filament_type.values[filament_idx]);
+            if (iter != extruder_unprintables.end())
+                return eid;
+        }
+        return -1;
+    };
+
+
     std::set<int> tpu_filaments;
     for (auto f : used_filaments) {
         if (m_config.filament_type.get_at(f) == "TPU")
@@ -2753,27 +2769,13 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
         throw Slic3r::RuntimeError(_u8L("Only supports up to one TPU filament."));
     }
 
-    int extruder_num = m_config.nozzle_diameter.size();
-    // consider tpu, only place tpu in extruder with ams
-    std::vector<std::set<int>>physical_unprintables(extruder_num);
-    if (extruder_num < 2)
-        return physical_unprintables;
-
-    int extruder_without_tpu = 1 - master_extruder_id;
-    for (auto& f : tpu_filaments)
-        physical_unprintables[extruder_without_tpu].insert(f);
-
-    // consider nozzle hrc, nozzle hrc should larger than filament hrc
-    for (size_t eid = 0; eid < physical_unprintables.size(); ++eid) {
-        auto nozzle_type = m_config.nozzle_type.get_at(eid);
-        int nozzle_hrc = get_hrc_by_nozzle_type(NozzleType(nozzle_type));
-        for (auto& f : used_filaments) {
-            int filament_hrc = m_config.required_nozzle_HRC.get_at(f);
-            if(filament_hrc>nozzle_hrc){
-                physical_unprintables[eid].insert(f);
-            }
-        }
+    for (auto f : used_filaments) {
+        int extruder_id = get_unprintable_extruder_id(f);
+        if (extruder_id == -1)
+            continue;
+        physical_unprintables[extruder_id].insert(f);
     }
+
     return physical_unprintables;
 }
 

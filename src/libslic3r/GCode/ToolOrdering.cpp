@@ -1089,14 +1089,6 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             fg.get_custom_seq = get_custom_seq;
             ret = fg.calc_filament_group();
         }
-
-        // todo: need calculated based on already grouped filaments
-        // PPS-CF/PPA-CF can only be placed on the left extruder
-        for (unsigned int filament_id : used_filaments) {
-            if (print_config.filament_type.get_at(filament_id) == "PPS-CF" || print_config.filament_type.get_at(filament_id) == "PPA-CF") {
-                ret[filament_id] = 0;
-            }
-        }
     }
 
     return ret;
