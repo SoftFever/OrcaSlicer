@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1741069238,
-    "ver": 202503250304,
+    "t": 1741598052,
+    "ver": 202503250310,
     "data": {
         "device_error": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "fr": [
+                {
+                    "ecode": "05004031",
+                    "intro": "Un accessoire non certifié a été détecté, et l'appareil ne peut pas continuer à fonctionner. Veuillez utiliser des accessoires Bambu Lab ou mettre à jour vers le dernier firmware."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "Le module laser n'est pas certifié ; l'appareil ne peut pas continuer à fonctionner. Veuillez utiliser des accessoires Bambu Lab ou mettre à jour vers le dernier firmware."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "La caméra BirdsEye n'est pas certifiée ; l'appareil ne peut pas continuer à fonctionner. Veuillez utiliser des accessoires Bambu Lab ou mettre à jour vers le dernier firmware."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "La configuration de la caméra BirdsEye a échoué. Veuillez dégager le plateau chauffant, enlever tous les objets et le tapis, et assurer que les marqueurs du plateau chauffant sont visibles. Pendant ce temps, nettoyez la caméra BirdsEye et la caméra Toolhead, et retirez tous les obstructions qui pourraient bloquer les caméras."
+                },
+                {
+                    "ecode": "0500808A",
+                    "intro": "La caméra BirdsEye est installée de manière décalée. Veuillez vous référer à l'assistant pour la réinstaller."
+                },
+                {
+                    "ecode": "05008089",
+                    "intro": "Tâche suspendue en raison d'un échec de la vérification de présence. Veuillez vérifier l'imprimante pour continuer."
+                },
                 {
                     "ecode": "0500806A",
                     "intro": "Impossible de reconnaître le hotend gauche et droit. Il pourrait s'agir d'un hotend non officiel, ou la marque du hotend pourrait être sale. Veuillez définir le type de hotend avant la prochaine impression."
@@ -101,10 +125,6 @@
                 {
                     "ecode": "05024007",
                     "intro": "Échec du démarrage d'une nouvelle tâche : le chargement/déchargement du filament n'est pas terminé."
-                },
-                {
-                    "ecode": "05004035",
-                    "intro": "La caméra BirdsEye n'est pas certifiée ; l'appareil ne peut pas continuer à fonctionner. Veuillez utiliser les accessoires Bambu Lab."
                 },
                 {
                     "ecode": "0300801A",
@@ -289,10 +309,6 @@
                 {
                     "ecode": "0500807D",
                     "intro": "Cette tâche nécessite une Plateforme de Découpe, mais la plateforme actuelle est une Plateforme Laser. Veuillez la remplacer par une Plateforme de Découpe (Base de Protection de Découpe + Tapis de Découpe StrongGrip)."
-                },
-                {
-                    "ecode": "05004034",
-                    "intro": "Le Module Laser n'est pas certifié ; l'appareil ne peut pas continuer à fonctionner. Veuillez utiliser les accessoires Bambu Lab."
                 },
                 {
                     "ecode": "03008000",
@@ -901,10 +917,6 @@
                 {
                     "ecode": "18008016",
                     "intro": "L'extrudeuse n'extrude pas normalement ; veuillez vous référer à l'Assistant. Après dépannage. Si les défauts sont acceptables, veuillez reprendre."
-                },
-                {
-                    "ecode": "05004031",
-                    "intro": "Un accessoire non certifié a été détecté, et l'appareil ne peut pas continuer à fonctionner."
                 },
                 {
                     "ecode": "0702800A",
@@ -1980,7 +1992,7 @@
                 },
                 {
                     "ecode": "0C008002",
-                    "intro": ""
+                    "intro": "Une défaillance des spaghetti a été détectée."
                 },
                 {
                     "ecode": "0300400F",
@@ -2489,8 +2501,24 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "fr": [
+                {
+                    "ecode": "0C00040000030024",
+                    "intro": "La position de la caméra BirdsEye est détectée comme étant décalée. Pour garantir la précision de la gravure, il est recommandé de relancer la configuration de la caméra BirdsEye."
+                },
+                {
+                    "ecode": "0500040000020043",
+                    "intro": "La caméra de buse est sale ou obstruée ; veuillez la nettoyer et continuer."
+                },
+                {
+                    "ecode": "0500040000020041",
+                    "intro": "Le module laser a été utilisé pendant longtemps. Veuillez le nettoyer rapidement pour éviter d'affecter le traitement laser."
+                },
+                {
+                    "ecode": "0500040000020042",
+                    "intro": "La caméra Live View est sale ou obstruée ; veuillez la nettoyer et continuer."
+                },
                 {
                     "ecode": "0700700000020003",
                     "intro": "Échec de l'extrusion du filament. Cause possible : obstruction de l'extrudeuse ou de la buse."
@@ -2561,11 +2589,11 @@
                 },
                 {
                     "ecode": "0500060000020061",
-                    "intro": ""
+                    "intro": "Le lien de la caméra CIF a été réinitialisé plusieurs fois. Cela pourrait être un problème avec le câble de connexion ou la caméra a vieilli. Contactez les collègues du matériel pour vérifier."
                 },
                 {
                     "ecode": "0C0001000002001B",
-                    "intro": ""
+                    "intro": "Le processus Xcam est sur le point de créer un vidage de mémoire, veuillez contacter le développeur."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -2673,39 +2701,39 @@
                 },
                 {
                     "ecode": "0500060000020051",
-                    "intro": ""
+                    "intro": "La caméra Toolhead a été réinitialisée plusieurs fois de suite. Contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020054",
-                    "intro": ""
+                    "intro": "La caméra LiveView a été réinitialisée plusieurs fois de suite. Contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020043",
-                    "intro": ""
+                    "intro": "La communication I2C de la caméra BirdsEye a échoué, la caméra peut être cassée, contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020042",
-                    "intro": ""
+                    "intro": "La communication I2C de la caméra Nozzle a échoué, la caméra peut être cassée, contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020041",
-                    "intro": ""
+                    "intro": "La communication I2C de la caméra Toolhead a échoué, la caméra peut être cassée, contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020053",
-                    "intro": ""
+                    "intro": "La caméra BirdsEye a été réinitialisée plusieurs fois de suite. Contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020044",
-                    "intro": ""
+                    "intro": "La communication I2C de la caméra LiveView a échoué, la caméra peut être cassée, contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020062",
-                    "intro": ""
+                    "intro": "Le lien ISP de la caméra a été réinitialisé plusieurs fois. Contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0500060000020052",
-                    "intro": ""
+                    "intro": "La caméra Nozzle a été réinitialisée plusieurs fois de suite. Contactez le développeur pour confirmer."
                 },
                 {
                     "ecode": "0300260000010002",
@@ -2772,10 +2800,6 @@
                     "intro": "Le Module de Découpe nécessite une calibration pour obtenir la position de l'outil. Veuillez effectuer la calibration de montage avant utilisation. (environ 2-4 minutes)"
                 },
                 {
-                    "ecode": "0705700000020046",
-                    "intro": "AMS F Le retrait du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "1806700000020008",
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez sélectionner \"Reprendre\" pour réessayer."
                 },
@@ -2797,23 +2821,15 @@
                 },
                 {
                     "ecode": "0500010000020003",
-                    "intro": ""
+                    "intro": "Le format de la caméra Live View est incorrect. Veuillez redémarrer l'imprimante. Si plusieurs tentatives échouent, veuillez contacter le support client."
                 },
                 {
                     "ecode": "0700700000020008",
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez sélectionner \"Reprendre\" pour réessayer."
                 },
                 {
-                    "ecode": "0700700000020046",
-                    "intro": "AMS A Le retrait du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "0701700000020008",
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez sélectionner \"Reprendre\" pour réessayer."
-                },
-                {
-                    "ecode": "0701700000020046",
-                    "intro": "Le retrait du filament AMS B a échoué ; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si le rouleau de filament est incliné ou déformé et si le tube de filament est dégagé."
                 },
                 {
                     "ecode": "0702700000020008",
@@ -2852,40 +2868,12 @@
                     "intro": "La caméra de la tête d'outil est en panne. Si ce problème se produit plusieurs fois pendant l'impression, veuillez contacter le support client."
                 },
                 {
-                    "ecode": "1805700000020046",
-                    "intro": "Le retrait du filament AMS-HT F a échoué ; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si le rouleau de filament est incliné ou déformé et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1803700000020046",
-                    "intro": "AMS-HT D Le tirage du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "1803700000020008",
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez sélectionner \"Reprendre\" pour réessayer."
                 },
                 {
                     "ecode": "1805700000020008",
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez sélectionner \"Reprendre\" pour réessayer."
-                },
-                {
-                    "ecode": "0704700000020046",
-                    "intro": "AMS E Le tirage du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "0706700000020046",
-                    "intro": "AMS G Le tirage du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1804700000020046",
-                    "intro": "Le retrait du filament AMS-HT E a échoué ; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si le rouleau de filament est incliné ou déformé et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1802700000020046",
-                    "intro": "AMS-HT C Le tirage du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1800700000020046",
-                    "intro": "AMS-HT A Le tirage du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
                 },
                 {
                     "ecode": "1802700000020008",
@@ -2901,7 +2889,7 @@
                 },
                 {
                     "ecode": "0500050000010009",
-                    "intro": ""
+                    "intro": "La vérification de la commande MQTT a échoué ; veuillez vérifier le format ou la signature."
                 },
                 {
                     "ecode": "0300280000010003",
@@ -2944,14 +2932,6 @@
                     "intro": "La carte TH s'est déconnectée pendant le processus de commutation de l'extrudeuse. Veuillez vérifier si le câble de connexion est desserré."
                 },
                 {
-                    "ecode": "0702700000020046",
-                    "intro": "Le tirage de filament AMS C a échoué ; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "0703700000020046",
-                    "intro": "Le tirage de filament AMS D a échoué ; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "0300250000010001",
                     "intro": "La fréquence du capteur de force d'extrusion de l'extrudeuse droite est trop basse. La buse peut ne pas être installée, ou le dissipateur de chaleur de la buse peut être trop éloigné du capteur."
                 },
@@ -2988,10 +2968,6 @@
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez sélectionner \"Reprendre\" pour réessayer."
                 },
                 {
-                    "ecode": "0707700000020046",
-                    "intro": "AMS H Échec du retrait du filament ; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "0707700000020008",
                     "intro": "Échec de l'obtention de la table de mappage AMS ; veuillez sélectionner \"Reprendre\" pour réessayer."
                 },
@@ -3008,20 +2984,8 @@
                     "intro": "Échec de l'obtention de la table de mappage AMS; veuillez sélectionner \"Reprendre\" pour réessayer."
                 },
                 {
-                    "ecode": "1801700000020046",
-                    "intro": "Le tirage du filament AMS-HT B a échoué ; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si le bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1806700000020046",
-                    "intro": "AMS-HT G Le retrait du filament a échoué; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1807700000020046",
-                    "intro": "AMS-HT H Le retrait du filament a échoué; cela peut être dû à une résistance excessive dans le moteur d'assistance. Veuillez vérifier si la bobine de filament est inclinée ou déformée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "0500050000010008",
-                    "intro": ""
+                    "intro": "Échec de la vérification de la commande MQTT ; veuillez installer le dernier certificat dans Studio."
                 },
                 {
                     "ecode": "18FE800000010004",
@@ -3061,15 +3025,15 @@
                 },
                 {
                     "ecode": "0500030000020011",
-                    "intro": ""
+                    "intro": "Mise à niveau du coredump : récupération en cours."
                 },
                 {
                     "ecode": "0500030000020013",
-                    "intro": ""
+                    "intro": "xcam coredump : il se rétablit."
                 },
                 {
                     "ecode": "0500030000020018",
-                    "intro": ""
+                    "intro": "security coredump : il se rétablit."
                 },
                 {
                     "ecode": "0C00010000010005",
@@ -3165,23 +3129,23 @@
                 },
                 {
                     "ecode": "0500030000020010",
-                    "intro": ""
+                    "intro": "coredump avant : il est en cours de récupération."
                 },
                 {
                     "ecode": "0500030000020014",
-                    "intro": ""
+                    "intro": "coredump bbl_screen : il est en cours de récupération."
                 },
                 {
                     "ecode": "0500030000020015",
-                    "intro": ""
+                    "intro": "coredump device_gate : il est en cours de récupération."
                 },
                 {
                     "ecode": "0500030000020016",
-                    "intro": ""
+                    "intro": "device_manager coredump : il se récupère."
                 },
                 {
                     "ecode": "0500030000020017",
-                    "intro": ""
+                    "intro": "coredump recorder : il est en cours de récupération."
                 },
                 {
                     "ecode": "0700400000020001",
@@ -3213,7 +3177,7 @@
                 },
                 {
                     "ecode": "0500060000020007",
-                    "intro": ""
+                    "intro": "Trop d'erreurs laser mipi ; veuillez vérifier le matériel et les connexions de ligne."
                 },
                 {
                     "ecode": "07FE810000010003",
@@ -3229,7 +3193,7 @@
                 },
                 {
                     "ecode": "0500060000020005",
-                    "intro": ""
+                    "intro": "Trop d'erreurs xcam mipi ; veuillez vérifier le matériel et les connexions des lignes."
                 },
                 {
                     "ecode": "0300C30000010001",
@@ -3441,7 +3405,7 @@
                 },
                 {
                     "ecode": "0500030000020012",
-                    "intro": ""
+                    "intro": "ipcam coredump : il se rétablit."
                 },
                 {
                     "ecode": "0300970000030001",
@@ -3497,11 +3461,11 @@
                 },
                 {
                     "ecode": "0C00010000020019",
-                    "intro": ""
+                    "intro": "Le flux Xcam est trop lent. Veuillez contacter le développeur."
                 },
                 {
                     "ecode": "0C0001000002001A",
-                    "intro": ""
+                    "intro": "Échec du démarrage du streaming Xcam. Cela peut être dû à une version de firmware MC/TH incompatible ou à une connexion de caméra lâche. Veuillez contacter l'équipe de développement."
                 },
                 {
                     "ecode": "0700010000010005",
@@ -4644,10 +4608,6 @@
                     "intro": "L'objectif de la caméra de l'outil semble être sale. Veuillez nettoyer l'objectif."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "L'objectif de la caméra Live View semble sale. Veuillez nettoyer l'objectif."
-                },
-                {
                     "ecode": "0C00010000020006",
                     "intro": "Le paramètre de la caméra Toolhead est anormal. Veuillez activer la calibration du débit lors de la prochaine impression."
                 },
@@ -4657,7 +4617,7 @@
                 },
                 {
                     "ecode": "0500060000020002",
-                    "intro": ""
+                    "intro": "La caméra de la buse n'est pas en place ; veuillez vérifier la connexion matérielle."
                 },
                 {
                     "ecode": "0C00040000010012",
@@ -4669,7 +4629,7 @@
                 },
                 {
                     "ecode": "0500060000020001",
-                    "intro": ""
+                    "intro": "La caméra de l'outil n'est pas en place ; veuillez vérifier la connexion matérielle."
                 },
                 {
                     "ecode": "0C00040000020003",
@@ -4681,11 +4641,11 @@
                 },
                 {
                     "ecode": "0500060000020012",
-                    "intro": ""
+                    "intro": "La caméra de la buse n'a pas d'interruption mipi ; veuillez vérifier le matériel et la connexion de la ligne."
                 },
                 {
                     "ecode": "0500060000020006",
-                    "intro": ""
+                    "intro": "Trop d'erreurs mipi de la caméra de buse ; veuillez vérifier le matériel et les connexions des lignes."
                 },
                 {
                     "ecode": "0500060000020004",
@@ -4701,7 +4661,7 @@
                 },
                 {
                     "ecode": "0500060000020022",
-                    "intro": ""
+                    "intro": "La caméra de la buse détecte des taux d'images CIF/ISP/ISPP faibles."
                 },
                 {
                     "ecode": "0300950000010004",
@@ -4713,7 +4673,7 @@
                 },
                 {
                     "ecode": "0500060000020003",
-                    "intro": ""
+                    "intro": "La caméra BirdsEye n'est pas à sa place ; veuillez vérifier la connexion matérielle."
                 },
                 {
                     "ecode": "0300950000010002",
@@ -4741,7 +4701,7 @@
                 },
                 {
                     "ecode": "050001000001000A",
-                    "intro": ""
+                    "intro": "La caméra BirdsEye n'est pas certifiée, et les fonctions liées à la caméra sont invalides."
                 },
                 {
                     "ecode": "0300950000010008",
@@ -5333,7 +5293,7 @@
                 },
                 {
                     "ecode": "0C00010000020016",
-                    "intro": ""
+                    "intro": "Erreur de transmission d'image de la caméra détectée. Veuillez redémarrer l'imprimante."
                 },
                 {
                     "ecode": "0500030000020020",
@@ -5341,7 +5301,7 @@
                 },
                 {
                     "ecode": "0C00010000020015",
-                    "intro": ""
+                    "intro": "Perte de trame de caméra détectée."
                 },
                 {
                     "ecode": "0702010000020006",
@@ -5381,7 +5341,7 @@
                 },
                 {
                     "ecode": "0500060000020008",
-                    "intro": ""
+                    "intro": "Trop d'erreurs mipi liveview ; veuillez vérifier le matériel et les connexions des câbles."
                 },
                 {
                     "ecode": "0701010000020006",
@@ -5441,15 +5401,15 @@
                 },
                 {
                     "ecode": "050005000001000B",
-                    "intro": ""
+                    "intro": "La vérification de la commande MQTT a échoué, veuillez mettre à jour Studio."
                 },
                 {
                     "ecode": "050005000001000A",
-                    "intro": ""
+                    "intro": "La vérification de la commande MQTT a échoué, veuillez mettre à jour Studio et le firmware de l'imprimante."
                 },
                 {
                     "ecode": "050005000001000C",
-                    "intro": ""
+                    "intro": "La vérification de la commande MQTT a échoué, veuillez mettre à jour le firmware de l'imprimante."
                 },
                 {
                     "ecode": "0500010000030005",
@@ -5916,10 +5876,6 @@
                     "intro": "Le moteur de commutation de l'extrudeur fonctionne anormalement. Veuillez vérifier si le câble de connexion est desserré."
                 },
                 {
-                    "ecode": "0706700000020020",
-                    "intro": "L'alimentation du filament AMS G vers le tampon a échoué ; cela peut être dû au blocage du tampon. Veuillez vérifier le bouchon du tube PTFE du tampon."
-                },
-                {
                     "ecode": "0701130000010001",
                     "intro": "Le moteur de la fente 4 AMS B a glissé. La roue d'extrusion peut dysfonctionner ou le fil peut être trop fin."
                 },
@@ -6132,16 +6088,8 @@
                     "intro": "Défaillance de la puce de chiffrement."
                 },
                 {
-                    "ecode": "0705700000020040",
-                    "intro": "Échec de l'extraction du filament AMS F; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
                     "ecode": "1807300000010004",
                     "intro": "Échec de la puce de cryptage."
-                },
-                {
-                    "ecode": "1806700000020060",
-                    "intro": "Échec de l'assistance de saisie de filament AMS-HT G par l'extrudeuse; cela pourrait être dû au patinage du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
                 {
                     "ecode": "0704310000010004",
@@ -6160,28 +6108,8 @@
                     "intro": "Le capteur de température et d'humidité présente une erreur. La puce peut être défectueuse."
                 },
                 {
-                    "ecode": "1805700000020013",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS-HT F a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "0705700000020021",
-                    "intro": "L'alimentation du filament vers le tampon AMS F a échoué; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est obstrué."
-                },
-                {
                     "ecode": "0707220000020009",
                     "intro": "Impossible d'extruder le filament AMSH H fente 3; l'extrudeur peut être obstrué ou le filament peut être trop fin, ce qui provoque un glissement de l'extrudeur."
-                },
-                {
-                    "ecode": "0705700000020061",
-                    "intro": "L'extrudeur d'assistance AMS F n'arrive pas à saisir le filament, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube du filament est dégagé."
-                },
-                {
-                    "ecode": "1805700000020050",
-                    "intro": "Le chargement du filament dans le tampon AMS-HT F a échoué; cela peut être dû à une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0705700000020032",
-                    "intro": "L'alimentation du filament vers l'extrudeur de tête d'outil AMS F a échoué; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6352,62 +6280,6 @@
                     "intro": "Le capteur Hall d'entrée de la fente H AMS Slot 1 est déconnecté, ce qui peut être dû à un mauvais contact du connecteur."
                 },
                 {
-                    "ecode": "1807700000020045",
-                    "intro": "Impossible de retirer le filament AMS-HT H ; cela peut être dû à une rupture de filament ou à un arrachage."
-                },
-                {
-                    "ecode": "1803700000020031",
-                    "intro": "Impossible d'alimenter le filament de l'AMS-HT D à l'extrudeur de la tête d'outil ; cela peut être dû à l'usure du filament, faisant glisser le moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "1802700000020023",
-                    "intro": "Impossible d'alimenter le filament de l'AMS-HT C dans le tampon ; cela peut être dû au retrait du filament. Veuillez vérifier si le tube de filament est mal connecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "1800700000020044",
-                    "intro": "Impossible de retirer le filament AMS-HT A ; cela pourrait être dû à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1807700000020061",
-                    "intro": "AMS-HT H L'assistance de l'extrudeur pour saisir le filament a échoué, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est coincé, si la bobine de filament est inclinée et si le tube de filament est clair."
-                },
-                {
-                    "ecode": "1802700000020022",
-                    "intro": "AMS-HT C L'alimentation du filament dans le tampon a échoué ; cela peut être dû à l'usure du filament qui provoque un glissement du moteur d'assistance. Veuillez couper la section usagée du filament."
-                },
-                {
-                    "ecode": "1805700000020021",
-                    "intro": "AMS-HT F L'alimentation du filament dans le tampon a échoué ; cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube en PTFE est bloqué."
-                },
-                {
-                    "ecode": "1802700000020032",
-                    "intro": "AMS-HT C L'alimentation du filament dans l'extrudeur de la tête d'outil a échoué ; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0705700000020043",
-                    "intro": "AMS F L'extraction du filament a échoué ; cela pourrait être dû à l'usure du filament et à un patinage du moteur d'assistance. Veuillez couper la section usagée du filament."
-                },
-                {
-                    "ecode": "1802700000020021",
-                    "intro": "AMS-HT C L'alimentation du filament dans le tampon a échoué ; cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube en PTFE est bloqué."
-                },
-                {
-                    "ecode": "0706700000020061",
-                    "intro": "AMS G L'assistance de l'extrudeur pour saisir le filament a échoué, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est coincé, si la bobine de filament est inclinée et si le tube de filament est clair."
-                },
-                {
-                    "ecode": "1800700000020022",
-                    "intro": "AMS-HT L'alimentation du fil a échoué lorsqu'elle était insérée dans le tampon; cela pourrait être dû à un fil usé qui provoque un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1803700000020040",
-                    "intro": "AMS-HT D Le retrait du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1805700000020010",
-                    "intro": "AMS-HT F L'alimentation du fil pour la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont dégagés."
-                },
-                {
                     "ecode": "0700100000010003",
                     "intro": "La commande de couple moteur AMS de la fente 1 est en panne. Le capteur de courant peut être défectueux."
                 },
@@ -6576,14 +6448,6 @@
                     "intro": "Le capteur Hall d'entrée d'alimentation AMS D de la fente 3 est déconnecté, ce qui peut être dû à une mauvaise connexion du connecteur."
                 },
                 {
-                    "ecode": "1803700000020020",
-                    "intro": "L'alimentation du filament d'AMS-HT D dans le tampon a échoué ; cela pourrait être dû au tampon qui bloque le filament. Veuillez vérifier le bouchon du tube PTFE du tampon."
-                },
-                {
-                    "ecode": "1802700000020060",
-                    "intro": "AMS-HT C L'aide à la saisie de filament pour l'extrudeuse a échoué ; cela pourrait être dû à un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "1800400000020004",
                     "intro": "Le signal du tampon de filament est anormal ; le ressort peut être bloqué ou le filament peut être emmêlé."
                 },
@@ -6592,40 +6456,8 @@
                     "intro": "Impossible d'extruder le filament AMS E fente 1 ; l'extrudeur peut être obstrué ou le filament peut être trop mince, ce qui fait que l'extrudeur glisse."
                 },
                 {
-                    "ecode": "1802700000020061",
-                    "intro": "AMS-HT C L'aide à la saisie de filament pour l'extrudeuse a échoué, peut-être en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est clair."
-                },
-                {
-                    "ecode": "1803700000020050",
-                    "intro": "AMS-HT D L'échec du chargement du filament dans le tampon est dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
                     "ecode": "1806300000010004",
                     "intro": "Échec de la puce de cryptage."
-                },
-                {
-                    "ecode": "1800700000020030",
-                    "intro": "AMS-HT: L'alimentation de filaments vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû au blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "1800700000020031",
-                    "intro": "AMS-HT: L'alimentation de filaments vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû au fil endommagé qui conduit à un patinage du moteur d'assistance. Veuillez couper la partie abîmée du filament."
-                },
-                {
-                    "ecode": "0705700000020020",
-                    "intro": "AMS F : L'alimentation de filaments vers la mémoire tampon a échoué ; cela peut être dû au blocage de la mémoire tampon par le filament. Veuillez vérifier le bouchon du tube PTFE de la mémoire tampon."
-                },
-                {
-                    "ecode": "0707700000020044",
-                    "intro": "AMS H : L'extraction du filament a échoué ; cela peut être dû à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1805700000020023",
-                    "intro": "AMS-HT F : L'alimentation de filaments vers la mémoire tampon a échoué ; cela peut être dû au décollement du filament. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé à travers."
-                },
-                {
-                    "ecode": "0707700000020022",
-                    "intro": "AMS H : L'alimentation de filaments vers la mémoire tampon a échoué ; cela peut être dû à l'usure du filament qui provoque un patinage du moteur d'assistance. Veuillez couper la partie usée du filament."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -6864,72 +6696,16 @@
                     "intro": "Défaillance de la puce de chiffrement."
                 },
                 {
-                    "ecode": "1801700000020044",
-                    "intro": "L'échec de sortie du filament d'AMS-HT B est dû probablement à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1804700000020020",
-                    "intro": "L'alimentation du filament d'AMS-HT E au tampon a échoué ; cela peut être dû au tampon qui bloque le filament. Veuillez vérifier le bouchon du tube PTFE du tampon."
-                },
-                {
-                    "ecode": "1804700000020031",
-                    "intro": "L'alimentation du filament d'AMS-HT E à l'extrudeur de la tête d'outil a échoué ; cela pourrait être dû à l'usure du filament, causant le glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Défaillance de la puce de cryptage"
-                },
-                {
-                    "ecode": "0707700000020043",
-                    "intro": "L'extraction de filament AMS H a échoué ; cela pourrait être dû à l'usure du filament et provoquer le glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0706700000020041",
-                    "intro": "L'extraction de filament AMS G a échoué ; cela pourrait être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "1805700000020041",
-                    "intro": "L'extraction de filament AMS-HT F a échoué ; cela pourrait être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "1807700000020013",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS-HT H a échoué. Cela pourrait être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "1802700000020042",
-                    "intro": "L'extraction de filament AMS-HT C a échoué ; cela pourrait être dû à la perte de connexion du moteur à courant continu. Veuillez vérifier que la fiche du moteur à courant continu est correctement connectée."
-                },
-                {
-                    "ecode": "1803700000020010",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS-HT D a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier que le tube d'alimentation et le moyeu du filament sont dégagés."
-                },
-                {
-                    "ecode": "0706700000020022",
-                    "intro": "L'alimentation du filament vers le tampon d'AMS G a échoué ; cela pourrait être dû au filament usé provoquant le glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1805700000020061",
-                    "intro": "AMS-HT F Échec d'assistance de prise de filament d'extrudeuse, peut-être dû à une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est dégagé."
                 },
                 {
                     "ecode": "1807310000030003",
                     "intro": "Impossible de lire la RFID en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "1803700000020061",
-                    "intro": "AMS-HT D L'assistance à la prise de filament de l'extrudeuse a échoué, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1801700000020011",
-                    "intro": "AMS-HT B L'alimentation du filament dans la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu."
-                },
-                {
                     "ecode": "1806350000010001",
                     "intro": "Le capteur de température et d'humidité présente une erreur. La puce peut être défectueuse."
-                },
-                {
-                    "ecode": "1805700000020040",
-                    "intro": "AMS-HT F L'extraction du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
                 },
                 {
                     "ecode": "0700110000020002",
@@ -7116,44 +6892,12 @@
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "1806700000020031",
-                    "intro": "L'alimentation du filament dans l'extrudeur de tête d'outil d'AMS-HT G a échoué ; cela peut être dû à l'usure du filament et à la glissance du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "1804310000030003",
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "1806700000020010",
-                    "intro": "AMS-HT G L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont clairs."
-                },
-                {
                     "ecode": "0705200000020009",
                     "intro": "Impossible d'extruder le filament AMS F de la fente 1; l'extrudeuse pourrait être obstruée ou le filament pourrait être trop mince, ce qui provoque un glissement de l'extrudeuse."
-                },
-                {
-                    "ecode": "1800700000020045",
-                    "intro": "AMS-HT A L'extirpation du filament a échoué ; cela pourrait être dû à une rupture du filament ou à une tentative de l'extirper."
-                },
-                {
-                    "ecode": "0706700000020011",
-                    "intro": "AMS G L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la prise du moteur DC."
-                },
-                {
-                    "ecode": "1803700000020030",
-                    "intro": "AMS-HT D L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué ; cela pourrait être dû à l'obstruction du filament à l'entrée de la tête d'outil. Veuillez vérifier la prise du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "0704700000020044",
-                    "intro": "AMS E L'extirpation du filament a échoué ; cela pourrait être dû à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1804700000020050",
-                    "intro": "AMS-HT E Le chargement du filament dans le tampon a échoué ; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "0707700000020014",
-                    "intro": "AMS H L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
                 },
                 {
                     "ecode": "18FE800000010001",
@@ -7164,36 +6908,12 @@
                     "intro": "L'action de changement d'extrudeur est anormale. Veuillez vérifier s'il y a quelque chose de coincé dans la tête d'outil."
                 },
                 {
-                    "ecode": "1802700000020013",
-                    "intro": "L'alimentation en filament du moteur d'assistance de la roue d'extrusion AMS-HT C a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "0706700000020013",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS G a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "1806700000020012",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS-HT G a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0707700000020041",
-                    "intro": "Le retrait du filament de l'AMS H a échoué; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "1800700000020014",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS-HT A a échoué. Cela peut être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
                     "ecode": "1807350000010001",
                     "intro": "Le capteur de température et d'humidité a une erreur. La puce peut être défectueuse."
                 },
                 {
                     "ecode": "0705300000030003",
                     "intro": "RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "0704700000020040",
-                    "intro": "AMS E L'extraction du filament a échoué ; ceci pourrait être dû à une résistance excessive dans le moteur DC. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
                 },
                 {
                     "ecode": "0700110000010001",
@@ -7348,48 +7068,8 @@
                     "intro": "Le filament AMS-HT H de la fente 4 est épuisé et basculé automatiquement sur la fente possédant le même filament."
                 },
                 {
-                    "ecode": "1804700000020010",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS-HT E a échoué. Ceci pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le hub de filament sont clairs."
-                },
-                {
-                    "ecode": "1804700000020040",
-                    "intro": "L'extraction du filament AMS-HT E a échoué; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1805700000020032",
-                    "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS-HT F a échoué; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "1807700000020044",
-                    "intro": "L'extraction du filament a échoué sur le capteur de fil H AMS-HT; cela pourrait être dû à une rupture du filament dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1804700000020061",
-                    "intro": "La prise en charge de l'extrudeur AMS-HT E pour attraper le filament a échoué, peut-être en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est clair."
-                },
-                {
-                    "ecode": "1806700000020021",
-                    "intro": "L'alimentation du filament vers le tampon AMS-HT G a échoué; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "0705700000020060",
-                    "intro": "AMS F Échec de l'assistance de saisie du filament par l'extrudeur; cela pourrait être dû au patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1803700000020021",
-                    "intro": "AMS-HT D L'alimentation du filament vers le tampon a échoué; cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube en PTFE est bloqué."
-                },
-                {
                     "ecode": "1800450000020001",
                     "intro": "Le capteur de coupe du filament dysfonctionne; veuillez vérifier si le connecteur est correctement branché."
-                },
-                {
-                    "ecode": "1801700000020022",
-                    "intro": "AMS-HT B L'alimentation du filament vers le tampon a échoué; cela pourrait être dû à un filament usé qui cause le patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1802700000020014",
-                    "intro": "AMS-HT C L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
                 },
                 {
                     "ecode": "1805310000030003",
@@ -7400,36 +7080,8 @@
                     "intro": "Échec de l'extrusion du filament de la fente 4 d'AMS E; l'extrudeur peut être obstrué ou le filament peut être trop mince, causant le patinage de l'extrudeur."
                 },
                 {
-                    "ecode": "1807700000020023",
-                    "intro": "L'alimentation du filament AMS-HT H dans le tampon a échoué; cela peut être dû à un filament détaché. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
-                    "ecode": "1801700000020041",
-                    "intro": "Le retrait du filament AMS-HT B a échoué, cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une neuve."
-                },
-                {
                     "ecode": "0707350000010001",
                     "intro": "Le capteur de température et d'humidité a une erreur. La puce pourrait être défectueuse."
-                },
-                {
-                    "ecode": "1800700000020023",
-                    "intro": "L'alimentation du filament AMS-HT A dans le tampon a échoué; cela peut être dû à un filament détaché. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
-                    "ecode": "1804700000020033",
-                    "intro": "L'alimentation du filament AMS-HT E vers l'extrudeur de l'extrémité de l'outil a échoué; cela peut être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il est usé."
-                },
-                {
-                    "ecode": "1804700000020023",
-                    "intro": "L'alimentation du filament AMS-HT E dans le tampon a échoué; cela peut être dû à un filament détaché. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
-                    "ecode": "0706700000020030",
-                    "intro": "L'alimentation du filament AMS G vers l'extrudeuse de la tête d'outil a échoué ; cela pourrait être dû à un blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "1802700000020020",
-                    "intro": "L'alimentation du filament AMS-HT C vers le tampon a échoué ; cela pourrait être dû à un blocage du tampon empêchant le passage du filament. Veuillez vérifier le bouchon du tube PTFE du tampon."
                 },
                 {
                     "ecode": "0700210000020003",
@@ -7580,92 +7232,28 @@
                     "intro": "Le filament de la fente B AMS-HT 2 est peut-être cassé dans la tête d'outil."
                 },
                 {
-                    "ecode": "0705700000020042",
-                    "intro": "La sortie de filament F d'AMS a échoué; cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier que la fiche du moteur DC est correctement connectée."
-                },
-                {
-                    "ecode": "1800700000020061",
-                    "intro": "L'extrudeuse d'assistance de saisie de filament de AMS-HT A a échoué, peut-être en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "1803300000010004",
                     "intro": "Défaillance de la puce de cryptage."
-                },
-                {
-                    "ecode": "0706700000020023",
-                    "intro": "L'alimentation de filament dans le tampon de AMS G a échoué ; cela peut être dû au détachement du filament. Veuillez vérifier si le tube de filament est mal connecté ou s'il a été usé à travers."
-                },
-                {
-                    "ecode": "1801700000020050",
-                    "intro": "Le chargement du filament dans le tampon de AMS-HT B a échoué ; cela peut être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "0704700000020014",
-                    "intro": "L'alimentation du filament dans la roue d'extrusion du moteur d'assistance AMS E a échoué. Cela peut être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1802700000020041",
-                    "intro": "La sortie de filament de AMS-HT C a échoué ; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "1802700000020011",
-                    "intro": "L'alimentation de filament AMS-HT C vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu."
                 },
                 {
                     "ecode": "0706300000030003",
                     "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "0705700000020031",
-                    "intro": "L'alimentation de filament AMS F vers l'extrudeur de la tête d'outil a échoué; cela pourrait être dû à l'usure du filament et causer le glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "1800450000020002",
                     "intro": "La distance de coupe du coupe filament est trop grande. Le moteur XY peut perdre des pas."
-                },
-                {
-                    "ecode": "1801700000020023",
-                    "intro": "L'alimentation de filament AMS-HT B vers le tampon a échoué; cela pourrait être dû au détachement du filament. Veuillez vérifier si le tube de filament est incorrectement connecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "0707700000020042",
-                    "intro": "La sortie de filament AMS H a échoué; cela pourrait être dû à une déconnexion du moteur à courant continu. Veuillez vérifier que la fiche du moteur à courant continu est correctement connectée."
-                },
-                {
-                    "ecode": "1800700000020012",
-                    "intro": "AMS-HT : L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est penchée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
                 },
                 {
                     "ecode": "18FF800000010001",
                     "intro": "Le moteur de levage de la tête d'outil fonctionne anormalement. Veuillez vérifier si le câble de connexion est desserré."
                 },
                 {
-                    "ecode": "1803700000020033",
-                    "intro": "AMS-HT : L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué; cela pourrait être dû à un glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il est usé à travers."
-                },
-                {
                     "ecode": "1802300000010004",
                     "intro": "Échec de la puce de cryptage."
                 },
                 {
-                    "ecode": "0707700000020060",
-                    "intro": "AMS H : L'échec de la capture de filament par l'extrudeur d'assistance pourrait être dû à un glissement du moteur d'assistance. Veuillez découper la section usée du filament."
-                },
-                {
-                    "ecode": "1804700000020013",
-                    "intro": "AMS-HT : L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une perte de signal en provenance de la roue odomètre. Veuillez vérifier la connexion de la prise de roue odomètre."
-                },
-                {
                     "ecode": "1802310000010004",
                     "intro": "Échec de la puce de cryptage."
-                },
-                {
-                    "ecode": "1807700000020032",
-                    "intro": "AMS-HT : L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué; cela pourrait être dû à une résistance excessive de filament. Veuillez vérifier si la bobine de filament est penchée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0705700000020014",
-                    "intro": "Le chargement de filament dans la roue d'extrusion d'assistance AMS F a échoué. Cela pourrait être dû à un petit morceau de filament cassé entré dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
                 },
                 {
                     "ecode": "0700100000010001",
@@ -7820,28 +7408,8 @@
                     "intro": "Le filament de l'AMS-HT C fente 1 est épuisé. Veuillez insérer un nouveau filament."
                 },
                 {
-                    "ecode": "0706700000020044",
-                    "intro": "L'extraction du filament de l'AMS G a échoué ; cela peut être dû à un filament cassé dans l'extrudeuse. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1805700000020043",
-                    "intro": "L'extraction du filament de l'AMS-HT F a échoué ; cela peut être dû à l'usure du filament et à un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1802700000020045",
-                    "intro": "L'extraction du filament de l'AMS-HT C a échoué ; cela peut être dû à l'épuisement ou à l'arrachage du filament."
-                },
-                {
-                    "ecode": "1800700000020041",
-                    "intro": "AMS-HT Un filament de traction a échoué; cela pourrait être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
                     "ecode": "1806310000030003",
                     "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "1800700000020033",
-                    "intro": "AMS-HT A L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué ; cela pourrait être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou si le tube a été usé."
                 },
                 {
                     "ecode": "1802300000030003",
@@ -7856,64 +7424,12 @@
                     "intro": "Impossible d'extruder le filament AMS F Fente 4 ; l'extrudeur peut être obstrué ou le filament peut être trop fin, ce qui provoque le glissement de l'extrudeur."
                 },
                 {
-                    "ecode": "0704700000020045",
-                    "intro": "AMS E L'extraction du filament a échoué ; cela peut être dû à une rupture de filament ou à une sortie de filament."
-                },
-                {
-                    "ecode": "1801700000020061",
-                    "intro": "AMS-HT B Echec de l'assistance de saisie de filament de l'extrudeur, peut-être en raison d'une résistance excessive de la mémoire tampon. Veuillez vérifier si la mémoire tampon est bloquée, si la bobine de filament est inclinée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1800700000020050",
-                    "intro": "AMS-HT A Échec du chargement de filament dans la mémoire tampon; cela pourrait être dû à une résistance excessive dans la mémoire tampon. Veuillez vérifier si la mémoire tampon est bloquée, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "1804700000020012",
-                    "intro": "AMS-HT E L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas régulière."
-                },
-                {
-                    "ecode": "1804700000020011",
-                    "intro": "AMS-HT E L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la fiche du moteur DC."
-                },
-                {
                     "ecode": "0707310000010004",
                     "intro": "Défaillance de la puce de cryptage."
                 },
                 {
-                    "ecode": "0705700000020010",
-                    "intro": "AMS F L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le support de filament sont dégagés."
-                },
-                {
-                    "ecode": "1803700000020011",
-                    "intro": "AMS-HT D L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la prise du moteur DC."
-                },
-                {
-                    "ecode": "0704700000020032",
-                    "intro": "AMS E L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué ; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "1800700000020013",
-                    "intro": "AMS-HT A L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
                     "ecode": "18FF800000020003",
                     "intro": "La déviation dans la valeur d'étalonnage de positionnement de l'extrudeur est trop importante ; veuillez recalibrer."
-                },
-                {
-                    "ecode": "1802700000020010",
-                    "intro": "AMS-HT C L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont clairs."
-                },
-                {
-                    "ecode": "1807700000020030",
-                    "intro": "AMS-HT H L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué ; cela pourrait être dû au blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier la prise de tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "1804700000020042",
-                    "intro": "AMS-HT E L'extraction du filament a échoué ; cela pourrait être dû à une perte de connexion du moteur à courant continu. Veuillez vérifier que la fiche du moteur à courant continu est correctement connectée."
-                },
-                {
-                    "ecode": "1801700000020042",
-                    "intro": "AMS-HT B L'extraction du filament a échoué ; cela pourrait être dû à une perte de connexion du moteur à courant continu. Veuillez vérifier que la fiche du moteur à courant continu est correctement connectée."
                 },
                 {
                     "ecode": "0700200000020001",
@@ -8040,96 +7556,20 @@
                     "intro": "Le filament de la fente AMS-HT E 3 est peut-être cassé dans l'AMS-HT."
                 },
                 {
-                    "ecode": "0704700000020022",
-                    "intro": "L'alimentation du filament dans la mémoire tampon de la fente AMS E a échoué ; cela pourrait être dû à un filament usé qui a fait glisser le moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1800700000020042",
-                    "intro": "Le retrait du filament de la fente AMS-HT A a échoué ; cela peut être dû à une perte de connexion du moteur à courant continu (DC). Veuillez vérifier que la fiche du moteur DC est correctement connectée."
-                },
-                {
-                    "ecode": "1801700000020031",
-                    "intro": "L'alimentation du filament à la tête d'outil de la fente AMS-HT B a échoué ; cela peut être dû à l'usure du filament qui a fait glisser le moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1805700000020033",
-                    "intro": "L'alimentation du filament à la tête d'outil de la fente AMS-HT F a échoué ; cela peut être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il est usé à travers."
-                },
-                {
-                    "ecode": "1805700000020060",
-                    "intro": "L'assistance de l'extrudeur pour saisir le filament de la fente AMS-HT F a échoué ; cela peut être dû au glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1805700000020011",
-                    "intro": "L'alimentation en filament vers la roue d'extrusion du moteur d'assistance AMS-HT F a échoué. Cela pourrait être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu."
-                },
-                {
-                    "ecode": "1800700000020021",
-                    "intro": "L'alimentation en filament du tampon AMS-HT A a échoué; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "1800700000020020",
-                    "intro": "L'alimentation en filament du tampon AMS-HT A a échoué; cela pourrait être dû au blocage du filament par la tampographie. Veuillez vérifier la fiche du tube PTFE de la tampographie."
-                },
-                {
-                    "ecode": "1802700000020012",
-                    "intro": "L'alimentation en filament vers la roue d'extrusion du moteur d'assistance AMS-HT C a échoué. Cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
                     "ecode": "0706230000020009",
                     "intro": "Échec de l'extrusion du filament de la fente 4 AMS G; l'extrudeur peut être obstrué ou le filament peut être trop fin, ce qui provoque un glissement de l'extrudeur."
-                },
-                {
-                    "ecode": "0705700000020013",
-                    "intro": "L'alimentation en filament vers la roue d'extrusion du moteur d'assistance AMS F a échoué. Cela pourrait être dû à une perte de signal provenant de la roue odomètre. Veuillez vérifier la connexion de la prise de la roue odomètre."
-                },
-                {
-                    "ecode": "1802700000020043",
-                    "intro": "L'extraction du filament par le moteur d'assistance AMS-HT C a échoué; cela pourrait être dû à l'usure du filament qui provoque un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
                 {
                     "ecode": "1804300000030003",
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "1806700000020033",
-                    "intro": "L'alimentation en filament du système AMS-HT G a échoué ; cela pourrait être dû à une mauvaise connexion du filament. Veuillez vérifier si le tube du filament est déconnecté ou s'il est usé."
-                },
-                {
                     "ecode": "1802350000010001",
                     "intro": "Le capteur de température et d'humidité présente une erreur. Le microprocesseur est peut-être défectueux."
                 },
                 {
-                    "ecode": "1806700000020011",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS-HT G a échoué. Cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la fiche du moteur DC."
-                },
-                {
-                    "ecode": "1806700000020013",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS-HT G a échoué. Cela pourrait être dû à une perte de signal provenant de la roue odométrique. Veuillez vérifier la connexion de la fiche de la roue odométrique."
-                },
-                {
-                    "ecode": "1807700000020022",
-                    "intro": "L'alimentation en filament du tampon AMS-HT H a échoué ; cela pourrait être dû à un filament usé entraînant un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1800700000020011",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS-HT A a échoué. Cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la fiche du moteur DC."
-                },
-                {
-                    "ecode": "0704700000020033",
-                    "intro": "L'alimentation en filament de la buse d'extrusion de la tête AMS E a échoué ; cela pourrait être dû à une mauvaise connexion du filament. Veuillez vérifier si le tube du filament est déconnecté ou s'il est usé."
-                },
-                {
                     "ecode": "0705350000010001",
                     "intro": "Le capteur de température et d'humidité présente une erreur. Le microprocesseur est peut-être défectueux."
-                },
-                {
-                    "ecode": "0706700000020031",
-                    "intro": "L'alimentation de filament vers l'extrudeur de la tête d'outil AMS G a échoué ; cela pourrait être dû à l'usure du filament et entraîner le patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0704700000020043",
-                    "intro": "La sortie du filament de l'AMS E a échoué ; cela pourrait être dû à l'usure du filament et entraîner le patinage du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
                 {
                     "ecode": "0706210000020009",
@@ -8138,10 +7578,6 @@
                 {
                     "ecode": "1801310000030003",
                     "intro": "La lecture de RFID est impossible en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "1803700000020023",
-                    "intro": "L'alimentation de filament vers le tampon de l'AMS-HT D a échoué ; cela pourrait être dû au filament qui s'est détaché. Veuillez vérifier si le tube de filament est mal connecté ou s'il a été usé."
                 },
                 {
                     "ecode": "0700620000020001",
@@ -8308,22 +7744,6 @@
                     "intro": "La fente 4 du module AMS-HT E est vide. Veuillez insérer une nouvelle bobine."
                 },
                 {
-                    "ecode": "0704700000020011",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion motorisée d'assistance AMS E a échoué. Cela peut être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu."
-                },
-                {
-                    "ecode": "1805700000020044",
-                    "intro": "Le retrait du filament AMS-HT F a échoué ; cela peut être dû à un filament cassé dans la tête de l'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "0704700000020050",
-                    "intro": "Le chargement du filament dans le tampon d'AMS E a échoué ; cela peut être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, la bobine de filament est inclinée ou le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1806700000020041",
-                    "intro": "Le retrait du filament AMS-HT G a échoué ; cela peut être dû au filament qui se détache de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
                     "ecode": "1805350000010001",
                     "intro": "Le capteur de température et d'humidité présente une erreur. La puce peut être défectueuse."
                 },
@@ -8332,40 +7752,12 @@
                     "intro": "La poignée du coupe-filament n'a pas été relâchée. La poignée ou la lame peuvent être bloquées, ou il pourrait y avoir un problème avec la connexion du capteur de filament."
                 },
                 {
-                    "ecode": "1804700000020014",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion motorisée d'assistance AMS-HT E a échoué. Cela peut être dû à un petit morceau de filament cassé qui est entré dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1805700000020042",
-                    "intro": "Le retrait du filament AMS-HT F a échoué ; cela peut être dû à une perte de connexion du moteur à courant continu. Veuillez vérifier que la fiche du moteur à courant continu est correctement connectée."
-                },
-                {
-                    "ecode": "1803700000020022",
-                    "intro": "L'alimentation du filament AMS-HT D vers le tampon a échoué ; cela pourrait être dû à l'usure du filament provoquant le glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "La lecture de la RFID est impossible en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "1806700000020020",
-                    "intro": "L'alimentation du filament AMS-HT G vers le tampon a échoué ; cela pourrait être dû à l'obstruction du filament par le tampon. Veuillez vérifier le bouchon du tube PTFE du tampon."
-                },
-                {
                     "ecode": "1800300000010004",
                     "intro": "Échec de la puce de chiffrement."
-                },
-                {
-                    "ecode": "1802700000020031",
-                    "intro": "L'alimentation du filament AMS-HT C vers l'extrudeur de la tête d'impression a échoué ; cela pourrait être dû à l'usure du filament provoquant le glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1801700000020014",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS-HT B a échoué. Cela pourrait être dû à un petit morceau de filament cassé qui est entré dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1804700000020043",
-                    "intro": "L'extraction du filament AMS-HT E a échoué ; cela pourrait être dû à l'usure du filament qui provoque le patinage du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
                 {
                     "ecode": "0700130000020002",
@@ -8532,52 +7924,20 @@
                     "intro": "Le filament de la fente 4 du système AMS G est épuisé et a été automatiquement basculé vers la fente avec le même filament."
                 },
                 {
-                    "ecode": "0706700000020050",
-                    "intro": "Le chargement du filament dans le tampon du système AMS G a échoué ; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "0706700000020010",
-                    "intro": "L'alimentation en filament vers la roue d'extrusion du moteur d'assistance du système AMS G a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont dégagés."
-                },
-                {
-                    "ecode": "0704700000020020",
-                    "intro": "L'alimentation en filament dans le tampon du système AMS E a échoué ; cela pourrait être dû au tampon bloquant le filament. Veuillez vérifier le bouchon de tube PTFE du tampon."
-                },
-                {
-                    "ecode": "0707700000020050",
-                    "intro": "Le chargement du filament dans le tampon du système AMS H a échoué ; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
                     "ecode": "1805310000010004",
                     "intro": "Défaillance de la puce de cryptage"
-                },
-                {
-                    "ecode": "1806700000020061",
-                    "intro": "L'assistance AMS-HT G pour saisir le filament de l'extrudeur a échoué, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est dégagé."
                 },
                 {
                     "ecode": "18FF200000020001",
                     "intro": "Le filament externe de l'extrudeur droit est épuisé; veuillez charger un nouveau filament."
                 },
                 {
-                    "ecode": "0706700000020042",
-                    "intro": "L'extraction du filament avec l'assistance AMS G a échoué; cela peut être dû à une perte de connexion du moteur DC. Veuillez vérifier la prise du moteur DC pour vous assurer qu'elle est correctement connectée."
-                },
-                {
                     "ecode": "18FF450000020002",
                     "intro": "La distance de coupe de la découpeuse de filament est trop grande. Le moteur XY peut perdre des pas."
                 },
                 {
-                    "ecode": "1803700000020044",
-                    "intro": "L'extraction du filament avec l'assistance AMS-HT D a échoué; cela peut être dû à un filament cassé dans la tête de l'outil. Veuillez retirer le filament cassé."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "1806700000020042",
-                    "intro": "AMS-HT G Échec de l'extraction du filament ; cela pourrait être dû à une perte de connexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu pour vous assurer qu'elle est correctement connectée."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -8588,32 +7948,8 @@
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "0707700000020045",
-                    "intro": "AMS H Échec de l'extraction du filament ; cela pourrait être dû à l'épuisement du filament ou à une extraction forcée."
-                },
-                {
-                    "ecode": "0705700000020023",
-                    "intro": "AMS F Échec du chargement du filament dans le tampon ; cela pourrait être dû au détachement du filament. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
-                    "ecode": "1800700000020040",
-                    "intro": "AMS-HT A Échec de l'extraction du filament ; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1801700000020040",
-                    "intro": "AMS-HT B Échec de l'extraction du filament ; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
                     "ecode": "1802310000030003",
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "0704700000020010",
-                    "intro": "L'alimentation en filament du moteur d'assistance d'extrusion AMS E a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu du filament sont clairs."
-                },
-                {
-                    "ecode": "1807700000020042",
-                    "intro": "L'extraction du filament du moteur DC AMS-HT H a échoué; cela pourrait être dû à une perte de connexion du moteur DC. Veuillez vérifier que la fiche du moteur DC est correctement connectée."
                 },
                 {
                     "ecode": "0700610000020001",
@@ -8792,76 +8128,16 @@
                     "intro": "Le filament de la fente 4 A d'AMS-HT est terminé. Veuillez insérer un nouveau filament."
                 },
                 {
-                    "ecode": "0705700000020050",
-                    "intro": "AMS F Le chargement du filament dans le tampon a échoué; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
                     "ecode": "0704350000010001",
                     "intro": "Le capteur de température et d'humidité présente une erreur. La puce peut être défectueuse."
-                },
-                {
-                    "ecode": "1804700000020030",
-                    "intro": "AMS-HT E L'alimentation du filament dans l'extrudeur de la tête d'outil a échoué; cela pourrait être dû à un blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier la prise de tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "0707700000020020",
-                    "intro": "AMS H L'alimentation du filament dans le tampon a échoué; cela pourrait être dû à un blocage du filament par le tampon. Veuillez vérifier la prise de tube PTFE du tampon."
-                },
-                {
-                    "ecode": "0706700000020033",
-                    "intro": "AMS G L'alimentation du filament dans l'extrudeur de la tête d'outil a échoué; cela pourrait être dû au fait que le filament glisse. Veuillez vérifier si le tube de filament est déconnecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "1802700000020044",
-                    "intro": "AMS-HT C L'extraction du filament a échoué; cela pourrait être dû à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1807700000020011",
-                    "intro": "AMS-HT H L'alimentation du filament à la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la prise du moteur à courant continu."
-                },
-                {
-                    "ecode": "1801700000020030",
-                    "intro": "AMS-HT B L'alimentation du filament dans l'extrudeur de la tête d'outil a échoué; cela pourrait être dû à un blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier la prise de tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "0704700000020042",
-                    "intro": "AMS E Échec de l'enlèvement du filament; cela peut être dû à une perte de connexion du moteur DC. Veuillez vérifier que la fiche du moteur DC est correctement connectée."
-                },
-                {
-                    "ecode": "1804700000020022",
-                    "intro": "AMS-HT E L’alimentation du filament dans le tampon a échoué ; cela pourrait être dû à un filament usé, ce qui provoque un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
                 {
                     "ecode": "0707210000020009",
                     "intro": "Impossible d'extraire le filament de la fente 2 AMS H ; l'extrudeur pourrait être obstrué ou le filament pourrait être trop fin, ce qui entraîne un glissement de l'extrudeur."
                 },
                 {
-                    "ecode": "0705700000020012",
-                    "intro": "AMS F Échec de l'alimentation du filament dans la roue d'extrusion du moteur d'assistance. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas régulière."
-                },
-                {
                     "ecode": "18FE450000020003",
                     "intro": "La poignée de coupe du filament n'a pas été relâchée. La poignée ou la lame peut être bloquée, ou il pourrait y avoir un problème de connexion du capteur de filament."
-                },
-                {
-                    "ecode": "1806700000020050",
-                    "intro": "AMS-HT G Échec de l'alimentation du filament dans le tampon ; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "1801700000020045",
-                    "intro": "Le retrait du filament AMS-HT B a échoué ; cela peut être dû à une rupture de filament ou à une extraction."
-                },
-                {
-                    "ecode": "1803700000020014",
-                    "intro": "L'alimentation du filament AMS-HT D vers la roue d'extrusion du moteur d'assistance a échoué. Ceci pourrait être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1800700000020032",
-                    "intro": "L'alimentation du filament AMS-HT A vers l'extrudeur de la tête d'outillage a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0706700000020043",
-                    "intro": "Le retrait du filament AMS G a échoué ; cela peut être dû à la détérioration du filament et à un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
                 {
                     "ecode": "0700200000030002",
@@ -9044,28 +8320,8 @@
                     "intro": "Le moteur AMS-HT D de la fente 4 a glissé. La roue d'extrusion pourrait dysfonctionner ou le filament pourrait être trop fin."
                 },
                 {
-                    "ecode": "0706700000020045",
-                    "intro": "L'échec de l'extraction de filament AMS G peut être dû à une pénurie de filament ou à la manière dont le filament a été retiré."
-                },
-                {
-                    "ecode": "1805700000020020",
-                    "intro": "L'alimentation du filament AMS-HT F dans le tampon a échoué ; cela peut être dû au blocage du tampon par le filament. Veuillez vérifier le bouchon du tube PTFE du tampon."
-                },
-                {
                     "ecode": "1805300000030003",
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "1807700000020014",
-                    "intro": "L'alimentation du filament AMS-HT H vers la roue d'extrusion du moteur d'assistance a échoué. Ceci peut être dû à un petit morceau de filament cassé entré dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1806700000020044",
-                    "intro": "L'échec de l'extraction du filament AMS-HT G peut être dû à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1802700000020033",
-                    "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS-HT C a échoué; cela pourrait être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou si le tube est usé."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9080,36 +8336,8 @@
                     "intro": "Échec de l'extrusion du filament AMS H Slot 4; l'extrudeur est peut-être obstrué ou le filament est peut-être trop fin, ce qui fait glisser l'extrudeur."
                 },
                 {
-                    "ecode": "0704700000020013",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur auxiliaire d'AMS E a échoué. Cela pourrait être dû à une perte de signal en provenance de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "1802700000020040",
-                    "intro": "AMS-HT C L'extraction du filament a échoué; cela peut être dû à une résistance excessive dans le moteur DC. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1800700000020043",
-                    "intro": "AMS-HT A L'extraction du filament a échoué; cela pourrait être dû à l'usure du filament et à la défaillance du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0707700000020012",
-                    "intro": "AMS H L'alimentation en filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0704700000020060",
-                    "intro": "AMS E L'assistance à la prise du filament par l'extrudeuse a échoué; cela peut être dû à une défaillance du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
                     "ecode": "1803300000030003",
                     "intro": "La lecture RFID a échoué en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "0707700000020040",
-                    "intro": "AMS H L'extraction du filament a échoué; cela peut être dû à une résistance excessive dans le moteur DC. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1806700000020045",
-                    "intro": "AMS-HT G L'extraction du filament a échoué; cela peut être dû à la fin du filament ou à une extraction."
                 },
                 {
                     "ecode": "1804310000010004",
@@ -9248,42 +8476,6 @@
                     "intro": "Le filament de la fente H de la AMS située sur la case 2 s'est terminé, et le nettoyage du filament précédent s'est déroulé anormalement ; veuillez vérifier si le filament est coincé dans la tête d'impression."
                 },
                 {
-                    "ecode": "0707700000020030",
-                    "intro": "L'alimentation du filament de la AMS H vers l’extrudeur de la tête d'impression a échoué ; cela peut être dû à un blocage du filament à l'entrée de la tête d'impression. Veuillez vérifier le bouchon du tube de filament de la tête d'impression."
-                },
-                {
-                    "ecode": "1807700000020040",
-                    "intro": "La sortie de filament de la AMS-HT H a échoué ; cela peut être dû à une résistance excessive du moteur DC. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1805700000020014",
-                    "intro": "L'alimentation du filament de la AMS-HT F vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1807700000020010",
-                    "intro": "L'alimentation du filament de la AMS-HT H vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont dégagés."
-                },
-                {
-                    "ecode": "1801700000020060",
-                    "intro": "AMS-HT B Échec de l'assistance du grabber de l'extrudeuse à saisir le filament ; cela pourrait être dû à un glissement du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0707700000020061",
-                    "intro": "AMS H Assistance à la sortie de filament de l'extrudeuse impossible, peut-être en raison d'une résistance excessive du buffer. Veuillez vérifier si le buffer est bloqué, si la bobine de filament est inclinée et si le tube de filament est dégagé."
-                },
-                {
-                    "ecode": "1804700000020044",
-                    "intro": "AMS-HT E Échec de la sortie du filament ; cela pourrait être dû à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1807700000020012",
-                    "intro": "AMS-HT H Échec de l'alimentation du filament dans la roue d'extrusion du moteur d'assistance. Cela pourrait être dû à une resistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0706700000020021",
-                    "intro": "AMS G Échec de l'alimentation du filament dans le buffer ; cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est obstrué."
-                },
-                {
                     "ecode": "1800310000030003",
                     "intro": "Lecture impossible de la RFID en raison d'une erreur matérielle ou structurelle."
                 },
@@ -9296,48 +8488,12 @@
                     "intro": "Échec d'extrusion du filament AMS E Slot 2 ; l'extrudeur pourrait être obstrué ou le filament pourrait être trop fin, ce qui entraîne le glissement de l'extrudeur."
                 },
                 {
-                    "ecode": "1802700000020030",
-                    "intro": "L'alimentation du filament AMS-HT C vers l'extrudeuse de la tête d'outil a échoué ; cela pourrait être dû à un blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube d'alimentation de la tête d'outil."
-                },
-                {
-                    "ecode": "1806700000020043",
-                    "intro": "Le retrait du filament AMS-HT G a échoué ; cela pourrait être dû à l'usure du filament, ce qui entraîne un glissement du moteur d'assistance. Veuillez tailler la section usée du filament."
-                },
-                {
-                    "ecode": "1807700000020050",
-                    "intro": "Le chargement du filament AMS-HT H dans le tampon a échoué ; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est coincé, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
                     "ecode": "1801300000010004",
                     "intro": "Échec de la puce de cryptage."
                 },
                 {
                     "ecode": "18FE450000020002",
                     "intro": "La distance de coupe du coupe-filament est trop grande. Le moteur XY pourrait perdre des pas."
-                },
-                {
-                    "ecode": "1804700000020032",
-                    "intro": "L'alimentation du filament AMS-HT E vers l'extrudeuse de la tête d'outil a échoué ; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "1807700000020043",
-                    "intro": "AMS-HT H Tirer le filament a échoué ; cela peut être dû à l'usure du filament et à la glissade du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1803700000020060",
-                    "intro": "AMS-HT D L'aide de l'extrudeur pour saisir le filament a échoué ; cela peut être dû à un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0707700000020011",
-                    "intro": "AMS H L'alimentation du filament à la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu."
-                },
-                {
-                    "ecode": "1806700000020014",
-                    "intro": "AMS-HT G L'alimentation du filament à la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "1806700000020030",
-                    "intro": "AMS-HT G L'alimentation du filament à l'extrudeur de la tête d'outil a échoué ; cela pourrait être dû au blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier la fiche du tube d'alimentation du filament de la tête d'outil."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9472,68 +8628,20 @@
                     "intro": "Le filament de l'AMS-HT E Slot 4 pourrait être cassé dans l'AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020020",
-                    "intro": "L'alimentation du filament de l'AMS-HT B vers le buffer a échoué ; cela pourrait être dû au blocage du filament par le buffer. Veuillez vérifier la fiche du tube PTFE pour le buffer."
-                },
-                {
                     "ecode": "0704300000010004",
                     "intro": "Échec de la puce de chiffrement."
-                },
-                {
-                    "ecode": "1807700000020060",
-                    "intro": "L'assistance de l'extrudeur AMS-HT H pour saisir le filament a échoué ; cela pourrait être dû au patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1803700000020032",
-                    "intro": "L'alimentation du filament de l'AMS-HT D vers l'extrudeur de la tête d'outil a échoué ; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube du filament est obstrué."
                 },
                 {
                     "ecode": "0704220000020009",
                     "intro": "Impossible d'extruder le filament de l'AMS E Slot 3 ; l'extrudeur peut être obstrué ou le filament peut être trop fin, ce qui provoque le patinage de l'extrudeur."
                 },
                 {
-                    "ecode": "0705700000020030",
-                    "intro": "L'alimentation du filament AMS-F vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû à un blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube du filament de la tête d'outil."
-                },
-                {
                     "ecode": "1801350000010001",
                     "intro": "Le capteur de température et d'humidité a une erreur. Le chip est peut-être défectueux."
                 },
                 {
-                    "ecode": "1801700000020021",
-                    "intro": "L'alimentation du filament AMS-HT B vers le tampon a échoué ; cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
                     "ecode": "0706310000010004",
                     "intro": "Défaillance de la puce de chiffrement."
-                },
-                {
-                    "ecode": "0705700000020045",
-                    "intro": "L'extraction du filament AMS F a échoué ; cela peut être dû à une rupture ou à une fin du filament."
-                },
-                {
-                    "ecode": "0706700000020012",
-                    "intro": "L'alimentation du filament AMS G vers la roue d'extrusion de moteur d'assistance a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0706700000020032",
-                    "intro": "L'alimentation du filament AMS G vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0704700000020021",
-                    "intro": "L'alimentation du filament AMS E vers le tampon a échoué ; cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "1805700000020022",
-                    "intro": "L'alimentation du filament AMS-HT F vers le tampon a échoué ; cela pourrait être dû à l'usure du filament, ce qui peut causer le patinage du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0705700000020041",
-                    "intro": "L'extraction du filament AMS F a échoué ; cela pourrait être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "1800700000020010",
-                    "intro": "L'alimentation du filament AMS-HT A vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu du filament sont dégagés."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -9704,10 +8812,6 @@
                     "intro": "Le moteur de la fente 2 du AMS F est surchargé. Le filament peut être emmêlé ou coincé."
                 },
                 {
-                    "ecode": "1805700000020030",
-                    "intro": "L'alimentation du filament dans l'extrudeur de la tête d'outil AMS-HT F a échoué ; cela peut être dû à un blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube d'alimentation du filament de la tête d'outil."
-                },
-                {
                     "ecode": "0705300000010004",
                     "intro": "Défaillance de la puce de chiffrement."
                 },
@@ -9720,52 +8824,16 @@
                     "intro": "Le RFID ne peut pas être lu en raison d'une erreur matérielle ou structurelle."
                 },
                 {
-                    "ecode": "0704700000020061",
-                    "intro": "Impossible de saisir le filament à l'aide de l'extrudeuse assistée AMS E, peut-être en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si l'écheveau de filament est incliné et si le tube de filament est libre."
-                },
-                {
-                    "ecode": "1807700000020033",
-                    "intro": "L'alimentation du filament dans l'extrudeur de la tête d'outil AMS-HT H a échoué ; cela peut être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il est usé à travers."
-                },
-                {
-                    "ecode": "0707700000020013",
-                    "intro": "L'alimentation du filament dans la roue d'extrusion du moteur d'assistance AMS H a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
                     "ecode": "0706220000020009",
                     "intro": "Impossible d’extruder le filament du slot 3 de l'AMS G; L'extrudeur peut être obstrué ou le filament peut être trop fin, ce qui fait glisser l'extrudeur."
-                },
-                {
-                    "ecode": "0705700000020011",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS F a échoué. Cela peut être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu."
-                },
-                {
-                    "ecode": "0706700000020014",
-                    "intro": "L'alimentation du filament vers la roue d'extrusion du moteur d'assistance AMS G a échoué. Cela peut être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
                 },
                 {
                     "ecode": "18FE200000020001",
                     "intro": "Le filament externe de l'extrudeur gauche est épuisé ; veuillez charger un nouveau filament."
                 },
                 {
-                    "ecode": "1805700000020031",
-                    "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS-HT F a échoué ; cela peut être dû à l'usure du filament et à la glissade du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1806700000020040",
-                    "intro": "Le retrait du filament du système AMS-HT G a échoué ; cela peut être dû à une résistance excessive du moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
                     "ecode": "1800400000020003",
                     "intro": "La communication du concentrateur AMS est anormale ; le câble pourrait être mal connecté."
-                },
-                {
-                    "ecode": "1801700000020032",
-                    "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS-HT B a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0705700000020033",
-                    "intro": "L'alimentation du filament vers l'extrudeur de la tête d'outil AMS F a échoué ; cela peut être dû à la sortie du filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il est usé."
                 },
                 {
                     "ecode": "0706350000010001",
@@ -9774,18 +8842,6 @@
                 {
                     "ecode": "0705310000030003",
                     "intro": "L'identification par radiofréquence (RFID) ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
-                },
-                {
-                    "ecode": "1805700000020045",
-                    "intro": "L'extraction du filament AMS-HT F a échoué ; cela peut être dû à une rupture de filament ou à une mauvaise extraction."
-                },
-                {
-                    "ecode": "0704700000020030",
-                    "intro": "L'alimentation de filament pour l'extrudeur de tête d'outil AMS E a échoué ; cela peut être dû à un blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "1801700000020013",
-                    "intro": "L'alimentation de filament pour la roue d'extrusion du moteur d'assistance AMS-HT B a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la prise de la roue odomètre."
                 },
                 {
                     "ecode": "0700110000010003",
@@ -9984,64 +9040,12 @@
                     "intro": "Le filament de la fente 3 de l'AMS-HT D peut être cassé dans l'AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020043",
-                    "intro": "L'extraction du filament sur AMS-HT B a échoué. Cela peut être dû à l'usure du filament, ce qui fait glisser le moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1802700000020050",
-                    "intro": "Le chargement du filament dans la mémoire tampon AMS-HT C a échoué. Cela peut être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "1800700000020060",
-                    "intro": "L'aide de l'extrudeur pour saisir le filament sur AMS-HT A a échoué. Cela peut être dû au glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0707700000020023",
-                    "intro": "Le chargement du filament dans la mémoire tampon AMS H a échoué. Cela peut être dû à une détérioration du filament. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
-                    "ecode": "1803700000020012",
-                    "intro": "Le chargement du filament dans la roue d'extrusion du moteur d'assistance AMS-HT D a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0704700000020023",
-                    "intro": "Le chargement du filament dans la mémoire tampon AMS E a échoué. Cela peut être dû à une détérioration du filament. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
                     "ecode": "1804300000010004",
                     "intro": "Échec de la puce de cryptage."
                 },
                 {
                     "ecode": "1803310000010004",
                     "intro": "Échec de la puce de cryptage."
-                },
-                {
-                    "ecode": "1804700000020041",
-                    "intro": "AMS-HT E Échec de l'extraction du filament; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "1804700000020060",
-                    "intro": "AMS-HT E L'assistance de l'extrudeur pour attraper le filament a échoué; cela pourrait être dû au glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1801700000020012",
-                    "intro": "AMS-HT B L'alimentation du filament à la roue d'extrusion du moteur d'assistance a échoué. Ceci pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas régulière."
-                },
-                {
-                    "ecode": "0707700000020031",
-                    "intro": "AMS H L'alimentation du filament au système d'extrusion de la tête d'outil a échoué; cela peut être dû à l'usure du filament et à la glissade du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0707700000020032",
-                    "intro": "AMS H L'alimentation du filament dans l'extrudeur de la tête d'outil a échoué; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "1807700000020020",
-                    "intro": "AMS-HT H L'alimentation du filament dans le tampon a échoué; cela peut être dû au blocage du tampon par le filament. Veuillez vérifier le bouchon du tube PTFE du tampon."
-                },
-                {
-                    "ecode": "1806700000020022",
-                    "intro": "AMS-HT G L'alimentation du filament dans le tampon a échoué; cela peut être dû à l'usure du filament et à la glissade du moteur d'assistance. Veuillez couper la section usée du filament."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -10228,52 +9232,8 @@
                     "intro": "Aucun filament n'a été détecté dans l'extrudeuse droite à partir de la bobine externe; veuillez charger le nouveau filament."
                 },
                 {
-                    "ecode": "1806700000020023",
-                    "intro": "L'alimentation du filament AMS-HT dans le tampon a échoué ; cela pourrait être dû à la fixation du filament qui s'est détachée. Veuillez vérifier si le tube de filament est mal connecté ou s'il a été usé."
-                },
-                {
-                    "ecode": "0704700000020012",
-                    "intro": "L'alimentation du filament AMS E dans la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "1805700000020012",
-                    "intro": "L'alimentation du filament AMS-HT F dans la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0705700000020022",
-                    "intro": "L'alimentation du filament AMS F dans le tampon a échoué ; cela peut être dû à l'usure du filament qui fait glisser le moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "1807700000020021",
-                    "intro": "AMS-HT H L'alimentation de filament dans le tampon a échoué ; cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "1803700000020041",
-                    "intro": "AMS-HT D Le retrait du filament a échoué ; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "1807700000020031",
-                    "intro": "AMS-HT H L'alimentation du filament à l'extrudeuse de la tête d'outil a échoué ; cela peut être dû à l'usure du filament et à la glissance du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "1801310000010004",
                     "intro": "Échec de la puce de cryptage."
-                },
-                {
-                    "ecode": "0707700000020033",
-                    "intro": "AMS H L'alimentation du filament à l'extrudeuse de la tête d'outil a échoué ; cela peut être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "1806700000020032",
-                    "intro": "AMS-HT G L'alimentation du filament à l'extrudeuse de la tête d'outil a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0707700000020010",
-                    "intro": "AMS H L'alimentation du filament à la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont clairs."
-                },
-                {
-                    "ecode": "0706700000020040",
-                    "intro": "Le retrait du filament AMS G a échoué; cela peut être dû à une résistance excessive dans le moteur DC. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
                 },
                 {
                     "ecode": "1800450000020003",
@@ -10286,22 +9246,6 @@
                 {
                     "ecode": "0705220000020009",
                     "intro": "Échec de l'extrusion du filament AMS F Slot 3; l'extrudeuse peut être bouchée ou le filament peut être trop mince, ce qui fait que l'extrudeuse glisse."
-                },
-                {
-                    "ecode": "1803700000020042",
-                    "intro": "Le retrait du filament AMS-HT D a échoué; cela peut être dû à une perte de connexion du moteur DC. Veuillez vérifier que la prise du moteur DC est correctement connectée."
-                },
-                {
-                    "ecode": "0705700000020044",
-                    "intro": "Le retrait du filament AMS F a échoué; cela peut être dû à un filament cassé dans la tête de l'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "1803700000020013",
-                    "intro": "L'alimentation du filament à la roue d'extrusion du moteur d'assistance AMS-HT D a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "0704700000020041",
-                    "intro": "Le retrait du filament AMS E a échoué ; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
                 },
                 {
                     "ecode": "0700130000010003",
@@ -10452,48 +9396,12 @@
                     "intro": "L'action de commutation de l'extrudeur est anormale. Veuillez vérifier s'il y a quelque chose de coincé dans la tête de l'outil."
                 },
                 {
-                    "ecode": "1804700000020021",
-                    "intro": "AMS-HT E L'alimentation du filament dans le tampon a échoué; cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est basculée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "1804700000020045",
-                    "intro": "AMS-HT E La sortie du filament a échoué; cela peut être dû à une fin de filament ou à une sortie forcée."
-                },
-                {
-                    "ecode": "0704700000020031",
-                    "intro": "AMS E L'alimentation du filament dans l'extrudeur de la tête d'outil a échoué; cela peut être dû à l'usure du filament et à un patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0706700000020060",
-                    "intro": "AMS G L'aide de l'extrudeur pour saisir le filament a échoué; cela peut être dû au patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "0706200000020009",
                     "intro": "Impossible d'extruder le filament AMS G Slot 1; l'extrudeur peut être obstrué ou le filament peut être trop fin, entraînant un patinage de l'extrudeur."
                 },
                 {
-                    "ecode": "1801700000020033",
-                    "intro": "AMS-HT B L'alimentation du filament dans l'extrudeur de la tête d'outil a échoué; cela peut être dû au filament qui glisse. Veuillez vérifier si le tube du filament est déconnecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "1803700000020045",
-                    "intro": "AMS-HT D La sortie du filament a échoué; cela peut être dû à une fin de filament ou à une sortie forcée."
-                },
-                {
                     "ecode": "1807310000010004",
                     "intro": "Défaillance de la puce de cryptage"
-                },
-                {
-                    "ecode": "1803700000020043",
-                    "intro": "L'extraction de filament AMS-HT D a échoué; ceci peut être dû à l'usure du filament et entraîne un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "1807700000020041",
-                    "intro": "L'extraction de filament AMS-HT H a échoué; ceci peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une neuve."
-                },
-                {
-                    "ecode": "0707700000020021",
-                    "intro": "L'alimentation du filament d'AMS H vers le tampon a échoué; cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tuyau PTFE est bloqué."
                 },
                 {
                     "ecode": "0706300000010004",
@@ -10502,10 +9410,6 @@
                 {
                     "ecode": "18FE200000020004",
                     "intro": "Veuillez retirer le filament externe de l'extrudeur gauche."
-                },
-                {
-                    "ecode": "1801700000020010",
-                    "intro": "L'alimentation du filament AMS-HT B vers la roue d'extrusion du moteur d'assistance a échoué. Ceci peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont dégagés."
                 },
                 {
                     "ecode": "0300C20000010002",
@@ -10660,344 +9564,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0700700000020030",
-                    "intro": "AMS : L'alimentation en filament vers la buse d'extrusion de la tête d'outil a échoué ; cela pourrait être dû au blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "0700700000020031",
-                    "intro": "AMS : L'alimentation en filament vers la buse d'extrusion de la tête d'outil a échoué ; cela pourrait être dû à l'usure du filament qui fait glisser le moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0700700000020032",
-                    "intro": "AMS : L'alimentation en filament vers la buse d'extrusion de la tête d'outil a échoué ; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0700700000020033",
-                    "intro": "AMS : L'alimentation en filament vers la buse d'extrusion de la tête d'outil a échoué ; cela pourrait être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou si le tube est usé à travers."
-                },
-                {
-                    "ecode": "0700700000020040",
-                    "intro": "AMS : L'extraction du filament a échoué ; cela pourrait être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "0700700000020041",
-                    "intro": "AMS : L'extraction du filament a échoué ; cela pourrait être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "0700700000020042",
-                    "intro": "AMS : Un filament de tirage s'est cassé; cela peut être dû à une perte de connexion du moteur DC. Veuillez vérifier que la fiche du moteur DC est correctement connectée."
-                },
-                {
-                    "ecode": "0700700000020043",
-                    "intro": "AMS : L'échec de la sortie du filament de tirage peut être dû à l'usure du filament et à un glissement du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0700700000020044",
-                    "intro": "AMS : L'échec de la sortie du filament de tirage peut être dû à un filament cassé dans la tête de l'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "0700700000020045",
-                    "intro": "AMS : L'échec de la sortie du filament de tirage peut être dû à une fin de filament ou à un filament qui a été tiré."
-                },
-                {
-                    "ecode": "0700700000020050",
-                    "intro": "AMS : L'échec du chargement du filament dans le tampon peut être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0700700000020060",
-                    "intro": "AMS : L'échec de la saisie du filament par l'extrudeur d'assistance peut être dû à un glissement du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0701700000020030",
-                    "intro": "AMS B : L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué ; cela peut être dû au blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier la fiche du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "0701700000020031",
-                    "intro": "AMS B : L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué ; cela peut être dû à l'usure du filament et à un glissement du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0701700000020032",
-                    "intro": "AMS B : L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0701700000020033",
-                    "intro": "L'alimentation de filament AMS B au système d'extrusion de la tête d'outil a échoué; cela peut être dû à un glissement de filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il est usé."
-                },
-                {
-                    "ecode": "0701700000020040",
-                    "intro": "Le retrait du filament AMS B a échoué; cela peut être dû à une résistance excessive dans le moteur à courant continu. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0701700000020041",
-                    "intro": "Le retrait du filament AMS B a échoué; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "0701700000020042",
-                    "intro": "Le retrait du filament AMS B a échoué; cela peut être dû à une perte de connexion du moteur à courant continu. Veuillez vérifier la connexion de la prise du moteur à courant continu pour vous assurer qu'elle est correctement connectée."
-                },
-                {
-                    "ecode": "0701700000020043",
-                    "intro": "Le retrait du filament AMS B a échoué; cela peut être dû à l'usure du filament et à un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0701700000020044",
-                    "intro": "Le retrait du filament AMS B a échoué; cela peut être dû à un filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "0701700000020045",
-                    "intro": "Le retrait du filament AMS B a échoué ; cela peut être dû à ce que le filament est épuisé ou a été retiré."
-                },
-                {
-                    "ecode": "0701700000020050",
-                    "intro": "Le chargement de filament AMS B dans le tampon a échoué; cela peut être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0701700000020060",
-                    "intro": "L'assistance de l'extrudeuse AMS B pour saisir le filament a échoué ; cela peut être dû à un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0702700000020030",
-                    "intro": "AMS C L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué; cela pourrait être dû au blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier la prise du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "0702700000020031",
-                    "intro": "AMS C L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué; cela pourrait être dû à l'usure du filament et à l'entraînement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0702700000020032",
-                    "intro": "AMS C L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué; cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0702700000020033",
-                    "intro": "AMS C L'alimentation du filament vers l'extrudeuse de la tête d'outil a échoué; cela pourrait être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou si le tube a été usé à travers."
-                },
-                {
-                    "ecode": "0702700000020040",
-                    "intro": "AMS C Le retrait du filament a échoué; cela pourrait être dû à une résistance excessive dans le moteur DC. Veuillez vérifier si la bobine de filament est inclinée ou déformée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "0702700000020041",
-                    "intro": "AMS C Le retrait du filament a échoué; cela pourrait être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une neuve."
-                },
-                {
-                    "ecode": "0702700000020042",
-                    "intro": "AMS C Le retrait du filament a échoué; cela pourrait être dû à la perte de connexion du moteur DC. Veuillez vérifier que la prise du moteur DC est correctement connectée."
-                },
-                {
-                    "ecode": "0702700000020043",
-                    "intro": "AMS C Le retrait du filament a échoué; cela pourrait être dû à l'usure du filament et à l'entraînement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0702700000020044",
-                    "intro": "AMS C Le retrait du filament a échoué; cela pourrait être dû au filament cassé dans la tête d'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "0702700000020045",
-                    "intro": "AMS C Le retrait du filament a échoué; cela pourrait être dû à une fin de filament ou à son enlèvement."
-                },
-                {
-                    "ecode": "0702700000020050",
-                    "intro": "AMS C Le chargement du filament dans le tampon a échoué ; cela peut être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bouché."
-                },
-                {
-                    "ecode": "0702700000020060",
-                    "intro": "AMS C L'assistance de l'extrudeur pour saisir le filament a échoué ; cela peut être dû au glissement du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0703700000020030",
-                    "intro": "AMS D L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû au blocage du filament à l'entrée de la tête d'outil. Veuillez vérifier le bouchon du tube de filament de la tête d'outil."
-                },
-                {
-                    "ecode": "0703700000020031",
-                    "intro": "AMS D L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû à l'usure du filament qui provoque le glissement du moteur d'assistance. Veuillez couper la partie usée du filament."
-                },
-                {
-                    "ecode": "0703700000020032",
-                    "intro": "AMS D L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube de filament est obstrué."
-                },
-                {
-                    "ecode": "0703700000020033",
-                    "intro": "AMS D L'alimentation du filament vers l'extrudeur de la tête d'outil a échoué ; cela peut être dû au glissement du filament. Veuillez vérifier si le tube de filament est déconnecté ou s'il a été usé."
-                },
-                {
-                    "ecode": "0703700000020040",
-                    "intro": "AMS D L'extraction du filament a échoué ; cela peut être dû à une résistance excessive dans le moteur DC. Veuillez vérifier si la bobine de filament est inclinée ou déformée, et si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "0703700000020041",
-                    "intro": "AMS D L'extraction du filament a échoué ; cela peut être dû au détachement du filament de la bobine. Veuillez remplacer la bobine par une nouvelle."
-                },
-                {
-                    "ecode": "0703700000020042",
-                    "intro": "AMS D L'extraction du filament a échoué ; cela peut être dû à la perte de connexion du moteur DC. Veuillez vérifier que la prise du moteur DC est correctement connectée."
-                },
-                {
-                    "ecode": "0703700000020043",
-                    "intro": "AMS D Le retrait du filament a échoué ; cela pourrait être dû à l'usure du filament et causer le patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0703700000020044",
-                    "intro": "AMS D Le retrait du filament a échoué ; cela pourrait être dû à un filament cassé dans la tête de l'outil. Veuillez retirer le filament cassé."
-                },
-                {
-                    "ecode": "0703700000020045",
-                    "intro": "AMS D Le retrait du filament a échoué ; cela pourrait être dû à une fin de filament ou à un arrachage."
-                },
-                {
-                    "ecode": "0703700000020050",
-                    "intro": "AMS D Le chargement du filament dans le tampon a échoué ; cela pourrait être dû à une résistance excessive dans le tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée ou si le tube de filament est bloqué."
-                },
-                {
-                    "ecode": "0703700000020060",
-                    "intro": "AMS D L'assistance de l'extrudeur pour saisir le filament a échoué ; cela pourrait être dû au patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
                     "ecode": "0300250000010008",
                     "intro": "La buse droite touche anormalement le lit chauffant. Veuillez vérifier s'il y a des résidus de filament sur la buse ou des corps étrangers là où la buse touche le lit."
-                },
-                {
-                    "ecode": "0702700000020020",
-                    "intro": "AMS C Le chargement du filament dans le tampon a échoué ; cela pourrait être dû au blocage du filament par le tampon. Veuillez vérifier le bouchon du tube PTFE du tampon."
-                },
-                {
-                    "ecode": "0701700000020022",
-                    "intro": "AMS B Le chargement du filament dans le tampon a échoué ; cela pourrait être dû à un filament usé qui cause le patinage du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0702700000020014",
-                    "intro": "AMS C Le chargement du filament dans la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "0702700000020022",
-                    "intro": "AMS C L'alimentation du filament vers le tampon a échoué. Cela peut être dû à un filament usé qui fait glisser le moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0700700000020013",
-                    "intro": "AMS A L'alimentation du filament vers la roue d'extrusion de moteur d'assistance a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de roue odomètre."
-                },
-                {
-                    "ecode": "0701700000020011",
-                    "intro": "AMS B L'alimentation du filament vers la roue d'extrusion de moteur d'assistance a échoué. Cela peut être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la fiche du moteur DC."
-                },
-                {
-                    "ecode": "0702700000020023",
-                    "intro": "AMS C L'alimentation du filament vers le tampon a échoué. Cela peut être dû au détachement du filament. Veuillez vérifier si le tube du filament est mal connecté ou s'il a été usé."
-                },
-                {
-                    "ecode": "0703700000020012",
-                    "intro": "AMS D L'alimentation du filament vers la roue d'extrusion de moteur d'assistance a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0702700000020021",
-                    "intro": "AMS C L'alimentation du filament vers le tampon a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube en PTFE est bloqué."
-                },
-                {
-                    "ecode": "0703700000020020",
-                    "intro": "AMS D L'alimentation du filament vers le tampon a échoué. Cela peut être dû au bloquage du tampon du filament. Veuillez vérifier la fiche du tube en PTFE du tampon."
-                },
-                {
-                    "ecode": "0701700000020014",
-                    "intro": "AMS B L'alimentation du filament vers la roue d'extrusion de moteur d'assistance a échoué. Cela peut être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "0700700000020023",
-                    "intro": "AMS: L'alimentation de filament vers la mémoire tampon a échoué; cela peut être dû au détachement du filament. Veuillez vérifier si le tube de filament est mal connecté ou s'il est usé."
-                },
-                {
-                    "ecode": "0702700000020012",
-                    "intro": "AMS C: L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0703700000020010",
-                    "intro": "AMS D: L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de filament sont dégagés."
-                },
-                {
-                    "ecode": "0700700000020020",
-                    "intro": "AMS A: L'alimentation du filament vers la mémoire tampon a échoué; cela peut être dû au blocage de la mémoire tampon par le filament. Veuillez vérifier le bouchon du tube PTFE de la mémoire tampon."
-                },
-                {
-                    "ecode": "0701700000020012",
-                    "intro": "AMS B: L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, si le filament est emmêlé ou si la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0702700000020011",
-                    "intro": "AMS C: L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à une déconnexion du moteur à courant continu. Veuillez vérifier la connexion de la fiche du moteur à courant continu."
-                },
-                {
-                    "ecode": "0701700000020013",
-                    "intro": "AMS B: L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "0703700000020021",
-                    "intro": "AMS D: L'alimentation du filament vers la mémoire tampon a échoué; cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "0703700000020014",
-                    "intro": "AMS D: L'alimentation du filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "0700700000020014",
-                    "intro": "AMS A: L'alimentation de filament vers la roue d'extrusion du moteur d'assistance a échoué. Cela peut être dû à un petit morceau de filament cassé entrant dans le tube d'alimentation. Veuillez retirer le filament cassé du tube d'alimentation."
-                },
-                {
-                    "ecode": "0701700000020010",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS B a échoué. Cela peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu du filament sont clairs."
-                },
-                {
-                    "ecode": "0702700000020013",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS C a échoué. Cela pourrait être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la fiche de la roue odomètre."
-                },
-                {
-                    "ecode": "0703700000020022",
-                    "intro": "L'alimentation en filament du tampon AMS D a échoué ; cela pourrait être dû à l'usure du filament, ce qui entraîne un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0703700000020011",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS D a échoué. Cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la fiche du moteur DC."
-                },
-                {
-                    "ecode": "0700700000020010",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS A a échoué. Cela peut être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu du filament sont clairs."
-                },
-                {
-                    "ecode": "0700700000020012",
-                    "intro": "L'alimentation en filament de la roue d'extrusion du moteur d'assistance AMS A a échoué. Cela peut être dû à une résistance excessive dans le filament. Veuillez vérifier si la bobine est inclinée, le filament est emmêlé ou la rotation de la bobine n'est pas fluide."
-                },
-                {
-                    "ecode": "0701700000020023",
-                    "intro": "L'alimentation en filament du tampon AMS B a échoué; cela pourrait être dû au filament qui s'est détaché. Veuillez vérifier si le tube de filament est mal connecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "0700700000020022",
-                    "intro": "L'alimentation en filament du tampon AMS A a échoué; cela pourrait être dû à l'usure du filament, ce qui entraîne un glissement du moteur d'assistance. Veuillez couper la section usée du filament."
-                },
-                {
-                    "ecode": "0703700000020023",
-                    "intro": "L'alimentation en filament du tampon AMS D a échoué; cela pourrait être dû au filament qui s'est détaché. Veuillez vérifier si le tube de filament est mal connecté ou si le tube est usé."
-                },
-                {
-                    "ecode": "0703700000020013",
-                    "intro": "L'alimentation de la bobine AMS D vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une perte de signal de la roue odomètre. Veuillez vérifier la connexion de la prise de la roue odomètre."
-                },
-                {
-                    "ecode": "0701700000020021",
-                    "intro": "L'alimentation de la bobine AMS B vers le tampon a échoué. Cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "0700700000020021",
-                    "intro": "L'alimentation de la bobine AMS A vers le tampon a échoué. Cela pourrait être dû à une résistance excessive du filament. Veuillez vérifier si la bobine de filament est inclinée ou si le tube PTFE est bloqué."
-                },
-                {
-                    "ecode": "0701700000020020",
-                    "intro": "L'alimentation du filament AMS B vers le tampon à échoué; cela pourrait être dû au blocage du tampon empêchant le filament d'avancer. Veuillez vérifier la prise de tube PTFE du tampon."
-                },
-                {
-                    "ecode": "0700700000020011",
-                    "intro": "L'alimentation de la bobine AMS A verso la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à une déconnexion du moteur DC. Veuillez vérifier la connexion de la prise du moteur DC."
-                },
-                {
-                    "ecode": "0702700000020010",
-                    "intro": "L'alimentation de la bobine AMS C vers la roue d'extrusion du moteur d'assistance a échoué. Cela pourrait être dû à un blocage dans le tube d'alimentation. Veuillez vérifier si le tube d'alimentation et le moyeu de la bobine de filament sont libres."
                 },
                 {
                     "ecode": "0300260000010008",
@@ -11054,10 +9622,6 @@
                 {
                     "ecode": "0300990000010001",
                     "intro": "La fenêtre droite semble être ouverte; la tâche a été suspendue."
-                },
-                {
-                    "ecode": "0C00040000010017",
-                    "intro": "L'option imprimer puis découper n'a pas détecté le marqueur; veuillez recoller le matériau à découper."
                 },
                 {
                     "ecode": "0701960000010003",
@@ -11265,15 +9829,15 @@
                 },
                 {
                     "ecode": "0500010000020009",
-                    "intro": ""
+                    "intro": "La vitesse d'images par seconde de la caméra MIPI est inférieure à 1."
                 },
                 {
                     "ecode": "0500060000020023",
-                    "intro": ""
+                    "intro": "La caméra laser détecte des taux d'images bas pour les formats CIF/ISP/ISPP."
                 },
                 {
                     "ecode": "0500060000020011",
-                    "intro": ""
+                    "intro": "Xcam n'a pas d'interruption MIPI ; veuillez vérifier le matériel et la connexion de la ligne."
                 },
                 {
                     "ecode": "0500020000020003",
@@ -11297,7 +9861,7 @@
                 },
                 {
                     "ecode": "0500010000020008",
-                    "intro": ""
+                    "intro": "Mémoire de la caméra IP trop élevée ; veuillez contacter le service R&D !"
                 },
                 {
                     "ecode": "0703900000010003",
@@ -11661,7 +10225,7 @@
                 },
                 {
                     "ecode": "0500060000020013",
-                    "intro": ""
+                    "intro": "La caméra laser n'a pas d'interruption MIPI ; veuillez vérifier le matériel et la connexion de la ligne."
                 },
                 {
                     "ecode": "050003000001000A",
@@ -11973,7 +10537,7 @@
                 },
                 {
                     "ecode": "0500060000020014",
-                    "intro": ""
+                    "intro": "La caméra Liveview n'a pas d'interruption MIPI ; veuillez vérifier le matériel et la connexion de ligne."
                 },
                 {
                     "ecode": "0300970000010002",
@@ -12573,27 +11137,27 @@
                 },
                 {
                     "ecode": "0500010000030009",
-                    "intro": ""
+                    "intro": "Le FPS de la caméra MIPI est inférieur à 1."
                 },
                 {
                     "ecode": "0500030000030007",
-                    "intro": ""
+                    "intro": "Une panique du système s'est produite. Elle a été récupérée par un redémarrage automatique."
                 },
                 {
                     "ecode": "05000600000200A1",
-                    "intro": ""
+                    "intro": "Redémarrage de l'AP boot_reason = watchdog."
                 },
                 {
                     "ecode": "0500060000020024",
-                    "intro": ""
+                    "intro": "La caméra Liveview détecte des taux de trame bas CIF/ISP/ISPP."
                 },
                 {
                     "ecode": "05000600000200A0",
-                    "intro": ""
+                    "intro": "Redémarrage de l'AP boot_reason = panique."
                 },
                 {
                     "ecode": "0500060000020021",
-                    "intro": ""
+                    "intro": "La caméra Xcam détecte des taux de trame bas CIF/ISP/ISPP."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -14336,10 +12900,6 @@
                     "intro": "Le fil d'AMS C Slot4 peut être emmêlé ou coincé."
                 },
                 {
-                    "ecode": "0C00040000020001",
-                    "intro": "Base laser non détectée. Veuillez la placer et continuer."
-                },
-                {
                     "ecode": "0702900000010002",
                     "intro": "La bobine de la vanne d'échappement 1 d'AMS C est en court-circuit, ce qui peut être dû à un câblage anormal ou à des dommages."
                 },
@@ -15020,10 +13580,6 @@
                     "intro": "Le contrôle de couple du moteur d'assistance AMS A dysfonctionne. Le capteur de courant pourrait être défectueux."
                 },
                 {
-                    "ecode": "0701700000020061",
-                    "intro": "L'extrudeur de précision AMS B n'a pas réussi à saisir le filament, peut-être en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "0703020000010001",
                     "intro": "Erreur de vitesse et de longueur du filament AMS D: L'odométrie du filament peut être défectueuse."
                 },
@@ -15292,10 +13848,6 @@
                     "intro": "La fréquence du capteur d'étalonnage de décalage de la buse est trop élevée. Le capteur peut être endommagé."
                 },
                 {
-                    "ecode": "0702700000020061",
-                    "intro": "L'extrudeuse auxiliaire AMS C n'a pas réussi à saisir le filament, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est coincé, si la bobine de filament est inclinée et si le tube de filament est dégagé."
-                },
-                {
                     "ecode": "0703010000010001",
                     "intro": "Le moteur d'assistance AMS D a glissé. La roue d'extrusion pourrait être usée, ou le filament pourrait être trop mince."
                 },
@@ -15338,10 +13890,6 @@
                 {
                     "ecode": "0703500000020001",
                     "intro": "La communication AMS D est anormale; veuillez vérifier le câble de connexion."
-                },
-                {
-                    "ecode": "0703700000020061",
-                    "intro": "AMS D L'aide à la prise de filament de l'extrudeuse a échoué, probablement en raison d'une résistance excessive du tampon. Veuillez vérifier si le tampon est bloqué, si la bobine de filament est inclinée et si le tube de filament est clair."
                 },
                 {
                     "ecode": "1200130000010003",
@@ -15610,10 +14158,6 @@
                 {
                     "ecode": "0703900000020001",
                     "intro": "Le fonctionnement de la valve d'échappement 1 d'AMS D est anormal, ce qui peut être dû à une résistance excessive."
-                },
-                {
-                    "ecode": "0700700000020061",
-                    "intro": "L'extraction assistée du filament d'AMS A a échoué, en raison d'une résistance excessive de la mémoire tampon. Veuillez vérifier si la mémoire tampon est bloquée, si la bobine de filament est inclinée et si le tube de filament est dégagé."
                 },
                 {
                     "ecode": "0703010000020002",

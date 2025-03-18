@@ -1,8 +1,34 @@
 {
     "result": 0,
-    "t": 1741069147,
-    "ver": 202503250304,
+    "t": 1741595792,
+    "ver": 202503250310,
     "data": [
+        {
+            "ecode": "0500808B",
+            "image": "fd6afcb3c322267736d59eca6149c8bb.png",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500808A",
+            "image": "fd6afcb3c322267736d59eca6149c8bb.png",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0C00040000030024",
+            "image": "",
+            "actions": [
+                19
+            ],
+            "device": "094"
+        },
         {
             "ecode": "05008087",
             "image": "fd6afcb3c322267736d59eca6149c8bb.png",

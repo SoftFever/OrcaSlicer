@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1741069238,
-    "ver": 202503250304,
+    "t": 1741598052,
+    "ver": 202503250310,
     "data": {
         "device_error": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "pl": [
+                {
+                    "ecode": "05004031",
+                    "intro": "Wykryto niezatwierdzony akcesorium i urządzenie nie może kontynuować pracy. Proszę użyć akcesoriów Bambu Lab lub zaktualizować oprogramowanie do najnowszej wersji."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "Moduł laserowy nie jest zatwierdzony; urządzenie nie może kontynuować pracy. Proszę użyć akcesoriów Bambu Lab lub zaktualizować oprogramowanie do najnowszej wersji."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "Kamera BirdsEye nie jest zatwierdzona; urządzenie nie może kontynuować pracy. Proszę użyć akcesoriów Bambu Lab lub zaktualizować oprogramowanie do najnowszej wersji."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Proszę oczyścić podgrzewaną płytę, usunąć wszystkie przedmioty i matę oraz upewnić się, że znaczniki na podgrzewanej płycie są widoczne. W międzyczasie proszę oczyścić kamerę BirdsEye i kamerę Toolhead oraz usunąć przeszkody, które mogą blokować kamery."
+                },
+                {
+                    "ecode": "0500808A",
+                    "intro": "Kamera BirdsEye jest zainstalowana w przesunięciu. Proszę skorzystać z instrukcji, aby ją ponownie zainstalować."
+                },
+                {
+                    "ecode": "05008089",
+                    "intro": "Zadanie wstrzymane z powodu niepowodzenia weryfikacji obecności. Proszę sprawdzić drukarkę, aby kontynuować."
+                },
                 {
                     "ecode": "0500806A",
                     "intro": "Nie można rozpoznać lewego i prawego hotendu. Może to być nieoficjalny hotend lub znacznik hotendu może być brudny. Proszę ustawić typ hotendu przed następnym wydrukiem."
@@ -101,10 +125,6 @@
                 {
                     "ecode": "05024007",
                     "intro": "Nie udało się rozpocząć nowego zadania: załadunek/rozładunek filamentu nie został zakończony."
-                },
-                {
-                    "ecode": "05004035",
-                    "intro": "Kamera BirdEye nie jest certyfikowana; urządzenie nie może kontynuować pracy. Proszę używać akcesoriów Bambu Lab."
                 },
                 {
                     "ecode": "0300801A",
@@ -289,10 +309,6 @@
                 {
                     "ecode": "0500807D",
                     "intro": "To zadanie wymaga platformy tnącej, jednak obecnie używana jest platforma laserowa. Proszę wymienić ją na platformę tnącą (Baza Ochrony Tnącej + Mata Tnąca StrongGrip)."
-                },
-                {
-                    "ecode": "05004034",
-                    "intro": "Moduł laserowy nie jest certyfikowany; urządzenie nie może kontynuować pracy. Proszę używać akcesoriów Bambu Lab."
                 },
                 {
                     "ecode": "03008000",
@@ -901,10 +917,6 @@
                 {
                     "ecode": "18008016",
                     "intro": "Ekstruder nie działa prawidłowo; proszę skontaktować się z Asystentem. Po diagnozie. Jeśli wady są akceptowalne, proszę wznowić."
-                },
-                {
-                    "ecode": "05004031",
-                    "intro": "Wykryto niecertyfikowany dodatek, a urządzenie nie może kontynuować działania."
                 },
                 {
                     "ecode": "0702800A",
@@ -1980,7 +1992,7 @@
                 },
                 {
                     "ecode": "0C008002",
-                    "intro": ""
+                    "intro": "Wykryto awarię spaghetti."
                 },
                 {
                     "ecode": "0300400F",
@@ -2489,8 +2501,24 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "pl": [
+                {
+                    "ecode": "0C00040000030024",
+                    "intro": "Wykryto, że pozycja kamery BirdsEye jest przesunięta. Aby zapewnić dokładność grawerowania, zaleca się ponowne uruchomienie konfiguracji kamery BirdsEye."
+                },
+                {
+                    "ecode": "0500040000020043",
+                    "intro": "Kamera dyszy jest brudna lub zablokowana; proszę ją oczyścić i kontynuować."
+                },
+                {
+                    "ecode": "0500040000020041",
+                    "intro": "Moduł lasera był używany przez długi czas. Proszę go niezwłocznie oczyścić, aby uniknąć wpływu na przetwarzanie laserowe."
+                },
+                {
+                    "ecode": "0500040000020042",
+                    "intro": "Kamera Live View jest brudna lub zablokowana; proszę ją oczyścić i kontynuować."
+                },
                 {
                     "ecode": "0700700000020003",
                     "intro": "Nie udało się wyekstrudować filamentu. Możliwa przyczyna: zatykanie ekstrudera lub dyszy."
@@ -2561,11 +2589,11 @@
                 },
                 {
                     "ecode": "0500060000020061",
-                    "intro": ""
+                    "intro": "Link kamery CIF został zresetowany kilka razy. Może to być problem z kablem połączeniowym lub kamera się zestarzała. Skontaktuj się z kolegami zajmującymi się sprzętem, aby to sprawdzili."
                 },
                 {
                     "ecode": "0C0001000002001B",
-                    "intro": ""
+                    "intro": "Proces Xcam ma zamiar wygenerować zrzut pamięci, proszę skontaktować się z deweloperem."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -2673,39 +2701,39 @@
                 },
                 {
                     "ecode": "0500060000020051",
-                    "intro": ""
+                    "intro": "Kamera narzędziowa została zresetowana wielokrotnie. Skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020054",
-                    "intro": ""
+                    "intro": "Kamera LiveView została zresetowana wielokrotnie. Skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020043",
-                    "intro": ""
+                    "intro": "Komunikacja I2C kamery BirdsEye nie powiodła się, kamera może być uszkodzona, skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020042",
-                    "intro": ""
+                    "intro": "Komunikacja I2C kamery w dyszy nie powiodła się, kamera może być uszkodzona, skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020041",
-                    "intro": ""
+                    "intro": "Komunikacja I2C kamery narzędziowej nie powiodła się, kamera może być uszkodzona, skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020053",
-                    "intro": ""
+                    "intro": "Kamera BirdsEye została zresetowana wielokrotnie. Skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020044",
-                    "intro": ""
+                    "intro": "Komunikacja I2C kamery LiveView nie powiodła się, kamera może być uszkodzona, skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020062",
-                    "intro": ""
+                    "intro": "Łącze ISP kamery zostało zresetowane wielokrotnie. Skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0500060000020052",
-                    "intro": ""
+                    "intro": "Kamera w dyszy została zresetowana wielokrotnie. Skontaktuj się z deweloperem, aby potwierdzić."
                 },
                 {
                     "ecode": "0300260000010002",
@@ -2772,10 +2800,6 @@
                     "intro": "Moduł tnący wymaga kalibracji w celu uzyskania pozycji narzędzia. Proszę przeprowadzić kalibrację montażu przed użyciem. (około 2-4 minuty)"
                 },
                 {
-                    "ecode": "0705700000020046",
-                    "intro": "AMS F Wyciąganie filamentu nie powiodło się; może to być spowodowane zbyt dużym oporem w silniku pomocniczym. Proszę sprawdzić, czy szpulka filamentu jest przechylona lub odkształcona oraz czy rurka filamentu jest czysta."
-                },
-                {
                     "ecode": "1806700000020008",
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę wybrać \"Wznów\", aby spróbować ponownie."
                 },
@@ -2797,23 +2821,15 @@
                 },
                 {
                     "ecode": "0500010000020003",
-                    "intro": ""
+                    "intro": "Format kamery Live View jest niepoprawny. Proszę zrestartować drukarkę. Jeśli wielokrotne próby się nie powiodą, proszę skontaktować się z obsługą klienta."
                 },
                 {
                     "ecode": "0700700000020008",
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę wybrać \"Wznów\", aby spróbować ponownie."
                 },
                 {
-                    "ecode": "0700700000020046",
-                    "intro": "AMS A Wyciąganie filamentu nie powiodło się; może to być spowodowane zbyt dużym oporem w silniku pomocniczym. Proszę sprawdzić, czy szpulka filamentu jest przechylona lub odkształcona oraz czy rurka filamentu jest czysta."
-                },
-                {
                     "ecode": "0701700000020008",
                     "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę wybrać \"Wznów\", aby spróbować ponownie."
-                },
-                {
-                    "ecode": "0701700000020046",
-                    "intro": "Wyciąganie filamentu AMS B nie powiodło się; może to być spowodowane nadmiernym oporem w silniku asystującym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub odkształcona oraz czy rurka filamentu jest czysta."
                 },
                 {
                     "ecode": "0702700000020008",
@@ -2852,40 +2868,12 @@
                     "intro": "Kamera głowicy narzędzia jest uszkodzona. Jeśli problem ten występuje wielokrotnie podczas drukowania, skontaktuj się z obsługą klienta."
                 },
                 {
-                    "ecode": "1805700000020046",
-                    "intro": "AMS-HT F Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku wspomagającym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "1803700000020046",
-                    "intro": "AMS-HT D Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku wspomagającym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
                     "ecode": "1803700000020008",
                     "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę wybrać „Wznów”, aby spróbować ponownie."
                 },
                 {
                     "ecode": "1805700000020008",
                     "intro": "Nie udało się pobrać tabeli mapowania AMS; proszę wybrać „Wznów”, aby spróbować ponownie."
-                },
-                {
-                    "ecode": "0704700000020046",
-                    "intro": "AMS E Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku wspomagającym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "0706700000020046",
-                    "intro": "AMS G Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku wspomagającym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "1804700000020046",
-                    "intro": "AMS-HT E Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku asystującym. Proszę sprawdzić, czy szpulka filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "1802700000020046",
-                    "intro": "AMS-HT C Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku wspomagającym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "1800700000020046",
-                    "intro": "AMS-HT A Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku wspomagającym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
                 },
                 {
                     "ecode": "1802700000020008",
@@ -2901,7 +2889,7 @@
                 },
                 {
                     "ecode": "0500050000010009",
-                    "intro": ""
+                    "intro": "Weryfikacja polecenia MQTT nie powiodła się; sprawdź format lub podpis."
                 },
                 {
                     "ecode": "0300280000010003",
@@ -2944,14 +2932,6 @@
                     "intro": "Płyta TH odłączyła się podczas procesu przełączania ekstrudera. Proszę sprawdzić, czy kabel łączący jest luźny."
                 },
                 {
-                    "ecode": "0702700000020046",
-                    "intro": "Wyciąganie filamentu AMS C nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub odkształcona oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "0703700000020046",
-                    "intro": "Wyciąganie filamentu AMS D nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Proszę sprawdzić, czy szpula filamentu jest przechylona lub odkształcona oraz czy rurka filamentu jest czysta."
-                },
-                {
                     "ecode": "0300250000010001",
                     "intro": "Częstotliwość czujnika siły ekstrudera prawego jest zbyt niska. Dysza może być niezamontowana lub radiator dyszy może być zbyt daleko od czujnika."
                 },
@@ -2988,10 +2968,6 @@
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę wybrać „Wznów”, aby spróbować ponownie."
                 },
                 {
-                    "ecode": "0707700000020046",
-                    "intro": "AMS H Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Proszę sprawdzić, czy szpulka filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest drożna."
-                },
-                {
                     "ecode": "0707700000020008",
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; proszę wybrać „Wznów”, aby spróbować ponownie."
                 },
@@ -3008,20 +2984,8 @@
                     "intro": "Nie udało się uzyskać tabeli mapowania AMS; wybierz \"Wznów\", aby spróbować ponownie."
                 },
                 {
-                    "ecode": "1801700000020046",
-                    "intro": "AMS-HT B Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Sprawdź, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "1806700000020046",
-                    "intro": "AMS-HT G Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Sprawdź, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
-                    "ecode": "1807700000020046",
-                    "intro": "AMS-HT H Wyciąganie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku pomocniczym. Sprawdź, czy szpula filamentu jest przechylona lub zdeformowana oraz czy rurka filamentu jest czysta."
-                },
-                {
                     "ecode": "0500050000010008",
-                    "intro": ""
+                    "intro": "Weryfikacja polecenia MQTT nie powiodła się; proszę zainstalować najnowszy certyfikat w Studio."
                 },
                 {
                     "ecode": "18FE800000010004",
@@ -3061,15 +3025,15 @@
                 },
                 {
                     "ecode": "0500030000020011",
-                    "intro": ""
+                    "intro": "aktualizacja zrzutu rdzenia: trwa odzyskiwanie."
                 },
                 {
                     "ecode": "0500030000020013",
-                    "intro": ""
+                    "intro": "xcam coredump: odzyskiwanie."
                 },
                 {
                     "ecode": "0500030000020018",
-                    "intro": ""
+                    "intro": "security coredump: odzyskiwanie."
                 },
                 {
                     "ecode": "0C00010000010005",
@@ -3165,23 +3129,23 @@
                 },
                 {
                     "ecode": "0500030000020010",
-                    "intro": ""
+                    "intro": "forward coredump: trwa odzyskiwanie."
                 },
                 {
                     "ecode": "0500030000020014",
-                    "intro": ""
+                    "intro": "bbl_screen coredump: trwa odzyskiwanie."
                 },
                 {
                     "ecode": "0500030000020015",
-                    "intro": ""
+                    "intro": "device_gate coredump: odnawia się."
                 },
                 {
                     "ecode": "0500030000020016",
-                    "intro": ""
+                    "intro": "device_manager coredump: trwa odzyskiwanie."
                 },
                 {
                     "ecode": "0500030000020017",
-                    "intro": ""
+                    "intro": "recorder coredump: trwa odzyskiwanie."
                 },
                 {
                     "ecode": "0700400000020001",
@@ -3213,7 +3177,7 @@
                 },
                 {
                     "ecode": "0500060000020007",
-                    "intro": ""
+                    "intro": "Zbyt wiele błędów laser mipi; proszę sprawdzić sprzęt i połączenia kablowe."
                 },
                 {
                     "ecode": "07FE810000010003",
@@ -3229,7 +3193,7 @@
                 },
                 {
                     "ecode": "0500060000020005",
-                    "intro": ""
+                    "intro": "Zbyt wiele błędów xcam mipi; proszę sprawdzić sprzęt i połączenia linii."
                 },
                 {
                     "ecode": "0300C30000010001",
@@ -3441,7 +3405,7 @@
                 },
                 {
                     "ecode": "0500030000020012",
-                    "intro": ""
+                    "intro": "ipcam coredump: trwa odzyskiwanie."
                 },
                 {
                     "ecode": "0300970000030001",
@@ -3497,11 +3461,11 @@
                 },
                 {
                     "ecode": "0C00010000020019",
-                    "intro": ""
+                    "intro": "Strumień Xcam jest zbyt wolny. Proszę skontaktować się z deweloperem."
                 },
                 {
                     "ecode": "0C0001000002001A",
-                    "intro": ""
+                    "intro": "Nie udało się rozpocząć strumieniowania Xcam. Może to być spowodowane niekompatybilną wersją oprogramowania MC/TH lub luźnym połączeniem kamery. Proszę skontaktować się z zespołem deweloperów."
                 },
                 {
                     "ecode": "0700010000010005",
@@ -4644,10 +4608,6 @@
                     "intro": "Obiektyw kamery głowicy narzędziowej wydaje się być brudny. Proszę wyczyścić obiektyw."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "Obiektyw kamery podglądowej wydaje się być brudny. Proszę wyczyścić obiektyw."
-                },
-                {
                     "ecode": "0C00010000020006",
                     "intro": "Parametr kamery Toolhead jest nieprawidłowy. Proszę włączyć kalibrację przepływu w następnym druku."
                 },
@@ -4657,7 +4617,7 @@
                 },
                 {
                     "ecode": "0500060000020002",
-                    "intro": ""
+                    "intro": "Kamera dyszy nie jest na miejscu; proszę sprawdzić połączenie sprzętowe."
                 },
                 {
                     "ecode": "0C00040000010012",
@@ -4669,7 +4629,7 @@
                 },
                 {
                     "ecode": "0500060000020001",
-                    "intro": ""
+                    "intro": "Kamera Toolhead nie jest na miejscu; proszę sprawdzić połączenie sprzętowe."
                 },
                 {
                     "ecode": "0C00040000020003",
@@ -4681,11 +4641,11 @@
                 },
                 {
                     "ecode": "0500060000020012",
-                    "intro": ""
+                    "intro": "Kamera dyszy nie ma przerwania mipi; proszę sprawdzić sprzęt i połączenie linii."
                 },
                 {
                     "ecode": "0500060000020006",
-                    "intro": ""
+                    "intro": "Zbyt wiele błędów mipi kamery dyszy; proszę sprawdzić sprzęt i połączenia linii."
                 },
                 {
                     "ecode": "0500060000020004",
@@ -4701,7 +4661,7 @@
                 },
                 {
                     "ecode": "0500060000020022",
-                    "intro": ""
+                    "intro": "Kamera dyszy wykrywa niskie częstotliwości klatek cif/isp/ispp."
                 },
                 {
                     "ecode": "0300950000010004",
@@ -4713,7 +4673,7 @@
                 },
                 {
                     "ecode": "0500060000020003",
-                    "intro": ""
+                    "intro": "Kamera BirdsEye nie jest na swoim miejscu; proszę sprawdzić połączenie sprzętowe."
                 },
                 {
                     "ecode": "0300950000010002",
@@ -4741,7 +4701,7 @@
                 },
                 {
                     "ecode": "050001000001000A",
-                    "intro": ""
+                    "intro": "Kamera BirdsEye nie jest certyfikowana, a funkcje związane z kamerą są nieprawidłowe."
                 },
                 {
                     "ecode": "0300950000010008",
@@ -5333,7 +5293,7 @@
                 },
                 {
                     "ecode": "0C00010000020016",
-                    "intro": ""
+                    "intro": "Wykryto błąd przesyłania obrazu kamery. Proszę zrestartować drukarkę."
                 },
                 {
                     "ecode": "0500030000020020",
@@ -5341,7 +5301,7 @@
                 },
                 {
                     "ecode": "0C00010000020015",
-                    "intro": ""
+                    "intro": "Wykryto utratę klatki kamery."
                 },
                 {
                     "ecode": "0702010000020006",
@@ -5381,7 +5341,7 @@
                 },
                 {
                     "ecode": "0500060000020008",
-                    "intro": ""
+                    "intro": "Zbyt wiele błędów liveview mipi; proszę sprawdzić sprzęt i połączenia przewodów."
                 },
                 {
                     "ecode": "0701010000020006",
@@ -5441,15 +5401,15 @@
                 },
                 {
                     "ecode": "050005000001000B",
-                    "intro": ""
+                    "intro": "Weryfikacja polecenia MQTT nie powiodła się, zaktualizuj Studio."
                 },
                 {
                     "ecode": "050005000001000A",
-                    "intro": ""
+                    "intro": "Weryfikacja polecenia MQTT nie powiodła się, zaktualizuj Studio i oprogramowanie układowe drukarki."
                 },
                 {
                     "ecode": "050005000001000C",
-                    "intro": ""
+                    "intro": "Weryfikacja polecenia MQTT nie powiodła się, zaktualizuj oprogramowanie układowe drukarki."
                 },
                 {
                     "ecode": "0500010000030005",
@@ -5916,10 +5876,6 @@
                     "intro": "Silnik przełączający ekstruder działa nieprawidłowo. Proszę sprawdzić, czy kabel połączeniowy jest luźny."
                 },
                 {
-                    "ecode": "0706700000020020",
-                    "intro": "Zawiodło podawanie filamentu AMS G do bufora; może to być spowodowane zablokowaniem filamentu przez bufor. Proszę sprawdzić wtyczkę rurki PTFE bufora."
-                },
-                {
                     "ecode": "0701130000010001",
                     "intro": "Silnik przesuwu szczelinowego 4 w slocie B AMS się zaciął. Koło ekstruzji może nie działać prawidłowo lub filament może być zbyt cienki."
                 },
@@ -6132,16 +6088,8 @@
                     "intro": "Usterka układu szyfrującego"
                 },
                 {
-                    "ecode": "0705700000020040",
-                    "intro": "AMS F Wyjęcie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku prądu stałego. Sprawdź, czy rolka z filamentem jest pochylona lub zdeformowana, lub czy rura filamentowa jest zablokowana."
-                },
-                {
                     "ecode": "1807300000010004",
                     "intro": "Awaria układu szyfrującego."
-                },
-                {
-                    "ecode": "1806700000020060",
-                    "intro": "AMS-HT G Wydobywanie filamentu przez asystujący ekstruder nie powiodło się; może to wynikać z poślizgu silnika asystującego. Proszę odciąć zużyty odcinek filamentu."
                 },
                 {
                     "ecode": "0704310000010004",
@@ -6160,28 +6108,8 @@
                     "intro": "Czujnik temperatury i wilgotności ma błąd. Układ chipa może być uszkodzony."
                 },
                 {
-                    "ecode": "1805700000020013",
-                    "intro": "Podawanie filamentu do koła pomocniczego silnika ekstrakcyjnego AMS-HT F nie powiodło się. Może to być spowodowane utratą sygnału z koła odometru. Sprawdź połączenie wtyczki koła odometru."
-                },
-                {
-                    "ecode": "0705700000020021",
-                    "intro": "Podawanie filamentu do bufora AMS F nie powiodło się; może to być spowodowane nadmiernym oporem w filamentu. Sprawdź, czy szpula filametu jest przechylona lub czy rura PTFE jest zablokowana."
-                },
-                {
                     "ecode": "0707220000020009",
                     "intro": "Nie udało się wycisnąć filamentu AMS H Slot 3; ekstruder może być zapchany lub filament może być zbyt cienki, co powoduje poślizg ekstrudera."
-                },
-                {
-                    "ecode": "0705700000020061",
-                    "intro": "Wsparcie ekstrudera AMS F nie może wciągnąć filamentu, prawdopodobnie ze względu na nadmierny opór z bufora. Sprawdź, czy bufor jest zablokowany, czy szpula filamentu jest przechylona oraz czy rura filamentowa jest przejrzysta."
-                },
-                {
-                    "ecode": "1805700000020050",
-                    "intro": "Ładowanie filamentu do buforu AMS-HT F nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Sprawdź, czy bufor jest zablokowany, czy szpula filamentu jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0705700000020032",
-                    "intro": "Podawanie filamentu do ekstrudera głowicy narzędzia AMS F nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Sprawdź, czy szpula filamentu jest przechylona lub czy rura filamentowa jest zablokowana."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6352,62 +6280,6 @@
                     "intro": "AMS H W gnieździe 1 czujnik Halla podajnika jest odłączony, co może wynikać z niskiej jakości połączenia złącza."
                 },
                 {
-                    "ecode": "1807700000020045",
-                    "intro": "Nie udało się wycofać filamentu z AMS-HT, slot H. Może to być spowodowane wyczerpaniem się filamentu lub próbą wyciągnięcia go na siłę."
-                },
-                {
-                    "ecode": "1803700000020031",
-                    "intro": "Nie udało się doładować filamentu w maszynie AMS-HT, slot D. Może to być spowodowane zużyciem filamentu i poślizgiem silnika pomocniczego. Proszę odciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1802700000020023",
-                    "intro": "Nie udało się doładować filamentu do bufora AMS-HT, slot C. Może to być spowodowane odczepieniem się filamentu. Proszę sprawdzić, czy rura filamentowa jest niewłaściwie podłączona lub czy rura została przetarta."
-                },
-                {
-                    "ecode": "1800700000020044",
-                    "intro": "Nie udało się wycofać filamentu z AMS-HT, slot A. Przyczyną może być przerwany filament w głowicy narzędzia. Proszę usunąć przerwany filament."
-                },
-                {
-                    "ecode": "1807700000020061",
-                    "intro": "AMS-HT H Pomoc wyciągnięciu filamentu z ekstrudera nie powiodła się, prawdopodobnie z powodu nadmiernego oporu z bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona oraz czy rurka filamentowa jest czysta."
-                },
-                {
-                    "ecode": "1802700000020022",
-                    "intro": "AMS-HT C Włożenie filamentu do bufora nie powiodło się; może to być spowodowane zużytym filamentem, powodującym poślizg silnika pomocniczego. Proszę odciąć z zużytą część filamentu."
-                },
-                {
-                    "ecode": "1805700000020021",
-                    "intro": "AMS-HT F Włożenie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula z filamentem jest przechylona lub czy rurka PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "1802700000020032",
-                    "intro": "AMS-HT C Włożenie filamentu do ekstrudera Drukarki nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula z filamentem jest przechylona lub czy rurka filamentowa jest zatkana."
-                },
-                {
-                    "ecode": "0705700000020043",
-                    "intro": "AMS F Wyciąganie filamentu nie powiodło się; może to być spowodowane zużytym filamentem, powodującym poślizg silnika pomocniczego. Proszę odciąć zużytą część filamentu."
-                },
-                {
-                    "ecode": "1802700000020021",
-                    "intro": "AMS-HT C Włożenie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula z filamentem jest przechylona lub czy rurka PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "0706700000020061",
-                    "intro": "AMS G Pomoc wyciągnięciu filamentu z ekstrudera nie powiodła się, prawdopodobnie z powodu nadmiernego oporu z bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona oraz czy rurka filamentowa jest czysta."
-                },
-                {
-                    "ecode": "1800700000020022",
-                    "intro": "AMS-HT: Wprowadzenie filamentu do bufora nie powiodło się; może to być spowodowane zużytym filamentem powodującym poślizg silnika asystującego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "1803700000020040",
-                    "intro": "AMS-HT: Wycofanie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku DC. Proszę sprawdzić, czy szpula z filamentem jest przechylona lub zdeformowana, lub czy rurka z filamentem jest zablokowana."
-                },
-                {
-                    "ecode": "1805700000020010",
-                    "intro": "AMS-HT: Wprowadzenie filamentu do koła wyciskającego silnika asystującego nie powiodło się. Może to być spowodowane blokadą w rurce podającej. Proszę sprawdzić, czy rurka podająca i piasta filamentu są czyste."
-                },
-                {
                     "ecode": "0700100000010003",
                     "intro": "AMS A: Sterowanie momentem obrotowym silnika slotu 1 jest uszkodzone. Czujnik prądu może być uszkodzony."
                 },
@@ -6576,14 +6448,6 @@
                     "intro": "AMS Wkład D 3 czujnik Halla Wprowadzania jest odłączony, co może wynikać z złego kontaktu złącza."
                 },
                 {
-                    "ecode": "1803700000020020",
-                    "intro": "Podajnik filamentu AMS-HT D do bufora nie wykonał zadania. Może to być spowodowane blokowaniem bufora przez filament. Sprawdź wtyczkę rurki PTFE bufora."
-                },
-                {
-                    "ecode": "1802700000020060",
-                    "intro": "AMS-HT C Pomoc w chwytaniu filamentu dla wyciskarki nie powiodła się; może to być spowodowane poślizgiem silnika pomocniczego. Proszę odciąć zużyty odcinek filamentu."
-                },
-                {
                     "ecode": "1800400000020004",
                     "intro": "Sygnał bufora filamentu jest nieprawidłowy; sprężyna może być zablokowana lub filament może być splątany."
                 },
@@ -6592,40 +6456,8 @@
                     "intro": "Nie udało się wycisnąć filamentu AMS E Slot 1; wyciskarka może być zatkana lub filament może być zbyt cienki, powodując poślizg wyciskarki."
                 },
                 {
-                    "ecode": "1802700000020061",
-                    "intro": "AMS-HT C Pomoc w chwytaniu filamentu dla wyciskarki nie powiodła się, prawdopodobnie ze względu na nadmierny opór ze strony bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona i czy rura filamentowa jest czysta."
-                },
-                {
-                    "ecode": "1803700000020050",
-                    "intro": "AMS-HT D Nie udało się załadować filamentu do bufora; może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona i czy rura filamentowa jest zablokowana."
-                },
-                {
                     "ecode": "1806300000010004",
                     "intro": "Awaria układu szyfrującego."
-                },
-                {
-                    "ecode": "1800700000020030",
-                    "intro": "AMS-HT Wózek zasilający filament do ekstrudera głowicy narzędziowej przestał działać; może to być spowodowane zablokowaniem filamentu przy wejściu do głowicy narzędziowej. Sprawdź wtyczkę rurki filamentu głowicy narzędziowej."
-                },
-                {
-                    "ecode": "1800700000020031",
-                    "intro": "AMS-HT Wózek zasilający filament do ekstrudera głowicy narzędziowej przestał działać; może to być spowodowane zużyciem filamentu, co powoduje poślizg silnika pomocniczego. Proszę obciąć zużytą sekcję filamentu."
-                },
-                {
-                    "ecode": "0705700000020020",
-                    "intro": "AMS F zasilanie filamentu do bufora nie powiodło się; może to być spowodowane zablokowaniem filamentu przez bufor. Sprawdź wtyczkę rurki PTFE bufora."
-                },
-                {
-                    "ecode": "0707700000020044",
-                    "intro": "AMS H Wyjęcie filamentu nie udało się; może to być spowodowane złamanym filamentem w głowicy narzędziowej. Proszę wyjąć złamany filament."
-                },
-                {
-                    "ecode": "1805700000020023",
-                    "intro": "AMS-HT F Zasilanie filamentu do bufora nie powiodło się; może to być spowodowane oderwaniem się filamentu. Sprawdź, czy rurka filamentu jest niewłaściwie podłączona lub czy rurka została przetarta."
-                },
-                {
-                    "ecode": "0707700000020022",
-                    "intro": "AMS H Zasilanie filamentu do bufora nie powiodło się; może to być spowodowane zużytym filamentem, który powoduje poślizg silnika pomocniczego. Proszę obciąć zużytą sekcję filamentu."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -6864,72 +6696,16 @@
                     "intro": "Awaria układu szyfrującego."
                 },
                 {
-                    "ecode": "1801700000020044",
-                    "intro": "Nie udało się wyciągnąć filamentu z AMS-HT B; może to być spowodowane złamanym filamentem w głowicy narzędzia. Proszę usunąć złamany filament."
-                },
-                {
-                    "ecode": "1804700000020020",
-                    "intro": "Nie udało się wprowadzić filamentu do bufora AMS-HT E; może to być spowodowane blokowaniem filamentu przez bufor. Proszę sprawdzić zatyczkę z rurki PTFE bufora."
-                },
-                {
-                    "ecode": "1804700000020031",
-                    "intro": "Nie udało się wprowadzić filamentu do ekstruzora głowicy narzędzia AMS-HT E; może to być spowodowane zużyciem filamentu i poślizgiem w silniku asysty. Proszę przyciąć zużyty odcinek filamentu."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Awaria chipu szyfrującego"
-                },
-                {
-                    "ecode": "0707700000020043",
-                    "intro": "AMS-H: Wyjęcie materiału nie powiodło się; może to być spowodowane ścieraniem się materiału i poślizgiem silnika asystującego. Proszę obciąć zużyty odcinek materiału."
-                },
-                {
-                    "ecode": "0706700000020041",
-                    "intro": "AMS G: Wyjęcie materiału nie powiodło się; może to wynikać z oderwania materiału od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "1805700000020041",
-                    "intro": "AMS-HT F: Wyjęcie materiału nie powiodło się; może to wynikać z oderwania materiału od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "1807700000020013",
-                    "intro": "AMS-HT H: Podanie materiału do koła ekstrudującego silnika asystującego nie powiodło się. Może to wynikać z utraty sygnału z koła licznika kilometrów. Proszę sprawdzić połączenie wtyczki koła licznika kilometrów."
-                },
-                {
-                    "ecode": "1802700000020042",
-                    "intro": "AMS-HT C: Wyjęcie materiału nie powiodło się; może to wynikać z utraty połączenia silnika prądu stałego. Proszę sprawdzić wtyczkę silnika prądu stałego, aby upewnić się, że jest prawidłowo podłączona."
-                },
-                {
-                    "ecode": "1803700000020010",
-                    "intro": "AMS-HT D: Podanie materiału do koła ekstrudującego silnika asystującego nie powiodło się. Może to wynikać z zablokowania rurki podawczej. Proszę sprawdzić, czy rurka podawcza i piasta filamentu są czyste."
-                },
-                {
-                    "ecode": "0706700000020022",
-                    "intro": "AMS G: Podanie materiału do bufora nie powiodło się; może to wynikać z zużytego materiału powodującego poślizg silnika asystującego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1805700000020061",
-                    "intro": "AMS-HT F Wspomaganie chwytaka wyciskarki nie powiodło się, prawdopodobnie z powodu nadmiernego oporu ze strony bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona i czy rura filamentu jest czysta."
                 },
                 {
                     "ecode": "1807310000030003",
                     "intro": "Błąd odczytu RFID z powodu usterki sprzętowej lub strukturalnej."
                 },
                 {
-                    "ecode": "1803700000020061",
-                    "intro": "AMS-HT D Wspomaganie chwytaka wyciskarki nie powiodło się, prawdopodobnie z powodu nadmiernego oporu ze strony bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona i czy rura filamentu jest czysta."
-                },
-                {
-                    "ecode": "1801700000020011",
-                    "intro": "AMS-HT B Wprowadzenie filamentu do koła ekstrudującego silnika wspomagającego nie powiodło się. Może to być spowodowane odłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyku silnika DC."
-                },
-                {
                     "ecode": "1806350000010001",
                     "intro": "Wystąpił błąd w czujniku temperatury i wilgotności powietrza. Możliwe, że chip jest uszkodzony."
-                },
-                {
-                    "ecode": "1805700000020040",
-                    "intro": "AMS-HT F Wyjęcie filamentu nie powiodło się, może to być spowodowane nadmiernym oporem w silniku prądu stałego. Proszę sprawdzić, czy szpula z filamentem jest przechylona lub zdeformowana, lub czy rura filamentu jest zablokowana."
                 },
                 {
                     "ecode": "0700110000020002",
@@ -7116,44 +6892,12 @@
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
-                    "ecode": "1806700000020031",
-                    "intro": "Podczas podawania filamentu do ekstrudera AMS-HT G dla głowicy narzędzi wystąpił błąd. Może to wynikać z zużywania się filamentu i powodować poślizg silnika asystującego. Proszę obciąć zużyty fragment filamentu."
-                },
-                {
                     "ecode": "1804310000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
-                    "ecode": "1806700000020010",
-                    "intro": "AMS-HT G Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Może to być spowodowane blokadą w rurce zasilającej. Sprawdź, czy rurka zasilająca i piasta filamentu są czyste."
-                },
-                {
                     "ecode": "0705200000020009",
                     "intro": "Nie udało się wypuścić filamentu z wyjścia 1 AMS F. Może to oznaczać, że ekstruder jest zapchany lub że filament jest zbyt cienki, co powoduje poślizg ekstrudera."
-                },
-                {
-                    "ecode": "1800700000020045",
-                    "intro": "AMS-HT A Wycofanie filamentu nie powiodło się; może to być spowodowane wyczerpaniem się filamentu lub jego wyjęciem."
-                },
-                {
-                    "ecode": "0706700000020011",
-                    "intro": "AMS G Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Może to być spowodowane rozłączeniem silnika prądu stałego. Sprawdź połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "1803700000020030",
-                    "intro": "AMS-HT D Podawanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane zablokowaniem filamentu przy wejściu do głowicy narzędzia. Sprawdź wtyczkę rurki filamentowej przy głowicy narzędzia."
-                },
-                {
-                    "ecode": "0704700000020044",
-                    "intro": "AMS E Wycofanie filamentu nie powiodło się; może to być spowodowane uszkodzeniem filamentu w głowicy narzędzia. Proszę usunąć uszkodzony filament."
-                },
-                {
-                    "ecode": "1804700000020050",
-                    "intro": "AMS-HT E Ładowanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Sprawdź, czy bufor jest zablokowany, czy zwisające koło filamentu jest przekrzywione lub czy rurka filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0707700000020014",
-                    "intro": "AMS H Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Może to być spowodowane wejściem małego kawałka uszkodzonego filamentu do rurki zasilającej. Proszę usunąć uszkodzony filament z rurki zasilającej."
                 },
                 {
                     "ecode": "18FE800000010001",
@@ -7164,36 +6908,12 @@
                     "intro": "Akcja przełączania ekstrudera jest nienormalna. Prosimy sprawdzić, czy coś utknęło w głowicy narzędzia."
                 },
                 {
-                    "ecode": "1802700000020013",
-                    "intro": "AMS-HT C Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Może to być spowodowane utratą sygnału z koła odometru. Prosimy sprawdzić połączenie wtyczki koła odometru."
-                },
-                {
-                    "ecode": "0706700000020013",
-                    "intro": "AMS G Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Może to być spowodowane utratą sygnału z koła odometru. Prosimy sprawdzić połączenie wtyczki koła odometru."
-                },
-                {
-                    "ecode": "1806700000020012",
-                    "intro": "AMS-HT G Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Może to być spowodowane nadmiernym oporem filamentu. Prosimy sprawdzić, czy szpula jest przechylona, filament się zaplątał lub obracanie szpuli nie jest płynne."
-                },
-                {
-                    "ecode": "0707700000020041",
-                    "intro": "AMS H Wycofywanie filamentu nie powiodło się; może to być spowodowane oderwaniem się filamentu od szpuli. Prosimy wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "1800700000020014",
-                    "intro": "AMS-HT A Podawanie filamentu do koła ekstrudującego silnika pomocniczego nie powiodło się. Ma to możliwe z powodu małego kawałka połamanego filamentu, który wpadł do rury podajnika. Prosimy usunąć połamany filament z rury podajnika."
-                },
-                {
                     "ecode": "1807350000010001",
                     "intro": "Czujnik temperatury i wilgotności ma błąd. Chip może być uszkodzony."
                 },
                 {
                     "ecode": "0705300000030003",
                     "intro": "Odczyt RFID jest niemożliwy z powodu błędu sprzętowego lub strukturalnego."
-                },
-                {
-                    "ecode": "0704700000020040",
-                    "intro": "AMS E Wyjęcie filamentu nie powiodło się; może to być spowodowane zbyt dużym oporem w silniku prądu stałego. Sprawdź, czy rolka z filamentem jest pochylona lub zdeformowana, lub czy rura filamentowa jest zablokowana."
                 },
                 {
                     "ecode": "0700110000010001",
@@ -7348,48 +7068,8 @@
                     "intro": "W żłobku 4 czujnik filamentu AMS-HT H zostaje opróżniony, a automatycznie przełącza się na żłobek z takim samym filamentem."
                 },
                 {
-                    "ecode": "1804700000020010",
-                    "intro": "Podawanie filamentu do koła napędowego silnika pomocniczego AMS-HT E nie powiodło się. Może to wynikać z zablokowania w rurce zasilającej. Proszę sprawdzić, czy rurka zasilająca i piasta filamentu są wolne."
-                },
-                {
-                    "ecode": "1804700000020040",
-                    "intro": "Wycofywanie filamentu w AMS-HT E nie powiodło się. Może to wynikać z nadmiernego oporu w silniku prądu stałego. Proszę sprawdzić, czy szpula filamentu jest przechylona lub zdeformowana lub czy rurka filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "1805700000020032",
-                    "intro": "Podawanie filamentu do ekstrudera AMS-HT F w głowicy narzędzia nie powiodło się, co może wynikać z nadmiernego oporu filamentu. Proszę sprawdzić, czy szpula filamentu jest przechylona lub czy rurka filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "1807700000020044",
-                    "intro": "Wycofywanie filamentu w AMS-HT H się nie powiodło. Może to wynikać z ulamania filamentu w głowicy narzędzia. Proszę usunąć pozostałości filamentu."
-                },
-                {
-                    "ecode": "1804700000020061",
-                    "intro": "Zaciąganie filamentu przez ekstruder pomocniczy AMS-HT E nie powiodło się, prawdopodobnie z powodu nadmiernego oporu z bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula filamentu jest przechylona i czy rura filamentowa jest wolna."
-                },
-                {
-                    "ecode": "1806700000020021",
-                    "intro": "Podawanie filamentu do bufora w AMS-HT G nie powiodło się, co może wynikać z nadmiernego oporu w filamentach. Proszę sprawdzić, czy szpula filamentu jest przechylona lub czy rura PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "0705700000020060",
-                    "intro": "AMS F Wspomaganie chwytaka w ekstruderze nie powiodło się; może to być spowodowane poślizgiem silnika pomocniczego. Proszę odciąć wyświechtany odcinek filamentu."
-                },
-                {
-                    "ecode": "1803700000020021",
-                    "intro": "AMS-HT D Podawanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula z filamentem jest przechylona lub czy rura PTFE jest zatkana."
-                },
-                {
                     "ecode": "1800450000020001",
                     "intro": "Czujnik tnący filament jest uszkodzony; proszę sprawdzić, czy złącze jest poprawnie podłączone."
-                },
-                {
-                    "ecode": "1801700000020022",
-                    "intro": "AMS-HT B Podawanie filamentu do bufora nie powiodło się; może to być spowodowane wyświeceniem filamentu, powodującym poślizg silnika pomocniczego. Proszę odciąć wyświechtany fragment filamentu."
-                },
-                {
-                    "ecode": "1802700000020014",
-                    "intro": "AMS-HT C Podawanie filamentu do koła wytłaczającego silnika pomocniczego nie powiodło się. Może to być spowodowane małym fragmentem przerwanego filamentu wpadającego do rury zasilającej. Proszę usunąć przerwany filament z rury zasilającej."
                 },
                 {
                     "ecode": "1805310000030003",
@@ -7400,36 +7080,8 @@
                     "intro": "Nie udało się wyeksplodować filamentu w slocie AMS E 4; ekstruder może być zapchany lub filament może być zbyt cienki, powodując poślizg ekstrudera."
                 },
                 {
-                    "ecode": "1807700000020023",
-                    "intro": "AMS-HT H Podczas dostarczania filamentu do bufora wystąpił błąd; może to być spowodowane oderwaniem filamentu. Proszę sprawdzić, czy rurka filamentowa jest nieprawidłowo podłączona lub czy rurka jest wytarta."
-                },
-                {
-                    "ecode": "1801700000020041",
-                    "intro": "AMS-HT B Podczas wyjmowania filamentu wystąpił błąd; może to być spowodowane oderwaniem filamentu od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
                     "ecode": "0707350000010001",
                     "intro": "Czujnik temperatury i wilgotności ma błąd. Chip może być uszkodzony."
-                },
-                {
-                    "ecode": "1800700000020023",
-                    "intro": "AMS-HT A Podczas dostarczania filamentu do bufora wystąpił błąd; może to być spowodowane oderwaniem filamentu. Proszę sprawdzić, czy rurka filamentowa jest nieprawidłowo podłączona lub czy rurka jest wytarta."
-                },
-                {
-                    "ecode": "1804700000020033",
-                    "intro": "AMS-HT E Podczas dostarczania filamentu do ekstrudera narzędzia wystąpił błąd; może to być spowodowane wypadnięciem filamentu. Proszę sprawdzić, czy rurka filamentowa jest odłączona lub czy jej ścianki są wytarte."
-                },
-                {
-                    "ecode": "1804700000020023",
-                    "intro": "AMS-HT E Podczas dostarczania filamentu do bufora wystąpił błąd; może to być spowodowane oderwaniem filamentu. Proszę sprawdzić, czy rurka filamentowa jest nieprawidłowo podłączona lub czy rurka filamentowa jest wytarta."
-                },
-                {
-                    "ecode": "0706700000020030",
-                    "intro": "Nie udało się podać filamentu AMS G do ekstrudera głowicy narzędzia; może to być spowodowane blokadą filamentu przy wejściu do głowicy narzędzia. Sprawdź wtyczkę rurki filamentu w głowicy narzędzia."
-                },
-                {
-                    "ecode": "1802700000020020",
-                    "intro": "Nie udało się podać filamentu AMS-HT C do bufora; może to być spowodowane blokadą filamentu przez bufor. Sprawdź wtyczkę rurki PTFE bufora."
                 },
                 {
                     "ecode": "0700210000020003",
@@ -7580,92 +7232,28 @@
                     "intro": "Filament w szczelinie 2 slotu B AMS-HT może być złamany w głowicy narzędzia."
                 },
                 {
-                    "ecode": "0705700000020042",
-                    "intro": "Nie udało się wycofać filamentu AMS F; może to być spowodowane utratą połączenia silnika prądu stałego. Sprawdź, czy wtyczka silnika prądu stałego jest poprawnie podłączona."
-                },
-                {
-                    "ecode": "1800700000020061",
-                    "intro": "AMS-HT wyciąganie filamentu z pomocą przeciwnego wtryskiwacza A nie powiodło się, prawdopodobnie z powodu nadmiernego oporu ze strony bufora. Sprawdź, czy bufor jest zablokowany, czy szpula filamentu jest przechylona i czy rura filamentu jest czysta."
-                },
-                {
                     "ecode": "1803300000010004",
                     "intro": "Błąd układu szyfrowania."
-                },
-                {
-                    "ecode": "0706700000020023",
-                    "intro": "Zasilanie filamentu AMS G do bufora nie powiodło się; może to być spowodowane odkryciem się filamentu. Sprawdź, czy rura filamentu jest niewłaściwie podłączona lub czy rura jest przetarta."
-                },
-                {
-                    "ecode": "1801700000020050",
-                    "intro": "AMS-HT ładowanie filamentu do bufora zakończyło się niepowodzeniem; może to być spowodowane nadmiernym oporem w buforze. Sprawdź, czy bufor jest zablokowany, czy szpula filamentu jest przechylona lub czy rura filamentu jest zablokowana."
-                },
-                {
-                    "ecode": "0704700000020014",
-                    "intro": "AMS E zasilanie filamentu koła ekstrudera z silnikiem pomocniczym zakończyło się niepowodzeniem. Może to być spowodowane wejściem do rurki zasilającej małego kawałka zepsutego filamentu. Proszę usunąć zepsuty filament z rurki zasilania."
-                },
-                {
-                    "ecode": "1802700000020041",
-                    "intro": "AMS-HT wycofywanie filamentu zakończyło się niepowodzeniem; może to być spowodowane oderwaniem filamentu od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "1802700000020011",
-                    "intro": "AMS-HT C Podajnik filamentu do koła wyciskającego silnika pomocniczego uległ awarii. Może to być spowodowane rozłączeniem silnika prądu stałego. Sprawdź podłączenie wtyczki silnika prądu stałego."
                 },
                 {
                     "ecode": "0706300000030003",
                     "intro": "RFID nie może być odczytane z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
-                    "ecode": "0705700000020031",
-                    "intro": "AMS F Podawanie filamentu do ekstruzora głowicy narzędzia nie powiodło się; może to być spowodowane zużyciem filamentu, co powoduje poślizg silnika pomocniczego. Wytnij zużyty fragment filamentu."
-                },
-                {
                     "ecode": "1800450000020002",
                     "intro": "Odległość tnąca noża tnącego jest zbyt duża. Silnik XY może tracić kroki."
-                },
-                {
-                    "ecode": "1801700000020023",
-                    "intro": "AMS-HT B Podajnik filamentu do bufora nie powiódł się; może to być spowodowane oderwaniem się filamentu. Sprawdź, czy rurka filamentu jest nieprawidłowo podłączona, lub czy rurka jest przetarta."
-                },
-                {
-                    "ecode": "0707700000020042",
-                    "intro": "AMS H Wycofywanie filamentu nie powiodło się; może to być spowodowane utratą połączenia silnika prądu stałego. Sprawdź wtyczkę silnika prądu stałego, aby upewnić się, że jest odpowiednio podłączona."
-                },
-                {
-                    "ecode": "1800700000020012",
-                    "intro": "AMS-HT: Podajnik filamentu do koła pomocniczego silnika ekstrudującego nie działa poprawnie. Może to być spowodowane zbyt dużym oporem w filamentach. Sprawdź, czy zwijak jest przechylony, czy filament się zaplątał, czy obrót zwijaka jest płynny."
                 },
                 {
                     "ecode": "18FF800000010001",
                     "intro": "Silnik podnoszenia głowicy narzędzi pracuje nieprawidłowo. Sprawdź, czy kabel połączeniowy jest luźny."
                 },
                 {
-                    "ecode": "1803700000020033",
-                    "intro": "AMS-HT: Podajnik filamentu do ekstrudera głowicy narzędzi nie działa poprawnie, może to być spowodowane wypięciem się filamentu. Sprawdź, czy rura filamentowa jest odłączona lub czy przetarta na wylotce."
-                },
-                {
                     "ecode": "1802300000010004",
                     "intro": "Awaria układu szyfrującego."
                 },
                 {
-                    "ecode": "0707700000020060",
-                    "intro": "AMS H: Wspomagający ekstruder nie może chwycić filamentu, co może być spowodowane poślizgiem silnika pomocniczego. Proszę przyciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "1804700000020013",
-                    "intro": "AMS-HT: Podajnik filamentu do koła pomocniczego silnika ekstrudującego nie działa poprawnie, może to być spowodowane utratą sygnału z koła odometru. Sprawdź podłączenie wtyku koła odometru."
-                },
-                {
                     "ecode": "1802310000010004",
                     "intro": "Awaria układu szyfrującego."
-                },
-                {
-                    "ecode": "1807700000020032",
-                    "intro": "AMS-HT: Podajnik filamentu do ekstrudera głowicy narzędzi nie działa poprawnie. Może to być spowodowane zbyt dużym oporem filamentu. Sprawdź, czy zwijak jest przechylony lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0705700000020014",
-                    "intro": "Podawanie filamentu AMS F do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane wejściem małego kawałka zepsutego filamentu do rurki podającej. Proszę usunąć zepsuty filament z rurki podającej."
                 },
                 {
                     "ecode": "0700100000010001",
@@ -7820,28 +7408,8 @@
                     "intro": "Filament AMS-HT C Slot 1 się skończył. Proszę włożyć nowy filament."
                 },
                 {
-                    "ecode": "0706700000020044",
-                    "intro": "Nie udało się wyjąć filamentu AMS G; może to być spowodowane popsutym filamentem w głowicy narzędzia. Proszę wyjąć popsuty filament."
-                },
-                {
-                    "ecode": "1805700000020043",
-                    "intro": "Nie udało się wyjąć filamentu AMS-HT F; może to być spowodowane zużyciem filamentu i powodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1802700000020045",
-                    "intro": "Nie udało się wyjąć filamentu AMS-HT C; może to być spowodowane końcem filamentu lub jego wyjęciem."
-                },
-                {
-                    "ecode": "1800700000020041",
-                    "intro": "AMS-HT Zerwanie nici nie powiodło się; może to być spowodowane oderwaniem się nici od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
                     "ecode": "1806310000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
-                },
-                {
-                    "ecode": "1800700000020033",
-                    "intro": "AMS-HT A Zasilanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane ześlizgiwaniem się nici. Proszę sprawdzić, czy rurka prowadząca filament jest odłączona lub czy została przetarta."
                 },
                 {
                     "ecode": "1802300000030003",
@@ -7856,64 +7424,12 @@
                     "intro": "Niepowodzenie ekstruzji nitki AMS F Slot 4; ekstruder może być zapchany lub nitka może być zbyt cienka, co powoduje zsunięcie się ekstrudera."
                 },
                 {
-                    "ecode": "0704700000020045",
-                    "intro": "AMS E Zerwanie nici nie powiodło się; może to być spowodowane wyczerpaniem się nici lub jej wyrwaniem."
-                },
-                {
-                    "ecode": "1801700000020061",
-                    "intro": "AMS-HT B Nieudana pomoc przy chwytaniu filamentu przez wytłaczarkę, prawdopodobnie z powodu nadmiernego oporu ze strony bufora. Prosimy sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona i czy rura z filamentem jest przejrzysta."
-                },
-                {
-                    "ecode": "1800700000020050",
-                    "intro": "AMS-HT A Nieudane załadowanie filamentu do bufora, może to być spowodowane nadmiernym oporem w buforze. Prosimy sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona i czy rura z filamentem jest zablokowana."
-                },
-                {
-                    "ecode": "1804700000020012",
-                    "intro": "AMS-HT E Nieudane podawanie filamentu do koła wytłaczającego w module pomocniczym. Może to być spowodowane nadmiernym oporem w filamentach. Prosimy sprawdzić, czy szpula jest przechylona, czy filament jest zaplątany lub obrót szpuli nie jest płynny."
-                },
-                {
-                    "ecode": "1804700000020011",
-                    "intro": "AMS-HT E Nieudane podawanie filamentu do koła wytłaczającego w module pomocniczym. Może to być spowodowane odłączeniem silnika prądu stałego. Prosimy sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
                     "ecode": "0707310000010004",
                     "intro": "Awaria układu szyfrującego."
                 },
                 {
-                    "ecode": "0705700000020010",
-                    "intro": "AMS F Nieudane podawanie filamentu do koła wytłaczającego w module pomocniczym. Może to być spowodowane zatkaniem rurki podającej. Prosimy sprawdzić, czy rurka podająca i bufor z filamentem są wolne."
-                },
-                {
-                    "ecode": "1803700000020011",
-                    "intro": "AMS-HT D Nieudane podawanie filamentu do koła wytłaczającego w module pomocniczym. Może to być spowodowane odłączeniem silnika prądu stałego. Prosimy sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "0704700000020032",
-                    "intro": "AMS E Podawanie filamentu do ekstrudera głowicy narzędzia nie powiodło się, może to być spowodowane nadmiernym oporem filamentu. Sprawdź, czy rolka z filamentem jest pochylona lub czy rura filamentu jest zablokowana."
-                },
-                {
-                    "ecode": "1800700000020013",
-                    "intro": "AMS-HT A Podawanie filamentu do koła ekstrudera silnika pomocniczego nie powiodło się, może to być spowodowane utratą sygnału z koła licznika kilometrów. Sprawdź podłączenie wtyczki koła licznika kilometrów."
-                },
-                {
                     "ecode": "18FF800000020003",
                     "intro": "Odchylenie wartości kalibracji pozycjonowania ekstrudera jest zbyt duże; proszę przeprowadzić ponowną kalibrację."
-                },
-                {
-                    "ecode": "1802700000020010",
-                    "intro": "AMS-HT C Podawanie filamentu do koła ekstrudera silnika pomocniczego nie powiodło się, może to być spowodowane blokadą w rurze podawczej. Sprawdź, czy rura podawcza i piasta filamentu są czyste."
-                },
-                {
-                    "ecode": "1807700000020030",
-                    "intro": "AMS-HT H Podawanie filamentu do ekstrudera głowicy narzędzia nie powiodło się, może to być spowodowane zablokowaniem filamentu na wejściu do głowicy narzędzia. Sprawdź wtyczkę rury filamentu głowicy narzędzia."
-                },
-                {
-                    "ecode": "1804700000020042",
-                    "intro": "AMS-HT E Wycofywanie filamentu nie powiodło się; może to być spowodowane utratą połączenia silnika DC. Sprawdź wtyczkę silnika DC, aby upewnić się, że jest ona poprawnie podłączona."
-                },
-                {
-                    "ecode": "1801700000020042",
-                    "intro": "AMS-HT B Wycofywanie filamentu nie powiodło się; może to być spowodowane utratą połączenia silnika DC. Sprawdź wtyczkę silnika DC, aby upewnić się, że jest ona poprawnie podłączona."
                 },
                 {
                     "ecode": "0700200000020001",
@@ -8040,96 +7556,20 @@
                     "intro": "Może się zdarzyć, że filament w węźle AMS-HT E Slot 3 jest uszkodzony."
                 },
                 {
-                    "ecode": "0704700000020022",
-                    "intro": "Podczas ładowania filamentu do bufora węzła AMS E wystąpił błąd. Może to być spowodowane zużytym filamentem, który powoduje poślizg silnika asystującego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "1800700000020042",
-                    "intro": "Podczas usuwania filamentu z węzła AMS-HT A wystąpił błąd; może to być spowodowane utratą połączenia silnika DC. Proszę sprawdzić, czy wtyczka silnika DC jest prawidłowo podłączona."
-                },
-                {
-                    "ecode": "1801700000020031",
-                    "intro": "Podczas ładowania filamentu do ekstrudera głowicy narzędzia węzła AMS-HT B wystąpił błąd. Może to być spowodowane zużytym filamentem, który powoduje poślizg silnika asystującego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "1805700000020033",
-                    "intro": "Podczas ładowania filamentu do ekstrudera głowicy narzędzia węzła AMS-HT F wystąpił błąd. Może to być spowodowane wypuszczeniem się filamentu. Proszę sprawdzić, czy rurka filamentowa jest odłączona lub czy przez nią nie przechodziły zużyta część filamentu."
-                },
-                {
-                    "ecode": "1805700000020060",
-                    "intro": "Węzeł AMS-HT F nie mógł chwycić filamentu przy pomocy silnika asystującego; może to być spowodowane poślizgiem silnika. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "1805700000020011",
-                    "intro": "AMS-HT F Podczas podawania filamentu do koła ekstrudującego silnika pomocniczego wystąpiło niepowodzenie. Może to być spowodowane rozłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "1800700000020021",
-                    "intro": "AMS-HT A Podczas podawania filamentu do bufora wystąpiło niepowodzenie; może to być spowodowane nadmiernym oporem w przewodzie. Proszę sprawdzić, czy szpula z cewką filamentu nie jest pochylona lub czy rura PTFE nie jest zablokowana."
-                },
-                {
-                    "ecode": "1800700000020020",
-                    "intro": "AMS-HT A Podczas podawania filamentu do bufora wystąpiło niepowodzenie; może to być spowodowane zablokowaniem przewodu przez bufor. Proszę sprawdzić wtyk z rurki PTFE w buforze."
-                },
-                {
-                    "ecode": "1802700000020012",
-                    "intro": "AMS-HT C Podczas podawania filamentu do koła ekstrudującego silnika pomocniczego wystąpiło niepowodzenie. Może to być spowodowane nadmiernym oporem w przewodzie. Proszę sprawdzić, czy szpula nie jest pochylona, czy filament jest poplątany lub czy obroty szpuli nie są płynne."
-                },
-                {
                     "ecode": "0706230000020009",
                     "intro": "Nieudane wydobycie filamentu ze szczeliny AMS G Slot 4; ekstruder może być zatkany lub przewód może być zbyt cienki, co powoduje ślizganie się ekstrudera."
-                },
-                {
-                    "ecode": "0705700000020013",
-                    "intro": "AMS F Podczas podawania filamentu do koła ekstrudującego silnika pomocniczego wystąpiło niepowodzenie. Może to być spowodowane utratą sygnału z koła drogomierza. Proszę sprawdzić połączenie wtyczki koła drogomierza."
-                },
-                {
-                    "ecode": "1802700000020043",
-                    "intro": "AMS-HT C Nieudane wyciągnięcie filamentu; może to być spowodowane zużyciem filamentu, co powoduje poślizg silnika pomocniczego. Proszę przyciąć zniszczony odcinek filamentu."
                 },
                 {
                     "ecode": "1804300000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub konstrukcyjnego."
                 },
                 {
-                    "ecode": "1806700000020033",
-                    "intro": "AMS-HT G Podawanie filamentu do ekstrudera filamentu narzędziowego nie powiodło się; może to być spowodowane wypięciem się filamentu. Proszę sprawdzić, czy rura filametowa jest odłączona lub czy rura została przetarta."
-                },
-                {
                     "ecode": "1802350000010001",
                     "intro": "Czujnik temperatury i wilgotności ma błąd. Może to być spowodowane uszkodzeniem układu scalonego."
                 },
                 {
-                    "ecode": "1806700000020011",
-                    "intro": "AMS-HT G Podawanie filamentu do koła ekstruzji silnika pomocniczego nie powiodło się. Może to być spowodowane odłączeniem silnika DC. Proszę sprawdzić połączenie wtyczki silnika DC."
-                },
-                {
-                    "ecode": "1806700000020013",
-                    "intro": "AMS-HT G Podawanie filamentu do koła ekstruzji silnika pomocniczego nie powiodło się. Może to być spowodowane utratą sygnału z koła odometru. Proszę sprawdzić połączenie wtyczki koła odometru."
-                },
-                {
-                    "ecode": "1807700000020022",
-                    "intro": "AMS-HT H Podawanie filamentu do bufora nie powiodło się; może to być spowodowane przetartym filamentem powodującym poślizg silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1800700000020011",
-                    "intro": "AMS-HT A Podawanie filamentu do koła ekstruzji silnika pomocniczego nie powiodło się. Może to być spowodowane odłączeniem silnika DC. Proszę sprawdzić połączenie wtyczki silnika DC."
-                },
-                {
-                    "ecode": "0704700000020033",
-                    "intro": "AMS E Podawanie filamentu do ekstrudera narzędziowego nie powiodło się; może to być spowodowane wypięciem się filamentu. Proszę sprawdzić, czy rura filametowa jest odłączona lub czy rura została przetarta."
-                },
-                {
                     "ecode": "0705350000010001",
                     "intro": "Czujnik temperatury i wilgotności ma błąd. Może to być spowodowane uszkodzeniem układu scalonego."
-                },
-                {
-                    "ecode": "0706700000020031",
-                    "intro": "AMS G Wprowadzenie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane zużyciem filamentu i spowodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0704700000020043",
-                    "intro": "AMS E Wycofanie filamentu nie powiodło się; może to być spowodowane zużyciem filamentu i spowodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
                 },
                 {
                     "ecode": "0706210000020009",
@@ -8138,10 +7578,6 @@
                 {
                     "ecode": "1801310000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
-                },
-                {
-                    "ecode": "1803700000020023",
-                    "intro": "AMS-HT D Wprowadzenie filamentu do bufora nie powiodło się; może to być spowodowane odłączeniem filamentu. Sprawdź, czy rura z filamentem jest nieprawidłowo podłączona lub czy zniszczyła się."
                 },
                 {
                     "ecode": "0700620000020001",
@@ -8308,22 +7744,6 @@
                     "intro": "Slot AMS-HT E 4 jest pusty; proszę włożyć nowy filament."
                 },
                 {
-                    "ecode": "0704700000020011",
-                    "intro": "Podawanie filamentu do koła ekstrudującego AMS E w silniku pomocniczym nie powiodło się. Może to być spowodowane rozłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "1805700000020044",
-                    "intro": "Wyjęcie filamentu AMS-HT F nie powiodło się; może to być spowodowane złamanym filamentem w głowicy narzędzia. Proszę usunąć złamany filament."
-                },
-                {
-                    "ecode": "0704700000020050",
-                    "intro": "Załadowanie filamentu AMS E do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona, lub czy rura z filamentem jest zablokowana."
-                },
-                {
-                    "ecode": "1806700000020041",
-                    "intro": "Wyjęcie filamentu z AMS-HT G nie powiodło się; może to być spowodowane oderwaniem się filamentu od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
                     "ecode": "1805350000010001",
                     "intro": "Czujnik temperatury i wilgotności ma błąd. Może to być spowodowane uszkodzeniem chipa."
                 },
@@ -8332,40 +7752,12 @@
                     "intro": "Uchwyt tnący filament nie został zwolniony. Uchwyt lub ostrze mogą być zakleszczone lub może wystąpić problem z połączeniem z czujnikiem filamentu."
                 },
                 {
-                    "ecode": "1804700000020014",
-                    "intro": "Podawanie filamentu do koła ekstrudującego AMS-HT E w silniku pomocniczym nie powiodło się. Może to być spowodowane małym kawałkiem złamanego filamentu, który dostał się do rury zasilającej. Proszę usunąć złamany filament z rury zasilającej."
-                },
-                {
-                    "ecode": "1805700000020042",
-                    "intro": "Wyjęcie filamentu AMS-HT F nie powiodło się; może to być spowodowane utratą połączenia silnika prądu stałego. Proszę sprawdzić wtyczkę silnika prądu stałego, aby upewnić się, że jest prawidłowo podłączona."
-                },
-                {
-                    "ecode": "1803700000020022",
-                    "intro": "AMS-HT D Zasilanie podawania filamentu do bufora się nie powiodło. Może to być spowodowane zużytym filamentem powodującym poślizg silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
-                    "ecode": "1806700000020020",
-                    "intro": "AMS-HT G Podawanie filamentu do bufora się nie powiodło. Może to być spowodowane zablokowaniem filamentu przez bufor. Proszę sprawdzić wtyczkę w rurce PTFE w buforze."
-                },
-                {
                     "ecode": "1800300000010004",
                     "intro": "Awaria chipa szyfrującego."
-                },
-                {
-                    "ecode": "1802700000020031",
-                    "intro": "AMS-HT C Podanie filamentu do ekstrudera zestawu narzędziowego się nie powiodło. Może to być spowodowane zużytym filamentem powodującym poślizg silnika pomocy. Proszę odciąć niższą część zużytego filamentu."
-                },
-                {
-                    "ecode": "1801700000020014",
-                    "intro": "AMS-HT B Nie udało się wprowadzić filamentu do koła wytłaczającego silnika pomocniczego. Może to być spowodowane małym kawałkiem złamanego filamentu wpadłego do rury zasilającej. Proszę usunąć złamany filament z rury zasilającej."
-                },
-                {
-                    "ecode": "1804700000020043",
-                    "intro": "AMS-HT E Nie udało się wyjąć filamentu; może to być spowodowane zużyciem filamentu, co powoduje poślizg silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
                 },
                 {
                     "ecode": "0700130000020002",
@@ -8532,52 +7924,20 @@
                     "intro": "W slocie G4 AMS skończył się filament i automatycznie przełączono na slot z tym samym filamentem."
                 },
                 {
-                    "ecode": "0706700000020050",
-                    "intro": "Podczas ładowania filamentu do bufora AMS G wystąpił błąd; może to wynikać z nadmiernego oporu w buforze. Proszę sprawdzić, czy bufor jest zablokowany, czy rolka mocująca jest przekrzywiona lub czy rura filamentu jest zablokowana."
-                },
-                {
-                    "ecode": "0706700000020010",
-                    "intro": "W trakcie prowadzenia filamentu do koła ekstrudującego pomocniczego AMS G wystąpił błąd. Może to być spowodowane blokadą w rurce prowadzącej. Proszę sprawdzić, czy rurka jest wolna od przeszkód oraz czy rolka mocująca filament jest również odblokowana."
-                },
-                {
-                    "ecode": "0704700000020020",
-                    "intro": "Podczas prowadzenia filamentu AMS E do bufora wystąpił błąd; może to być spowodowane blokadą filamentu przez bufor. Proszę sprawdzić, czy zatyczka rurki PTFE w buforze nie jest zablokowana."
-                },
-                {
-                    "ecode": "0707700000020050",
-                    "intro": "Podczas ładowania filamentu do bufora AMS H wystąpił błąd; może to wynikać z nadmiernego oporu w buforze. Proszę sprawdzić, czy bufor jest zablokowany, czy rolka mocująca jest przekrzywiona lub czy rura filamentu jest zablokowana."
-                },
-                {
                     "ecode": "1805310000010004",
                     "intro": "Awaria chipu szyfrującego"
-                },
-                {
-                    "ecode": "1806700000020061",
-                    "intro": "AMS-HT G Nieudane sztancowanie filamentu przez ekstruder pomocniczy - może to być spowodowane nadmiernym oporem ze strony bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z filamentem jest przechylona, i czy rura z filamentem jest czysta."
                 },
                 {
                     "ecode": "18FF200000020001",
                     "intro": "Brak zewnętrznego filamentu w prawym ekstrudersie; proszę załadować nowy filament."
                 },
                 {
-                    "ecode": "0706700000020042",
-                    "intro": "AMS G Wyjęcie filamentu się nie powiodło; może to być spowodowane utratą połączenia silnika prądu stałego. Sprawdź poprawność połączenia wtyczki silnika prądu stałego."
-                },
-                {
                     "ecode": "18FF450000020002",
                     "intro": "Zbyt duży dystans cięcia noża do filamentu. Silnik XY może gubić kroki."
                 },
                 {
-                    "ecode": "1803700000020044",
-                    "intro": "AMS-HT D Wyjęcie filamentu się nie powiodło; może to być spowodowane zepsutym filamentem w głowicy narzędzia. Proszę usunąć zepsuty filament."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "Nie można odczytać RFID ze względu na błąd sprzętowy lub strukturalny."
-                },
-                {
-                    "ecode": "1806700000020042",
-                    "intro": "AMS-HT G Wyciąganie filamenu nie powiodło się; może to być spowodowane utratą połączenia silnika DC. Sprawdź wtyczkę silnika DC, aby upewnić się, że jest poprawnie podłączona."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -8588,32 +7948,8 @@
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
-                    "ecode": "0707700000020045",
-                    "intro": "AMS H Wyciągnięcie filamentu nie powiodło się; możliwą przyczyną jest brak filamentu lub wyciągnięcie go."
-                },
-                {
-                    "ecode": "0705700000020023",
-                    "intro": "AMS F Wprowadzenie filamentu do bufora nie powiodło się; może to być spowodowane oderwaniem filamentu. Sprawdź, czy rura filamentowa jest nieprawidłowo podłączona lub czy rura została zniszczona."
-                },
-                {
-                    "ecode": "1800700000020040",
-                    "intro": "AMS-HT A Wyciąganie filamentu nie powiodło się; możliwą przyczyną jest nadmierne opory w silniku DC. Sprawdź, czy kołowrotek z filamentem jest przechylony lub zdeformowany lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "1801700000020040",
-                    "intro": "AMS-HT B Wyciąganie filamentu nie powiodło się; możliwą przyczyną jest nadmierne opory w silniku DC. Sprawdź, czy kołowrotek z filamentem jest przechylony lub zdeformowany lub czy rura filamentowa jest zablokowana."
-                },
-                {
                     "ecode": "1802310000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
-                },
-                {
-                    "ecode": "0704700000020010",
-                    "intro": "AMS E Zasilanie filamentu do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane blokadą w rurce zasilającej. Proszę sprawdzić, czy rurka zasilająca i piasta filamentu są czyste."
-                },
-                {
-                    "ecode": "1807700000020042",
-                    "intro": "AMS-HT H Wycofanie filamentu nie powiodło się; może to być spowodowane utratą połączenia silnika prądu stałego. Proszę sprawdzić wtyczkę silnika prądu stałego, aby upewnić się, że jest prawidłowo podłączona."
                 },
                 {
                     "ecode": "0700610000020001",
@@ -8792,76 +8128,16 @@
                     "intro": "Filament w slocie AMS-HT A4 się skończył. Proszę włożyć nowy filament."
                 },
                 {
-                    "ecode": "0705700000020050",
-                    "intro": "AMS F Wczytywanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Sprawdź, czy bufor jest zablokowany, szpula z filamentem jest przekrzywiona lub rura z filamentem jest zablokowana."
-                },
-                {
                     "ecode": "0704350000010001",
                     "intro": "Wystąpił błąd czujnika temperatury i wilgotności. Może to oznaczać uszkodzony układ scalony."
-                },
-                {
-                    "ecode": "1804700000020030",
-                    "intro": "AMS-HT E Wprowadzanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane blokadą filamentu przy wejściu do głowicy narzędzia. Sprawdź wtyk rury z filamentem głowicy narzędzia."
-                },
-                {
-                    "ecode": "0707700000020020",
-                    "intro": "AMS H Wprowadzanie filamentu do bufora nie powiodło się; może to być spowodowane zablokowaniem filamentu przez bufor. Sprawdź wtyk rury PTFE bufora."
-                },
-                {
-                    "ecode": "0706700000020033",
-                    "intro": "AMS G Wprowadzanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane wypadnięciem filamentu. Sprawdź, czy rura z filamentem jest odłączona lub czy rura jest zużyta."
-                },
-                {
-                    "ecode": "1802700000020044",
-                    "intro": "AMS-HT C Wycofywanie filamentu nie powiodło się, może to być spowodowane zepsutym filamentem w głowicy narzędzia. Proszę usunąć zepsuty filament."
-                },
-                {
-                    "ecode": "1807700000020011",
-                    "intro": "AMS-HT H Wprowadzenie filamentu do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane odłączeniem silnika prądu stałego. Sprawdź połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "1801700000020030",
-                    "intro": "AMS-HT B Wprowadzanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane blokadą filamentu przy wejściu do głowicy narzędzia. Sprawdź wtyk rury z filamentem głowicy narzędzia."
-                },
-                {
-                    "ecode": "0704700000020042",
-                    "intro": "AMS E Wyjęcie filamentu nie powiodło się; może to być spowodowane utratą połączenia silnika prądu stałego. Sprawdź podłączenie wtyczki silnika prądu stałego, aby upewnić się, że jest poprawnie podłączona."
-                },
-                {
-                    "ecode": "1804700000020022",
-                    "intro": "AMS-HT E Zasilanie filamentem do bufora nie powiodło się; może to być spowodowane zużytym filamentem powodującym poślizg silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
                 },
                 {
                     "ecode": "0707210000020009",
                     "intro": "Nie udało się wydrukować filamentu AMS H w szczelinie 2; ekstruder może być zatkany lub filament może być zbyt cienki, co powoduje poślizg ekstrudera."
                 },
                 {
-                    "ecode": "0705700000020012",
-                    "intro": "AMS F Zasilanie filamentem do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula jest pochylona, filament jest splątany lub obrót szpuli nie jest płynny."
-                },
-                {
                     "ecode": "18FE450000020003",
                     "intro": "Uchwyt tnący filament nie został wyzwolony. Uchwyt lub ostrze mogą być zablokowane, lub wystąpił problem z połączeniem sensora filamentu."
-                },
-                {
-                    "ecode": "1806700000020050",
-                    "intro": "AMS-HT G Ładowanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, szpula z filamentem jest pochylona lub rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "1801700000020045",
-                    "intro": "Wyciąganie filamentu nie powiodło się; może to być spowodowane wyczerpaniem się filamentu lub jego wyrwaniem."
-                },
-                {
-                    "ecode": "1803700000020014",
-                    "intro": "Podawanie filamentu do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane wejściem do przewodu zasilającego małego kawałka filamentu. Prosimy usunąć ułamany filament z przewodu zasilającego."
-                },
-                {
-                    "ecode": "1800700000020032",
-                    "intro": "Podawanie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Prosimy sprawdzić, czy szpula z filamentem jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0706700000020043",
-                    "intro": "Wyciąganie filamentu nie powiodło się; może to być spowodowane zużyciem się filamentu i powodowaniem poślizgu silnika pomocniczego. Prosimy obciąć zniszczony odcinek filamentu."
                 },
                 {
                     "ecode": "0700200000030002",
@@ -9044,28 +8320,8 @@
                     "intro": "Motor w slocie 4 AMS-HT D zsunął się. Koło wyciskające może być uszkodzone lub filament może być zbyt cienki."
                 },
                 {
-                    "ecode": "0706700000020045",
-                    "intro": "Nie udało się wyjąć filamentu z AMS G; może to być spowodowane brakiem filamentu lub próbą wymuszenia wyciągnięcia."
-                },
-                {
-                    "ecode": "1805700000020020",
-                    "intro": "Nie udało się przetransportować filamentu AMS-HT F do bufora; może to być spowodowane zatkaniem bufora filamentem. Sprawdź wtyk rurki PTFE bufora."
-                },
-                {
                     "ecode": "1805300000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
-                },
-                {
-                    "ecode": "1807700000020014",
-                    "intro": "Nie udało się przetransportować filamentu AMS-HT H do koła ekstrudującego z silnikiem pomocniczym; może to być spowodowane małym kawałkiem uszkodzonego filamentu, który zablokował rurkę zasilającą. Usuń uszkodzony filament z rurki."
-                },
-                {
-                    "ecode": "1806700000020044",
-                    "intro": "Nie udało się wyjąć filamentu z AMS-HT G; może to być spowodowane zepsutym filamentem w głowicy narzędzia. Usuń uszkodzony filament."
-                },
-                {
-                    "ecode": "1802700000020033",
-                    "intro": "AMS-HT C Podawanie filamentu do ekstrudera głowicy narzędziowej nie powiodło się; może to być spowodowane wypadnięciem filamentu. Proszę sprawdzić, czy rura filamentu jest odłączona lub czy rura została zużyta."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9080,36 +8336,8 @@
                     "intro": "Nie udało się wypchnąć filamentu szczelinowego AMS H Slot 4; ekstruder może być zapchany lub filament może być zbyt cienki, co powoduje zsunięcie się zębatki ekstrudera."
                 },
                 {
-                    "ecode": "0704700000020013",
-                    "intro": "Podawanie filamentu do koła ekstrudującego silnika pomocniczego AMS E nie powiodło się. Może to być spowodowane utratą sygnału z koła odometru. Proszę sprawdzić połączenie wtyku koła odometru."
-                },
-                {
-                    "ecode": "1802700000020040",
-                    "intro": "AMS-HT C Wyjęcie filamentu nie powiodło się; może to być z powodu nadmiernego oporu w silniku prądu stałego. Sprawdź, czy szpula z filamentem jest nachylona lub zdeformowana, lub czy rura na filament jest zablokowana."
-                },
-                {
-                    "ecode": "1800700000020043",
-                    "intro": "AMS-HT A Wyjęcie filamentu nie powiodło się; może to być spowodowane zużyciem filamentu i spowodowaniem poślizgu silnika pomocniczego. Przytnij zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0707700000020012",
-                    "intro": "AMS H Zasilanie filamnetu do koła wtryskowego pomocniczego silnika nie powiodło się. Może to być spowodowane nadmiernym oporem filamentu. Sprawdź, czy szpula nie jest nachylona, czy filament się nie zaplątał, lub czy obroty szpuli nie są niepłynne."
-                },
-                {
-                    "ecode": "0704700000020060",
-                    "intro": "AMS E Złapanie filamentu przez wtryskiwarkę pomocniczą nie powiodło się; może to być spowodowane poślizgiem silnika pomocniczego. Przytnij zużyty fragment filamentu."
-                },
-                {
                     "ecode": "1803300000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
-                },
-                {
-                    "ecode": "0707700000020040",
-                    "intro": "AMS H Wyjęcie filamentu nie powiodło się; może to być z powodu nadmiernego oporu w silniku prądu stałego. Sprawdź, czy szpula z filamentem jest nachylona lub zdeformowana, lub czy rura na filament jest zablokowana."
-                },
-                {
-                    "ecode": "1806700000020045",
-                    "intro": "AMS-HT G Wyjęcie filamentu nie powiodło się; może to być spowodowane wyczerpaniem się filamentu lub jego wyciągnięciem."
                 },
                 {
                     "ecode": "1804310000010004",
@@ -9248,42 +8476,6 @@
                     "intro": "W szczelinie H AMS w gnieździe 2 nie ma już filamentu, a oczyszczanie starego filamentu przebiegło nienormalnie. Proszę sprawdzić, czy filament nie utknął w głowicy narzędzia."
                 },
                 {
-                    "ecode": "0707700000020030",
-                    "intro": "Podawanie filamentu do ekstrudera głowicy narzędzia w szczelinie H AMS nie powiodło się; przyczyną może być zablokowanie filamentu przy wejściu do głowicy narzędzia. Proszę sprawdzić zatyczkę rury filamentowej głowicy narzędzia."
-                },
-                {
-                    "ecode": "1807700000020040",
-                    "intro": "Wyciąganie filamentu z szczeliny H AMS-HT nie powiodło się; przyczyną może być nadmierna oporność silnika DC. Proszę sprawdzić, czy rolka z filamentem jest przechylona lub zdeformowana lub czy rura filamentowa nie jest zablokowana."
-                },
-                {
-                    "ecode": "1805700000020014",
-                    "intro": "Podawanie filamentu do koła wytłaczającego silnika pomocniczego w szczelinie F AMS-HT nie powiodło się. Może to być spowodowane tym, że do rury zasilającej trafił mały kawałek przerwanego filamentu. Proszę usunąć przerwany filament z rury zasilającej."
-                },
-                {
-                    "ecode": "1807700000020010",
-                    "intro": "Podawanie filamentu do koła wytłaczającego silnika pomocniczego w szczelinie H AMS-HT nie powiodło się. Może to być spowodowane tym, że rura zasilająca jest zablokowana. Proszę sprawdzić, czy rura zasilająca i piasta filamentu są czyste."
-                },
-                {
-                    "ecode": "1801700000020060",
-                    "intro": "AMS-HT B - Wspomaganie chwytaka wyciągarki extrudera nie powiodło się; może to być spowodowane poślizgiem silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0707700000020061",
-                    "intro": "AMS H - Wspomaganie chwytaka wyciągarki extrudera nie powiodło się, prawdopodobnie z powodu nadmiernego oporu wynikającego z bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula filamentu jest przechylona i czy rurka filamentowa jest przejrzysta."
-                },
-                {
-                    "ecode": "1804700000020044",
-                    "intro": "AMS-HT E - Wycofanie filamentu nie powiodło się; może to być spowodowane złamanym filamentem w głowicy narzędzia. Proszę usunąć połamany filament."
-                },
-                {
-                    "ecode": "1807700000020012",
-                    "intro": "AMS-HT H - Podawanie filamentu do koła wyciągarki silnika pomocniczego nie powiodło się. Może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdź, czy szpula z filamentem jest przechylona, czy filament jest splątany, lub czy obrót szpuli nie jest płynny."
-                },
-                {
-                    "ecode": "0706700000020021",
-                    "intro": "AMS G - Podawanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula z filamentem jest przechylona oraz czy rurka PTFE nie jest zablokowana."
-                },
-                {
                     "ecode": "1800310000030003",
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętu lub strukturalnego."
                 },
@@ -9296,48 +8488,12 @@
                     "intro": "Nie udało się wycisnąć filamentu w slocie 2 AMS E. Ekstruder może być zatkany lub filament może być zbyt cienki, co powoduje poślizg w ekstruderze."
                 },
                 {
-                    "ecode": "1802700000020030",
-                    "intro": "AMS-HT C Nie udało się podsunąć filamentu do ekstrudera w głowicy narzędziowej. Może to być spowodowane zablokowaniem filamentu przy wejściu do głowicy narzędziowej. Proszę sprawdzić wtyk rury filamentowej w głowicy narzędziowej."
-                },
-                {
-                    "ecode": "1806700000020043",
-                    "intro": "AMS-HT G Nie udało się wyjąć filamentu. Może to być spowodowane zniszczeniem filamentu i powoduje poślizg silnika assistance. Proszę odciąć zniszczony fragment filamentu."
-                },
-                {
-                    "ecode": "1807700000020050",
-                    "intro": "AMS-HT H Nie udało się załadować filamentu do bufora. Może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, czy rolka filamentu jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
                     "ecode": "1801300000010004",
                     "intro": "Awaria czipu szyfrującego."
                 },
                 {
                     "ecode": "18FE450000020002",
                     "intro": "Odległość cięcia noża do filamentu jest zbyt duża. Silnik XY może tracić kroki."
-                },
-                {
-                    "ecode": "1804700000020032",
-                    "intro": "AMS-HT E Nie udało się podsunąć filamentu do ekstrudera w głowicy narzędziowej. Może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "1807700000020043",
-                    "intro": "Nie powiodło się wyciąganie filamentu AMS-HT H, może to być spowodowane przez zużycie filamentu, co powoduje poślizg silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1803700000020060",
-                    "intro": "Nie powiodło się chwytanie filamentu przez ekstruder z pomocą AMS-HT D, może to być spowodowane poślizgiem silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0707700000020011",
-                    "intro": "Nie powiodło się podawanie filamentu do koła ekstrudera z pomocą AMS H. Może to być spowodowane odłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "1806700000020014",
-                    "intro": "Niepowodzenie podczas podawania filamentu do koła ekstrudera z pomocą AMS-HT G. Może to być spowodowane małym kawałkiem złamanego filamentu, który dostał się do rurki podającej. Proszę usunąć złamany filament z rurki podającej."
-                },
-                {
-                    "ecode": "1806700000020030",
-                    "intro": "Niepowodzenie podczas podawania filamentu do ekstrudera głowicy narzędzia z pomocą AMS-HT G. Może to być spowodowane zablokowaniem filamentu na wejściu do głowicy narzędzia. Proszę sprawdzić wtyczkę rurki filamentu w głowicy narzędzia."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9472,68 +8628,20 @@
                     "intro": "AMS-HT E Slot 4 może mieć przerwaną taśmę w AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020020",
-                    "intro": "Podajnik taśmy AMS-HT B do bufora nie działa, może to być spowodowane zablokowaniem taśmy przez bufor. Proszę sprawdzić wtyczkę rurki PTFE bufora."
-                },
-                {
                     "ecode": "0704300000010004",
                     "intro": "Niepowodzenie układu szyfrującego."
-                },
-                {
-                    "ecode": "1807700000020060",
-                    "intro": "AMS-HT H Niepowodzenie z chwytem asystującego ekstrudera; może to być spowodowane poślizgiem silnika asystującego. Proszę odciąć zużyty kawałek taśmy."
-                },
-                {
-                    "ecode": "1803700000020032",
-                    "intro": "Podawanie taśmy AMS-HT D do ekstrudera głowicy narzędzia nie powiodło się; może to wynikać z nadmiernego oporu taśmy. Proszę sprawdzić, czy rolka z taśmą jest przechylona lub czy rura z taśmą jest zablokowana."
                 },
                 {
                     "ecode": "0704220000020009",
                     "intro": "Nie udało się wydobyć taśmy z ekstrudera AMS E Slot 3; ekstruder może być zapchany lub taśma może być zbyt cienka, co powoduje poślizg ekstrudera."
                 },
                 {
-                    "ecode": "0705700000020030",
-                    "intro": "AMS F Podawanie filamentu do ekstrudera głowicy narzędziowej nie powiodło się; może to być spowodowane zablokowaniem filamentu przy wejściu do głowicy narzędziowej. Proszę sprawdzić zatyczkę rurki filamentu głowicy narzędziowej."
-                },
-                {
                     "ecode": "1801350000010001",
                     "intro": "Czujnik temperatury i wilgotności ma błąd. Układ scalony może być uszkodzony."
                 },
                 {
-                    "ecode": "1801700000020021",
-                    "intro": "AMS-HT B Podawanie filamentu do bufora nie powiodło się; może to być spowodowane zbyt dużym oporem filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona lub czy rura PTFE jest zablokowana."
-                },
-                {
                     "ecode": "0706310000010004",
                     "intro": "Usterka układu szyfrującego."
-                },
-                {
-                    "ecode": "0705700000020045",
-                    "intro": "AMS F Wyjęcie filamentu nie powiodło się; może to być spowodowane końcem filamentu lub próbą wyrwania go z ekstrudera."
-                },
-                {
-                    "ecode": "0706700000020012",
-                    "intro": "AMS G Podawanie filamentu do koła ekstrudera silnika asystującego nie powiodło się. Może to być spowodowane zbyt dużym oporem filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona, czy filament jest splątany lub czy rotacja rolki filamentu jest niesprawna."
-                },
-                {
-                    "ecode": "0706700000020032",
-                    "intro": "AMS G Podawanie filamentu do ekstrudera głowicy narzędziowej nie powiodło się; może to być spowodowane zbyt dużym oporem filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0704700000020021",
-                    "intro": "Nieudane dokarmienie filamentu AMS E do bufora, może to być spowodowane nadmiernym oporem w filtrze. Proszę sprawdzić, czy szpula z filamentem jest nachylona lub czy rura PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "1805700000020022",
-                    "intro": "Nieudane dokarmienie filamentu AMS-HT F do bufora, może to być spowodowane zużytym filamentem, co powoduje poślizg silnika asysty. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0705700000020041",
-                    "intro": "Nieudane wyciąganie filamentu AMS F; może to być spowodowane oderwaniem się filamentu od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "1800700000020010",
-                    "intro": "Nieudane dokarmienie filamentu AMS-HT A do koła wyciskającego silnika asysty. Może to być spowodowane zablokowaniem rury dokarmiającej. Proszę sprawdzić, czy rura dokarmiająca i kołnierz filamenu są wolne."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -9704,10 +8812,6 @@
                     "intro": "Silnik AMS w slocie 2 jest przeciążony. Filament może być splątany lub zablokowany."
                 },
                 {
-                    "ecode": "1805700000020030",
-                    "intro": "Wprowadzenie filamentu AMS-HT F na ekstruder głowicy narzędzia nie powiodło się; może to być spowodowane blokadą filamentu przy wejściu do głowicy narzędzia. Proszę sprawdzić wtyczkę rurki filamentu głowicy narzędzia."
-                },
-                {
                     "ecode": "0705300000010004",
                     "intro": "Awaria układu szyfrującego."
                 },
@@ -9720,52 +8824,16 @@
                     "intro": "Nie można odczytać RFID z powodu błędu sprzętowego lub strukturalnego."
                 },
                 {
-                    "ecode": "0704700000020061",
-                    "intro": "Niepowodzenie chwytania filamentu przez asystujący ekstruder AMS E, prawdopodobnie z powodu nadmiernego oporu ze strony bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy pojemnik na filament jest przechylony oraz czy rurka filamentu jest wolna."
-                },
-                {
-                    "ecode": "1807700000020033",
-                    "intro": "Wprowadzenie filamentu AMS-HT H do ekstrudera głowicy narzędzia nie powiodło się; jest to prawdopodobnie spowodowane wyślizgiwaniem się filamentu. Proszę sprawdzić, czy rurka filamentu jest odłączona lub czy rurka jest zużyta."
-                },
-                {
-                    "ecode": "0707700000020013",
-                    "intro": "Wprowadzanie filamentu AMS H do koła wyciskowego asystującego silnika nie powiodło się. Może to być spowodowane utratą sygnału z koła pomiarowego. Proszę sprawdzić połączenie wtyczki koła pomiarowego."
-                },
-                {
                     "ecode": "0706220000020009",
                     "intro": "Niepowodzenie ekstruzji filamentu AMS G Slot 3; ekstruder może być zapchany lub filament może być zbyt cienki, powodując poślizg ekstrudera."
-                },
-                {
-                    "ecode": "0705700000020011",
-                    "intro": "AMS F Podanie filamentu do koła ekstruzji silnika pomocniczego nie powiodło się. Może to być spowodowane odłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "0706700000020014",
-                    "intro": "AMS G Podanie filamentu do koła ekstruzji silnika pomocniczego nie powiodło się. Może to być spowodowane tym, że do rurki podawczej dostał się mały kawałek złamanego filamentu. Proszę usunąć zepsuty filament z rurki podawczej."
                 },
                 {
                     "ecode": "18FE200000020001",
                     "intro": "Zewnętrzny filament lewej końcówki został zużyty; proszę załadować nowy filament."
                 },
                 {
-                    "ecode": "1805700000020031",
-                    "intro": "AMS-HT F Podanie filamentu do końcówki narzędzia ekstrudera nie powiodło się; może to być spowodowane zużyciem filamentu i powoduje poślizg silnika pomocniczego. Proszę przyciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1806700000020040",
-                    "intro": "AMS-HT G Usuwanie filamentu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku prądu stałego. Proszę sprawdzić, czy szpula z filamentem jest pochylona lub zdeformowana lub czy rurka filamentowa jest zablokowana."
-                },
-                {
                     "ecode": "1800400000020003",
                     "intro": "Komunikacja węzła AMS jest niestabilna; kabel może nie być dobrze podłączony."
-                },
-                {
-                    "ecode": "1801700000020032",
-                    "intro": "AMS-HT B Podanie filamentu do końcówki narzędzia ekstrudera nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula z filamentem jest pochylona lub czy rurka filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0705700000020033",
-                    "intro": "AMS F Podanie filamentu do końcówki narzędzia ekstrudera nie powiodło się; może to być spowodowane zsuwaniem się filamentu. Proszę sprawdzić, czy rurka filamentowa jest odłączona lub czy została zużyta."
                 },
                 {
                     "ecode": "0706350000010001",
@@ -9774,18 +8842,6 @@
                 {
                     "ecode": "0705310000030003",
                     "intro": "RFID nie może być odczytane z powodu błędów sprzętowych lub strukturalnych."
-                },
-                {
-                    "ecode": "1805700000020045",
-                    "intro": "AMS-HT F Nie udało się wyciągnąć filamentu; może to być spowodowane końcem filamentu lub jego przypadkowym oderwaniem."
-                },
-                {
-                    "ecode": "0704700000020030",
-                    "intro": "AMS E Nie udało się załadować filamentu do ekstrudera głowicy narzędziowej; może to być spowodowane zablokowaniem filamentu przy wejściu do głowicy narzędziowej. Proszę sprawdzić wtyk w rurce filamentowej głowicy narzędziowej."
-                },
-                {
-                    "ecode": "1801700000020013",
-                    "intro": "AMS-HT B Nie udało się załadować filamentu do koła ekstrudującego silnika asystującego. Może to być spowodowane brakiem sygnału z koła drogomierza. Proszę sprawdzić połączenie wtyku koła drogomierza."
                 },
                 {
                     "ecode": "0700110000010003",
@@ -9984,64 +9040,12 @@
                     "intro": "Filament w slocie 3 AMS-HT D może być zepsuty w AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020043",
-                    "intro": "AMS-HT B Wyjęcie filamentu nie powiodło się; może to być spowodowane wytarciem filamentu i spowodowaniem poślizgu silnika pomocniczego. Proszę przyciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1802700000020050",
-                    "intro": "AMS-HT C Wczytywanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, cewka z filamentem jest przechylona, czy rura z filamentem jest zablokowana."
-                },
-                {
-                    "ecode": "1800700000020060",
-                    "intro": "AMS-HT A Pomocnicze chwytanie filamentu przez ekstruder nie powiodło się; może to być spowodowane poślizgiem silnika pomocniczego. Proszę przyciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0707700000020023",
-                    "intro": "AMS H Wkładanie filamentu do bufora nie powiodło się; może to być spowodowane odłączeniem filamentu. Proszę sprawdzić, czy rura z filamentem jest niewłaściwie podłączona lub czy rura jest zużyta."
-                },
-                {
-                    "ecode": "1803700000020012",
-                    "intro": "AMS-HT D Wkładanie filamentu do koła wytłaczającego silnika pomocniczego nie powiodło się. Może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy cewka z filamentem jest przechylona, czy filament się plącze, lub czy obrót na cewce jest nierówny."
-                },
-                {
-                    "ecode": "0704700000020023",
-                    "intro": "AMS E Wkładanie filamentu do bufora nie powiodło się; może to być spowodowane odłączeniem filamentu. Proszę sprawdzić, czy rura z filamentem jest niewłaściwie podłączona lub czy rura jest zużyta."
-                },
-                {
                     "ecode": "1804300000010004",
                     "intro": "Usterka układu szyfrującego (encryption chip)."
                 },
                 {
                     "ecode": "1803310000010004",
                     "intro": "Usterka układu szyfrującego (encryption chip)."
-                },
-                {
-                    "ecode": "1804700000020041",
-                    "intro": "Wyciąganie filamentu z narzędzia AMS-HT E nie powiodło się; może to być spowodowane odłączeniem filamentu od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "1804700000020060",
-                    "intro": "Nieudane wsparcie ekstrudera w chwytaniu filamentu w narzędziu AMS-HT E; może to być spowodowane poślizgiem, motor nie działa poprawnie. Proszę uciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1801700000020012",
-                    "intro": "Nieudane dostarczenie filamentu do koła ekstrudującego z narzędzia AMS-HT B. Możliwą przyczyną jest nadmierna opór w filamentu. Proszę sprawdzić, czy szpula jest pochylona, czy filament jest splątany, czy obrót szpuli nie jest płynny."
-                },
-                {
-                    "ecode": "0707700000020031",
-                    "intro": "AMS H Podanie filamentu do wytłaczarki narzędziowej nie powiodło się; może to być spowodowane zużyciem filamentu i powodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0707700000020032",
-                    "intro": "AMS H Podanie filamentu do wytłaczarki narzędziowej nie powiodło się; może to być spowodowane zbyt dużym oporem ze strony filamentu. Proszę sprawdzić, czy szpula z filamentem jest nachylona lub czy rura filamentu jest zatkana."
-                },
-                {
-                    "ecode": "1807700000020020",
-                    "intro": "AMS-HT H Podanie filamentu do bufora nie powiodło się; może to być spowodowane blokadą filamentu przez bufor. Proszę sprawdzić zatkany wtyk PTFE w przewodzie buforowym."
-                },
-                {
-                    "ecode": "1806700000020022",
-                    "intro": "AMS-HT G Podanie filamentu do bufora nie powiodło się; może to być spowodowane zużytym filamentem powodującym poślizg silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -10228,52 +9232,8 @@
                     "intro": "Nie wykryto filamentu w prawym ekstruderze zewnętrznego kółka; Proszę załadować nowy filament."
                 },
                 {
-                    "ecode": "1806700000020023",
-                    "intro": "Podawanie filamentu do bufora w slot AMS-HT G nie powiodło się; może to być spowodowane odłączeniem filamentu. Sprawdź, czy rura filametowa jest nieprawidłowo podłączona lub czy jest przetarta."
-                },
-                {
-                    "ecode": "0704700000020012",
-                    "intro": "Podawanie filamentu do koła pomocniczego silnika w zagłębieniu AMS E nie powiodło się. Może to być spowodowane nadmiernym oporem w filamentu. Sprawdź, czy kółko jest przechylone, czy filament jest splątany lub obrót koła kółka jest niegładki."
-                },
-                {
-                    "ecode": "1805700000020012",
-                    "intro": "Podawanie filamentu do koła pomocniczego silnika w zagłębieniu AMS-HT F nie powiodło się. Może to być spowodowane nadmiernym oporem w filamentu. Sprawdź, czy kółko jest przechylone, czy filament jest splątany lub obrót koła kółka jest niegładki."
-                },
-                {
-                    "ecode": "0705700000020022",
-                    "intro": "Podawanie filamentu do bufora w slot AMS F nie powiodło się, to może być spowodowane przetartym filamentem powodującym poślizg silnika pomocniczego. Proszę odciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "1807700000020021",
-                    "intro": "AMS-HT H Zasilanie przesyłu filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w filamentach. Sprawdź, czy rolka filamentu jest pochylona lub czy rura PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "1803700000020041",
-                    "intro": "AMS-HT D Wyjmowanie filamentu nie powiodło się; może to być spowodowane oderwaniem filamentu od rolki. Proszę wymień rolkę na nową."
-                },
-                {
-                    "ecode": "1807700000020031",
-                    "intro": "AMS-HT Zasilanie filamentu do ekstrudera narzędzia nie powiodło się; może to być spowodowane zużyciem filamentu i poślizgnięciem silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
                     "ecode": "1801310000010004",
                     "intro": "Awaria chipa szyfrującego."
-                },
-                {
-                    "ecode": "0707700000020033",
-                    "intro": "AMS H Zasilanie filamentu do ekstrudera narzędzia nie powiodło się; może to być spowodowane wypadnięciem filamentu. Proszę sprawdź, czy rura filamentowa jest odłączona lub czy rura jest zużyta."
-                },
-                {
-                    "ecode": "1806700000020032",
-                    "intro": "AMS-HT G Zasilanie filamentu do ekstrudera narzędzia nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdź, czy rolka filamentu jest pochylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0707700000020010",
-                    "intro": "AMS H Zasilanie filamentu do koła wyciskającego silnika pomocniczego nie powiodło się. Może to być spowodowane blokadą w rurce zasilającej. Proszę sprawdź, czy rurka zasilająca i piasta filamentu są czyste."
-                },
-                {
-                    "ecode": "0706700000020040",
-                    "intro": "Wyciągnięcie filamentu z AMS G nie powiodło się; przyczyną może być nadmierne opory w silniku prądu stałego. Proszę sprawdzić czy szpula z filamentem jest pochylona lub zdeformowana lub czy rura filamentowa jest zablokowana."
                 },
                 {
                     "ecode": "1800450000020003",
@@ -10286,22 +9246,6 @@
                 {
                     "ecode": "0705220000020009",
                     "intro": "Niepowodzenie w ekstruzji filamentu w slocie 3 AMS F; ekstruder może być zatkany lub filament może być zbyt cienki, co powoduje zsunięcie się ekstrudera."
-                },
-                {
-                    "ecode": "1803700000020042",
-                    "intro": "Wyciągnięcie filamentu z AMS-HT D nie powiodło się; może to być spowodowane utratą połączenia silnika prądu stałego. Proszę sprawdzić, czy wtyczka silnika prądu stałego jest poprawnie podłączona."
-                },
-                {
-                    "ecode": "0705700000020044",
-                    "intro": "Wyciągnięcie filamentu z AMS F nie powiodło się; może to być spowodowane uszkodzonym filamentem w głowicy narzędzia. Proszę usunąć uszkodzony filament."
-                },
-                {
-                    "ecode": "1803700000020013",
-                    "intro": "Podawanie filamentu do koła ekstruzji silnika pomocniczego AMS-HT D nie powiodło się. Może to być spowodowane utratą sygnału z koła odometru. Proszę sprawdzić połączenie wtyczki koła odometru."
-                },
-                {
-                    "ecode": "0704700000020041",
-                    "intro": "Wyciągnięcie filamentu z AMS E nie powiodło się; może to być spowodowane oderwaniem filamentu od rolki. Proszę wymienić rolkę na nową."
                 },
                 {
                     "ecode": "0700130000010003",
@@ -10452,48 +9396,12 @@
                     "intro": "Akcja zmiany wyciskania jest nietypowa. Proszę sprawdzić, czy coś nie utknęło w głowicy narzędzia."
                 },
                 {
-                    "ecode": "1804700000020021",
-                    "intro": "AMS-HT E Podawanie filamnetu do bufora się nie powiodło; może to być spowodowane zbyt dużą opornością w filamencie. Proszę sprawdzić, czy zwój filamentu jest przechylony lub czy rurka PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "1804700000020045",
-                    "intro": "AMS-HT E Wycofanie filamnetu się nie powiodło; może to być spowodowane brakiem filamentu lub jego wyciągnięciem."
-                },
-                {
-                    "ecode": "0704700000020031",
-                    "intro": "AMS E Podawanie filamnetu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane zużyciem filamentu i powodowaniem poślizgu silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0706700000020060",
-                    "intro": "AMS G Niepowodzenie w chwytaniu filamentu przez silnik pomocniczy; może to być spowodowane poślizgiem silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
                     "ecode": "0706200000020009",
                     "intro": "Niepowodzenie w ekstruzji filamentu szczelinowego AMS G Slot 1; ekstruder może być zablokowany lub filament może być zbyt cienki, co powoduje poślizg ekstrudera."
                 },
                 {
-                    "ecode": "1801700000020033",
-                    "intro": "AMS-HT B Podawanie filamnetu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane wypadnięciem filamnetu. Proszę sprawdzić, czy rurka filamentu jest odłączona lub czy rurka została zużyta."
-                },
-                {
-                    "ecode": "1803700000020045",
-                    "intro": "AMS-HT D Wycofanie filamnetu się nie powiodło; może to być spowodowane brakiem filamentu lub jego wyciągnięciem."
-                },
-                {
                     "ecode": "1807310000010004",
                     "intro": "Awaria układu szyfrującego"
-                },
-                {
-                    "ecode": "1803700000020043",
-                    "intro": "Błąd wycofywania filamentu AMS-HT D; może to być spowodowane zużyciem filamentu i zsunięciem silnika asystującego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "1807700000020041",
-                    "intro": "Błąd wycofywania filamentu AMS-HT H; może to być spowodowane oderwaniem się filamentu od rolki. Proszę wymienić rolkę na nową."
-                },
-                {
-                    "ecode": "0707700000020021",
-                    "intro": "Błąd podawania filamentu w AMS H; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy rolka z filamentem jest przekrzywiona lub czy rura PTFE jest zablokowana."
                 },
                 {
                     "ecode": "0706300000010004",
@@ -10502,10 +9410,6 @@
                 {
                     "ecode": "18FE200000020004",
                     "intro": "Proszę wycofać zewnętrzny filament z lewego ekstrudera."
-                },
-                {
-                    "ecode": "1801700000020010",
-                    "intro": "Błąd podawania filamentu do koła ekstrudującego silnika asystującego w AMS-HT B. Może to być spowodowane zablokowaniem w rurce podającej. Proszę sprawdzić, czy rurka podająca i rolka z filamentem są czyste."
                 },
                 {
                     "ecode": "0300C20000010002",
@@ -10660,344 +9564,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0700700000020030",
-                    "intro": "AMS A Podczas podawania filamentu do ekstrudera głowicy narzędzia wystąpił błąd; może to być spowodowane zablokowaniem filamentu na wejściu do głowicy narzędzia. Proszę sprawdzić zatyczkę rurki filamentu głowicy narzędzia."
-                },
-                {
-                    "ecode": "0700700000020031",
-                    "intro": "AMS A Podczas podawania filamentu do ekstrudera głowicy narzędzia wystąpił błąd; może to być spowodowane zużyciem filamentu i poślizgiem silnika asystującego. Proszę obciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0700700000020032",
-                    "intro": "AMS A Podczas podawania filamentu do ekstrudera głowicy narzędzia wystąpił błąd; może to być spowodowane nadmiernym oporem ze strony filamentu. Proszę sprawdzić, czy szpula z filamentem jest przekrzywiona lub czy rurka filamentu jest zablokowana."
-                },
-                {
-                    "ecode": "0700700000020033",
-                    "intro": "AMS A Podczas podawania filamentu do ekstrudera głowicy narzędzia wystąpił błąd; może to być spowodowane wypadnięciem filamentu. Proszę sprawdzić, czy rurka filamentu jest odczepiona lub czy rurka została przetarta."
-                },
-                {
-                    "ecode": "0700700000020040",
-                    "intro": "AMS A Podczas wyciągania filamentu wystąpił błąd; może to być spowodowane nadmiernym oporem silnika prądu stałego. Proszę sprawdzić, czy szpula z filamentem jest przekrzywiona lub zdeformowana lub czy rurka filamentu jest zablokowana."
-                },
-                {
-                    "ecode": "0700700000020041",
-                    "intro": "AMS Wyciąganie filamentu nie powiodło się; może to być spowodowane odłączeniem filamentu od szpuli. Proszę wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "0700700000020042",
-                    "intro": "AMS Wyciąganie filamentu nie powiodło się; może to być spowodowane utratą połączenia silnika prądu stałego. Proszę sprawdzić wtyczkę silnika prądu stałego, aby upewnić się, że jest ona prawidłowo podłączona."
-                },
-                {
-                    "ecode": "0700700000020043",
-                    "intro": "AMS Wyciąganie filamentu nie powiodło się; może to być spowodowane ścieraniem się filamentu i powodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0700700000020044",
-                    "intro": "AMS Wyciąganie filamentu nie powiodło się; może to być spowodowane złamanym filamentem w głowicy narzędzia. Proszę usunąć złamany filament."
-                },
-                {
-                    "ecode": "0700700000020045",
-                    "intro": "AMS Wyciąganie filamentu nie powiodło się; może to być spowodowane końcem filamentu lub wyciągnięciem go."
-                },
-                {
-                    "ecode": "0700700000020050",
-                    "intro": "AMS Wczytywanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula filamentu jest pochylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0700700000020060",
-                    "intro": "AMS Pomocniczne chwytanie ekstrudera nie powiodło się; może to być spowodowane poślizgiem silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0701700000020030",
-                    "intro": "AMS Żywienie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane zablokowaniem filamentu przy wejściu do głowicy narzędzia. Proszę sprawdzić wtyczkę rury filamentowej głowicy narzędzia."
-                },
-                {
-                    "ecode": "0701700000020031",
-                    "intro": "AMS Żywienie filamentu do ekstrudera głowicy narzędzia nie powiodło się; może to być spowodowane ścieraniem się filamentu i powodowaniem poślizgu silnika pomocniczego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0701700000020032",
-                    "intro": "AMS B Napełnianie głowicy narzędziowej ekstrudera niestety się nie powiodło; może to być spowodowane nadmiernym oporem ze strony filamentu. Prosimy sprawdzić, czy szpula z filamentem jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0701700000020033",
-                    "intro": "AMS B Napełnianie głowicy narzędziowej ekstrudera niestety się nie powiodło; może to być spowodowane wypięciem się filamentu. Prosimy sprawdzić, czy rura filamentowa jest odłączona lub czy rura jest zużyta."
-                },
-                {
-                    "ecode": "0701700000020040",
-                    "intro": "AMS B Wyjmowanie filamentu niestety się nie powiodło; może to być spowodowane nadmiernym oporem w silniku prądu stałego. Prosimy sprawdzić, czy szpula z filamentem jest przechylona lub zdeformowana lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0701700000020041",
-                    "intro": "AMS B Wyjmowanie filamentu niestety się nie powiodło; może to być spowodowane oderwaniem się filamentu od szpuli. Prosimy wymienić szpulę na nową."
-                },
-                {
-                    "ecode": "0701700000020042",
-                    "intro": "AMS B Wyjmowanie filamentu niestety nie powiodło się; może to być spowodowane utratą połączenia w silniku prądu stałego. Prosimy sprawdzić wtyczkę silnika prądu stałego, aby upewnić się, że jest poprawnie podłączona."
-                },
-                {
-                    "ecode": "0701700000020043",
-                    "intro": "AMS B Wyjmowanie filamentu niestety nie powiodło się; może to być spowodowane zużyciem filamentu i powodowaniem poślizgu w silniku pomocniczym. Prosimy przyciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0701700000020044",
-                    "intro": "AMS B Niestety wyjęcie filamentu się nie powiodło; może to być spowodowane pękniętym filamentem w głowicy narzędziowej. Prosimy usunąć zepsuty filament."
-                },
-                {
-                    "ecode": "0701700000020045",
-                    "intro": "AMS B Niestety wyjęcie filamentu się nie powiodło; może to być spowodowane kończącym się filamentem lub jego wyciągnięciem."
-                },
-                {
-                    "ecode": "0701700000020050",
-                    "intro": "AMS B Niestety ładowanie filamentu do bufora się nie powiodło; może to być spowodowane nadmiernym oporem w buforze. Prosimy sprawdzić, czy bufor jest zablokowany, szpula z filamentem jest przechylona lub czy rura filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0701700000020060",
-                    "intro": "AMS B Pomoc przy chwytaniu filamentu przez wyciskarkę nie powiodła się; może to być spowodowane poślizgiem silnika pomocniczego. Proszę o odcięcie zużytej części filamentu."
-                },
-                {
-                    "ecode": "0702700000020030",
-                    "intro": "AMS C Podawanie filamentu do wyciskarki głowicy narzędziowej nie powiodło się; to może być spowodowane blokadą filamentu przy wejściu do głowicy narzędziowej. Proszę sprawdzić wtyczkę rurki filamentowej głowicy narzędziowej."
-                },
-                {
-                    "ecode": "0702700000020031",
-                    "intro": "AMS C Podawanie filamentu do wyciskarki głowicy narzędziowej nie powiodło się; to może być spowodowane zużyciem filamentu i wywołaniem poślizgu silnika pomocniczego. Proszę odciąć zużytą część filamentu."
-                },
-                {
-                    "ecode": "0702700000020032",
-                    "intro": "AMS C Podawanie filamentu do wyciskarki głowicy narzędziowej nie powiodło się; to może wynikać z nadmiernego oporu filamentu. Proszę sprawdzić, czy rolka z filamentem jest pochylona lub czy rurka filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0702700000020033",
-                    "intro": "AMS C Podawanie filamentu do wyciskarki głowicy narzędziowej nie powiodło się; to może wynikać z wypadnięcia filamentu. Proszę sprawdzić, czy rurka filamentowa jest odłączona lub czy rurka jest zużyta."
-                },
-                {
-                    "ecode": "0702700000020040",
-                    "intro": "AMS C Wyjmowanie filamentu nie powiodło się; to może wynikać z nadmiernego oporu w silniku prądu stałego. Proszę sprawdzić, czy rolka z filamentem jest pochylona lub zniekształcona lub czy rurka filamentowa jest zablokowana."
-                },
-                {
-                    "ecode": "0702700000020041",
-                    "intro": "AMS C Wyjmowanie filamentu nie powiodło się; może to wynikać z oderwania filamentu od roli. Proszę wymienić rolkę na nową."
-                },
-                {
-                    "ecode": "0702700000020042",
-                    "intro": "AMS C Wyjmowanie filamentu nie powiodło się; to może wynikać z utraty połączenia w silniku prądu stałego. Proszę sprawdzić wtyczkę silnika prądu stałego, aby upewnić się, że jest ona odpowiednio podłączona."
-                },
-                {
-                    "ecode": "0702700000020043",
-                    "intro": "AMS C Wyjmowanie filamentu nie powiodło się; to może wynikać z zużycia filamentu i wywołania poślizgu silnika pomocniczego. Proszę odciąć zużytą część filamentu."
-                },
-                {
-                    "ecode": "0702700000020044",
-                    "intro": "AMS C Wyjmowanie filamentu nie powiodło się; to może wynikać z uszkodzonego filamentu w głowicy narzędziowej. Proszę usunąć uszkodzony filament."
-                },
-                {
-                    "ecode": "0702700000020045",
-                    "intro": "AMS C Usunięcie filametu nie powiodło się; może to być spowodowane brakiem filametu lub jego wyciągnięciem."
-                },
-                {
-                    "ecode": "0702700000020050",
-                    "intro": "AMS C Wczytywanie filametu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, czy rolka z filametem jest pochylona, lub czy rura filametowa jest zablokowana."
-                },
-                {
-                    "ecode": "0702700000020060",
-                    "intro": "AMS C Pomocniczy wyciągarka ekstrudera nie mogła złapać filametu; może to być spowodowane poślizgiem silnika asystującego. Proszę obciąć zużytą część filametu."
-                },
-                {
-                    "ecode": "0703700000020030",
-                    "intro": "AMS D Podawanie filametu do wytłaczarki głowicy narzędzia nie powiodło się; może to być spowodowane zablokowaniem filametu na wejściu do głowicy narzędzia. Proszę sprawdzić zatkany korek rury filametu głowicy narzędzia."
-                },
-                {
-                    "ecode": "0703700000020031",
-                    "intro": "AMS D Podawanie filametu do wytłaczarki głowicy narzędzia nie powiodło się; może to być spowodowane zużyciem filametu i poślizgiem silnika asystującego. Proszę obciąć zużytą część filametu."
-                },
-                {
-                    "ecode": "0703700000020032",
-                    "intro": "AMS D Podawanie filametu do wytłaczarki głowicy narzędzia nie powiodło się; może to być spowodowane nadmiernym oporem filametu. Proszę sprawdzić, czy rolka z filametem jest pochylona, lub czy rura filametowa jest zablokowana."
-                },
-                {
-                    "ecode": "0703700000020033",
-                    "intro": "AMS D Podawanie filametu do wytłaczarki głowicy narzędzia nie powiodło się; może to być spowodowane wysunięciem filametu. Proszę sprawdzić, czy rura filametowa jest odłączona lub czy rura została zużyta."
-                },
-                {
-                    "ecode": "0703700000020040",
-                    "intro": "AMS D Usunięcie filametu nie powiodło się; może to być spowodowane nadmiernym oporem w silniku prądu stałego. Proszę sprawdzić, czy rolka z filametem jest pochylona lub zdeformowana oraz czy rura filametowa jest zablokowana."
-                },
-                {
-                    "ecode": "0703700000020041",
-                    "intro": "AMS D Usunięcie filametu nie powiodło się; może to być spowodowane oderwaniem się filametu od rolki. Proszę wymienić rolkę na nową."
-                },
-                {
-                    "ecode": "0703700000020042",
-                    "intro": "AMS D Usunięcie filamentu nie powiodło się; może to być spowodowane zerwaniem połączenia silnika DC. Proszę sprawdź, czy wtyczka silnika DC jest poprawnie podłączona."
-                },
-                {
-                    "ecode": "0703700000020043",
-                    "intro": "AMS D Usunięcie filamentu nie powiodło się; może to być spowodowane zużyciem filamentu i spowodowaniem poślizgu silnika asystującego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0703700000020044",
-                    "intro": "AMS D Usunięcie filamentu nie powiodło się; może to być spowodowane uszkodzonym filamentem w głowicy narzędzia. Proszę usunąć uszkodzony filament."
-                },
-                {
-                    "ecode": "0703700000020045",
-                    "intro": "AMS D Usunięcie filamentu nie powiodło się; może to być spowodowane końcem filamentu lub jego przypadkowym wyciągnięciem."
-                },
-                {
-                    "ecode": "0703700000020050",
-                    "intro": "AMS D Wczytanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w buforze. Proszę sprawdzić, czy bufor jest zablokowany, szpulka filamentu jest przechylona lub rurka filamentu jest zablokowana."
-                },
-                {
-                    "ecode": "0703700000020060",
-                    "intro": "AMS D Wyłapanie filamentu przez ekstruder asystujący nie powiodło się; może to być spowodowane poślizgiem silnika asystującego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
                     "ecode": "0300250000010008",
                     "intro": "Prawa dysza dotyka łóżka grzejnego nienormalnie. Proszę sprawdzić, czy na dyszy pozostał filament lub czy są obce ciała na miejscu, gdzie dysza styka się z łóżkiem."
-                },
-                {
-                    "ecode": "0702700000020020",
-                    "intro": "AMS C Wkładanie filamentu do bufora nie powiodło się; może to być spowodowane zablokowaniem bufora przez filament. Proszę sprawdzić wtyk rurki PTFE bufora."
-                },
-                {
-                    "ecode": "0701700000020022",
-                    "intro": "AMS B Wkładanie filamentu do bufora nie powiodło się; może to być spowodowane zużytym filamentem powodującym poślizg silnika asystującego. Proszę obciąć zużyty odcinek filamentu."
-                },
-                {
-                    "ecode": "0702700000020014",
-                    "intro": "AMS C Podawanie filamentu do koła wyciskającego silnik wspomagający nie powiodło się. Może to być spowodowane małym kawałkiem zepsutego filamentu, który dostał się do rurki podającej. Proszę usunąć zepsuty filament z rurki podającej."
-                },
-                {
-                    "ecode": "0702700000020022",
-                    "intro": "AMS C Podawanie filamentu do bufora nie powiodło się; może to być spowodowane zużytym filamentem powodującym poślizg silnika wspomagającego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0700700000020013",
-                    "intro": "AMS A Podawanie filamentu do koła wyciskającego silnik wspomagający nie powiodło się. Może to być spowodowane utratą sygnału z koła odczytu przebiegu. Proszę sprawdzić połączenie wtyczki koła odczytu przebiegu."
-                },
-                {
-                    "ecode": "0701700000020011",
-                    "intro": "AMS B Podawanie filamentu do koła wyciskającego silnik wspomagający nie powiodło się. Może to być spowodowane rozłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "0702700000020023",
-                    "intro": "AMS C Podawanie filamentu do bufora nie powiodło się; może to być spowodowane oderwaniem się filamentu. Proszę sprawdzić, czy rurka filamentu jest niewłaściwie podłączona lub czy rurka została zużyta."
-                },
-                {
-                    "ecode": "0703700000020012",
-                    "intro": "AMS D Podawanie filamentu do koła wyciskającego silnik wspomagający nie powiodło się. Może to być spowodowane nadmiernym oporem w filamentu. Proszę sprawdzić, czy szpula jest przechylona, czy filament się splątał, lub czy obroty szpuli nie są płynne."
-                },
-                {
-                    "ecode": "0702700000020021",
-                    "intro": "AMS C Podawanie filamentu do bufora nie powiodło się. Może to być spowodowane nadmiernym oporem w filamentu. Proszę sprawdzić, czy szpula z filamentem jest przechylona lub czy rurka PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "0703700000020020",
-                    "intro": "AMS D Podawanie filamentu do bufora nie powiodło się; to może być spowodowane zablokowaniem filamentu przez bufor. Proszę sprawdzić wtyczkę rurki PTFE bufora."
-                },
-                {
-                    "ecode": "0701700000020014",
-                    "intro": "AMS B: Zasilanie filamentu do koła ekstruderowego pomocniczego silnika nie powiodło się. Może to być spowodowane małym kawałkiem złamanego filamentu w rurce zasilającej. Proszę usunąć złamany filament z rurki zasilającej."
-                },
-                {
-                    "ecode": "0700700000020023",
-                    "intro": "AMS A: Zasilanie filamentu do bufora nie powiodło się; może to być spowodowane odczepieniem filamentu. Proszę sprawdzić, czy rura filametowa jest niewłaściwie podłączona lub czy rura jest uszkodzona."
-                },
-                {
-                    "ecode": "0702700000020012",
-                    "intro": "AMS C: Zasilanie filamentu do koła ekstruderowego pomocniczego silnika nie powiodło się. Może to być spowodowane nadmiernym oporem w filamencie. Proszę sprawdzić, czy szpula jest przechylona, filament jest splątany lub obrót szpuli nie jest płynny."
-                },
-                {
-                    "ecode": "0703700000020010",
-                    "intro": "AMS D: Zasilanie filamentu do koła ekstruderowego pomocniczego silnika nie powiodło się. Może to być spowodowane blokadą w rurce zasilającej. Proszę sprawdzić, czy rurka zasilająca i piasta filamentu są czyste."
-                },
-                {
-                    "ecode": "0700700000020020",
-                    "intro": "AMS A: Zasilanie filamentu do bufora nie powiodło się; może to być spowodowane blokowaniem bufora filamentem. Proszę sprawdzić wtyk rurki PTFE bufora."
-                },
-                {
-                    "ecode": "0701700000020012",
-                    "intro": "AMS B: Zasilanie filamentu do koła ekstruderowego pomocniczego silnika nie powiodło się. Może to być spowodowane nadmiernym oporem w filamencie. Proszę sprawdzić, czy szpula jest przechylona, filament jest splątany lub obrót szpuli nie jest płynny."
-                },
-                {
-                    "ecode": "0702700000020011",
-                    "intro": "AMS C: Zasilanie filamentu do koła ekstruderowego pomocniczego silnika nie powiodło się. Może to być spowodowane rozłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "0701700000020013",
-                    "intro": "AMS B: Zasilanie filamentu do koła ekstruderowego pomocniczego silnika nie powiodło się. Może to być spowodowane utratą sygnału z koła odometrycznego. Proszę sprawdzić połączenie wtyczki koła odometrycznego."
-                },
-                {
-                    "ecode": "0703700000020021",
-                    "intro": "AMS D: Zasilanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem w filamencie. Proszę sprawdzić, czy szpula filamentu jest przechylona lub czy rurka PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "0703700000020014",
-                    "intro": "AMS D: Zasilanie filamentu do koła ekstruderowego pomocniczego silnika nie powiodło się. Może to być spowodowane małym kawałkiem złamanego filamentu w rurce zasilającej. Proszę usunąć złamany filament z rurki zasilającej."
-                },
-                {
-                    "ecode": "0700700000020014",
-                    "intro": "AMS A Zasilanie filamentu do koła wytłaczającego silnika pomocniczego uległo awarii. Może to być spowodowane drobnym kawałkiem uszkodzonego filamentu, który dostał się do rurki zasilającej. Proszę usunąć uszkodzony filament z rurki zasilającej."
-                },
-                {
-                    "ecode": "0701700000020010",
-                    "intro": "AMS B Zasilanie filamentem do koła wytłaczającego silnika pomocniczego uległo awarii. Może to być spowodowane blokadą w rurce zasilającej. Proszę sprawdzić, czy rurka zasilająca i piasta filamentu są wolne."
-                },
-                {
-                    "ecode": "0702700000020013",
-                    "intro": "AMS C Zasilanie filamentu do koła wytłaczającego silnika pomocniczego uległo awarii. Może to być spowodowane utratą sygnału z koła licznikowego. Proszę sprawdzić połączenie wtyczki koła licznikowego."
-                },
-                {
-                    "ecode": "0703700000020022",
-                    "intro": "AMS D Zasilanie filamentem do bufora uległo awarii; być może jest to spowodowane zużytym filamentem, który powoduje poślizg silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0703700000020011",
-                    "intro": "AMS D Zasilanie filamentem do koła wytłaczającego silnika pomocniczego uległo awarii. Może to być spowodowane rozłączeniem silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "0700700000020010",
-                    "intro": "AMS A Zasilanie filamentem do koła wytłaczającego silnika pomocniczego uległo awarii. Może to być spowodowane blokadą w rurce zasilającej. Proszę sprawdzić, czy rurka zasilająca i piasta filamentu są wolne."
-                },
-                {
-                    "ecode": "0700700000020012",
-                    "intro": "AMS A Zasilanie filamentem do koła wytłaczającego silnika pomocniczego uległo awarii. Może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy szpula jest przekrzywiona, czy filament jest splątany lub czy obroty szpuli nie są płynne."
-                },
-                {
-                    "ecode": "0701700000020023",
-                    "intro": "AMS B Zasilanie filamentem do bufora uległo awarii; być może jest to spowodowane odczepieniem filamentu. Proszę sprawdzić, czy rurka filamentu jest niewłaściwie połączona lub czy rurka jest przebrana."
-                },
-                {
-                    "ecode": "0700700000020022",
-                    "intro": "AMS A Zasilanie filamentem do bufora uległo awarii; być może jest to spowodowane zużytym filamentem, który powoduje poślizg silnika pomocniczego. Proszę odciąć zużyty fragment filamentu."
-                },
-                {
-                    "ecode": "0703700000020023",
-                    "intro": "AMS D Podawanie filamentu do bufora się nie powiodło; może to być spowodowane oderwaniem filamentu. Proszę sprawdzić, czy rura filamentu jest niewłaściwie podłączona lub czy rura jest przetarta."
-                },
-                {
-                    "ecode": "0703700000020013",
-                    "intro": "AMS D Podanie filamentu do koła wyciskarki silnika asysty nie powiodło się. Może to wynikać z utraty sygnału z koła odometru. Proszę sprawdzić połączenie wtyczki koła odometru."
-                },
-                {
-                    "ecode": "0701700000020021",
-                    "intro": "AMS B Podawanie filamentu do bufora się nie powiodło; może to wynikać z nadmiernej oporności filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona lub czy rura PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "0700700000020021",
-                    "intro": "AMS A Podawanie filamentu do bufora nie powiodło się; może to być spowodowane nadmiernym oporem filamentu. Proszę sprawdzić, czy rolka filamentu jest przechylona lub czy rura PTFE jest zablokowana."
-                },
-                {
-                    "ecode": "0701700000020020",
-                    "intro": "AMS B Podawanie filamentu do bufora nie powiodło się; może to wynikać z zablokowania filamentu przez bufor. Proszę sprawdzić wtyczkę rury PTFE bufora."
-                },
-                {
-                    "ecode": "0700700000020011",
-                    "intro": "AMS A Podanie filamentu do koła wyciskarki silnika asysty nie powiodło się. Może to wynikać z odłączenia silnika prądu stałego. Proszę sprawdzić połączenie wtyczki silnika prądu stałego."
-                },
-                {
-                    "ecode": "0702700000020010",
-                    "intro": "AMS C Podanie filamentu do koła wyciskarki silnika asysty nie powiodło się. Może to wynikać z blokady w rurce zasilającej. Proszę sprawdzić, czy rurka zasilająca i piasta filamentu są czyste."
                 },
                 {
                     "ecode": "0300260000010008",
@@ -11054,10 +9622,6 @@
                 {
                     "ecode": "0300990000010001",
                     "intro": "Okno po prawej stronie wydaje się być otwarte; zadanie zostało wstrzymane."
-                },
-                {
-                    "ecode": "0C00040000010017",
-                    "intro": "Funkcja drukowania i cięcia nie wykryła znacznika; proszę ponownie nakleić materiał do wycięcia."
                 },
                 {
                     "ecode": "0701960000010003",
@@ -11265,15 +9829,15 @@
                 },
                 {
                     "ecode": "0500010000020009",
-                    "intro": ""
+                    "intro": "Ilość klatek na sekundę kamery MIPI jest mniejsza niż 1."
                 },
                 {
                     "ecode": "0500060000020023",
-                    "intro": ""
+                    "intro": "Kamera laserowa wykrywa niskie frame rate'y CIF/ISP/ISPP."
                 },
                 {
                     "ecode": "0500060000020011",
-                    "intro": ""
+                    "intro": "XCAM nie ma przerwania Mipi; proszę sprawdzić połączenie sprzętowe i liniowe."
                 },
                 {
                     "ecode": "0500020000020003",
@@ -11297,7 +9861,7 @@
                 },
                 {
                     "ecode": "0500010000020008",
-                    "intro": ""
+                    "intro": "Zbyt wysokie zużycie pamięci Ipcam; proszę skontaktować się z działem R&D!"
                 },
                 {
                     "ecode": "0703900000010003",
@@ -11661,7 +10225,7 @@
                 },
                 {
                     "ecode": "0500060000020013",
-                    "intro": ""
+                    "intro": "Kamera laserowa nie ma przerwania MIPI, proszę sprawdzić hardware i połączenie liniowe."
                 },
                 {
                     "ecode": "050003000001000A",
@@ -11973,7 +10537,7 @@
                 },
                 {
                     "ecode": "0500060000020014",
-                    "intro": ""
+                    "intro": "Kamera Liveview nie ma przerwania mipi; proszę sprawdzić sprzęt i połączenie linii."
                 },
                 {
                     "ecode": "0300970000010002",
@@ -12573,27 +11137,27 @@
                 },
                 {
                     "ecode": "0500010000030009",
-                    "intro": ""
+                    "intro": "FPS kamery MIPI wynosi mniej niż 1."
                 },
                 {
                     "ecode": "0500030000030007",
-                    "intro": ""
+                    "intro": "Wystąpiła awaria systemu. Został on odzyskany poprzez automatyczny restart."
                 },
                 {
                     "ecode": "05000600000200A1",
-                    "intro": ""
+                    "intro": "Restart AP powód uruchomienia=watchdog."
                 },
                 {
                     "ecode": "0500060000020024",
-                    "intro": ""
+                    "intro": "Kamera LiveView wykrywa niską ilość klatek na sekundę (fps) w trybie CIF/ISP/ISPP."
                 },
                 {
                     "ecode": "05000600000200A0",
-                    "intro": ""
+                    "intro": "Restart AP powód uruchomienia=panic."
                 },
                 {
                     "ecode": "0500060000020021",
-                    "intro": ""
+                    "intro": "Kamera XCam wykrywa niską ilość klatek na sekundę (fps) w trybie CIF/ISP/ISPP."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -14336,10 +12900,6 @@
                     "intro": "Filament na slocie C 4 AMS może być splątany lub zablokowany."
                 },
                 {
-                    "ecode": "0C00040000020001",
-                    "intro": "Podstawa lasera nie wykryta. Proszę umieścić ją i kontynuować."
-                },
-                {
                     "ecode": "0702900000010002",
                     "intro": "Cewka zaworu wylotowego 1 AMS C jest zwarta, co może być spowodowane nienormalnym okablowaniem lub uszkodzeniem."
                 },
@@ -15020,10 +13580,6 @@
                     "intro": "Kontroler momentu silnika pomocniczego AMS A jest uszkodzony. Czujnik prądu może być wadliwy."
                 },
                 {
-                    "ecode": "0701700000020061",
-                    "intro": "Pomocniczy ekstruder AMS B nie mógł złapać filamentu, prawdopodobnie z powodu nadmiernego oporu ze strony bufora. Sprawdź, czy bufor nie jest zablokowany, czy szpula filamentu nie jest pochylona i czy rura filamentowa jest czysta."
-                },
-                {
                     "ecode": "0703020000010001",
                     "intro": "Błąd prędkości i długości filamentu AMS D: Odometria filamentu może być wadliwa."
                 },
@@ -15292,10 +13848,6 @@
                     "intro": "Częstotliwość czujnika kalibracji przesunięcia dyszy jest zbyt wysoka. Czujnik może być uszkodzony."
                 },
                 {
-                    "ecode": "0702700000020061",
-                    "intro": "Wsparcie ekstrudera AMS C nie mogło pobrać filamentu, prawdopodobnie z powodu nadmiernego oporu bufora. Sprawdź, czy bufor jest zablokowany, czy rolka z filamentem jest przechylona i czy rurka z filamentem jest czysta."
-                },
-                {
                     "ecode": "0703010000010001",
                     "intro": "Silnik pomocniczy AMS D się zsunął. Koło ekstrudera może być zużyte, lub filament może być zbyt cienki."
                 },
@@ -15338,10 +13890,6 @@
                 {
                     "ecode": "0703500000020001",
                     "intro": "Komunikacja z AMS D jest nieprawidłowa; proszę sprawdzić kabel połączeniowy."
-                },
-                {
-                    "ecode": "0703700000020061",
-                    "intro": "AMS D Nieudane jest podawanie nić przez asystentkę przetwornika, prawdopodobnie ze względu na nadmierny opór pochodzący z bufora. Proszę sprawdzić, czy bufor jest zablokowany, czy szpula z nić jest przechylona oraz czy rura z nić jest czysta."
                 },
                 {
                     "ecode": "1200130000010003",
@@ -15610,10 +14158,6 @@
                 {
                     "ecode": "0703900000020001",
                     "intro": "Działanie zaworu wylotowego 1 w drukarce AMS D jest nienormalne, co może być spowodowane nadmiernym oporem."
-                },
-                {
-                    "ecode": "0700700000020061",
-                    "intro": "W drukarce AMS A nie powiodło się chwytanie filamentu przez ekstruder pomocniczy, co może wynikać z nadmiernego oporu w buforze. Proszę sprawdzić, czy bufor nie jest zablokowany, czy szpula z nicią jest pochylona i czy rura z filamentem jest czysta."
                 },
                 {
                     "ecode": "0703010000020002",

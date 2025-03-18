@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1741069238,
-    "ver": 202503250304,
+    "t": 1741598052,
+    "ver": 202503250310,
     "data": {
         "device_error": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "nl": [
+                {
+                    "ecode": "05004031",
+                    "intro": "Er is een niet-gecertificeerde accessoire gedetecteerd en het apparaat kan niet verder werken. Gebruik alstublieft Bambu Lab-accessoires of werk bij naar de nieuwste firmware."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "Lasermodule is niet gecertificeerd; het apparaat kan niet verder werken. Gebruik alstublieft Bambu Lab-accessoires of werk bij naar de nieuwste firmware."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "BirdsEye Camera is niet gecertificeerd; het apparaat kan niet verder werken. Gebruik alstublieft Bambu Lab-accessoires of werk bij naar de nieuwste firmware."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "De BirdsEye Camera-installatie is mislukt. Maak alstublieft het verwarmde bed leeg, verwijder alle objecten en de mat, en zorg ervoor dat de markers van het verwarmde bed zichtbaar zijn. Maak ondertussen de BirdsEye Camera en de Toolhead Camera schoon, en verwijder eventuele obstructies die de camera's kunnen blokkeren."
+                },
+                {
+                    "ecode": "0500808A",
+                    "intro": "De BirdsEye Camera is scheef geïnstalleerd. Raadpleeg de assistent om deze opnieuw te installeren."
+                },
+                {
+                    "ecode": "05008089",
+                    "intro": "Taak gepauzeerd vanwege mislukte aanwezigheidstest. Controleer de printer om door te gaan."
+                },
                 {
                     "ecode": "0500806A",
                     "intro": "Niet in staat om de linker en rechter hotend te herkennen. Het kan een niet-officiële hotend zijn, of de hotend-markering kan vuil zijn. Stel het type hotend in voordat je de volgende print maakt."
@@ -101,10 +125,6 @@
                 {
                     "ecode": "05024007",
                     "intro": "Mislukt om een nieuwe taak te starten: filaments laden/lossen niet voltooid."
-                },
-                {
-                    "ecode": "05004035",
-                    "intro": "BirdsEye Camera is niet gecertificeerd; het apparaat kan niet blijven werken. Gebruik alstublieft Bambu Lab-accessoires."
                 },
                 {
                     "ecode": "0300801A",
@@ -289,10 +309,6 @@
                 {
                     "ecode": "0500807D",
                     "intro": "Deze taak vereist een Snij Platform, maar de huidige is een Laser Platform. Vervang deze alstublieft door een Snij Platform (Snijbeschermingsbasis + StrongGrip Snijmat)."
-                },
-                {
-                    "ecode": "05004034",
-                    "intro": "Laser Module is niet gecertificeerd; het apparaat kan niet doorgaan met werken. Gebruik alstublieft Bambu Lab-accessoires."
                 },
                 {
                     "ecode": "03008000",
@@ -901,10 +917,6 @@
                 {
                     "ecode": "18008016",
                     "intro": "De extruder extrudeert niet normaal; raadpleeg de Assistent. Na het oplossen van het probleem. Als de defecten acceptabel zijn, hervat dan."
-                },
-                {
-                    "ecode": "05004031",
-                    "intro": "Er werd een niet-gecertificeerde accessoire gedetecteerd en het apparaat kan niet doorgaan met werken."
                 },
                 {
                     "ecode": "0702800A",
@@ -1980,7 +1992,7 @@
                 },
                 {
                     "ecode": "0C008002",
-                    "intro": ""
+                    "intro": "Er is een fout gedetecteerd in de spaghetti."
                 },
                 {
                     "ecode": "0300400F",
@@ -2489,8 +2501,24 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "nl": [
+                {
+                    "ecode": "0C00040000030024",
+                    "intro": "De positie van de BirdsEye Camera is gedetecteerd als verschoven. Om de graveernauwkeurigheid te waarborgen, wordt aanbevolen om de BirdsEye Camera Setup opnieuw uit te voeren."
+                },
+                {
+                    "ecode": "0500040000020043",
+                    "intro": "De Nozzle Camera is vuil of geblokkeerd; maak het alsjeblieft schoon en ga verder."
+                },
+                {
+                    "ecode": "0500040000020041",
+                    "intro": "De laser module is al lange tijd in gebruik. Maak het alstublieft snel schoon om te voorkomen dat de laserbewerking wordt beïnvloed."
+                },
+                {
+                    "ecode": "0500040000020042",
+                    "intro": "De Live View Camera is vuil of geblokkeerd; maak het alsjeblieft schoon en ga verder."
+                },
                 {
                     "ecode": "0700700000020003",
                     "intro": "Mislukt om de filament te extruderen. Mogelijke oorzaak: verstopping van de extruder of nozzle."
@@ -2561,11 +2589,11 @@
                 },
                 {
                     "ecode": "0500060000020061",
-                    "intro": ""
+                    "intro": "De CIF-link van de camera is meerdere keren gereset. Het kan een probleem zijn met de verbindingskabel of de camera is verouderd. Neem contact op met de hardwarecollega's om dit te controleren."
                 },
                 {
                     "ecode": "0C0001000002001B",
-                    "intro": ""
+                    "intro": "Het Xcam-proces staat op het punt een coredump te maken, neem alstublieft contact op met de ontwikkelaar."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -2673,39 +2701,39 @@
                 },
                 {
                     "ecode": "0500060000020051",
-                    "intro": ""
+                    "intro": "De toolheadcamera is meerdere keren achter elkaar gereset. Neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020054",
-                    "intro": ""
+                    "intro": "De LiveView-camera is meerdere keren achter elkaar gereset. Neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020043",
-                    "intro": ""
+                    "intro": "BirdsEye-camera i2c-communicatie is mislukt, de camera kan kapot zijn, neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020042",
-                    "intro": ""
+                    "intro": "Nozzle-camera i2c-communicatie is mislukt, de camera kan kapot zijn, neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020041",
-                    "intro": ""
+                    "intro": "Toolhead-camera i2c-communicatie is mislukt, de camera kan kapot zijn, neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020053",
-                    "intro": ""
+                    "intro": "BirdsEye-camera is meerdere keren achter elkaar gereset. Neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020044",
-                    "intro": ""
+                    "intro": "LiveView-camera i2c-communicatie is mislukt, de camera kan kapot zijn, neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020062",
-                    "intro": ""
+                    "intro": "Camera ISP-link is meerdere keren gereset. Neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0500060000020052",
-                    "intro": ""
+                    "intro": "Nozzle-camera is meerdere keren achter elkaar gereset. Neem contact op met de ontwikkelaar om dit te bevestigen."
                 },
                 {
                     "ecode": "0300260000010002",
@@ -2772,10 +2800,6 @@
                     "intro": "De snijmodule moet worden gekalibreerd om de gereedschapspositie te bepalen. Voer alstublieft de montagekalibratie uit voordat u deze gebruikt. (ongeveer 2-4 minuten)"
                 },
                 {
-                    "ecode": "0705700000020046",
-                    "intro": "AMS F Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "1806700000020008",
                     "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om opnieuw te proberen."
                 },
@@ -2797,23 +2821,15 @@
                 },
                 {
                     "ecode": "0500010000020003",
-                    "intro": ""
+                    "intro": "Het formaat van de Live View-camera is onjuist. Start de printer opnieuw op. Als meerdere pogingen mislukken, neem dan contact op met de klantenservice."
                 },
                 {
                     "ecode": "0700700000020008",
                     "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om het opnieuw te proberen."
                 },
                 {
-                    "ecode": "0700700000020046",
-                    "intro": "AMS A Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "0701700000020008",
                     "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Opnieuw\" om het opnieuw te proberen."
-                },
-                {
-                    "ecode": "0701700000020046",
-                    "intro": "AMS B Het trekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "0702700000020008",
@@ -2852,40 +2868,12 @@
                     "intro": "De gereedschaphuidcamera is defect. Als dit probleem meerdere keren tijdens het printen voorkomt, neem dan contact op met de klantenservice."
                 },
                 {
-                    "ecode": "1805700000020046",
-                    "intro": "AMS-HT F Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1803700000020046",
-                    "intro": "AMS-HT D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "1803700000020008",
                     "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om opnieuw te proberen."
                 },
                 {
                     "ecode": "1805700000020008",
                     "intro": "Kon de AMS-mappingtabel niet ophalen; selecteer \"Hervatten\" om opnieuw te proberen."
-                },
-                {
-                    "ecode": "0704700000020046",
-                    "intro": "AMS E Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "0706700000020046",
-                    "intro": "AMS G Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1804700000020046",
-                    "intro": "AMS-HT E Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1802700000020046",
-                    "intro": "AMS-HT C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1800700000020046",
-                    "intro": "AMS-HT A Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel onder een hoek staat of vervormd is en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "1802700000020008",
@@ -2901,7 +2889,7 @@
                 },
                 {
                     "ecode": "0500050000010009",
-                    "intro": ""
+                    "intro": "MQTT-opdrachtverificatie mislukt; controleer het formaat of de handtekening."
                 },
                 {
                     "ecode": "0300280000010003",
@@ -2944,14 +2932,6 @@
                     "intro": "De TH-board heeft losgekoppeld tijdens het schakelen van de extruder. Controleer of de aansluitkabel loszit."
                 },
                 {
-                    "ecode": "0702700000020046",
-                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assist-motor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "0703700000020046",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assist-motor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "0300250000010001",
                     "intro": "De frequentie van de extrusiekrachtsensor van de rechter extruder is te laag. De nozzle is misschien niet geïnstalleerd, of de koellichaam van de nozzle staat misschien te ver van de sensor."
                 },
@@ -2988,10 +2968,6 @@
                     "intro": "Het is niet gelukt om de AMS-mappingtabel te verkrijgen; selecteer \"Resume\" om het opnieuw te proberen."
                 },
                 {
-                    "ecode": "0707700000020046",
-                    "intro": "AMS H Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "0707700000020008",
                     "intro": "Het is niet gelukt om de AMS-mappingtabel te verkrijgen; selecteer \"Resume\" om het opnieuw te proberen."
                 },
@@ -3008,20 +2984,8 @@
                     "intro": "Mislukt om de AMS maptabel te verkrijgen; selecteer alstublieft \"Hervatten\" om opnieuw te proberen."
                 },
                 {
-                    "ecode": "1801700000020046",
-                    "intro": "AMS-HT B Uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1806700000020046",
-                    "intro": "AMS-HT G Uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1807700000020046",
-                    "intro": "AMS-HT H Uittrekken van filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de assistentmotor. Controleer of de filamentspoel scheef of vervormd is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "0500050000010008",
-                    "intro": ""
+                    "intro": "MQTT-opdrachtverificatie mislukt; installeer alstublieft het nieuwste certificaat in Studio."
                 },
                 {
                     "ecode": "18FE800000010004",
@@ -3061,15 +3025,15 @@
                 },
                 {
                     "ecode": "0500030000020011",
-                    "intro": ""
+                    "intro": "upgrade coredump: het wordt hersteld."
                 },
                 {
                     "ecode": "0500030000020013",
-                    "intro": ""
+                    "intro": "xcam coredump: het wordt hersteld."
                 },
                 {
                     "ecode": "0500030000020018",
-                    "intro": ""
+                    "intro": "security coredump: het wordt hersteld."
                 },
                 {
                     "ecode": "0C00010000010005",
@@ -3165,23 +3129,23 @@
                 },
                 {
                     "ecode": "0500030000020010",
-                    "intro": ""
+                    "intro": "forward coredump: het herstelt."
                 },
                 {
                     "ecode": "0500030000020014",
-                    "intro": ""
+                    "intro": "bbl_screen coredump: het wordt hersteld."
                 },
                 {
                     "ecode": "0500030000020015",
-                    "intro": ""
+                    "intro": "device_gate coredump: het herstelt."
                 },
                 {
                     "ecode": "0500030000020016",
-                    "intro": ""
+                    "intro": "device_manager coredump: het herstelt."
                 },
                 {
                     "ecode": "0500030000020017",
-                    "intro": ""
+                    "intro": "recorder coredump: het herstelt."
                 },
                 {
                     "ecode": "0700400000020001",
@@ -3213,7 +3177,7 @@
                 },
                 {
                     "ecode": "0500060000020007",
-                    "intro": ""
+                    "intro": "Te veel laser mipi-fouten; controleer alstublieft de hardware en lijnverbindingen."
                 },
                 {
                     "ecode": "07FE810000010003",
@@ -3229,7 +3193,7 @@
                 },
                 {
                     "ecode": "0500060000020005",
-                    "intro": ""
+                    "intro": "Te veel xcam mipi fouten; controleer de hardware en de lijnverbindingen."
                 },
                 {
                     "ecode": "0300C30000010001",
@@ -3441,7 +3405,7 @@
                 },
                 {
                     "ecode": "0500030000020012",
-                    "intro": ""
+                    "intro": "ipcam coredump: het herstelt."
                 },
                 {
                     "ecode": "0300970000030001",
@@ -3497,11 +3461,11 @@
                 },
                 {
                     "ecode": "0C00010000020019",
-                    "intro": ""
+                    "intro": "Xcam-stream gaat te langzaam. Neem contact op met de ontwikkelaar."
                 },
                 {
                     "ecode": "0C0001000002001A",
-                    "intro": ""
+                    "intro": "Het is niet gelukt om de Xcam-stream te starten. Dit kan komen door een onverenigbare MC/TH-firmwareversie of een losse cameraverbinding. Neem contact op met het ontwikkelingsteam."
                 },
                 {
                     "ecode": "0700010000010005",
@@ -4644,10 +4608,6 @@
                     "intro": "De lens van de Toolhead Camera lijkt vuil te zijn. Gelieve de lens schoon te maken."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "De lens van de Live View Camera lijkt vuil te zijn. Gelieve de lens schoon te maken."
-                },
-                {
                     "ecode": "0C00010000020006",
                     "intro": "Toolhead Camera parameter is abnormaal. Gelieve de flowrate-kalibratie in de volgende print in te schakelen."
                 },
@@ -4657,7 +4617,7 @@
                 },
                 {
                     "ecode": "0500060000020002",
-                    "intro": ""
+                    "intro": "De Nozzle Camera is niet op zijn plaats; controleer alstublieft de hardwareverbinding."
                 },
                 {
                     "ecode": "0C00040000010012",
@@ -4669,7 +4629,7 @@
                 },
                 {
                     "ecode": "0500060000020001",
-                    "intro": ""
+                    "intro": "De Toolhead Camera is niet op zijn plaats; gelieve de hardwareverbinding te controleren."
                 },
                 {
                     "ecode": "0C00040000020003",
@@ -4681,11 +4641,11 @@
                 },
                 {
                     "ecode": "0500060000020012",
-                    "intro": ""
+                    "intro": "Nozzle Camera heeft geen mipi-onderbreking; controleer de hardware en lijnverbinding."
                 },
                 {
                     "ecode": "0500060000020006",
-                    "intro": ""
+                    "intro": "Te veel Nozzle Camera mipi-fouten; controleer de hardware en lijnverbindingen."
                 },
                 {
                     "ecode": "0500060000020004",
@@ -4701,7 +4661,7 @@
                 },
                 {
                     "ecode": "0500060000020022",
-                    "intro": ""
+                    "intro": "Nozzle Camera detecteert lage cif/isp/ispp frame rates."
                 },
                 {
                     "ecode": "0300950000010004",
@@ -4713,7 +4673,7 @@
                 },
                 {
                     "ecode": "0500060000020003",
-                    "intro": ""
+                    "intro": "BirdsEye Camera is niet op zijn plaats; controleer alstublieft de hardwareverbinding."
                 },
                 {
                     "ecode": "0300950000010002",
@@ -4741,7 +4701,7 @@
                 },
                 {
                     "ecode": "050001000001000A",
-                    "intro": ""
+                    "intro": "BirdsEye Camera is niet gecertificeerd, en camera-gerelateerde functies zijn ongeldig."
                 },
                 {
                     "ecode": "0300950000010008",
@@ -5333,7 +5293,7 @@
                 },
                 {
                     "ecode": "0C00010000020016",
-                    "intro": ""
+                    "intro": "Fout bij de camerabeeldoverdracht gedetecteerd. Gelieve de printer opnieuw op te starten."
                 },
                 {
                     "ecode": "0500030000020020",
@@ -5341,7 +5301,7 @@
                 },
                 {
                     "ecode": "0C00010000020015",
-                    "intro": ""
+                    "intro": "Verlies van cameraframe gedetecteerd."
                 },
                 {
                     "ecode": "0702010000020006",
@@ -5381,7 +5341,7 @@
                 },
                 {
                     "ecode": "0500060000020008",
-                    "intro": ""
+                    "intro": "Te veel liveview mipi-fouten; controleer de hardware en lijnverbindingen."
                 },
                 {
                     "ecode": "0701010000020006",
@@ -5441,15 +5401,15 @@
                 },
                 {
                     "ecode": "050005000001000B",
-                    "intro": ""
+                    "intro": "MQTT-commando verificatie mislukt, werk alstublieft Studio bij."
                 },
                 {
                     "ecode": "050005000001000A",
-                    "intro": ""
+                    "intro": "MQTT-commando verificatie mislukt, werk alstublieft Studio en printerfirmware bij."
                 },
                 {
                     "ecode": "050005000001000C",
-                    "intro": ""
+                    "intro": "MQTT-commando verificatie mislukt, werk alstublieft de printerfirmware bij."
                 },
                 {
                     "ecode": "0500010000030005",
@@ -5916,10 +5876,6 @@
                     "intro": "De extruder switching motor werkt abnormaal. Controleer alstublieft of de verbindingskabel los zit."
                 },
                 {
-                    "ecode": "0706700000020020",
-                    "intro": "Het voeden van AMS G filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer alstublieft de PTFE tube plug van de buffer."
-                },
-                {
                     "ecode": "0701130000010001",
                     "intro": "De AMS B-slot 4 motor is uitgegleden. Het extrusiewiel werkt mogelijk niet goed, of de filament is mogelijk te dun."
                 },
@@ -6132,16 +6088,8 @@
                     "intro": "Fout van de versleutelingschip."
                 },
                 {
-                    "ecode": "0705700000020040",
-                    "intro": "AMS F Het uittrekken van de filament is mislukt; dit kan komen door overmatige weerstand in de DC motor. Controleer of de filament spoel gekanteld of vervormd is of dat de filament buis geblokkeerd is."
-                },
-                {
                     "ecode": "1807300000010004",
                     "intro": "Fout in versleutelingschip"
-                },
-                {
-                    "ecode": "1806700000020060",
-                    "intro": "AMS-HT G Assistentie bij het vastgrijpen van filament door de extruder is mislukt; dit kan komen doordat de assistentie motor slipt. Knip het versleten gedeelte van de filament af."
                 },
                 {
                     "ecode": "0704310000010004",
@@ -6160,28 +6108,8 @@
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
                 },
                 {
-                    "ecode": "1805700000020013",
-                    "intro": "Het invoeren van filament naar het ondersteunende motor-extrusiewiel van AMS-HT F is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerwiel. Controleer de verbinding van de kilometertellerplug."
-                },
-                {
-                    "ecode": "0705700000020021",
-                    "intro": "Het toevoeren van de filament naar de buffer van AMS F is mislukt; dit kan te wijten zijn aan overmatige weerstand in de filament. Controleer of de spoel filament scheef staat of dat de PTFE-buis verstopt is."
-                },
-                {
                     "ecode": "0707220000020009",
                     "intro": "Het extruderen van AMS H Slot 3 filament is mislukt; de extruder kan verstopt zijn of de filament kan te dun zijn waardoor de extruder wegglijdt."
-                },
-                {
-                    "ecode": "0705700000020061",
-                    "intro": "Het vastgrijpen van de filament door de ondersteunende extruder van AMS F is mislukt, mogelijk door overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de spoel filament scheef staat en of de filamentbuis helder is."
-                },
-                {
-                    "ecode": "1805700000020050",
-                    "intro": "Het laden van filament in de buffer van AMS-HT F is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer vastzit, of de spoel filament scheef staat en of de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "0705700000020032",
-                    "intro": "Het invoeren van filament naar de gereedschapkop-extruder van AMS F is mislukt; dit kan te wijten zijn aan overmatige weerstand van de filament. Controleer of de spoel filament scheef staat of dat de filamentbuis verstopt is."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6352,62 +6280,6 @@
                     "intro": "De AMS H Slot 1 feed-in Hall-sensor is losgekoppeld, wat mogelijk te wijten is aan een slecht contact van de connector."
                 },
                 {
-                    "ecode": "1807700000020045",
-                    "intro": "AMS-HT H Het uittrekken van de filament is mislukt. Dit kan te wijten zijn aan het einde van de filament of doordat de filament eruit is getrokken."
-                },
-                {
-                    "ecode": "1803700000020031",
-                    "intro": "AMS-HT D Het voeden van filament naar de extruder van de toolhead is mislukt. Dit kan te wijten zijn aan slijtage van de filament waardoor de assistent motor slipt. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "1802700000020023",
-                    "intro": "AMS-HT C Het voeden van filament naar de buffer is mislukt. Dit kan te wijten zijn aan de filament die losgekoppeld is. Controleer of de filamentbuis niet correct is aangesloten of dat de buis is versleten."
-                },
-                {
-                    "ecode": "1800700000020044",
-                    "intro": "AMS-HT A Het uittrekken van de filament is mislukt. Dit kan te wijten zijn aan een gebroken filament in de toolhead. Verwijder het gebroken filament."
-                },
-                {
-                    "ecode": "1807700000020061",
-                    "intro": "AMS-HT H Assisterende extruder greep het filament niet, mogelijk door overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1802700000020022",
-                    "intro": "AMS-HT C Het invoeren van filament naar de buffer is mislukt; dit kan komen door versleten filament waardoor de assist motor gleed. Knip het versleten deel van het filament eraf alstublieft."
-                },
-                {
-                    "ecode": "1805700000020021",
-                    "intro": "AMS-HT F Het voeden van filament naar de buffer is mislukt; dit kan komen door te veel weerstand in het filament. Controleer of de filamentspoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "1802700000020032",
-                    "intro": "AMS-HT C Het voeden van filament naar de extruder van de gereedschapskop is mislukt; dit kan komen door te veel weerstand in het filament. Controleer alstublieft of de filamentspoel gekanteld is of dat de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0705700000020043",
-                    "intro": "AMS F Het uitrekken van filament is mislukt; dit kan komen door overmatige slijtage van het filament waardoor de assist motor glijdt. Knip alstublieft het versleten deel van het filament eraf."
-                },
-                {
-                    "ecode": "1802700000020021",
-                    "intro": "AMS-HT C Het voeden van filament naar de buffer is mislukt; dit kan komen door te veel weerstand in het filament. Controleer alstublieft of de filamentspoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "0706700000020061",
-                    "intro": "AMS G Het pakken van het filament door de assisterende extruder is mislukt, mogelijk door te veel weerstand vanuit de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1800700000020022",
-                    "intro": "AMS-HT Er is een probleem opgetreden bij het invoeren van filament in de buffer; dit kan worden veroorzaakt door versleten filament waardoor de hulpmotor wegglijdt. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1803700000020040",
-                    "intro": "AMS-HT D Het uittrekken van het filament is mislukt; dit kan worden veroorzaakt door te veel weerstand in de DC-motor. Controleer of de filamentspoel gekanteld of vervormd is of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "1805700000020010",
-                    "intro": "AMS-HT F Het invoeren van het filament naar de extrusiewiel van de hulpmotor is mislukt. Dit kan worden veroorzaakt door een verstopping in de aanvoerleiding. Controleer of de aanvoerleiding en het filamentwiel vrij zijn van verstoppingen."
-                },
-                {
                     "ecode": "0700100000010003",
                     "intro": "De motor-koppelregeling van gleuf 1 van AMS A werkt niet goed. De stroomsensor kan defect zijn."
                 },
@@ -6576,14 +6448,6 @@
                     "intro": "De AMS D-sleuf 3 feed-in Hall-sensor is losgekoppeld, dit kan te wijten zijn aan een slecht connectorcontact."
                 },
                 {
-                    "ecode": "1803700000020020",
-                    "intro": "De AMS-HT D filamentinvoer naar de buffer is mislukt; dit kan komen door een verstopte buffer die de filament blokkeert. Gelieve de PTFE-buisdop van de buffer te controleren."
-                },
-                {
-                    "ecode": "1802700000020060",
-                    "intro": "AMS-HT C Assisterende extruder kan filament niet vasthouden, dit kan komen door slippen van de motor. Knip het versleten stuk van het filament af."
-                },
-                {
                     "ecode": "1800400000020004",
                     "intro": "Het signaal van de filamentbuffer is abnormaal; de veer zit mogelijk vast, of het filament is in de knoop geraakt."
                 },
@@ -6592,40 +6456,8 @@
                     "intro": "Niet gelukt om het AMS E Slot 1 filament te extruderen; de extruder kan verstopt zijn of het filament kan te dun zijn waardoor de extruder uitglijdt."
                 },
                 {
-                    "ecode": "1802700000020061",
-                    "intro": "AMS-HT C Assisterende extruder kan filament niet vasthouden, mogelijk door overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis helder is."
-                },
-                {
-                    "ecode": "1803700000020050",
-                    "intro": "AMS-HT D Het laden van filament in de buffer is mislukt; dit kan komen door overmatige weerstand in de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is, of de filamentbuis geblokkeerd is."
-                },
-                {
                     "ecode": "1806300000010004",
                     "intro": "Fout in encryptiechip."
-                },
-                {
-                    "ecode": "1800700000020030",
-                    "intro": "AMS-HT Er is een probleem opgetreden bij het invoeren van de filament naar de extruder van de printkop. Dit kan komen door een verstopping bij de ingang van de printkop. Controleer de plug van de filamentbuis van de printkop."
-                },
-                {
-                    "ecode": "1800700000020031",
-                    "intro": "AMS-HT Het invoeren van filament naar de extruder van de printkop is mislukt; dit kan worden veroorzaakt doordat het filament versleten is en ervoor zorgt dat de hulpmotor slippen. Knip het versleten gedeelte van het filament weg."
-                },
-                {
-                    "ecode": "0705700000020020",
-                    "intro": "AMS F Het invoeren van de filament naar de buffer is mislukt. Dit kan worden veroorzaakt doordat de buffer de filament blokkeert. Controleer de PTFE-buispluggen van de buffer."
-                },
-                {
-                    "ecode": "0707700000020044",
-                    "intro": "AMS H Het verwijderen van filament is mislukt. Dit kan komen doordat het filament is gebroken in de printkop. Verwijder het gebroken filament."
-                },
-                {
-                    "ecode": "1805700000020023",
-                    "intro": "AMS-HT F Het invoeren van filament naar de buffer is mislukt. Dit kan worden veroorzaakt doordat het filament los is geraakt. Controleer of de filamentbuis niet correct is aangesloten of dat de buis versleten is."
-                },
-                {
-                    "ecode": "0707700000020022",
-                    "intro": "AMS H Het invoeren van filament naar de buffer is mislukt. Dit kan komen doordat het filament versleten is en ervoor zorgt dat de assistent motor slippen. Knip het versleten gedeelte van het filament weg."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -6864,72 +6696,16 @@
                     "intro": "Encryptie-chipfout."
                 },
                 {
-                    "ecode": "1801700000020044",
-                    "intro": "Het uittrekken van het filament van AMS-HT B is mislukt; dit kan te wijten zijn aan een gebroken filament in de toolhead. Verwijder alstublieft het gebroken filament."
-                },
-                {
-                    "ecode": "1804700000020020",
-                    "intro": "Het voeden van filament naar de buffer van AMS-HT E is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer alstublieft de plug van de PTFE-buis van de buffer."
-                },
-                {
-                    "ecode": "1804700000020031",
-                    "intro": "Het voeden van filament naar de extruder van de toolhead van AMS-HT E is mislukt; dit kan te wijten zijn aan slijtage van het filament waardoor de ondersteunende motor uitglijdt. Knip alstublieft het versleten gedeelte van het filament weg."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Falen van de encryptiechip"
-                },
-                {
-                    "ecode": "0707700000020043",
-                    "intro": "AMS H Het uittrekken van de filament is mislukt; dit kan komen doordat de filament versleten is en ervoor zorgt dat de hulpmotor slipt. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "0706700000020041",
-                    "intro": "AMS G Het uittrekken van de filament is mislukt; dit kan komen doordat de filament loskomt van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1805700000020041",
-                    "intro": "AMS-HT F Het uittrekken van de filament is mislukt; dit kan komen doordat de filament loskomt van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1807700000020013",
-                    "intro": "AMS-HT H Het voeden van filament aan het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal vanaf het kilometertellerwiel. Controleer de verbinding van de stekker van het kilometertellerwiel."
-                },
-                {
-                    "ecode": "1802700000020042",
-                    "intro": "AMS-HT C Het uittrekken van de filament is mislukt; dit kan te wijten zijn aan het verlies van de verbinding van de DC-motor. Controleer de stekker van de DC-motor om er zeker van te zijn dat deze correct is aangesloten."
-                },
-                {
-                    "ecode": "1803700000020010",
-                    "intro": "AMS-HT D Het voeden van filament aan het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een verstopping in de aanvoerbuis. Controleer of de toevoerbuis en de filament hub duidelijk zijn."
-                },
-                {
-                    "ecode": "0706700000020022",
-                    "intro": "AMS G Het voeden van filament aan de buffer is mislukt; dit kan te wijten zijn aan versleten filament dat ervoor zorgt dat de hulpmotor slipt. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "1805700000020061",
-                    "intro": "AMS-HT F Assisteren van de extruder om het filament vast te kunnen grijpen is mislukt. Dit kan mogelijk komen door te veel weerstand vanuit de buffer. Controleer of de buffer vastzit, of de filamentspoel scheef ligt en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "1807310000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
                 {
-                    "ecode": "1803700000020061",
-                    "intro": "AMS-HT D Assisteren van de extruder om het filament vast te kunnen grijpen is mislukt. Dit kan mogelijk komen door te veel weerstand vanuit de buffer. Controleer of de buffer vastzit, of de filamentspoel scheef ligt en of de filamentbuis vrij is."
-                },
-                {
-                    "ecode": "1801700000020011",
-                    "intro": "AMS-HT B Het aanvoeren van filament naar het hulpmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer de aansluiting van de DC-motor stekker."
-                },
-                {
                     "ecode": "1806350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor geeft een fout aan. De chip kan defect zijn."
-                },
-                {
-                    "ecode": "1805700000020040",
-                    "intro": "AMS-HT F Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de DC-motor. Controleer of de filamentspoel scheef ligt, vervormd is of dat de filamentbuis geblokkeerd is."
                 },
                 {
                     "ecode": "0700110000020002",
@@ -7116,44 +6892,12 @@
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
                 {
-                    "ecode": "1806700000020031",
-                    "intro": "Het filamenttoevoerproces van AMS-HT G naar de gereedschapskop-extruder is mislukt. Dit kan te wijten zijn aan het slijten van het filament en het veroorzaken van uitglijden van de hulpmotor. Knip het versleten deel van het filament af."
-                },
-                {
                     "ecode": "1804310000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
                 {
-                    "ecode": "1806700000020010",
-                    "intro": "AMS-HT G Het toevoeren van filament aan het hulpmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan een blokkade in de aanvoerbuis. Controleer of de aanvoerbuis en de filament-hub helder zijn."
-                },
-                {
                     "ecode": "0705200000020009",
                     "intro": "Het extruderen van filament van AMS F Slot 1 is mislukt; de extruder kan verstopt zijn of het filament kan te dun zijn, waardoor de extruder uitglijdt."
-                },
-                {
-                    "ecode": "1800700000020045",
-                    "intro": "Het uittrekken van filament uit AMS-HT A is mislukt, dit kan te wijten zijn aan de afwezigheid van voldoende filament of het per ongeluk uittrekken ervan."
-                },
-                {
-                    "ecode": "0706700000020011",
-                    "intro": "Het toevoeren van filament aan het hulpmotor extrusiewiel van AMS G is mislukt. Dit kan te wijten zijn aan een losgekoppeld DC-motor. Controleer de verbinding van de DC-motorplug."
-                },
-                {
-                    "ecode": "1803700000020030",
-                    "intro": "Het toevoeren van filament aan de gereedschapkop-extruder van AMS-HT D is mislukt; dit kan te wijten zijn aan een verstopping van het filament bij de ingang van de gereedschapkop. Controleer de stekker van de filamentbuis van de gereedschapkop."
-                },
-                {
-                    "ecode": "0704700000020044",
-                    "intro": "Het uittrekken van filament uit AMS E is mislukt; dit kan te wijten zijn aan een gebroken filament in de gereedschapkop. Verwijder het gebroken filament alstublieft."
-                },
-                {
-                    "ecode": "1804700000020050",
-                    "intro": "Het laden van filament in de buffer van AMS-HT E is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is, of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0707700000020014",
-                    "intro": "Het toevoeren van filament aan het hulpmotor extrusiewiel van AMS H is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat de aanvoerbuis is binnengekomen. Verwijder het gebroken filament uit de aanvoerbuis."
                 },
                 {
                     "ecode": "18FE800000010001",
@@ -7164,36 +6908,12 @@
                     "intro": "De extruder schakelactie is abnormaal. Controleer of er iets vastzit in de gereedschapskop."
                 },
                 {
-                    "ecode": "1802700000020013",
-                    "intro": "AMS-HT C Het voeden van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het odometer wiel. Controleer de verbinding van de plug van het odometer wiel."
-                },
-                {
-                    "ecode": "0706700000020013",
-                    "intro": "AMS G Het voeden van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het odometer wiel. Controleer de verbinding van de plug van het odometer wiel."
-                },
-                {
-                    "ecode": "1806700000020012",
-                    "intro": "AMS-HT G Het voeden van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de filament. Controleer of de spoel gekanteld is, de filament is verward of als de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0707700000020041",
-                    "intro": "AMS H Uitvoeren van filament is mislukt; dit kan te wijten zijn aan het filament dat loskomt van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1800700000020014",
-                    "intro": "AMS-HT A Het voeden van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat de invoerbuis is binnengekomen. Verwijder het gebroken filament uit de invoerbuis."
-                },
-                {
                     "ecode": "1807350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor geeft een foutmelding. De chip kan defect zijn."
                 },
                 {
                     "ecode": "0705300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
-                },
-                {
-                    "ecode": "0704700000020040",
-                    "intro": "AMS E Uitrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de gelijkstroommotor. Controleer of de filamentspoel gekanteld of vervormd is of dat de filamentbuis geblokkeerd is."
                 },
                 {
                     "ecode": "0700110000010001",
@@ -7348,48 +7068,8 @@
                     "intro": "AMS-HT H Sleuf 4 filament is opgebruikt en automatisch overgeschakeld naar de sleuf met dezelfde filament."
                 },
                 {
-                    "ecode": "1804700000020010",
-                    "intro": "AMS-HT E Het invoeren van filament naar het extrusiewiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een verstopping in de voerbuis. Controleer of de voerbuis en de filamentnaven duidelijk zijn."
-                },
-                {
-                    "ecode": "1804700000020040",
-                    "intro": "AMS-HT E Het uittrekken van filament is mislukt, dit kan te wijten zijn aan overmatige weerstand in de DC-motor. Controleer of de filamentspoel is gekanteld of vervormd is, of dat de filamentbuis is geblokkeerd."
-                },
-                {
-                    "ecode": "1805700000020032",
-                    "intro": "AMS-HT F Het invoeren van filament naar de extruder van de gereedschapskop is mislukt, dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer of de filamentspoel is gekanteld of als de filamentbuis is geblokkeerd."
-                },
-                {
-                    "ecode": "1807700000020044",
-                    "intro": "AMS-HT H Het uittrekken van filament is mislukt, dit kan te wijten zijn aan gebroken filament in de gereedschapskop. Verwijder het gebroken filament alstublieft."
-                },
-                {
-                    "ecode": "1804700000020061",
-                    "intro": "AMS-HT E Het vastgrijpen van filament door de hulpprinter is mislukt, mogelijks als gevolg van overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de filamentspoel is gekanteld en of de filamentbuis duidelijk is."
-                },
-                {
-                    "ecode": "1806700000020021",
-                    "intro": "AMS-HT G Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de filamentspoel gekanteld is of als de PTFE-buis is geblokkeerd."
-                },
-                {
-                    "ecode": "0705700000020060",
-                    "intro": "AMS F Assisteren extruder bij opnemen van filament mislukt; dit kan komen door de assisterende motor die glijdt. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1803700000020021",
-                    "intro": "AMS-HT D Het inbrengen van filament in de buffer is mislukt; dit kan komen door overmatige weerstand in het filament. Controleer alstublieft of de filamentspoel gekanteld is of dat de PTFE-buis verstopt is."
-                },
-                {
                     "ecode": "1800450000020001",
                     "intro": "De sensor van de filamentcutter werkt niet goed; controleer of de connector goed is aangesloten."
-                },
-                {
-                    "ecode": "1801700000020022",
-                    "intro": "AMS-HT B Het inbrengen van filament in de buffer is mislukt; dit kan komen door versleten filament waardoor de assistmotor uitglijdt. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1802700000020014",
-                    "intro": "AMS-HT C Het inbrengen van filament in het extrusiewiel van de assistmotor is mislukt. Dit kan komen door een klein stukje gebroken filament dat in de invoerbuis terechtkomt. Verwijder het gebroken filament uit de invoerbuis alstublieft."
                 },
                 {
                     "ecode": "1805310000030003",
@@ -7400,36 +7080,8 @@
                     "intro": "Het extruderen van AMS E Slot 4 filament is mislukt; de extruder kan verstopt zijn of het filament kan te dun zijn waardoor de extruder wegglijdt."
                 },
                 {
-                    "ecode": "1807700000020023",
-                    "intro": "AMS-HT H Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan het filament dat los is gekomen. Controleer of de filamentbuis niet goed is aangesloten of of de buis is versleten."
-                },
-                {
-                    "ecode": "1801700000020041",
-                    "intro": "AMS-HT B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het filament dat loskomt van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
                     "ecode": "0707350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor geeft een foutmelding. De chip kan defect zijn."
-                },
-                {
-                    "ecode": "1800700000020023",
-                    "intro": "AMS-HT A Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan het filament dat los is gekomen. Controleer of de filamentbuis niet goed is aangesloten of of de buis is versleten."
-                },
-                {
-                    "ecode": "1804700000020033",
-                    "intro": "AMS-HT E Het toevoeren van filament aan de gereedschapskopextruder is mislukt; dit kan te wijten zijn aan het slippen van het filament. Controleer of de filamentbuis is losgekoppeld of dat de buis is versleten."
-                },
-                {
-                    "ecode": "1804700000020023",
-                    "intro": "AMS-HT E Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan het filament dat los is gekomen. Controleer of de filamentbuis niet goed is aangesloten of of de buis is versleten."
-                },
-                {
-                    "ecode": "0706700000020030",
-                    "intro": "Het invoeren van AMS G filament naar de gereedschapskopextruder is mislukt; dit kan te wijten zijn aan een verstopt filament bij de ingang van de gereedschapskop. Controleer de filamentbuisplug van de gereedschapskop."
-                },
-                {
-                    "ecode": "1802700000020020",
-                    "intro": "Het invoeren van AMS-HT C filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer de PTFE-buisplug van de buffer."
                 },
                 {
                     "ecode": "0700210000020003",
@@ -7580,92 +7232,28 @@
                     "intro": "De AMS-HT B-sleuf 2-filament kan gebroken zijn in de printkop."
                 },
                 {
-                    "ecode": "0705700000020042",
-                    "intro": "Het uittrekken van de filament van AMS F is mislukt; dit kan te wijten zijn aan een verbinding met de DC-motor die verloren is gegaan. Controleer alstublieft de stekker van de DC-motor om er zeker van te zijn dat deze goed is aangesloten."
-                },
-                {
-                    "ecode": "1800700000020061",
-                    "intro": "Het assisteren van de extruder van AMS-HT A om de filament te pakken is mislukt, mogelijk als gevolg van overmatige weerstand vanuit de buffer. Controleer alstublieft of de buffer vastzit, of de spoel met filament gekanteld is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "1803300000010004",
                     "intro": "Fout in encryptiechip"
-                },
-                {
-                    "ecode": "0706700000020023",
-                    "intro": "Het aanvoeren van de filament naar de buffer van AMS G is mislukt; dit kan te wijten zijn aan het losraken van de filament. Controleer alstublieft of de filamentbuis verkeerd is aangesloten of dat de buis is versleten."
-                },
-                {
-                    "ecode": "1801700000020050",
-                    "intro": "Het laden van de filament in de buffer van AMS-HT B is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer alstublieft of de buffer vastzit, of de spoel met filament gekanteld is en of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0704700000020014",
-                    "intro": "Het toevoeren van de filament aan het assist motor extrusion wheel van AMS E is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de aanvoerbuis terecht is gekomen. Verwijder alstublieft het gebroken filament uit de aanvoerbuis."
-                },
-                {
-                    "ecode": "1802700000020041",
-                    "intro": "Het uittrekken van de filament van AMS-HT C is mislukt. Dit kan te wijten zijn aan het loskomen van de filament van de spoel. Vervang alstublieft de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1802700000020011",
-                    "intro": "AMS-HT C Het invoeren van filament naar het ondersteunende motor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een ontkoppeling van de gelijkstroommotor. Controleer de verbinding van de gelijkstroommotor stekker."
                 },
                 {
                     "ecode": "0706300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
                 {
-                    "ecode": "0705700000020031",
-                    "intro": "AMS F Het invoeren van filament naar de extruder van de gereedschapskop is mislukt; dit kan komen doordat het filament versleten is en de ondersteunende motor doet slippen. Knip het versleten gedeelte van het filament af."
-                },
-                {
                     "ecode": "1800450000020002",
                     "intro": "De snijafstand van de filament cutter is te groot. De XY-motor kan stappen verliezen."
-                },
-                {
-                    "ecode": "1801700000020023",
-                    "intro": "AMS-HT B Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan het losraken van het filament. Controleer of de filamentbuis onjuist is aangesloten of dat de buis is afgesleten."
-                },
-                {
-                    "ecode": "0707700000020042",
-                    "intro": "AMS H Het uittrekken van filament is mislukt; dit kan te wijten zijn aan een verbroken verbinding van de DC-motor. Controleer of de DC-motorstekker goed is aangesloten."
-                },
-                {
-                    "ecode": "1800700000020012",
-                    "intro": "AMS-HT: Het aanvoeren van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel scheef staat, het filament verward is of dat de rotatie van de spoel niet soepel verloopt."
                 },
                 {
                     "ecode": "18FF800000010001",
                     "intro": "De liftmotor van de gereedschapskop werkt abnormaal. Controleer of de verbindingskabel los zit."
                 },
                 {
-                    "ecode": "1803700000020033",
-                    "intro": "AMS-HT D: Het toevoeren van filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan het uitglijden van het filament. Controleer of de filamentbuis losgekoppeld is of dat de buis versleten is."
-                },
-                {
                     "ecode": "1802300000010004",
                     "intro": "Encryptiechip-storing."
                 },
                 {
-                    "ecode": "0707700000020060",
-                    "intro": "AMS H: Het grabben van filament door de ondersteunende extruder is mislukt; dit kan te wijten zijn aan het slippen van de ondersteunende motor. Knip de versleten sectie van het filament af."
-                },
-                {
-                    "ecode": "1804700000020013",
-                    "intro": "AMS-HT E: Het aanvoeren van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het odometerwiel. Controleer de verbinding van de plug van het odometerwiel."
-                },
-                {
                     "ecode": "1802310000010004",
                     "intro": "Encryptiechip-storing."
-                },
-                {
-                    "ecode": "1807700000020032",
-                    "intro": "AMS-HT H: Het toevoeren van filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer of de spoel scheef staat of de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "0705700000020014",
-                    "intro": "Het invoeren van een filament naar het hulpmotor-extrusiewiel van AMS F is mislukt. Dit kan komen door een klein stukje gebroken filament dat in de invoerbuis terechtkwam. Verwijder het gebroken filament uit de invoerbuis alstublieft."
                 },
                 {
                     "ecode": "0700100000010001",
@@ -7820,28 +7408,8 @@
                     "intro": "AMS-HT C Slot 1 filament is op. Plaats een nieuw filament."
                 },
                 {
-                    "ecode": "0706700000020044",
-                    "intro": "AMS G Het uittrekken van filament is mislukt; dit kan te wijten zijn aan gebroken filament in de gereedschapskop. Verwijder het gebroken filament."
-                },
-                {
-                    "ecode": "1805700000020043",
-                    "intro": "AMS-HT F Het uittrekken van filament is mislukt; dit kan te wijten zijn aan filament slijtage en het slippen van de assistmotor. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1802700000020045",
-                    "intro": "AMS-HT C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het opraken van het filament of dat het filament uit de houder is getrokken."
-                },
-                {
-                    "ecode": "1800700000020041",
-                    "intro": "AMS-HT Een filament die eruit getrokken wordt, is mislukt; dit kan komen doordat het filament zich van de spoel heeft losgemaakt. Vervang de spoel door een nieuwe."
-                },
-                {
                     "ecode": "1806310000030003",
                     "intro": "De RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
-                },
-                {
-                    "ecode": "1800700000020033",
-                    "intro": "AMS-HT A Het voeden van het filament aan de extruder van de printkop is mislukt; dit kan te wijten zijn aan het slippen van het filament. Controleer of de filamentbuis losgekoppeld is of dat de buis is versleten."
                 },
                 {
                     "ecode": "1802300000030003",
@@ -7856,64 +7424,12 @@
                     "intro": "Het is niet gelukt om de AMS F-sleuf 4 filament te extruderen; de extruder kan verstopt zijn of de filament kan te dun zijn, waardoor de extruder slipt."
                 },
                 {
-                    "ecode": "0704700000020045",
-                    "intro": "AMS E Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan het opraakt van het filament of omdat deze is losgetrokken."
-                },
-                {
-                    "ecode": "1801700000020061",
-                    "intro": "AMS-HT B Het assisteren van de extruder om het filament te pakken is mislukt, mogelijk vanwege te veel weerstand van de buffer. Controleer of de buffer vastzit, of de spoel met filament scheef staat en of de buis waar het filament doorheen gaat vrij is."
-                },
-                {
-                    "ecode": "1800700000020050",
-                    "intro": "AMS-HT A Het laden van filament in de buffer is mislukt; dit kan te wijten zijn aan te veel weerstand in de buffer. Controleer of de buffer vastzit, of de spoel met filament scheef staat, of de buis waar het filament doorheen gaat geblokkeerd is."
-                },
-                {
-                    "ecode": "1804700000020012",
-                    "intro": "AMS-HT E Het aanvoeren van filament naar het hulpmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan te veel weerstand in het filament. Controleer of de spoel scheef staat, het filament in de knoop zit of dat de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "1804700000020011",
-                    "intro": "AMS-HT E Het aanvoeren van filament naar het hulpmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer de verbinding van de stekker van de DC-motor."
-                },
-                {
                     "ecode": "0707310000010004",
                     "intro": "Encryptiechip-storing."
                 },
                 {
-                    "ecode": "0705700000020010",
-                    "intro": "AMS F Het aanvoeren van filament naar het hulpmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan een blokkade in de toevoerbuis. Controleer of de toevoerbuis en de filament hub vrij zijn."
-                },
-                {
-                    "ecode": "1803700000020011",
-                    "intro": "AMS-HT D Het aanvoeren van filament naar het hulpmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer de verbinding van de stekker van de DC-motor."
-                },
-                {
-                    "ecode": "0704700000020032",
-                    "intro": "AMS E Het invoeren van het filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer of de filamentspoel gekanteld is of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "1800700000020013",
-                    "intro": "AMS-HT A Het invoeren van het filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerwiel. Controleer de verbinding van de kilometerstand stekker."
-                },
-                {
                     "ecode": "18FF800000020003",
                     "intro": "De afwijking in de kalibratiewaarde van de extruderpositie is te groot; kalibreer opnieuw."
-                },
-                {
-                    "ecode": "1802700000020010",
-                    "intro": "AMS-HT C Het invoeren van het filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verstopping in de invoerbuis. Controleer of de invoerbuis en de filament hub vrij zijn."
-                },
-                {
-                    "ecode": "1807700000020030",
-                    "intro": "AMS-HT H Het invoeren van het filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan een geblokkeerd filament bij de ingang van de gereedschapskop. Controleer de filamentbuis stekker van de gereedschapskop."
-                },
-                {
-                    "ecode": "1804700000020042",
-                    "intro": "AMS-HT E Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan het verliezen van de verbinding met de DC-motor. Controleer of de DC-motor stekker juist is aangesloten."
-                },
-                {
-                    "ecode": "1801700000020042",
-                    "intro": "AMS-HT B Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan het verliezen van de verbinding met de DC-motor. Controleer of de DC-motor stekker juist is aangesloten."
                 },
                 {
                     "ecode": "0700200000020001",
@@ -8040,96 +7556,20 @@
                     "intro": "Het filament van AMS-HT E Sleuf 3 is mogelijk gebroken in AMS-HT."
                 },
                 {
-                    "ecode": "0704700000020022",
-                    "intro": "Het toevoeren van filament naar de buffer van AMS E is mislukt; dit kan te wijten zijn aan versleten filament waardoor de assist motor glipt. Snijd alstublieft het versleten deel van het filament af."
-                },
-                {
-                    "ecode": "1800700000020042",
-                    "intro": "Het uittrekken van het filament van AMS-HT A is mislukt; dit kan te wijten zijn aan het verliezen van de verbinding van de DC-motor. Controleer alstublieft de stekker van de DC-motor om ervoor te zorgen dat deze goed is aangesloten."
-                },
-                {
-                    "ecode": "1801700000020031",
-                    "intro": "Het toevoeren van filament naar de gereedschapkop extruder van AMS-HT B is mislukt; dit kan te wijten zijn aan het verslijten van het filament en het veroorzaken van slippen van de assist motor. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1805700000020033",
-                    "intro": "Het toevoeren van filament naar de gereedschapkop extruder van AMS-HT F is mislukt; dit kan te wijten zijn aan het uitglijden van het filament. Controleer alstublieft of de filamentslang is losgekoppeld of dat de slang is versleten."
-                },
-                {
-                    "ecode": "1805700000020060",
-                    "intro": "Het assisteren van de extruder van AMS-HT F bij het vastpakken van filament is mislukt; dit kan te wijten zijn aan het slippen van de assist motor. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1805700000020011",
-                    "intro": "AMS-HT F Het invoeren van filament naar het aandrijfwiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een verbroken verbinding van de gelijkstroommotor. Controleer alstublieft de verbinding van de gelijkstroommotor."
-                },
-                {
-                    "ecode": "1800700000020021",
-                    "intro": "AMS-HT A Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer alstublieft of de filament spoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "1800700000020020",
-                    "intro": "AMS-HT A Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer alstublieft of de PTFE-buisplug van de buffer in orde is."
-                },
-                {
-                    "ecode": "1802700000020012",
-                    "intro": "AMS-HT C Het invoeren van filament naar het aandrijfwiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer alstublieft of de spoel gekanteld is, of het filament in de knoop zit, of de rotatie van de spoel niet soepel verloopt."
-                },
-                {
                     "ecode": "0706230000020009",
                     "intro": "Kan geen filament extruderen uit AMS G Slot 4; de extruder kan verstopt zijn of het filament kan te dun zijn, waardoor de extruder slipt."
-                },
-                {
-                    "ecode": "0705700000020013",
-                    "intro": "AMS F Het invoeren van filament naar het aandrijfwiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerwiel. Controleer alstublieft de verbinding van de stekker van het kilometertellerwiel."
-                },
-                {
-                    "ecode": "1802700000020043",
-                    "intro": "AMS-HT C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan slijtage van het filament, waardoor de hulpmotor slipt. Knip alstublieft het versleten gedeelte van het filament af."
                 },
                 {
                     "ecode": "1804300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structuurfout."
                 },
                 {
-                    "ecode": "1806700000020033",
-                    "intro": "Het toevoeren van filament aan de gereedschapskopextruder AMS-HT G is mislukt; dit kan te wijten zijn aan het slippen van het filament. Controleer of de filamentbuis is losgekoppeld of versleten is."
-                },
-                {
                     "ecode": "1802350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
                 },
                 {
-                    "ecode": "1806700000020011",
-                    "intro": "Het toevoeren van filament aan de extrusiewiel van de hulpmotor AMS-HT G is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer de aansluiting van de DC-motorstekker."
-                },
-                {
-                    "ecode": "1806700000020013",
-                    "intro": "Het toevoeren van filament aan de extrusiewiel van de hulpmotor AMS-HT G is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerwiel. Controleer de aansluiting van de kilometertellerwielaansluiting."
-                },
-                {
-                    "ecode": "1807700000020022",
-                    "intro": "Het toevoeren van filament aan de buffer van AMS-HT H is mislukt; dit kan te wijten zijn aan versleten filament veroorzaakt door het slippen van de hulpmotor. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1800700000020011",
-                    "intro": "Het toevoeren van filament aan de extrusiewiel van de hulpmotor AMS-HT A is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer de aansluiting van de DC-motorstekker."
-                },
-                {
-                    "ecode": "0704700000020033",
-                    "intro": "Het toevoeren van filament aan de gereedschapskopextruder AMS E is mislukt; dit kan te wijten zijn aan het slippen van het filament. Controleer of de filamentbuis is losgekoppeld of versleten is."
-                },
-                {
                     "ecode": "0705350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
-                },
-                {
-                    "ecode": "0706700000020031",
-                    "intro": "AMS G Het voeden van filament naar de extruder van de printkop is mislukt; dit kan te wijten zijn aan slijtage van het filament waardoor de hulp motor slippen veroorzaakt. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0704700000020043",
-                    "intro": "AMS E Het uittrekken van filament is mislukt; dit kan te wijten zijn aan slijtage van het filament waardoor de hulp motor slippen veroorzaakt. Knip het versleten gedeelte van het filament af."
                 },
                 {
                     "ecode": "0706210000020009",
@@ -8138,10 +7578,6 @@
                 {
                     "ecode": "1801310000030003",
                     "intro": "De RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
-                },
-                {
-                    "ecode": "1803700000020023",
-                    "intro": "AMS-HT D Het voeden van filament naar de buffer is mislukt; dit kan te wijten zijn aan losraken van het filament. Controleer of de filamentbuis onjuist is aangesloten of dat de buis is versleten."
                 },
                 {
                     "ecode": "0700620000020001",
@@ -8308,22 +7744,6 @@
                     "intro": "AMS-HT E Slot 4 is leeg; plaats alstublieft een nieuw filament."
                 },
                 {
-                    "ecode": "0704700000020011",
-                    "intro": "Het toevoeren van AMS E filament aan het hulp-motor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer alstublieft de aansluiting van de DC-motor-stekker."
-                },
-                {
-                    "ecode": "1805700000020044",
-                    "intro": "Het uittrekken van AMS-HT F filament is mislukt; dit kan te wijten zijn aan gebroken filament in de gereedschapskop. Verwijder alstublieft het gebroken filament."
-                },
-                {
-                    "ecode": "0704700000020050",
-                    "intro": "Het laden van filament in de buffer in AMS E is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer alstublieft of de buffer vastzit, de filamentspoel gekanteld is, of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "1806700000020041",
-                    "intro": "Het uittrekken van het filament uit AMS-HT G is mislukt; dit kan te wijten zijn aan het filament dat loskomt van de spoel. Vervang alstublieft de spoel door een nieuwe."
-                },
-                {
                     "ecode": "1805350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
                 },
@@ -8332,40 +7752,12 @@
                     "intro": "Het filament-snijschijf-handvat is niet losgelaten. Het handvat of het mes kan vastzitten, of er kan een probleem zijn met de filament-sensorverbinding."
                 },
                 {
-                    "ecode": "1804700000020014",
-                    "intro": "Het toevoeren van filament aan het hulp-motor-extrusiewiel in AMS-HT E is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de toevoerbuis terechtkwam. Verwijder alstublieft het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "1805700000020042",
-                    "intro": "Het uittrekken van filament uit AMS-HT F is mislukt; dit kan te wijten zijn aan verlies van verbinding van de DC-motor. Controleer alstublieft de DC-motorstekker om er zeker van te zijn dat deze goed is aangesloten."
-                },
-                {
-                    "ecode": "1803700000020022",
-                    "intro": "AMS-HT D De invoer van filament naar de buffer is mislukt; dit kan te wijten zijn aan versleten filament waardoor de hulpmotor wegglijdt. Knip het versleten gedeelte van het filament af."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
                 {
-                    "ecode": "1806700000020020",
-                    "intro": "AMS-HT G Het voeden van filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer de PTFE buisplug van de buffer."
-                },
-                {
                     "ecode": "1800300000010004",
                     "intro": "Fout in de encryptiechip."
-                },
-                {
-                    "ecode": "1802700000020031",
-                    "intro": "AMS-HT C Het voeden van filament naar de gereedschapskopextruder is mislukt; dit kan te wijten zijn aan het versleten filament waardoor de hulpmotor wegglijdt. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1801700000020014",
-                    "intro": "De toevoer van filament naar de hulp motor extrusiewiel van AMS-HT B is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de toevoerpijp terecht is gekomen. Verwijder het gebroken filament uit de toevoerpijp."
-                },
-                {
-                    "ecode": "1804700000020043",
-                    "intro": "Het uittrekken van filament uit AMS-HT E is mislukt; dit kan te wijten zijn aan filament dat versleten is en ertoe leidt dat de hulpmotor wegslipt. Knip het versleten deel van de filament af."
                 },
                 {
                     "ecode": "0700130000020002",
@@ -8532,52 +7924,20 @@
                     "intro": "De filament van Gleuf 4 van AMS G is op en is automatisch overgeschakeld naar gleuf met dezelfde filament."
                 },
                 {
-                    "ecode": "0706700000020050",
-                    "intro": "Het laden van de filament in de buffer van AMS G is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer vastzit, de spoel gekanteld is of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0706700000020010",
-                    "intro": "Het toevoeren van de filament aan de hulpmotoruitdrijfwiel van AMS G is mislukt. Dit kan te wijten zijn aan een verstopping in de invoerbuis. Controleer of de invoerbuis en de filamentnaaf duidelijk zijn."
-                },
-                {
-                    "ecode": "0704700000020020",
-                    "intro": "Het voeden van de filament naar de buffer van AMS E is mislukt. Dit kan te wijten zijn aan de buffer die de filament blokkeert. Controleer de PTFE-buisplug van de buffer."
-                },
-                {
-                    "ecode": "0707700000020050",
-                    "intro": "Het laden van de filament in de buffer van AMS H is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer vastzit, de spoel gekanteld is of de filamentbuis geblokkeerd is."
-                },
-                {
                     "ecode": "1805310000010004",
                     "intro": "Versleutelingschip defect"
-                },
-                {
-                    "ecode": "1806700000020061",
-                    "intro": "AMS-HT G Assistent die de filamentgrijper van de extruder ondersteunt, is mislukt, mogelijk als gevolg van overmatige weerstand van de buffer. Controleer alstublieft of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "18FF200000020001",
                     "intro": "Externe filament van de rechter extruder is op; laad alstublieft een nieuw filament."
                 },
                 {
-                    "ecode": "0706700000020042",
-                    "intro": "AMS G Uittrekken van filament is mislukt; dit kan te wijten zijn aan het verlies van verbinding met de DC-motor. Controleer alstublieft of de plug van de DC-motor goed is aangesloten."
-                },
-                {
                     "ecode": "18FF450000020002",
                     "intro": "De snijafstand van de filamentcutter is te groot. De XY-motor kan stappen verliezen."
                 },
                 {
-                    "ecode": "1803700000020044",
-                    "intro": "AMS-HT D Uittrekken van filament is mislukt; dit kan te wijten zijn aan een gebroken filament in de gereedschapskop. Verwijder alstublieft het gebroken filament."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
-                },
-                {
-                    "ecode": "1806700000020042",
-                    "intro": "AMS-HT G Het uittrekken van de filament is mislukt; dit kan te wijten zijn aan een slechte verbinding van de DC-motor. Controleer de plug van de DC-motor om er zeker van te zijn dat deze goed is aangesloten."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -8588,32 +7948,8 @@
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
                 {
-                    "ecode": "0707700000020045",
-                    "intro": "AMS H Het uittrekken van de filament is mislukt; dit kan komen doordat de filament op is of eruit is getrokken."
-                },
-                {
-                    "ecode": "0705700000020023",
-                    "intro": "AMS F Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan filament dat is losgekomen. Controleer of de filamentbuis niet goed is aangesloten of dat de buis is versleten."
-                },
-                {
-                    "ecode": "1800700000020040",
-                    "intro": "AMS-HT A Het uittrekken van de filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de DC-motor. Controleer of de filamentspoel gekanteld of vervormd is of dat de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "1801700000020040",
-                    "intro": "AMS-HT B Het uittrekken van de filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de DC-motor. Controleer of de filamentspoel gekanteld of vervormd is of dat de filamentbuis geblokkeerd is."
-                },
-                {
                     "ecode": "1802310000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
-                },
-                {
-                    "ecode": "0704700000020010",
-                    "intro": "AMS E Het toevoeren van filament aan het ondersteunende motorextrusiewiel is mislukt. Dit kan komen door een verstopping in de toevoerbuis. Controleer of de toevoerbuis en de filament hub vrij zijn."
-                },
-                {
-                    "ecode": "1807700000020042",
-                    "intro": "AMS-HT H Het uittrekken van filament is mislukt; dit kan komen doordat de DC-motor geen verbinding meer maakt. Controleer de DC-motorplug om ervoor te zorgen dat hij goed is aangesloten."
                 },
                 {
                     "ecode": "0700610000020001",
@@ -8792,76 +8128,16 @@
                     "intro": "De filament van AMS-HT A sleuf 4 is op. Voeg alstublieft een nieuwe filament toe."
                 },
                 {
-                    "ecode": "0705700000020050",
-                    "intro": "AMS F Het laden van filament in de buffer is mislukt; dit kan te wijten zijn aan te veel weerstand in de buffer. Controleer of de buffer vastzit, de filamentspoel gekanteld is of de filamentbuis geblokkeerd is."
-                },
-                {
                     "ecode": "0704350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
-                },
-                {
-                    "ecode": "1804700000020030",
-                    "intro": "AMS-HT E Het toevoeren van filament aan de extruder in de toolkop is mislukt; dit kan te wijten zijn aan het feit dat het filament geblokkeerd is bij de ingang van de toolkop. Controleer de pluggen van de filamentbuis van de toolkop."
-                },
-                {
-                    "ecode": "0707700000020020",
-                    "intro": "AMS H Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan het feit dat de buffer het filament blokkeert. Controleer de pluggen van de PTFE-buis van de buffer."
-                },
-                {
-                    "ecode": "0706700000020033",
-                    "intro": "AMS G Het toevoeren van filament aan de extruder in de toolkop is mislukt; dit kan te wijten zijn aan het feit dat het filament eruit glijdt. Controleer of de filamentbuis is losgekoppeld of dat de buis is versleten."
-                },
-                {
-                    "ecode": "1802700000020044",
-                    "intro": "AMS-HT C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan gebroken filament in de toolkop. Verwijder het gebroken filament aub."
-                },
-                {
-                    "ecode": "1807700000020011",
-                    "intro": "AMS-HT H Het toevoeren van filament aan het hulp-motor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer de verbinding van de DC-motorplug aub."
-                },
-                {
-                    "ecode": "1801700000020030",
-                    "intro": "AMS-HT B Het toevoeren van filament aan de extruder in de toolkop is mislukt; dit kan te wijten zijn aan het feit dat het filament geblokkeerd is bij de ingang van de toolkop. Controleer de pluggen van de filamentbuis van de toolkop."
-                },
-                {
-                    "ecode": "0704700000020042",
-                    "intro": "AMS E Het verwijderen van het filament is mislukt; dit kan komen doordat de gelijkstroommotor geen verbinding meer heeft. Controleer de stekker van de gelijkstroommotor om er zeker van te zijn dat deze correct is aangesloten."
-                },
-                {
-                    "ecode": "1804700000020022",
-                    "intro": "AMS-HT E Het invoeren van filament in de buffer is mislukt; dit kan komen doordat het filament versleten is en de hulp motor wegglijdt. Knip het versleten gedeelte van het filament af."
                 },
                 {
                     "ecode": "0707210000020009",
                     "intro": "Het extruderen van filament op AMS H Slot 2 is mislukt; de extruder kan verstopt zijn of het filament is mogelijk te dun, waardoor de extruder wegglijdt."
                 },
                 {
-                    "ecode": "0705700000020012",
-                    "intro": "AMS F Het invoeren van filament in het extrusiewiel van de hulp motor is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel is gekanteld, het filament in de war zit of dat de rotatie van de spoel niet soepel verloopt."
-                },
-                {
                     "ecode": "18FE450000020003",
                     "intro": "De hendel van de filamentsnijder is niet losgelaten. De hendel of het mes kan vastzitten, of er kan sprake zijn van een probleem met de filament sensoraansluiting."
-                },
-                {
-                    "ecode": "1806700000020050",
-                    "intro": "AMS-HT G Het laden van filament in de buffer is mislukt; dit kan komen door overmatige weerstand in de buffer. Controleer of de buffer vastzit, of de filament spoel is gekanteld, of dat de filament buis is geblokkeerd."
-                },
-                {
-                    "ecode": "1801700000020045",
-                    "intro": "Het verwijderen van de filament bij AMS-HT B is mislukt; dit kan te wijten zijn aan het opraken van de filament of doordat deze eruit is getrokken."
-                },
-                {
-                    "ecode": "1803700000020014",
-                    "intro": "Het voeden van filament naar het ondersteuning motor extrusiewiel bij AMS-HT D is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de voedingstube is gekomen. Verwijder het gebroken filament uit de voedingstube, alstublieft."
-                },
-                {
-                    "ecode": "1800700000020032",
-                    "intro": "Het voeden van filament naar de extruder van de gereedschapskop bij AMS-HT A is mislukt; dit kan te wijten zijn aan te veel weerstand vanuit de filament. Controleer of de spoel met filament gekanteld is of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "0706700000020043",
-                    "intro": "Het verwijderen van de filament bij AMS G is mislukt; dit kan te wijten zijn aan slijtage van de filament en het slippen van de ondersteunende motor tot gevolg hebben. Knip alstublieft het versleten gedeelte van de filament af."
                 },
                 {
                     "ecode": "0700200000030002",
@@ -9044,28 +8320,8 @@
                     "intro": "De AMS-HT D-sleuf 4 motor is uitgeschoven. Het uitdrijfwiel kan defect zijn, of het filament kan te dun zijn."
                 },
                 {
-                    "ecode": "0706700000020045",
-                    "intro": "Het verwijderen van het filament uit AMS G is mislukt; dit kan te wijten zijn aan een tekort aan filament of doordat het filament eruit getrokken werd."
-                },
-                {
-                    "ecode": "1805700000020020",
-                    "intro": "Het voeden van AMS-HT F filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer de PTFE-tube plug van de buffer."
-                },
-                {
                     "ecode": "1805300000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
-                },
-                {
-                    "ecode": "1807700000020014",
-                    "intro": "Het toevoeren van filament naar de hulpmotor-extrusiewiel van AMS-HT H is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de toevoerbuis terecht is gekomen. Verwijder het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "1806700000020044",
-                    "intro": "Het verwijderen van filament uit AMS-HT G is mislukt; dit kan te wijten zijn aan gebroken filament in de gereedschapskop. Verwijder het gebroken filament."
-                },
-                {
-                    "ecode": "1802700000020033",
-                    "intro": "AMS-HT C De toevoer van filament naar de extruder van het gereedschapskop is mislukt; dit kan te wijten zijn aan het uitglijden van het filament. Controleer of de filamentbuis is losgekoppeld of dat de buis is versleten."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9080,36 +8336,8 @@
                     "intro": "Het extruderen van AMS H Slot 4 filament is mislukt; de extruder is mogelijk verstopt of het filament is te dun, waardoor de extruder uitglijdt."
                 },
                 {
-                    "ecode": "0704700000020013",
-                    "intro": "Het toevoeren van filament naar het hulpmotor-extrusiewiel AMS E is mislukt. Dit kan te wijten zijn aan een verloren signaal van het odometer-wiel. Controleer de verbinding van de odometer-wielstekker."
-                },
-                {
-                    "ecode": "1802700000020040",
-                    "intro": "AMS-HT C Het verwijderen van de filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de gelijkstroommotor. Controleer of de filamentspoel gekanteld of vervormd is, of dat de filamentbuis is geblokkeerd."
-                },
-                {
-                    "ecode": "1800700000020043",
-                    "intro": "AMS-HT A Het verwijderen van de filament is mislukt; dit kan te wijten zijn aan slijtage van de filament en het slippen van de hulpmotor veroorzaken. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "0707700000020012",
-                    "intro": "AMS H Het invoeren van filament naar het extrusiewiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de filament. Controleer of de spoel gekanteld, de filament verstrikt is, of dat de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0704700000020060",
-                    "intro": "AMS E Het vastgrijpen van filament door de hulpmotor is mislukt; dit kan te wijten zijn aan slippen van de hulpmotor. Knip het versleten gedeelte van de filament af."
-                },
-                {
                     "ecode": "1803300000030003",
                     "intro": "De RFID kan niet gelezen worden vanwege een hardware- of structuurfout."
-                },
-                {
-                    "ecode": "0707700000020040",
-                    "intro": "AMS H Het verwijderen van de filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de gelijkstroommotor. Controleer of de filamentspoel gekanteld of vervormd is, of dat de filamentbuis is geblokkeerd."
-                },
-                {
-                    "ecode": "1806700000020045",
-                    "intro": "AMS-HT G Het verwijderen van de filament is mislukt; dit kan te wijten zijn aan het opraken of uittrekken van de filament."
                 },
                 {
                     "ecode": "1804310000010004",
@@ -9248,42 +8476,6 @@
                     "intro": "De filament van AMS H Sleuf 2 is op en het verwijderen van de oude filament is abnormaal verlopen; controleer of de filament vastzit in de gereedschapskop."
                 },
                 {
-                    "ecode": "0707700000020030",
-                    "intro": "Het invoeren van filament naar de gereedschapskop extruder van AMS H is mislukt; dit kan te wijten zijn aan de filament die geblokkeerd is bij de ingang van de gereedschapskop. Controleer de buisplug van het filament van de gereedschapskop."
-                },
-                {
-                    "ecode": "1807700000020040",
-                    "intro": "Het uittrekken van filament van AMS-HT H is mislukt; dit kan te wijten zijn aan overmatige weerstand in de DC-motor. Controleer of de filamentspoel is gekanteld of vervormd is of dat de filamentbuis is geblokkeerd."
-                },
-                {
-                    "ecode": "1805700000020014",
-                    "intro": "Het invoeren van filament naar de assist motor extrusiewiel van AMS-HT F is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de voerbuis is gekomen. Verwijder het gebroken filament uit de voerbuis."
-                },
-                {
-                    "ecode": "1807700000020010",
-                    "intro": "Het invoeren van filament naar de assist motor extrusiewiel van AMS-HT H is mislukt. Dit kan te wijten zijn aan een blokkade in de voerbuis. Controleer of de voerbuis en de filament hub duidelijk zijn."
-                },
-                {
-                    "ecode": "1801700000020060",
-                    "intro": "AMS-HT B De ondersteuning van de extrudergrijper om het filament vast te grijpen is mislukt; dit kan te wijten zijn aan het slippen van de ondersteuningsmotor. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0707700000020061",
-                    "intro": "AMS H Het helpen van de extrudergrijper om het filament vast te pakken is mislukt, mogelijk als gevolg van overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis helder is."
-                },
-                {
-                    "ecode": "1804700000020044",
-                    "intro": "AMS-HT E Uittrekken van filament is mislukt; dit kan te wijten zijn aan gebroken filament in de gereedschapkop. Verwijder het gebroken filament."
-                },
-                {
-                    "ecode": "1807700000020012",
-                    "intro": "AMS-HT H Het toevoeren van filament aan het ondersteuningsmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is, het filament in de war zit of de spoelrotatie niet soepel verloopt."
-                },
-                {
-                    "ecode": "0706700000020021",
-                    "intro": "AMS G Het voeden van filament aan de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is of dat de PTFE-buis verstopt is."
-                },
-                {
                     "ecode": "1800310000030003",
                     "intro": "De RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
                 },
@@ -9296,48 +8488,12 @@
                     "intro": "Kan AMS E Slot 2 filament niet extruderen. De extruder kan verstopt zijn of het filament is te dun, waardoor de extruder slipt."
                 },
                 {
-                    "ecode": "1802700000020030",
-                    "intro": "Het toevoeren van filament aan de gereedschapskopextruder voor AMS-HT C is mislukt; dit kan te wijten zijn aan een verstopping in de gereedschapskopinvoer. Controleer de stekker van de filamentbuis van de gereedschapskop."
-                },
-                {
-                    "ecode": "1806700000020043",
-                    "intro": "Het uittrekken van filament bij AMS-HT G is mislukt. Dit kan te wijten zijn aan het verslijten van het filament en een slip veroorzaken van de hulpmotor. Knip de versleten sectie van het filament af."
-                },
-                {
-                    "ecode": "1807700000020050",
-                    "intro": "Het laden van filament in de buffer bij AMS-HT H is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer vastzit, de filamentspoel gekanteld is of de filamentbuis geblokkeerd is."
-                },
-                {
                     "ecode": "1801300000010004",
                     "intro": "Fout in de encryptiechip."
                 },
                 {
                     "ecode": "18FE450000020002",
                     "intro": "De snijafstand van de filament cutter is te groot. De XY-motor kan stappen verliezen."
-                },
-                {
-                    "ecode": "1804700000020032",
-                    "intro": "Het toevoeren van filament aan de gereedschapskopextruder voor AMS-HT E is mislukt. Dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer of de filamentspoel gekanteld is of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "1807700000020043",
-                    "intro": "AMS-HT H Het verwijderen van de filament is mislukt; dit kan te wijten zijn aan het verslijten van de filament en het laten slippen van de hulpmotor. Knip alsjeblieft het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "1803700000020060",
-                    "intro": "AMS-HT D Het assisteren van de extruder bij het grijpen van de filament is mislukt. Dit kan te wijten zijn aan het slippen van de hulpmotor. Knip alsjeblieft het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "0707700000020011",
-                    "intro": "AMS H Het voeden van filament aan het extrusiewiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een losse verbinding van de DC-motor. Controleer alstublieft de verbinding van de plug van de DC-motor."
-                },
-                {
-                    "ecode": "1806700000020014",
-                    "intro": "AMS-HT G Het voeden van filament aan het extrusiewiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat de toevoerbuis is binnengekomen. Verwijder alstublieft het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "1806700000020030",
-                    "intro": "AMS-HT G Het voeden van filament aan de extruder van de gereedschapskop is mislukt. Dit kan te wijten zijn aan verstopping van de filament bij de ingang van de gereedschapskop. Controleer alstublieft de plug van de filamentbuis van de gereedschapskop."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9472,68 +8628,20 @@
                     "intro": "De filament van AMS-HT E Slot 4 kan gebroken zijn in AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020020",
-                    "intro": "AMS-HT B filamentvoeding naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die de filament blokkeert. Controleer alstublieft de PTFE-buistop van de buffer."
-                },
-                {
                     "ecode": "0704300000010004",
                     "intro": "Fout in encryptiechip."
-                },
-                {
-                    "ecode": "1807700000020060",
-                    "intro": "Assisterende extruder grijpen van AMS-HT H filament is mislukt; dit kan te wijten zijn aan een slip in de ondersteunende motor. Knip alstublieft het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "1803700000020032",
-                    "intro": " AMS-HT D Filamentvoeding naar de tool head extruder is mislukt; dit kan te wijten zijn aan overmatige weerstand van de filament. Controleer alstublieft of de spoel met filament gekanteld is of dat de filamentbuis geblokkeerd is."
                 },
                 {
                     "ecode": "0704220000020009",
                     "intro": "Niet gelukt om filament van AMS E Slot 3 uit te voeren; de extruder kan verstopt zijn of de diameter van de filament kan te dun zijn, waardoor de extruder wegglijdt."
                 },
                 {
-                    "ecode": "0705700000020030",
-                    "intro": "AMS F Het toevoeren van filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan een verstopping van het filament bij de ingang van de gereedschapskop. Controleer de plug van de filamentbuis van de gereedschapskop."
-                },
-                {
                     "ecode": "1801350000010001",
                     "intro": "De temperatuur- en luchtvochtigheidssensor heeft een fout. De chip kan defect zijn."
                 },
                 {
-                    "ecode": "1801700000020021",
-                    "intro": "AMS-HT B Het toevoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de filamentspoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
                     "ecode": "0706310000010004",
                     "intro": "Fout met encryptiechip."
-                },
-                {
-                    "ecode": "0705700000020045",
-                    "intro": "AMS F Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het opraken van filament of dat het filament eruit is getrokken."
-                },
-                {
-                    "ecode": "0706700000020012",
-                    "intro": "AMS G Het toevoeren van filament naar het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is, het filament verstrikt is of de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0706700000020032",
-                    "intro": "AMS G Het toevoeren van filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer of de filamentspoel gekanteld is of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "0704700000020021",
-                    "intro": "Het toevoeren van AMS E filament naar de buffer is mislukt. Dit kan te wijten zijn aan overmatige weerstand in de filament. Controleer of de filamentspoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "1805700000020022",
-                    "intro": "Het toevoeren van filament naar de buffer van AMS-HT F is mislukt. Dit kan komen door versleten filament waardoor de ondersteuningsmotor wegglijdt. Knip het versleten deel van de filament af."
-                },
-                {
-                    "ecode": "0705700000020041",
-                    "intro": "Het uittrekken van filament uit AMS F is mislukt. Dit kan komen doordat de filament loskomt van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1800700000020010",
-                    "intro": "Het toevoeren van filament naar de assist motor extrusiewiel van AMS-HT A is mislukt. Dit kan te wijten zijn aan een blokkade in de voedingsbuis. Controleer of de voedingsbuis en de filament hub duidelijk zijn."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -9704,10 +8812,6 @@
                     "intro": "De AMS F sleuf 2 motor is overbelast. Het filament kan verward of vastzitten."
                 },
                 {
-                    "ecode": "1805700000020030",
-                    "intro": "Het AMS-HT F invoeren van filament naar de gereedschapskop-extruder is mislukt; dit kan te wijten zijn aan het feit dat het filament geblokkeerd is bij de invoer van de gereedschapskop. Controleer de plug van de filamentbuis van de gereedschapskop."
-                },
-                {
                     "ecode": "0705300000010004",
                     "intro": "Falen van de versleutelingschip."
                 },
@@ -9720,52 +8824,16 @@
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structuurfout."
                 },
                 {
-                    "ecode": "0704700000020061",
-                    "intro": "Het assisteren van de AMS E extruder om filament te pakken te krijgen is mislukt, mogelijk als gevolg van excessieve weerstand van de buffer. Controleerof de buffer vastzit, of de filamentspoel gekanteld is, en of de filamentbuis schoon is."
-                },
-                {
-                    "ecode": "1807700000020033",
-                    "intro": "Het AMS-HT H invoeren van filament naar de gereedschapskop-extruder is mislukt; dit kan te wijten zijn aan het filament dat eruit glipt. Controleer of de filamentbuis is losgekoppeld of dat de buis is versleten."
-                },
-                {
-                    "ecode": "0707700000020013",
-                    "intro": "Het AMS H invoeren van filament naar het hulpmotorextrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerelement. Controleer de verbinding van de stekker van het kilometertellerelement."
-                },
-                {
                     "ecode": "0706220000020009",
                     "intro": "Mislukte extrusie van filament van AMS G sleuf 3; de extruder kan verstopt zijn of het filament kan te dun zijn, waardoor de extruder slipt."
-                },
-                {
-                    "ecode": "0705700000020011",
-                    "intro": "AMS F Het toevoeren van filament naar het hulpmotor extrusiewiel is mislukt. Dit kan komen door een losse verbinding van de gelijkstroommotor. Controleer de verbinding van de DC motorkabel."
-                },
-                {
-                    "ecode": "0706700000020014",
-                    "intro": "AMS G Het toevoeren van filament naar het hulpmotor extrusiewiel is mislukt. Dit kan komen door een klein stukje gebroken filament dat in de toevoerbuis is gekomen. Verwijder het gebroken filament uit de toevoerbuis."
                 },
                 {
                     "ecode": "18FE200000020001",
                     "intro": "De externe filament van de linker extruder is op; laad alstublieft een nieuwe filament."
                 },
                 {
-                    "ecode": "1805700000020031",
-                    "intro": "AMS-HT F Het toevoeren van filament naar de gereedschap extruder is mislukt; dit kan komen door slijtage van de filament waardoor de hulpmotor kan slippen. Knip alstublieft het versleten gedeelte van de filament weg."
-                },
-                {
-                    "ecode": "1806700000020040",
-                    "intro": "AMS-HT G Het uittrekken van de filament is mislukt; dit kan komen door overmatige weerstand in de gelijkstroommotor. Controleer alstublieft of de filamentspoel gekanteld of vervormd is of dat de filamentbuis geblokkeerd is."
-                },
-                {
                     "ecode": "1800400000020003",
                     "intro": "De AMS Hub-communicatie is abnormaal; de kabel is mogelijk niet goed aangesloten."
-                },
-                {
-                    "ecode": "1801700000020032",
-                    "intro": "AMS-HT B Het toevoeren van filament naar de gereedschap extruder is mislukt; dit kan komen door overmatige weerstand van de filament. Controleer alstublieft of de filamentspoel gekanteld is of dat de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0705700000020033",
-                    "intro": "AMS F Het toevoeren van filament naar de gereedschap extruder is mislukt; dit kan komen doordat de filament eruit gegleden is. Controleer alstublieft of de filamentbuis losgekoppeld is of dat de buis versleten is."
                 },
                 {
                     "ecode": "0706350000010001",
@@ -9774,18 +8842,6 @@
                 {
                     "ecode": "0705310000030003",
                     "intro": "RFID kan niet worden gelezen vanwege een hardware- of structuurfout."
-                },
-                {
-                    "ecode": "1805700000020045",
-                    "intro": "AMS-HT F Het uittrekken van de vezel is mislukt; dit kan te wijten zijn aan het opraken van de vezel of doordat deze is uitgetrokken."
-                },
-                {
-                    "ecode": "0704700000020030",
-                    "intro": "AMS E Het aanvoeren van filament naar de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan een verstopte filament bij de ingang van de gereedschapskop. Controleer alstublieft de plug van de gereedschapskop filamentbuis."
-                },
-                {
-                    "ecode": "1801700000020013",
-                    "intro": "AMS-HT B Het aanvoeren van filament naar het ondersteunende motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerwiel. Controleer alstublieft de verbinding van de kilometertellerwielstekker."
                 },
                 {
                     "ecode": "0700110000010003",
@@ -9984,64 +9040,12 @@
                     "intro": "De filament van gleuf 3 van de AMS-HT D kan gebroken zijn in de AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020043",
-                    "intro": "AMS-HT B Het verwijderen van het filament is mislukt; dit kan te wijten zijn aan slijtage van het filament, waardoor de hulpmotor verschuift. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1802700000020050",
-                    "intro": "AMS-HT C Het laden van het filament in de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer vastzit, de filamentspoel gekanteld is of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "1800700000020060",
-                    "intro": "AMS-HT A Het assisteren van de extruder om het filament vast te pakken is mislukt; dit kan te wijten zijn aan de versleten assistentiemotor. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0707700000020023",
-                    "intro": "AMS H Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan losraken van het filament. Controleer of de filamentbuis niet goed is aangesloten of dat de buis is versleten."
-                },
-                {
-                    "ecode": "1803700000020012",
-                    "intro": "AMS-HT D Het voeden van het filament naar het hulpmotor extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is, het filament in de war is of de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0704700000020023",
-                    "intro": "AMS E Het toevoeren van filament aan de buffer is mislukt; dit kan te wijten zijn aan losraken van het filament. Controleer of de filamentbuis niet goed is aangesloten of dat de buis is versleten."
-                },
-                {
                     "ecode": "1804300000010004",
                     "intro": "Fout met encryptiechip."
                 },
                 {
                     "ecode": "1803310000010004",
                     "intro": "Fout met encryptiechip."
-                },
-                {
-                    "ecode": "1804700000020041",
-                    "intro": "Het uittrekken van filament van AMS-HT E is mislukt; dit kan te wijten zijn aan het loskomen van het filament van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1804700000020060",
-                    "intro": "Het assisteren van de extruder van AMS-HT E om het filament vast te pakken is mislukt; dit kan te wijten zijn aan een slip in de assist motor. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1801700000020012",
-                    "intro": "Het voeren van filament naar het extrusiewiel van de assist motor van AMS-HT B is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is, of het filament verstrikt is geraakt of dat de rotatie van de spoel niet soepel is."
-                },
-                {
-                    "ecode": "0707700000020031",
-                    "intro": "AMS H Het toevoeren van filament aan de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan versleten filament waardoor de hulpmotor slip veroorzaakt. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0707700000020032",
-                    "intro": "AMS H Het toevoeren van filament aan de extruder van de gereedschapskop is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer alstublieft of de spoel met filament gekanteld is of dat de buis van het filament geblokkeerd is."
-                },
-                {
-                    "ecode": "1807700000020020",
-                    "intro": "AMS-HT H Het toevoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer de PTFE-buisplug van de buffer alstublieft."
-                },
-                {
-                    "ecode": "1806700000020022",
-                    "intro": "AMS-HT G Het toevoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan versleten filament waardoor de hulpmotor slip veroorzaakt. Knip alstublieft het versleten gedeelte van het filament af."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -10228,52 +9232,8 @@
                     "intro": "Er is geen filament gedetecteerd in de rechterextruder van de externe spoel; laad alstublieft het nieuwe filament."
                 },
                 {
-                    "ecode": "1806700000020023",
-                    "intro": "Het toevoeren van filament naar de buffer van AMS-HT G is mislukt; dit kan te wijten zijn aan het loskomen van het filament. Controleer of de filamentbuis niet goed is aangesloten of dat de buis versleten is."
-                },
-                {
-                    "ecode": "0704700000020012",
-                    "intro": "Het toevoeren van filament naar het hulp motorextrusiewiel van AMS E is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is, het filament verstrikt is of de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "1805700000020012",
-                    "intro": "Het toevoeren van filament naar het hulp motorextrusiewiel van AMS-HT F is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel gekanteld is, het filament verstrikt is of de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0705700000020022",
-                    "intro": "Het toevoeren van filament naar de buffer van AMS F is mislukt; dit kan te wijten zijn aan versleten filament waardoor de hulpmotor wegglijdt. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1807700000020021",
-                    "intro": "AMS-HT H Het invoeren van filament via de buffer is mislukt; dit kan te wijten zijn aan een te grote weerstand in het filament. Controleer of de filamentspoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "1803700000020041",
-                    "intro": "AMS-HT D Het uittrekken van het filament is mislukt; dit kan te wijten zijn aan het filament dat loskomt van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "1807700000020031",
-                    "intro": "AMS-HT H Het invoeren van filament naar de tool head extruder is mislukt; dit kan te wijten zijn aan slijtage van het filament waardoor de hulpmotor slipt. Knip het versleten gedeelte van het filament af."
-                },
-                {
                     "ecode": "1801310000010004",
                     "intro": "Versleutelingschip defect."
-                },
-                {
-                    "ecode": "0707700000020033",
-                    "intro": "AMS H Het invoeren van filament naar de tool head extruder is mislukt; dit kan te wijten zijn aan het losschieten van het filament. Controleer of de filamentbuis is losgekoppeld of dat de buis versleten is."
-                },
-                {
-                    "ecode": "1806700000020032",
-                    "intro": "AMS-HT G Het invoeren van filament naar de tool head extruder is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer of de filamentspoel gekanteld is of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "0707700000020010",
-                    "intro": "AMS H Het invoeren van filament naar het hulp motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verstopping in de invoerbuis. Controleer of de invoerbuis en het filamentnaven duidelijk zijn."
-                },
-                {
-                    "ecode": "0706700000020040",
-                    "intro": "Het uittrekken van de AMS G-filament is mislukt; dit kan te wijten zijn aan te veel weerstand in de DC-motor. Controleer of de filamentspoel gekanteld of vervormd is of dat de filamentbuis geblokkeerd is."
                 },
                 {
                     "ecode": "1800450000020003",
@@ -10286,22 +9246,6 @@
                 {
                     "ecode": "0705220000020009",
                     "intro": "AMS F-slot 3 filament kon niet worden geëxtrudeerd; de extruder kan verstopt zijn of het filament kan te dun zijn, waardoor de extruder wegglijdt."
-                },
-                {
-                    "ecode": "1803700000020042",
-                    "intro": "Het uittrekken van de AMS-HT D-filament is mislukt; dit kan te wijten zijn aan een verbroken verbinding in de DC-motor. Controleer of de stekker van de DC-motor goed is aangesloten."
-                },
-                {
-                    "ecode": "0705700000020044",
-                    "intro": "Het uittrekken van de AMS F-filament is mislukt; dit kan te wijten zijn aan een gebroken filament in de gereedschapskop. Verwijder alstublieft het gebroken filament."
-                },
-                {
-                    "ecode": "1803700000020013",
-                    "intro": "Het toevoeren van filament aan het hulpmotor extrusiewiel van AMS-HT D is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerwiel. Controleer alstublieft de verbinding van de stekker van het kilometertellerwiel."
-                },
-                {
-                    "ecode": "0704700000020041",
-                    "intro": "Het uittrekken van de AMS E-filament is mislukt; dit kan te wijten zijn aan het filament dat loskomt van de spoel. Vervang alstublieft de spoel door een nieuwe."
                 },
                 {
                     "ecode": "0700130000010003",
@@ -10452,48 +9396,12 @@
                     "intro": "De extruderschakelactie is abnormaal. Controleer of er iets vastzit in de gereedschapskop."
                 },
                 {
-                    "ecode": "1804700000020021",
-                    "intro": "AMS-HT E De filamenttoevoer naar de buffer is mislukt. Dit kan worden veroorzaakt door overmatige weerstand in de filament. Controleer of het filamentspoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "1804700000020045",
-                    "intro": "AMS-HT E Het uittrekken van de filament is mislukt. Dit kan worden veroorzaakt doordat de filament op is of doordat deze eruit getrokken wordt."
-                },
-                {
-                    "ecode": "0704700000020031",
-                    "intro": "AMS E Het invoeren van filament naar de toolhead-extruder is mislukt. Dit kan worden veroorzaakt doordat de filament versleten is en ervoor zorgt dat de hulpmotor wegglijdt. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "0706700000020060",
-                    "intro": "AMS G Het grijpen van filmaat door de hulpmotor is mislukt. Dit kan worden veroorzaakt doordat de hulpmotor wegglijdt. Knip het versleten gedeelte van de filament af."
-                },
-                {
                     "ecode": "0706200000020009",
                     "intro": "Het extruderen van filament via AMS G Slot 1 is mislukt; dit kan worden veroorzaakt door een verstopte extruder of doordat de filament te dun is, waardoor de extruder slipt."
                 },
                 {
-                    "ecode": "1801700000020033",
-                    "intro": "AMS-HT B Het invoeren van filament naar de tool head extruder is mislukt; dit kan veroorzaakt zijn doordat de filament eruit is gegleden. Controleer of de filamentbuis is losgekoppeld of versleten is."
-                },
-                {
-                    "ecode": "1803700000020045",
-                    "intro": "AMS-HT D Het uittrekken van de filament is mislukt. Dit kan worden veroorzaakt doordat de filament op is of doordat deze eruit getrokken wordt."
-                },
-                {
                     "ecode": "1807310000010004",
                     "intro": "Fout in encryptiechip"
-                },
-                {
-                    "ecode": "1803700000020043",
-                    "intro": "Het verwijderen van het filament uit AMS-HT D is mislukt; dit kan te wijten zijn aan slijtage van het filament waardoor de hulpmotor wegglijdt. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "1807700000020041",
-                    "intro": "Het verwijderen van het filament uit AMS-HT H is mislukt; dit kan te wijten zijn aan het losraken van het filament van de spoel. Vervang alstublieft de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "0707700000020021",
-                    "intro": "Het invoeren van filament in de buffer van AMS H is mislukt; dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer alstublieft of de filament spoel is gekanteld of dat de PTFE-buis geblokkeerd is."
                 },
                 {
                     "ecode": "0706300000010004",
@@ -10502,10 +9410,6 @@
                 {
                     "ecode": "18FE200000020004",
                     "intro": "Haal het externe filament uit de linker extruder."
-                },
-                {
-                    "ecode": "1801700000020010",
-                    "intro": "Het invoeren van filament in het hulpmotor extrusiewiel van AMS-HT B is mislukt. Dit kan te wijten zijn aan een verstopping in de toevoerbuis. Controleer alstublieft of de toevoerbuis en filament hub duidelijk zijn."
                 },
                 {
                     "ecode": "0300C20000010002",
@@ -10660,344 +9564,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0700700000020030",
-                    "intro": "AMS Er is een probleem met het voeden van filament naar de extruder van de tool head. Dit kan komen door een blokkade bij de ingang van de tool head. Controleer de plug van de filamentbuis van de tool head."
-                },
-                {
-                    "ecode": "0700700000020031",
-                    "intro": "AMS Het voeden van filament naar de extruder van de tool head is mislukt; dit kan komen doordat het filament versleten is en de hulpmotor aangetast heeft. Knip het versleten deel van het filament af."
-                },
-                {
-                    "ecode": "0700700000020032",
-                    "intro": "AMS Het voeden van filament naar de extruder van de tool head is mislukt; dit kan komen door overmatige weerstand van het filament. Controleer of de filamentspoel scheef staat of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "0700700000020033",
-                    "intro": "AMS Het voeden van filament naar de extruder van de tool head is mislukt; dit kan komen doordat het filament eruit is gegleden. Controleer of de filamentbuis losgekoppeld is of dat de buis versleten is."
-                },
-                {
-                    "ecode": "0700700000020040",
-                    "intro": "AMS Het verwijderen van het filament is mislukt; dit kan komen door overmatige weerstand in de DC-motor. Controleer of de filamentspoel scheef staat, vervormd is of dat de filamentbuis verstopt is."
-                },
-                {
-                    "ecode": "0700700000020041",
-                    "intro": "AMS Het verwijderen van het filament is mislukt; dit kan komen door het losraken van het filament van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "0700700000020042",
-                    "intro": "AMS Een filament is afgebroken; dit kan komen doordat de DC-motor geen verbinding meer heeft. Controleer de DC-motor stekker om er zeker van te zijn dat deze juist verbonden is."
-                },
-                {
-                    "ecode": "0700700000020043",
-                    "intro": "AMS Een filament verwijderen is mislukt; dit kan komen doordat de filament versleten is en ervoor zorgt dat de bijstandsmotor slipt. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "0700700000020044",
-                    "intro": "AMS Een filament verwijderen is mislukt; dit kan komen doordat de filament gebroken is in de gereedschapskop. Verwijder het gebroken filament."
-                },
-                {
-                    "ecode": "0700700000020045",
-                    "intro": "AMS Het verwijderen van filament is mislukt; dit kan komen doordat de filament op is of is uitgetrokken."
-                },
-                {
-                    "ecode": "0700700000020050",
-                    "intro": "AMS Het laden van filament in de buffer is mislukt; dit kan komen doordat er overmatige weerstand is in de buffer. Controleer of de buffer vastzit, de filamentspoel is gekanteld of de filamentbuis is geblokkeerd."
-                },
-                {
-                    "ecode": "0700700000020060",
-                    "intro": "AMS De ondersteunende extruder kon de filament niet vastpakken; dit kan komen doordat de ondersteunende motor slipt. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "0701700000020030",
-                    "intro": "AMS Het voeden van filament aan de gereedschapskop extruder is mislukt; dit kan komen doordat de filament is geblokkeerd bij de ingang van de gereedschapskop. Controleer de filamentbuis stekker van de gereedschapskop."
-                },
-                {
-                    "ecode": "0701700000020031",
-                    "intro": "AMS Het voeden van filament aan de gereedschapskop extruder is mislukt; dit kan komen doordat de filament versleten is en ervoor zorgt dat de bijstandsmotor slipt. Knip het versleten gedeelte van de filament af."
-                },
-                {
-                    "ecode": "0701700000020032",
-                    "intro": "AMS Het voeden van filament aan de gereedschapskop extruder is mislukt; dit kan komen doordat er overmatige weerstand is door de filament. Controleer of de filamentspoel gekanteld is of dat de filamentbuis is geblokkeerd."
-                },
-                {
-                    "ecode": "0701700000020033",
-                    "intro": "AMS B Het invoeren van filament naar de extruder van het gereedschapshoofd is mislukt; dit kan te wijten zijn aan het uitglijden van het filament. Controleer of de filamentbuis is losgekoppeld of door slijtage is versleten."
-                },
-                {
-                    "ecode": "0701700000020040",
-                    "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de DC-motor. Controleer of de filamentspoel scheef staat of vervormd is of dat de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0701700000020041",
-                    "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het filament dat loskomt van de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "0701700000020042",
-                    "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het DC-motor die de verbinding heeft verloren. Controleer de DC-motorstekker om ervoor te zorgen dat deze goed is aangesloten."
-                },
-                {
-                    "ecode": "0701700000020043",
-                    "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan slijtage van het filament, waardoor de hulpmotor wegglijdt. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0701700000020044",
-                    "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan een gebroken filament in het gereedschapshoofd. Verwijder het gebroken filament."
-                },
-                {
-                    "ecode": "0701700000020045",
-                    "intro": "AMS B Het uittrekken van filament is mislukt; dit kan te wijten zijn aan een tekort aan filament of omdat het filament is uitgetrokken."
-                },
-                {
-                    "ecode": "0701700000020050",
-                    "intro": "AMS B Het laden van filament in de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer vastzit, de filamentspoel scheef staat of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0701700000020060",
-                    "intro": "AMS B Het assisteren van de extruder om het filament te pakken is mislukt; dit kan te wijten zijn aan slippen van de hulpmotor. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0702700000020030",
-                    "intro": "AMS C Het toevoeren van filament aan de kopextruder is mislukt; dit kan te wijten zijn aan dat het filament geblokkeerd is bij de ingang van de kop. Controleer alstublieft de plug van de buis van het kopfilament."
-                },
-                {
-                    "ecode": "0702700000020031",
-                    "intro": "AMS C Het toevoeren van filament aan de kopextruder is mislukt; dit kan te wijten zijn aan slijtage van het filament en het laten slippen van de ondersteunende motor. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0702700000020032",
-                    "intro": "AMS C Het toevoeren van filament aan de kopextruder is mislukt; dit kan te wijten zijn aan overmatige weerstand van het filament. Controleer alstublieft of de filamentspoel gekanteld is of dat de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0702700000020033",
-                    "intro": "AMS C Het toevoeren van filament aan de kopextruder is mislukt; dit kan te wijten zijn aan het slippen van het filament. Controleer of de filamentbuis losgekoppeld is of dat de buis is versleten."
-                },
-                {
-                    "ecode": "0702700000020040",
-                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de DC motor. Controleer alstublieft of de filamentspoel gekanteld of vervormd is of dat de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0702700000020041",
-                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan dat het filament loskomt van de spoel. Vervang alstublieft de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "0702700000020042",
-                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan dat de DC motor de verbinding verliest. Controleer alstublieft of de stekker van de DC motor correct is aangesloten."
-                },
-                {
-                    "ecode": "0702700000020043",
-                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan slijtage van het filament en het laten slippen van de ondersteunende motor. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0702700000020044",
-                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan gebroken filament in de kop. Verwijder alstublieft het gebroken filament."
-                },
-                {
-                    "ecode": "0702700000020045",
-                    "intro": "AMS C Het uittrekken van filament is mislukt; dit kan te wijten zijn aan dat het filament op is of is uitgetrokken."
-                },
-                {
-                    "ecode": "0702700000020050",
-                    "intro": "AMS C Het laden van filament in de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer of de buffer is vastgelopen, de filamentspoel gekanteld is of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0702700000020060",
-                    "intro": "AMS C Het assisteren van de extruder om de filament vast te pakken is mislukt; dit kan te wijten zijn aan een slip in de hulpmotor. Knip het versleten deel van de filament af."
-                },
-                {
-                    "ecode": "0703700000020030",
-                    "intro": "AMS D Het toevoeren van filament aan de gereedschapskop-extruder is mislukt; dit kan te wijten zijn aan het filament dat geblokkeerd is bij de ingang van de gereedschapskop. Controleer de stekker van de filamentbuis van de gereedschapskop."
-                },
-                {
-                    "ecode": "0703700000020031",
-                    "intro": "AMS D Het toevoeren van filament aan de gereedschapskop-extruder is mislukt; dit kan te wijten zijn aan het verslijten van de filament en het veroorzaken van een slip in de hulpmotor. Knip het versleten deel van de filament af."
-                },
-                {
-                    "ecode": "0703700000020032",
-                    "intro": "AMS D Het toevoeren van filament aan de gereedschapskop-extruder is mislukt; dit kan te wijten zijn aan overmatige weerstand van de filament. Controleer of de filamentspoel gekanteld is of dat de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0703700000020033",
-                    "intro": "AMS D Het toevoeren van filament aan de gereedschapskop-extruder is mislukt; dit kan te wijten zijn aan het uitglijden van de filament. Controleer of de filamentbuis is losgekoppeld of dat de buis is versleten."
-                },
-                {
-                    "ecode": "0703700000020040",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan overmatige weerstand in de DC-motor. Controleer of de filamentspoel gekanteld of vervormd is en of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0703700000020041",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het losraken van de filament vanaf de spoel. Vervang de spoel door een nieuwe."
-                },
-                {
-                    "ecode": "0703700000020042",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het verliezen van de verbinding van de DC-motor. Controleer of de DC-motorstekker goed is aangesloten."
-                },
-                {
-                    "ecode": "0703700000020043",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het filament dat versleten is en de hulpmotor doet slippen. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0703700000020044",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan gebroken filament in de tool head. Verwijder het gebroken filament, alstublieft."
-                },
-                {
-                    "ecode": "0703700000020045",
-                    "intro": "AMS D Het uittrekken van filament is mislukt; dit kan te wijten zijn aan het opraken van het filament of dat het filament eruit getrokken is."
-                },
-                {
-                    "ecode": "0703700000020050",
-                    "intro": "AMS D Het laden van filament in de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in de buffer. Controleer alsjeblieft of de buffer vastzit, de filamentspoel gekanteld is of de filamentbuis geblokkeerd is."
-                },
-                {
-                    "ecode": "0703700000020060",
-                    "intro": "AMS D Het assisteren van de extruder om het filament te pakken is mislukt; dit kan te wijten zijn aan het slippen van de hulpmotor. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
                     "ecode": "0300250000010008",
                     "intro": "De rechter nozzle raakt het verwarmingsbed abnormaal aan. Controleer alstublieft of er filamentresidu op de nozzle zit of dat er vreemde voorwerpen zijn waar de nozzle het bed raakt."
-                },
-                {
-                    "ecode": "0702700000020020",
-                    "intro": "AMS C Het invoeren van filament in de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer alstublieft de PTFE-buisplug van de buffer."
-                },
-                {
-                    "ecode": "0701700000020022",
-                    "intro": "AMS B Het invoeren van filament in de buffer is mislukt; dit kan te wijten zijn aan versleten filament dat ervoor zorgt dat de hulpmotor glijdt. Knip alstublieft het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0702700000020014",
-                    "intro": "AMS C Het invoeren van filament in het extrusiewiel van de hulpmotor is mislukt. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de toevoerbuis terechtkomt. Verwijder het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "0702700000020022",
-                    "intro": "De AMS C kan het filament niet naar de buffer toe voeren. Dit kan te wijten zijn aan versleten filament waardoor de assistent motor wegglijdt. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0700700000020013",
-                    "intro": "De AMS A kan geen filament naar het extrusiewiel van de assistent motor voeren. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerswiel. Controleer de verbinding van de kilometertellerswiel stekker."
-                },
-                {
-                    "ecode": "0701700000020011",
-                    "intro": "De AMS B kan geen filament naar het extrusiewiel van de assistent motor voeren. Dit kan te wijten zijn aan een losse verbinding van de DC motor. Controleer de verbinding van de DC motor stekker."
-                },
-                {
-                    "ecode": "0702700000020023",
-                    "intro": "AMS C kan het filament niet naar de buffer toe voeren. Dit kan te wijten zijn aan het loslaten van het filament. Controleer of de filamentbuis niet goed is aangesloten of versleten."
-                },
-                {
-                    "ecode": "0703700000020012",
-                    "intro": "AMS D kan geen filament naar het extrusiewiel van de assistent motor voeren. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel scheef staat, of het filament in de knoop zit, of dat de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0702700000020021",
-                    "intro": "AMS C kan geen filament naar de buffer toe voeren. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel scheef staat of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "0703700000020020",
-                    "intro": "AMS D kan geen filament naar de buffer toe voeren. Dit kan te wijten zijn aan het blokkeren van de buffer door het filament. Controleer de PTFE-buisstekker van de buffer."
-                },
-                {
-                    "ecode": "0701700000020014",
-                    "intro": "AMS B kan geen filament naar het extrusiewiel van de assistent motor voeren. Dit kan te wijten zijn aan een klein stukje gebroken filament dat in de invoerbuis terecht is gekomen. Verwijder het gebroken filament uit de invoerbuis."
-                },
-                {
-                    "ecode": "0700700000020023",
-                    "intro": "AMS Er is een probleem met het voeden van filament naar de buffer; dit kan komen doordat het filament los is geraakt. Controleer of de filamentbuis niet goed is aangesloten of dat de buis versleten is."
-                },
-                {
-                    "ecode": "0702700000020012",
-                    "intro": "AMS C Het toevoeren van filament naar het extrusiewiel van de assistmotor is mislukt. Dit kan komen door overmatige weerstand in het filament. Controleer of het spoel niet scheef staat, of het filament verstrikt is, of dat de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0703700000020010",
-                    "intro": "AMS D Het toevoeren van filament naar het extrusiewiel van de assistmotor is mislukt. Dit kan komen door een verstopping in de toevoerbuis. Controleer of de toevoerbuis en de filament hub vrij zijn van verstoppingen."
-                },
-                {
-                    "ecode": "0700700000020020",
-                    "intro": "AMS A Het voeden van filament naar de buffer is mislukt; dit kan worden veroorzaakt doordat de buffer het filament blokkeert. Controleer de PTFE-buisplug van de buffer."
-                },
-                {
-                    "ecode": "0701700000020012",
-                    "intro": "AMS B Het toevoeren van filament naar het extrusiewiel van de assistmotor is mislukt. Dit kan veroorzaakt worden door overmatige weerstand in het filament. Controleer of de spoel scheef staat, of het filament verstrikt is, of dat de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0702700000020011",
-                    "intro": "AMS C Het toevoeren van filament naar het extrusiewiel van de assistmotor is mislukt. Dit kan veroorzaakt worden door een losse verbinding van de DC-motor. Controleer de verbinding van de DC-motorplug."
-                },
-                {
-                    "ecode": "0701700000020013",
-                    "intro": "AMS B Het toevoeren van filament naar het extrusiewiel van de assistmotor is mislukt. Dit kan veroorzaakt worden door een verloren signaal van het odometerwiel. Controleer de verbinding van de plug van het odometerwiel."
-                },
-                {
-                    "ecode": "0703700000020021",
-                    "intro": "AMS D Het voeden van filament naar de buffer is mislukt; dit kan worden veroorzaakt door overmatige weerstand in het filament. Controleer of de filament spoel scheef staat of dat de PTFE-buis is geblokkeerd."
-                },
-                {
-                    "ecode": "0703700000020014",
-                    "intro": "AMS D Het toevoeren van filament naar het extrusiewiel van de assistmotor is mislukt. Dit kan worden veroorzaakt door een klein stukje gebroken filament dat in de toevoerbuis terecht is gekomen. Verwijder het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "0700700000020014",
-                    "intro": "AMS A Het toevoeren van filament naar het extrusiewiel van de assistmotor is mislukt. Dit kan worden veroorzaakt door een klein stukje gebroken filament dat in de toevoerbuis terecht is gekomen. Verwijder het gebroken filament uit de toevoerbuis."
-                },
-                {
-                    "ecode": "0701700000020010",
-                    "intro": "AMS B Het invoeren van filament naar het hulp motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verstopping in de voerbuis. Controleer of de voerbuis en het filament hub duidelijk zijn."
-                },
-                {
-                    "ecode": "0702700000020013",
-                    "intro": "AMS C Het invoeren van filament naar het hulp motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het kilometertellerwiel. Controleer de verbinding van de stekker van het kilometertellerwiel."
-                },
-                {
-                    "ecode": "0703700000020022",
-                    "intro": "AMS D Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan versleten filament dat ervoor zorgt dat de hulp motor slip. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0703700000020011",
-                    "intro": "AMS D Het invoeren van filament naar het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een ontkoppeling van de DC-motor. Controleer de verbinding van de DC-motorstekker."
-                },
-                {
-                    "ecode": "0700700000020010",
-                    "intro": "AMS A Het invoeren van filament naar het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan een verstopping in de voerbuis. Controleer of de voerbuis en de filament hub duidelijk zijn."
-                },
-                {
-                    "ecode": "0700700000020012",
-                    "intro": "AMS A Het invoeren van filament naar het hulpmotor-extrusiewiel is mislukt. Dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer of de spoel is gekanteld, het filament in de knoop zit, of de rotatie van de spoel niet soepel verloopt."
-                },
-                {
-                    "ecode": "0701700000020023",
-                    "intro": "AMS B Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan het losraken van het filament. Controleer of de filamentbuis onjuist is aangesloten of dat de buis is versleten."
-                },
-                {
-                    "ecode": "0700700000020022",
-                    "intro": "AMS A Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan versleten filament dat ervoor zorgt dat de hulpmotor gaat slippen. Knip het versleten gedeelte van het filament af."
-                },
-                {
-                    "ecode": "0703700000020023",
-                    "intro": "AMS D Het invoeren van filament naar de buffer is mislukt; dit kan te wijten zijn aan het losraken van het filament. Controleer of de filamentbuis onjuist is aangesloten of dat de buis is versleten."
-                },
-                {
-                    "ecode": "0703700000020013",
-                    "intro": "AMS D Voeren van filament naar het hulp-motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een verloren signaal van het odometer wiel. Controleer alstublieft de verbinding van de plug van het odometer wiel."
-                },
-                {
-                    "ecode": "0701700000020021",
-                    "intro": "AMS B Voeden van filament naar de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer alstublieft of de filament spoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "0700700000020021",
-                    "intro": "AMS A Voeden van filament naar de buffer is mislukt; dit kan te wijten zijn aan overmatige weerstand in het filament. Controleer alstublieft of de filament spoel gekanteld is of dat de PTFE-buis geblokkeerd is."
-                },
-                {
-                    "ecode": "0701700000020020",
-                    "intro": "AMS B Voeden van filament naar de buffer is mislukt; dit kan te wijten zijn aan de buffer die het filament blokkeert. Controleer alstublieft de PTFE-buisplug van de buffer."
-                },
-                {
-                    "ecode": "0700700000020011",
-                    "intro": "AMS A Voeden van filament naar het hulp-motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een ontkoppeling van de DC-motor. Controleer alstublieft de verbinding van de DC-motorstekker."
-                },
-                {
-                    "ecode": "0702700000020010",
-                    "intro": "AMS C Voeden van filament naar het hulp-motor extrusiewiel is mislukt. Dit kan te wijten zijn aan een blokkade in de voedingstube. Controleer alstublieft of de voedingstube en de filament hub vrij zijn van obstructies."
                 },
                 {
                     "ecode": "0300260000010008",
@@ -11054,10 +9622,6 @@
                 {
                     "ecode": "0300990000010001",
                     "intro": "Het lijkt erop dat het rechter zijraam open is; de taak is gepauzeerd."
-                },
-                {
-                    "ecode": "0C00040000010017",
-                    "intro": "Print-then-cut heeft de markering niet gedetecteerd; plak het materiaal dat moet worden gesneden opnieuw."
                 },
                 {
                     "ecode": "0701960000010003",
@@ -11265,15 +9829,15 @@
                 },
                 {
                     "ecode": "0500010000020009",
-                    "intro": ""
+                    "intro": "De framesnelheid van de MIPI-camera is minder dan 1."
                 },
                 {
                     "ecode": "0500060000020023",
-                    "intro": ""
+                    "intro": "De lasercamera detecteert lage CIF/ISP/ISPP-framerates."
                 },
                 {
                     "ecode": "0500060000020011",
-                    "intro": ""
+                    "intro": "XCAM heeft geen MIPI-onderbreking; controleer de hardware en de lijnverbinding."
                 },
                 {
                     "ecode": "0500020000020003",
@@ -11297,7 +9861,7 @@
                 },
                 {
                     "ecode": "0500010000020008",
-                    "intro": ""
+                    "intro": "IP-cam geheugen te hoog; neem contact op met R&D!"
                 },
                 {
                     "ecode": "0703900000010003",
@@ -11661,7 +10225,7 @@
                 },
                 {
                     "ecode": "0500060000020013",
-                    "intro": ""
+                    "intro": "De lasercamera heeft geen MIPI-onderbreking; controleer de hardware en de lijnverbindingen."
                 },
                 {
                     "ecode": "050003000001000A",
@@ -11973,7 +10537,7 @@
                 },
                 {
                     "ecode": "0500060000020014",
-                    "intro": ""
+                    "intro": "Liveview-camera heeft geen mipi-onderbreking; controleer de hardware- en lijnverbindingen."
                 },
                 {
                     "ecode": "0300970000010002",
@@ -12573,27 +11137,27 @@
                 },
                 {
                     "ecode": "0500010000030009",
-                    "intro": ""
+                    "intro": "De fps van de MIPI-camera is minder dan 1."
                 },
                 {
                     "ecode": "0500030000030007",
-                    "intro": ""
+                    "intro": "Er is een systeempaniek opgetreden. Het is hersteld via automatische herstart."
                 },
                 {
                     "ecode": "05000600000200A1",
-                    "intro": ""
+                    "intro": "AP herstart boot_reason=watchdog."
                 },
                 {
                     "ecode": "0500060000020024",
-                    "intro": ""
+                    "intro": "De liveview-camera detecteert lage Cif/Isp/Ispp-framerates."
                 },
                 {
                     "ecode": "05000600000200A0",
-                    "intro": ""
+                    "intro": "AP herstart boot_reason=panic."
                 },
                 {
                     "ecode": "0500060000020021",
-                    "intro": ""
+                    "intro": "De xcam-camera detecteert lage Cif/Isp/Ispp-framerates."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -14336,10 +12900,6 @@
                     "intro": "Het filament van AMS C-slot 4 kan verstrikt zijn of vastzitten."
                 },
                 {
-                    "ecode": "0C00040000020001",
-                    "intro": "Laserbasis niet gedetecteerd. Plaats deze alstublieft en ga verder."
-                },
-                {
                     "ecode": "0702900000010002",
                     "intro": "De spoel van de uitlaatklep 1 van AMS C is kortgesloten, wat kan wijzen op abnormale bedrading of schade."
                 },
@@ -15020,10 +13580,6 @@
                     "intro": "De motor koppelregeling van de hulpmotor van AMS A werkt niet correct. De stroomsensor kan defect zijn."
                 },
                 {
-                    "ecode": "0701700000020061",
-                    "intro": "De AMS B Assisterende extruder kon het filament niet vastgrijpen, mogelijk door te veel weerstand vanuit de buffer. Controleer of de buffer vastzit, of de spoel met filament scheef staat en of de filamentbuis helder is."
-                },
-                {
                     "ecode": "0703020000010001",
                     "intro": "AMS D Fout in filament snelheid en lengte: de filament-odometrie kan defect zijn."
                 },
@@ -15292,10 +13848,6 @@
                     "intro": "De frequentie van de kalibratiesensor voor de mondstuk-offset is te hoog. De sensor kan beschadigd zijn."
                 },
                 {
-                    "ecode": "0702700000020061",
-                    "intro": "Het Assisterend Extruder bij AMS C kon niet extruderen door mogelijk buitensporige weerstand vanuit de buffer. Controleer of de buffer vastzit, of de filamentrol gekanteld is en of de filamentbuis vrij is."
-                },
-                {
                     "ecode": "0703010000010001",
                     "intro": "De hulpmotor van de AMS D is uitgegleden. Het extrusiewiel kan versleten zijn of de filament kan te dun zijn."
                 },
@@ -15338,10 +13890,6 @@
                 {
                     "ecode": "0703500000020001",
                     "intro": "AMS D communicatie is abnormaal; controleer de verbindingskabel."
-                },
-                {
-                    "ecode": "0703700000020061",
-                    "intro": "AMS D Bijstand om filament door extruder te sturen is mislukt, mogelijk als gevolg van overmatige weerstand van de buffer. Controleer of de buffer vastzit, of de filamentspoel scheef staat en of de filamentbuis helder is."
                 },
                 {
                     "ecode": "1200130000010003",
@@ -15610,10 +14158,6 @@
                 {
                     "ecode": "0703900000020001",
                     "intro": "De werking van uitlaatklep 1 is abnormaal bij AMS D, mogelijk door overmatige weerstand."
-                },
-                {
-                    "ecode": "0700700000020061",
-                    "intro": "De ondersteunende extruder van AMS A kan het filament niet vastpakken en dit kan mogelijk komen door overmatige weerstand van de buffer. Controleer alstublieft of de buffer vastzit, of de filamentspoel gekanteld is en of de filamentbuis vrij is."
                 },
                 {
                     "ecode": "0703010000020002",

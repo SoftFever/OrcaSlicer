@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1741069238,
-    "ver": 202503250304,
+    "t": 1741598052,
+    "ver": 202503250310,
     "data": {
         "device_error": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "en": [
+                {
+                    "ecode": "05004031",
+                    "intro": "An uncertified accessory was detected, and the device cannot continue working. Please use Bambu Lab accessories or upgrade to the latest firmware."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "Laser Module is not certified; the device cannot continue working. Please use Bambu Lab accessories or upgrade to the latest firmware."
+                },
+                {
+                    "ecode": "05004035",
+                    "intro": "BirdsEye Camera is not certified; the device cannot continue working. Please use Bambu Lab accessories or upgrade to the latest firmware."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "The BirdsEye Camera setup failed. Please clear the heated bed, remove all objects and the mat, and ensure the heatbed markers are visible. Meanwhile, clean BirdsEye Camera and Toolhead Camera, and remove any obstructions that may block the cameras."
+                },
+                {
+                    "ecode": "0500808A",
+                    "intro": "The BirdsEye Camera is installed offset. Please refer to the assistant to reinstall it."
+                },
+                {
+                    "ecode": "05008089",
+                    "intro": "Task paused due to Presence Check failed. Please check the printer to continue."
+                },
                 {
                     "ecode": "0500806A",
                     "intro": "Unable to recognize the left and right hotend. It might be a non-official hotend, or the hotend mark could be dirty. Please set hotend type before next print."
@@ -101,10 +125,6 @@
                 {
                     "ecode": "05024007",
                     "intro": "Failed to start a new task: filament loading/unloading not completed."
-                },
-                {
-                    "ecode": "05004035",
-                    "intro": "BirdsEye Camera is not certified; the device cannot continue working. Please use Bambu Lab accessories."
                 },
                 {
                     "ecode": "0300801A",
@@ -289,10 +309,6 @@
                 {
                     "ecode": "0500807D",
                     "intro": "This task requires a Cutting Platform, but the current one is a Laser Platform. Please replace it with a Cutting Platform (Cutting Protection Base + StrongGrip Cutting Mat)."
-                },
-                {
-                    "ecode": "05004034",
-                    "intro": "Laser Module is not certified; the device cannot continue working. Please use Bambu Lab accessories."
                 },
                 {
                     "ecode": "03008000",
@@ -901,10 +917,6 @@
                 {
                     "ecode": "18008016",
                     "intro": "The extruder is not extruding normally; please refer to the Assistant. After trouble shooting. If the defects are acceptable, please resume."
-                },
-                {
-                    "ecode": "05004031",
-                    "intro": "An uncertified accessory was detected, and the device cannot continue working."
                 },
                 {
                     "ecode": "0702800A",
@@ -1980,7 +1992,7 @@
                 },
                 {
                     "ecode": "0C008002",
-                    "intro": ""
+                    "intro": "Spaghetti failure was detected."
                 },
                 {
                     "ecode": "0300400F",
@@ -2489,8 +2501,24 @@
             ]
         },
         "device_hms": {
-            "ver": 202503250304,
+            "ver": 202503250310,
             "en": [
+                {
+                    "ecode": "0C00040000030024",
+                    "intro": "The BirdsEye Camera position is detected to be offset. To ensure engraving accuracy, it is recommended to rerun the BirdsEye Camera Setup."
+                },
+                {
+                    "ecode": "0500040000020043",
+                    "intro": "The Nozzle Camera is dirty or obstructed; please clean it and continue."
+                },
+                {
+                    "ecode": "0500040000020041",
+                    "intro": "The laser module has been used for a long time. Please clean it promptly to avoid affecting laser processing."
+                },
+                {
+                    "ecode": "0500040000020042",
+                    "intro": "The Live View Camera is dirty or obstructed; please clean it and continue."
+                },
                 {
                     "ecode": "0700700000020003",
                     "intro": "Failed to extrude the filament. Possible cause: extruder or nozzle clog."
@@ -2561,11 +2589,11 @@
                 },
                 {
                     "ecode": "0500060000020061",
-                    "intro": ""
+                    "intro": "Camera CIF link has been reset several times. It might be a problem with the connection cable or the camera has aged. Contact hardware colleagues to check."
                 },
                 {
                     "ecode": "0C0001000002001B",
-                    "intro": ""
+                    "intro": "The Xcam process is about to coredump, please contact the developer."
                 },
                 {
                     "ecode": "0700700000020006",
@@ -2673,39 +2701,39 @@
                 },
                 {
                     "ecode": "0500060000020051",
-                    "intro": ""
+                    "intro": "Toolhead camera has been reset for several consecutive times. Contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020054",
-                    "intro": ""
+                    "intro": "LiveView camera has been reset for several consecutive times. Contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020043",
-                    "intro": ""
+                    "intro": "BirdsEye camera i2c communication failed, the camera may be broken, contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020042",
-                    "intro": ""
+                    "intro": "Nozzle camera i2c communication failed, the camera may be broken, contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020041",
-                    "intro": ""
+                    "intro": "Toolhead camera i2c communication failed, the camera may be broken, contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020053",
-                    "intro": ""
+                    "intro": "BirdsEye camera has been reset for several consecutive times. Contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020044",
-                    "intro": ""
+                    "intro": "LiveView camera i2c communication failed, the camera may be broken, contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020062",
-                    "intro": ""
+                    "intro": "Camera ISP link has been reset several times. Contact the developer to confirm."
                 },
                 {
                     "ecode": "0500060000020052",
-                    "intro": ""
+                    "intro": "Nozzle camera has been reset for several consecutive times. Contact the developer to confirm."
                 },
                 {
                     "ecode": "0300260000010002",
@@ -2772,10 +2800,6 @@
                     "intro": "The Cutting Module needs calibration to get the tool position. Please perform the mounting calibration before use. (about 2-4 minutes)"
                 },
                 {
-                    "ecode": "0705700000020046",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
                     "ecode": "1806700000020008",
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
                 },
@@ -2797,23 +2821,15 @@
                 },
                 {
                     "ecode": "0500010000020003",
-                    "intro": ""
+                    "intro": "Live View camera format is incorrect. Please restart the printer. If multiple attempts fail, please contact customer support."
                 },
                 {
                     "ecode": "0700700000020008",
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
                 },
                 {
-                    "ecode": "0700700000020046",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
                     "ecode": "0701700000020008",
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "0701700000020046",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
                 },
                 {
                     "ecode": "0702700000020008",
@@ -2852,40 +2868,12 @@
                     "intro": "Toolhead camera is malfunctioning. If this issue occurs multiple times during printing, please contact customer support."
                 },
                 {
-                    "ecode": "1805700000020046",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1803700000020046",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
                     "ecode": "1803700000020008",
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
                 },
                 {
                     "ecode": "1805700000020008",
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
-                },
-                {
-                    "ecode": "0704700000020046",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "0706700000020046",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1804700000020046",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1802700000020046",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1800700000020046",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
                 },
                 {
                     "ecode": "1802700000020008",
@@ -2901,7 +2889,7 @@
                 },
                 {
                     "ecode": "0500050000010009",
-                    "intro": ""
+                    "intro": "MQTT Command verification failed; please check the format or signature."
                 },
                 {
                     "ecode": "0300280000010003",
@@ -2944,14 +2932,6 @@
                     "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
                 },
                 {
-                    "ecode": "0702700000020046",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "0703700000020046",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
                     "ecode": "0300250000010001",
                     "intro": "The frequency of the extrusion force sensor of the right extruder is too low. The nozzle may not be installed, or the nozzle heat sink may be too far away from the sensor."
                 },
@@ -2988,10 +2968,6 @@
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
                 },
                 {
-                    "ecode": "0707700000020046",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
                     "ecode": "0707700000020008",
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
                 },
@@ -3008,20 +2984,8 @@
                     "intro": "Failed to get AMS mapping table; please select \"Resume\" to retry."
                 },
                 {
-                    "ecode": "1801700000020046",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1806700000020046",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1807700000020046",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to excessive resistance in the assist motor. Please check if the filament spool is tilted or deformed and if the filament tube is clear."
-                },
-                {
                     "ecode": "0500050000010008",
-                    "intro": ""
+                    "intro": "MQTT Command verification failed; please install the latest certificate in Studio."
                 },
                 {
                     "ecode": "18FE800000010004",
@@ -3061,15 +3025,15 @@
                 },
                 {
                     "ecode": "0500030000020011",
-                    "intro": ""
+                    "intro": "upgrade coredump: it is recovering."
                 },
                 {
                     "ecode": "0500030000020013",
-                    "intro": ""
+                    "intro": "xcam coredump: it is recovering."
                 },
                 {
                     "ecode": "0500030000020018",
-                    "intro": ""
+                    "intro": "security coredump: it is recovering."
                 },
                 {
                     "ecode": "0C00010000010005",
@@ -3165,23 +3129,23 @@
                 },
                 {
                     "ecode": "0500030000020010",
-                    "intro": ""
+                    "intro": "forward coredump: it is recovering."
                 },
                 {
                     "ecode": "0500030000020014",
-                    "intro": ""
+                    "intro": "bbl_screen coredump: it is recovering."
                 },
                 {
                     "ecode": "0500030000020015",
-                    "intro": ""
+                    "intro": "device_gate coredump: it is recovering."
                 },
                 {
                     "ecode": "0500030000020016",
-                    "intro": ""
+                    "intro": "device_manager coredump: it is recovering."
                 },
                 {
                     "ecode": "0500030000020017",
-                    "intro": ""
+                    "intro": "recorder coredump: it is recovering."
                 },
                 {
                     "ecode": "0700400000020001",
@@ -3213,7 +3177,7 @@
                 },
                 {
                     "ecode": "0500060000020007",
-                    "intro": ""
+                    "intro": "Too many laser mipi errors; please check the hardware and line connections."
                 },
                 {
                     "ecode": "07FE810000010003",
@@ -3229,7 +3193,7 @@
                 },
                 {
                     "ecode": "0500060000020005",
-                    "intro": ""
+                    "intro": "Too many xcam mipi errors; please check the hardware and line connections."
                 },
                 {
                     "ecode": "0300C30000010001",
@@ -3441,7 +3405,7 @@
                 },
                 {
                     "ecode": "0500030000020012",
-                    "intro": ""
+                    "intro": "ipcam coredump: it is recovering."
                 },
                 {
                     "ecode": "0300970000030001",
@@ -3497,11 +3461,11 @@
                 },
                 {
                     "ecode": "0C00010000020019",
-                    "intro": ""
+                    "intro": "Xcam stream on too slowly. Please contact the developer."
                 },
                 {
                     "ecode": "0C0001000002001A",
-                    "intro": ""
+                    "intro": "Failed to start Xcam streaming. This may be due to an incompatible MC/TH firmware version or a loose camera connection. Please contact the development team."
                 },
                 {
                     "ecode": "0700010000010005",
@@ -4644,10 +4608,6 @@
                     "intro": "Toolhead Camera lens seems to be dirty. Please clean the lens."
                 },
                 {
-                    "ecode": "0C00010000010009",
-                    "intro": "The Live View Camera lens seems to be dirty. Please clean the lens."
-                },
-                {
                     "ecode": "0C00010000020006",
                     "intro": "Toolhead Camera parameter is abnormal. Please enable flowrate calibration in the next print."
                 },
@@ -4657,7 +4617,7 @@
                 },
                 {
                     "ecode": "0500060000020002",
-                    "intro": ""
+                    "intro": "The Nozzle Camera is not in place; please check the hardware connection."
                 },
                 {
                     "ecode": "0C00040000010012",
@@ -4669,7 +4629,7 @@
                 },
                 {
                     "ecode": "0500060000020001",
-                    "intro": ""
+                    "intro": "The Toolhead Camera is not in place; please check the hardware connection"
                 },
                 {
                     "ecode": "0C00040000020003",
@@ -4681,11 +4641,11 @@
                 },
                 {
                     "ecode": "0500060000020012",
-                    "intro": ""
+                    "intro": "Nozzle Camera has no mipi interrupt; please check the hardware and line connection."
                 },
                 {
                     "ecode": "0500060000020006",
-                    "intro": ""
+                    "intro": "Too many Nozzle Camera mipi errors; please check the hardware and line connections."
                 },
                 {
                     "ecode": "0500060000020004",
@@ -4701,7 +4661,7 @@
                 },
                 {
                     "ecode": "0500060000020022",
-                    "intro": ""
+                    "intro": "Nozzle Camera detects low cif/isp/ispp frame rates."
                 },
                 {
                     "ecode": "0300950000010004",
@@ -4713,7 +4673,7 @@
                 },
                 {
                     "ecode": "0500060000020003",
-                    "intro": ""
+                    "intro": "BirdsEye Camera is not in place; please check the hardware connection"
                 },
                 {
                     "ecode": "0300950000010002",
@@ -4741,7 +4701,7 @@
                 },
                 {
                     "ecode": "050001000001000A",
-                    "intro": ""
+                    "intro": "BirdsEye Camera is not certified, and camera-related functions are invalid."
                 },
                 {
                     "ecode": "0300950000010008",
@@ -5333,7 +5293,7 @@
                 },
                 {
                     "ecode": "0C00010000020016",
-                    "intro": ""
+                    "intro": "Camera image transmission error detected. Please restart the printer."
                 },
                 {
                     "ecode": "0500030000020020",
@@ -5341,7 +5301,7 @@
                 },
                 {
                     "ecode": "0C00010000020015",
-                    "intro": ""
+                    "intro": "Detected camera frame loss."
                 },
                 {
                     "ecode": "0702010000020006",
@@ -5381,7 +5341,7 @@
                 },
                 {
                     "ecode": "0500060000020008",
-                    "intro": ""
+                    "intro": "Too many liveview mipi errors; please check the hardware and line connections."
                 },
                 {
                     "ecode": "0701010000020006",
@@ -5441,15 +5401,15 @@
                 },
                 {
                     "ecode": "050005000001000B",
-                    "intro": ""
+                    "intro": "MQTT Command verification failed, please update Studio."
                 },
                 {
                     "ecode": "050005000001000A",
-                    "intro": ""
+                    "intro": "MQTT Command verification failed, please update Studio and printer firmware."
                 },
                 {
                     "ecode": "050005000001000C",
-                    "intro": ""
+                    "intro": "MQTT Command verification failed, please update the printer firmware."
                 },
                 {
                     "ecode": "0500010000030005",
@@ -5916,10 +5876,6 @@
                     "intro": "The extruder switching motor is working abnormally. Please check whether the connecting cable is loose."
                 },
                 {
-                    "ecode": "0706700000020020",
-                    "intro": "AMS G filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
                     "ecode": "0701130000010001",
                     "intro": "The AMS B slot 4 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
                 },
@@ -6132,16 +6088,8 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "0705700000020040",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
                     "ecode": "1807300000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1806700000020060",
-                    "intro": "AMS-HT G Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
                 },
                 {
                     "ecode": "0704310000010004",
@@ -6160,28 +6108,8 @@
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
                 {
-                    "ecode": "1805700000020013",
-                    "intro": "AMS-HT F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "0705700000020021",
-                    "intro": "AMS F Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
                     "ecode": "0707220000020009",
                     "intro": "Failed to extrude AMS H Slot 3 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
-                },
-                {
-                    "ecode": "0705700000020061",
-                    "intro": "AMS F Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1805700000020050",
-                    "intro": "AMS-HT F Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0705700000020032",
-                    "intro": "AMS F Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
                 },
                 {
                     "ecode": "0707300000010004",
@@ -6352,62 +6280,6 @@
                     "intro": "AMS H Slot 1 feed-in Hall sensor is disconnected, which may be due to poor connector contact."
                 },
                 {
-                    "ecode": "1807700000020045",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "1803700000020031",
-                    "intro": "AMS-HT D Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1802700000020023",
-                    "intro": "AMS-HT C Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1800700000020044",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1807700000020061",
-                    "intro": "AMS-HT H Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1802700000020022",
-                    "intro": "AMS-HT C Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1805700000020021",
-                    "intro": "AMS-HT F Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "1802700000020032",
-                    "intro": "AMS-HT C Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0705700000020043",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1802700000020021",
-                    "intro": "AMS-HT C Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "0706700000020061",
-                    "intro": "AMS G Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1800700000020022",
-                    "intro": "AMS-HT A Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1803700000020040",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "1805700000020010",
-                    "intro": "AMS-HT F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
                     "ecode": "0700100000010003",
                     "intro": "The AMS A slot 1 motor torque control is malfunctioning. The current sensor may be faulty."
                 },
@@ -6576,14 +6448,6 @@
                     "intro": "AMS D Slot 3 feed-in Hall sensor is disconnected, which may be due to poor connector contact."
                 },
                 {
-                    "ecode": "1803700000020020",
-                    "intro": "AMS-HT D filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "1802700000020060",
-                    "intro": "AMS-HT C Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "1800400000020004",
                     "intro": "The filament buffer signal is abnormal; the spring may be stuck, or the filament may be tangled."
                 },
@@ -6592,40 +6456,8 @@
                     "intro": "Failed to extrude AMS E Slot 1 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "1802700000020061",
-                    "intro": "AMS-HT C Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1803700000020050",
-                    "intro": "AMS-HT D Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
                     "ecode": "1806300000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1800700000020030",
-                    "intro": "AMS-HT A Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "1800700000020031",
-                    "intro": "AMS-HT A Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0705700000020020",
-                    "intro": "AMS F filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0707700000020044",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1805700000020023",
-                    "intro": "AMS-HT F Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0707700000020022",
-                    "intro": "AMS H Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
                 },
                 {
                     "ecode": "0704310000030003",
@@ -6864,72 +6696,16 @@
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "1801700000020044",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1804700000020020",
-                    "intro": "AMS-HT E filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "1804700000020031",
-                    "intro": "AMS-HT E Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "0705310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "0707700000020043",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0706700000020041",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1805700000020041",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1807700000020013",
-                    "intro": "AMS-HT H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "1802700000020042",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "1803700000020010",
-                    "intro": "AMS-HT D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "0706700000020022",
-                    "intro": "AMS G Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1805700000020061",
-                    "intro": "AMS-HT F Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
                 {
                     "ecode": "1807310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "1803700000020061",
-                    "intro": "AMS-HT D Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1801700000020011",
-                    "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
                     "ecode": "1806350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
-                },
-                {
-                    "ecode": "1805700000020040",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
                 },
                 {
                     "ecode": "0700110000020002",
@@ -7116,44 +6892,12 @@
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "1806700000020031",
-                    "intro": "AMS-HT G Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "1804310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "1806700000020010",
-                    "intro": "AMS-HT G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
                     "ecode": "0705200000020009",
                     "intro": "Failed to extrude AMS F Slot 1 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
-                },
-                {
-                    "ecode": "1800700000020045",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0706700000020011",
-                    "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "1803700000020030",
-                    "intro": "AMS-HT D Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "0704700000020044",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1804700000020050",
-                    "intro": "AMS-HT E Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0707700000020014",
-                    "intro": "AMS H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
                 },
                 {
                     "ecode": "18FE800000010001",
@@ -7164,36 +6908,12 @@
                     "intro": "The extruder switching action is abnormal. Please check whether there is something stuck in the toolhead."
                 },
                 {
-                    "ecode": "1802700000020013",
-                    "intro": "AMS-HT C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "0706700000020013",
-                    "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "1806700000020012",
-                    "intro": "AMS-HT G Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0707700000020041",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1800700000020014",
-                    "intro": "AMS-HT A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
                     "ecode": "1807350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
                 {
                     "ecode": "0705300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "0704700000020040",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
                 },
                 {
                     "ecode": "0700110000010001",
@@ -7348,48 +7068,8 @@
                     "intro": "AMS-HT H Slot 4 filament has run out and automatically switched to the slot with the same filament."
                 },
                 {
-                    "ecode": "1804700000020010",
-                    "intro": "AMS-HT E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1804700000020040",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "1805700000020032",
-                    "intro": "AMS-HT F Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "1807700000020044",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1804700000020061",
-                    "intro": "AMS-HT E Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1806700000020021",
-                    "intro": "AMS-HT G Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "0705700000020060",
-                    "intro": "AMS F Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1803700000020021",
-                    "intro": "AMS-HT D Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
                     "ecode": "1800450000020001",
                     "intro": "The filament cutter sensor is malfunctioning; please check whether the connector is properly plugged in."
-                },
-                {
-                    "ecode": "1801700000020022",
-                    "intro": "AMS-HT B Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1802700000020014",
-                    "intro": "AMS-HT C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
                 },
                 {
                     "ecode": "1805310000030003",
@@ -7400,36 +7080,8 @@
                     "intro": "Failed to extrude AMS E Slot 4 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "1807700000020023",
-                    "intro": "AMS-HT H Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1801700000020041",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
                     "ecode": "0707350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
-                },
-                {
-                    "ecode": "1800700000020023",
-                    "intro": "AMS-HT A Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1804700000020033",
-                    "intro": "AMS-HT E Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1804700000020023",
-                    "intro": "AMS-HT E Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0706700000020030",
-                    "intro": "AMS G Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "1802700000020020",
-                    "intro": "AMS-HT C filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
                 },
                 {
                     "ecode": "0700210000020003",
@@ -7580,92 +7232,28 @@
                     "intro": "AMS-HT B Slot 2 filament may be broken in the tool head."
                 },
                 {
-                    "ecode": "0705700000020042",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "1800700000020061",
-                    "intro": "AMS-HT A Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
                     "ecode": "1803300000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "0706700000020023",
-                    "intro": "AMS G Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1801700000020050",
-                    "intro": "AMS-HT B Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0704700000020014",
-                    "intro": "AMS E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1802700000020041",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1802700000020011",
-                    "intro": "AMS-HT C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
                 },
                 {
                     "ecode": "0706300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "0705700000020031",
-                    "intro": "AMS F Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "1800450000020002",
                     "intro": "The filament cutter's cutting distance is too large. The XY motor may lose steps."
-                },
-                {
-                    "ecode": "1801700000020023",
-                    "intro": "AMS-HT B Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0707700000020042",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "1800700000020012",
-                    "intro": "AMS-HT A Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
                 },
                 {
                     "ecode": "18FF800000010001",
                     "intro": "The toolhead lift motor works abnormally. Please check whether the connecting cable is loose."
                 },
                 {
-                    "ecode": "1803700000020033",
-                    "intro": "AMS-HT D Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
                     "ecode": "1802300000010004",
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "0707700000020060",
-                    "intro": "AMS H Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1804700000020013",
-                    "intro": "AMS-HT E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
                     "ecode": "1802310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1807700000020032",
-                    "intro": "AMS-HT H Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0705700000020014",
-                    "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
                 },
                 {
                     "ecode": "0700100000010001",
@@ -7820,28 +7408,8 @@
                     "intro": "AMS-HT C Slot 1 filament has run out. Please insert a new filament."
                 },
                 {
-                    "ecode": "0706700000020044",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1805700000020043",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1802700000020045",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "1800700000020041",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
                     "ecode": "1806310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "1800700000020033",
-                    "intro": "AMS-HT A Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
                 },
                 {
                     "ecode": "1802300000030003",
@@ -7856,64 +7424,12 @@
                     "intro": "Failed to extrude AMS F Slot 4 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "0704700000020045",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "1801700000020061",
-                    "intro": "AMS-HT B Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1800700000020050",
-                    "intro": "AMS-HT A Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "1804700000020012",
-                    "intro": "AMS-HT E Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "1804700000020011",
-                    "intro": "AMS-HT E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
                     "ecode": "0707310000010004",
                     "intro": "Encryption chip failure"
                 },
                 {
-                    "ecode": "0705700000020010",
-                    "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1803700000020011",
-                    "intro": "AMS-HT D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "0704700000020032",
-                    "intro": "AMS E Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "1800700000020013",
-                    "intro": "AMS-HT A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
                     "ecode": "18FF800000020003",
                     "intro": "The deviation in the positioning calibration value of the extruder is too large; please recalibrate."
-                },
-                {
-                    "ecode": "1802700000020010",
-                    "intro": "AMS-HT C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1807700000020030",
-                    "intro": "AMS-HT H Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "1804700000020042",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "1801700000020042",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
                 },
                 {
                     "ecode": "0700200000020001",
@@ -8040,96 +7556,20 @@
                     "intro": "AMS-HT E Slot 3's filament may be broken in AMS-HT."
                 },
                 {
-                    "ecode": "0704700000020022",
-                    "intro": "AMS E Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1800700000020042",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "1801700000020031",
-                    "intro": "AMS-HT B Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1805700000020033",
-                    "intro": "AMS-HT F Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1805700000020060",
-                    "intro": "AMS-HT F Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1805700000020011",
-                    "intro": "AMS-HT F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "1800700000020021",
-                    "intro": "AMS-HT A Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "1800700000020020",
-                    "intro": "AMS-HT A filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "1802700000020012",
-                    "intro": "AMS-HT C Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
                     "ecode": "0706230000020009",
                     "intro": "Failed to extrude AMS G Slot 4 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
-                },
-                {
-                    "ecode": "0705700000020013",
-                    "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "1802700000020043",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
                 {
                     "ecode": "1804300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "1806700000020033",
-                    "intro": "AMS-HT G Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
                     "ecode": "1802350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
                 {
-                    "ecode": "1806700000020011",
-                    "intro": "AMS-HT G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "1806700000020013",
-                    "intro": "AMS-HT G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "1807700000020022",
-                    "intro": "AMS-HT H Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1800700000020011",
-                    "intro": "AMS-HT A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "0704700000020033",
-                    "intro": "AMS E Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
                     "ecode": "0705350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
-                },
-                {
-                    "ecode": "0706700000020031",
-                    "intro": "AMS G Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0704700000020043",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
                 {
                     "ecode": "0706210000020009",
@@ -8138,10 +7578,6 @@
                 {
                     "ecode": "1801310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "1803700000020023",
-                    "intro": "AMS-HT D Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
                 },
                 {
                     "ecode": "0700620000020001",
@@ -8308,22 +7744,6 @@
                     "intro": "AMS-HT E Slot 4 is empty; please insert a new filament."
                 },
                 {
-                    "ecode": "0704700000020011",
-                    "intro": "AMS E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "1805700000020044",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "0704700000020050",
-                    "intro": "AMS E Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "1806700000020041",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
                     "ecode": "1805350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
@@ -8332,40 +7752,12 @@
                     "intro": "The filament cutter handle has not been released. The handle or blade may be jammed, or there could be an issue with the filament sensor connection."
                 },
                 {
-                    "ecode": "1804700000020014",
-                    "intro": "AMS-HT E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1805700000020042",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "1803700000020022",
-                    "intro": "AMS-HT D Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
                     "ecode": "0707300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "1806700000020020",
-                    "intro": "AMS-HT G filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
                     "ecode": "1800300000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1802700000020031",
-                    "intro": "AMS-HT C Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1801700000020014",
-                    "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1804700000020043",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
                 {
                     "ecode": "0700130000020002",
@@ -8532,52 +7924,20 @@
                     "intro": "AMS G Slot 4 filament has run out and automatically switched to the slot with the same filament."
                 },
                 {
-                    "ecode": "0706700000020050",
-                    "intro": "AMS G Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0706700000020010",
-                    "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "0704700000020020",
-                    "intro": "AMS E filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0707700000020050",
-                    "intro": "AMS H Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
                     "ecode": "1805310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1806700000020061",
-                    "intro": "AMS-HT G Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
                 {
                     "ecode": "18FF200000020001",
                     "intro": "External filament of right extruder has run out; please load a new filament."
                 },
                 {
-                    "ecode": "0706700000020042",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
                     "ecode": "18FF450000020002",
                     "intro": "The filament cutter's cutting distance is too large. The XY motor may lose steps."
                 },
                 {
-                    "ecode": "1803700000020044",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
                     "ecode": "1803310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "1806700000020042",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
                 },
                 {
                     "ecode": "1805300000010004",
@@ -8588,32 +7948,8 @@
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "0707700000020045",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0705700000020023",
-                    "intro": "AMS F Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1800700000020040",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "1801700000020040",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
                     "ecode": "1802310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "0704700000020010",
-                    "intro": "AMS E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1807700000020042",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
                 },
                 {
                     "ecode": "0700610000020001",
@@ -8792,76 +8128,16 @@
                     "intro": "AMS-HT A Slot 4 filament has run out. Please insert a new filament."
                 },
                 {
-                    "ecode": "0705700000020050",
-                    "intro": "AMS F Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
                     "ecode": "0704350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
-                },
-                {
-                    "ecode": "1804700000020030",
-                    "intro": "AMS-HT E Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "0707700000020020",
-                    "intro": "AMS H filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0706700000020033",
-                    "intro": "AMS G Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1802700000020044",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1807700000020011",
-                    "intro": "AMS-HT H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "1801700000020030",
-                    "intro": "AMS-HT B Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "0704700000020042",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "1804700000020022",
-                    "intro": "AMS-HT E Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
                 },
                 {
                     "ecode": "0707210000020009",
                     "intro": "Failed to extrude AMS H Slot 2 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "0705700000020012",
-                    "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
                     "ecode": "18FE450000020003",
                     "intro": "The filament cutter handle has not been released. The handle or blade may be jammed, or there could be an issue with the filament sensor connection."
-                },
-                {
-                    "ecode": "1806700000020050",
-                    "intro": "AMS-HT G Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "1801700000020045",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "1803700000020014",
-                    "intro": "AMS-HT D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1800700000020032",
-                    "intro": "AMS-HT A Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0706700000020043",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
                 },
                 {
                     "ecode": "0700200000030002",
@@ -9044,28 +8320,8 @@
                     "intro": "The AMS-HT D slot 4 motor has slipped. The extrusion wheel may be malfunctioning, or the filament may be too thin."
                 },
                 {
-                    "ecode": "0706700000020045",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "1805700000020020",
-                    "intro": "AMS-HT F filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
                     "ecode": "1805300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "1807700000020014",
-                    "intro": "AMS-HT H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1806700000020044",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1802700000020033",
-                    "intro": "AMS-HT C Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
                 },
                 {
                     "ecode": "0704300000030003",
@@ -9080,36 +8336,8 @@
                     "intro": "Failed to extrude AMS H Slot 4 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "0704700000020013",
-                    "intro": "AMS E Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "1802700000020040",
-                    "intro": "AMS-HT C Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "1800700000020043",
-                    "intro": "AMS-HT A Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0707700000020012",
-                    "intro": "AMS H Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0704700000020060",
-                    "intro": "AMS E Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "1803300000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "0707700000020040",
-                    "intro": "AMS H Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "1806700000020045",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to filament running out or being pulled out."
                 },
                 {
                     "ecode": "1804310000010004",
@@ -9248,42 +8476,6 @@
                     "intro": "AMS H Slot 2 filament has run out, and purging the old filament went abnormally; please check whether the filament is stuck in the tool head."
                 },
                 {
-                    "ecode": "0707700000020030",
-                    "intro": "AMS H Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "1807700000020040",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "1805700000020014",
-                    "intro": "AMS-HT F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1807700000020010",
-                    "intro": "AMS-HT H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "1801700000020060",
-                    "intro": "AMS-HT B Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0707700000020061",
-                    "intro": "AMS H Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1804700000020044",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1807700000020012",
-                    "intro": "AMS-HT H Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0706700000020021",
-                    "intro": "AMS G Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
                     "ecode": "1800310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
@@ -9296,48 +8488,12 @@
                     "intro": "Failed to extrude AMS E Slot 2 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "1802700000020030",
-                    "intro": "AMS-HT C Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "1806700000020043",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1807700000020050",
-                    "intro": "AMS-HT H Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
                     "ecode": "1801300000010004",
                     "intro": "Encryption chip failure"
                 },
                 {
                     "ecode": "18FE450000020002",
                     "intro": "The filament cutter's cutting distance is too large. The XY motor may lose steps."
-                },
-                {
-                    "ecode": "1804700000020032",
-                    "intro": "AMS-HT E Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "1807700000020043",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1803700000020060",
-                    "intro": "AMS-HT D Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0707700000020011",
-                    "intro": "AMS H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "1806700000020014",
-                    "intro": "AMS-HT G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "1806700000020030",
-                    "intro": "AMS-HT G Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
                 },
                 {
                     "ecode": "0700120000010003",
@@ -9472,68 +8628,20 @@
                     "intro": "AMS-HT E Slot 4's filament may be broken in AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020020",
-                    "intro": "AMS-HT B filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
                     "ecode": "0704300000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1807700000020060",
-                    "intro": "AMS-HT H Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1803700000020032",
-                    "intro": "AMS-HT D Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
                 },
                 {
                     "ecode": "0704220000020009",
                     "intro": "Failed to extrude AMS E Slot 3 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "0705700000020030",
-                    "intro": "AMS F Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
                     "ecode": "1801350000010001",
                     "intro": "The temperature and humidity sensor has an error. The chip may be faulty."
                 },
                 {
-                    "ecode": "1801700000020021",
-                    "intro": "AMS-HT B Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
                     "ecode": "0706310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "0705700000020045",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0706700000020012",
-                    "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0706700000020032",
-                    "intro": "AMS G Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0704700000020021",
-                    "intro": "AMS E Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "1805700000020022",
-                    "intro": "AMS-HT F Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "0705700000020041",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1800700000020010",
-                    "intro": "AMS-HT A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
                 },
                 {
                     "ecode": "1800350000010001",
@@ -9704,10 +8812,6 @@
                     "intro": "The AMS F slot 2 motor is overloaded. The filament may be tangled or stuck."
                 },
                 {
-                    "ecode": "1805700000020030",
-                    "intro": "AMS-HT F Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
                     "ecode": "0705300000010004",
                     "intro": "Encryption chip failure"
                 },
@@ -9720,52 +8824,16 @@
                     "intro": "RFID cannot be read because of a hardware or structural error."
                 },
                 {
-                    "ecode": "0704700000020061",
-                    "intro": "AMS E Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
-                    "ecode": "1807700000020033",
-                    "intro": "AMS-HT H Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0707700000020013",
-                    "intro": "AMS H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
                     "ecode": "0706220000020009",
                     "intro": "Failed to extrude AMS G Slot 3 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
-                },
-                {
-                    "ecode": "0705700000020011",
-                    "intro": "AMS F Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "0706700000020014",
-                    "intro": "AMS G Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
                 },
                 {
                     "ecode": "18FE200000020001",
                     "intro": "External filament of left extruder has run out; please load a new filament."
                 },
                 {
-                    "ecode": "1805700000020031",
-                    "intro": "AMS-HT F Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1806700000020040",
-                    "intro": "AMS-HT G Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
                     "ecode": "1800400000020003",
                     "intro": "The AMS Hub communication is abnormal; the cable may be not well connected."
-                },
-                {
-                    "ecode": "1801700000020032",
-                    "intro": "AMS-HT B Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0705700000020033",
-                    "intro": "AMS F Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
                 },
                 {
                     "ecode": "0706350000010001",
@@ -9774,18 +8842,6 @@
                 {
                     "ecode": "0705310000030003",
                     "intro": "RFID cannot be read because of a hardware or structural error."
-                },
-                {
-                    "ecode": "1805700000020045",
-                    "intro": "AMS-HT F Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0704700000020030",
-                    "intro": "AMS E Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "1801700000020013",
-                    "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
                 },
                 {
                     "ecode": "0700110000010003",
@@ -9984,64 +9040,12 @@
                     "intro": "AMS-HT D Slot 3's filament may be broken in AMS-HT."
                 },
                 {
-                    "ecode": "1801700000020043",
-                    "intro": "AMS-HT B Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1802700000020050",
-                    "intro": "AMS-HT C Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "1800700000020060",
-                    "intro": "AMS-HT A Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0707700000020023",
-                    "intro": "AMS H Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1803700000020012",
-                    "intro": "AMS-HT D Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0704700000020023",
-                    "intro": "AMS E Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
                     "ecode": "1804300000010004",
                     "intro": "Encryption chip failure"
                 },
                 {
                     "ecode": "1803310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1804700000020041",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1804700000020060",
-                    "intro": "AMS-HT E Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1801700000020012",
-                    "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0707700000020031",
-                    "intro": "AMS H Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0707700000020032",
-                    "intro": "AMS H Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "1807700000020020",
-                    "intro": "AMS-HT H filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "1806700000020022",
-                    "intro": "AMS-HT G Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
                 },
                 {
                     "ecode": "0700220000020001",
@@ -10228,52 +9232,8 @@
                     "intro": "No filament was detected in the right extruder from the external spool; please load the new filament."
                 },
                 {
-                    "ecode": "1806700000020023",
-                    "intro": "AMS-HT G Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0704700000020012",
-                    "intro": "AMS E Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "1805700000020012",
-                    "intro": "AMS-HT F Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0705700000020022",
-                    "intro": "AMS F Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "1807700000020021",
-                    "intro": "AMS-HT H Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "1803700000020041",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "1807700000020031",
-                    "intro": "AMS-HT H Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "1801310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "0707700000020033",
-                    "intro": "AMS H Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1806700000020032",
-                    "intro": "AMS-HT G Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0707700000020010",
-                    "intro": "AMS H Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "0706700000020040",
-                    "intro": "AMS G Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
                 },
                 {
                     "ecode": "1800450000020003",
@@ -10286,22 +9246,6 @@
                 {
                     "ecode": "0705220000020009",
                     "intro": "Failed to extrude AMS F Slot 3 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
-                },
-                {
-                    "ecode": "1803700000020042",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "0705700000020044",
-                    "intro": "AMS F Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "1803700000020013",
-                    "intro": "AMS-HT D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "0704700000020041",
-                    "intro": "AMS E Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
                 },
                 {
                     "ecode": "0700130000010003",
@@ -10452,48 +9396,12 @@
                     "intro": "The extruder switching action is abnormal. Please check whether there is something stuck in the toolhead."
                 },
                 {
-                    "ecode": "1804700000020021",
-                    "intro": "AMS-HT E Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "1804700000020045",
-                    "intro": "AMS-HT E Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0704700000020031",
-                    "intro": "AMS E Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0706700000020060",
-                    "intro": "AMS G Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "0706200000020009",
                     "intro": "Failed to extrude AMS G Slot 1 filament; the extruder may be clogged or the filament may be too thin, causing the extruder to slip."
                 },
                 {
-                    "ecode": "1801700000020033",
-                    "intro": "AMS-HT B Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "1803700000020045",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
                     "ecode": "1807310000010004",
                     "intro": "Encryption chip failure"
-                },
-                {
-                    "ecode": "1803700000020043",
-                    "intro": "AMS-HT D Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "1807700000020041",
-                    "intro": "AMS-HT H Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "0707700000020021",
-                    "intro": "AMS H Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
                 },
                 {
                     "ecode": "0706300000010004",
@@ -10502,10 +9410,6 @@
                 {
                     "ecode": "18FE200000020004",
                     "intro": "Please pull the external filament from the left extruder."
-                },
-                {
-                    "ecode": "1801700000020010",
-                    "intro": "AMS-HT B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
                 },
                 {
                     "ecode": "0300C20000010002",
@@ -10660,344 +9564,8 @@
                     "intro": ""
                 },
                 {
-                    "ecode": "0700700000020030",
-                    "intro": "AMS A Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "0700700000020031",
-                    "intro": "AMS A Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0700700000020032",
-                    "intro": "AMS A Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0700700000020033",
-                    "intro": "AMS A Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0700700000020040",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "0700700000020041",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "0700700000020042",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "0700700000020043",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0700700000020044",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "0700700000020045",
-                    "intro": "AMS A Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0700700000020050",
-                    "intro": "AMS A Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0700700000020060",
-                    "intro": "AMS A Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0701700000020030",
-                    "intro": "AMS B Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "0701700000020031",
-                    "intro": "AMS B Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0701700000020032",
-                    "intro": "AMS B Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0701700000020033",
-                    "intro": "AMS B Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0701700000020040",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "0701700000020041",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "0701700000020042",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "0701700000020043",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0701700000020044",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "0701700000020045",
-                    "intro": "AMS B Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0701700000020050",
-                    "intro": "AMS B Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0701700000020060",
-                    "intro": "AMS B Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0702700000020030",
-                    "intro": "AMS C Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "0702700000020031",
-                    "intro": "AMS C Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0702700000020032",
-                    "intro": "AMS C Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0702700000020033",
-                    "intro": "AMS C Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0702700000020040",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "0702700000020041",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "0702700000020042",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "0702700000020043",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0702700000020044",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "0702700000020045",
-                    "intro": "AMS C Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0702700000020050",
-                    "intro": "AMS C Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0702700000020060",
-                    "intro": "AMS C Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0703700000020030",
-                    "intro": "AMS D Feeding filament to the tool head extruder has failed; this might be due to the filament being blocked at the tool head entrance. Please check the tool head filament tube plug."
-                },
-                {
-                    "ecode": "0703700000020031",
-                    "intro": "AMS D Feeding filament to the tool head extruder has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0703700000020032",
-                    "intro": "AMS D Feeding filament to the tool head extruder has failed; this might be due to excessive resistance from the filament. Please check if the filament spool is tilted or if the filament tube is obstructed."
-                },
-                {
-                    "ecode": "0703700000020033",
-                    "intro": "AMS D Feeding filament to the tool head extruder has failed; this might be due to the filament slipping out. Please check if the filament tube is disconnected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0703700000020040",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to excessive resistance in the DC motor. Please check if the filament spool is tilted or deformed or if the filament tube is blocked."
-                },
-                {
-                    "ecode": "0703700000020041",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to the filament detaching from the spool. Please replace the spool with a new one."
-                },
-                {
-                    "ecode": "0703700000020042",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to the DC motor losing connection. Please check the DC motor plug to ensure it is properly connected."
-                },
-                {
-                    "ecode": "0703700000020043",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to the filament wearing out and causing the assist motor to slip. Please trim off the worn section of the filament."
-                },
-                {
-                    "ecode": "0703700000020044",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to broken filament in the tool head. Please remove the broken filament."
-                },
-                {
-                    "ecode": "0703700000020045",
-                    "intro": "AMS D Pulling out filament has failed; this might be due to filament running out or being pulled out."
-                },
-                {
-                    "ecode": "0703700000020050",
-                    "intro": "AMS D Loading filament into the buffer has failed; this might be due to excessive resistance in the buffer. Please check if the buffer is jammed, the filament spool is tilted, or the filament tube is blocked."
-                },
-                {
-                    "ecode": "0703700000020060",
-                    "intro": "AMS D Assisting extruder grab filament failed; this might be due to the assist motor slipping. Please trim off the worn section of the filament."
-                },
-                {
                     "ecode": "0300250000010008",
                     "intro": "The right nozzle touches the heating bed abnormally. Please check whether there is filament residue on the nozzle or foreign matter where the nozzle touches the bed."
-                },
-                {
-                    "ecode": "0702700000020020",
-                    "intro": "AMS C filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0701700000020022",
-                    "intro": "AMS B Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "0702700000020014",
-                    "intro": "AMS C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "0702700000020022",
-                    "intro": "AMS C Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "0700700000020013",
-                    "intro": "AMS A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "0701700000020011",
-                    "intro": "AMS B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "0702700000020023",
-                    "intro": "AMS C Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0703700000020012",
-                    "intro": "AMS D Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0702700000020021",
-                    "intro": "AMS C Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "0703700000020020",
-                    "intro": "AMS D filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0701700000020014",
-                    "intro": "AMS B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "0700700000020023",
-                    "intro": "AMS A Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0702700000020012",
-                    "intro": "AMS C Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0703700000020010",
-                    "intro": "AMS D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "0700700000020020",
-                    "intro": "AMS A filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0701700000020012",
-                    "intro": "AMS B Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0702700000020011",
-                    "intro": "AMS C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "0701700000020013",
-                    "intro": "AMS B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "0703700000020021",
-                    "intro": "AMS D Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "0703700000020014",
-                    "intro": "AMS D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "0700700000020014",
-                    "intro": "AMS A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a small piece of broken filament entering the feed tube. Please remove the broken filament from the feed tube."
-                },
-                {
-                    "ecode": "0701700000020010",
-                    "intro": "AMS B Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "0702700000020013",
-                    "intro": "AMS C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "0703700000020022",
-                    "intro": "AMS D Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "0703700000020011",
-                    "intro": "AMS D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "0700700000020010",
-                    "intro": "AMS A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
-                },
-                {
-                    "ecode": "0700700000020012",
-                    "intro": "AMS A Feeding filament to the assist motor extrusion wheel has failed. This might be due to excessive resistance in the filament. Please check if the spool is tilted, the filament is tangled, or the spool rotation is not smooth."
-                },
-                {
-                    "ecode": "0701700000020023",
-                    "intro": "AMS B Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0700700000020022",
-                    "intro": "AMS A Feeding filament to the buffer has failed; this might be due to worn filament causing the assist motor to slip. Please trim off the worn-out section of the filament."
-                },
-                {
-                    "ecode": "0703700000020023",
-                    "intro": "AMS D Feeding filament to the buffer has failed; this might be due to the filament coming detached. Please check if the filament tube is improperly connected or if the tube has been worn through."
-                },
-                {
-                    "ecode": "0703700000020013",
-                    "intro": "AMS D Feeding filament to the assist motor extrusion wheel has failed. This might be due to a lost signal from the odometer wheel. Please check the connection of the odometer wheel plug."
-                },
-                {
-                    "ecode": "0701700000020021",
-                    "intro": "AMS B Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "0700700000020021",
-                    "intro": "AMS A Feeding filament feeding to the buffer has failed; this might be due to excessive resistance in the filament. Please check if the filament spool is tilted or if the PTFE tube is blocked."
-                },
-                {
-                    "ecode": "0701700000020020",
-                    "intro": "AMS B filament feeding to the buffer has failed; this might be due to the buffer blocking the filament. Please check the buffer PTFE tube plug."
-                },
-                {
-                    "ecode": "0700700000020011",
-                    "intro": "AMS A Feeding filament to the assist motor extrusion wheel has failed. This might be due to a disconnection of the DC motor. Please check the connection of the DC motor plug."
-                },
-                {
-                    "ecode": "0702700000020010",
-                    "intro": "AMS C Feeding filament to the assist motor extrusion wheel has failed. This might be due to a blockage in the feed tube. Please check if the feed tube and the filament hub are clear."
                 },
                 {
                     "ecode": "0300260000010008",
@@ -11054,10 +9622,6 @@
                 {
                     "ecode": "0300990000010001",
                     "intro": "The right side window seems to be open; the task has been paused."
-                },
-                {
-                    "ecode": "0C00040000010017",
-                    "intro": "Print-then-cut did not detect the marker; please repaste the material to be cut."
                 },
                 {
                     "ecode": "0701960000010003",
@@ -11265,15 +9829,15 @@
                 },
                 {
                     "ecode": "0500010000020009",
-                    "intro": ""
+                    "intro": "The fps of the MIPI camera is less than 1."
                 },
                 {
                     "ecode": "0500060000020023",
-                    "intro": ""
+                    "intro": "laser camera detects low cif/isp/ispp frame rates."
                 },
                 {
                     "ecode": "0500060000020011",
-                    "intro": ""
+                    "intro": "xcam has no mipi interrupt; please check the hardware and line connection."
                 },
                 {
                     "ecode": "0500020000020003",
@@ -11297,7 +9861,7 @@
                 },
                 {
                     "ecode": "0500010000020008",
-                    "intro": ""
+                    "intro": "Ipcam memory too high; please contact R&D!"
                 },
                 {
                     "ecode": "0703900000010003",
@@ -11661,7 +10225,7 @@
                 },
                 {
                     "ecode": "0500060000020013",
-                    "intro": ""
+                    "intro": "laser camera has no mipi interrupt; please check the hardware and line connection."
                 },
                 {
                     "ecode": "050003000001000A",
@@ -11973,7 +10537,7 @@
                 },
                 {
                     "ecode": "0500060000020014",
-                    "intro": ""
+                    "intro": "Liveview camera has no mipi interrupt; please check the hardware and line connection."
                 },
                 {
                     "ecode": "0300970000010002",
@@ -12573,27 +11137,27 @@
                 },
                 {
                     "ecode": "0500010000030009",
-                    "intro": ""
+                    "intro": "The fps of the MIPI camera is less than 1."
                 },
                 {
                     "ecode": "0500030000030007",
-                    "intro": ""
+                    "intro": "A system panic occurred. It has been recovered by automatic restart."
                 },
                 {
                     "ecode": "05000600000200A1",
-                    "intro": ""
+                    "intro": "AP reboot boot_reason=watchdog"
                 },
                 {
                     "ecode": "0500060000020024",
-                    "intro": ""
+                    "intro": "liveview camera detects low cif/isp/ispp frame rates."
                 },
                 {
                     "ecode": "05000600000200A0",
-                    "intro": ""
+                    "intro": "AP reboot boot_reason=panic"
                 },
                 {
                     "ecode": "0500060000020021",
-                    "intro": ""
+                    "intro": "xcam camera detects low cif/isp/ispp frame rates."
                 },
                 {
                     "ecode": "0703200000020009",
@@ -14336,10 +12900,6 @@
                     "intro": "AMS C Slot4 filament may be tangled or stuck."
                 },
                 {
-                    "ecode": "0C00040000020001",
-                    "intro": "Laser base not detected. Please place it and continue."
-                },
-                {
                     "ecode": "0702900000010002",
                     "intro": "AMS C The coil of exhaust valve 1 is short-circuited, which may be due to abnormal wiring or damage."
                 },
@@ -15020,10 +13580,6 @@
                     "intro": "The AMS A assist motor torque control is malfunctioning. The current sensor may be faulty."
                 },
                 {
-                    "ecode": "0701700000020061",
-                    "intro": "AMS B Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
                     "ecode": "0703020000010001",
                     "intro": "AMS D Filament speed and length error: The filament odometry may be faulty."
                 },
@@ -15292,10 +13848,6 @@
                     "intro": "The nozzle offset calibration sensor frequency is too high. The sensor may be damaged."
                 },
                 {
-                    "ecode": "0702700000020061",
-                    "intro": "AMS C Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
-                },
-                {
                     "ecode": "0703010000010001",
                     "intro": "The AMS D assist motor has slipped. The extrusion wheel may be worn down, or the filament may be too thin."
                 },
@@ -15338,10 +13890,6 @@
                 {
                     "ecode": "0703500000020001",
                     "intro": "AMS D communication is abnormal; please check the connection cable."
-                },
-                {
-                    "ecode": "0703700000020061",
-                    "intro": "AMS D Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
                 {
                     "ecode": "1200130000010003",
@@ -15610,10 +14158,6 @@
                 {
                     "ecode": "0703900000020001",
                     "intro": "AMS D The operation of the exhaust valve 1 is abnormal, which may be due to excessive resistance."
-                },
-                {
-                    "ecode": "0700700000020061",
-                    "intro": "AMS A Assisting extruder grab filament failed, possibly due to excessive resistance from the buffer. Please check if the buffer is stuck, if the filament spool is tilted, and if the filament tube is clear."
                 },
                 {
                     "ecode": "0703010000020002",
