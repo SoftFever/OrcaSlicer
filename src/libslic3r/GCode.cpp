@@ -739,7 +739,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
             nozzle_change_gcode_trans += gcodegen.retract(true, false, auto_lift_type);
-            change_filament_gcode = nozzle_change_gcode_trans + change_filament_gcode;
+            end_filament_gcode_str = nozzle_change_gcode_trans + end_filament_gcode_str;
         }
 
         if (! change_filament_gcode.empty()) {
