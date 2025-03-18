@@ -793,6 +793,42 @@ void Tab::decorate()
             tt = &m_tt_white_bullet;
         }
 
+        if (opt.first == "compatible_prints" || opt.first == "compatible_printers") {
+            bool sys_page      = true;
+            bool modified_page = false;
+            if (m_type == Slic3r::Preset::TYPE_PRINTER) {
+                sys_page      = m_presets->get_selected_preset_parent() != nullptr;
+                modified_page = false;
+            } else {
+                if (opt.first == "compatible_prints") {
+                    get_sys_and_mod_flags("compatible_prints", sys_page, modified_page);
+                    // Don't call for "compatible_printers"
+                } else if (opt.first == "compatible_printers") {
+                    get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
+                    if (m_type == Slic3r::Preset::TYPE_FILAMENT || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL) {
+                        get_sys_and_mod_flags("compatible_prints", sys_page, modified_page);
+                    }
+                }
+            }
+            if (!sys_page) { 
+                is_nonsys_value = true;
+                sys_icon        = m_bmp_non_system;
+                sys_tt          = m_tt_non_system;
+
+                if (!modified_page) 
+                    color = &m_default_text_clr;
+                else 
+                    color = &m_modified_label_clr;
+            }
+
+            if (!modified_page) { 
+                is_modified_value = false;
+                icon              = &m_bmp_white_bullet;
+                tt                = &m_tt_white_bullet;
+            }
+
+        }
+
         if (option_without_field) {
             if (Line* line = get_line(opt.first)) {
                 line->set_undo_bitmap(icon);
