@@ -1776,11 +1776,15 @@ bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
             int                 filament_id        = filament_idx - 1;
-            std::string         filament_type      = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
-            if (filament_type == "PLA")
-                has_pla = true;
-            if (filament_type == "PETG")
-                has_petg = true;
+            if (filament_id < config.option<ConfigOptionStrings>("filament_type")->values.size()) {
+                std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+                if (filament_type == "PLA")
+                    has_pla = true;
+                if (filament_type == "PETG")
+                    has_petg = true;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " check error:array bound";
+            }
         }
     }
 

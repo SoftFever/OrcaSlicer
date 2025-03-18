@@ -232,12 +232,18 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     if (this->FindWindowById(wxID_CANCEL, this)) {
         update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
         this->FindWindowById(wxID_CANCEL, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-            if (!m_panel_ObjColor) { return; }
-            m_panel_ObjColor->cancel_paint_color();
-           EndModal(wxCANCEL);
+            if (m_panel_ObjColor) {
+                m_panel_ObjColor->cancel_paint_color();
+            }
+            EndModal(wxCANCEL);
             });
     }
-    this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
+    this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &e) {
+        if (m_panel_ObjColor) {
+            m_panel_ObjColor->cancel_paint_color();
+        }
+        EndModal(wxCANCEL);
+    });
 
     wxGetApp().UpdateDlgDarkUI(this);
     CenterOnParent();
@@ -488,6 +494,7 @@ void ObjColorPanel::cancel_paint_color() {
     auto mv = mo->volumes[0];
     mv->mmu_segmentation_facets.reset();
     mv->config.set("extruder", 1);
+    m_first_extruder_id = 1;
 }
 
 void ObjColorPanel::update_filament_ids()
