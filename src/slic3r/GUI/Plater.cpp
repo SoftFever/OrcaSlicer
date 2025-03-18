@@ -12120,7 +12120,7 @@ void Plater::update_obj_preview_thumbnail(ModelObject *mo, int obj_idx, int vol_
     ModelObjectPtrs model_objects;
     model_objects.emplace_back(mo);
     get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
-                                            model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, true);
+                                            model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false);
 }
 
 //invalid all plate's thumbnails

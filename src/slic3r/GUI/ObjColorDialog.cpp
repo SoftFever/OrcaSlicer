@@ -512,7 +512,11 @@ void ObjColorPanel::update_filament_ids()
    m_filament_ids.reserve(m_input_colors_size);
    for (size_t i = 0; i < m_input_colors_size; i++) {
        auto label = m_cluster_labels_from_algo[i];
-       m_filament_ids.emplace_back(m_cluster_map_filaments[label]);
+       if (m_cluster_map_filaments[label] > 0) { 
+           m_filament_ids.emplace_back(m_cluster_map_filaments[label]);
+       } else {
+           m_filament_ids.emplace_back(1);//min filament_id is 1
+       }
    }
    m_first_extruder_id = m_cluster_map_filaments[0];
 }

@@ -3098,7 +3098,9 @@ bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_fi
             for (size_t i = 0; i < volume->mesh().its.indices.size(); i++) {
                 auto face         = volume->mesh().its.indices[i];
                 auto filament_id = face_filament_ids[i];
-                if (filament_id <= 1) { continue; }
+                if (filament_id < 1) {
+                    continue;
+                }
                 std::string result;
                 get_real_filament_id(filament_id, result);
                 volume->mmu_segmentation_facets.set_triangle_from_string(i, result);
