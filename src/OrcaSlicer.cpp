@@ -3586,6 +3586,7 @@ int CLI::run(int argc, char **argv)
         std::vector<double> wipe_volume = volume_option->values;
 
         Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt);
+        plate_obj_size_info.wipe_width = wipe_tower_size(0);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
         Vec3d origin = plate->get_origin();
@@ -4705,6 +4706,7 @@ int CLI::run(int argc, char **argv)
                                 if (wp_brim_width < 0) wp_brim_width = WipeTower::get_auto_brim_by_height((float) wipe_tower_size.z());
                                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: wp_brim_width %1%")%wp_brim_width;
                             }
+                            w = wipe_tower_size(0);
 
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%") %
                                                            x % y % w % depth % a % get_max_element(v) % filaments_cnt % layer_height % plate_width % plate_depth;
