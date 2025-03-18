@@ -21,7 +21,7 @@
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
-#define MSG_DLG_MAX_SIZE wxSize(-1, FromDIP(200))//notice:ban setting the maximum width value
+#define MSG_DLG_MAX_SIZE wxSize(-1, FromDIP(464))//notice:ban setting the maximum width value
 namespace Slic3r {
 namespace GUI {
 
@@ -59,9 +59,9 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 
     m_dsa_sizer = new wxBoxSizer(wxHORIZONTAL);
     btn_sizer->Add(0, 0, 0, wxLEFT, FromDIP(120));
-    btn_sizer->Add(m_dsa_sizer, 0, wxEXPAND,0);
-    btn_sizer->Add(0, 0, 1, wxEXPAND, 5);
-    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
+    btn_sizer->AddStretchSpacer();
+    btn_sizer->Add(m_dsa_sizer, 0, wxEXPAND);
+    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND | wxTOP, FromDIP(10));
 
     apply_style(style);
 	SetSizerAndFit(main_sizer);
@@ -301,8 +301,6 @@ static void add_msg_content(wxWindow   *parent,
             wxScrolledWindow *scrolledWindow = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
             scrolledWindow->SetBackgroundColour(*wxWHITE);
             scrolledWindow->SetScrollRate(0, 20);
-            scrolledWindow->SetMinSize(wxSize(info_width, -1));
-            scrolledWindow->SetMaxSize(wxSize(info_width, -1));
             scrolledWindow->EnableScrolling(false, true);
             wxBoxSizer *sizer_scrolled = new wxBoxSizer(wxHORIZONTAL);
             Label *wrapped_text = new Label(scrolledWindow, font, msg, LB_AUTO_WRAP, wxSize(info_width, -1));
@@ -313,6 +311,12 @@ static void add_msg_content(wxWindow   *parent,
             sizer_scrolled->AddSpacer(5);
             sizer_scrolled->AddStretchSpacer();
             scrolledWindow->SetSizer(sizer_scrolled);
+            auto info_height = 48 * em;
+            if (sizer_scrolled->GetMinSize().GetHeight() < info_height) {
+                info_height = sizer_scrolled->GetMinSize().GetHeight();
+            }
+            scrolledWindow->SetMinSize(wxSize(info_width, info_height));
+            scrolledWindow->SetMaxSize(wxSize(info_width, info_height));
             scrolledWindow->FitInside();
             content_sizer->Add(scrolledWindow, 1, wxEXPAND | wxRIGHT, 8);
             return;
