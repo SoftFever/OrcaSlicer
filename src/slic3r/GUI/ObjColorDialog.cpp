@@ -38,8 +38,7 @@ static void update_ui(wxWindow* window)
 }
 
 static const char g_min_cluster_color = 1;
-//static const char g_max_cluster_color = 15;
-static const char g_max_color = 16;
+static const char g_max_color = (int) EnforcerBlockerType::ExtruderMax;
 const  StateColor ok_btn_bg(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
                      std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
                      std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
@@ -302,22 +301,9 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
 
         m_color_cluster_num_by_user_ebox = new SpinInput(m_page_simple, "", wxEmptyString, wxDefaultPosition, wxSize(FromDIP(45), -1), wxTE_PROCESS_ENTER);
         m_color_cluster_num_by_user_ebox->SetValue(std::to_string(m_color_cluster_num_by_algo).c_str());
+        m_color_cluster_num_by_user_ebox->SetToolTip(_L("Enter or click the adjustment button to modify number again"));
         {//event
             auto on_apply_color_cluster_text_modify = [this](wxEvent &e) {
-                int number = m_color_cluster_num_by_user_ebox->GetValue();
-                if (number > m_color_num_recommend || number < g_min_cluster_color) {
-                    number   = number < g_min_cluster_color ? g_min_cluster_color : m_color_num_recommend;
-                    auto str = wxString::Format(("%d"), number);
-                    m_color_cluster_num_by_user_ebox->SetValue(str);
-                    MessageDialog dlg(nullptr, wxString::Format(_L("The color count should be in range [%d, %d]."), g_min_cluster_color, m_color_num_recommend),
-                                      _L("Warning"), wxICON_WARNING | wxOK);
-                    dlg.ShowModal();
-                }
-                e.Skip();
-            };
-            m_color_cluster_num_by_user_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_color_cluster_text_modify);
-            m_color_cluster_num_by_user_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_color_cluster_text_modify);
-            m_color_cluster_num_by_user_ebox->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent &) {
                 int number = m_color_cluster_num_by_user_ebox->GetValue();
                 if (number > m_color_num_recommend || number < g_min_cluster_color) {
                     number   = number < g_min_cluster_color ? g_min_cluster_color : m_color_num_recommend;
@@ -326,13 +312,17 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
                     // m_color_cluster_num_by_user_ebox->SetInsertionPointEnd();
                 }
                 if (m_last_cluster_num != number) {
+                    wxBusyCursor busy;
                     deal_algo(number, true);
                     Layout();
                     Refresh();
                     Update();
                     m_last_cluster_num = number;
                 }
-            });
+            };
+            m_color_cluster_num_by_user_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_color_cluster_text_modify);
+            m_color_cluster_num_by_user_ebox->Bind(wxEVT_SPINCTRL, on_apply_color_cluster_text_modify);
+
             m_color_cluster_num_by_user_ebox->Bind(wxEVT_CHAR, [this](wxKeyEvent &e) {
                 int keycode = e.GetKeyCode();
                 wxString input_char = wxString::Format("%c", keycode);
@@ -391,15 +381,27 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
         current_filaments_title->SetFont(Label::Head_14);
         current_filaments_title_sizer->Add(current_filaments_title, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
         m_sizer_simple->Add(current_filaments_title_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
-
-        wxBoxSizer *  current_filaments_sizer = new wxBoxSizer(wxHORIZONTAL);
-        current_filaments_sizer->AddSpacer(FromDIP(7));
+        int current_filament_row = 1;
+        int current_filament_col = 1;
+        const int one_row_max    = 16;
+        if (m_colours.size() > 1) {
+            current_filament_row = (m_colours.size() - 1) / one_row_max + 1;
+            if (current_filament_row >= 2) {
+                current_filament_col = one_row_max;
+            } else {
+                current_filament_col = m_colours.size();
+            }
+        }
+        m_sizer_current_filaments            = new wxBoxSizer(wxHORIZONTAL);
+        wxGridSizer *current_filaments_sizer = new wxGridSizer(current_filament_row, current_filament_col, FromDIP(5), FromDIP(7)); //(int rows, int cols, int vgap, int hgap );
         for (size_t i = 0; i < m_colours.size(); i++) {
             auto extruder_icon_sizer = create_extruder_icon_and_rgba_sizer(m_page_simple, i, m_colours[i]);
-            current_filaments_sizer->Add(extruder_icon_sizer, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
-            current_filaments_sizer->AddSpacer(FromDIP(2.5));
+            current_filaments_sizer->Add(extruder_icon_sizer, 0, wxALIGN_LEFT);
         }
-        m_sizer_simple->Add(current_filaments_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
+        m_sizer_current_filaments->AddSpacer(FromDIP(1));
+        m_sizer_current_filaments->Add(current_filaments_sizer, 0, wxEXPAND);
+        m_sizer_current_filaments->AddStretchSpacer();
+        m_sizer_simple->Add(m_sizer_current_filaments, 0, wxEXPAND | wxLEFT, FromDIP(25));
         //colors table title
         wxBoxSizer *  matching_title_sizer = new wxBoxSizer(wxHORIZONTAL);
         matching_title_sizer->AddSpacer(FromDIP(25));
@@ -408,8 +410,14 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
         matching_title_sizer->Add(matching_title, 0, wxEXPAND , 0);
         m_sizer_simple->Add(matching_title_sizer, 0, wxEXPAND | wxTOP, FromDIP(15));// wxTop has FromDIP(10) margin
         //new color table
+        m_scrolledWindow = new wxScrolledWindow(m_page_simple, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+        m_scrolledWindow->SetBackgroundColour(*wxWHITE);
+        m_scrolledWindow->SetScrollRate(0, 20);
+        m_scrolledWindow->EnableScrolling(false, true);
+        m_scrolledWindow->ShowScrollbars(wxScrollbarVisibility::wxSHOW_SB_NEVER, wxScrollbarVisibility::wxSHOW_SB_DEFAULT);
         draw_new_table();
-        m_sizer_simple->Add(m_new_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
+
+        m_sizer_simple->Add(m_scrolledWindow, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
         //buttons
         wxBoxSizer *quick_set_sizer = new wxBoxSizer(wxHORIZONTAL);
         quick_set_sizer->AddSpacer(FromDIP(25));
@@ -601,9 +609,8 @@ wxBoxSizer *ObjColorPanel::create_extruder_icon_and_rgba_sizer(wxWindow *parent,
     icon->SetBitmap(*get_extruder_color_icon(color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(id + 1), FromDIP(16), FromDIP(16)));
     icon->SetCanFocus(false);
     m_extruder_icon_list.emplace_back(icon);
-    icon_sizer->Add(icon, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, FromDIP(10)); // wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM
-
-    icon_sizer->AddSpacer(FromDIP(5));
+    icon_sizer->Add(icon, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0); // wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM
+    //icon_sizer->AddSpacer(FromDIP(5));
     return icon_sizer;
 }
 
@@ -722,6 +729,7 @@ void ObjColorPanel::draw_new_table()
     else {
         first_draw       = true;
         m_new_grid_sizer = new wxGridSizer(row, 1, 1, 3); //(int rows, int cols, int vgap, int hgap );
+        m_scrolledWindow->SetSizer(m_new_grid_sizer);
     }
     if (!first_draw) {
         for (size_t i = old_row; i < row; i++) { show_sizer(m_row_sizer_list[i], true); }
@@ -738,16 +746,10 @@ void ObjColorPanel::draw_new_table()
                 m_color_cluster_icon_list[id]->SetBitmap(*get_extruder_color_icon(color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), "", FromDIP(16), FromDIP(16)));
             }
         }
-        if (old_row != row) {
-            do_layout_callback();
-        }
-        else {
-            m_new_grid_sizer->Layout();
-        }
     }
     else {//first draw
         for (size_t ii = 0; ii < row; ii++) {
-            wxPanel *row_panel = new wxPanel(m_page_simple);
+            wxPanel *row_panel = new wxPanel(m_scrolledWindow);
             //row_panel->SetBackgroundColour(ii % 2 == 0 ? *wxWHITE : wxColour(238, 238, 238));
             auto row_sizer = new wxGridSizer(1, col, 1, 1);
             row_panel->SetSizer(row_sizer);
@@ -766,6 +768,18 @@ void ObjColorPanel::draw_new_table()
             m_row_sizer_list.emplace_back(row_sizer);
             m_new_grid_sizer->Add(row_panel, 0, wxALIGN_LEFT | wxALL, FromDIP(HEADER_BORDER));
         }
+    }
+    m_new_grid_sizer->Layout();
+    auto height = m_new_grid_sizer->GetMinSize().GetY();
+    if (row <= 4 || height < FromDIP(185)) {
+        m_scrolledWindow->SetMinSize(wxSize(-1, height));
+    } else {
+        m_scrolledWindow->SetMinSize(wxSize(-1, FromDIP(185)));
+        m_scrolledWindow->SetMaxSize(wxSize(-1, FromDIP(185)));
+    }
+    m_scrolledWindow->FitInside();
+    if (!first_draw) {
+        do_layout_callback();
     }
 }
 
@@ -789,7 +803,7 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
     }
     wxBusyCursor cursor;
     m_last_cluster_number = cluster_number;
-    obj_color_deal_algo(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, cluster_number);
+    obj_color_deal_algo(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, cluster_number,g_max_color);
 
     m_cluster_colours.clear();
     m_cluster_colours.reserve(m_cluster_colors_from_algo.size());

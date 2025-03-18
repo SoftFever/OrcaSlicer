@@ -61,9 +61,11 @@ private:
     wxPanel *                 m_page_simple  = nullptr;
     wxBoxSizer *              m_sizer        = nullptr;
     wxBoxSizer *              m_sizer_simple = nullptr;
+    wxBoxSizer *               m_sizer_current_filaments = nullptr;
     SpinInput *                m_color_cluster_num_by_user_ebox{nullptr};
     wxStaticText *             m_warning_text{nullptr};
     wxGridSizer *              m_new_grid_sizer{nullptr};
+    wxScrolledWindow *         m_scrolledWindow{nullptr};
     Button *    m_quick_approximate_match_btn{nullptr};
     Button *    m_quick_add_btn{nullptr};
     Button *    m_quick_reset_btn{nullptr};

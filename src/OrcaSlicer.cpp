@@ -785,7 +785,7 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::ve
         std::vector<int>          cluster_labels;
         char                      cluster_number = -1;
 
-        obj_color_deal_algo(input_colors, cluster_colors, cluster_labels, cluster_number);
+        obj_color_deal_algo(input_colors, cluster_colors, cluster_labels, cluster_number, (int)EnforcerBlockerType::ExtruderMax);
         std::vector<int> cluster_color_maps;
 
         BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, after obj_color_deal_algo, cluster_colors size %3%, all_colours size %4%, max_filament_count=%5%")%__FUNCTION__ %__LINE__%cluster_colors.size() %all_colours.size() %max_filament_count;
