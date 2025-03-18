@@ -2750,7 +2750,7 @@ int MachineObject::command_xcam_control_ai_monitoring(bool on_off, std::string l
     bool print_halt = (lvl == "never_halt") ? false:true;
 
     xcam_ai_monitoring = on_off;
-    xcam_ai_monitoring_hold_count = HOLD_COUNT_MAX;
+    xcam_ai_monitoring_hold_start  = time(nullptr);
     xcam_ai_monitoring_sensitivity = lvl;
     return command_xcam_control("printing_monitor", on_off, lvl);
 }
@@ -4238,9 +4238,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                         try {
                             if (jj.contains("xcam")) {
-                                if (xcam_ai_monitoring_hold_count > 0)
-                                    xcam_ai_monitoring_hold_count--;
-                                else {
+                                if (time(nullptr) - xcam_ai_monitoring_hold_start > HOLD_TIME_MAX) {
                                     if (jj["xcam"].contains("printing_monitor")) {
                                         // new protocol
                                         xcam_ai_monitoring = jj["xcam"]["printing_monitor"].get<bool>();
@@ -4887,7 +4885,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             }
                             else if (jj["module_name"].get<std::string>() == "printing_monitor") {
                                 xcam_ai_monitoring = enable;
-                                xcam_ai_monitoring_hold_count = HOLD_COUNT_MAX;
                                 if (jj.contains("halt_print_sensitivity")) {
                                     xcam_ai_monitoring_sensitivity = jj["halt_print_sensitivity"].get<std::string>();
                                 }
@@ -4895,7 +4892,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             else if (jj["module_name"].get<std::string>() == "spaghetti_detector") {
                                 // old protocol
                                 xcam_ai_monitoring = enable;
-                                xcam_ai_monitoring_hold_count = HOLD_COUNT_MAX;
                                 if (jj.contains("print_halt")) {
                                     if (jj["print_halt"].get<bool>())
                                         xcam_ai_monitoring_sensitivity = "medium";
@@ -5923,7 +5919,6 @@ void MachineObject::parse_new_info(json print)
         if (camera_timelapse_hold_count > 0) camera_timelapse_hold_count--;
         //if (xcam_buildplate_marker_hold_count > 0) xcam_buildplate_marker_hold_count--;first_layer_inspector
         if (xcam_first_layer_hold_count > 0) xcam_first_layer_hold_count--;
-        if (xcam_ai_monitoring_hold_count > 0) xcam_ai_monitoring_hold_count--;
         if (xcam_auto_recovery_hold_count > 0) xcam_auto_recovery_hold_count--;
         if (xcam_prompt_sound_hold_count > 0) xcam_prompt_sound_hold_count--;
         if (xcam_filament_tangle_detect_count > 0)xcam_filament_tangle_detect_count--;
@@ -5988,7 +5983,11 @@ void MachineObject::parse_new_info(json print)
             break;
         }
 
-        xcam_ai_monitoring = get_flag_bits(cfg, 15);
+        if (time(nullptr) - xcam_ai_monitoring_hold_start > HOLD_COUNT_MAX)
+        {
+            xcam_ai_monitoring = get_flag_bits(cfg, 15);
+        }
+
         xcam_auto_recovery_step_loss = get_flag_bits(cfg, 16);
 
         if (time(nullptr) - ams_user_setting_start > HOLD_COUNT_MAX)

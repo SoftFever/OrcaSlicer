@@ -1012,7 +1012,7 @@ public:
     int nozzle_setting_hold_count = 0;
 
     bool xcam_ai_monitoring{ false };
-    int  xcam_ai_monitoring_hold_count = 0;
+    time_t xcam_ai_monitoring_hold_start = 0;
     std::string xcam_ai_monitoring_sensitivity;
     bool xcam_buildplate_marker_detector{ false };
     int  xcam_buildplate_marker_hold_count = 0;
