@@ -2337,7 +2337,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     static const unsigned int progress_threshold = 1000;
     //BBS: add only gcode mode
     ProgressDialog *          progress_dialog    = m_only_gcode_in_preview ?
-        new ProgressDialog(_L("Loading G-codes"), "...",
+        new ProgressDialog(_L("Loading G-code"), "...",
             100, wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
 
     wxBusyCursor busy;
