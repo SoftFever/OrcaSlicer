@@ -361,7 +361,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
     case coStrings:
     case coFloatOrPercent:
     case coFloatsOrPercents: {
-        if (m_opt.type == coFloatOrPercent && !str.IsEmpty() &&  str.Last() != '%')
+        if ((m_opt.type == coFloatOrPercent || m_opt.type == coFloatsOrPercents) && !str.IsEmpty() &&  str.Last() != '%')
         {
             double val = 0.;
             const char dec_sep = is_decimal_separator_point() ? '.' : ',';
