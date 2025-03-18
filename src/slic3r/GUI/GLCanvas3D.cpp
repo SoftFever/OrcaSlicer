@@ -9669,7 +9669,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
-    case EWarning::SomethingNotShown:  text = _u8L("Only the object being edit is visible."); break;
+    case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
     case EWarning::ObjectClashed:
         text = _u8L("An object is laid over the plate boundaries or exceeds the height limit.\n"
             "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
