@@ -840,7 +840,10 @@ class Print;
         GCodeProcessor();
 
         // check whether the gcode path meets the filament_map grouping requirements
-        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<double>& printable_heights, const std::vector<int>& filament_map);
+        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas,
+                                              const std::vector<double>   &printable_heights,
+                                              const std::vector<int>      &filament_map,
+                                              const std::vector<std::set<int>>& unprintable_filament_types );
         void apply_config(const PrintConfig& config);
         void set_print(Print* print) { m_print = print; }
         void enable_stealth_time_estimator(bool enabled);

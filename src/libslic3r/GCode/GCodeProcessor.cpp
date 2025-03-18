@@ -1664,7 +1664,10 @@ void GCodeProcessor::register_commands()
     }
 }
 
-bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<double>& printable_heights, const std::vector<int> &filament_map)
+bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons>      &unprintable_areas,
+                                                      const std::vector<double>        &printable_heights,
+                                                      const std::vector<int>           &filament_map,
+                                                      const std::vector<std::set<int>> &unprintable_filament_types)
 {
     m_result.limit_filament_maps.clear();
     m_result.gcode_check_result.reset();
@@ -1742,6 +1745,14 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const std::vector<Polygons
             }
         }
     }
+
+    // apply unprintable filament type result
+    for (int extruder_id = 0; extruder_id < unprintable_filament_types.size(); ++extruder_id) {
+        const std::set<int> &filament_ids = unprintable_filament_types[extruder_id];
+        for (int filament_id : filament_ids) {
+            m_result.limit_filament_maps[filament_id] |= (1 << extruder_id);
+        }
+    };
 
     return valid;
 }

@@ -1845,7 +1845,10 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     int extruder_size = m_print->config().nozzle_diameter.values.size();
     if (extruder_size > 1) {
         std::vector<Polygons> extruder_unprintable_polys = m_print->get_extruder_unprintable_polygons();
-        m_processor.check_multi_extruder_gcode_valid(extruder_unprintable_polys, m_print->get_extruder_printable_height(), m_print->get_filament_maps());
+        m_processor.check_multi_extruder_gcode_valid(extruder_unprintable_polys,
+            m_print->get_extruder_printable_height(),
+            m_print->get_filament_maps(),
+            m_print->get_physical_unprintable_filaments(m_print->get_slice_used_filaments(false)));
     }
 
     m_processor.finalize(true);
