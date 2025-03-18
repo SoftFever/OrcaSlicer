@@ -546,7 +546,7 @@ wxBoxSizer *ObjColorPanel::create_add_btn_sizer(wxWindow *parent)
     StateColor calc_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     // create btn
     m_quick_add_btn = new Button(parent, _L("Append"));
-    m_quick_add_btn->SetToolTip(_L("Add consumable extruder after existing extruders."));
+    m_quick_add_btn->SetToolTip(_L("Append to existing filaments"));
     auto cur_btn    = m_quick_add_btn;
     cur_btn->SetFont(Label::Body_13);
     cur_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
