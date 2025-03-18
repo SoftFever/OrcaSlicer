@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-16 22:32+0800\n"
-"PO-Revision-Date: 2025-02-21 11:24-0300\n"
+"PO-Revision-Date: 2025-03-17 21:32-0300\n"
 "Last-Translator: Alexandre Folle de Menezes <afmenez@terra.com.br>\n"
 "Language-Team: Portuguese, Brazilian\n"
 "Language: pt_BR\n"
@@ -1328,6 +1328,7 @@ msgstr "Medir"
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
 msgstr ""
+"Por favor, confirme a taxa de explosão = 1, e selecione pelo menos um objeto"
 
 msgid "Please select at least one object."
 msgstr "Por favor selecione pelo menos um objeto."
@@ -1381,6 +1382,8 @@ msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
+"O recurso 1 foi redefinido, \n"
+"o recurso 2 foi o recurso 1"
 
 msgid "Warning:please select Plane's feature."
 msgstr "Aviso: por favor selecione o recurso do Plano."
@@ -4420,7 +4423,7 @@ msgid "Orient"
 msgstr "Orientar"
 
 msgid "Arrange options"
-msgstr "Opções de organização"
+msgstr "Opções de arranjo"
 
 msgid "Spacing"
 msgstr "Espaçamento"
@@ -6739,7 +6742,7 @@ msgid "Associate"
 msgstr "Associar"
 
 msgid "with OrcaSlicer so that Orca can open models from"
-msgstr ""
+msgstr "com OrcaSlicer para que Orca possa abrir modelos de"
 
 msgid "Current Association: "
 msgstr "Associação Atual: "
@@ -8799,16 +8802,22 @@ msgid ""
 "BambuSource has not correctly been registered for media playing! Press Yes "
 "to re-register it. You will be promoted twice"
 msgstr ""
+"BambuSource não foi registrado corretamente para reprodução de mídia! "
+"Pressione Sim para registrá-lo novamente. Você será promovido duas vezes"
 
 msgid ""
 "Missing BambuSource component registered for media playing! Please re-"
 "install BambuStudio or seek after-sales help."
 msgstr ""
+"Componente BambuSource ausente registrado para reprodução de mídia! "
+"Reinstale o BambuStudio ou procure ajuda pós-venda."
 
 msgid ""
 "Using a BambuSource from a different install, video play may not work "
 "correctly! Press Yes to fix it."
 msgstr ""
+"Usando um BambuSource de uma instalação diferente, a reprodução de vídeo "
+"pode não funcionar corretamente! Pressione Sim para consertar."
 
 msgid ""
 "Your system is missing H.264 codecs for GStreamer, which are required to "
@@ -10548,7 +10557,7 @@ msgstr ""
 "pontes não podem ser ancoradas."
 
 msgid "Reverse on even"
-msgstr ""
+msgstr "Reversão em par"
 
 msgid "Overhang reversal"
 msgstr "Reversão de saliência"
@@ -10569,7 +10578,7 @@ msgstr ""
 "à redução de tensões nas paredes das peças."
 
 msgid "Reverse only internal perimeters"
-msgstr "Inverter apenas os perímetros internos"
+msgstr "Reverter apenas os perímetros internos"
 
 msgid ""
 "Apply the reverse perimeters logic only on internal perimeters. \n"
@@ -10755,7 +10764,7 @@ msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
 "easily"
 msgstr ""
-"Um espaço entre a linha da borda mais interna e o objeto pode facilitar a "
+"Um espaço entre a linha mais interna da borda e o objeto pode facilitar a "
 "remoção da borda"
 
 msgid "Brim ears"
@@ -12092,7 +12101,7 @@ msgid "Grid"
 msgstr "Grade"
 
 msgid "2D Lattice"
-msgstr "Malha 2D"
+msgstr "Treliça 2D"
 
 msgid "Line"
 msgstr "Linha"
@@ -12128,20 +12137,24 @@ msgid "Quarter Cubic"
 msgstr ""
 
 msgid "Lattice angle 1"
-msgstr ""
+msgstr "Ângulo de treliça 1"
 
 msgid ""
 "The angle of the first set of 2D lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
+"O ângulo do primeiro conjunto de elementos de treliça 2D na direção Z. Zero "
+"é vertical."
 
 msgid "Lattice angle 2"
-msgstr ""
+msgstr "Ângulo de treliça 2"
 
 msgid ""
 "The angle of the second set of 2D lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
+"O ângulo do segundo conjunto de elementos de treliça 2D na direção Z. Zero "
+"é vertical."
 
 msgid "Sparse infill anchor length"
 msgstr "Comprimento da âncora de preenchimento esparso"
@@ -12895,7 +12908,7 @@ msgstr ""
 "Largura máxima de uma região segmentada. Zero desativa essa funcionalidade."
 
 msgid "Interlocking depth of a segmented region"
-msgstr "Profundidade de entrelaçamento de uma região segmentada"
+msgstr "Profundidade de intertravamento de uma região segmentada"
 
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
@@ -13009,7 +13022,7 @@ msgid "The distance between the lines of ironing"
 msgstr "A distância entre as linhas do passar ferro"
 
 msgid "Ironing inset"
-msgstr ""
+msgstr "Inserção do passar ferro"
 
 msgid ""
 "The distance to keep from the edges. A value of 0 sets this to half of the "
@@ -14091,13 +14104,16 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Quantas camadas de saia. Geralmente apenas uma camada"
 
 msgid "Single loop draft shield"
-msgstr ""
+msgstr "Escudo de ar de uma volta"
 
 msgid ""
 "Limits the draft shield loops to one wall after the first layer. This is "
 "useful, on occasion, to conserve filament but may cause the draft shield to "
 "warp / crack."
 msgstr ""
+"Limitar as voltas do escudo de ar a uma parede após a primeira camada. Isso "
+"é útil, ocasionalmente, para conservar filamento, mas pode fazer com que o "
+"escudo de ar entorte/quebre."
 
 msgid "Draft shield"
 msgstr "Escudo de ar"
@@ -14121,7 +14137,7 @@ msgstr ""
 "Habilitado = a saia é tão alta quanto o objeto impresso mais alto. Caso "
 "contrário, 'Altura da saia' é usada.\n"
 "Observação: com o escudo de ar ativo, a saia será impressa na distância da "
-"saia do objeto. Portanto, se as abas estiverem ativas, ela pode se cruzar "
+"saia do objeto. Portanto, se as bordas estiverem ativas, ela pode se cruzar "
 "com elas. Para evitar isso, aumente o valor da distância da saia.\n"
 
 msgid "Enabled"
@@ -14438,7 +14454,7 @@ msgid ""
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
 "Este valor será adicionado (ou subtraído) de todas as coordenadas Z no G-"
-"code de saída. É usado para compensar a má posição do fim de curso Z: por "
+"code emitido. É usado para compensar a má posição do fim de curso Z: por "
 "exemplo, se o zero do seu fim de curso na verdade deixa o bico 0,3 mm longe "
 "da mesa de impressão, ajuste isso para -0,3 (ou corrija o seu fim de curso)."
 
@@ -14828,6 +14844,8 @@ msgid ""
 "This setting specifies the count of support walls in the range of [0,2]. 0 "
 "means auto."
 msgstr ""
+"Esta configuração especifica a contagem de paredes de suporte no intervalo "
+"de [0,2]. 0 significa automático."
 
 msgid "Tree support with infill"
 msgstr "Suporte de árvore com preenchimento"
@@ -14854,6 +14872,16 @@ msgid ""
 "either via macros or natively and is usually used when an active chamber "
 "heater is installed."
 msgstr ""
+"Habilite esta opção para controle automatizado da temperatura da câmara. "
+"Esta opção ativa a emissão de um comando M191 antes do "
+"\"machine_start_gcode\"\n"
+"que define a temperatura da câmara e aguarda até que ela seja atingida. "
+"Além disso, emite um comando M141 no final da impressão para desligar o "
+"aquecedor da câmara, se presente.\n"
+"\n"
+"Esta opção depende do firmware que suporta os comandos M191 e M141 por meio "
+"de macros ou nativamente e geralmente é usada quando um aquecedor de câmara "
+"ativo está instalado."
 
 msgid "Chamber temperature"
 msgstr "Temperatura da câmara"
@@ -15473,7 +15501,7 @@ msgid "Slice"
 msgstr "Fatiar"
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr ""
+msgstr "Fatiar as placas: 0-todas as placas, i-placa i, outros-inválido"
 
 msgid "Show command help."
 msgstr ""
@@ -15482,7 +15510,7 @@ msgid "UpToDate"
 msgstr ""
 
 msgid "Update the configs values of 3mf to latest."
-msgstr ""
+msgstr "Atualize os valores de configuração do 3mf para os mais recentes."
 
 msgid "downward machines check"
 msgstr ""
@@ -15491,12 +15519,13 @@ msgid ""
 "check whether current machine downward compatible with the machines in the "
 "list"
 msgstr ""
+"verifica se a máquina atual é retrocompatível com as máquinas na lista"
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "Carregar filamento padrão"
 
 msgid "Load first filament as default for those not loaded"
-msgstr ""
+msgstr "Carregar o primeiro filamento como padrão para aqueles não carregados"
 
 msgid "Minimum save"
 msgstr "Salvar mínimo"
@@ -15508,13 +15537,13 @@ msgid "mtcpp"
 msgstr ""
 
 msgid "max triangle count per plate for slicing."
-msgstr ""
+msgstr "contagem máxima de triângulos por placa para fatiar."
 
 msgid "mstpp"
 msgstr ""
 
 msgid "max slicing time per plate in seconds."
-msgstr ""
+msgstr "tempo máximo de fatiamento por placa em segundos."
 
 msgid "No check"
 msgstr "Sem verificação"
@@ -15525,40 +15554,40 @@ msgstr ""
 "de caminho do gcode."
 
 msgid "Normative check"
-msgstr ""
+msgstr "Verificação normativa"
 
 msgid "Check the normative items."
-msgstr ""
+msgstr "Verificar os itens normativos."
 
 msgid "Output Model Info"
-msgstr "Informações do modelo de saída"
+msgstr "Emitir Informações do Modelo"
 
 msgid "Output the model's information."
-msgstr ""
+msgstr "Emitir as informações do modelo."
 
 msgid "Export Settings"
-msgstr ""
+msgstr "Exportar Configurações"
 
 msgid "Export settings to a file."
-msgstr ""
+msgstr "Exportar configurações para um arquivo."
 
 msgid "Send progress to pipe"
-msgstr ""
+msgstr "Enviar o progresso para a fila"
 
 msgid "Send progress to pipe."
-msgstr ""
+msgstr "Enviar o progresso para a fila."
 
 msgid "Arrange Options"
-msgstr ""
+msgstr "Opções de Arranjo"
 
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr ""
+msgstr "Opções de arranjo: 0-desativar, 1-ativar, outros-automático"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "Contagem de repetições"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "Contagem de repetições do modelo inteiro"
 
 msgid "Ensure on bed"
 msgstr "Garantir na mesa"
@@ -16901,7 +16930,7 @@ msgid "Upload to storage"
 msgstr "Enviar para armazenamento"
 
 msgid "Switch to Device tab after upload."
-msgstr ""
+msgstr "Mude para a aba Dispositivo após o upload."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -17626,10 +17655,10 @@ msgid "Refresh Printers"
 msgstr "Atualizar Impressoras"
 
 msgid "View print host webui in Device tab"
-msgstr ""
+msgstr "Exibir webui do host de impressão na aba Dispositivo"
 
 msgid "Replace the BambuLab's device tab with print host webui"
-msgstr ""
+msgstr "Substituir a aba do dispositivo do BambuLab pela webui do host de impressão"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -18123,27 +18152,29 @@ msgid "Auto-generate points"
 msgstr "Pontos gerados automaticamente"
 
 msgid "Add a brim ear"
-msgstr ""
+msgstr "Adicionar orelha da borda"
 
 msgid "Delete a brim ear"
-msgstr ""
+msgstr "Remover orelha da borda"
 
 msgid "Adjust section view"
-msgstr ""
+msgstr "Ajustar vista de seção"
 
 msgid ""
 "Warning: The brim type is not set to \"painted\",the brim ears will not take "
 "effect !"
 msgstr ""
+"Aviso: O tipo de borda não estiver definido como \"pintado\", as orelhas da "
+"borda não terão efeito!"
 
 msgid "Set the brim type to \"painted\""
-msgstr ""
+msgstr "Defina o tipo de borda como \"pintada\""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " orelhas da borda iválidas"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Orelhas da Borda"
 
 msgid "Please select single object."
 msgstr "Por favor selecione um único objeto."
@@ -18239,8 +18270,8 @@ msgid ""
 "Did you know that <b>Reverse on odd</b> feature can significantly improve "
 "the surface quality of your overhangs?"
 msgstr ""
-"Inverter em ímpar\n"
-"Você sabia que a função <b>Inverter em ímpar</b> pode melhorar "
+"Reverter em ímpar\n"
+"Você sabia que a função <b>Reverter em ímpar</b> pode melhorar "
 "significativamente a qualidade da superfície das saliências?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
@@ -18610,25 +18641,11 @@ msgstr ""
 #~ msgid "Support: propagate branches at layer %d"
 #~ msgstr "Suporte: propagar ramificações na camada %d"
 
-#~ msgid "Current Cabin humidity"
-#~ msgstr "Umidade da cabine atual"
-
-#~ msgid "Stopped."
-#~ msgstr "Parado."
-
-#, c-format, boost-format
-#~ msgid "Connect failed [%d]!"
-#~ msgstr "Falha ao conectar [%d]!"
-
 #~ msgid "Initialize failed (Device connection not ready)!"
 #~ msgstr "Inicialização falhou (Conexão do dispositivo não está pronta)!"
 
 #~ msgid "Initialize failed (Storage unavailable, insert SD card.)!"
 #~ msgstr "Inicialização falhou (falha no armazenamento, insira o cartão SD.)!"
-
-#, c-format, boost-format
-#~ msgid "Initialize failed (%s)!"
-#~ msgstr "Inicialização falhou (%s)!"
 
 #~ msgid "LAN Connection Failed (Sending print file)"
 #~ msgstr "Falha na conexão LAN (enviando arquivo de impressão)"
@@ -18693,12 +18710,6 @@ msgstr ""
 #~ "camada inferior.Zero significa forçar o resfriamento para toda a parede "
 #~ "externa, não importa quanto seja o grau de saliência"
 
-#~ msgid "Bridge infill direction"
-#~ msgstr "Direção de preenchimento de ponte"
-
-#~ msgid "Bridge density"
-#~ msgstr "Densidade de ponte"
-
 #~ msgid ""
 #~ "Density of external bridges. 100% means solid bridge. Default is 100%."
 #~ msgstr ""
@@ -18715,9 +18726,6 @@ msgstr ""
 #~ "Isso também melhora a consistência da camada.\n"
 #~ "Nota: Esta configuração só terá efeito se a sequência da parede estiver "
 #~ "configurada para Interior-Exterior"
-
-#~ msgid "Thick bridges"
-#~ msgstr "Ponte grossa"
 
 #~ msgid ""
 #~ "A lower value results in smoother extrusion rate transitions. However, "
@@ -18757,24 +18765,8 @@ msgstr ""
 #~ "Se normal(manual) ou tree(manual) for selecionado, apenas os suportes são "
 #~ "gerados"
 
-#~ msgid "ShiftLeft mouse button"
-#~ msgstr "Botão do mouse ShiftLeft"
-
-#~ msgid "Unselect"
-#~ msgstr "Desmarcar"
-
-#~ msgctxt "Verb"
-#~ msgid "Scale"
-#~ msgstr "Escala"
-
-#~ msgid "Lift Z Enforcement"
-#~ msgstr "Aplicação do Z hop"
-
-#~ msgid "Z hop when retract"
-#~ msgstr "Z hop ao retrair"
-
 #~ msgid "Reverse on odd"
-#~ msgstr "Inverter em ímpares"
+#~ msgstr "Reverter em ímpares"
 
 #~ msgid ""
 #~ "Extrude perimeters that have a part over an overhang in the reverse "
@@ -18887,9 +18879,6 @@ msgstr ""
 #~ "Não moverá comandos do ventilador para o início do gcode se o 'apenas "
 #~ "gcode de início personalizado' estiver ativado.\n"
 #~ "Use 0 para desativar."
-
-#~ msgid "Limited"
-#~ msgstr "Limitada"
 
 #~ msgid ""
 #~ "Adjust this value to prevent short, unclosed walls from being printed, "
@@ -19064,7 +19053,7 @@ msgstr ""
 #~ msgid ""
 #~ "Interlocking depth of a segmented region. Zero disables this feature."
 #~ msgstr ""
-#~ "Profundidade de entrelaçamento de uma região segmentada. Zero desativa "
+#~ "Profundidade de intertravamento de uma região segmentada. Zero desativa "
 #~ "essa funcionalidade."
 
 #~ msgid "Wipe tower extruder"
@@ -19148,9 +19137,6 @@ msgstr ""
 #~ "Já existe um resultado de calibração histórico com o mesmo nome: %s. "
 #~ "Apenas um dos resultados com o mesmo nome é salvo. Você tem certeza de "
 #~ "que deseja substituir o resultado histórico?"
-
-#~ msgid "Please find the cornor with perfect degree of extrusion"
-#~ msgstr "Por favor, encontre o canto com o grau perfeito de extrusão"
 
 #~ msgid "X"
 #~ msgstr "X"
