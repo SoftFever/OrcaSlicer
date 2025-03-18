@@ -1562,9 +1562,9 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data, wxString& error_
     std::vector<std::string> flow_type_of_machine;
     for (auto it = data.extders.begin(); it != data.extders.end(); it++) {
         if (it->current_nozzle_flow_type == NozzleFlowType::H_FLOW) {
-            flow_type_of_machine.push_back("High Flow");
+            flow_type_of_machine.push_back(L("High Flow"));
         } else if (it->current_nozzle_flow_type == NozzleFlowType::S_FLOW){
-            flow_type_of_machine.push_back("Standard");
+            flow_type_of_machine.push_back(L("Standard"));
         }
     }
 
@@ -1587,8 +1587,9 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data, wxString& error_
 
                 error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
                                                     "Please make sure the nozzle installed matches with settings in printer, "
-                                                    "then set the corresponding printer preset while slicing."),
-                                                     pos, flow_type_of_machine[target_machine_nozzle_id], used_extruders_flow[it->first]);
+                                                    "then set the corresponding printer preset while slicing."), pos,
+                                                    _L(flow_type_of_machine[target_machine_nozzle_id]),
+                                                    _L(used_extruders_flow[it->first]));
                 return false;
             }
         }
