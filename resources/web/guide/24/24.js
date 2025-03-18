@@ -112,7 +112,7 @@ function HandleModelList( pVal )
 		ModelHtml[strVendor]+='<div class="PrinterBlock" onClick="ChooseModel(\''+strVendor+'\',\''+OneModel['model']+'\')">'+
         '<div class="PImg">'+
 		    '<img class="ModelThumbnail" src="'+CoverImage+'" />'+
-			'<div class="ModelCheckBox" vendor="' +strVendor+ '" model="'+OneModel['model']+'"><img src="../img/greencheck.svg" /></div>'+
+			'<div class="ModelCheckBox" vendor="' +strVendor+ '" model="'+OneModel['model']+'"></div>'+
 		'</div>'+
         '    <div class="PName">'+OneModel['name']+'</div>'+ 
 		'</div>';
@@ -236,7 +236,7 @@ function FilterModelList(keyword) {
 		ModelHtml[strVendor] += '<div class="PrinterBlock" onClick="ChooseModel(\''+strVendor+'\',\''+OneModel['model']+'\')">'+
         '<div class="PImg">'+
 		    '<img class="ModelThumbnail" src="'+CoverImage+'" />'+
-			'<div class="ModelCheckBox" vendor="' +strVendor+ '" model="'+OneModel['model']+'"><img src="../img/greencheck.svg" /></div>'+
+			'<div class="ModelCheckBox" vendor="' +strVendor+ '" model="'+OneModel['model']+'"></div>'+
 		'</div>'+
         '    <div class="PName">'+OneModel['name']+'</div>'+ 
 		'</div>';

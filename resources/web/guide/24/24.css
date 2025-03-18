@@ -90,21 +90,14 @@
 	height: 20px;
 	right: 10px;
 	top: 10px;
-    border:1px solid #ADADAD;
-	background-color: #FFF;
-	padding: 1px;
 	cursor: pointer;
+	background-image: url("../img/emptycheck.svg");
+	background-size: cover;
 }
 
-.ModelCheckBox.ModelCheckBoxSelected img
+.ModelCheckBox.ModelCheckBoxSelected
 {
-	display:inline;
-}
-
-.ModelCheckBox img
-{
-	width:100%;
-	display: none;
+	background-image: url("../img/greencheck.svg");
 }
 
 img.ModelThumbnail
