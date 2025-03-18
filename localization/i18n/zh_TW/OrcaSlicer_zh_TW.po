@@ -19,7 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "支撐筆刷"
 
 msgid "Alt + Mouse wheel"
@@ -591,10 +591,10 @@ msgstr "顯示線框"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when process preview."
+msgid "Can't apply when processing preview."
 msgstr "處理預覽的過程中無法套用。"
 
-msgid "Operation already cancelling. Please wait few seconds."
+msgid "Operation already cancelling. Please wait a few seconds."
 msgstr "操作已在取消中，請稍後。"
 
 msgid "Face recognition"
@@ -1386,7 +1386,7 @@ msgstr "平行"
 msgid "Center coincidence"
 msgstr "中心重合"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "特徵 1"
 
 msgid "Reverse rotation"
@@ -1869,16 +1869,16 @@ msgstr "將換料的廢料使用在物件的支撐"
 msgid "Edit in Parameter Table"
 msgstr "在參數表格中編輯"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "從英寸轉換"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "恢復到英寸"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "從公尺轉換"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "恢復到公尺"
 
 msgid "Assemble"
@@ -2183,11 +2183,11 @@ msgid "Selection conflicts"
 msgstr "選擇衝突"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr "如果第一個選擇的是物件，那麼第二個選擇的也必須是物件。"
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr "如果第一個選擇的是零件，那麼第二個選擇的也必須是同一個物件中的零件。"
 
@@ -2247,7 +2247,7 @@ msgstr "數值錯誤。"
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr "一個單元格僅能被複製到同一列的一個或多個單元格"
 
-msgid "multiple cells copy is not supported"
+msgid "Copying multiple cells is not supported."
 msgstr "不支援多個單元格的複製"
 
 msgid "Outside"
@@ -2789,9 +2789,6 @@ msgstr "確定"
 msgid "Close"
 msgstr "關閉"
 
-msgid "Colour"
-msgstr "顏色"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -2957,7 +2954,7 @@ msgstr ""
 "開或更換乾燥劑包時。吸收濕氣需要數小時，低溫會進一步減緩此過程。"
 
 msgid ""
-"Config which AMS slot should be used for a filament used in the print job"
+"Configure which AMS slot should be used for a filament used in the print job."
 msgstr "設定列印作業中所使用的線材應使用哪個 AMS 槽"
 
 msgid "Filament used in this print job"
@@ -2975,7 +2972,7 @@ msgstr "不使用 AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "使用安裝在機箱背面的線材進行列印"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "使用 AMS 裡的線材列印"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3067,8 +3064,8 @@ msgid "AMS filament backup"
 msgstr "AMS 備用線材"
 
 msgid ""
-"AMS will continue to another spool with the same properties of filament "
-"automatically when current filament runs out"
+"AMS will continue to another spool with the same filament properties "
+"automatically when current filament runs out."
 msgstr "AMS 線材耗盡後將自動切換到屬性完全相同的線材"
 
 msgid "Air Printing Detection"
@@ -3203,7 +3200,7 @@ msgstr ""
 msgid "G-code file exported to %1%"
 msgstr "G-code 檔案已匯出為 %1%"
 
-msgid "Unknown error when export G-code."
+msgid "Unknown error when exporting G-code."
 msgstr "匯出 G-code 檔案發生未知錯誤。"
 
 #, boost-format
@@ -3382,7 +3379,7 @@ msgstr "使用AMS"
 msgid "Select Printers"
 msgstr "選擇列印設備"
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr "AMS狀態"
 
 msgid "Printing Options"
@@ -3722,7 +3719,7 @@ msgstr "使用者暫停列印"
 msgid "Pause of front cover falling"
 msgstr "工具頭前蓋掉落暫停列印"
 
-msgid "Calibrating the micro lida"
+msgid "Calibrating the micro lidar"
 msgstr "校準微型雷射雷達"
 
 msgid "Calibrating extrusion flow"
@@ -3928,7 +3925,7 @@ msgid "parameter name"
 msgstr "參數名稱"
 
 #, c-format, boost-format
-msgid "%s can't be percentage"
+msgid "%s can't be a percentage"
 msgstr "%s 不可以是百分比"
 
 #, c-format, boost-format
@@ -4016,7 +4013,7 @@ msgstr "風扇速度："
 msgid "Temperature: "
 msgstr "溫度："
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "載入 G-code 中"
 
 msgid "Generating geometry vertex data"
@@ -4946,7 +4943,7 @@ msgstr "列印機目前正忙於下載。請待下載完成後再試一次。"
 msgid "Printer camera is malfunctioning."
 msgstr "列印設備攝影機故障。"
 
-msgid "Problem occurred. Please update the printer firmware and try again."
+msgid "A problem occurred. Please update the printer firmware and try again."
 msgstr "發生問題。請更新列印設備韌體後再試一次。"
 
 msgid ""
@@ -5361,9 +5358,6 @@ msgstr "送出"
 
 msgid "Please click on the star first."
 msgstr "請先點擊星星數量。"
-
-msgid "InFo"
-msgstr "資訊"
 
 msgid "Get oss config failed."
 msgstr "取得 oss 設定失敗。"
@@ -5938,7 +5932,7 @@ msgstr "在 3mf 檔案中發現無效值："
 msgid "Please correct them in the param tabs"
 msgstr "請在參數設定頁更正它們"
 
-msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgid "The 3mf has following modified G-code in filament or printer presets:"
 msgstr "該 3mf 檔案在耗材或列印機預設中具有以下修改過的 GCODE："
 
 msgid ""
@@ -5946,7 +5940,7 @@ msgid ""
 "the machine!"
 msgstr "請確認這些修改過的 GCODE 是安全的，以防止對機器造成任何損壞！"
 
-msgid "Modified G-codes"
+msgid "Modified G-code"
 msgstr "已修改的 GCODE"
 
 msgid "The 3mf has following customized filament or printer presets:"
@@ -6798,10 +6792,10 @@ msgstr "不相容的預設"
 msgid "AMS filaments"
 msgstr "AMS 線材"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "點擊設定線材顏色"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "請選擇線材顏色"
 
 msgid "Add/Remove presets"
@@ -6922,7 +6916,7 @@ msgstr "項目預設"
 msgid "Name is unavailable."
 msgstr "名稱不可用。"
 
-msgid "Overwrite a system profile is not allowed"
+msgid "Overwriting a system profile is not allowed."
 msgstr "不允許覆蓋系統預設"
 
 #, boost-format
@@ -7370,14 +7364,14 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "點擊以將所有設定還原到最後一次儲存的版本。"
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 "平滑模式的縮時錄影需要換料塔，否則列印物件上可能會有瑕疵。你是否要關閉換料"
 "塔？"
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 "平滑模式的縮時錄影需要換料塔，否則列印物件上可能會有瑕疵。你是否要啟用換料"
@@ -8251,7 +8245,7 @@ msgstr ""
 "或者手動進行調整。"
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr "警告：新增的擠出機量與當前擠出機總數超過 16。"
 
@@ -8433,9 +8427,9 @@ msgid "Shift+R"
 msgstr "Shift+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected objects, "
+"it just orients the selected ones. Otherwise, it will orient all objects in "
+"the current plate."
 msgstr ""
 "自動調整選取零件/所有零件的方向，\n"
 "有選取零件時調整選取零件的方向，沒有選取零件時調整目前列印板所有零件的方向。"
@@ -9487,20 +9481,20 @@ msgstr "API 金鑰"
 msgid "HTTP digest"
 msgstr "HTTP摘要"
 
-msgid "Avoid crossing wall"
+msgid "Avoid crossing walls"
 msgstr "避免跨越外牆"
 
 msgid "Detour and avoid to travel across wall which may cause blob on surface"
 msgstr "空駛時繞過外牆以避免在模型外觀表面產生斑點"
 
-msgid "Avoid crossing wall - Max detour length"
+msgid "Avoid crossing walls - Max detour length"
 msgstr "避免跨越外牆-最大繞行長度"
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value. Detour length could be specified "
+"detour distance is larger than this value. Detour length could be specified "
 "either as an absolute value or as percentage (for example 50%) of a direct "
-"travel path. Zero to disable"
+"travel path. Zero to disable."
 msgstr ""
 "避開穿越牆體時的最大繞行距離。若繞行距離超過此設定值，則不進行繞行。繞行距離"
 "可設為絕對值，或直接移動路徑的百分比（如 50%）。設為 0 以停用繞行功能"
@@ -10422,7 +10416,7 @@ msgid ""
 "you print your models object by object."
 msgstr "在物件之間插入 G-code。此參數僅在逐次列印時生效"
 
-msgid "End G-code when finish the printing of this filament"
+msgid "End G-code when finishing the printing of this filament."
 msgstr "使用該線材列印結束時的結尾 G-code"
 
 msgid "Ensure vertical shell thickness"
@@ -11401,7 +11395,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhesive"
+"adhesion."
 msgstr "首層加速度。使用較低值可以改善和列印板的黏附"
 
 msgid "Enable accel_to_decel"
@@ -11975,7 +11969,7 @@ msgstr "分隔區域的互鎖深度"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\" is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "設定分隔區域的互鎖深度。如果「mmu_segmented_region_max_width」設定為 0，或者"
@@ -12101,7 +12095,7 @@ msgid ""
 "uses the default method."
 msgstr "設定熨燙操作的角度。若設為負值，將停用此功能並改用預設的熨平方式。"
 
-msgid "This gcode part is inserted at every layer change after lift z"
+msgid "This G-code part is inserted at every layer change after the Z lift."
 msgstr "在每次換層抬升Z高度之後插入這段 G-code"
 
 msgid "Supports silent mode"
@@ -12258,7 +12252,7 @@ msgstr "最大行駛加速度（M204 T），僅適用於 Marlin 2"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
-"is the maximum speed limitation of part cooling fan"
+"is the maximum speed for the part cooling fan."
 msgstr ""
 "啟用自動冷卻時，可能會提高物件冷卻風扇的轉速。這是物件冷卻風扇的最大速度限制"
 
@@ -12266,8 +12260,8 @@ msgid "Max"
 msgstr "最大"
 
 msgid ""
-"The largest printable layer height for extruder. Used tp limits the maximum "
-"layer hight when enable adaptive layer height"
+"The largest printable layer height for extruder. Used to limit the maximum "
+"layer hight when enable adaptive layer height."
 msgstr "擠出頭最大可列印的層高。用於限制開啟自適應層高時的最大層高"
 
 msgid "Extrusion rate smoothing"
@@ -12358,8 +12352,8 @@ msgid "Min"
 msgstr "最小"
 
 msgid ""
-"The lowest printable layer height for extruder. Used tp limits the minimum "
-"layer hight when enable adaptive layer height"
+"The lowest printable layer height for extruder. Used to limit the minimum "
+"layer hight when enable adaptive layer height."
 msgstr "擠出頭最小可列印的層高。用於限制開啟自適應層高時的最小層高"
 
 msgid "Min print speed"
@@ -12679,7 +12673,7 @@ msgstr "Z 抬升高度"
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
-"print when travel move. Using spiral line to lift z can prevent stringing"
+"print when travel move. Using spiral lines to lift Z can prevent stringing."
 msgstr ""
 "回抽完成之後，噴嘴輕微抬升，和列印物件之間產生一定間隙。這能夠避免空駛時噴嘴"
 "和列印物件剮蹭和碰撞。使用螺旋線抬升z能夠減少拉絲"
@@ -13237,7 +13231,7 @@ msgstr "起始 G-code"
 msgid "Start G-code when starting the entire print."
 msgstr "整個列印開始前的起始 G-code"
 
-msgid "Start G-code when start the printing of this filament"
+msgid "Start G-code when starting the printing of this filament."
 msgstr "開始使用這個線材列印的起始 G-code"
 
 msgid "Single Extruder Multi Material"
@@ -13584,8 +13578,8 @@ msgid "Tree support branch angle"
 msgstr "樹狀支撐分支角度"
 
 msgid ""
-"This setting determines the maximum overhang angle that t he branches of "
-"tree support allowed to make.If the angle is increased, the branches can be "
+"This setting determines the maximum overhang angle that the branches of tree "
+"support are allowed to make. If the angle is increased, the branches can be "
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
 "此設定決定樹狀支撐的最大分支角度。如果角度增加，可以更水平地列印分支，使它們"
@@ -13951,7 +13945,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "此物件將用於更換線材後進行噴嘴清洗，從而節省線材並縮短列印時間。但物件的顏色"
@@ -13997,7 +13991,8 @@ msgstr "X-Y 孔洞尺寸補償"
 msgid ""
 "Holes of object will be grown or shrunk in XY plane by the configured value. "
 "Positive value makes holes bigger. Negative value makes holes smaller. This "
-"function is used to adjust size slightly when the object has assembling issue"
+"function is used to adjust size slightly when the object has assembling "
+"issues."
 msgstr ""
 "垂直的孔洞的尺寸將在 XY 方向收縮或拓展特定值。正值代表擴大孔洞。負值代表縮小"
 "孔洞。這個功能通常在模型有裝配問題時微調尺寸"
@@ -14009,7 +14004,7 @@ msgid ""
 "Contour of object will be grown or shrunk in XY plane by the configured "
 "value. Positive value makes contour bigger. Negative value makes contour "
 "smaller. This function is used to adjust size slightly when the object has "
-"assembling issue"
+"assembling issues."
 msgstr ""
 "模型外輪廓的尺寸將在 XY 方向收縮或拓展特定值。正值代表擴大。負值代表縮小。這"
 "個功能通常在模型有裝配問題時微調尺寸"
@@ -14331,10 +14326,10 @@ msgstr "佈局選項"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "佈局選項：0 代表停用，1 代表啟用，其他則為自動模式"
 
-msgid "Repetions count"
+msgid "Repetition count"
 msgstr "重複次數"
 
-msgid "Repetions count of the whole model"
+msgid "Repetition count of the whole model."
 msgstr "整個模型的重複次數"
 
 msgid "Ensure on bed"
@@ -14421,7 +14416,7 @@ msgstr "若啟用，則檢查當前機器是否與列表中的機器向下相容
 msgid "downward machines settings"
 msgstr "相容機器設定"
 
-msgid "the machine settings list need to do downward checking"
+msgid "The machine settings list needs to do downward checking."
 msgstr "機器設定清單需執行向下相容性檢測"
 
 msgid "Load assemble list"
@@ -14480,18 +14475,18 @@ msgstr "允許同塊板上使用多色列印"
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr "若啟用，佈局將允許同一板上使用多色列印"
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr "允許在排列時進行旋轉調整"
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects."
 msgstr "若啟用，物件排列時將允許旋轉調整"
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr "在排列物件時避開擠出校準區域"
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects."
 msgstr "若啟用，物件排列時將避開擠出校準區域"
 
 msgid "Skip modified G-codes in 3mf"
@@ -14868,9 +14863,6 @@ msgstr "無法讀取提供的檔案，因為該檔案為空"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .3mf 或 .zip .amf。"
-
-msgid "Canceled"
-msgstr "已取消"
 
 msgid "load_obj: failed to parse"
 msgstr "載入物件：解析失敗"
@@ -15617,7 +15609,7 @@ msgstr "取消選取"
 msgid "Show error message"
 msgstr "顯示錯誤資訊"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "已加入佇列"
 
 msgid "Uploading"

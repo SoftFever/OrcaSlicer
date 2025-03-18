@@ -662,18 +662,18 @@ void PrintConfigDef::init_fff_params()
     const int max_temp = 1500;
 
     def = this->add("reduce_crossing_wall", coBool);
-    def->label = L("Avoid crossing wall");
+    def->label = L("Avoid crossing walls");
     def->category = L("Quality");
     def->tooltip = L("Detour and avoid to travel across wall which may cause blob on surface");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("max_travel_detour_distance", coFloatOrPercent);
-    def->label = L("Avoid crossing wall - Max detour length");
+    def->label = L("Avoid crossing walls - Max detour length");
     def->category = L("Quality");
     def->tooltip = L("Maximum detour distance for avoiding crossing wall. "
-                     "Don't detour if the detour distance is large than this value. "
-                     "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable");
+                     "Don't detour if the detour distance is larger than this value. "
+                     "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->max_literal = 1000;
@@ -1565,7 +1565,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_end_gcode", coStrings);
     def->label = L("End G-code");
-    def->tooltip = L("End G-code when finish the printing of this filament");
+    def->tooltip = L("End G-code when finishing the printing of this filament.");
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
@@ -2523,7 +2523,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
-    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhesive");
+    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhesion.");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3148,8 +3148,8 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("mmu_segmented_region_interlocking_depth", coFloat);
     def->label    = L("Interlocking depth of a segmented region");
     def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
-                    "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\""
-                    "is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.");
+                    "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" "
+                    "is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature.");
     def->sidetext = L("mm"); 
     def->min      = 0;
     def->category = L("Advanced");
@@ -3293,7 +3293,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("layer_change_gcode", coString);
     def->label = L("Layer change G-code");
-    def->tooltip = L("This gcode part is inserted at every layer change after lift z");
+    def->tooltip = L("This G-code part is inserted at every layer change after the Z lift.");
     def->multiline = true;
     def->full_width = true;
     def->height = 5;
@@ -3496,7 +3496,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fan_max_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
-                     "This is the maximum speed limitation of part cooling fan");
+                     "This is the maximum speed for the part cooling fan.");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
@@ -3505,8 +3505,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("max_layer_height", coFloats);
     def->label = L("Max");
-    def->tooltip = L("The largest printable layer height for extruder. Used tp limits "
-                     "the maximum layer hight when enable adaptive layer height");
+    def->tooltip = L("The largest printable layer height for extruder. Used to limit "
+                     "the maximum layer hight when enable adaptive layer height.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3574,8 +3574,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("min_layer_height", coFloats);
     def->label = L("Min");
-    def->tooltip = L("The lowest printable layer height for extruder. Used tp limits "
-                     "the minimum layer hight when enable adaptive layer height");
+    def->tooltip = L("The lowest printable layer height for extruder. Used to limit "
+                     "the minimum layer hight when enable adaptive layer height.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3979,7 +3979,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Z-hop height");
     def->tooltip = L("Whenever the retraction is done, the nozzle is lifted a little to create clearance between nozzle and the print. "
                      "It prevents nozzle from hitting the print when travel move. "
-                     "Using spiral line to lift z can prevent stringing");
+                     "Using spiral lines to lift Z can prevent stringing.");
     def->sidetext = L("mm");
     def->mode = comSimple;
     def->min = 0;
@@ -4348,7 +4348,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.0));
-    
+
     def = this->add("min_skirt_length", coFloat);
     def->label = L("Skirt minimum extrusion length");
     def->full_label = L("Skirt minimum extrusion length");
@@ -4519,7 +4519,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_start_gcode", coStrings);
     def->label = L("Start G-code");
-    def->tooltip = L("Start G-code when start the printing of this filament");
+    def->tooltip = L("Start G-code when starting the printing of this filament.");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
@@ -4954,7 +4954,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("tree_support_branch_angle", coFloat);
     def->label = L("Tree support branch angle");
     def->category = L("Support");
-    def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
+    def->tooltip = L("This setting determines the maximum overhang angle that the branches of tree support are allowed to make. "
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
     def->sidetext = L("°");
     def->min = 0;
@@ -4965,7 +4965,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("tree_support_branch_angle_organic", coFloat);
     def->label = L("Tree support branch angle");
     def->category = L("Support");
-    def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
+    def->tooltip = L("This setting determines the maximum overhang angle that the branches of tree support are allowed to make. "
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
     def->sidetext = L("°");
     def->min = 0;
@@ -5397,7 +5397,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Flush options");
     def->label = L("Flush into this object");
     def->tooltip = L("This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. "
-        "Colours of the objects will be mixed as a result. "
+        "Colors of the objects will be mixed as a result. "
         "It will not take effect, unless the prime tower is enabled.");
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -5441,7 +5441,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Holes of object will be grown or shrunk in XY plane by the configured value. "
                      "Positive value makes holes bigger. Negative value makes holes smaller. "
-                     "This function is used to adjust size slightly when the object has assembling issue");
+                     "This function is used to adjust size slightly when the object has assembling issues.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -5451,7 +5451,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Contour of object will be grown or shrunk in XY plane by the configured value. "
                      "Positive value makes contour bigger. Negative value makes contour smaller. "
-                     "This function is used to adjust size slightly when the object has assembling issue");
+                     "This function is used to adjust size slightly when the object has assembling issues.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -7406,8 +7406,8 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("repetitions", coInt);
-    def->label = L("Repetions count");
-    def->tooltip = L("Repetions count of the whole model");
+    def->label = L("Repetition count");
+    def->tooltip = L("Repetition count of the whole model.");
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -7548,10 +7548,10 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("downward_settings", coStrings);
     def->label = L("downward machines settings");
-    def->tooltip = L("the machine settings list need to do downward checking");
+    def->tooltip = L("The machine settings list needs to do downward checking.");
     def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
-    
+
     def = this->add("load_assemble_list", coString);
     def->label = L("Load assemble list");
     def->tooltip = L("Load assemble object list from config file");
@@ -7623,13 +7623,13 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("allow_rotations", coBool);
-    def->label = L("Allow rotatations when arrange");
-    def->tooltip = L("If enabled, the arrange will allow rotations when place object");
+    def->label = L("Allow rotations when arranging");
+    def->tooltip = L("If enabled, the arrange will allow rotations when placing objects.");
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("avoid_extrusion_cali_region", coBool);
     def->label = L("Avoid extrusion calibrate region when doing arrange");
-    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when place object");
+    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when placing objects.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("skip_modified_gcodes", coBool);
