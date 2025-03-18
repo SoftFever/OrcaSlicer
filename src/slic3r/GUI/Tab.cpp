@@ -945,9 +945,20 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
     auto opt = m_options_list.find(opt_key);
     if (opt == m_options_list.end())
         return;
+    // If the value is empty, clear the system flag
+    if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
+        auto* compatible_values = m_config->option<ConfigOptionStrings>(opt_key);
+        if (compatible_values && compatible_values->values.empty()) {
+            sys_page = false; // Empty value should NOT be treated as a system value
+        }
+    } else if (sys_page) {
+        sys_page = (opt->second & osSystemValue) != 0;
+    }
 
-    if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
     modified_page |= (opt->second & osInitValue) == 0;
+
+    //if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
+    //modified_page |= (opt->second & osInitValue) == 0;
 }
 
 void Tab::update_changed_tree_ui()
@@ -1068,22 +1079,10 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
             if (m_type != Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                 load_key_value("compatible_printers", true/*some value*/, true);
-
-                if (m_compatible_printers.checkbox) {
-                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-                    m_compatible_printers.checkbox->SetValue(is_empty);
-                    is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
-                }
             }
             if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                 load_key_value("compatible_prints", true/*some value*/, true);
-
-                if (m_compatible_prints.checkbox) {
-                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
-                    m_compatible_prints.checkbox->SetValue(is_empty);
-                    is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
-                }
             }
         }
         for (const auto &kvp : group->opt_map()) {
@@ -1103,6 +1102,18 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
     // BBS: restore all pages in preset, update_dirty also update combobox
     update_dirty();
+
+    if (m_compatible_printers.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+        m_compatible_printers.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+    }
+    if (m_compatible_prints.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+        m_compatible_prints.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+    }
+
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -5864,7 +5875,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     {
         deps.btn->Enable(! deps.checkbox->GetValue());
         // All printers have been made compatible with this preset.
-        if (deps.checkbox->GetValue())
+        if (deps.checkbox->GetValue()) 
             this->load_key_value(deps.key_list, std::vector<std::string> {});
         this->get_field(deps.key_condition)->toggle(deps.checkbox->GetValue());
         this->update_changed_ui();
