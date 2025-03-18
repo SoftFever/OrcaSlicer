@@ -4478,6 +4478,14 @@
             "sub_path": "filament/Generic SBS.json"
         },
         {
+            "name": "Bambu TPU 85A @BBL A1",
+            "sub_path": "filament/Bambu TPU 85A @BBL A1.json"
+        },
+        {
+            "name": "Bambu TPU 85A @BBL A1M",
+            "sub_path": "filament/Bambu TPU 85A @BBL A1M.json"
+        },
+        {
             "name": "Bambu TPU 85A @BBL H2D",
             "sub_path": "filament/Bambu TPU 85A @BBL H2D.json"
         },
@@ -4488,6 +4496,14 @@
         {
             "name": "Bambu TPU 85A @BBL X1C",
             "sub_path": "filament/Bambu TPU 85A @BBL X1C.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL A1",
+            "sub_path": "filament/Bambu TPU 90A @BBL A1.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL A1M",
+            "sub_path": "filament/Bambu TPU 90A @BBL A1M.json"
         },
         {
             "name": "Bambu TPU 90A @BBL H2D",
