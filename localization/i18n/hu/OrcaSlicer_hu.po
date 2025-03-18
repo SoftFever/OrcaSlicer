@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Localazy (https://localazy.com)\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "Támaszok festése"
 
 msgid "Alt + Mouse wheel"
@@ -1378,7 +1378,7 @@ msgstr "Parallel"
 msgid "Center coincidence"
 msgstr "Center coincidence"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "Feature 1"
 
 msgid "Reverse rotation"
@@ -1859,16 +1859,16 @@ msgstr "Öblítés a tárgyak támaszába"
 msgid "Edit in Parameter Table"
 msgstr "Szerkesztés a paramétertáblában"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "Átváltás hüvelykről"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "Visszaállítás hüvelykre"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "Átváltás méterről"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "Visszaállítás méterre"
 
 msgid "Assemble"
@@ -2192,13 +2192,13 @@ msgid "Selection conflicts"
 msgstr "Kijelölési ütközések"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr ""
 "Ha az első kiválasztott elem egy objektum, akkor a másodiknak is objektumnak "
 "kell lennie."
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 "Ha az első kiválasztott elem egy tárgy, akkor a másodiknak is tárgynak kell "
@@ -2833,9 +2833,6 @@ msgstr "Megerősítés"
 msgid "Close"
 msgstr "Bezárás"
 
-msgid "Colour"
-msgstr "Szín"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -3029,7 +3026,7 @@ msgstr "Ne engedélyezd az AMS-t"
 msgid "Print using materials mounted on the back of the case"
 msgstr "Nyomtatás külső tartón lévő filamenttel."
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "Nyomtatás az AMS-ben lévő filamentekkel"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3463,8 +3460,8 @@ msgstr "Use AMS"
 msgid "Select Printers"
 msgstr "Select Printers"
 
-msgid "Ams Status"
-msgstr "AMS Status"
+msgid "AMS Status"
+msgstr ""
 
 msgid "Printing Options"
 msgstr "Printing Options"
@@ -4121,7 +4118,7 @@ msgstr "Ventilátor-fordulatszám:"
 msgid "Temperature: "
 msgstr "Hőmérséklet:"
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "G-kódok betöltése"
 
 msgid "Generating geometry vertex data"
@@ -5489,9 +5486,6 @@ msgstr "Elküldés"
 
 msgid "Please click on the star first."
 msgstr "Kérjük, először kattints a csillagokra."
-
-msgid "InFo"
-msgstr "Infó"
 
 msgid "Get oss config failed."
 msgstr "OSS-konfiguráció letöltése sikertelen."
@@ -6982,7 +6976,7 @@ msgstr "AMS filamentek"
 msgid "Click to pick filament color"
 msgstr "Kattints a filament szín kiválasztásához"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Please choose the filament color"
 
 msgid "Add/Remove presets"
@@ -8496,11 +8490,9 @@ msgstr ""
 " to continue or manually adjust it."
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
 "Warning: The count of newly added and \n"
 " current extruders exceeds 16."
+msgstr ""
 
 msgid "Ramming customization"
 msgstr "Tömörítés testreszabása"
@@ -12030,7 +12022,7 @@ msgstr "Szegmentált régió összekapcsolódási mélysége"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 
@@ -13976,7 +13968,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "Ez az objektum lesz használva a fúvóka tisztítására filamentcsere után, a "
@@ -14356,10 +14348,10 @@ msgstr "Elrendezési lehetőségek"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Elrendezési lehetőségek: 0-letiltás, 1-engedélyezés, egyéb-auto"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "Ismétlésszám"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "A teljes modell ismétlésszáma"
 
 msgid "Ensure on bed"
@@ -14449,7 +14441,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -14510,18 +14502,18 @@ msgstr ""
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr ""
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 
 msgid "Skip modified gcodes in 3mf"
@@ -15653,7 +15645,7 @@ msgstr "Kiválasztott törlése"
 msgid "Show error message"
 msgstr "Hibaüzenet megjelenítése"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "Sorban áll"
 
 msgid "Uploading"

@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "Pintar Soportes"
 
 msgid "Alt + Mouse wheel"
@@ -1422,7 +1422,7 @@ msgstr "Paralelo"
 msgid "Center coincidence"
 msgstr "Centrar coincidencía"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "Característica 1"
 
 msgid "Reverse rotation"
@@ -1939,16 +1939,16 @@ msgstr "Purgar en los soportes de objetos"
 msgid "Edit in Parameter Table"
 msgstr "Editar en la Tabla de Parámetros"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "Convertir de pulgadas"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "Restaurar a pulgadas"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "Convertir de metros"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "Restaurar a metros"
 
 msgid "Assemble"
@@ -2270,13 +2270,13 @@ msgid "Selection conflicts"
 msgstr "Conflictos en la selección"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr ""
 "Si el primer elemento seleccionado es un objeto, el segundo también debería "
 "serlo."
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 "Si el primer elemento seleccionado es una pieza, el segundo debe ser una "
@@ -2920,9 +2920,6 @@ msgstr "Confirmar"
 msgid "Close"
 msgstr "Cerrar"
 
-msgid "Colour"
-msgstr "Color"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -3119,7 +3116,7 @@ msgid "Print using materials mounted on the back of the case"
 msgstr ""
 "Imprimir usando materiales montados en la parte de atrás de la cubierta"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "Imprimir usando filamentos en AMS"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3560,7 +3557,7 @@ msgstr "Usar AMS"
 msgid "Select Printers"
 msgstr "Seleccionar impresoras"
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr "Estado del AMS"
 
 msgid "Printing Options"
@@ -4247,8 +4244,8 @@ msgstr "Velocidad del Ventilador: "
 msgid "Temperature: "
 msgstr "Temperatura: "
 
-msgid "Loading G-codes"
-msgstr "Cargando G-Codes"
+msgid "Loading G-code"
+msgstr "Cargando G-Code"
 
 msgid "Generating geometry vertex data"
 msgstr "Generación de datos de vértices de la geometría"
@@ -5637,9 +5634,6 @@ msgstr "Aceptar"
 
 msgid "Please click on the star first."
 msgstr "Por favor presione en las estrellas primero."
-
-msgid "InFo"
-msgstr "Información"
 
 msgid "Get oss config failed."
 msgstr "Falló la obtención de la configuración de oss."
@@ -7187,7 +7181,7 @@ msgstr "Filamentos AMS"
 msgid "Click to pick filament color"
 msgstr "Haga clic para elegir el color del filamento"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Por favor elija el color del filamento"
 
 msgid "Add/Remove presets"
@@ -8744,7 +8738,7 @@ msgstr ""
 "para continuar o ajustarlo manualmente."
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
 "Advertencia: El recuento de extrusores recién añadidos y \n"
@@ -12834,7 +12828,7 @@ msgstr "Profundidad de entrelazado de una región segmentada"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "Profundidad de enlazado de una región segmentada. Se ignorará si "
@@ -15079,7 +15073,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "Este objeto se utilizará para purgar la boquilla después de un cambio de "
@@ -15506,10 +15500,10 @@ msgstr "Opciones de posicionamiento"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Opciones de posicionamiento: 0-desactivar, 1-activar, otras-auto"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "Cantidad de repeticiones"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "Cantidad de repeticiones del modelo completo"
 
 msgid "Ensure on bed"
@@ -15603,7 +15597,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -15664,18 +15658,18 @@ msgstr ""
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr ""
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 
 msgid "Skip modified gcodes in 3mf"
@@ -16912,7 +16906,7 @@ msgstr "Cancelar selección"
 msgid "Show error message"
 msgstr "Mostrar mensaje de error"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "En cola"
 
 msgid "Uploading"
@@ -20343,9 +20337,6 @@ msgstr ""
 #~ msgid "Set Printable"
 #~ msgstr "Hacer Imprimible"
 
-#~ msgid "Ams filament backup"
-#~ msgstr "Copia de Seguridad del Filamento AMS"
-
 #~ msgid "Feed new filament from external spool"
 #~ msgstr "Cargar nuevo filamento en el carrete externo"
 
@@ -21347,7 +21338,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
-#~ "save filament and decrease the print time. Colours of the objects will be "
+#~ "save filament and decrease the print time. Colors of the objects will be "
 #~ "mixed as a result"
 #~ msgstr ""
 #~ "Este objeto se utilizará para purgar la boquilla después de un cambio de "

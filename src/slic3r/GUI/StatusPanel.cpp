@@ -4879,7 +4879,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         m_upload_status_code = StatusCode::UPLOAD_PROGRESS;
 
         if (m_star_count == 0) {
-            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("InFo"), wxOK);
+            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxOK);
             dlg.ShowModal();
             return;
         }

@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "サポートペイント"
 
 msgid "Alt + Mouse wheel"
@@ -1396,7 +1396,7 @@ msgstr "平行"
 msgid "Center coincidence"
 msgstr "Center coincidence"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "フィーチャー1"
 
 msgid "Reverse rotation"
@@ -1872,16 +1872,16 @@ msgstr "サポートにフラッシュ"
 msgid "Edit in Parameter Table"
 msgstr "パラメータテーブルで編集"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "インチから変換"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "インチ単位に復元"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "メートルから変換"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "メータル単位に復元"
 
 msgid "Assemble"
@@ -2190,13 +2190,13 @@ msgid "Selection conflicts"
 msgstr "選択の競合"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr ""
 "最初に選択したのがオブジェクトの場合、次に選択できるのがオブジェクトのみで"
 "す。"
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 "最初に選択したがパーツの場合、次に選択できるのが同じオブジェクトのパーツ"
@@ -2820,9 +2820,6 @@ msgstr "確認"
 msgid "Close"
 msgstr "閉じる"
 
-msgid "Colour"
-msgstr "色"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -3004,7 +3001,7 @@ msgstr "AMSを有効にしない"
 msgid "Print using materials mounted on the back of the case"
 msgstr "外部スプールホルダーのフィラメントで造形します"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "AMSのフィラメントで造形します"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3427,8 +3424,8 @@ msgstr "Use AMS"
 msgid "Select Printers"
 msgstr "Select Printers"
 
-msgid "Ams Status"
-msgstr "AMS Status"
+msgid "AMS Status"
+msgstr ""
 
 msgid "Printing Options"
 msgstr "Printing Options"
@@ -4063,7 +4060,7 @@ msgstr "ファン回転速度"
 msgid "Temperature: "
 msgstr "温度"
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "G-codeを読み込み"
 
 msgid "Generating geometry vertex data"
@@ -5417,9 +5414,6 @@ msgstr "Submit"
 
 msgid "Please click on the star first."
 msgstr "Please click on the star first."
-
-msgid "InFo"
-msgstr "Info"
 
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
@@ -6886,7 +6880,7 @@ msgstr "AMSフィラメント"
 msgid "Click to pick filament color"
 msgstr "フィラメントの色を選択"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Please choose the filament color"
 
 msgid "Add/Remove presets"
@@ -8352,11 +8346,9 @@ msgstr ""
 " to continue or manually adjust it."
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
 "Warning: The count of newly added and \n"
 " current extruders exceeds 16."
+msgstr ""
 
 msgid "Ramming customization"
 msgstr "ラミングのカスタマイズ"
@@ -11815,7 +11807,7 @@ msgstr "Interlocking depth of a segmented region"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "セグメント化された領域の連動深さ。mmu_segmented_region_max_width \"が0か、"
@@ -13728,7 +13720,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "このオブジェクトは廃料で造形されます。時間とフィラメントの節約として有効的で"
@@ -14099,10 +14091,10 @@ msgstr "レイアウト設定"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "レイアウト設定: 0: 無効　1: 有効　その他: 自動"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "Repetition count"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "Repetition count of the whole model"
 
 msgid "Ensure on bed"
@@ -14192,7 +14184,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -14252,18 +14244,18 @@ msgstr ""
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr ""
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 
 msgid "Skip modified gcodes in 3mf"
@@ -15435,7 +15427,7 @@ msgstr "Cancel selected"
 msgid "Show error message"
 msgstr "Show error message"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "Queued"
 
 msgid "Uploading"

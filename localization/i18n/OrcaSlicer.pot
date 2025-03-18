@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr ""
 
 msgid "Alt + Mouse wheel"
@@ -1371,7 +1371,7 @@ msgstr ""
 msgid "Center coincidence"
 msgstr ""
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr ""
 
 msgid "Reverse rotation"
@@ -1838,16 +1838,16 @@ msgstr ""
 msgid "Edit in Parameter Table"
 msgstr ""
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr ""
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr ""
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr ""
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr ""
 
 msgid "Assemble"
@@ -2151,11 +2151,11 @@ msgid "Selection conflicts"
 msgstr ""
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr ""
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 
@@ -2747,9 +2747,6 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-msgid "Colour"
-msgstr ""
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -2925,7 +2922,7 @@ msgstr ""
 msgid "Print using materials mounted on the back of the case"
 msgstr ""
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr ""
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3310,7 +3307,7 @@ msgstr ""
 msgid "Select Printers"
 msgstr ""
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr ""
 
 msgid "Printing Options"
@@ -3891,7 +3888,7 @@ msgstr ""
 msgid "Temperature: "
 msgstr ""
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr ""
 
 msgid "Generating geometry vertex data"
@@ -5215,9 +5212,6 @@ msgid "Submit"
 msgstr ""
 
 msgid "Please click on the star first."
-msgstr ""
-
-msgid "InFo"
 msgstr ""
 
 msgid "Get oss config failed."
@@ -6609,7 +6603,7 @@ msgstr ""
 msgid "Click to pick filament color"
 msgstr ""
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr ""
 
 msgid "Add/Remove presets"
@@ -7969,7 +7963,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
 
@@ -11237,7 +11231,7 @@ msgstr ""
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 
@@ -12991,7 +12985,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 
@@ -13325,10 +13319,10 @@ msgstr ""
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr ""
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr ""
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr ""
 
 msgid "Ensure on bed"
@@ -13414,7 +13408,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -13470,18 +13464,18 @@ msgstr ""
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr ""
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 
 msgid "Skip modified gcodes in 3mf"
@@ -14520,7 +14514,7 @@ msgstr ""
 msgid "Show error message"
 msgstr ""
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr ""
 
 msgid "Uploading"

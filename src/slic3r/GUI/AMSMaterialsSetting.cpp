@@ -158,7 +158,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     wxBoxSizer* m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
 
-    m_title_colour = new wxStaticText(parent, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_colour = new wxStaticText(parent, wxID_ANY, _L("Color"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
     m_title_colour->SetFont(::Label::Body_13);
     m_title_colour->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_colour->Wrap(-1);

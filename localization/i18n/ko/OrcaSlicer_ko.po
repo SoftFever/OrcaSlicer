@@ -19,7 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "서포트 칠하기"
 
 msgid "Alt + Mouse wheel"
@@ -1399,7 +1399,7 @@ msgstr "평행한"
 msgid "Center coincidence"
 msgstr "중심 일치"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "특징 1"
 
 msgid "Reverse rotation"
@@ -1892,16 +1892,16 @@ msgstr "객체의 서포트에서 버리기"
 msgid "Edit in Parameter Table"
 msgstr "객체/부품 설정에서 편집"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "인치에서 변환"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "인치로 복원"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "미터에서 변환"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "미터로 복원"
 
 msgid "Assemble"
@@ -2209,11 +2209,11 @@ msgid "Selection conflicts"
 msgstr "선택 출돌함"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr "첫 번째로 선택한 항목이 객체이면 두 번째 항목도 객체여야 합니다."
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 "첫 번째로 선택한 항목이 부품이면 두 번째 항목은 동일한 객체의 부품이어야 합니"
@@ -2833,9 +2833,6 @@ msgstr "확인"
 msgid "Close"
 msgstr "닫기"
 
-msgid "Colour"
-msgstr "색상"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -3020,7 +3017,7 @@ msgstr "AMS 비활성"
 msgid "Print using materials mounted on the back of the case"
 msgstr "케이스 뒷면에 장착된 재료를 사용하여 출력"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "AMS의 필라멘트로 출력"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3445,7 +3442,7 @@ msgstr "AMS 사용"
 msgid "Select Printers"
 msgstr "프린터 선택"
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr "AMS 상태"
 
 msgid "Printing Options"
@@ -4090,7 +4087,7 @@ msgstr "팬: "
 msgid "Temperature: "
 msgstr "온도: "
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "Gcode 불러오는 중"
 
 msgid "Generating geometry vertex data"
@@ -5453,9 +5450,6 @@ msgstr "제출"
 
 msgid "Please click on the star first."
 msgstr "먼저 별점을 클릭해주세요."
-
-msgid "InFo"
-msgstr "정보"
 
 msgid "Get oss config failed."
 msgstr "OSS 구성 가져오기에 실패했습니다."
@@ -6943,7 +6937,7 @@ msgstr "AMS 필라멘트"
 msgid "Click to pick filament color"
 msgstr "필라멘트 색상 선택"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "필라멘트 색상을 선택해 주세요"
 
 msgid "Add/Remove presets"
@@ -8433,7 +8427,7 @@ msgstr ""
 " 계속하거나 수동으로 조정할수 있습니다."
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
 "경고: 새로 추가된 개수와\n"
@@ -12391,7 +12385,7 @@ msgstr "분할된 영역의 연동 깊이"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "분할된 영역의 연동 깊이. \"mmu_segmented_region_max_width\"가 0이거나 "
@@ -14507,7 +14501,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "이 객체는 필라멘트를 절약하고 출력 시간을 줄이기 위해 필라멘트 변경 후 노즐"
@@ -14908,10 +14902,10 @@ msgstr "정렬 옵션"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "정렬 옵션: 0-사용 안 함, 1-사용, 기타-자동"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "반복 횟수"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "전체 모델의 반복 횟수"
 
 msgid "Ensure on bed"
@@ -15005,7 +14999,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr "하향 머신 설정"
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr "머신 설정 목록에서 아래쪽을 확인해야 합니다."
 
 msgid "Load assemble list"
@@ -15065,18 +15059,18 @@ msgstr "한 플레이트에서 여러 색상 허용"
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr "활성화하면 하나의 플레이트에 여러 색상을 허용합니다."
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr "정렬할 때 회전 허용"
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr "활성화하면 객체를 배치할 때 배열이 회전을 허용합니다."
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr "정렬 시 돌출 보정 영역을 피하십시오."
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr "활성화하면 객체를 배치할 때 돌출 보정 영역을 피합니다."
 
 msgid "Skip modified gcodes in 3mf"
@@ -16237,7 +16231,7 @@ msgstr "선택 취소"
 msgid "Show error message"
 msgstr "오류 메시지 표시"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "대기 중"
 
 msgid "Uploading"
