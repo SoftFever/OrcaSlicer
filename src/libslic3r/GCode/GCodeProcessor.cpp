@@ -4617,11 +4617,7 @@ void GCodeProcessor::run_post_process()
                      * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
                      * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
                      * The rest is same as M104
-                    */
-                    // Keep the below code commented out until M104.1 is properly implamented into Prusa Buddy Firmware
-                    // Issues following the implamenation are linked below:
-                    // github.com/prusa3d/Prusa-Firmware-Buddy/issues/4115  &   github.com/prusa3d/Prusa-Firmware-Buddy/issues/4116
-                    /**
+                     */
                     if (this->m_is_XL_printer) {
                         std::string out = "M104.1 T" + std::to_string(tool_number);
                         if (time_diffs.size() > 0)
@@ -4635,7 +4631,6 @@ void GCodeProcessor::run_post_process()
                                               " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
                         return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
                     }
-                    */
                 },
                 // line replacer
                 [this, tool_number](const std::string& line) {
