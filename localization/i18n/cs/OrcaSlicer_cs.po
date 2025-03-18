@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -13469,16 +13469,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "Normální (auto)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "Strom (auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "Normální (manuální)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "Strom (manuální)"
 
 msgid "Support/object xy distance"
 msgstr "Podpěry/Objekt xy vzdálenost"
@@ -17332,18 +17332,6 @@ msgstr ""
 #~ "Normální(auto) a Strom(auto) se používají k automatickému generování "
 #~ "podpěr. Pokud je vybrána možnost Normální(manual) nebo Strom(manual), "
 #~ "budou generovány pouze vynucené podpěry"
-
-#~ msgid "normal(auto)"
-#~ msgstr "Normální (auto)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "Strom (auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "Normální (manuální)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "Strom (manuální)"
 
 #~ msgid "Unselect"
 #~ msgstr "Zrušení výběru"
