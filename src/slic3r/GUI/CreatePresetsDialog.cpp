@@ -907,6 +907,20 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
                 auto compatible_printers = preset->config.option<ConfigOptionStrings>("compatible_printers", true);
                 if (!compatible_printers || compatible_printers->values.empty()) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "there is a preset has no compatible printers and the preset name is: " << preset->name;
+                    // If no compatible printers are defined, add all visible printers
+                    for (const std::string& visible_printer : m_visible_printers) {
+                        std::string nozzle = get_printer_nozzle_diameter(visible_printer);
+                        if (nozzle_diameter[nozzle] == 0) {
+                            BOOST_LOG_TRIVIAL(info)
+                                << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << visible_printer;
+                            continue;
+                        }
+                        // Add to the list of available printer-preset pairs
+                        printer_name_to_filament_preset.push_back(std::make_pair(visible_printer, preset));
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show compatible printer name: " << visible_printer
+                                                << " and preset name is: " << preset->name;
+                    }
+                    
                     continue;
                 }
                 for (std::string &compatible_printer_name : compatible_printers->values) {
