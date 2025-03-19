@@ -1232,7 +1232,7 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
 {
     m_back_ams_mapping_result = result;
     if (result.empty()) {
-        BOOST_LOG_TRIVIAL(trace) << "ams_mapping result is empty";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "ams_mapping result is empty";
         for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
             wxString ams_id  = "Ext";
             wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
@@ -1241,7 +1241,7 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
         return;
     }
     for (auto f = result.begin(); f != result.end(); f++) {
-        BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
 
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
@@ -1287,7 +1287,7 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
 bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
 {
     if (!obj_) return false;
-    BOOST_LOG_TRIVIAL(trace) << "SyncAmsInfoDialog:begin do_ams_mapping result";
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " begin do_ams_mapping result";
     obj_->get_ams_colors(m_cur_colors_in_thumbnail);
     // try color and type mapping
 
@@ -1385,6 +1385,7 @@ void SyncAmsInfoDialog::show_thumbnail_page()
 
 bool SyncAmsInfoDialog::get_ams_mapping_result(std::string &mapping_array_str, std::string &mapping_array_str2, std::string &ams_mapping_info)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "m_ams_mapping_result.size:" << m_ams_mapping_result.empty();
     if (m_ams_mapping_result.empty())
         return false;
 
@@ -1398,8 +1399,10 @@ bool SyncAmsInfoDialog::get_ams_mapping_result(std::string &mapping_array_str, s
     }
 
     if (invalid_count == m_ams_mapping_result.size()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "invalid_count == m_ams_mapping_result.size()";
         return false;
     } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check mapping_v0_json";
         json mapping_v0_json   = json::array();
         json mapping_v1_json   = json::array();
         json mapping_info_json = json::array();
@@ -1465,6 +1468,7 @@ bool SyncAmsInfoDialog::get_ams_mapping_result(std::string &mapping_array_str, s
         mapping_array_str2 = mapping_v1_json.dump();
 
         ams_mapping_info = mapping_info_json.dump();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "mapping_array_str:" << mapping_array_str;
         return valid_mapping_result;
     }
     return true;
@@ -2240,7 +2244,7 @@ void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 m_ams_mapping_result[i].ams_id  = selection_data_arr[6].ToStdString();
                 m_ams_mapping_result[i].slot_id = selection_data_arr[7].ToStdString();
             }
-            BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
+            BOOST_LOG_TRIVIAL(info) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
         }
 
         MaterialHash::iterator iter = m_materialList.begin();
@@ -3473,7 +3477,7 @@ void SyncAmsInfoDialog::update_lan_machine_list()
     if (!dev) return;
     auto m_free_machine_list = dev->get_local_machine_list();
 
-    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices start";
+    BOOST_LOG_TRIVIAL(info) << "SelectMachinePopup update_other_devices start";
 
     for (auto &elem : m_free_machine_list) {
         MachineObject *mobj = elem.second;
@@ -3494,7 +3498,7 @@ void SyncAmsInfoDialog::update_lan_machine_list()
             std::map<std::string, MachineObject *> option_list;
         }
     }
-    BOOST_LOG_TRIVIAL(trace) << "SyncAmsInfoDialog update_lan_devices end";
+    BOOST_LOG_TRIVIAL(info) << "SyncAmsInfoDialog update_lan_devices end";
 }
 
 std::string SyncAmsInfoDialog::get_print_status_info(PrintDialogStatus status)

@@ -37,15 +37,15 @@ enum MappingResult {
 
 struct FilamentInfo
 {
-    int         id;         // filament id = extruder id, start with 0.
+    int         id{0};         // filament id = extruder id, start with 0.
     std::string type;
     std::string color;
     std::string filament_id;
     std::string brand;
-    float       used_m;
-    float       used_g;
-    int         tray_id;    // start with 0
-    float       distance;
+    float       used_m{0.f};
+    float       used_g{0.f};
+    int         tray_id{0}; // start with 0
+    float       distance{0.f};
     int         ctype = 0;
     std::vector<std::string> colors = std::vector<std::string>();
     int         mapping_result = 0;

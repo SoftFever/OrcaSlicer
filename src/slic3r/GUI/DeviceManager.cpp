@@ -1092,6 +1092,7 @@ int MachineObject::ams_filament_mapping(
                         min_val = distance_map[i][j].distance;
                         picked_src_idx = i;
                         picked_tar_idx = j;
+                        tray_filaments[picked_tar_idx].distance = min_val;
                     }
                     continue;
                 }
@@ -1103,6 +1104,7 @@ int MachineObject::ams_filament_mapping(
                         min_val = distance_map[i][j].distance;
                         picked_src_idx = i;
                         picked_tar_idx = j;
+                        tray_filaments[picked_tar_idx].distance = min_val;
                     }
                     else if (min_val == distance_map[i][j].distance&& filaments[picked_src_idx].filament_id!= tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id) {
 
