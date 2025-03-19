@@ -2710,6 +2710,8 @@ void StatusPanel::show_recenter_dialog() {
 
 void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str, wxString image_url, std::vector<int> used_button)
 {
+    const std::string &dev_id = obj ? obj->dev_id : string();
+
     if (is_exist && msg.IsEmpty()) {
         error_info_reset();
     } else {
@@ -2723,13 +2725,12 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
 
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
             m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
-            m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
-                if (obj) {
-                    obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
-                }
-                });
+            m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, dev_id](wxCommandEvent &e) {
+                MachineObject* the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
+                if (the_obj) { the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error); }
+            });
 
-            m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_RETRY, [this, obj](wxCommandEvent& e) {
+            m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_RETRY, [this](wxCommandEvent& e) {
                 if (m_ams_control) {
                     m_ams_control->on_retry();
                 }
@@ -2769,13 +2770,12 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
                 m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
             }
             m_print_error_dlg_no_action->update_text(error_code_msg);
-            m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
-                if (obj) {
-                    obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
-                }
-                });
+            m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, dev_id](wxCommandEvent &e) {
+                MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
+                if (the_obj) { the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error); }
+            });
 
-            m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_RETRY, [this, obj](wxCommandEvent& e) {
+            m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_RETRY, [this](wxCommandEvent& e) {
                 if (m_ams_control) {
                     m_ams_control->on_retry();
                 }
