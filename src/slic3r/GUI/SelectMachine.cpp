@@ -1936,6 +1936,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusTPUUnsupportAutoCali) {
         wxString msg_text = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
         update_print_status_msg(msg_text, false, false, true);
+    } else if (status == PrintStatusWarningKvalueNotUsed && !params.empty()) {
+        wxString msg_text = _L("Custom K value of { %s } will not be used since dynamic flow calibration is enabled.");
+        update_print_status_msg(wxString::Format(msg_text, params[0]), false, true, true);
     }
 
     // m_panel_warn m_simplebook
@@ -3239,6 +3242,37 @@ void SelectMachineDialog::update_filament_change_count()
     Fit();
 }
 
+static wxString _check_kval_not_default(const MachineObject* obj, const std::vector<FilamentInfo> &mapping_result)
+{
+    if (!obj) { return wxEmptyString;}
+
+    wxString ams_names;
+    for (const auto& info : mapping_result) {
+
+        auto ams_iter = obj->amsList.find(info.ams_id);
+        if (ams_iter == obj->amsList.end()) { continue; }
+
+        auto tray_iter = ams_iter->second->trayList.find(std::to_string(info.tray_id));
+        if (tray_iter == ams_iter->second->trayList.end()) { continue; }
+
+        if (tray_iter->second->cali_idx == -1) { continue; } /*-1 means default*/
+
+        wxString ams_name;
+        if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {
+            ams_name = "Right-Ext";
+        } else if (info.tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+            ams_name = "Left-Ext";
+        } else {
+            ams_name = wxGetApp().transition_tridid(info.tray_id);
+        }
+
+        if (!ams_names.empty()) { ams_names += ", ";}
+        ams_names += ams_name;
+    }
+
+    return ams_names;
+}
+
 void SelectMachineDialog::update_show_status()
 {
     // refreshing return
@@ -3587,29 +3621,35 @@ void SelectMachineDialog::update_show_status()
     if (m_ams_mapping_res) {
         if (has_timelapse_warning()) {
             show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+            return;
         }
-        else {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
-        }
-        return;
     }
     else {
         if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
             if (!has_tips(obj_)){
                 if (has_timelapse_warning()) {
                     show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+                    return;
                 }
-                else {
-                    show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
-                }
-                return;
-            }       
+            }
         }
         else {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
             return;
         }
-    } 
+    }
+
+    /*STUDIO-10970 check the k value and flow cali option*/
+    if (m_checkbox_list["flow_cali"]->getValue() != "off") {
+        const auto &not_default_ams_names = _check_kval_not_default(obj_, m_ams_mapping_result);
+        if (!not_default_ams_names.empty()) {
+            std::vector<wxString> params{not_default_ams_names};
+            show_status(PrintDialogStatus::PrintStatusWarningKvalueNotUsed, params);
+            return;
+        }
+    }
+
+    update_print_status_msg(wxEmptyString, false, true, true);
 }
 
 bool SelectMachineDialog::has_timelapse_warning()

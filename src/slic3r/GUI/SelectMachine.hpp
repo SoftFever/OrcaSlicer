@@ -106,7 +106,8 @@ enum PrintDialogStatus {
     PrintStatusPublicInitFailed,
     PrintStatusPublicUploadFiled,
     PrintStatusInvalidMapping,
-    PrintStatusTPUUnsupportAutoCali
+    PrintStatusTPUUnsupportAutoCali,
+    PrintStatusWarningKvalueNotUsed,
 };
 
 
