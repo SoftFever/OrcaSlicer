@@ -1077,14 +1077,15 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     {
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
             BuildVolume::ObjectState state;
-            const BoundingBoxf3& bb = volume_bbox(*volume);
             if (volume_below(*volume))
                 state = BuildVolume::ObjectState::Below;
             else {
                 switch (plate_build_volume.type()) {
-                case BuildVolume_Type::Rectangle:
-                //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
+                case BuildVolume_Type::Rectangle: {
+                    //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
+                    const BoundingBoxf3& bb = volume_bbox(*volume);
                     state = plate_build_volume.volume_state_bbox(bb);
+                }
                     break;
                 case BuildVolume_Type::Circle:
                 case BuildVolume_Type::Convex:
