@@ -393,6 +393,7 @@ void ImGuiWrapper::set_language(const std::string &language)
         0,
     };
     m_font_cjk = false;
+    m_is_korean = false;
     if (lang == "cs" || lang == "pl") {
         ranges = ranges_latin2;
     } else if (lang == "ru" || lang == "uk") {
