@@ -1047,6 +1047,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
 
     /*ams*/
+    bool has_left_ams = false, has_right_ams = false;
     std::list<MappingContainer*> left_one_slot_containers;
     std::list<MappingContainer*> right_one_slot_containers;
     std::vector<MappingContainer*> left_four_slots_containers;
@@ -1110,6 +1111,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
             m_amsmapping_container_list.push_back(ams_mapping_item_container);
 
             if (nozzle_id == 0) {
+                has_right_ams = true;
                 if (ams_mapping_item_container->get_slots_num() == 1) {
                     right_one_slot_containers.push_back(ams_mapping_item_container);
                 } else {
@@ -1117,6 +1119,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
                 }
             }
             else if (nozzle_id == 1) {
+                has_left_ams = true;
                 if (ams_mapping_item_container->get_slots_num() == 1) {
                     left_one_slot_containers.push_back(ams_mapping_item_container);
                 } else {
@@ -1130,9 +1133,8 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
     _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
     _add_containers(this, right_one_slot_containers, right_four_slot_containers, m_sizer_ams_basket_right);
-    m_left_split_ams_sizer->Show(m_sizer_ams_basket_left->GetChildren().size() > 0);
-    m_right_split_ams_sizer->Show(m_sizer_ams_basket_right->GetChildren().size() > 0);
-
+    m_left_split_ams_sizer->Show(has_left_ams);
+    m_right_split_ams_sizer->Show(has_right_ams);
     update_items_check_state(ams_mapping_result);
 
 
