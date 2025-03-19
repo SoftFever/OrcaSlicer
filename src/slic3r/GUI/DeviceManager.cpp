@@ -4886,17 +4886,22 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 xcam_buildplate_marker_hold_count = HOLD_COUNT_MAX;
                             }
                             else if (jj["module_name"].get<std::string>() == "printing_monitor") {
-                                xcam_ai_monitoring = enable;
-                                if (jj.contains("halt_print_sensitivity")) {
-                                    xcam_ai_monitoring_sensitivity = jj["halt_print_sensitivity"].get<std::string>();
+                                if (time(nullptr) - xcam_ai_monitoring_hold_start > HOLD_TIME_MAX) {
+                                    xcam_ai_monitoring = enable;
+                                    if (jj.contains("halt_print_sensitivity")) {
+                                        xcam_ai_monitoring_sensitivity = jj["halt_print_sensitivity"].get<std::string>();
+                                    }
                                 }
                             }
                             else if (jj["module_name"].get<std::string>() == "spaghetti_detector") {
-                                // old protocol
-                                xcam_ai_monitoring = enable;
-                                if (jj.contains("print_halt")) {
-                                    if (jj["print_halt"].get<bool>())
-                                        xcam_ai_monitoring_sensitivity = "medium";
+                                if (time(nullptr) - xcam_ai_monitoring_hold_start > HOLD_TIME_MAX) {
+                                    // old protocol
+                                    xcam_ai_monitoring = enable;
+                                    if (jj.contains("print_halt")) {
+                                        if (jj["print_halt"].get<bool>()) {
+                                            xcam_ai_monitoring_sensitivity = "medium";
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -5969,25 +5974,18 @@ void MachineObject::parse_new_info(json print)
 
         xcam_first_layer_inspector = get_flag_bits(cfg, 12);
 
-        switch (get_flag_bits(cfg, 13, 2))
-        {
-        case 0:
-            xcam_ai_monitoring_sensitivity = "never_halt";
-            break;
-        case 1:
-            xcam_ai_monitoring_sensitivity = "low";
-            break;
-        case 2:
-            xcam_ai_monitoring_sensitivity = "medium";
-            break;
-        case 3:
-            xcam_ai_monitoring_sensitivity = "high";
-            break;
-        }
-
         if (time(nullptr) - xcam_ai_monitoring_hold_start > HOLD_COUNT_MAX)
         {
             xcam_ai_monitoring = get_flag_bits(cfg, 15);
+
+            switch (get_flag_bits(cfg, 13, 2))
+            {
+               case 0: xcam_ai_monitoring_sensitivity = "never_halt"; break;
+               case 1: xcam_ai_monitoring_sensitivity = "low"; break;
+               case 2: xcam_ai_monitoring_sensitivity = "medium"; break;
+               case 3: xcam_ai_monitoring_sensitivity = "high"; break;
+               default: break;
+            }
         }
 
         xcam_auto_recovery_step_loss = get_flag_bits(cfg, 16);
