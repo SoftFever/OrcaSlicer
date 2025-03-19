@@ -145,6 +145,8 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_COLLISION_IN_LAYER_PRINT, "Object conflicts were detected. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_SPIRAL_MODE_INVALID_PARAMS, "Some slicing parameters cannot work with Spiral Vase mode. Please solve the issue in Orca Slicer before uploading."},
     {CLI_FILAMENT_CAN_NOT_MAP, "Some filaments cannot be mapped to correct extruders for multi-extruder Printer."},
+    {CLI_ONLY_ONE_TPU_SUPPORTED, "Not support printing 2 or more TPU filaments."},
+    {CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, "Some filaments cannot be printed on the extruder mapped to."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Orca Slicer before uploading."},
     {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Orca Slicer."},
     {CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, "Found G-code in unprintable area of multi-extruder printers after slicing. Please make sure the 3mf file can be successfully sliced in the latest Orca Slicer."}
@@ -5372,6 +5374,24 @@ int CLI::run(int argc, char **argv)
                                 flush_and_exit(CLI_NO_SUITABLE_OBJECTS_AFTER_SKIP);
                             }
 
+                            std::vector<int> plate_filaments = part_plate->get_extruders_under_cli(true, m_print_config);
+                            std::vector<int> used_tpu_filaments;
+                            for (int f_index = 0; f_index < plate_filaments.size(); f_index++) {
+                                if (plate_filaments[f_index] <= filament_count) {
+                                    std::string filament_type;
+                                    m_print_config.get_filament_type(filament_type, plate_filaments[f_index]-1);
+                                    if (filament_type == "TPU") {
+                                        used_tpu_filaments.push_back(plate_filaments[f_index]);
+                                    }
+                                }
+                            }
+                            bool tpu_valid = part_plate->check_tpu_printable_status(m_print_config, used_tpu_filaments);
+                            if (!tpu_valid) {
+                                BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : Found 2 or more tpu filaments on plate ") % (index + 1);
+                                record_exit_reson(outfile_dir, CLI_ONLY_ONE_TPU_SUPPORTED, index + 1, cli_errors[CLI_ONLY_ONE_TPU_SUPPORTED], sliced_info);
+                                flush_and_exit(CLI_ONLY_ONE_TPU_SUPPORTED);
+                            }
+
                             if (new_extruder_count > 1) {
                                 std::vector<std::vector<int>> unprintable_filament_vec;
                                 for (const std::set<int>& filamnt_ids : unprintable_filament_ids) {
@@ -5423,14 +5443,44 @@ int CLI::run(int argc, char **argv)
                                     }
                                     else
                                         filament_maps = part_plate->get_real_filament_maps(m_print_config);
+
+                                    std::vector<std::string>& unprintable_filament_types = m_print_config.option<ConfigOptionStrings>("unprintable_filament_types", true)->values;
+                                    std::vector<std::vector<std::string>>unprintable_filament_type_list;
+                                    unprintable_filament_type_list.resize(new_extruder_count);
+                                    for (int index = 0; index < new_extruder_count; index++)
+                                    {
+                                        std::vector<std::string> unprintable_list;
+                                        if (unprintable_filament_types.size() > index)
+                                            unprintable_list = split_string(unprintable_filament_types[index], ',');
+                                        unprintable_filament_type_list[index] = unprintable_list;
+                                    }
+
                                     for (int index = 0; index < filament_maps.size(); index++)
                                     {
                                         int filament_extruder = filament_maps[index];
                                         if (unprintable_filament_ids[filament_extruder - 1].find(index + 1) != unprintable_filament_ids[filament_extruder - 1].end())
                                         {
-                                            BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : some filaments can not be mapped under auto mode for multi extruder printer ") % (index + 1);
+                                            BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : some filaments can not be mapped under manual mode for multi extruder printer ") % (index + 1);
                                             record_exit_reson(outfile_dir, CLI_FILAMENT_CAN_NOT_MAP, index + 1, cli_errors[CLI_FILAMENT_CAN_NOT_MAP], sliced_info);
                                             flush_and_exit(CLI_FILAMENT_CAN_NOT_MAP);
+                                        }
+                                    }
+
+                                    for (int f_index = 0; f_index < plate_filaments.size(); f_index++) {
+                                        if (plate_filaments[f_index] <= filament_count) {
+                                            int filament_extruder = filament_maps[plate_filaments[f_index] - 1];
+                                            std::vector<std::string>& unprintable_list = unprintable_filament_type_list[filament_extruder-1];
+                                            std::string filament_type;
+                                            m_print_config.get_filament_type(filament_type, plate_filaments[f_index]-1);
+                                            if (unprintable_list.size() > 0)
+                                            {
+                                                auto iter = std::find(unprintable_list.begin(), unprintable_list.end(), filament_type);
+                                                if (iter != unprintable_list.end()) {
+                                                    BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer") % (index + 1) %filament_type %filament_extruder;
+                                                    record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1, cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
+                                                    flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
+                                                }
+                                            }
                                         }
                                     }
                                 }
