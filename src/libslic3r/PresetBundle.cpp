@@ -2848,7 +2848,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         1;
 #else
     // BBS: use filament_colour insteadof filament_settings_id, filament_settings_id sometimes is not generated
-    size_t num_filaments = config.option<ConfigOptionStrings>("filament_colour")->size();
+    ConfigOptionStrings* filament_colour_option = config.option<ConfigOptionStrings>("filament_colour");
+    size_t num_filaments = filament_colour_option?filament_colour_option->size():0;
+    if (num_filaments == 0)
+        throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + name_or_path);
 #endif
 
     //BBS: add config related logs
@@ -2903,7 +2906,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             || (extruder_variant_count < num_filaments)) {
             assert(false);
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % name_or_path;
-            throw Slic3r::RuntimeError(std::string("invalid configuration file: ") + name_or_path);
+            throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + name_or_path);
         }
         if (num_filaments != extruder_variant_count) {
             process_multi_extruder = true;
