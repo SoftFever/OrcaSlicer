@@ -15,6 +15,8 @@
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
+#include "FillTruncatedOctahedron.hpp"
+
 #include "libslic3r.h"
 
 namespace Slic3r {
