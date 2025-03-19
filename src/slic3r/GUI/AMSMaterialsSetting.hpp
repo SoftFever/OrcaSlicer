@@ -160,7 +160,6 @@ protected:
     wxStaticText *      m_title_temperature;
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
-    wxStaticText*       m_k_value_tips;
     ScalableBitmap *    degree;
     wxStaticBitmap *    bitmap_max_degree;
     wxStaticBitmap *    bitmap_min_degree;

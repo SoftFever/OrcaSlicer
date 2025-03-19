@@ -354,20 +354,12 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_n_param->Hide();
     m_input_n_val->Hide();
 
-    // tips info
-    m_k_value_tips = new wxStaticText(parent, wxID_ANY, _L("Tips: When starting a print, disable dynamic flow calibration to enable custom values for this task."));
-    m_k_value_tips->SetForegroundColour(wxColour(50, 58, 61));
-    m_k_value_tips->Wrap(FromDIP(300));
-    m_k_value_tips->Hide();
-
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(cali_title_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
     sizer->Add(m_sizer_cali_resutl, 0, wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(kn_val_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    sizer->Add(m_k_value_tips, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     parent->SetSizer(sizer);
 }
@@ -1089,16 +1081,8 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
     if (m_pa_cali_select_id >= 0) {
-        if (m_pa_cali_select_id > 0) {
-            m_k_value_tips->Show();
-        } else {
-            m_k_value_tips->Hide();
-        }
         m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].k_value));
         m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].n_coef));
-        Layout();
-        Fit();
-        Refresh();
     }
     else{
         m_input_k_val->GetTextCtrl()->SetValue(std::to_string(0.00));
@@ -1322,16 +1306,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         if (cali_select_idx >= 0) {
-            if (cali_select_idx > 0) {
-                m_k_value_tips->Show();
-            } else {
-                m_k_value_tips->Hide();
-            }
             m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].k_value));
             m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].n_coef));
-            Layout();
-            Fit();
-            Refresh();
         }
         else {
             m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[0].k_value));
