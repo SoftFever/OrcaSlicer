@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
-"PO-Revision-Date: 2025-03-03 21:23+0300\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
+"PO-Revision-Date: 2025-03-12 23:48+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -1010,7 +1010,7 @@ msgstr "Metni kameraya doğru yönlendirin."
 
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
-msgstr ""
+msgstr "“%1%” yazı tipi kullanılamıyor. Lütfen başka birini seçin."
 
 #, boost-format
 msgid ""
@@ -1271,7 +1271,7 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG dosyası kabartma yapılacak tek bir yol İÇERMEZ (%1%)."
 
 msgid "No feature"
-msgstr ""
+msgstr "Özellik yok"
 
 msgid "Vertex"
 msgstr "Tepe noktası"
@@ -3226,7 +3226,7 @@ msgstr ""
 
 #, boost-format
 msgid "A fatal error occurred: \"%1%\""
-msgstr ""
+msgstr "Ölümcül bir hata oluştu: “%1%”"
 
 msgid "Please save project and restart the program."
 msgstr "Lütfen projeyi kaydedin ve programı yeniden başlatın."
@@ -4851,12 +4851,14 @@ msgid "Use Orthogonal View"
 msgstr "Ortogonal Görünüm"
 
 msgid "Auto Perspective"
-msgstr ""
+msgstr "Otomatik Perspektif"
 
 msgid ""
 "Automatically switch between orthographic and perspective when changing from "
 "top/bottom/side views"
 msgstr ""
+"Üst/Alt/Yan görünümler arasında geçiş yaparken ortografik ve perspektif "
+"arasında otomatik olarak geçiş yapın"
 
 msgid "Show &G-code Window"
 msgstr "&G-code Penceresini Göster"
@@ -5009,7 +5011,7 @@ msgid "Overwrite file"
 msgstr "Dosyanın üzerine yaz"
 
 msgid "Overwrite config"
-msgstr ""
+msgstr "Yapılandırmanın üzerine yaz"
 
 msgid "Yes to All"
 msgstr "Tümüne evet"
@@ -6401,17 +6403,17 @@ msgstr ""
 "olarak İçe aktarın."
 
 msgid "INFO:"
-msgstr ""
+msgstr "BİLGİ:"
 
 msgid ""
 "No accelerations provided for calibration. Use default acceleration value "
-msgstr ""
+msgstr "Kalibrasyon için ivme sağlanmadı. Varsayılan ivme değerini kullanın"
 
 msgid "mm/s²"
 msgstr "mm/s²"
 
 msgid "No speeds provided for calibration. Use default optimal speed "
-msgstr ""
+msgstr "Kalibrasyon için hız sağlanmadı. Varsayılan optimum hızı kullanın"
 
 msgid "mm/s"
 msgstr "mm/s"
@@ -7933,7 +7935,7 @@ msgid "Multimaterial"
 msgstr "Çoklu Malzeme"
 
 msgid "Prime tower"
-msgstr "Prime kulesi"
+msgstr "Prime Kulesi"
 
 msgid "Filament for Features"
 msgstr "Filament Kullanım Alanları"
@@ -9611,6 +9613,8 @@ msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
 "with the same support_top_z_distance"
 msgstr ""
+"Prime kulesi yalnızca aynı destek üst z mesafesi ile yazdırılırlarsa birden "
+"fazla nesne için desteklenir"
 
 msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
@@ -9629,6 +9633,7 @@ msgstr ""
 msgid ""
 "One or more object were assigned an extruder that the printer does not have."
 msgstr ""
+"Bir veya daha fazla nesneye yazıcının sahip olmadığı bir ekstruder atandı."
 
 msgid "Too small line width"
 msgstr "Çizgi genişliği çok küçük"
@@ -9642,6 +9647,9 @@ msgid ""
 "support_interface_filament == 0), all nozzles have to be of the same "
 "diameter."
 msgstr ""
+"Farklı nozul çaplarına sahip birden fazla ekstruderle baskı. Destek mevcut "
+"filamentle (support_filament == 0 veya support_interface_filament == 0) "
+"basılacaksa, tüm nozulların aynı çapta olması gerekir."
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -13912,13 +13920,16 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Etek katman sayısı. Genellikle tek katman"
 
 msgid "Single loop draft shield"
-msgstr ""
+msgstr "Tek döngülü draft kalkanı"
 
 msgid ""
 "Limits the draft shield loops to one wall after the first layer. This is "
 "useful, on occasion, to conserve filament but may cause the draft shield to "
 "warp / crack."
 msgstr ""
+"İlk katmandan sonra draft kalkanı döngülerini tek bir duvarla sınırlar. Bu, "
+"bazen filament tasarrufu sağlamak için faydalı olabilir, ancak draft "
+"kalkanının bükülmesine veya çatlamasına neden olabilir."
 
 msgid "Draft shield"
 msgstr "Rüzgarlık"
@@ -16585,19 +16596,19 @@ msgid "PA step: "
 msgstr "PA adımı: "
 
 msgid "Accelerations: "
-msgstr ""
+msgstr "İvmeler:"
 
 msgid "Speeds: "
-msgstr ""
+msgstr "Speeds: "
 
 msgid "Print numbers"
 msgstr "Sayıları yazdır"
 
 msgid "Comma-separated list of printing accelerations"
-msgstr ""
+msgstr "Yazdırma ivmelerinin virgülle ayrılmış listesi"
 
 msgid "Comma-separated list of printing speeds"
-msgstr ""
+msgstr "Yazdırma hızlarının virgülle ayrılmış listesi"
 
 msgid ""
 "Please input valid values:\n"
@@ -18632,18 +18643,6 @@ msgstr ""
 #~ "Desteği otomatik olarak oluşturmak için normal(otomatik) ve "
 #~ "ağaç(otomatik) kullanılır. Normal(manuel) veya ağaç(manuel) seçilirse "
 #~ "yalnızca destek uygulayıcıları oluşturulur"
-
-#~ msgid "normal(auto)"
-#~ msgstr "Normal(Otomatik)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "Ağaç(Otomatik)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "Normal(Manuel)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "Ağaç(Manuel)"
 
 #~ msgid ", ver: "
 #~ msgstr ", ver: "

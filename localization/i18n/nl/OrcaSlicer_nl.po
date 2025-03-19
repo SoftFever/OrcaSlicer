@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13559,16 +13559,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "Normaal (automatisch)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "Tree (auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "normaal (handmatig)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "tree (handmatig)"
 
 msgid "Support/object xy distance"
 msgstr "Support/object XY afstand"
@@ -17583,18 +17583,6 @@ msgstr ""
 #~ "normal(auto) en tree(auto) worden gebruikt om automatisch steun te "
 #~ "genereren. Als normaal(handmatig) of tree(handmatig) is geselecteerd, "
 #~ "worden alleen ondersteuningen handhavers gegenereerd."
-
-#~ msgid "normal(auto)"
-#~ msgstr "Normaal (automatisch)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "tree(auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "normaal (handmatig)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "tree (handmatig)"
 
 #~ msgctxt "Verb"
 #~ msgid "Scale"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2025-03-04 04:56+0900\n"
 "Last-Translator: ElectricalBoy "
 "<15651807+ElectricalBoy@users.noreply.github.com>\n"
@@ -18036,18 +18036,6 @@ msgstr ""
 #~ msgstr ""
 #~ "일반(자동) 및 나무(자동)은 지지대를 자동으로 생성합니다. 일반(수동) 또는 "
 #~ "나무(수동) 선택시에는 강제된 지지대만 생성됩니다"
-
-#~ msgid "normal(auto)"
-#~ msgstr "일반(자동)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "나무(자동)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "일반(수동)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "나무(수동)"
 
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Shift + 왼쪽 마우스 버튼"

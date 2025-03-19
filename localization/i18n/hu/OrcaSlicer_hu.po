@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13386,16 +13386,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "normál (auto)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "fa (auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "normál (manuális)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "fa (manuális)"
 
 msgid "Support/object xy distance"
 msgstr "Támasz/tárgy XY távolság"
@@ -17303,18 +17303,6 @@ msgstr ""
 #~ "A normál (auto) és a fa (auto) a támaszok automatikus generálásához van "
 #~ "használva. Ha a normál (kézi) vagy a fa (kézi) van kiválasztva, akkor "
 #~ "csak a kényszerített támaszok kerülnek generálásra."
-
-#~ msgid "normal(auto)"
-#~ msgstr "normál (auto)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "fa (auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "normál (manuális)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "fa (manuális)"
 
 #~ msgctxt "Verb"
 #~ msgid "Scale"

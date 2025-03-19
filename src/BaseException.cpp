@@ -329,7 +329,7 @@ BOOL CBaseException::GetLogicalAddress(
 
 void CBaseException::ShowRegistorInformation(PCONTEXT pCtx)
 {
-#ifdef _M_IX86  // Intel Only!
+#if defined(_M_IX86) // Intel Only!
 	OutputString( _T("\nRegisters:\r\n") );
 
 	OutputString(_T("EAX:%08X\r\nEBX:%08X\r\nECX:%08X\r\nEDX:%08X\r\nESI:%08X\r\nEDI:%08X\r\n"),
@@ -339,7 +339,19 @@ void CBaseException::ShowRegistorInformation(PCONTEXT pCtx)
 	OutputString( _T("SS:ESP:%04X:%08X  EBP:%08X\r\n"),pCtx->SegSs, pCtx->Esp, pCtx->Ebp );
 	OutputString( _T("DS:%04X  ES:%04X  FS:%04X  GS:%04X\r\n"), pCtx->SegDs, pCtx->SegEs, pCtx->SegFs, pCtx->SegGs );
 	OutputString( _T("Flags:%08X\r\n"), pCtx->EFlags );
+#elif defined(_M_X64)
+    OutputString(_T("\nRegisters:\r\n"));
 
+	OutputString(_T("RAX:%016llX\r\nRBX:%016llX\r\nRCX:%016llX\r\nRDX:%016llX\r\nRSI:%016llX\r\nRDI:%016llX\r\n"),
+		pCtx->Rax, pCtx->Rbx, pCtx->Rcx, pCtx->Rdx, pCtx->Rsi, pCtx->Rdi );
+
+	OutputString(_T("R8:%016llX\r\nR9:%016llX\r\nR10:%016llX\r\nR11:%016llX\r\nR12:%016llX\r\nR13:%016llX\r\nR14:%016llX\r\nR15:%016llX\r\n"),
+		pCtx->R8, pCtx->R9, pCtx->R10, pCtx->R11, pCtx->R12, pCtx->R13, pCtx->R14, pCtx->R15 );
+
+    OutputString(_T("CS:RIP:%04X:%016llX\r\n"), pCtx->SegCs, pCtx->Rip);
+    OutputString(_T("SS:RSP:%04X:%016llX  RBP:%016llX\r\n"), pCtx->SegSs, pCtx->Rsp, pCtx->Rbp);
+    OutputString(_T("DS:%04X  ES:%04X  FS:%04X  GS:%04X\r\n"), pCtx->SegDs, pCtx->SegEs, pCtx->SegFs, pCtx->SegGs);
+    OutputString(_T("Flags:%08X\r\n"), pCtx->EFlags);
 #endif
 
 	OutputString( _T("\r\n") );
