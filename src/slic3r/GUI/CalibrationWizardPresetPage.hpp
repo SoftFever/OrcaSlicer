@@ -298,6 +298,7 @@ protected:
     void on_select_nozzle_volume_type(wxCommandEvent &evt, size_t extruder_id);
 
     Button *m_btn_sync{nullptr};
+    Label* m_sync_button_text;
 
     wxPanel*    m_single_nozzle_info_panel{nullptr};
     wxPanel*    m_multi_nozzle_info_panel{nullptr};

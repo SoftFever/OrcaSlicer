@@ -44,7 +44,7 @@ protected:
 class EditCalibrationHistoryDialog : public DPIDialog
 {
 public:
-    EditCalibrationHistoryDialog(wxWindow* parent, const PACalibResult& result, const MachineObject* obj);
+    EditCalibrationHistoryDialog(wxWindow *parent, const PACalibResult &result, const MachineObject *obj, const std::vector<PACalibResult> history_results);
     ~EditCalibrationHistoryDialog();
     void on_dpi_changed(const wxRect& suggested_rect) override;
     PACalibResult get_result();
@@ -55,6 +55,8 @@ protected:
 
 protected:
     PACalibResult m_new_result;
+    std::vector<PACalibResult> m_history_results;
+    const MachineObject * curr_obj;
 
     TextInput* m_name_value{ nullptr };
     TextInput* m_k_value{ nullptr };
