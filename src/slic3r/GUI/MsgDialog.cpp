@@ -47,7 +47,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	//rightsizer->Add(headtext);
 	//rightsizer->AddSpacer(VERT_SPACING);
 
-	rightsizer->Add(content_sizer, 1, wxEXPAND);
+	rightsizer->Add(content_sizer, 1, wxEXPAND | wxRIGHT, FromDIP(10));
 
 	logo = new wxStaticBitmap(this, wxID_ANY, bitmap.IsOk() ? bitmap : wxNullBitmap);
     topsizer->Add(LOGO_SPACING, 0, 0, wxEXPAND, 0);
