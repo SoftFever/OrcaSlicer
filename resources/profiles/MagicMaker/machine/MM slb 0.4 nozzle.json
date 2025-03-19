@@ -125,7 +125,7 @@
     "z_hop_types": [
         "Slope Lift"
     ],
-    "gcode_flavor": "marlin2",
+    "gcode_flavor": "marlin",
     "is_custom_defined": "0",
     "machine_end_gcode": "M104 S0 ;extruder heater off\nM140 S0 ;heated bed heater off (if you have it)\nG91 \nM83\nG1 E-1 F600  ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG1 Z1 F600\nG90 ;absolute positioning\nG1 X0 Y120 F6000\nG1 E-4 F1200\nM107 ; turn off fan\nM84 ;steppers off\nPRINT_END",
     "machine_start_gcode": "G0 Z3 F300\nM190 S[bed_temperature_initial_layer_single]\nM109 S[nozzle_temperature_initial_layer]\nPRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]\nG21 ;metric values\nG90 ;absolute positioning\nM82 ;set extruder to absolute mode\nM107 ;start with the fan off\nG28 ;Home\n;G29\nG0 Z5 F300\nG1 X0 Y50 F6000\nG92 E0\nG0 Z0.5 F300\nG1 F1000 Y0 E10\nG1 F1000 X50 E18\nG92 E0\nM117 Printing...",
