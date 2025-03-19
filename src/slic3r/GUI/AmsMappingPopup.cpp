@@ -784,6 +784,16 @@ bool AmsMapingPopup::is_match_material(std::string material)
 void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
 {
     auto pos = ClientToScreen(evt.GetPosition());
+    {//deal m_reset_btn
+        auto& item   = m_reset_btn;
+        auto  p_rect = item->ClientToScreen(wxPoint(0, 0));
+        auto  left   = item->GetSize();
+        if (pos.x > p_rect.x && pos.y > p_rect.y && pos.x < (p_rect.x + item->GetSize().x) && pos.y < (p_rect.y + item->GetSize().y)) {
+            reset_ams_info();
+            evt.StopPropagation();
+            return;
+        }
+    }
     for (MappingItem *item : m_mapping_item_list) {
         auto p_rect = item->ClientToScreen(wxPoint(0, 0));
         auto left = item->GetSize();
