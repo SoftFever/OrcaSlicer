@@ -3,7 +3,8 @@
 set -e
 set -o pipefail
 
-while getopts ":dpa:snt:xbc:hu" opt; do
+# Added "1" to the getopts string so that the -1 flag is properly handled.
+while getopts ":dpa:snt:xbc:hu1" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -105,19 +106,6 @@ echo " - CMAKE_GENERATOR: $SLICER_CMAKE_GENERATOR for Slicer, $DEPS_CMAKE_GENERA
 echo " - OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
 echo
 
-# if which -s brew; then
-# 	brew --prefix libiconv
-# 	brew --prefix zstd
-# 	export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix zstd)/lib/
-# elif which -s port; then
-# 	port install libiconv
-# 	port install zstd
-# 	export LIBRARY_PATH=$LIBRARY_PATH:/opt/local/lib
-# else
-# 	echo "Need either brew or macports to successfully build deps"
-# 	exit 1
-# fi
-
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
 DEPS_DIR="$PROJECT_DIR/deps"
@@ -204,17 +192,6 @@ function build_slicer() {
         # delete .DS_Store file
         find ./OrcaSlicer.app/ -name '.DS_Store' -delete
     )
-
-    # extract version
-    # export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
-    # ver="_V${ver//\"}"
-    # echo $PWD
-    # if [ "1." != "$NIGHTLY_BUILD". ];
-    # then
-    #     ver=${ver}_dev
-    # fi
-
-    # zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
 }
 
 function build_universal() {
