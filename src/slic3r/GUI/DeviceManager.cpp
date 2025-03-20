@@ -6642,6 +6642,7 @@ std::vector<std::string> nozzle_type_list{ "hardened_steel", "stainless_steel" }
 DeviceManager::DeviceManager(NetworkAgent* agent)
 {
     m_agent = agent;
+    m_refresher = new DeviceManagerRefresher(this);
 
     // Load saved local machines
     if (agent) {
@@ -6689,6 +6690,8 @@ void DeviceManager::update_local_machine(const MachineObject& m)
 
 DeviceManager::~DeviceManager()
 {
+    delete m_refresher;
+
     for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
         if (it->second) {
             delete it->second;
@@ -6750,6 +6753,8 @@ void DeviceManager::set_agent(NetworkAgent* agent)
     m_agent = agent;
 }
 
+void DeviceManager::start_refresher() { m_refresher->Start(); }
+void DeviceManager::stop_refresher() { m_refresher->Stop(); }
 void DeviceManager::keep_alive()
 {
     MachineObject* obj = this->get_selected_machine();
@@ -7754,6 +7759,51 @@ std::string DeviceManager::load_gcode(std::string type_str, std::string gcode_fi
 
 
     return "";
+}
+
+DeviceManagerRefresher::DeviceManagerRefresher(DeviceManager *manger) : wxObject() {
+    m_manager = manger;
+    m_timer   = new wxTimer();
+    m_timer->Bind(wxEVT_TIMER, &DeviceManagerRefresher::on_timer, this);
+}
+
+DeviceManagerRefresher::~DeviceManagerRefresher() {
+    m_timer->Stop();
+    delete m_timer;
+}
+
+void DeviceManagerRefresher::on_timer(wxTimerEvent &event) {
+    if (!m_manager) { return;}
+
+    NetworkAgent *agent = m_manager->get_agent();
+    if (!agent) { return; }
+
+    // reset to active
+    Slic3r::GUI::wxGetApp().reset_to_active();
+
+    MachineObject *obj = m_manager->get_selected_machine();
+    if (!obj) { return; }
+
+    // check valid machine
+    if (obj && m_manager->get_my_machine(obj->dev_id) == nullptr) {
+        m_manager->set_selected_machine("");
+        agent->set_user_selected_machine("");
+        return;
+    }
+
+    // do some refresh
+    if (Slic3r::GUI::wxGetApp().is_user_login())
+    {
+        m_manager->check_pushing();
+        try {
+            agent->refresh_connection();
+        } catch (...) {
+            ;
+        }
+    }
+
+    // certificate
+    agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
 }
 
 void change_the_opacity(wxColour& colour)

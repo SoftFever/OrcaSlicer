@@ -3036,7 +3036,6 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
-    wxGetApp().reset_to_active();
     update_show_status();
 
     ///show auto refill
@@ -3292,7 +3291,7 @@ void SelectMachineDialog::update_show_status()
         return;
     }
     if (!dev) return;
-    dev->check_pushing();
+
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
 
     // blank plate has no valid gcode file
@@ -3319,7 +3318,6 @@ void SelectMachineDialog::update_show_status()
     /* check cloud machine connections */
     if (!obj_->is_lan_mode_printer()) {
         if (!agent->is_server_connected()) {
-            agent->refresh_connection();
             show_status(PrintDialogStatus::PrintStatusConnectingServer);
             reset_timeout();
             return;

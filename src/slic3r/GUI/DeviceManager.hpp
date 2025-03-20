@@ -17,6 +17,9 @@
 #include "CameraPopup.hpp"
 #include "libslic3r/calib.hpp"
 #include "libslic3r/Utils.hpp"
+
+#include <wx/object.h>
+
 #define USE_LOCAL_SOCKET_BIND 0
 
 #define DISCONNECT_TIMEOUT      30000.f     // milliseconds
@@ -1356,15 +1359,19 @@ private:
     time_t xcam__save_remote_print_file_to_storage_start_time = 0;
 };
 
+class DeviceManagerRefresher;
 class DeviceManager
 {
 private:
-    NetworkAgent* m_agent { nullptr };
+    NetworkAgent*           m_agent { nullptr };
+    DeviceManagerRefresher* m_refresher{nullptr};
+
 public:
     static bool   EnableMultiMachine;
 
     DeviceManager(NetworkAgent* agent = nullptr);
     ~DeviceManager();
+    NetworkAgent *get_agent() const{ return m_agent; }
     void set_agent(NetworkAgent* agent);
 
     std::mutex listMutex;
@@ -1372,6 +1379,9 @@ public:
     std::string local_selected_machine;                         /* dev_id */
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject*, localMachine SSDP   */
     std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject*  cloudMachine of User */
+
+    void start_refresher();
+    void stop_refresher();
 
     void keep_alive();
     void check_pushing();
@@ -1467,6 +1477,26 @@ public:
     static std::string get_filament_name_from_ams(int ams_id, int slot_id);
     static void update_local_machine(const MachineObject& m);
 };
+
+class DeviceManagerRefresher : public wxObject
+{
+    wxTimer       *m_timer{nullptr};
+    int            m_timer_interval_msec = 1000;
+
+    DeviceManager *m_manager{nullptr};
+
+public:
+    DeviceManagerRefresher(DeviceManager* manger);
+    ~DeviceManagerRefresher();
+
+public:
+    void Start() { m_timer->Start(m_timer_interval_msec); }
+    void Stop() { m_timer->Stop(); }
+
+protected:
+    virtual void on_timer(wxTimerEvent &event);
+};
+
 
 // change the opacity
 void change_the_opacity(wxColour& colour);

@@ -341,37 +341,8 @@ void MonitorPanel::update_all()
 {
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev)
-        return;
+    if (!dev) return;
     obj = dev->get_selected_machine();
-
-    // check valid machine
-    if (obj && dev->get_my_machine(obj->dev_id) == nullptr) {
-        dev->set_selected_machine("");
-        if (m_agent)
-            m_agent->set_user_selected_machine("");
-        show_status((int)MONITOR_NO_PRINTER);
-        return;
-    }
-
-    //BBS check mqtt connections if user is login
-    if (wxGetApp().is_user_login()) {
-        dev->check_pushing();
-        // check mqtt connection and reconnect if disconnected
-        try {
-            m_agent->refresh_connection();
-        }
-        catch (...) {
-            ;
-        }
-    }
-
-    if (obj) {
-        wxGetApp().reset_to_active();
-        if (obj->connection_type() != last_conn_type) {
-            last_conn_type = obj->connection_type();
-        }
-    }
 
     m_status_info_panel->obj = obj;
     m_upgrade_panel->update(obj);
@@ -387,6 +358,7 @@ void MonitorPanel::update_all()
         return;
     }
 
+    if (obj->connection_type() != last_conn_type) { last_conn_type = obj->connection_type(); }
     if (obj->is_connecting()) {
         show_status(MONITOR_CONNECTING);
         return;

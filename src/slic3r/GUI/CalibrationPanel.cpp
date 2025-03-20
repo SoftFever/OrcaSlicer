@@ -309,7 +309,6 @@ bool SelectMObjectPopup::Show(bool show) {
 void SelectMObjectPopup::on_timer(wxTimerEvent& event)
 {
     BOOST_LOG_TRIVIAL(trace) << "SelectMObjectPopup on_timer";
-    wxGetApp().reset_to_active();
     wxCommandEvent user_event(EVT_UPDATE_USER_MLIST);
     user_event.SetEventObject(this);
     wxPostEvent(this, user_event);
@@ -563,25 +562,8 @@ void CalibrationPanel::update_all() {
         }
     }
 
-    if (wxGetApp().is_user_login()) {
-        dev->check_pushing();
-        try {
-            m_agent->refresh_connection();
-        }
-        catch (...) {
-            ;
-        }
-    }
-
-    if (obj) {
-        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
-    }
-
-    if (obj) {
-        wxGetApp().reset_to_active();
-        if (obj->connection_type() != last_conn_type) {
-            last_conn_type = obj->connection_type();
-        }
+    if (obj && obj->connection_type() != last_conn_type) {
+        last_conn_type = obj->connection_type();
     }
 
     m_side_tools->update_status(obj);
