@@ -3749,6 +3749,7 @@ LayerResult GCode::process_layer(
     //BBS: set layer time fan speed after layer change gcode
     gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
 
+    //TODO: Why this is not a Switch-case?
     if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
         gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
     } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
@@ -3760,14 +3761,15 @@ LayerResult GCode::process_layer(
     } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
         auto _speed = print.calib_params().start + print_z * print.calib_params().step;
         m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-    }
-    else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
+    } else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
         auto _length = print.calib_params().start + std::floor(std::max(0.0,print_z-0.4)) * print.calib_params().step;
         DynamicConfig _cfg;
         _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
         writer().config.apply(_cfg);
         sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
         gcode += buf;
+    } else if (print.calib_mode() == CalibMode::Calib_Input_shaping) {
+        gcode += writer().set_input_shaping(m_layer_index < 2 ? 0.f : (print.calib_params().start) + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index - 2) / (m_layer_count - 3), (print.calib_params().step));
     }
 
     //BBS

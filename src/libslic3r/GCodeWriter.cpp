@@ -333,6 +333,25 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     return gcode.str();
 }
 
+std::string GCodeWriter::set_input_shaping(float freq, float damp) const
+{
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfKlipper))
+    {
+        throw std::runtime_error("M593 - ZV Input Shaping is NOT supported by Klipper");
+    }
+    if (freq < 0.0f || damp < 0.f || damp > 1.0f)
+    {
+    throw std::runtime_error("Invalid input shaping parameters: freq=" + std::to_string(freq) + ", damp=" + std::to_string(damp));
+    }
+    gcode << "M593  F" << freq;
+    if (damp != 0.0f)
+    {
+        gcode << " D" << damp;
+    }
+    gcode << "; Override input shaping value\n";
+    return gcode.str();
+}
 
 
 std::string GCodeWriter::reset_e(bool force)
