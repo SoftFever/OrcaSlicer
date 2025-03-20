@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-# Added "1" to the getopts string so that the -1 flag is properly handled.
+# Updated getopts string now includes "1" so that -1 is correctly recognized.
 while getopts ":dpa:snt:xbc:hu1" opt; do
   case "${opt}" in
     d )
