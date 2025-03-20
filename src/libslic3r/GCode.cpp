@@ -742,6 +742,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             end_filament_gcode_str = nozzle_change_gcode_trans + end_filament_gcode_str;
         }
 
+        end_filament_gcode_str = toolchange_retract_str + end_filament_gcode_str;
+
         if (! change_filament_gcode.empty()) {
             DynamicConfig config;
             int old_filament_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
@@ -906,8 +908,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string toolchange_unretract_str = gcodegen.unretract();
         check_add_eol(toolchange_unretract_str);
 
-        toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str + toolchange_unretract_str;
-
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
         gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(new_filament_id));
         gcodegen.placeholder_parser().set("long_retraction_when_cut", gcodegen.m_config.long_retractions_when_cut.get_at(new_filament_id));
@@ -922,6 +922,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             start_filament_gcode_str = gcodegen.placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             check_add_eol(start_filament_gcode_str);
         }
+
+        start_filament_gcode_str = start_filament_gcode_str + toolchange_unretract_str;
 
         // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
         DynamicConfig config;
