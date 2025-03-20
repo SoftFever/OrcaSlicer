@@ -1581,6 +1581,8 @@ void MachineObject::parse_status(int flag)
     }
 
     is_support_flow_calibration = ((flag >> 15) & 0x1) != 0;
+    if (this->is_series_n()) { is_support_flow_calibration = true; }/* STUDIO-11014 cover the mistake of AP at n series*/
+
     is_support_pa_calibration = ((flag >> 16) & 0x1) != 0;
 
     if (xcam_prompt_sound_hold_count > 0)
