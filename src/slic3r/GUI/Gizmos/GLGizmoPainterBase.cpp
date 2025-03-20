@@ -1061,6 +1061,7 @@ void GLGizmoPainterBase::on_set_state()
         return;
 
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
+        m_parent.enable_picking(false);
         on_opening();
 
         const Selection& selection = m_parent.get_selection();
@@ -1072,6 +1073,7 @@ void GLGizmoPainterBase::on_set_state()
         //camera.look_at(position, rotate_target, Vec3d::UnitZ());
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
+        m_parent.enable_picking(true);
         // we are actually shutting down
         on_shutdown();
         m_old_mo_id = -1;
