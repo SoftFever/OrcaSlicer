@@ -1937,8 +1937,8 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         wxString msg_text = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
         update_print_status_msg(msg_text, false, false, true);
     } else if (status == PrintStatusWarningKvalueNotUsed && !params.empty()) {
-        wxString msg_text = _L("Custom K value of { %s } will not be used since dynamic flow calibration is enabled.");
-        update_print_status_msg(wxString::Format(msg_text, params[0]), false, true, true);
+        wxString msg_text = _L("Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value.");
+        update_print_status_msg(msg_text, false, true, true);
     }
 
     // m_panel_warn m_simplebook
