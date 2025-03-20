@@ -34,9 +34,7 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const ModelInstance* mi = mo->instances[m_parent.get_selection().get_instance_idx()];
         std::vector<Transform3d> trafo_matrices;
         for (const ModelVolume* mv : mo->volumes) {
-            //if (mv->is_model_part()) { 
-                trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix()); 
-            //}
+            trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
         }
 
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -180,6 +178,9 @@ void GLGizmoMeshBoolean::on_set_state()
 
 CommonGizmosDataID GLGizmoMeshBoolean::on_get_requirements() const
 {
+    if (m_c && m_c->raycaster_ptr()) {
+        m_c->raycaster_ptr()->set_only_support_model_part_flag(false);
+    }
     return CommonGizmosDataID(
         int(CommonGizmosDataID::SelectionInfo)
         | int(CommonGizmosDataID::InstancesHider)
