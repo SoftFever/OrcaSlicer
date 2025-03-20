@@ -70,14 +70,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_retract_lift_above": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_below": [
-        "nil",
-        "nil"
-    ],
     "filament_ramming_volumetric_speed": [
         "0.55",
         "0.55"
