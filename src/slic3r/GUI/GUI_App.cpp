@@ -2048,7 +2048,11 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-Client-Name", SLIC3R_APP_NAME));
     extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_VERSION)));
 #if defined(__WINDOWS__)
+#ifdef _M_X64
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+#else
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "win_arm64"));
+#endif
 #elif defined(__APPLE__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "macos"));
 #elif defined(__LINUX__)
