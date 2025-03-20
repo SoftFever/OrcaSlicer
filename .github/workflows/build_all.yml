@@ -49,6 +49,8 @@ jobs:
         include:
           - os: ubuntu-20.04
           - os: ubuntu-24.04
+          - os: ubuntu-20.04-arm
+          - os: ubuntu-24.04-arm
           - os: windows-latest
           - os: macos-14
             arch: x86_64
