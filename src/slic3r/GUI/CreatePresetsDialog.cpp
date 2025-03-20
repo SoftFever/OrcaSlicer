@@ -2982,8 +2982,25 @@ wxArrayString CreatePrinterPresetDialog::printer_preset_sort_with_nozzle_diamete
 {
     std::vector<pair<float, std::string>> preset_sort;
 
+    auto get_nozzle_size_for_printer_model = [this](const std::string & model_name) -> size_t {
+        auto iter = m_printer_name_to_preset.find(model_name);
+        if (iter != m_printer_name_to_preset.end()) {
+            std::shared_ptr<Preset> printer_preset  = iter->second;
+            if (printer_preset) {
+                auto nozzle_diameter = dynamic_cast<ConfigOptionFloatsNullable *>(printer_preset->config.option("nozzle_diameter", true));
+                return nozzle_diameter->values.size();
+            }
+        }
+        return 1;  // default nozzle size
+    };
+
+    size_t selected_nozzle_size = get_nozzle_size_for_printer_model(into_u8(m_select_printer->GetStringSelection()));
     for (const Slic3r::VendorProfile::PrinterModel &model : vendor_profile.models) {
         std::string model_name = model.name;
+        size_t      nozzle_size = get_nozzle_size_for_printer_model(model_name);
+        if (nozzle_size != selected_nozzle_size)
+            continue;
+
         for (const Slic3r::VendorProfile::PrinterVariant &variant : model.variants) {
             try {
                 float variant_diameter = std::stof(variant.name);
