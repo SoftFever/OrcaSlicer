@@ -791,6 +791,7 @@ float nozzle_diameter_list[NOZZLE_LIST_COUNT] = {0.2, 0.4, 0.6, 0.8 };
 void CalibrationPresetPage::init_selection_values()
 {
     // init nozzle diameter
+    m_comboBox_nozzle_dia->Clear();
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
         m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
     }
@@ -832,11 +833,13 @@ void CalibrationPresetPage::init_selection_values()
 
     // left
     {
+        m_left_comboBox_nozzle_dia->Clear();
         for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
             m_left_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
         }
         m_left_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
 
+        m_left_comboBox_nozzle_volume->Clear();
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
             for (auto item : nozzle_volume_type_def->enum_labels) {
@@ -849,11 +852,13 @@ void CalibrationPresetPage::init_selection_values()
 
     // right
     {
+        m_right_comboBox_nozzle_dia->Clear();
         for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
             m_right_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
         }
         m_right_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
 
+        m_right_comboBox_nozzle_volume->Clear();
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
             for (auto item : nozzle_volume_type_def->enum_labels) {
