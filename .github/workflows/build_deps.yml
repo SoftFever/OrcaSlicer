@@ -28,8 +28,7 @@ jobs:
     env:
       date:
     steps:
-
-      # Setup the environment
+    
       - name: Checkout
         uses: actions/checkout@v4
         with:
