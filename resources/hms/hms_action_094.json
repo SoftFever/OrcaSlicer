@@ -1,8 +1,274 @@
 {
     "result": 0,
-    "t": 1741595792,
-    "ver": 202503250310,
+    "t": 1742438278,
+    "ver": 202503200935,
     "data": [
+        {
+            "ecode": "05FF8080",
+            "image": "",
+            "actions": [
+                24
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FEC011",
+            "image": "1d7f47ac65f3a71c24ed44a5e9925c32.png",
+            "actions": [
+                33
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "05FE8080",
+            "image": "",
+            "actions": [
+                24
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FFC011",
+            "image": "1c7641df0c735a3ad4fe06d959a698a3.png",
+            "actions": [
+                33
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FE8007",
+            "image": "c7535a8b7d8da4c986dfda80b531f1dd.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FEC00A",
+            "image": "c7535a8b7d8da4c986dfda80b531f1dd.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0C00403D",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FFC00A",
+            "image": "f82697b8532761fcbd8b9524fae85952.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FF8007",
+            "image": "f82697b8532761fcbd8b9524fae85952.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500805C",
+            "image": "957b1e24bcb394ee02661113f7b60f10.png",
+            "actions": [
+                21,
+                22
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FF8025",
+            "image": "",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FE8025",
+            "image": "",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500C036",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FEC010",
+            "image": "4d0dfde9b57b8dde1d98f2356b5cfb78.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0300804F",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0300804E",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FFC010",
+            "image": "2efd922e01557e9b43b3f38fa3f24c23.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FFC006",
+            "image": "59b1aed60a6901d818a99d6aca557c97.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FFC008",
+            "image": "b8f4e5da021db26affe3b900d74b396e.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FE8003",
+            "image": "27957b6e1c28fbf75a4452a93c0939f7.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FF8006",
+            "image": "59b1aed60a6901d818a99d6aca557c97.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FEC003",
+            "image": "27957b6e1c28fbf75a4452a93c0939f7.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008042",
+            "image": "46e708a25b1bdcc8f5e66a003591246a.png",
+            "actions": [
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FEC006",
+            "image": "b6e6e72effe4270314f9c5c3468a886e.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FEC008",
+            "image": "27957b6e1c28fbf75a4452a93c0939f7.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FF8003",
+            "image": "b8f4e5da021db26affe3b900d74b396e.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FEC009",
+            "image": "b6e6e72effe4270314f9c5c3468a886e.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FFC003",
+            "image": "b8f4e5da021db26affe3b900d74b396e.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FFC009",
+            "image": "59b1aed60a6901d818a99d6aca557c97.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "07FE8006",
+            "image": "a9bb3d334b25b415f8d3298a8582c8a4.png",
+            "actions": [
+                9
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "03008062",
+            "image": "754fa8c39cb7fe74fd9ceaa7c81b504d.png",
+            "actions": [
+                4
+            ],
+            "device": "094"
+        },
+        {
+            "ecode": "0500040000020041",
+            "image": "",
+            "actions": [
+                32
+            ],
+            "device": "094"
+        },
         {
             "ecode": "0500808B",
             "image": "fd6afcb3c322267736d59eca6149c8bb.png",
@@ -56,15 +322,6 @@
             "device": "094"
         },
         {
-            "ecode": "07FE8007",
-            "image": "f336022fadaef978b9e4c72a8416a838.png",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05008055",
             "image": "d7c1c7f9109500b16aa9d8d82fe9be4e.png",
             "actions": [
@@ -89,27 +346,10 @@
             "device": "094"
         },
         {
-            "ecode": "07FFC006",
-            "image": "537ae91e6acf8f4ec60cae6ac200cd9b.png",
-            "actions": [
-                9
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "0500806F",
             "image": "876a5d7dbf4cba916046034817c83349.png",
             "actions": [
                 22
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FFC008",
-            "image": "23b9dffd4aaf35870ab018a4366b0a21.png",
-            "actions": [
-                4,
-                6
             ],
             "device": "094"
         },
@@ -189,14 +429,6 @@
             "device": "094"
         },
         {
-            "ecode": "07FE8003",
-            "image": "7cb10410ef4abaa8ba6184de04551182.png",
-            "actions": [
-                9
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "0500806A",
             "image": "f53110e7c243ba8b139f27201d6877f0.png",
             "actions": [
@@ -253,14 +485,6 @@
             "actions": [
                 28,
                 27
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FF8006",
-            "image": "537ae91e6acf8f4ec60cae6ac200cd9b.png",
-            "actions": [
-                9
             ],
             "device": "094"
         },
@@ -435,15 +659,6 @@
             "device": "094"
         },
         {
-            "ecode": "07FEC003",
-            "image": "7cb10410ef4abaa8ba6184de04551182.png",
-            "actions": [
-                4,
-                6
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05008078",
             "image": "",
             "actions": [
@@ -515,15 +730,6 @@
             "device": "094"
         },
         {
-            "ecode": "07FEC00A",
-            "image": "f336022fadaef978b9e4c72a8416a838.png",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "0300804B",
             "image": "",
             "actions": [
@@ -546,14 +752,6 @@
             "actions": [
                 21,
                 6
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "03008042",
-            "image": "26e5af5ade19e20ff6bbb1b2cfa9cb21.png",
-            "actions": [
-                4
             ],
             "device": "094"
         },
@@ -617,15 +815,6 @@
             "device": "094"
         },
         {
-            "ecode": "07FFC00A",
-            "image": "0178c365265d58b273c6a2c1471e3742.png",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "03008021",
             "image": "",
             "actions": [
@@ -673,23 +862,6 @@
             "image": "",
             "actions": [
                 11
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FEC006",
-            "image": "9a2e24032479a29ba72f1b203d195f63.png",
-            "actions": [
-                9
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FEC008",
-            "image": "7cb10410ef4abaa8ba6184de04551182.png",
-            "actions": [
-                4,
-                6
             ],
             "device": "094"
         },
@@ -772,23 +944,6 @@
             "device": "094"
         },
         {
-            "ecode": "07FF8003",
-            "image": "23b9dffd4aaf35870ab018a4366b0a21.png",
-            "actions": [
-                9
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FF8007",
-            "image": "0178c365265d58b273c6a2c1471e3742.png",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05008069",
             "image": "f53110e7c243ba8b139f27201d6877f0.png",
             "actions": [
@@ -840,14 +995,6 @@
             "device": "094"
         },
         {
-            "ecode": "0500805C",
-            "image": "957b1e24bcb394ee02661113f7b60f10.png",
-            "actions": [
-                22
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "0500805A",
             "image": "39ebb17f9bb6d7aebb116c4e60774bbb.png",
             "actions": [
@@ -862,22 +1009,6 @@
             "actions": [
                 28,
                 27
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FEC009",
-            "image": "9a2e24032479a29ba72f1b203d195f63.png",
-            "actions": [
-                9
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FFC003",
-            "image": "23b9dffd4aaf35870ab018a4366b0a21.png",
-            "actions": [
-                9
             ],
             "device": "094"
         },
@@ -909,22 +1040,6 @@
             "device": "094"
         },
         {
-            "ecode": "07FFC009",
-            "image": "537ae91e6acf8f4ec60cae6ac200cd9b.png",
-            "actions": [
-                9
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "07FE8006",
-            "image": "9a2e24032479a29ba72f1b203d195f63.png",
-            "actions": [
-                9
-            ],
-            "device": "094"
-        },
-        {
             "ecode": "05FF806A",
             "image": "1c6893be4fe8b0b6da0e8dde6e350ac3.png",
             "actions": [
@@ -936,14 +1051,6 @@
         {
             "ecode": "0C008033",
             "image": "",
-            "actions": [
-                4
-            ],
-            "device": "094"
-        },
-        {
-            "ecode": "03008062",
-            "image": "63eb2465bf54ea2f5454da378155ca79.png",
             "actions": [
                 4
             ],
