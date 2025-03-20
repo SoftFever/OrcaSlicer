@@ -519,9 +519,10 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         if (isDual) {
             wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-                hsizer->Add(hsizer_printer_btn, 0, wxALIGN_TOP | wxTOP | wxLEFT, 0);
-                hsizer->Add(image_printer, 1, wxEXPAND | wxTOP, FromDIP(8));
-                hsizer->AddSpacer(FromDIP(4));
+            hsizer->AddStretchSpacer(1);
+            hsizer->Add(image_printer, 1, wxEXPAND | wxTOP, FromDIP(8));
+            hsizer->Add(hsizer_printer_btn, 1, wxEXPAND, 0);
+            hsizer->AddSpacer(FromDIP(6));
             vsizer->AddSpacer(FromDIP(4));
             vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
             vsizer->Add(combo_printer, 0, wxEXPAND | wxALL, FromDIP(4));
@@ -529,11 +530,10 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
         } else {
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-            hsizer->AddSpacer(FromDIP(4));
-            hsizer->Add(hsizer_printer_btn, 0, wxALIGN_TOP | wxTOP | wxLEFT, FromDIP(4));
             hsizer->Add(image_printer, 0, wxLEFT | wxALIGN_CENTER, FromDIP(4));
             hsizer->Add(combo_printer, 1, wxALIGN_CENTRE | wxLEFT | wxRIGHT, FromDIP(6));
-            hsizer->AddSpacer(FromDIP(8));
+            hsizer->Add(hsizer_printer_btn, 0, wxALIGN_TOP | wxTOP | wxRIGHT, FromDIP(4));
+            hsizer->AddSpacer(FromDIP(10));
             panel_printer_preset->SetSizer(hsizer);
             panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_WIDEN);
         }
@@ -1513,7 +1513,6 @@ Sidebar::Sidebar(Plater *parent)
                     p->editing_filament = 0;
             });
         p->btn_edit_printer = edit_btn;
-
         ScalableBitmap bitmap_printer(p->panel_printer_preset, "printer_placeholder", 48);
         p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
         p->image_printer->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
