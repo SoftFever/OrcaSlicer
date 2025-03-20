@@ -56,7 +56,6 @@ public:
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    void on_ok(wxMouseEvent &event);
     wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     Button* add_button(wxWindowID btn_id, const wxString &label, bool set_focus = false);
 };

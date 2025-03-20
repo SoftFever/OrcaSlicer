@@ -190,15 +190,6 @@ void TipsDialog::on_dpi_changed(const wxRect &suggested_rect)
     Refresh();
 }
 
-void TipsDialog::on_ok(wxMouseEvent &event)
-{
-    if (m_show_again) {
-        if (!m_app_key.empty())
-        wxGetApp().app_config->set_bool(m_app_key, m_show_again);
-    }
-    EndModal(wxID_OK);
-}
-
 void ParamsPanel::Highlighter::set_timer_owner(wxEvtHandler *owner, int timerid /* = wxID_ANY*/)
 {
     m_timer.SetOwner(owner, timerid);
