@@ -23,7 +23,8 @@
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 
-#define BUTTON_SIZE             wxSize(FromDIP(58), FromDIP(24))
+#define OK_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
+#define CANCEL_BUTTON_SIZE wxSize(FromDIP(58), FromDIP(24))
 #define SyncAmsInfoDialogWidth  FromDIP(675)
 #define SyncAmsInfoDialogHeightMIN FromDIP(620)
 #define SyncAmsInfoDialogHeightMIDDLE FromDIP(630)
@@ -1067,8 +1068,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_button_ok->SetBorderColor(*wxWHITE);
         m_button_ok->SetTextColor(wxColour(0xFFFFFE));
         m_button_ok->SetFont(Label::Body_12);
-        m_button_ok->SetSize(wxSize(FromDIP(90), FromDIP(24)));
-        m_button_ok->SetMinSize(wxSize(FromDIP(90), FromDIP(24)));
+        m_button_ok->SetSize(OK_BUTTON_SIZE);
+        m_button_ok->SetMinSize(OK_BUTTON_SIZE);
         m_button_ok->SetCornerRadius(FromDIP(12));
         bSizer_button->Add(m_button_ok, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
@@ -1085,8 +1086,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_button_cancel->SetBackgroundColor(btn_bg_white);
         m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
         m_button_cancel->SetFont(Label::Body_12);
-        m_button_cancel->SetSize(BUTTON_SIZE);
-        m_button_cancel->SetMinSize(BUTTON_SIZE);
+        m_button_cancel->SetSize(CANCEL_BUTTON_SIZE);
+        m_button_cancel->SetMinSize(CANCEL_BUTTON_SIZE);
         m_button_cancel->SetCornerRadius(FromDIP(12));
         bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
@@ -2747,7 +2748,8 @@ void SyncAmsInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     if (ams_mapping_help_icon != nullptr) {
         ams_mapping_help_icon->msw_rescale();
-        if (img_amsmapping_tip) img_amsmapping_tip->SetBitmap(ams_mapping_help_icon->bmp());
+        if (img_amsmapping_tip)
+            img_amsmapping_tip->SetBitmap(ams_mapping_help_icon->bmp());
     }
 
     for (auto material1 : m_materialList) {
@@ -2755,10 +2757,12 @@ void SyncAmsInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
     }
     m_swipe_left_button->msw_rescale();
     m_swipe_right_button->msw_rescale();
-    m_button_ok->Rescale();
-    m_button_cancel->Rescale();
-    m_mapping_popup.msw_rescale();
-
+    m_button_ok->SetMinSize(OK_BUTTON_SIZE);
+    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetMinSize(CANCEL_BUTTON_SIZE);
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_merge_color_checkbox->Rescale();
+    m_append_color_checkbox->Rescale();
     Fit();
     Refresh();
 }
