@@ -2035,7 +2035,7 @@ void PresetBundle::get_ams_cobox_infos(AMSComboInfo& combox_info)
     }
 }
 
-unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo &merge_info)
+unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfig *,std::string>> &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo &merge_info)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "use_map:" << use_map << " enable_append:" << enable_append;
     std::vector<std::string> ams_filament_presets;
@@ -2106,16 +2106,18 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns, bool use_map, s
                     ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
                     ams_filament_colors.push_back(filament_color);
                     ams_multi_color_filment.push_back(filament_multi_color);
-                    ++unknowns;
+                    unknowns.emplace_back(&ams, L("The filament model is unknown. Still using the previous filament preset."));
                     continue;
                 }
-                iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
-                        return f.is_compatible && f.is_system;
+                iter = std::find_if(filaments.begin(), filaments.end(), [](auto &f) {
+                    return f.is_compatible && f.is_system;
                 });
                 if (iter == filaments.end())
                     continue;
             }
-            ++unknowns;
+            unknowns.emplace_back(&ams, boost::algorithm::starts_with(iter->name, filament_type)
+                    ? L("The filament may not be compatible with the current machine settings. Generic filament presets will be used.")
+                    : L("The filament model is unknown. A random filament preset will be used."));
             filament_id = iter->filament_id;
         }
         ams_filament_presets.push_back(iter->name);

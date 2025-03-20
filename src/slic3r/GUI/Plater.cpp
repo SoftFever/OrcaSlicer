@@ -207,6 +207,13 @@ wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
+
+#define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
+#define PRINTER_THUMBNAIL_SIZE_SMALL (wxSize(FromDIP(32), FromDIP(32)))
+#define PRINTER_PANEL_SIZE_SMALL (wxSize(FromDIP(98), FromDIP(68)))
+#define PRINTER_PANEL_SIZE_WIDEN (wxSize(FromDIP(136), FromDIP(68)))
+#define PRINTER_PANEL_SIZE (wxSize(FromDIP(98), FromDIP(98)))
+
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
     std::string name = into_u8(wxs_name);
@@ -519,6 +526,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
             vsizer->Add(combo_printer, 0, wxEXPAND | wxALL, FromDIP(4));
             panel_printer_preset->SetSizer(vsizer);
+            panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
         } else {
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->AddSpacer(FromDIP(4));
@@ -527,6 +535,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             hsizer->Add(combo_printer, 1, wxALIGN_CENTRE | wxLEFT | wxRIGHT, FromDIP(6));
             hsizer->AddSpacer(FromDIP(8));
             panel_printer_preset->SetSizer(hsizer);
+            panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_WIDEN);
         }
     }
 
@@ -1365,11 +1374,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         btn_sync_printer->SetIcon("printer_sync");
     }
  }
-
-#define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
-#define PRINTER_THUMBNAIL_SIZE_SMALL (wxSize(FromDIP(32), FromDIP(32)))
-#define PRINTER_PANEL_SIZE_SMALL (wxSize(FromDIP(98), FromDIP(68)))
-#define PRINTER_PANEL_SIZE (wxSize(FromDIP(98), FromDIP(98)))
 
 void Sidebar::update_sync_ams_btn_enable(wxUpdateUIEvent &e)
  {
@@ -2386,6 +2390,7 @@ void Sidebar::msw_rescale()
     p->btn_sync_printer->SetPaddingSize({FromDIP(6), FromDIP(12)});
     p->btn_sync_printer->SetMinSize(PRINTER_PANEL_SIZE);
     p->btn_sync_printer->SetMaxSize(PRINTER_PANEL_SIZE);
+    p->panel_printer_bed->SetMinSize(isDual ? PRINTER_PANEL_SIZE : PRINTER_PANEL_SIZE_WIDEN);
     p->btn_sync_printer->Rescale();
 #if 0
     if (p->mode_sizer)
@@ -2939,21 +2944,27 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         color_before_sync.push_back(color_opt->values[i]);
     }
     MergeFilamentInfo merge_info;
-    unsigned int unknowns = 0;
+    std::vector<std::pair<DynamicPrintConfig *,std::string>> unknowns;
     auto enable_append = wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams");
     auto n             = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info);
+    wxString detail;
+    for (auto & uk : unknowns) {
+        auto tray_name     = uk.first->opt_string("tray_name", 0u);
+        auto filament_type = uk.first->opt_string("filament_type", 0u);
+        detail += from_u8("\n- " + tray_name + "(" + filament_type + ") ") + _L(uk.second);
+    }
     if (n == 0) {
         MessageDialog dlg(this,
-            _L("There are no compatible filaments, and sync is not performed."),
+            _L("There are no compatible filaments, and sync is not performed.") + detail,
             _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
         return;
     }
     ams_filament_ids = boost::algorithm::join(list2, ",");
     wxGetApp().app_config ->set("ams_filament_ids", p->ams_list_device, ams_filament_ids);
-    if (unknowns > 0) {
+    if (!unknowns.empty()) {
         MessageDialog dlg(this,
-            _L("There are some unknown filaments mapped to generic preset. Please update Orca Slicer or restart Orca Slicer to check if there is an update to system presets."),
+            _L("There are some unknown or uncompatible filaments mapped to generic preset.\nPlease update Orca Slicer or restart Orca Slicer to check if there is an update to system presets.") + detail,
             _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
     }
