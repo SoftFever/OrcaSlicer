@@ -1043,6 +1043,10 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     else
     {
         m_checkbox_list["timelapse"]->Hide();
+        m_checkbox_list["timelapse"]->setValue("off");
+        AppConfig *config = wxGetApp().app_config;
+        if (config)
+            config->set_str("print", "timelapse", "0");
     }
 
     Layout();
