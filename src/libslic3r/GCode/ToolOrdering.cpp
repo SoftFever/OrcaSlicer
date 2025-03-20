@@ -1176,7 +1176,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
         if (nozzle_nums > 1 && !check_tpu_group(used_filaments, filament_maps, print_config)) {
             int master_extruder_id = print_config->master_extruder_id.value - 1; // to 0 based
-            std::string nozzle_name = master_extruder_id == 0 ? L("left") : L("right");
+            std::string nozzle_name = master_extruder_id == 0 ? _L("left") : _L("right");
             std::string exception_str = _L("TPU is incompatible with AMS and must be printed seperately in the ") + nozzle_name + _L(" nozzle.\nPlease adjust the filament group accordingly.");
             throw Slic3r::RuntimeError(exception_str);
         }
