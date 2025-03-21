@@ -33,7 +33,7 @@
     "skirt_speed": "0",
     "slow_down_layers": "1",
     "sparse_infill_density": "10%",
-    "sparse_infill_pattern": "alignedrectilinear",
+    "sparse_infill_pattern": "grid",
     "sparse_infill_speed": "120",
     "staggered_inner_seams": "1",
     "support_line_width": "0.42",
