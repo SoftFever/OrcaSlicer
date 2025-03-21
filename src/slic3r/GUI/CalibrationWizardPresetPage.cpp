@@ -603,8 +603,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
         on_device_connected(curr_obj);
     });
 
-    wxString sync_text = _L("Sync printer information") + _L(" Synced");
-    m_sync_button_text = new Label(parent, sync_text);
+    m_sync_button_text = new Label(parent, _L("AMS and nozzle information are synced"));
     m_sync_button_text->SetFont(Label::Head_14);
     m_sync_button_text->Wrap(-1);
     sync_button_sizer->Add(m_btn_sync);
@@ -1651,13 +1650,11 @@ void CalibrationPresetPage::update_sync_button_status()
         if (synced) {
             m_btn_sync->SetBorderColor(synced_colour);
             m_btn_sync->SetIcon("ams_nozzle_sync");
-            wxString sync_text = _L("Sync printer information") + _L(" (Synced)");
-            m_sync_button_text->SetLabel(sync_text);
+            m_sync_button_text->SetLabel(_L("AMS and nozzle information are synced"));
         } else {
             m_btn_sync->SetBorderColor(not_synced_colour);
             m_btn_sync->SetIcon("printer_sync");
-            wxString sync_text = _L("Sync printer information") + _L(" (Not synced)");
-            m_sync_button_text->SetLabel(sync_text);
+            m_sync_button_text->SetLabel(_L("Sync AMS and nozzle information"));
         }
     };
 
