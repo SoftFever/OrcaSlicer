@@ -3181,7 +3181,8 @@ int CLI::run(int argc, char **argv)
                                 unsigned char      to_rgb[4] = {};
                                 Slic3r::GUI::BitmapCache::parse_color4(to_color, to_rgb);
 
-                                Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume);
+                                NozzleVolumeType volume_type=NozzleVolumeType(m_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[nozzle_id]);
+                                Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume, new_extruder_count > 1, volume_type);
 
                                 flushing_volume = calculator.calc_flush_vol(from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
                                 if (is_from_support) { flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume); }

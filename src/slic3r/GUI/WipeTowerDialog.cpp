@@ -238,7 +238,7 @@ wxString WipingDialog::BuildTableObjStr()
     }
 
     for (int idx = 0; idx < nozzle_num; ++idx) {
-        obj["min_flush_volumes"].push_back(*min_element(m_extra_flush_volume[idx].begin(), m_extra_flush_volume[idx].end()));
+        obj["min_flush_volumes"].push_back(0);
         obj["max_flush_volumes"].push_back(m_max_flush_volume);
     }
 
@@ -386,9 +386,9 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
 }
 
 
-int WipingDialog::CalcFlushingVolume(const wxColour& from, const wxColour& to, int min_flush_volume)
+int WipingDialog::CalcFlushingVolume(const wxColour& from, const wxColour& to, int min_flush_volume ,bool is_multi_extruder, NozzleVolumeType volume_type)
 {
-    Slic3r::FlushVolCalculator calculator(min_flush_volume, Slic3r::g_max_flush_volume);
+    Slic3r::FlushVolCalculator calculator(min_flush_volume, Slic3r::g_max_flush_volume, is_multi_extruder, volume_type);
     return calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
 }
 
@@ -404,6 +404,8 @@ WipingDialog::VolumeMatrix WipingDialog::CalcFlushingVolumes(int extruder_id)
     for (auto color_str : filament_color_strs)
         filament_colors.emplace_back(color_str);
 
+    NozzleVolumeType volume_type = NozzleVolumeType(full_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[extruder_id]);
+    bool is_multi_extruder = preset_bundle->get_printer_extruder_count() > 1;
     // Support for multi-color filament
     for (int i = 0; i < filament_colors.size(); ++i) {
         std::vector<wxColour> single_filament;
@@ -443,7 +445,7 @@ WipingDialog::VolumeMatrix WipingDialog::CalcFlushingVolumes(int extruder_id)
                     const wxColour& from = multi_colors[from_idx][i];
                     for (int j = 0; j < multi_colors[to_idx].size(); ++j) {
                         const wxColour& to = multi_colors[to_idx][j];
-                        int volume = CalcFlushingVolume(from, to, m_extra_flush_volume[extruder_id][from_idx]);
+                        int volume = CalcFlushingVolume(from, to, m_extra_flush_volume[extruder_id][from_idx], is_multi_extruder, volume_type);
                         flushing_volume = std::max(flushing_volume, volume);
                     }
                 }

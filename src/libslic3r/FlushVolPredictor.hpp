@@ -8,6 +8,14 @@
 
 namespace FlushPredict
 {
+    enum FlushMachineType
+    {
+        Standard,
+        DualStandard,
+        DualHighFlow
+    };
+
+
     struct RGBColor
     {
         unsigned char r{ 0 };
@@ -35,25 +43,17 @@ namespace FlushPredict
 
 }
 
+class FlushVolPredictor;
 
-// Singleton pattern
-class FlushVolPredictor
+class GenericFlushPredictor
 {
     using RGB = FlushPredict::RGBColor;
+    using MachineType = FlushPredict::FlushMachineType;
 public:
-    bool predict(const RGB& from,const RGB& to , float& flush);
-    static FlushVolPredictor& get_instance();
+    explicit GenericFlushPredictor(const MachineType& type);
+    bool predict(const RGB& from, const RGB& to, float& flush);
 private:
-    FlushVolPredictor(const std::string& data_file);
-    FlushVolPredictor(const FlushVolPredictor&) = delete;
-    FlushVolPredictor& operator=(const FlushVolPredictor&) = delete;
-    ~FlushVolPredictor() = default;
-
-    uint64_t generate_hash_key(const RGB& from, const RGB& to);
-private:
-    std::unordered_map<uint64_t, float> m_flush_map;
-    std::vector<RGB> m_colors;
-    bool m_valid;
+    FlushVolPredictor* predictor{ nullptr };
 };
 
 

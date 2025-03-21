@@ -7,10 +7,10 @@
 
 namespace Slic3r {
 
-const int g_min_flush_volume_from_support = 420.f;
+const int g_min_flush_volume_from_support = 700;
 const int g_flush_volume_to_support = 230;
 
-const int g_max_flush_volume = 800;
+const int g_max_flush_volume = 900;
 
 static float to_radians(float degree)
 {
@@ -39,60 +39,72 @@ static float DeltaHS_BBS(float h1, float s1, float v1, float h2, float s2, float
     return std::min(1.2f, dxy);
 }
 
-FlushVolCalculator::FlushVolCalculator(int min, int max, float multiplier)
+FlushVolCalculator::FlushVolCalculator(int min, int max, bool is_multi_extruder, NozzleVolumeType volume_type, float multiplier)
     :m_min_flush_vol(min), m_max_flush_vol(max), m_multiplier(multiplier)
 {
+    if (!is_multi_extruder) {
+        m_machine_type = FlushPredict::Standard;
+        return;
+    }
+
+    if (volume_type == NozzleVolumeType::nvtHighFlow)
+        m_machine_type = FlushPredict::DualHighFlow;
+    else
+        m_machine_type = FlushPredict::DualStandard;
+}
+
+bool FlushVolCalculator::get_flush_vol_from_data(unsigned char src_r, unsigned char src_g, unsigned char src_b,
+    unsigned char dst_r, unsigned char dst_g, unsigned char dst_b, float& flush)
+{
+    GenericFlushPredictor pd(m_machine_type);
+    FlushPredict::RGBColor src(src_r, src_g, src_b);
+    FlushPredict::RGBColor dst(dst_r, dst_g, dst_b);
+
+    return pd.predict(src, dst, flush);
 }
 
 int FlushVolCalculator::calc_flush_vol_rgb(unsigned char src_r, unsigned char src_g, unsigned char src_b,
     unsigned char dst_r, unsigned char dst_g, unsigned char dst_b)
 {
-    auto& pd = FlushVolPredictor::get_instance();
-    float ret_flush_volume = 0;
-    FlushPredict::RGBColor src(src_r, src_g, src_b);
-    FlushPredict::RGBColor dst(dst_r, dst_g, dst_b);
-    bool success = pd.predict(src, dst, ret_flush_volume);
-    // if we could find the color pair from dataset, we need to recalculate
-    if (!success) {
-        float src_r_f, src_g_f, src_b_f, dst_r_f, dst_g_f, dst_b_f;
-        float from_hsv_h, from_hsv_s, from_hsv_v;
-        float to_hsv_h, to_hsv_s, to_hsv_v;
+    float flush_volume;
+    if(m_machine_type == FlushPredict::Standard && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))
+        return flush_volume;
+    float src_r_f, src_g_f, src_b_f, dst_r_f, dst_g_f, dst_b_f;
+    float from_hsv_h, from_hsv_s, from_hsv_v;
+    float to_hsv_h, to_hsv_s, to_hsv_v;
 
-        src_r_f = (float)src_r / 255.f;
-        src_g_f = (float)src_g / 255.f;
-        src_b_f = (float)src_b / 255.f;
-        dst_r_f = (float)dst_r / 255.f;
-        dst_g_f = (float)dst_g / 255.f;
-        dst_b_f = (float)dst_b / 255.f;
+    src_r_f = (float)src_r / 255.f;
+    src_g_f = (float)src_g / 255.f;
+    src_b_f = (float)src_b / 255.f;
+    dst_r_f = (float)dst_r / 255.f;
+    dst_g_f = (float)dst_g / 255.f;
+    dst_b_f = (float)dst_b / 255.f;
 
-        // Calculate color distance in HSV color space
-        RGB2HSV(src_r_f, src_g_f,src_b_f, &from_hsv_h, &from_hsv_s, &from_hsv_v);
-        RGB2HSV(dst_r_f, dst_g_f, dst_b_f, &to_hsv_h, &to_hsv_s, &to_hsv_v);
-        float hs_dist = DeltaHS_BBS(from_hsv_h, from_hsv_s, from_hsv_v, to_hsv_h, to_hsv_s, to_hsv_v);
+    // Calculate color distance in HSV color space
+    RGB2HSV(src_r_f, src_g_f, src_b_f, &from_hsv_h, &from_hsv_s, &from_hsv_v);
+    RGB2HSV(dst_r_f, dst_g_f, dst_b_f, &to_hsv_h, &to_hsv_s, &to_hsv_v);
+    float hs_dist = DeltaHS_BBS(from_hsv_h, from_hsv_s, from_hsv_v, to_hsv_h, to_hsv_s, to_hsv_v);
 
-        // 1. Color difference is more obvious if the dest color has high luminance
-        // 2. Color difference is more obvious if the source color has low luminance
-        float from_lumi = get_luminance(src_r_f, src_g_f, src_b_f);
-        float to_lumi = get_luminance(dst_r_f, dst_g_f, dst_b_f);
-        float lumi_flush = 0.f;
-        if (to_lumi >= from_lumi) {
-            lumi_flush = std::pow(to_lumi - from_lumi, 0.7f) * 560.f;
-        }
-        else {
-            lumi_flush = (from_lumi - to_lumi) * 80.f;
-
-            float inter_hsv_v = 0.67 * to_hsv_v + 0.33 * from_hsv_v;
-            hs_dist = std::min(inter_hsv_v, hs_dist);
-        }
-        float hs_flush = 230.f * hs_dist;
-
-        float flush_volume = calc_triangle_3rd_edge(hs_flush, lumi_flush, 120.f);
-        flush_volume = std::max(flush_volume, 60.f);
-
-        ret_flush_volume = flush_volume;
+    // 1. Color difference is more obvious if the dest color has high luminance
+    // 2. Color difference is more obvious if the source color has low luminance
+    float from_lumi = get_luminance(src_r_f, src_g_f, src_b_f);
+    float to_lumi = get_luminance(dst_r_f, dst_g_f, dst_b_f);
+    float lumi_flush = 0.f;
+    if (to_lumi >= from_lumi) {
+        lumi_flush = std::pow(to_lumi - from_lumi, 0.7f) * 560.f;
     }
+    else {
+        lumi_flush = (from_lumi - to_lumi) * 80.f;
 
-    return ret_flush_volume;
+        float inter_hsv_v = 0.67 * to_hsv_v + 0.33 * from_hsv_v;
+        hs_dist = std::min(inter_hsv_v, hs_dist);
+    }
+    float hs_flush = 230.f * hs_dist;
+
+    flush_volume = calc_triangle_3rd_edge(hs_flush, lumi_flush, 120.f);
+    flush_volume = std::max(flush_volume, 60.f);
+
+    return flush_volume;
 }
 
 int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r, unsigned char src_g, unsigned char src_b,
@@ -106,8 +118,12 @@ int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r,
         dst_r = dst_g = dst_b = 255;
     }
 
-    float flush_volume = calc_flush_vol_rgb(src_r, src_g, src_b, dst_r, dst_g, dst_b);
+    float flush_volume;
+    if(m_machine_type != FlushPredict::Standard && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))
+        return std::min((int)flush_volume, m_max_flush_vol);
 
+
+    flush_volume = calc_flush_vol_rgb(src_r, src_g, src_b, dst_r, dst_g, dst_b);
     flush_volume += m_min_flush_vol;
     return std::min((int)flush_volume, m_max_flush_vol);
 }

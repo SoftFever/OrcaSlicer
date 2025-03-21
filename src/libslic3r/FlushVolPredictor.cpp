@@ -167,6 +167,20 @@ namespace FlushPredict
 }
 
 
+class FlushVolPredictor
+{
+    using RGB = FlushPredict::RGBColor;
+public:
+    bool predict(const RGB& from,const RGB& to , float& flush);
+    FlushVolPredictor(const std::string& data_file);
+    FlushVolPredictor() = default;
+private:
+    uint64_t generate_hash_key(const RGB& from, const RGB& to);
+    std::unordered_map<uint64_t, float> m_flush_map;
+    std::vector<RGB> m_colors;
+    bool m_valid{ false };
+};
+
 uint64_t FlushVolPredictor::generate_hash_key(const RGB& from, const RGB& to)
 {
     uint64_t key = 0;
@@ -284,9 +298,32 @@ bool FlushVolPredictor::predict(const RGB& from, const RGB& to, float& flush)
     return true;
 }
 
-FlushVolPredictor& FlushVolPredictor::get_instance()
+
+static std::unordered_map<FlushPredict::FlushMachineType, FlushVolPredictor> predictor_instances;
+
+GenericFlushPredictor::GenericFlushPredictor(const MachineType& type)
 {
-    static std::string prefix = Slic3r::resources_dir();
-    static FlushVolPredictor instance(prefix + "/flush/flush_data.txt");
-    return instance;
+    auto iter = predictor_instances.find(type);
+    if (iter != predictor_instances.end())
+        predictor = &iter->second;
+    else {
+        std::string path = Slic3r::resources_dir();
+        if (type == MachineType::DualHighFlow)
+            path += "/flush/flush_data_dual_highflow.txt";
+        else if (type == MachineType::DualStandard)
+            path += "/flush/flush_data_dual_standard.txt";
+        else
+            path += "/flush/flush_data_standard.txt";
+        predictor_instances[type] = FlushVolPredictor(path);
+
+        predictor = &predictor_instances[type];
+    }
+}
+
+
+bool GenericFlushPredictor::predict(const RGB& from, const RGB& to, float& flush)
+{
+    if (!predictor)
+        return false;
+    return predictor->predict(from, to, flush);
 }

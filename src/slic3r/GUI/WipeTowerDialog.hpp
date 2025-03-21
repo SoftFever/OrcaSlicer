@@ -2,7 +2,7 @@
 #define _WIPE_TOWER_DIALOG_H_
 
 #include <wx/webview.h>
-
+#include "libslic3r/PrintConfig.hpp"
 #include "Widgets/SpinInput.hpp"
 
 #include "RammingChart.hpp"
@@ -49,7 +49,7 @@ public:
 	bool GetSubmitFlag() const { return m_submit_flag; }
 
 private:
-	int CalcFlushingVolume(const wxColour& from_, const wxColour& to_, int min_flush_volume);
+	int CalcFlushingVolume(const wxColour& from_, const wxColour& to_, int min_flush_volume, bool is_multi_extruder, Slic3r::NozzleVolumeType volume_type);
 	wxString BuildTableObjStr();
 	wxString BuildTextObjStr();
 	void StoreFlushData(int extruder_num, const std::vector<std::vector<double>>& flush_volume_vecs, const std::vector<double>& flush_multipliers);
