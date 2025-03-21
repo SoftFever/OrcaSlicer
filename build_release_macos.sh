@@ -3,8 +3,7 @@
 set -e
 set -o pipefail
 
-# Updated getopts string now includes "1" so that -1 is correctly recognized.
-while getopts ":dpa:snt:xbc:hu1" opt; do
+while getopts ":dpa:snt:xbc:h" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -38,9 +37,6 @@ while getopts ":dpa:snt:xbc:hu1" opt; do
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
         ;;
-    u )
-        export BUILD_UNIVERSAL="1"
-        ;;
     h ) echo "Usage: ./build_release_macos.sh [-d]"
         echo "   -d: Build deps only"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
@@ -50,7 +46,6 @@ while getopts ":dpa:snt:xbc:hu1" opt; do
         echo "   -x: Use Ninja CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
         echo "   -c: Set CMake build configuration, default is Release"
-        echo "   -u: Build universal binary (both arm64 and x86_64)"
         echo "   -1: Use single job for building"
         exit 0
         ;;
@@ -62,16 +57,8 @@ done
 # Set defaults
 
 if [ -z "$ARCH" ]; then
-  if [ "1." == "$BUILD_UNIVERSAL". ]; then
-    ARCH="universal"
-  else
-    ARCH="$(uname -m)"
-  fi
+  ARCH="$(uname -m)"
   export ARCH
-fi
-
-if [ "1." == "$BUILD_UNIVERSAL". ]; then
-  echo "Universal build enabled - will create a combined arm64/x86_64 binary"
 fi
 
 if [ -z "$BUILD_CONFIG" ]; then
@@ -105,6 +92,19 @@ echo " - BUILD_TARGET: $BUILD_TARGET"
 echo " - CMAKE_GENERATOR: $SLICER_CMAKE_GENERATOR for Slicer, $DEPS_CMAKE_GENERATOR for deps"
 echo " - OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
 echo
+
+# if which -s brew; then
+# 	brew --prefix libiconv
+# 	brew --prefix zstd
+# 	export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix zstd)/lib/
+# elif which -s port; then
+# 	port install libiconv
+# 	port install zstd
+# 	export LIBRARY_PATH=$LIBRARY_PATH:/opt/local/lib
+# else
+# 	echo "Need either brew or macports to successfully build deps"
+# 	exit 1
+# fi
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
@@ -192,73 +192,29 @@ function build_slicer() {
         # delete .DS_Store file
         find ./OrcaSlicer.app/ -name '.DS_Store' -delete
     )
-}
 
-function build_universal() {
-    echo "Building universal binary..."
-    # Save current ARCH
-    ORIGINAL_ARCH="$ARCH"
-    
-    # Build x86_64
-    ARCH="x86_64"
-    PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
-    DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
-    DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
-    build_deps
-    build_slicer
-    
-    # Build arm64
-    ARCH="arm64"
-    PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
-    DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
-    DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
-    build_deps
-    build_slicer
-    
-    # Restore original ARCH
-    ARCH="$ORIGINAL_ARCH"
-    PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
-    DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
-    DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
-    
-    # Create universal binary
-    echo "Creating universal binary..."
-    PROJECT_BUILD_DIR="$PROJECT_DIR/build_Universal"
-    mkdir -p "$PROJECT_BUILD_DIR/OrcaSlicer"
-    UNIVERSAL_APP="$PROJECT_BUILD_DIR/OrcaSlicer/Universal_OrcaSlicer.app"
-    rm -rf "$UNIVERSAL_APP"
-    cp -R "$PROJECT_DIR/build_x86_64/OrcaSlicer/OrcaSlicer.app" "$UNIVERSAL_APP"
-    
-    # Get the binary path inside the .app bundle
-    BINARY_PATH="Contents/MacOS/OrcaSlicer"
-    
-    # Create universal binary using lipo
-    lipo -create \
-        "$PROJECT_DIR/build_x86_64/OrcaSlicer/OrcaSlicer.app/$BINARY_PATH" \
-        "$PROJECT_DIR/build_arm64/OrcaSlicer/OrcaSlicer.app/$BINARY_PATH" \
-        -output "$UNIVERSAL_APP/$BINARY_PATH"
-        
-    echo "Universal binary created at $UNIVERSAL_APP"
+    # extract version
+    # export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+    # ver="_V${ver//\"}"
+    # echo $PWD
+    # if [ "1." != "$NIGHTLY_BUILD". ];
+    # then
+    #     ver=${ver}_dev
+    # fi
+
+    # zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
 }
 
 case "${BUILD_TARGET}" in
     all)
-        if [ "1." == "$BUILD_UNIVERSAL". ]; then
-            build_universal
-        else
-            build_deps
-            build_slicer
-        fi
+        build_deps
+        build_slicer
         ;;
     deps)
         build_deps
         ;;
     slicer)
-        if [ "1." == "$BUILD_UNIVERSAL". ]; then
-            build_universal
-        else
-            build_slicer
-        fi
+        build_slicer
         ;;
     *)
         echo "Unknown target: $BUILD_TARGET. Available targets: deps, slicer, all."
