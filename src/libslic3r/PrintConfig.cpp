@@ -3342,8 +3342,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L(
         "Flow Compensation Model, used to adjust the flow for small infill "
         "areas. The model is expressed as a comma separated pair of values for "
-        "extrusion length and flow correction factors, one per line, in the "
-        "following format: \"1.234,5.678\"");
+        "extrusion length and flow correction factor. Each pair is on a "
+        "separate line, followed by a semicolon, in the following format: \"1.234, 5.678;\"");
     def->mode = comAdvanced;
     def->gui_flags = "serialized";
     def->multiline = true;
