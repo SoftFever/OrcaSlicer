@@ -238,17 +238,17 @@ jobs:
         env:
           apt-cmd: ${{ 
             (inputs.os == 'ubuntu-20.04' && 'apt-fast') || 
-            ((inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm') && 'sudo apt-get') || 
+            ((inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm' && 'sudo apt-get') || 
             ''
           }}
           webkit-ver: ${{ 
             (inputs.os == 'ubuntu-20.04' && '4.0') || 
-            ((inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm') && '4.1') || 
+            ((inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm' && '4.1') || 
             ''
           }}
           libfuse2-pkg: ${{ 
             (inputs.os == 'ubuntu-20.04' && 'libfuse2') || 
-            ((inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm') && 'libfuse2t64') || 
+            ((inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm' && 'libfuse2t64') || 
             ''
           }}
         run: |
