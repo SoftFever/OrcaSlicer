@@ -2538,6 +2538,18 @@
             "sub_path": "filament/Bambu PLA Lite @BBL A1M 0.2 nozzle.json"
         },
         {
+            "name": "Bambu PLA Lite @BBL H2D",
+            "sub_path": "filament/Bambu PLA Lite @BBL H2D.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL H2D 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL H2D 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL H2D 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL H2D 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Lite @BBL P1P",
             "sub_path": "filament/Bambu PLA Lite @BBL P1P.json"
         },

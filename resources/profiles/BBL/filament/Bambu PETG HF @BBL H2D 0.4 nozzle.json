@@ -43,6 +43,18 @@
         "24",
         "32"
     ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
@@ -100,12 +112,12 @@
         "0.88"
     ],
     "nozzle_temperature": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
     "overhang_fan_speed": [
         "100"

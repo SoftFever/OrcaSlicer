@@ -1,15 +1,36 @@
 {
     "type": "filament",
-    "name": "Bambu Support For PLA @BBL H2D",
-    "inherits": "Bambu Support For PLA @base",
+    "name": "Bambu PLA Lite @BBL H2D",
+    "inherits": "Bambu PLA Lite @base",
     "from": "system",
-    "setting_id": "GFSS02_07",
+    "setting_id": "GFSA18_09",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
+    "counter_coef_2": [
+        "0.06"
+    ],
+    "counter_coef_3": [
+        "-0.32"
+    ],
+    "counter_limit_max": [
+        "0.05"
+    ],
+    "counter_limit_min": [
+        "-0.4"
+    ],
     "fan_max_speed": [
-        "30"
+        "80"
     ],
     "fan_min_speed": [
-        "20"
+        "60"
+    ],
+    "filament_cost": [
+        "24.99"
+    ],
+    "filament_density": [
+        "1.32"
     ],
     "filament_deretraction_speed": [
         "nil",
@@ -20,16 +41,16 @@
         "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
-        "1",
-        "1"
+        "0.98",
+        "0.98"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "6",
-        "6"
+        "20",
+        "30"
     ],
     "filament_pre_cooling_temperature": [
         "0",
@@ -60,8 +81,8 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "nil",
-        "nil"
+        "0.4",
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -70,6 +91,9 @@
     "filament_retraction_speed": [
         "nil",
         "nil"
+    ],
+    "filament_scarf_seam_type": [
+        "all"
     ],
     "filament_wipe": [
         "nil",
@@ -87,18 +111,20 @@
         "nil",
         "nil"
     ],
+    "hole_coef_2": [
+        "-0.0081"
+    ],
     "nozzle_temperature": [
-        "220",
-        "220"
+        "210",
+        "210"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
-        "220"
+        "210",
+        "210"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",
-        "Bambu Lab H2D 0.6 nozzle",
-        "Bambu Lab H2D 0.8 nozzle"
+        "Bambu Lab H2D 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P0 ; set airduct mode to cooling mode\nM142 P1 R35 S40 U0.3 V0.5 ; set chamber autocooling"
