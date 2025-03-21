@@ -134,7 +134,10 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     dc.SetTextForeground(m_color.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);  // set text color
     dc.DrawLabel(label, wxRect(0, 0, svg_size, svg_size), wxALIGN_CENTER);
 
-    dc.SetTextForeground(*wxBLACK);
+    if(m_parent)
+        dc.SetTextForeground(this->m_parent->GetBackgroundColour().GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
+    else
+        dc.SetTextForeground(*wxBLACK);
     if (type_label.length() > 4) {
         // text is too long
         wxString first = type_label.Mid(0, 4);
