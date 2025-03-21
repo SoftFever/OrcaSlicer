@@ -261,7 +261,7 @@ jobs:
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm'
         shell: bash
         env:
-          ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || (inputs.os == 'ubuntu-24.04-arm' && '_Ubuntu2404ARM') '' }}
+          ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || (inputs.os == 'ubuntu-24.04-arm' && '_Ubuntu2404ARM') || '' }}
         run: |
           ./BuildLinux.sh -isr
           mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
