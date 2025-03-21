@@ -2093,7 +2093,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_unloading_speed", coFloats);
     def->label = L("Unloading speed");
     def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
-                      " initial part of unloading just after ramming).");
+                      "initial part of unloading just after ramming).");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2685,7 +2685,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_material_interface_fan_speed", coInts);
     def->label = L("Support interface fan speed");
     def->tooltip = L("This part cooling fan speed is applied when printing support interfaces. Setting this parameter to a higher than regular speed "
-                     " reduces the layer binding strength between supports and the supported part, making them easier to separate."
+                     "reduces the layer binding strength between supports and the supported part, making them easier to separate."
                     "\nSet to -1 to disable it."
                      "\nThis setting is overridden by disable_fan_first_layers.");
     def->sidetext = L("%");
@@ -3682,7 +3682,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Extra loading distance");
     def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
                       "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
-                      " if negative, the loading move is shorter than unloading.");
+                      "if negative, the loading move is shorter than unloading.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-2.));
@@ -4176,7 +4176,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip  = L(
         "This option sets the printing speed for scarf joints. It is recommended to print scarf joints at a slow speed (less than 100 "
-         "mm/s).  It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
+         "mm/s). It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
          "outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default "
          "to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective "
          "outer or inner wall speed. The default value is set to 100%.");
@@ -5013,7 +5013,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("tree_support_adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
     def->category = L("Quality");
-    def->tooltip = L("Enabling this option means the height of  tree support layer except the first will be automatically calculated ");
+    def->tooltip = L("Enabling this option means the height of tree support layer except the first will be automatically calculated ");
     def->set_default_value(new ConfigOptionBool(1));
     
     def = this->add("tree_support_auto_brim", coBool);

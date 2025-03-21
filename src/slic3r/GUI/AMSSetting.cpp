@@ -67,7 +67,7 @@ void AMSSetting::create()
 
     // tip line2
     m_tip_Insert_material_line2 = new Label(m_panel_Insert_material,
-        _L("Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed.")
+        _L("Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed.")
     );
     m_tip_Insert_material_line2->SetFont(::Label::Body_13);
     m_tip_Insert_material_line2->SetForegroundColour(AMS_SETTING_GREY700);
