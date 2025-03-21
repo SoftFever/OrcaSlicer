@@ -234,7 +234,7 @@ jobs:
 
 # Ubuntu
       - name: Install dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || input.os == 'ubuntu-24.04-arm'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm'
         env:
           apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || (inputs.os == 'ubuntu-24.04-arm' && 'sudo apt-get') || '' }}
           webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || (inputs.os == 'ubuntu-24.04-arm' && '4.1') || '' }}
