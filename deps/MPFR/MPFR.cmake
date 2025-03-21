@@ -25,8 +25,8 @@ else ()
     endif ()
 
     ExternalProject_Add(dep_MPFR
-        URL https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.bz2
-        URL_HASH SHA256=b9df93635b20e4089c29623b19420c4ac848a1b29df1cfd59f26cab0d2666aa0
+        URL https://www.mpfr.org/mpfr-current/mpfr-4.2.2.tar.xz
+        URL_HASH SHA256=b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/MPFR
         BUILD_IN_SOURCE ON
         CONFIGURE_COMMAND autoreconf -f -i && 
