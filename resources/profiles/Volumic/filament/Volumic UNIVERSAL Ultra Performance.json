@@ -1,0 +1,35 @@
+{
+    "type": "filament",
+	"filament_id": "GFL99",
+    "setting_id": "GFSL99",
+    "name": "Volumic UNIVERSAL Ultra (Performance)",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+	"filament_flow_ratio": [
+        "1.00"
+    ],
+	"nozzle_temperature_initial_layer": [
+	  "235"
+	],
+    "nozzle_temperature": [
+      "235"
+    ],
+    "hot_plate_temp" : [
+        "50"
+    ],
+    "fan_max_speed": [
+        "100"
+    ],
+    "fan_min_speed": [
+        "100"
+    ],
+    "filament_max_volumetric_speed": [
+      "64"
+    ],
+    "compatible_printers": [
+	  "EXO42 Performance (0.4 nozzle)",
+	  "EXO65 Performance (0.4 nozzle)",
+	  "SH65 Performance (0.4 nozzle)"
+    ]
+}

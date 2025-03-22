@@ -22,15 +22,12 @@
         "40"
     ],
     "filament_max_volumetric_speed": [
-      "42"
+      "40"
     ],
     "compatible_printers": [
 	  "EXO42 (0.4 nozzle)",
 	  "EXO65 (0.6 nozzle)",
 	  "SH65 (0.4 nozzle)",
-	  "EXO42 Performance (0.4 nozzle)",
-	  "EXO65 Performance (0.6 nozzle)",
-	  "SH65 Performance (0.4 nozzle)",
 	  "VS30MK3 (0.4 nozzle)",
 	  "VS30SC2 (0.4 nozzle)",
 	  "VS30SC (0.4 nozzle)",

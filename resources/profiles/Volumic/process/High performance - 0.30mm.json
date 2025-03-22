@@ -21,7 +21,7 @@
     "travel_speed": "600",
     "compatible_printers": [
 	  "EXO42 Performance (0.4 nozzle)",
-	  "EXO65 Performance (0.6 nozzle)",
+	  "EXO65 Performance (0.4 nozzle)",
 	  "SH65 Performance (0.4 nozzle)"
     ]
 }
