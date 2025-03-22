@@ -208,8 +208,9 @@ msgstr "Strumento di ridimensionamento"
 msgid "Error: Please close all toolbar menus first"
 msgstr "Errore: chiudi prima tutti i menu della barra degli strumenti"
 
+#. inches
 msgid "in"
-msgstr "in"
+msgstr "pol"
 
 msgid "mm"
 msgstr "mm"
