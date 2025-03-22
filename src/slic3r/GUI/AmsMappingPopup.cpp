@@ -663,10 +663,13 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_tips->SetLabel(m_right_tip_text);
      m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND , 0);
 
-     m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, "erase", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 14);
+     m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, wxGetApp().dark_mode() ? "erase_dark" : "erase", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+                                      wxBU_EXACTFIT | wxNO_BORDER, true, 14);
+     m_reset_btn->SetName(wxGetApp().dark_mode() ? "erase_dark" : "erase");
      m_reset_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { reset_ams_info(); });
      m_reset_btn->SetBackgroundColour(*wxWHITE);
      m_reset_btn->SetToolTip(_L("Reset current filament mapping"));
+
      m_sizer_ams_right_horizonal->AddStretchSpacer();
      m_sizer_ams_right_horizonal->AddSpacer(FromDIP(5));
      m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxALIGN_TOP | wxEXPAND );
@@ -721,7 +724,8 @@ void AmsMapingPopup::set_reset_callback(ResetCallback callback) {
 }
 
 void AmsMapingPopup::show_reset_button() {
-    m_reset_btn->Show(); }
+    m_reset_btn->Show();
+}
 
 void AmsMapingPopup::msw_rescale()
 {
@@ -959,6 +963,14 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
     /*title*/
     update_title(obj);
 
+    if (wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase_dark") {
+        m_reset_btn->SetName("erase_dark");
+        m_reset_btn->SetBitmap(ScalableBitmap(m_right_first_text_panel, "erase_dark", 14).bmp());
+    }
+    else if (!wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase") {
+        m_reset_btn->SetName("erase");
+        m_reset_btn->SetBitmap(ScalableBitmap(m_right_first_text_panel, "erase", 14).bmp());
+    }
     /*ext*/
     //const auto& full_config = wxGetApp().preset_bundle->full_config();
     //size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
