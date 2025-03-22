@@ -580,7 +580,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_hyperlink          = new wxHyperlinkCtrl(scroll_area, wxID_ANY, _L("Click here if you can't connect to the printer"),
                                       wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    m_hyperlink->SetFont(::Label::Body_13);
+    m_hyperlink->SetFont(::Label::Body_12);
 
 
 
