@@ -33,7 +33,7 @@ public:
     void on_hide();
     void clear_timer_count();
     bool Show(bool show = true) override;
-
+    void         on_full_screen(IntEvent &);
     virtual void deal_ok();
     virtual void deal_cancel();
     virtual void on_timer(wxTimerEvent &event);

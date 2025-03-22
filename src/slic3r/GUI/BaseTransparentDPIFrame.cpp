@@ -137,6 +137,12 @@ bool BaseTransparentDPIFrame::Show(bool show)
     return DPIFrame::Show(show);
 }
 
+void BaseTransparentDPIFrame::on_full_screen(IntEvent &e) {
+#ifdef __APPLE__
+    SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
+#endif
+}
+
 void BaseTransparentDPIFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_button_ok->Rescale();

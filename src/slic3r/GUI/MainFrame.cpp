@@ -247,6 +247,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 m_reset_title_text_colour_timer->Start(500);
             }
 		}
+        auto int_event = new IntEvent(EVT_NOTICE_FULL_SCREEN_CHANGED, e.IsFullScreen() ? 1 : 0);
+        wxQueueEvent(wxGetApp().plater(), int_event);
 		e.Skip();
 	});
 #endif

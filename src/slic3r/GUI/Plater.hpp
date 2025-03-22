@@ -110,6 +110,7 @@ wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
+wxDECLARE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -191,6 +192,7 @@ public:
     void update_sync_status(const MachineObject* obj);
     int get_sidebar_pos_right_x();
     void on_size(SimpleEvent &e);
+    void on_full_screen(IntEvent &);
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     // Orca

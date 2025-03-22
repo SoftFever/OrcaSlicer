@@ -26,6 +26,10 @@ ImageDPIFrame::ImageDPIFrame()
     SetMinSize(wxSize(FromDIP(width), -1));
     SetMaxSize(wxSize(FromDIP(width), -1));
     SetBackgroundColour(wxColour(242, 242, 242, 255));
+#ifdef __APPLE__
+    SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
+#endif
+
     m_sizer_main           = new wxBoxSizer(wxVERTICAL);
     auto image_sizer  = new wxBoxSizer(wxVERTICAL);
     auto imgsize           = FromDIP(width);
