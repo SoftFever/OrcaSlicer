@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -14389,16 +14389,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "Normal (auto)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "Árbol (auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "Normal (manual)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "Árbol (manual)"
 
 msgid "Support/object xy distance"
 msgstr "Distancia soporte/objeto X-Y"
@@ -18821,18 +18821,6 @@ msgstr ""
 #~ "normal (auto) y Árbol (auto) se utilizan para generar los soportes "
 #~ "automáticamente. Si se selecciona normal (manual) o árbol (manual), sólo "
 #~ "se generan los soportes forzados"
-
-#~ msgid "normal(auto)"
-#~ msgstr "Normal (auto)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "Árbol (auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "Normal (manual)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "Árbol (manual)"
 
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Mayúsculas + Botón izquierdo del ratón"

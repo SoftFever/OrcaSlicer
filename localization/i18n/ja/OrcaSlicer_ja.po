@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13151,16 +13151,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "通常 (自動)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "ツリー (自動)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "通常 (手動)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "ツリー (手動)"
 
 msgid "Support/object xy distance"
 msgstr "水平間隔"
@@ -17069,18 +17069,6 @@ msgstr ""
 #~ "normal(manual) or tree(manual) is selected, only support enforcers are "
 #~ "generated"
 #~ msgstr "通常 (自動) と ツリー (自動) では自動でサポートを作成します。"
-
-#~ msgid "normal(auto)"
-#~ msgstr "通常 (自動)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "ツリー (自動)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "通常 (手動)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "ツリー (手動)"
 
 #~ msgid "Unselect"
 #~ msgstr "選択解除"

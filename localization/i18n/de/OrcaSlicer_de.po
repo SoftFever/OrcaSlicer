@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -1017,6 +1017,7 @@ msgstr "Ortne den Text zur Kamera aus."
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
 msgstr ""
+"Schriftart \"%1%\" kann nicht verwendet werden. Bitte wählen Sie eine andere."
 
 #, boost-format
 msgid ""
@@ -1280,7 +1281,7 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG-Datei enthält keinen einzigen Pfad zum Prägen (%1%)."
 
 msgid "No feature"
-msgstr ""
+msgstr "Kein Feature"
 
 msgid "Vertex"
 msgstr "Eckpunkt"
@@ -3286,7 +3287,7 @@ msgstr ""
 
 #, boost-format
 msgid "A fatal error occurred: \"%1%\""
-msgstr ""
+msgstr "Ein schwerwiegender Fehler ist aufgetreten: \"%1%\""
 
 msgid "Please save project and restart the program."
 msgstr "Bitte speichern Sie das Projekt und starten Sie das Programm neu."
@@ -4948,12 +4949,14 @@ msgid "Use Orthogonal View"
 msgstr "Orthogonale Ansicht verwenden"
 
 msgid "Auto Perspective"
-msgstr ""
+msgstr "Automatische Perspektive"
 
 msgid ""
 "Automatically switch between orthographic and perspective when changing from "
 "top/bottom/side views"
 msgstr ""
+"Wechselt automatisch zwischen orthografischer und perspektivischer Ansicht, "
+"wenn von der Top-/Bottom-/Seitenansicht gewechselt wird"
 
 msgid "Show &G-code Window"
 msgstr "&G-Code-Fenster anzeigen"
@@ -6535,17 +6538,21 @@ msgstr ""
 "manuell herunter und importieren Sie sie."
 
 msgid "INFO:"
-msgstr ""
+msgstr "INFO:"
 
 msgid ""
 "No accelerations provided for calibration. Use default acceleration value "
 msgstr ""
+"Keine Beschleunigungen für die Kalibrierung bereitgestellt. Verwenden Sie "
+"den Standardbeschleunigungswert"
 
 msgid "mm/s²"
 msgstr "mm/s²"
 
 msgid "No speeds provided for calibration. Use default optimal speed "
 msgstr ""
+"Keine Geschwindigkeiten für die Kalibrierung eingestellt. Verwenden die "
+"optimale Geschwindigkeit"
 
 msgid "mm/s"
 msgstr "mm/s"
@@ -9809,6 +9816,8 @@ msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
 "with the same support_top_z_distance"
 msgstr ""
+"Der Reinigungsturm wird nur für mehrere Objekte unterstützt, wenn sie mit "
+"dem gleichen support_top_z_distance gedruckt werden."
 
 msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
@@ -9827,6 +9836,8 @@ msgstr ""
 msgid ""
 "One or more object were assigned an extruder that the printer does not have."
 msgstr ""
+"Einem oder mehreren Objekten wurde ein Extruder zugewiesen, den der Drucker "
+"nicht hat."
 
 msgid "Too small line width"
 msgstr "Zu geringe Linienbreite"
@@ -9840,6 +9851,10 @@ msgid ""
 "support_interface_filament == 0), all nozzles have to be of the same "
 "diameter."
 msgstr ""
+"Drucken mit mehreren Extrudern mit unterschiedlichen Düsendurchmessern. Wenn "
+"die Stützstruktur mit dem aktuellen Filament gedruckt werden soll "
+"(support_filament == 0 oder support_interface_filament == 0), müssen alle "
+"Düsen den gleichen Durchmesser haben."
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -14232,13 +14247,16 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Wie viele Schichten des Skirts. Normalerweise nur eine Schicht."
 
 msgid "Single loop draft shield"
-msgstr ""
+msgstr "Einzelner Ring für den Luftzug-Schutz"
 
 msgid ""
 "Limits the draft shield loops to one wall after the first layer. This is "
 "useful, on occasion, to conserve filament but may cause the draft shield to "
 "warp / crack."
 msgstr ""
+"Begrenzt die Luftzug-Schutz-Ringe auf eine Wand nach der ersten Schicht. "
+"Dies ist gelegentlich nützlich, um Filament zu sparen, kann aber dazu "
+"führen, dass der Luftzug-Schutz verzieht oder reißt."
 
 msgid "Draft shield"
 msgstr "Luftzug-Schutz"
@@ -16964,19 +16982,19 @@ msgid "PA step: "
 msgstr "PA Schritte:"
 
 msgid "Accelerations: "
-msgstr ""
+msgstr "Beschleunigungen:"
 
 msgid "Speeds: "
-msgstr ""
+msgstr "Geschwindigkeiten:"
 
 msgid "Print numbers"
 msgstr "Anzahl der Drucke"
 
 msgid "Comma-separated list of printing accelerations"
-msgstr ""
+msgstr "Kommagetrennte Liste von Druckbeschleunigungen"
 
 msgid "Comma-separated list of printing speeds"
-msgstr ""
+msgstr "Kommagetrennte Liste von Druckgeschwindigkeiten"
 
 msgid ""
 "Please input valid values:\n"
@@ -19062,18 +19080,6 @@ msgstr ""
 #~ "Normal (auto) und Baum (auto) werden verwendet, um automatisch "
 #~ "Stützstrukturen zu generieren. Wenn Normal (manuell) oder Baum (manuell) "
 #~ "ausgewählt ist, werden nur Stützerzwinger erzeugt."
-
-#~ msgid "normal(auto)"
-#~ msgstr "Normal (auto)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "Baum (auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "Normal (manuell)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "Baum (manuell)"
 
 #~ msgid ", ver: "
 #~ msgstr ", Ver: "

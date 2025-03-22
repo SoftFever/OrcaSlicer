@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2025-01-11 10:54+0800\n"
 "Last-Translator: Shuwn Hsu\n"
 "Language-Team: \n"
@@ -96,7 +96,7 @@ msgstr "縫隙填充"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
-msgstr "僅允許在由以下條件選擇的平面上進行繪製：%1%"
+msgstr "僅允許在由以下條件選擇的平面上進行繪製：「%1%」"
 
 msgid "Highlight faces according to overhang angle."
 msgstr "根據懸空角度突顯出表面。"
@@ -751,7 +751,7 @@ msgstr "還原字體設定變更。"
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
-msgstr "字型 \"%1%\" 無法選擇。"
+msgstr "字型「%1%」無法選擇。"
 
 msgid "Operation"
 msgstr "操作"
@@ -996,15 +996,15 @@ msgstr "將文字朝向相機定向。"
 
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
-msgstr ""
+msgstr "字型 「%1%」 無法使用，請選擇其他字型。"
 
 #, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
-"無法加載完全相同的字體 (\"%1%\")。已自動選擇相似的字體 (\"%2%\")。若要啟用文"
-"字編輯，請指定字體。"
+"無法加載完全相同的字體「%1%」。已自動選擇相似的字體「%2%」。若要啟用文字編"
+"輯，請指定字體。"
 
 msgid "No symbol"
 msgstr "沒有任何字符"
@@ -1150,7 +1150,7 @@ msgstr "未知的檔案名稱"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr "SVG 檔案路徑為 \"%1%\""
+msgstr "SVG 檔案路徑為「%1%」"
 
 msgid "Reload SVG file from disk."
 msgstr "從硬碟重新載入 SVG 檔案。"
@@ -1243,7 +1243,7 @@ msgstr "檔案不存在（%1%）。"
 
 #, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
-msgstr "副檔名必須為 \".svg\" ，但選擇的是 %1%"
+msgstr "副檔名必須為「.svg」 ，但選擇的是 %1%"
 
 #, boost-format
 msgid "Nano SVG parser can't load from file (%1%)."
@@ -1254,7 +1254,7 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG 文件無要浮雕的路徑 (%1%)。"
 
 msgid "No feature"
-msgstr ""
+msgstr "沒有特徵"
 
 msgid "Vertex"
 msgstr "頂點"
@@ -1435,7 +1435,7 @@ msgstr "設定檔已被載入，但部分數值無法識別。"
 #, boost-format
 msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
-msgstr "設定檔 \"%1%\" 已被載入，但部分數值無法識別。"
+msgstr "設定檔「%1%」 已被載入，但部分數值無法識別。"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
@@ -3114,7 +3114,7 @@ msgstr "發生錯誤。可能系統記憶體不足或者程式存在錯誤"
 
 #, boost-format
 msgid "A fatal error occurred: \"%1%\""
-msgstr ""
+msgstr "發生了致命錯誤：「%1%」"
 
 msgid "Please save project and restart the program."
 msgstr "請儲存專案項目並重啟程式。"
@@ -4400,7 +4400,7 @@ msgid "Custom camera source"
 msgstr "自訂相機來源"
 
 msgid "Show \"Live Video\" guide page."
-msgstr "顯示\"直播影片\"引導。"
+msgstr "顯示「直播影片」引導。"
 
 msgid "720p"
 msgstr "720p"
@@ -4418,7 +4418,7 @@ msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"你可以在列印設備\"設置->網路->連接->訪問碼\"\n"
+"你可以在列印設備「設置->網路->連接->訪問碼」\n"
 "查看，如下圖所示："
 
 msgid "Invalid input."
@@ -4704,12 +4704,12 @@ msgid "Use Orthogonal View"
 msgstr "使用正交視角"
 
 msgid "Auto Perspective"
-msgstr ""
+msgstr "自動視角調整"
 
 msgid ""
 "Automatically switch between orthographic and perspective when changing from "
 "top/bottom/side views"
-msgstr ""
+msgstr "在切換至上、下或側視圖時，會自動在正投影和透視視圖之間切換"
 
 msgid "Show &G-code Window"
 msgstr "顯示 G-code"
@@ -4863,7 +4863,7 @@ msgid "Overwrite file"
 msgstr "覆蓋檔案"
 
 msgid "Overwrite config"
-msgstr ""
+msgstr "覆蓋設定檔"
 
 msgid "Yes to All"
 msgstr "全部覆蓋"
@@ -5827,7 +5827,7 @@ msgstr "顆粒"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr "沒有發現 AMS 線材。請在\"設備\"頁面選擇列印設備，載入 AMS 資訊。"
+msgstr "沒有發現 AMS 線材。請在「設備」頁面選擇列印設備，載入 AMS 資訊。"
 
 msgid "Sync filaments with AMS"
 msgstr "同步到 AMS 的線材清單"
@@ -5862,7 +5862,7 @@ msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
-msgstr "是否儲存變更到 \"%1%\"？"
+msgstr "是否儲存變更到「%1%」？"
 
 #, c-format, boost-format
 msgid ""
@@ -5971,7 +5971,7 @@ msgstr "記住我的選擇。"
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
-msgstr "載入檔案 \"%1%\" 失敗。發現無效設定值。"
+msgstr "載入檔案「%1%」失敗。發現無效設定值。"
 
 msgid "Objects with zero volume removed"
 msgstr "體積為零的物件已被移除"
@@ -6166,17 +6166,17 @@ msgid ""
 msgstr "匯入 Orca Slicer 失敗。 請下載該檔案並手動匯入。"
 
 msgid "INFO:"
-msgstr ""
+msgstr "資訊："
 
 msgid ""
 "No accelerations provided for calibration. Use default acceleration value "
-msgstr ""
+msgstr "未提供校準所需的加速度，將使用預設加速度值 "
 
 msgid "mm/s²"
 msgstr "mm/s²"
 
 msgid "No speeds provided for calibration. Use default optimal speed "
-msgstr ""
+msgstr "未提供校準所需的速度，將使用預設最佳速度 "
 
 msgid "mm/s"
 msgstr "mm/s"
@@ -6276,19 +6276,19 @@ msgstr ""
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr "原因：零件 「%1%”」 無物件。"
+msgstr "原因：零件「%1%”」無物件。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr "原因：零件 「%1%」 無體積。"
+msgstr "原因：零件「%1%」無體積。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr "原因：零件 「%1%」"
+msgstr "原因：零件「%1%」"
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr "原因：「%1%」 與另一個零件沒有交集。"
+msgstr "原因：「%1%」與另一個零件沒有交集。"
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
@@ -6553,7 +6553,7 @@ msgid "Show the splash screen during startup."
 msgstr "啟動時顯示啟動動畫。"
 
 msgid "Show \"Tip of the day\" notification after start"
-msgstr "啟動後顯示\"每日小提示\"通知"
+msgstr "啟動後顯示「每日小提示」通知"
 
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "如果啟用，將在啟動時顯示有用的提示。"
@@ -6927,11 +6927,11 @@ msgstr "不允許覆蓋系統預設"
 
 #, boost-format
 msgid "Preset \"%1%\" already exists."
-msgstr "預設 \"%1%\" 已存在。"
+msgstr "預設「%1%」已存在。"
 
 #, boost-format
 msgid "Preset \"%1%\" already exists and is incompatible with current printer."
-msgstr "預設 \"%1%\" 已存在，並且和目前列印設備不相容。"
+msgstr "預設「%1%」已存在，並且和目前列印設備不相容。"
 
 msgid "Please note that saving action will replace this preset"
 msgstr "請注意這個預設會在儲存過程中被替換"
@@ -6948,23 +6948,23 @@ msgstr "複製"
 
 #, boost-format
 msgid "Printer \"%1%\" is selected with preset \"%2%\""
-msgstr "選中的列印設備 \"%1%\" 和預設 \"%2%\""
+msgstr "選中的列印設備「%1%」和預設「%2%」"
 
 #, boost-format
 msgid "Please choose an action with \"%1%\" preset after saving."
-msgstr "請選擇儲存後對 \"%1%\" 預設的操作。"
+msgstr "請選擇儲存後對「%1%」預設的操作。"
 
 #, boost-format
 msgid "For \"%1%\", change \"%2%\" to \"%3%\" "
-msgstr "為 \"%1%\"，把 \"%2%\" 更換為 \"%3%\" "
+msgstr "為「%1%」，把「%2%」更換為「%3%」"
 
 #, boost-format
 msgid "For \"%1%\", add \"%2%\" as a new preset"
-msgstr "為 \"%1%\"，增加 \"%2%\" 為一個新預設"
+msgstr "為「%1%」，增加「%2%」為一個新預設"
 
 #, boost-format
 msgid "Simply switch to \"%1%\""
-msgstr "直接切換到 \"%1%\""
+msgstr "直接切換到「%1%」"
 
 msgid "Task canceled"
 msgstr "任務已取消"
@@ -7127,7 +7127,7 @@ msgstr "當啟用螺旋花瓶模式時，龍門結構的設備不會產生縮時
 
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "『逐件列印』模式下不支援縮時錄影。"
+msgstr "「逐件列印」模式下不支援縮時錄影。"
 
 msgid "Errors"
 msgstr "錯誤"
@@ -8971,7 +8971,7 @@ msgstr "多個"
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
-msgstr "計算 %1% 的線寬失敗。無法獲得 \"%2%\" 的值"
+msgstr "計算 %1% 的線寬失敗。無法獲得「%2%」的值"
 
 msgid ""
 "Invalid spacing supplied to Flow::with_spacing(), check your layer height "
@@ -9118,7 +9118,7 @@ msgstr "逐件列印模式下不支援使用平滑模式的縮時錄影。"
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
 "spiral vase mode."
-msgstr "請選擇逐件列印以支援在螺旋花瓶模式下列印多個物件。"
+msgstr "請選擇『逐件列印』以支援在螺旋花瓶模式下列印多個物件。"
 
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
@@ -9186,7 +9186,7 @@ msgid ""
 msgstr "可變層高開啟時無法使用換料塔。它要求所有物件擁有相同的層高。"
 
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
-msgstr "換料塔要求\"支撐間隙\"為層高的整數倍數"
+msgstr "換料塔要求「支撐間隙」為層高的整數倍數"
 
 msgid "The prime tower requires that all objects have the same layer heights"
 msgstr "換料塔要求各個物件擁有同樣的層高"
@@ -9200,6 +9200,8 @@ msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
 "with the same support_top_z_distance"
 msgstr ""
+"只有當多個物件使用相同的支撐頂部 Z 距離 (support_top_z_distance) 列印時，才會"
+"支援換料塔"
 
 msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
@@ -9213,7 +9215,7 @@ msgstr "各個物件的層高存在差異，無法啟用換料塔"
 
 msgid ""
 "One or more object were assigned an extruder that the printer does not have."
-msgstr ""
+msgstr "一個或多個物件被分配到的印表設備沒有擠出機"
 
 msgid "Too small line width"
 msgstr "線寬太小"
@@ -9227,6 +9229,9 @@ msgid ""
 "support_interface_filament == 0), all nozzles have to be of the same "
 "diameter."
 msgstr ""
+"使用不同噴嘴直徑的多個擠出機進行列印。如果支撐要使用當前的耗材列印"
+"（support_filament == 0 或 support_interface_filament == 0），則所有噴嘴必須"
+"具有相同的直徑。"
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -9259,19 +9264,19 @@ msgid ""
 "each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
 "layer_gcode."
 msgstr ""
-"相對擠出機尋址需要重置每層的擠出機位置，以防止浮點精度損失。 將 \"G92 E0\" 加"
-"入到 layer_gcode。"
+"相對擠出機尋址需要重置每層的擠出機位置，以防止浮點精度損失。 將「G92 E0」加入"
+"到 layer_gcode。"
 
 msgid ""
 "\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
 "absolute extruder addressing."
 msgstr ""
-"在 before_layer_gcode 中發現 \"G92 E0\"，該程式碼與絕對擠出機尋址不相容。"
+"在 before_layer_gcode 中發現「G92 E0」，該程式碼與絕對擠出機尋址不相容。"
 
 msgid ""
 "\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
 "extruder addressing."
-msgstr "在 layer_gcode 中發現 \"G92 E0\"，它與絕對擠出機尋址不相容。"
+msgstr "在 layer_gcode 中發現「G92 E0」，它與絕對擠出機尋址不相容。"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -9351,7 +9356,7 @@ msgid ""
 "polygon by points in following format: \"XxY, XxY, ...\""
 msgstr ""
 "XY 平面上的不可列印區域。例如，X1系列設備在換料過程中，會使用左前角區域來切斷"
-"線材。這個多邊形區域由以下格式的點表示：\"XxY，XxY，…\""
+"線材。這個多邊形區域由以下格式的點表示：「XxY，XxY，…」"
 
 msgid "Bed custom texture"
 msgstr "自訂列印板紋理"
@@ -9726,6 +9731,9 @@ msgid ""
 "by the layer beneath it. Setting this value to 0% forces the cooling fan to "
 "run for all outer walls, regardless of the overhang degree."
 msgstr ""
+"當懸垂部分超過此指定的閾值時，強制冷卻風扇以「懸垂風扇速度」設定運行。此閾值"
+"以百分比表示，表示每條線寬中未被下層支撐的部分。將此值設為 0% 時，無論懸垂角"
+"度如何，都會強制冷卻風扇在所有外牆上運行"
 
 msgid "External bridge infill direction"
 msgstr "外部橋接結構的填充方向"
@@ -12682,7 +12690,7 @@ msgid ""
 "Z hop will only come into effect when Z is above this value and is below the "
 "parameter: \"Z hop upper boundary\""
 msgstr ""
-"只有當 Z 值高於此設定值且低於『Z 抬升上邊界』參數時，Z 抬升功能才會啟用。"
+"只有當 Z 值高於此設定值且低於「Z 抬升上邊界」參數時，Z 抬升功能才會啟用。"
 
 msgid "Z hop upper boundary"
 msgstr "Z 抬升上邊界"
@@ -12691,7 +12699,7 @@ msgid ""
 "If this value is positive, Z hop will only come into effect when Z is above "
 "the parameter: \"Z hop lower boundary\" and is below this value"
 msgstr ""
-"若此值為正，Z 抬升功能僅在 Z 值高於『Z 抬升下邊界』參數且低於此設定值時才會啟"
+"若此值為正，Z 抬升功能僅在 Z 值高於「Z 抬升下邊界」參數且低於此設定值時才會啟"
 "用"
 
 msgid "Z-hop type"
@@ -13010,13 +13018,15 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Skirt 有多少層。通常只有一層"
 
 msgid "Single loop draft shield"
-msgstr ""
+msgstr "單圈防風罩"
 
 msgid ""
 "Limits the draft shield loops to one wall after the first layer. This is "
 "useful, on occasion, to conserve filament but may cause the draft shield to "
 "warp / crack."
 msgstr ""
+"將防風罩的迴圈數限制為第一層後只有一層壁。這樣做有時能節省耗材，但可能會導致"
+"防風罩變形或裂開。"
 
 msgid "Draft shield"
 msgstr "防風罩"
@@ -13032,8 +13042,8 @@ msgid ""
 "distance from the object. Therefore, if brims are active it may intersect "
 "with them. To avoid this, increase the skirt distance value.\n"
 msgstr ""
-"擋防風罩可有效保護 ABS 或 ASA 列印物免受氣流影響，避免翹曲或脫離打印床。通常"
-"僅在開放式框架的打印機（即無外殼）中需要使用。\n"
+"防風罩可有效保護 ABS 或 ASA 列印物免受氣流影響，避免翹曲或脫離打印床。通常僅"
+"在開放式框架的打印機（即無外殼）中需要使用。\n"
 "\n"
 "啟用後，Skirt 的高度將與列印物的最高點相同。若未啟用，則使用『Skirt 高度』的"
 "設定值。\n"
@@ -15437,19 +15447,19 @@ msgid "PA step: "
 msgstr "步距："
 
 msgid "Accelerations: "
-msgstr ""
+msgstr "加速度: "
 
 msgid "Speeds: "
-msgstr ""
+msgstr "速度: "
 
 msgid "Print numbers"
 msgstr "列印號碼"
 
 msgid "Comma-separated list of printing accelerations"
-msgstr ""
+msgstr "列印加速度的逗號分隔清單"
 
 msgid "Comma-separated list of printing speeds"
-msgstr ""
+msgstr "列印速度的逗號分隔清單"
 
 msgid ""
 "Please input valid values:\n"
@@ -15578,7 +15588,7 @@ msgstr "上傳後切換到設備分頁。"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr "上傳的檔名不是 \"%s\" 結尾。確定要繼續嗎？"
+msgstr "上傳的檔名不是「%s」結尾。確定要繼續嗎？"
 
 msgid "Upload"
 msgstr "上傳"
@@ -15623,19 +15633,19 @@ msgstr "上傳到列印設備時發生錯誤"
 msgid ""
 "The selected bed type does not match the file. Please confirm before "
 "starting the print."
-msgstr ""
+msgstr "選擇的床面類型與檔案不符，請在開始列印前確認。"
 
 msgid "Time-lapse"
-msgstr ""
+msgstr "縮時錄影"
 
 msgid "Heated Bed Leveling"
-msgstr ""
+msgstr "加熱床校平"
 
 msgid "Textured Build Plate (Side A)"
-msgstr ""
+msgstr "紋理列印板（A面）"
 
 msgid "Smooth Build Plate (Side B)"
-msgstr ""
+msgstr "平滑列印板（A面）"
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "無法對所選零件執行布林運算"
@@ -16373,7 +16383,7 @@ msgid ""
 "Message body: \"%2%\""
 msgstr ""
 "HTTP 狀態：%1%\n"
-"訊息內容：\"%2%\""
+"訊息內容：「%2%」"
 
 #, boost-format
 msgid ""
@@ -16382,8 +16392,8 @@ msgid ""
 "Error: \"%2%\""
 msgstr ""
 "主機溝通解析失敗。\n"
-"訊息內容：\"%1%\"\n"
-"錯誤碼：\"%2%\""
+"訊息內容：「%1%」。\n"
+"錯誤碼：「%2%」"
 
 #, boost-format
 msgid ""
@@ -16392,8 +16402,8 @@ msgid ""
 "Error: \"%2%\""
 msgstr ""
 "主機列印設備例舉失敗。\n"
-"訊息內容：\"%1%\"\n"
-"錯誤碼：\"%2%\""
+"訊息內容：「%1%」\n"
+"錯誤碼：「%2%」"
 
 msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
@@ -16960,7 +16970,7 @@ msgid ""
 "Layer Height option? Check it out!"
 msgstr ""
 "自適應層高度加速列印\n"
-"你知道嗎？你可以使用\"自適應層高度\"選項可以更快地列印模型。\n"
+"你知道嗎？你可以使用「自適應層高度」選項可以更快地列印模型。\n"
 "試試看！"
 
 #: resources/data/hints.ini: [hint:Support painting]
@@ -17080,8 +17090,8 @@ msgstr ""
 #~ "following settings: at least 2 interface layers, at least 0.1mm top z "
 #~ "distance or using support materials on interface."
 #~ msgstr ""
-#~ "對於 \"強壯樹 \"和 \"混合樹 \"的支撐樣式，我們推薦以下設定：至少 2 層界面"
-#~ "層，至少 0.1 毫米的頂部z距離或使用專用的支撐線材。"
+#~ "對於「強壯樹」和「混合樹」的支撐樣式，我們推薦以下設定：至少 2 層界面層，"
+#~ "至少 0.1 毫米的頂部z距離或使用專用的支撐線材。"
 
 #~ msgid ""
 #~ "When using support material for the support interface, We recommend the "
@@ -17327,18 +17337,6 @@ msgstr ""
 #~ msgstr ""
 #~ "選擇『普通（自動）』或『樹狀（自動）』時，會自動生成支撐結構。若選擇『普通"
 #~ "（手動）』或『樹狀（手動）』，則僅生成支撐強化部分"
-
-#~ msgid "normal(auto)"
-#~ msgstr "普通（自動）"
-
-#~ msgid "tree(auto)"
-#~ msgstr "樹狀（自動）"
-
-#~ msgid "normal(manual)"
-#~ msgstr "普通（手動）"
-
-#~ msgid "tree(manual)"
-#~ msgstr "樹狀（手動）"
 
 #~ msgid ", ver: "
 #~ msgstr "，版本"
