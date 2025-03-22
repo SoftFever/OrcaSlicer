@@ -19,7 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "支撐筆刷"
 
 msgid "Alt + Mouse wheel"
@@ -1386,7 +1386,7 @@ msgstr "平行"
 msgid "Center coincidence"
 msgstr "中心重合"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "特徵 1"
 
 msgid "Reverse rotation"
@@ -1869,16 +1869,16 @@ msgstr "將換料的廢料使用在物件的支撐"
 msgid "Edit in Parameter Table"
 msgstr "在參數表格中編輯"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "從英寸轉換"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "恢復到英寸"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "從公尺轉換"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "恢復到公尺"
 
 msgid "Assemble"
@@ -2183,11 +2183,11 @@ msgid "Selection conflicts"
 msgstr "選擇衝突"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr "如果第一個選擇的是物件，那麼第二個選擇的也必須是物件。"
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr "如果第一個選擇的是零件，那麼第二個選擇的也必須是同一個物件中的零件。"
 
@@ -2787,9 +2787,6 @@ msgstr "確定"
 msgid "Close"
 msgstr "關閉"
 
-msgid "Colour"
-msgstr "顏色"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -2973,7 +2970,7 @@ msgstr "不使用 AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "使用安裝在機箱背面的線材進行列印"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "使用 AMS 裡的線材列印"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3380,7 +3377,7 @@ msgstr "使用AMS"
 msgid "Select Printers"
 msgstr "選擇列印設備"
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr "AMS狀態"
 
 msgid "Printing Options"
@@ -4014,7 +4011,7 @@ msgstr "風扇速度："
 msgid "Temperature: "
 msgstr "溫度："
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "載入 G-code 中"
 
 msgid "Generating geometry vertex data"
@@ -5362,9 +5359,6 @@ msgstr "送出"
 
 msgid "Please click on the star first."
 msgstr "請先點擊星星數量。"
-
-msgid "InFo"
-msgstr "資訊"
 
 msgid "Get oss config failed."
 msgstr "取得 oss 設定失敗。"
@@ -6801,7 +6795,7 @@ msgstr "AMS 線材"
 msgid "Click to pick filament color"
 msgstr "點擊設定線材顏色"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "請選擇線材顏色"
 
 msgid "Add/Remove presets"
@@ -8251,7 +8245,7 @@ msgstr ""
 "或者手動進行調整。"
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr "警告：新增的擠出機量與當前擠出機總數超過 16。"
 
@@ -11974,7 +11968,7 @@ msgstr "分隔區域的互鎖深度"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "設定分隔區域的互鎖深度。如果「mmu_segmented_region_max_width」設定為 0，或者"
@@ -13952,7 +13946,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "此物件將用於更換線材後進行噴嘴清洗，從而節省線材並縮短列印時間。但物件的顏色"
@@ -14332,10 +14326,10 @@ msgstr "佈局選項"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "佈局選項：0 代表停用，1 代表啟用，其他則為自動模式"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "重複次數"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "整個模型的重複次數"
 
 msgid "Ensure on bed"
@@ -14422,7 +14416,7 @@ msgstr "若啟用，則檢查當前機器是否與列表中的機器向下相容
 msgid "downward machines settings"
 msgstr "相容機器設定"
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr "機器設定清單需執行向下相容性檢測"
 
 msgid "Load assemble list"
@@ -14481,18 +14475,18 @@ msgstr "允許同塊板上使用多色列印"
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr "若啟用，佈局將允許同一板上使用多色列印"
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr "允許在排列時進行旋轉調整"
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr "若啟用，物件排列時將允許旋轉調整"
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr "在排列物件時避開擠出校準區域"
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr "若啟用，物件排列時將避開擠出校準區域"
 
 msgid "Skip modified gcodes in 3mf"
@@ -15618,7 +15612,7 @@ msgstr "取消選取"
 msgid "Show error message"
 msgstr "顯示錯誤資訊"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "已加入佇列"
 
 msgid "Uploading"

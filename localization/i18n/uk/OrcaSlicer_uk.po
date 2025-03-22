@@ -20,7 +20,7 @@ msgstr ""
 "X-Crowdin-File-ID: 13\n"
 "X-Generator: Poedit 3.5\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "Малювання Підтримок"
 
 msgid "Alt + Mouse wheel"
@@ -1418,7 +1418,7 @@ msgstr "Паралельний"
 msgid "Center coincidence"
 msgstr "Співпадіння центрів"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "Особливість 1"
 
 msgid "Reverse rotation"
@@ -1915,16 +1915,16 @@ msgstr "Промивати у підтримки об'єкта"
 msgid "Edit in Parameter Table"
 msgstr "Редагування таблиці параметрів"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "Перетворити розміри з дюймів"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "Відновити розміри в дюйми"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "Перетворити з метричної"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "Відновити в метричну"
 
 msgid "Assemble"
@@ -2247,12 +2247,12 @@ msgid "Selection conflicts"
 msgstr "Конфлікти у виборі"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr ""
 "Якщо перший вибраний елемент є об'єктом, другий також має бути об'єктом."
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 "Якщо перший обраний елемент є частиною, другий має бути частиноютого ж\n"
@@ -2891,9 +2891,6 @@ msgstr "Підтвердити"
 msgid "Close"
 msgstr "Закрити"
 
-msgid "Colour"
-msgstr "Колір"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -3087,7 +3084,7 @@ msgid "Print using materials mounted on the back of the case"
 msgstr ""
 "Друк із використанням матеріалів, закріплених на задній частині корпусу"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "Друк філаментами в ams"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3528,7 +3525,7 @@ msgstr "Використовуйте AMS"
 msgid "Select Printers"
 msgstr "Вибрати принтери"
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr "Статус AMS"
 
 msgid "Printing Options"
@@ -4198,7 +4195,7 @@ msgstr "Швидкість вентилятора: "
 msgid "Temperature: "
 msgstr "Температура: "
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "Завантаження G-кодів"
 
 msgid "Generating geometry vertex data"
@@ -5600,9 +5597,6 @@ msgstr "Підтвердити"
 
 msgid "Please click on the star first."
 msgstr "Будь ласка, спочатку клацніть на зірку."
-
-msgid "InFo"
-msgstr "Інформація"
 
 msgid "Get oss config failed."
 msgstr "Не вдалося отримати конфігурацію OSS."
@@ -7143,7 +7137,7 @@ msgstr "Філамент AMS"
 msgid "Click to pick filament color"
 msgstr "Натисніть, щоб вибрати колір філаменту"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Будь ласка, виберіть колір філаменту"
 
 msgid "Add/Remove presets"
@@ -8691,7 +8685,7 @@ msgstr ""
 " щоб продовжити або вручну відкоригувати його."
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
 "Попередження: Кількість новостворених та \n"
@@ -12865,7 +12859,7 @@ msgstr "Глибина взаємного взаємодії сегментов�
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "Глибина зчеплення сегментованої області. Буде ігноруватися, якщо "
@@ -15091,7 +15085,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "Цей об'єкт буде використаний для очищення сопла після зміни філаменту для "
@@ -15502,10 +15496,10 @@ msgstr "Упорядкувати параметри"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Параметри упорядкування: 0-disable, 1-enable, інші-auto"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "Кількість повторень"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "Кількість повторень всієї моделі"
 
 msgid "Ensure on bed"
@@ -15595,7 +15589,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -15657,18 +15651,18 @@ msgstr ""
 "Якщо ввімкнено, розташування дозволить використовувати кілька кольорів на "
 "одній платформі"
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr "Дозволити обертання під час розташування"
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr "Якщо ввімкнено, буде дозволено обертання під час розташування об'єкта"
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr "Уникати області калібрування екструзії під час розташування моделей"
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 "Якщо ввімкнено, розташування моделей уникатиме області калібрування екструзії"
 
@@ -16878,7 +16872,7 @@ msgstr "Скасувати вибране"
 msgid "Show error message"
 msgstr "Показати повідомлення про помилку"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "У черзі"
 
 msgid "Uploading"

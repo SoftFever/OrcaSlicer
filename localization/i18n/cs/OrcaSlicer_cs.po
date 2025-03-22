@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
 "X-Generator: Poedit 3.5\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "Malování podpěr"
 
 msgid "Alt + Mouse wheel"
@@ -1397,7 +1397,7 @@ msgstr ""
 msgid "Center coincidence"
 msgstr ""
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr ""
 
 msgid "Reverse rotation"
@@ -1528,7 +1528,7 @@ msgid "This is the newest version."
 msgstr "Toto je nejnovější verze."
 
 msgid "Info"
-msgstr "Info"
+msgstr "Informace"
 
 msgid ""
 "The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
@@ -1889,16 +1889,16 @@ msgstr "Čištění do podpěr objektů"
 msgid "Edit in Parameter Table"
 msgstr "Upravit v tabulce Parametrů"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "Převést z palce"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "Obnovit na palec"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "Převést z mm"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "Obnovit do mm"
 
 msgid "Assemble"
@@ -2217,11 +2217,11 @@ msgid "Selection conflicts"
 msgstr "Konflikty výběru"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr "Pokud je první vybraná položka objekt, druhá by měla být také objekt."
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 "Pokud je tato možnost povolena, zobrazí se při spuštění aplikace užitečné "
@@ -2850,9 +2850,6 @@ msgstr "Potvrdit"
 msgid "Close"
 msgstr "Zavřít"
 
-msgid "Colour"
-msgstr "Barva"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -3038,7 +3035,7 @@ msgstr "Nepovolovat AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "Tisk s použitím materiálů namontovaných na zadní straně pouzdra"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "Tisk s filamenty v ams"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3466,7 +3463,7 @@ msgstr ""
 msgid "Select Printers"
 msgstr ""
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr ""
 
 msgid "Printing Options"
@@ -4117,7 +4114,7 @@ msgstr "Ventilátor: "
 msgid "Temperature: "
 msgstr "Teplota: "
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "Načítání G-kódů"
 
 msgid "Generating geometry vertex data"
@@ -5479,9 +5476,6 @@ msgstr "Odeslat"
 
 msgid "Please click on the star first."
 msgstr "Prosím, nejprve klikněte na hvězdu."
-
-msgid "InFo"
-msgstr "Informace"
 
 msgid "Get oss config failed."
 msgstr "Získání konfigurace OSS se nezdařilo."
@@ -6972,7 +6966,7 @@ msgstr "AMS Filament"
 msgid "Click to pick filament color"
 msgstr "Kliknutím vyberte barvu Filamentu"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Vyberte prosím barvu vlákna"
 
 msgid "Add/Remove presets"
@@ -8446,7 +8440,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
 
@@ -12063,7 +12057,7 @@ msgstr "Hloubka propojení segmentované oblasti"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "Hloubka propojení segmentované oblasti. Bude ignorována, pokud je "
@@ -14077,7 +14071,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "Tento objekt bude použit k očištění trysky po výměně filamentu, aby se "
@@ -14471,10 +14465,10 @@ msgstr "Volby uspořádání"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Volby uspořádání: 0-zakázat, 1-povolit, ostatní-automaticky"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "Počet opakování"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "Počet opakování celého modelu"
 
 msgid "Ensure on bed"
@@ -14566,7 +14560,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -14626,18 +14620,18 @@ msgstr ""
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr ""
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 
 msgid "Skip modified gcodes in 3mf"
@@ -15786,7 +15780,7 @@ msgstr "Zrušit vybrané"
 msgid "Show error message"
 msgstr "Zobrazit chybové hlášení"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "Ve frontě"
 
 msgid "Uploading"

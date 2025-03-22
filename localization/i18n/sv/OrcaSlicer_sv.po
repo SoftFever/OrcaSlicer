@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Localazy (https://localazy.com)\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "Färgläggning av Support"
 
 msgid "Alt + Mouse wheel"
@@ -1377,7 +1377,7 @@ msgstr "Parallel"
 msgid "Center coincidence"
 msgstr "Center coincidence"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "Feature 1"
 
 msgid "Reverse rotation"
@@ -1855,16 +1855,16 @@ msgstr "Rensa in i objektets support"
 msgid "Edit in Parameter Table"
 msgstr "Redigera i Parameter Tabell"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "Konvertera ifrån inch"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "Återställ till inch"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "Konvertera ifrån meter"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "Återställ till meter"
 
 msgid "Assemble"
@@ -2177,13 +2177,13 @@ msgid "Selection conflicts"
 msgstr "Urvalskonflikt"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr ""
 "Om den första valda delen är ett objekt, så bör även den andra vara ett "
 "objekt."
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
 "Om den första valda delen är en del, så bör den andra delen tillhöra samma "
@@ -2821,9 +2821,6 @@ msgstr "Acceptera"
 msgid "Close"
 msgstr "Stäng"
 
-msgid "Colour"
-msgstr "Färg"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -3015,7 +3012,7 @@ msgstr "Aktivera inte AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "Skriv ut med filament på en extern spole."
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "Skriv ut med filament i AMS"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3436,8 +3433,8 @@ msgstr "Use AMS"
 msgid "Select Printers"
 msgstr "Select Printers"
 
-msgid "Ams Status"
-msgstr "AMS Status"
+msgid "AMS Status"
+msgstr ""
 
 msgid "Printing Options"
 msgstr "Printing Options"
@@ -4092,7 +4089,7 @@ msgstr "Fläkthastighet: "
 msgid "Temperature: "
 msgstr "Temperatur: "
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "Laddar G-koder"
 
 msgid "Generating geometry vertex data"
@@ -5457,9 +5454,6 @@ msgstr "Skicka in"
 
 msgid "Please click on the star first."
 msgstr "Klicka på stjärnan först."
-
-msgid "InFo"
-msgstr "Info"
 
 msgid "Get oss config failed."
 msgstr "Hämta konfigurationen för oss misslyckades."
@@ -6936,7 +6930,7 @@ msgstr "AMS-filament"
 msgid "Click to pick filament color"
 msgstr "Tryck för att välja filament färg"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Välj filament färg"
 
 msgid "Add/Remove presets"
@@ -8447,11 +8441,9 @@ msgstr ""
 " to continue or manually adjust it."
 
 msgid ""
-"Waring:The count of newly added and \n"
-" current extruders exceeds 16."
-msgstr ""
 "Warning: The count of newly added and \n"
 " current extruders exceeds 16."
+msgstr ""
 
 msgid "Ramming customization"
 msgstr ""
@@ -11911,7 +11903,7 @@ msgstr "Sammanhängande djup i en segmenterad region"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 
@@ -13811,7 +13803,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "Det här objektet används för att rensa nozzeln efter ett filamentbyte för "
@@ -14192,10 +14184,10 @@ msgstr "Placera Val"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Placera val: 0-inaktivera, 1-aktivera, andra-auto"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "Antal upprepningar"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "Antal upprepningar av hela modellen"
 
 msgid "Ensure on bed"
@@ -14283,7 +14275,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -14341,18 +14333,18 @@ msgstr ""
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr ""
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 
 msgid "Skip modified gcodes in 3mf"
@@ -15484,7 +15476,7 @@ msgstr "Avbryt vald"
 msgid "Show error message"
 msgstr "Visa felmeddelande"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "I kö"
 
 msgid "Uploading"

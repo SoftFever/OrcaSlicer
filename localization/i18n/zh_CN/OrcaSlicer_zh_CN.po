@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "支撑绘制"
 
 msgid "Alt + Mouse wheel"
@@ -1384,7 +1384,7 @@ msgstr "平行"
 msgid "Center coincidence"
 msgstr "中心重合"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "特征1"
 
 msgid "Reverse rotation"
@@ -1867,16 +1867,16 @@ msgstr "冲刷到对象的支撑"
 msgid "Edit in Parameter Table"
 msgstr "在参数表格中编辑"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "从英寸转换"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "恢复到英寸"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "从米转换"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "恢复到米"
 
 msgid "Assemble"
@@ -2180,11 +2180,11 @@ msgid "Selection conflicts"
 msgstr "选择冲突"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be object."
 msgstr "如果第一个选择的是对象，那么第二个选择的也必须是对象。"
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
+"If the first selected item is a part, the second one should be part in the same "
 "object."
 msgstr "如果第一个选择的是零件，那么第二个选择的也必须是同一个对象中的零件。"
 
@@ -2783,9 +2783,6 @@ msgstr "确定"
 msgid "Close"
 msgstr "关闭"
 
-msgid "Colour"
-msgstr "颜色"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -2967,7 +2964,7 @@ msgstr "不启用AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "使用安装在机箱背面的材料进行打印"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "采用AMS里的材料打印"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3377,7 +3374,7 @@ msgstr "使用AMS"
 msgid "Select Printers"
 msgstr "选择打印机"
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr "AMS状态"
 
 msgid "Printing Options"
@@ -4007,7 +4004,7 @@ msgstr "风扇速度: "
 msgid "Temperature: "
 msgstr "温度: "
 
-msgid "Loading G-codes"
+msgid "Loading G-code"
 msgstr "正在加载G-code"
 
 msgid "Generating geometry vertex data"
@@ -5351,9 +5348,6 @@ msgstr "提交"
 
 msgid "Please click on the star first."
 msgstr "请先点击星星。"
-
-msgid "InFo"
-msgstr "信息"
 
 msgid "Get oss config failed."
 msgstr "获取oss配置失败。"
@@ -6782,7 +6776,7 @@ msgstr "AMS 打印丝"
 msgid "Click to pick filament color"
 msgstr "点击设置材料颜色"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "请选择材料颜色"
 
 msgid "Add/Remove presets"
@@ -8215,7 +8209,7 @@ msgstr ""
 " 继续或手动修改它。"
 
 msgid ""
-"Waring:The count of newly added and \n"
+"Warning: The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
 "警告：新增追加耗材丝数量 \n"
@@ -11746,7 +11740,7 @@ msgstr "分割区域的交错深度"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\"is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 
@@ -13670,7 +13664,7 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
+"filament and decrease the print time. Colors of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "换料后的过渡料会被用来打印这个对象。这样可以减少材料浪费和缩短打印时间，但是"
@@ -14044,10 +14038,10 @@ msgstr "摆放选项"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "摆放选项：0-关闭，1-开启，其他-自动"
 
-msgid "Repetions count"
+msgid "Repetitions count"
 msgstr "重复次数"
 
-msgid "Repetions count of the whole model"
+msgid "Repetitions count of the whole model"
 msgstr "整个模型的重复次数"
 
 msgid "Ensure on bed"
@@ -14134,7 +14128,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "the machine settings list needs to do downward checking"
 msgstr ""
 
 msgid "Load assemble list"
@@ -14194,18 +14188,18 @@ msgstr ""
 msgid "If enabled, the arrange will allow multiple color on one plate"
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotations when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, the arrange will allow rotations when placing objects"
 msgstr ""
 
 msgid "Avoid extrusion calibrate region when doing arrange"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, the arrange will avoid extrusion calibrate region when placing "
+"objects"
 msgstr ""
 
 msgid "Skip modified gcodes in 3mf"
@@ -15319,7 +15313,7 @@ msgstr "取消选中"
 msgid "Show error message"
 msgstr "显示错误信息"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "已加入队列"
 
 msgid "Uploading"

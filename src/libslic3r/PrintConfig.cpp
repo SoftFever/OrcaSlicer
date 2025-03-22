@@ -3146,7 +3146,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Interlocking depth of a segmented region");
     def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
                     "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\""
-                    "is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.");
+                    "is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature.");
     def->sidetext = L("mm"); 
     def->min      = 0;
     def->category = L("Advanced");
@@ -5389,7 +5389,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Flush options");
     def->label = L("Flush into this object");
     def->tooltip = L("This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. "
-        "Colours of the objects will be mixed as a result. "
+        "Colors of the objects will be mixed as a result. "
         "It will not take effect, unless the prime tower is enabled.");
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -7398,8 +7398,8 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("repetitions", coInt);
-    def->label = L("Repetions count");
-    def->tooltip = L("Repetions count of the whole model");
+    def->label = L("Repetitions count");
+    def->tooltip = L("Repetitions count of the whole model");
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -7540,7 +7540,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("downward_settings", coStrings);
     def->label = L("downward machines settings");
-    def->tooltip = L("the machine settings list need to do downward checking");
+    def->tooltip = L("the machine settings list needs to do downward checking");
     def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
     
@@ -7615,13 +7615,13 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("allow_rotations", coBool);
-    def->label = L("Allow rotatations when arrange");
-    def->tooltip = L("If enabled, the arrange will allow rotations when place object");
+    def->label = L("Allow rotations when arranging");
+    def->tooltip = L("If enabled, the arrange will allow rotations when placing objects");
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("avoid_extrusion_cali_region", coBool);
     def->label = L("Avoid extrusion calibrate region when doing arrange");
-    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when place object");
+    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when placing objects");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("skip_modified_gcodes", coBool);
