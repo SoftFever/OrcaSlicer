@@ -79,16 +79,16 @@ jobs:
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
             brew uninstall --ignore-dependencies zstd
-            ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
+            ./build_release_macos.sh -dpx -a "${{ inputs.arch }}" -t 10.15 -1
             brew install zstd
 
 
       - name: Install Ubuntu Build Dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm'
         working-directory: ${{ github.workspace }}
         env:
-          apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
-          webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || '' }}
+          apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm' && 'sudo apt-get') || '' }}
+          webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm' && '4.1') || '' }}
         run: |
             ${{ env.apt-cmd }} update
             ${{ env.apt-cmd }} install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
@@ -98,7 +98,7 @@ jobs:
             gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
 
       - name: Build on Ubuntu
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-24.04-arm'
         working-directory: ${{ github.workspace }}
         run: |
             mkdir -p ${{ github.workspace }}/deps/build
