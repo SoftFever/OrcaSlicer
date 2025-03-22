@@ -1149,11 +1149,11 @@ int MachineObject::ams_filament_mapping(
         return 0;
     }
 
-    for (auto it = result.begin(); it != result.end(); it++) {
+   /* for (auto it = result.begin(); it != result.end(); it++) {//This code has never been effective before 2025.03.18
         if (it->distance >= 6000) {
             it->tray_id = -1;
         }
-    }
+    }*/
     return 0;
 }
 
