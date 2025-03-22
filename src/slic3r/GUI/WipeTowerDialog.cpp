@@ -283,7 +283,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
 {
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(main_sizer);
-
+    this->SetBackgroundColour(*wxWHITE);
     auto filament_count= wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_colour")->values.size();
     wxSize extra_size = { FromDIP(100),FromDIP(235) };
     if (filament_count <= 2)
@@ -313,7 +313,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
         wxNO_BORDER);
 
     m_webview->AddScriptMessageHandler("wipingDialog");
-    main_sizer->Add(m_webview, 1);
+    main_sizer->Add(m_webview, 1, wxEXPAND);
 
     fs::path filepath = fs::path(resources_dir()) / "web/flush/WipingDialog.html";
     wxString filepath_str = wxString::FromUTF8(filepath.string());
