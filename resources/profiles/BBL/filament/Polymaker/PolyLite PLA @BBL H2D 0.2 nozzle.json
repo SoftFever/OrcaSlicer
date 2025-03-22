@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "PolyLite PLA @BBL H2D 0.2 nozzle",
-    "inherits": "PolyLite PLA @BBL X1C",
+    "inherits": "PolyLite PLA @base",
     "from": "system",
     "setting_id": "GFSL00_05",
     "instantiation": "true",

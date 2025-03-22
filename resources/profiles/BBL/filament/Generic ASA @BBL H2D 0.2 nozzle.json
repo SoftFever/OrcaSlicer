@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Generic ASA @BBL H2D 0.2 nozzle",
-    "inherits": "Generic ASA @0.2 nozzle",
+    "inherits": "Generic ASA @base",
     "from": "system",
     "setting_id": "GFSB98_05",
     "instantiation": "true",

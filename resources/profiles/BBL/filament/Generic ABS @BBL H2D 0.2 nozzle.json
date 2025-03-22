@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Generic ABS @BBL H2D 0.2 nozzle",
-    "inherits": "Generic ABS @0.2 nozzle",
+    "inherits": "Generic ABS @base",
     "from": "system",
     "setting_id": "GFSB99_08",
     "instantiation": "true",

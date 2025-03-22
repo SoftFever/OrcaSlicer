@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "PolyLite PETG @BBL H2D 0.2 nozzle",
-    "inherits": "PolyLite PETG @BBL X1C",
+    "inherits": "PolyLite PETG @base",
     "from": "system",
     "setting_id": "GFSG60_09",
     "instantiation": "true",

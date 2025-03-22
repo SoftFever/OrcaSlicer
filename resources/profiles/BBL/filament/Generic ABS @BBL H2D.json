@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Generic ABS @BBL H2D",
-    "inherits": "Generic ABS",
+    "inherits": "Generic ABS @base",
     "from": "system",
     "setting_id": "GFSB99_07",
     "instantiation": "true",

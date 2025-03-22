@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Generic PC @BBL H2D",
-    "inherits": "Generic PC",
+    "inherits": "Generic PC @base",
     "from": "system",
     "setting_id": "GFSC99_10",
     "instantiation": "true",

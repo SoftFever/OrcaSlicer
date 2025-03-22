@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Overture PLA @BBL H2D 0.2 nozzle",
-    "inherits": "Overture PLA @BBL X1C",
+    "inherits": "Overture PLA @base",
     "from": "system",
     "setting_id": "GFSL04_10",
     "instantiation": "true",

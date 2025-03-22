@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Generic ASA @BBL H2D",
-    "inherits": "Generic ASA",
+    "inherits": "Generic ASA @base",
     "from": "system",
     "setting_id": "GFSB98_06",
     "instantiation": "true",

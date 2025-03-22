@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Bambu ABS @BBL H2D 0.2 nozzle",
-    "inherits": "Bambu ABS @BBL X1C 0.2 nozzle",
+    "inherits": "Bambu ABS @base",
     "from": "system",
     "setting_id": "GFSB00_12",
     "instantiation": "true",

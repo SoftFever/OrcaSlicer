@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Bambu PLA Glow @BBL H2D 0.2 nozzle",
-    "inherits": "Bambu PLA Glow @BBL X1E",
+    "inherits": "Bambu PLA Glow @base",
     "from": "system",
     "setting_id": "GFSA12_07",
     "instantiation": "true",

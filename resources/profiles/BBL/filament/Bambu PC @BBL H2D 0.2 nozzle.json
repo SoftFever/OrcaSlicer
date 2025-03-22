@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Bambu PC @BBL H2D 0.2 nozzle",
-    "inherits": "Bambu PC @BBL X1C 0.2 nozzle",
+    "inherits": "Bambu PC @base",
     "from": "system",
     "setting_id": "GFSC00_21",
     "instantiation": "true",

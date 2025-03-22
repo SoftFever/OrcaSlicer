@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Bambu ABS @BBL H2D",
-    "inherits": "Bambu ABS @BBL X1C",
+    "inherits": "Bambu ABS @base",
     "from": "system",
     "setting_id": "GFSB00_11",
     "instantiation": "true",

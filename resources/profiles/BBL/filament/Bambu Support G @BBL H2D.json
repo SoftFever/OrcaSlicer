@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Bambu Support G @BBL H2D",
-    "inherits": "Bambu Support G @BBL X1C",
+    "inherits": "Bambu Support G @base",
     "from": "system",
     "setting_id": "GFSS01_02",
     "instantiation": "true",
