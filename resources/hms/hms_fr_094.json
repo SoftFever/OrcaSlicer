@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "fr": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Insérez le filament jusqu'à ce qu'il ne puisse pas être poussé plus loin. Il pourrait y avoir une légère fumée pendant le purge, alors veuillez fermer la porte avant et le couvercle supérieur après l'insertion."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Insérez le filament jusqu'à ce qu'il ne puisse pas être poussé plus loin. Il pourrait y avoir une légère fumée pendant le purge, alors veuillez fermer la porte avant et le couvercle supérieur après l'insertion."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Veuillez tirer manuellement et lentement le filament de l'extrudeuse. Puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Veuillez tirer manuellement et lentement le filament de l'extrudeuse. Puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Appuyez sur le connecteur noir du tube PTFE et débranchez le tube PTFE. Après avoir terminé l'opération, cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Appuyez sur le connecteur noir du tube PTFE et débranchez le tube PTFE. Après avoir terminé l'opération, cliquez sur \"Continuer\"."
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "Le tirage à froid a expiré. Veuillez agir rapidement ou vérifier si le filament est cassé à l'intérieur de l'extrudeuse, puis cliquez sur l'Assistant pour plus de détails."
@@ -95,28 +119,12 @@
                     "intro": "Détection que l'extrudeuse n'extrude pas normalement. Si les défauts sont acceptables, sélectionnez \"Reprendre\" pour reprendre l'impression."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Retirez le tube PTFE au-dessus de la tête d'outil et insérez le filament. Il pourrait y avoir de la fumée légère lors de l'élimination des impuretés, alors veuillez fermer la porte avant et le couvercle supérieur après l'insertion."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Retirez le tube PTFE au-dessus de la tête d'outil et insérez le filament. Il pourrait y avoir de la fumée légère lors de l'élimination des impuretés, alors veuillez fermer la porte avant et le couvercle supérieur après l'insertion."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "Le module monté sur la tête d'outil ne correspond pas à la tâche. Veuillez installer le module correct."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Il s'agit d'une tâche d'impression. Veuillez détacher le module Laser/Découpe de la tête d'outil."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Veuillez retirer manuellement et lentement le filament de l'extrudeuse."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Veuillez retirer manuellement et lentement le filament de l'extrudeuse."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "fr": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Module laser détecté pour la première fois. Complétez la configuration (~4 min) avant de l'utiliser pour une découpe et gravure précises. Assurez-vous également que la vis H2.0 à l'arrière maintenant la pompe à air est retirée."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "Le processus de tirage à froid avec la buse droite a expiré. Veuillez réessayer le tirage à froid après avoir retiré manuellement le filament et coupé le filament résiduel en haut de la buse."
+                    "intro": "Le processus de retrait à froid de la bonne buse a expiré. Veuillez cliquer sur \"Réessayer\" puis tirer manuellement le filament."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "Le processus de tirage à froid avec la buse gauche a expiré. Veuillez réessayer le tirage à froid après avoir retiré manuellement le filament et coupé le filament résiduel en haut de la buse."
+                    "intro": "Le processus de retrait à froid de la buse gauche a expiré. Veuillez cliquer sur \"Réessayer\" puis tirer manuellement le filament."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "La vérification de commande MQTT a échoué, veuillez mettre à jour Studio ou Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Nouveau Module Laser connecté ; pour une découpe et un gravage plus précis, veuillez procéder à la configuration avant utilisation. (environ 4 minutes)"
                 },
                 {
                     "ecode": "0500040000020036",

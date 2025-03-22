@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "sv": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Sätt in filamentet tills det inte kan tryckas längre. Det kan komma lite rök under rengöringen, så stäng vänligen framdörren och överkåpan efter insättning."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Sätt in filamentet tills det inte kan tryckas längre. Det kan komma lite rök under rensningen, så vänligen stäng framdörren och ovandelen efter insättningen."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Vänligen dra långsamt och försiktigt ut filamentet från extrudern. Klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Vänligen dra långsamt och försiktigt ut filamentet från extrudern. Klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Tryck på den svarta PTFE-slangans koppling och koppla bort PTFE-slangen. Efter att ha slutfört operationen, klicka på \"Fortsätt.\""
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Tryck på den svarta PTFE-slangans koppling och koppla bort PTFE-slangen. Efter att ha slutfört operationen, klicka på \"Fortsätt.\""
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "Kall dragning har timat ut. Vänligen åtgärda snabbt eller kontrollera om filamentet är avbrutet inne i extrudern, och klicka på Assistenten för mer information."
@@ -95,28 +119,12 @@
                     "intro": "Upptäckte att matningsmekanismen inte matar ut normalt. Om defekterna är acceptabla välj \"Återuppta\" för att återuppta utskriftsjobbet."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Ta bort PTFE-röret ovanför verktygshuvudet och sätt i filamentet. Det kan uppstå lätt rök vid rengöringen, så stäng vänligen främre dörren och översta locket efter införandet."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Ta bort PTFE-röret ovanför verktygshuvudet och sätt i filamentet. Det kan uppstå lätt rök under spolningen, så stäng vänligen främre dörren och översta locket efter införandet."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "Modulen monterad på verktygshuvudet matchar inte uppgiften. Vänligen installera rätt modul."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Detta är en utskriftsuppgift. Lossa Laser-/Skärmotorn från Verktygshuvudet."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Vänligen dra ut filamentet manuellt och långsamt från extrudern."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Vänligen dra ut filamentet manuellt och långsamt från extrudern."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "sv": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Laser modul upptäcktes för första gången. Slutför installationen (~4 min) innan användning för noggrann skärning och gravyr. Se också till att H2.0-skruven på baksidan som fäster luftpumpen tas bort."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "Processen för kalldragning av rätt munstycke har timat ut. Vänligen försök kalldragningen igen efter att du manuellt har tagit bort filamentet och klippt av det resterande filamentet längst upp på munstycket."
+                    "intro": "Processen för kalldragning av den högra munstycket har timed out. Vänligen klicka på \"Försök igen\" och dra sedan manuellt ut filamentet."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "Processen för kalldragning av vänster munstycke har timat ut. Vänligen försök kalldragningen igen efter att du manuellt har tagit bort filamentet och klippt av det resterande filamentet längst upp på munstycket."
+                    "intro": "Processen för kalldragning av den vänstra munstycket har timed out. Vänligen klicka på \"Försök igen\" och dra sedan manuellt ut filamentet."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "MQTT-kommandovalidering misslyckades, vänligen uppdatera Studio eller Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Ny lasermodul ansluten; för mer precisa skärningar och graveringar, vänligen gå till inställningarna innan användning. (ungefär 4 minuter)"
                 },
                 {
                     "ecode": "0500040000020036",

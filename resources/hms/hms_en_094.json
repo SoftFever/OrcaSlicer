@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "en": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Insert the filament until it can not be pushed any farther. There might be slight smoke during purging, so please close the front door and top cover after insertion."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Insert the filament until it can not be pushed any farther. There might be slight smoke during purging, so please close the front door and top cover after insertion."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Please manually and slowly pull out the filament from the extruder. Then click “Continue”."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Please manually and slowly pull out the filament from the extruder. Then click “Continue”."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Press the black PTFE tube coupler and unplug the PTFE tube. After completing the operation, click \"Continue.\""
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Press the black PTFE tube coupler and unplug the PTFE tube. After completing the operation, click \"Continue.\""
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "Cold pulling timed out. Please promptly operate or check whether the filament is broken inside the extruder, and click the Assistant for details."
@@ -95,28 +119,12 @@
                     "intro": "Detected that the extruder is not extruding normally. If the defects are acceptable, select \"Resume\" to resume the print job."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Remove the PTFE tube above the Toolhead and insert the filament. There might be slight smoke during purging, so please close the front door and top cover after insertion."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Remove the PTFE tube above the Toolhead and insert the filament. There might be slight smoke during purging, so please close the front door and top cover after insertion."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "The module mounted on the toolhead does not match the task. Please install the correct module."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "This is a printing task. Please detach the Laser/Cutting Module from the Toolhead."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Please manually and slowly pull out the filament from the extruder."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Please manually and slowly pull out the filament from the extruder."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "en": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Laser module detected for the first time. Complete the setup (~4 min) before use for precise cutting and engraving. Also, ensure the H2.0 screw at the back securing the air pump is removed."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "The right nozzle cold pulling process has timed out. Please retry the cold pull after manually removing the filament and cutting off the residual filament at the top of the nozzle."
+                    "intro": "The right nozzle cold pulling process has timed out. Please click \"Retry\" and then manually pull out the filament."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "The left nozzle cold pulling process has timed out. Please retry the cold pull after manually removing the filament and cutting off the residual filament at the top of the nozzle."
+                    "intro": "The left nozzle cold pulling process has timed out. Please click \"Retry\" and then manually pull out the filament."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "MQTT Command verification failed, please update Studio or Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "New Laser Module connected; for more precise cutting and engraving, please go to set up before use. (about 4 minutes)"
                 },
                 {
                     "ecode": "0500040000020036",

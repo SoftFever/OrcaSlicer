@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "es": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Inserte el filamento hasta que no se pueda empujar más. Puede haber un ligero humo durante el purgado, así que cierre la puerta delantera y la tapa superior después de la inserción."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Inserte el filamento hasta que no se pueda empujar más. Puede haber un ligero humo durante el purgado, así que cierre la puerta delantera y la tapa superior después de la inserción."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Por favor, retire manual y lentamente el filamento del extrusor. Luego, haga clic en \"Continuar\"."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Por favor, retire manual y lentamente el filamento del extrusor. Luego, haga clic en \"Continuar\"."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Presione el acoplador negro del tubo de PTFE y desconecte el tubo de PTFE. Después de completar la operación, haga clic en \"Continuar\"."
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Presione el acoplador negro del tubo de PTFE y desconecte el tubo de PTFE. Después de completar la operación, haga clic en \"Continuar\"."
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "El tiempo de espera para el tirón en frío ha expirado. Por favor, operé rápidamente o verifique si el filamento está roto dentro del extrusor, y haga clic en el Asistente para más detalles."
@@ -95,28 +119,12 @@
                     "intro": "Detectado que el extrusor no está extruyendo normalmente. Si los defectos son aceptables, selecciona \"Reanudar\" para continuar con el trabajo de impresión."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Retira el tubo de PTFE sobre el cabezal de herramienta e inserta el filamento. Puede haber un poco de humo durante la purga, así que por favor cierra la puerta frontal y la tapa superior después de la inserción."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Retira el tubo de PTFE encima del cabezal de herramienta e introduce el filamento. Puede haber un ligero humo durante la purga, así que por favor cierra la puerta frontal y la tapa superior después de la inserción."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "El módulo montado en el cabezal de herramienta no coincide con la tarea. Por favor, instala el módulo correcto."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Esta es una tarea de impresión. Por favor, desconecta el Módulo de Corte/Láser del Cabezal de Herramienta."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Por favor, extrae manual y lentamente el filamento del extrusor."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Por favor, extrae manual y lentamente el filamento del extrusor."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "es": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Módulo láser detectado por primera vez. Completa la configuración (~4 min) antes de usarlo para cortes y grabados precisos. Además, asegúrate de que se haya quitado el tornillo H2.0 en la parte trasera que sujeta la bomba de aire."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "El proceso de extracción en frío de la boquilla correcta ha agotado el tiempo. Por favor, vuelve a intentar la extracción en frío después de retirar manualmente el filamento y cortar el filamento residual en la parte superior de la boquilla."
+                    "intro": "El proceso de extracción en frío de la boquilla derecha ha expirado. Por favor, haz clic en \"Reintentar\" y luego saca el filamento manualmente."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "El proceso de extracción en frío de la boquilla izquierda ha agotado el tiempo. Por favor, vuelve a intentar la extracción en frío después de retirar manualmente el filamento y cortar el filamento residual en la parte superior de la boquilla."
+                    "intro": "El proceso de extracción en frío de la boquilla izquierda ha expirado. Por favor, haz clic en \"Reintentar\" y luego saca el filamento manualmente."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "La verificación del comando MQTT falló, por favor actualice Studio o Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Nuevo Módulo Láser conectado; para un corte y grabado más precisos, por favor configurarlo antes de usar. (aproximadamente 4 minutos)"
                 },
                 {
                     "ecode": "0500040000020036",

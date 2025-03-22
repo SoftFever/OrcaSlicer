@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "nl": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Steek het filament in totdat het niet verder kan worden geduwd. Er kan tijdens het reinigen lichte rook ontstaan, dus sluit alstublieft de voordeur en het bovenste deksel na het inbrengen."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Steek het filament in totdat het niet verder kan worden geduwd. Er kan tijdens het reinigen lichte rook ontstaan, dus sluit alstublieft de voordeur en het bovenste deksel na het inbrengen."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Verwijder het filament handmatig en langzaam uit de extruder. Klik daarna op “Doorgaan”."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Verwijder het filament handmatig en langzaam uit de extruder. Klik daarna op “Doorgaan”."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Druk op de zwarte PTFE-buis koppeling en trek de PTFE-buis los. Klik na het voltooien van de handeling op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Druk op de zwarte PTFE-buis koppeling en trek de PTFE-buis los. Klik na het voltooien van de handeling op \"Doorgaan.\""
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "Koud trekken is time-out. Gelieve snel te handelen of na te kijken of de filament binnen de extruder gebroken is, en klik op de Assistent voor details."
@@ -95,28 +119,12 @@
                     "intro": "Vastgesteld dat de extruder niet normaal uitlijnt. Als de defecten acceptabel zijn, selecteer dan \"Hervatten\" om de afdruktaak te hervatten."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Verwijder de PTFE-buis boven de gereedschapkop en steek de filament erin. Er kan wat rook ontstaan tijdens het reinigen, dus sluit alstublieft de voordeur en de bovenklep na het inbrengen."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Verwijder de PTFE-buis boven de gereedschapkop en steek de filament erin. Er kan wat rook ontstaan tijdens het spoelen, dus sluit de voordeur en het bovenste deksel na het invoegen."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "De module gemonteerd op de gereedschapkop komt niet overeen met de taak. Installeer de juiste module alstublieft."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Dit is een printtaak. Verwijder alstublieft de Laser/Snijkop module van de Gereedschapshouder."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Trek alstublieft handmatig en langzaam de filament uit de extruder."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Trek alstublieft handmatig en langzaam de filament uit de extruder."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "nl": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Laser module voor het eerst gedetecteerd. Voltooi de installatie (~4 min) voordat je het gebruikt voor nauwkeurig snijden en graveren. Zorg er ook voor dat de H2.0 schroef aan de achterkant die de luchtpomp vastzet, is verwijderd."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "Het koude trekkingsproces van de juiste nozzle is verlopen. Probeer de koude trekking opnieuw nadat je de filament handmatig hebt verwijderd en de resterende filament aan de bovenkant van de nozzle hebt afgekapt."
+                    "intro": "Het koude trekkingsproces van de rechtermondstuk is verlopen. Klik op \"Opnieuw proberen\" en trek het filament handmatig eruit."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "Het koude trekkingsproces van de linker nozzle is verlopen. Probeer de koude trekking opnieuw nadat je de filament handmatig hebt verwijderd en de resterende filament aan de bovenkant van de nozzle hebt afgekapt."
+                    "intro": "Het koude trekkingsproces van de linkermondstuk is verlopen. Klik op \"Opnieuw proberen\" en trek het filament handmatig eruit."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "MQTT-opdrachtverificatie mislukt, werk alstublieft Studio of Handy bij."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Nieuwe laser module verbonden; voor preciezer snijden en graveren, ga alstublieft naar de instellingen voor gebruik. (ongeveer 4 minuten)"
                 },
                 {
                     "ecode": "0500040000020036",

@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "pl": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Włóż filament tak daleko, aż nie da się go dalej pchać. Podczas purgowania może wystąpić lekki dym, więc proszę zamknąć przednie drzwi i górną pokrywę po włożeniu."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Włóż filament tak daleko, aż nie da się go dalej pchać. Podczas purgowania może pojawić się lekki dym, więc proszę zamknąć przednie drzwi i górną pokrywę po włożeniu."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Proszę ręcznie i powoli wyciągnąć filament z ekstrudera. Następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Proszę ręcznie i powoli wyciągnąć filament z ekstrudera. Następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Naciśnij czarny złącznik rurki PTFE i odłącz rurkę PTFE. Po zakończeniu operacji kliknij \"Kontynuuj.\""
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Naciśnij czarny złącznik rurki PTFE i odłącz rurkę PTFE. Po zakończeniu operacji kliknij \"Kontynuuj.\""
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "Czas na zimne ciągnięcie minął. Proszę niezwłocznie spróbować lub sprawdzić, czy filament jest uszkodzony wewnątrz ekstrudera, a następnie kliknąć Asystenta, aby uzyskać szczegóły."
@@ -95,28 +119,12 @@
                     "intro": "Wykryto, że ekstruder nie wytłacza materiału prawidłowo. Jeśli wady są akceptowalne, wybierz opcję \"Wznów\", aby kontynuować drukowanie."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Usuń rurkę PTFE powyżej głowicy narzędzia i włóż filament. Podczas oczyszczania może pojawić się lekki dym, dlatego zamknij przednią drzwi i górną pokrywę po włożeniu."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Usuń rurkę PTFE znajdującą się nad głowicą narzędzia i włóż filament. Podczas procesu oczyszczania może wystąpić lekki dym, dlatego po włożeniu zamknij drzwi przednie i górną pokrywę."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "Moduł zamontowany na głowicy narzędzia nie pasuje do zadania. Proszę zainstalować właściwy moduł."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "To zadanie drukowania. Proszę odłączyć moduł Laser/Cutting od głowicy narzędzia."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Proszę ręcznie i powoli wyciągnąć filament z ekstrudera."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Proszę ręcznie i powoli wyciągnąć filament z ekstrudera."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "pl": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Moduł lasera wykryty po raz pierwszy. Ukończ konfigurację (~4 min) przed użyciem do precyzyjnego cięcia i grawerowania. Upewnij się również, że śruba H2.0 z tyłu mocująca pompę powietrza została usunięta."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "Proces zimnego wyciągania w prawej dyszy czas się skończył. Proszę spróbować ponownie wykonać zimne wyciąganie po ręcznym usunięciu filamentu i odcięciu pozostałego filamentu na górze dyszy."
+                    "intro": "Proces zimnego wyciągania prawego dyszy przekroczył czas. Proszę kliknąć \"Ponów\" i następnie ręcznie wyciągnąć filament."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "Proces zimnego wyciągania w lewej dyszy czas się skończył. Proszę spróbować ponownie wykonać zimne wyciąganie po ręcznym usunięciu filamentu i odcięciu pozostałego filamentu na górze dyszy."
+                    "intro": "Proces zimnego wyciągania lewego dyszy przekroczył czas. Proszę kliknąć \"Ponów\" i następnie ręcznie wyciągnąć filament."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "Weryfikacja polecenia MQTT nie powiodła się, proszę zaktualizować Studio lub Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Nowy moduł lasera jest podłączony; aby uzyskać dokładniejsze cięcie i grawerowanie, proszę przejść do ustawień przed użyciem. (około 4 minuty)"
                 },
                 {
                     "ecode": "0500040000020036",

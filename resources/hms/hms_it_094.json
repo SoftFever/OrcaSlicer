@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "it": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Inserire il filamento finché non può essere spinto oltre. Potrebbe esserci del leggero fumo durante il lavaggio, quindi per favore chiudere la porta anteriore e il coperchio superiore dopo l'inserimento."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Inserire il filamento finché non può essere spinto oltre. Potrebbe esserci del leggero fumo durante il lavaggio, quindi si prega di chiudere la porta anteriore e il coperchio superiore dopo l'inserimento."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Per favore, tira manualmente e lentamente il filamento fuori dall'estrusore. Poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Per favore, tira manualmente e lentamente il filamento fuori dall'estrusore. Poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Premi il giunto del tubo in PTFE nero e scollega il tubo in PTFE. Dopo aver completato l'operazione, clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Premi il giunto del tubo in PTFE nero e scollega il tubo in PTFE. Dopo aver completato l'operazione, clicca su \"Continua.\""
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "Il tempo per il cold pulling è scaduto. Si prega di operare prontamente o controllare se il filamento è rotto all'interno dell'estrusore e fare clic su Assistant per ulteriori dettagli."
@@ -95,28 +119,12 @@
                     "intro": "Rilevato che l'estrusore non sta estrudendo correttamente. Se i difetti sono accettabili, seleziona \"Riprendi\" per continuare il lavoro di stampa."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Rimuovi il tubo PTFE sopra la testina e inserisci il filamento. Potrebbe esserci un leggero fumo durante la purga, quindi chiudi la porta anteriore e il coperchio superiore dopo l'inserimento."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Rimuovi il tubo PTFE sopra la testina e inserisci il filamento. Potrebbe esserci un leggero fumo durante la pulizia, quindi chiudi la porta anteriore e il coperchio superiore dopo l'inserimento."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "Il modulo montato sulla testina non corrisponde al compito. Si prega di installare il modulo corretto."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Questa è un'attività di stampa. Si prega di staccare il Laser/Cutting Module dalla Testina utensile."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Si prega di tirare manualmente e lentamente il filamento dall'estrusore."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Si prega di tirare manualmente e lentamente il filamento dall'estrusore."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "it": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Modulo laser rilevato per la prima volta. Completare la configurazione (~4 min) prima dell'uso per tagli e incisioni precisi. Assicurarsi inoltre che la vite H2.0 sul retro che fissa la pompa d'aria sia rimossa."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "Il processo di estrazione a freddo dell'ugello destro è scaduto. Si prega di riprovare l'estrazione a freddo dopo aver rimosso manualmente il filamento e tagliato il filamento residuo nella parte superiore dell'ugello."
+                    "intro": "Il processo di estrazione a freddo dell'ugello destro è scaduto. Si prega di cliccare su \"Riprova\" e poi estrarre manualmente il filamento."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "Il processo di estrazione a freddo dell'ugello sinistro è scaduto. Si prega di riprovare l'estrazione a freddo dopo aver rimosso manualmente il filamento e tagliato il filamento residuo nella parte superiore dell'ugello."
+                    "intro": "Il processo di estrazione a freddo dell'ugello sinistro è scaduto. Si prega di cliccare su \"Riprova\" e poi estrarre manualmente il filamento."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "La verifica del comando MQTT è fallita, per favore aggiorna Studio o Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Nuovo Modulo Laser connesso; per un taglio e incisione più precisi, per favore vai a configurare prima dell'uso. (circa 4 minuti)"
                 },
                 {
                     "ecode": "0500040000020036",

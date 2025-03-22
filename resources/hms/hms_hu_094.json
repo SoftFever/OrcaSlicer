@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "hu": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Helyezze be a filamentu, amíg már nem lehet tovább tolni. A kiürítés során enyhe füst keletkezhet, ezért kérjük, zárja be az elülső ajtót és a felső fedelet a behelyezés után."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Helyezze be a filamentu, amíg már nem lehet tovább tolni. A kiürítés során enyhe füst keletkezhet, ezért kérjük, zárja be az elülső ajtót és a felső fedelet a behelyezés után."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Kérjük, kézzel és lassan húzza ki a filamentet az extruderből. Ezután kattintson a „Folytatás” gombra."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Kérjük, kézzel és lassan húzza ki a filamentet az extruderből. Ezután kattintson a „Folytatás” gombra."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Nyomja meg a fekete PTFE cső csatlakozót, és húzza ki a PTFE csövet. A művelet befejezése után kattintson a „Folytatás” gombra."
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Nyomja meg a fekete PTFE cső csatlakozót, és húzza ki a PTFE csövet. A művelet befejezése után kattintson a „Folytatás” gombra."
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "A hideg kihúzás időtúllépett. Kérjük, azonnal működtesse, vagy ellenőrizze, hogy a szál eltört-e az extruderben, és kattintson a Segédre a részletekért."
@@ -95,28 +119,12 @@
                     "intro": "Észleltük, hogy a extruder nem extrudál normálisan. Ha elfogadhatóak a hibák, válassza a \"Folytatás\" lehetőséget a nyomtatás folytatásához."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Távolítsa el a PTFE csövet a szerszámfej fölött, majd helyezze be a filmet. Tisztítás közben enyhe füstölés keletkezhet, ezért kérjük, hogy a behelyezés után zárja be az első ajtót és a felső burkolatot."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Távolítsa el a PTFE csövet a szerszámfej fölött, majd helyezze be a filmet. Tisztítás közben enyhe füstölés keletkezhet, ezért kérjük, hogy a behelyezés után zárja be az első ajtót és a felső burkolatot."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "A szerszámfejen felszerelt modul nem felel meg a feladatnak. Kérjük, telepítse a megfelelő modult."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Ez egy nyomtatási feladat. Kérjük, válassza le a Lézer/Vágó modult a Szerszámfejről."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Kérem, húzza ki kézzel és lassan a filamentet az extruderből."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Kérem, húzza ki kézzel és lassan a filamentet az extruderből."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "hu": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Lézer modul első alkalommal észlelve. A pontos vágáshoz és gravírozáshoz fejezze be a beállítást (~4 perc) használat előtt. Ezenkívül győződjön meg arról, hogy a hátsó H2.0 csavar, amely a légiszivattyút rögzíti, eltávolításra került."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "A megfelelő fúvóka hideg húzási folyamata lejárt. Kérjük, próbálja újra a hideg húzást, miután manuálisan eltávolította a filamentet és levágta a maradék filamentet a fúvóka tetején."
+                    "intro": "A jobb fúvóka hideg húzási folyamata lejárt. Kérem, kattintson a \"Újrapróbálkozás\" gombra, majd manuálisan húzza ki a filamet."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "A bal fúvóka hideg húzási folyamata lejárt. Kérjük, próbálja újra a hideg húzást, miután manuálisan eltávolította a filamentet és levágta a maradék filamentet a fúvóka tetején."
+                    "intro": "A bal fúvóka hideg húzási folyamata lejárt. Kérem, kattintson a \"Újrapróbálkozás\" gombra, majd manuálisan húzza ki a filamet."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "Az MQTT parancs ellenőrzése sikertelen, kérem, frissítse a Studio-t vagy a Handy-t."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Új Lézer Modul csatlakoztatva; a pontosabb vágás és gravírozás érdekében kérem, állítsa be használat előtt. (kb. 4 perc)"
                 },
                 {
                     "ecode": "0500040000020036",

@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "de": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Setzen Sie den Filament ein, bis er nicht weiter geschoben werden kann. Es kann während des Spülens zu geringem Rauch kommen, also schließen Sie bitte die vordere Tür und den oberen Deckel nach dem Einsetzen."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Setzen Sie den Filament ein, bis er nicht weiter geschoben werden kann. Es kann während des Spülens zu leichtem Rauch kommen, also schließen Sie bitte die vordere Tür und den oberen Deckel nach dem Einsetzen."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Bitte ziehen Sie das Filament manuell und langsam aus dem Extruder. Klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Bitte ziehen Sie das Filament manuell und langsam aus dem Extruder. Klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Drücken Sie den schwarzen PTFE-Schlauchkuppler und ziehen Sie den PTFE-Schlauch heraus. Klicken Sie nach Abschluss der Operation auf „Weiter“."
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Drücken Sie den schwarzen PTFE-Schlauchkuppler und ziehen Sie den PTFE-Schlauch heraus. Klicken Sie nach Abschluss der Operation auf „Weiter“."
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "Cold Pull hat die Zeit überschritten. Bitte betätigen Sie umgehend oder überprüfen Sie, ob der Filament im Extruder gebrochen ist, und klicken Sie auf den Assistenten für weitere Details."
@@ -95,28 +119,12 @@
                     "intro": "Festgestellt, dass der Extruder nicht normal extrudiert. Wenn die Fehler akzeptabel sind, wählen Sie \"Fortsetzen\", um den Druckauftrag fortzusetzen."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Entfernen Sie das PTFE-Rohr über dem Werkzeugkopf und legen Sie das Filament ein. Es kann beim Reinigen etwas Rauch geben, also schließen Sie bitte die vordere Tür und die Abdeckung oben nach dem Einlegen."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Entfernen Sie das PTFE-Rohr über dem Werkzeugkopf und führen Sie das Filament ein. Es kann beim Spülen etwas Rauch geben, schließen Sie daher bitte die vordere Tür und die obere Abdeckung nach dem Einlegen."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "Das Modul am Werkzeugkopf passt nicht zur Aufgabe. Bitte installieren Sie das richtige Modul."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Das ist eine Druckaufgabe. Bitte trennen Sie das Laser-/Schneidemodul von der Werkzeughaltevorrichtung ab."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Bitte ziehen Sie den Filament manuell und langsam aus dem Extruder heraus."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Bitte ziehen Sie den Filament manuell und langsam aus dem Extruder heraus."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "de": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Laser-Modul zum ersten Mal erkannt. Schließen Sie die Einrichtung ab (~4 min), bevor Sie es für präzises Schneiden und Gravieren verwenden. Stellen Sie außerdem sicher, dass die H2.0-Schraube hinten, die die Luftpumpe sichert, entfernt ist."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "Der richtige Kaltziehen-Prozess für die Düse ist abgelaufen. Bitte wiederholen Sie den Kaltziehen-Vorgang, nachdem Sie das Filament manuell entfernt und das restliche Filament an der Spitze der Düse abgeschnitten haben."
+                    "intro": "Der Kaltziehprozess der rechten Düse ist abgelaufen. Bitte klicken Sie auf \"Wiederholen\" und ziehen Sie dann manuell das Filament heraus."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "Der Kaltziehen-Prozess für die linke Düse ist abgelaufen. Bitte wiederholen Sie den Kaltziehen-Vorgang, nachdem Sie das Filament manuell entfernt und das restliche Filament an der Spitze der Düse abgeschnitten haben."
+                    "intro": "Der Kaltziehprozess der linken Düse ist abgelaufen. Bitte klicken Sie auf \"Wiederholen\" und ziehen Sie dann manuell das Filament heraus."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "MQTT-Befehlüberprüfung fehlgeschlagen, bitte aktualisieren Sie Studio oder Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Neues Laser-Modul angeschlossen; für präzisere Schnitte und Gravuren bitte vor der Verwendung die Einrichtung vornehmen. (ca. 4 Minuten)"
                 },
                 {
                     "ecode": "0500040000020036",

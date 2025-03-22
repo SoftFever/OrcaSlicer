@@ -1,11 +1,35 @@
 {
     "result": 0,
-    "t": 1742439036,
-    "ver": 202503200935,
+    "t": 1742619451,
+    "ver": 202503221227,
     "data": {
         "device_error": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "pt-PT": [
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Insira o filamento até não poder ser empurrado mais. Pode haver um leve fumo durante a purga, por isso, feche a porta da frente e a tampa superior após a inserção."
+                },
+                {
+                    "ecode": "07FEC010",
+                    "intro": "Insira o filamento até não poder ser empurrado mais. Pode haver um leve fumo durante a purga, por isso, feche a porta da frente e a tampa superior após a inserção."
+                },
+                {
+                    "ecode": "07FEC011",
+                    "intro": "Por favor, puxe manualmente e lentamente o filamento do extrusor. Depois, clique em “Continuar”."
+                },
+                {
+                    "ecode": "07FFC011",
+                    "intro": "Por favor, puxe manualmente e lentamente o filamento do extrusor. Depois, clique em “Continuar”."
+                },
+                {
+                    "ecode": "07FEC012",
+                    "intro": "Pressione o acoplador de tubo de PTFE preto e desconecte o tubo de PTFE. Após completar a operação, clique em “Continuar.”"
+                },
+                {
+                    "ecode": "07FFC012",
+                    "intro": "Pressione o acoplador de tubo de PTFE preto e desconecte o tubo de PTFE. Após completar a operação, clique em “Continuar.”"
+                },
                 {
                     "ecode": "07FF8025",
                     "intro": "O arrasto a frio expirou. Por favor, opere rapidamente ou verifique se o filamento está partido dentro do extrusor e clique no Assistente para mais detalhes."
@@ -95,28 +119,12 @@
                     "intro": "Detetado que o extrusor não está a extrudir normalmente. Se os defeitos forem aceitáveis, seleciona \"Resumir\" para retomar o trabalho de impressão."
                 },
                 {
-                    "ecode": "07FFC010",
-                    "intro": "Remove o tubo de PTFE acima da cabeça da ferramenta e insira o filamento. Pode haver uma ligeira quantidade de fumo durante a purga, por isso, por favor, feche a porta da frente e a tampa superior após a inserção."
-                },
-                {
-                    "ecode": "07FEC010",
-                    "intro": "Retire o tubo de PTFE acima da cabeça da ferramenta e insira o filamento. Pode haver um ligeiro fumo durante a purga, por favor, feche a porta da frente e a tampa superior após a inserção."
-                },
-                {
                     "ecode": "03008055",
                     "intro": "O módulo montado na cabeça da ferramenta não corresponde à tarefa. Por favor, instale o módulo correto."
                 },
                 {
                     "ecode": "0500C036",
                     "intro": "Esta é uma tarefa de impressão. Por favor, remova o Módulo de Laser/Corte do Cabeçote da Ferramenta."
-                },
-                {
-                    "ecode": "07FFC011",
-                    "intro": "Por favor, retire manualmente e lentamente o filamento do extrusor."
-                },
-                {
-                    "ecode": "07FEC011",
-                    "intro": "Por favor, retire manualmente e lentamente o filamento do extrusor."
                 },
                 {
                     "ecode": "0300804F",
@@ -2605,15 +2613,19 @@
             ]
         },
         "device_hms": {
-            "ver": 202503200935,
+            "ver": 202503221227,
             "pt-PT": [
                 {
+                    "ecode": "0500040000020034",
+                    "intro": "Módulo laser detetado pela primeira vez. Complete a configuração (~4 min) antes de usar para cortes e gravações precisas. Além disso, assegure-se de que o parafuso H2.0 na parte de trás que fixa a bomba de ar foi removido."
+                },
+                {
                     "ecode": "07FFA00000020001",
-                    "intro": "O processo de extração a frio do bico direito excedeu o tempo. Por favor, tente novamente a extração a frio após remover manualmente o filamento e cortar o filamento residual no topo do bico."
+                    "intro": "O processo de retirada a frio do bico direito expirou. Por favor, clique em \"Tentar Novamente\" e depois retire manualmente o filamento."
                 },
                 {
                     "ecode": "07FEA00000020001",
-                    "intro": "O processo de extração a frio do bico esquerdo excedeu o tempo. Por favor, tente novamente a extração a frio após remover manualmente o filamento e cortar o filamento residual no topo do bico."
+                    "intro": "O processo de retirada a frio do bico esquerdo expirou. Por favor, clique em \"Tentar Novamente\" e depois retire manualmente o filamento."
                 },
                 {
                     "ecode": "1804200000010084",
@@ -10926,10 +10938,6 @@
                 {
                     "ecode": "0500050000010007",
                     "intro": "A verificação do comando MQTT falhou, por favor, atualize o Studio ou o Handy."
-                },
-                {
-                    "ecode": "0500040000020034",
-                    "intro": "Novo Módulo a Laser ligado; para cortes e gravações mais precisos, por favor, vá configurar antes de usar. (cerca de 4 minutos)"
                 },
                 {
                     "ecode": "0500040000020036",
