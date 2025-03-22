@@ -14874,11 +14874,13 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
     // update global support filament
     static const char *keys[] = {"support_filament", "support_interface_filament"};
     for (auto key : keys)
-        if (p->config->has(key) && p->config->opt_int(key) == filament_id + 1) {
-            if (replace_filament_id == -1)
+        if (p->config->has(key)) {
+            if(p->config->opt_int(key) == filament_id + 1)
                 (*(p->config)).erase(key);
-            else
-                (*(p->config)).set_key_value(key, new ConfigOptionInt(replace_filament_id + 1));
+            else {
+                int new_value = p->config->opt_int(key) > filament_id ? p->config->opt_int(key) - 1 : p->config->opt_int(key);
+                (*(p->config)).set_key_value(key, new ConfigOptionInt(new_value));
+            }
         }
 
     // update object/volume/support(object and volume) filament id
