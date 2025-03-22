@@ -423,9 +423,8 @@ void MultiMachinePickPage::refresh_user_device()
     std::vector<std::string> subscribe_list;
 
     for (auto it = user_machine.begin(); it != user_machine.end(); ++it) {
-        if (it->second->m_extder_data.total_extder_count > 1) {
-            continue;
-        }
+        if (it->second->m_extder_data.total_extder_count > 1) { continue; }
+        if (it->second->printer_type == "O1D") { continue;} /*maybe total_extder_count is not valid, hard codes here. to be moved to printers json*/
 
         DevicePickItem* di = new DevicePickItem(scroll_macine_list, it->second);
 
