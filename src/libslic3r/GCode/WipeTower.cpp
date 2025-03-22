@@ -3934,8 +3934,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             }
         }
 
-
-
+        std::unordered_set<int> next_solid_blocks_id;
         // insert finish block
         if (wall_idx != -1) {
             if (layer.tool_changes.empty()) {
@@ -3969,6 +3968,11 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 ToolChangeResult finish_block_tcr;
                 if (interface_solid || (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[finish_layer_filament])) {
                     interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[finish_layer_filament]));//noly reduce speed when
+                    if (!interface_solid) {
+                        int tmp_id = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&](const WipeTowerBlock &b) { return &b == &block; }) -
+                                    m_wipe_tower_blocks.begin();
+                        next_solid_blocks_id.insert(tmp_id);
+                    }
                     finish_block_tcr = finish_block_solid(block, finish_layer_filament, layer.extruder_fill, interface_solid);
                     block.finish_depth[m_cur_layer_id] = block.start_depth + block.depth;
                 }
@@ -4004,20 +4008,8 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 }
             }
         }
-
-
         // record the contact layers of different categories
-        solid_blocks_id.clear();
-        if (wall_idx != -1) {
-            for (const WipeTowerBlock &block : m_wipe_tower_blocks) {
-                ToolChangeResult finish_block_tcr;
-                if (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[wall_idx]) {
-                    int id = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&](const WipeTowerBlock &b) { return &b == &block; }) -
-                             m_wipe_tower_blocks.begin();
-                    solid_blocks_id.insert(id);
-                }
-            }
-        }
+        solid_blocks_id = next_solid_blocks_id;
         if (layer_result.empty()) {
             // there is nothing to merge finish_layer with
             layer_result.emplace_back(std::move(finish_layer_tcr));
