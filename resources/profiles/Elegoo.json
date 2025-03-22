@@ -1,6 +1,6 @@
 {
 	"name": "Elegoo",
-	"version": "02.03.00.00",
+	"version":  "02.03.00.03",
 	"force_update": "0",
 	"description": "Elegoo configurations",
 	"machine_model_list": [
@@ -1173,28 +1173,28 @@
 			"sub_path": "filament/fdm_filament_asa.json"
 		},
 		{
-			"name": "Elegoo Generic ABS",
-			"sub_path": "filament/Elegoo Generic ABS.json"
+			"name": "Generic ABS @Elegoo",
+			"sub_path": "filament/Generic ABS @Elegoo.json"
 		},
 		{
-			"name": "Elegoo Generic PETG",
-			"sub_path": "filament/Elegoo Generic PETG.json"
+			"name": "Generic PETG @Elegoo",
+			"sub_path": "filament/Generic PETG @Elegoo.json"
 		},
 		{
-			"name": "Elegoo Generic PLA",
-			"sub_path": "filament/Elegoo Generic PLA.json"
+			"name": "Generic PLA @Elegoo",
+			"sub_path": "filament/Generic PLA @Elegoo.json"
 		},
 		{
-			"name": "Elegoo Generic PLA Matte",
-			"sub_path": "filament/Elegoo Generic PLA Matte.json"
+			"name": "Generic PLA Matte @Elegoo",
+			"sub_path": "filament/Generic PLA Matte @Elegoo.json"
 		},
 		{
-			"name": "Elegoo Generic ASA",
-			"sub_path": "filament/Elegoo Generic ASA.json"
+			"name": "Generic ASA @Elegoo",
+			"sub_path": "filament/Generic ASA @Elegoo.json"
 		},
 		{
-			"name": "Elegoo Generic PETG PRO",
-			"sub_path": "filament/Elegoo Generic PETG PRO.json"
+			"name": "Generic PETG PRO @Elegoo",
+			"sub_path": "filament/Generic PETG PRO @Elegoo.json"
 		},
 		{
 			"name": "Elegoo ASA @Elegoo Giga",

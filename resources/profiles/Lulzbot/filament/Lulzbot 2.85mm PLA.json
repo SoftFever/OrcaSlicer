@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "filament_id": "GFL99",
+    "setting_id": "GFSL99",
+    "name": "Lulzbot 2.85mm PLA",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PLA @System",
+    "filament_diameter": [
+        "2.85"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "compatible_printers": [
+	"Lulzbot Taz 6 0.5 nozzle",
+        "Lulzbot Taz 4 or 5 0.5 nozzle",
+        "Lulzbot Taz Pro Dual 0.5 nozzle"
+    ]
+
+}

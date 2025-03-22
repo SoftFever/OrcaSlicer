@@ -29,7 +29,7 @@
 	"line_width": "0.4",
 	"infill_direction": "45",
 	"sparse_infill_density": "15%",
-	"sparse_infill_pattern": "grid",
+	"sparse_infill_pattern": "crosshatch",
 	"initial_layer_acceleration": "1000",
 	"travel_acceleration": "0",
 	"inner_wall_acceleration": "0",

@@ -50,7 +50,7 @@
   "skirt_distance": "10",
   "sparse_infill_density": "10%",
   "sparse_infill_line_width": "5.5",
-  "sparse_infill_pattern": "grid",
+  "sparse_infill_pattern": "crosshatch",
   "sparse_infill_speed": "120",
   "spiral_mode_max_xy_smoothing": "1e+07",
   "spiral_mode_smooth": "1",

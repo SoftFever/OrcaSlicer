@@ -232,7 +232,7 @@ static t_config_enum_values s_keys_map_SupportMaterialStyle {
     { "tree_slim",      smsTreeSlim },
     { "tree_strong",    smsTreeStrong },
     { "tree_hybrid",    smsTreeHybrid },
-    { "organic",        smsOrganic }
+    { "organic",        smsTreeOrganic }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 
@@ -1089,7 +1089,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extra_perimeters_on_overhangs", coBool);
     def->label = L("Extra perimeters on overhangs");
     def->category = L("Quality");
-    def->tooltip = L("Create additional perimeter paths over steep overhangs and areas where bridges cannot be anchored. ");
+    def->tooltip = L("Create additional perimeter paths over steep overhangs and areas where bridges cannot be anchored.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -2805,7 +2805,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("Don't print gap fill with a length is smaller than the threshold specified (in mm). This setting applies to top, "
-                     "bottom and solid infill and, if using the classic perimeter generator, to wall gap fill. ");
+                     "bottom and solid infill and, if using the classic perimeter generator, to wall gap fill.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -4288,6 +4288,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->max = 10000;
     def->set_default_value(new ConfigOptionInt(1));
+    
+    def = this->add("single_loop_draft_shield", coBool);
+    def->label = L("Single loop draft shield");
+    def->tooltip = L("Limits the draft shield loops to one wall after the first layer. This is useful, on occasion, to conserve filament but may cause the draft shield to warp / crack.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("draft_shield", coEnum);
     def->label = L("Draft shield");
@@ -4339,7 +4345,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Skirt minimum extrusion length");
     def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
                      "Using a non zero value is useful if the printer is set up to print without a prime line.\n"
-                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case. ");
+                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case.");
     def->min = 0;
     def->sidetext = L("mm");
     def->mode = comAdvanced;
@@ -4411,7 +4417,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_mode_max_xy_smoothing", coFloatOrPercent);
     def->label = L("Max XY Smoothing");
-    def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral"
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral. "
                      "If expressed as a %, it will be computed over nozzle diameter");
     def->sidetext = L("mm or %");
     def->ratio_over = "nozzle_diameter";
@@ -4423,6 +4430,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_starting_flow_ratio", coFloat);
     def->label = L("Spiral starting flow ratio");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Sets the starting flow ratio while transitioning from the last bottom layer to the spiral. "
                     "Normally the spiral transition scales the flow ratio from 0% to 100% during the first loop "
                     "which can in some cases lead to under extrusion at the start of the spiral.");
@@ -4433,6 +4441,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("spiral_finishing_flow_ratio", coFloat);
     def->label = L("Spiral finishing flow ratio");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Sets the finishing flow ratio while ending the spiral. "
                     "Normally the spiral transition scales the flow ratio from 100% to 0% during the last loop "
                     "which can in some cases lead to under extrusion at the end of the spiral.");
@@ -4617,6 +4626,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     //Support with too small spacing may touch the object and difficult to remove.
     def->set_default_value(new ConfigOptionFloat(0.35));
+
+    def = this->add("support_object_first_layer_gap", coFloat);
+    def->label = L("Support/object first layer gap");
+    def->category = L("Support");
+    def->tooltip = L("XY separation between an object and its support at the first layer.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comAdvanced;
+    //Support with too small spacing may touch the object and difficult to remove.
+    def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("support_angle", coFloat);
     def->label = L("Pattern angle");
@@ -4882,7 +4902,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("tree_slim");
     def->enum_values.push_back("tree_strong");
     def->enum_values.push_back("tree_hybrid");
-    def->enum_labels.push_back(L("Default (Grid/Organic"));
+    def->enum_labels.push_back(L("Default (Grid/Organic)"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Snug"));
     def->enum_labels.push_back(L("Organic"));
@@ -5030,16 +5050,6 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
-    def           = this->add("tree_support_branch_diameter_organic", coFloat);
-    def->label    = L("Tree support branch diameter");
-    def->category = L("Support");
-    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
-    def->sidetext = L("mm");
-    def->min      = 1.0;
-    def->max      = 10;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(2.));
-
     def = this->add("tree_support_branch_diameter_angle", coFloat);
     // TRN PrintSettings: #lmFIXME 
     def->label = L("Branch Diameter Angle");
@@ -5054,23 +5064,22 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
-    def = this->add("tree_support_branch_diameter_double_wall", coFloat);
-    def->label = L("Branch Diameter with double walls");
+    def           = this->add("tree_support_branch_diameter_organic", coFloat);
+    def->label    = L("Tree support branch diameter");
     def->category = L("Support");
-    // TRN PrintSettings: "Organic supports" > "Branch Diameter"
-    def->tooltip = L("Branches with area larger than the area of a circle of this diameter will be printed with double walls for stability. "
-                     "Set this value to zero for no double walls.");
+    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
     def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 100.f;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(3.));
+    def->min      = 1.0;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Support wall loops");
     def->category = L("Support");
-    def->tooltip = L("This setting specify the count of walls around support");
+    def->tooltip = L("This setting specifies the count of support walls in the range of [0,2]. 0 means auto.");
     def->min = 0;
+    def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
@@ -7576,7 +7585,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("enable_timelapse", coBool);
-    def->label = L("Enable timeplapse for print");
+    def->label = L("Enable timelapse for print");
     def->tooltip = L("If enabled, this slicing will be considered using timelapse");
     def->set_default_value(new ConfigOptionBool(false));
 

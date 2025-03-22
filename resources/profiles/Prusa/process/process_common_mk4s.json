@@ -53,7 +53,7 @@
     "sparse_infill_acceleration": "4000",
     "sparse_infill_filament": "1",
     "sparse_infill_line_width": "0.45",
-    "sparse_infill_pattern": "grid",
+    "sparse_infill_pattern": "crosshatch",
     "sparse_infill_speed": "200",
     "support_angle": "0",
     "support_base_pattern": "rectilinear",
