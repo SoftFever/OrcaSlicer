@@ -1707,6 +1707,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
 
+    def = this->add("outer_perimeter_layer_divider", coInt);
+    def->label = L("Outer perimeter layer divider");
+    def->category = L("Quality");
+    def->tooltip = L("Division factor of how many times to divide the outer perimeter layer height by.\n\nAchieves smoother outer shell with internal strength.");
+    def->min = 1;
+    def->max = 16;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(1));
+
     def = this->add("extruder", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Extruder");
