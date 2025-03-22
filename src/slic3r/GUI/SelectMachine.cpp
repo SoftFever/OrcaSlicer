@@ -3642,7 +3642,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     /*STUDIO-10970 check the k value and flow cali option*/
-    if (m_checkbox_list["flow_cali"]->getValue() == "auto") {
+    if (m_checkbox_list["flow_cali"]->IsShown() && m_checkbox_list["flow_cali"]->getValue() == "auto") {
         const auto &not_default_ams_names = _check_kval_not_default(obj_, m_ams_mapping_result);
         if (!not_default_ams_names.empty()) {
             std::vector<wxString> params{not_default_ams_names};
