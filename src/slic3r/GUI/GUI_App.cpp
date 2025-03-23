@@ -1798,8 +1798,6 @@ void GUI_App::init_networking_callbacks()
 
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
-                    obj->is_ams_need_update = false;
-
                     auto sel = this->m_device_manager->get_selected_machine();
 
                     if (sel && sel->dev_id == dev_id) {
@@ -1813,6 +1811,7 @@ void GUI_App::init_networking_callbacks()
                     if (!this->is_enable_multi_machine()) {
                         if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
                             GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                            obj->is_ams_need_update = false;
                         }
                     }
                 }
