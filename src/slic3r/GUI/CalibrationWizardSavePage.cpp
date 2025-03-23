@@ -44,7 +44,9 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
         break;
     case Slic3r::CalibMode::Calib_Retraction_tower:
         break;
-    case Slic3r::CalibMode::Calib_Input_shaping:
+    case Slic3r::CalibMode::Calib_Input_shaping_freq:
+        break;
+    case Slic3r::CalibMode::Calib_Input_shaping_damp:
         break;
     default:
         break;

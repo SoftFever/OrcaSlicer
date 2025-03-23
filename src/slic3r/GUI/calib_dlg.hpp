@@ -125,11 +125,11 @@ protected:
     Plater* m_plater;
 };
 
-class Input_Shaping_Test_Dlg : public DPIDialog
+class Input_Shaping_Freq_Test_Dlg : public DPIDialog
 {
 public:
-    Input_Shaping_Test_Dlg (wxWindow* parent, wxWindowID id, Plater* plater);
-    ~Input_Shaping_Test_Dlg ();
+    Input_Shaping_Freq_Test_Dlg (wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Input_Shaping_Freq_Test_Dlg ();
     void on_dpi_changed(const wxRect& suggested_rect) override;
     
 protected:
@@ -140,6 +140,24 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiDampingFactor;
+    Button* m_btnStart;
+    Plater* m_plater;
+};
+
+class Input_Shaping_Damp_Test_Dlg : public DPIDialog
+{
+public:
+    Input_Shaping_Damp_Test_Dlg (wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Input_Shaping_Damp_Test_Dlg ();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    
+protected:
+
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    TextInput* m_tiStart;
+    TextInput* m_tiEnd;
     Button* m_btnStart;
     Plater* m_plater;
 };
