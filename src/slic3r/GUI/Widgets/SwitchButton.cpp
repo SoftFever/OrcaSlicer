@@ -5,6 +5,9 @@
 #include "../wxExtensions.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/WxFontUtils.hpp"
+#ifdef __APPLE__
+#include "libslic3r/MacUtils.hpp"
+#endif
 
 #include <wx/dcmemory.h>
 #include <wx/dcclient.h>
@@ -140,9 +143,21 @@ void SwitchButton::Rescale()
 				dc2.DrawRoundedRectangle(wxRect({ i == 0 ? BS : (trackSize.x - thumbSize.x - BS), BS}, thumbSize), thumbSize.y / 2);
 			}
             memdc.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
-            memdc.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, BS + (thumbSize.y - textSize[0].y) / 2});
+            auto text_y = BS + (thumbSize.y - textSize[0].y) / 2;
+#ifdef __APPLE__
+            if (Slic3r::is_mac_version_15()) {
+                text_y -= FromDIP(2);
+            }
+#endif
+            memdc.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, text_y});
             memdc.SetTextForeground(text_color2.count() == 0 ? text_color.colorForStates(state) : text_color2.colorForStates(state));
-            memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, BS + (thumbSize.y - textSize[1].y) / 2});
+            auto text_y_1 = BS + (thumbSize.y - textSize[1].y) / 2;
+#ifdef __APPLE__
+            if (Slic3r::is_mac_version_15()) {
+                text_y_1 -= FromDIP(2);
+            }
+#endif
+            memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, text_y_1});
 			memdc.SelectObject(wxNullBitmap);
 #ifdef __WXOSX__
             bmp = wxBitmap(bmp.ConvertToImage(), -1, scale);
