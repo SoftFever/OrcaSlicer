@@ -5327,14 +5327,19 @@ bool Tab::select_preset(
             const std::deque<Preset> &presets 		= m_presets->get_presets();
             size_t    				  idx_current   = m_presets->get_idx_selected();
             // Find the next visible preset.
-            size_t 				      idx_new       = idx_current + 1;
-            if (idx_new < presets.size())
-                for (; idx_new < presets.size() && ! presets[idx_new].is_visible; ++ idx_new) ;
-            if (idx_new == presets.size())
-                for (idx_new = idx_current - 1; idx_new > 0 && ! presets[idx_new].is_visible; -- idx_new);
-            preset_name = presets[idx_new].name;
-            BOOST_LOG_TRIVIAL(info) << boost::format("cause by delete current ,choose the next visible, idx %1%, name %2%")
-                                        %idx_new %preset_name;
+            preset_name = presets[idx_current].inherits();
+            if (preset_name.empty()) {
+                size_t 				      idx_new       = idx_current + 1;
+                if (idx_new < presets.size())
+                    for (; idx_new < presets.size() && ! presets[idx_new].is_visible; ++ idx_new) ;
+                if (idx_new == presets.size())
+                    for (idx_new = idx_current - 1; idx_new > 0 && ! presets[idx_new].is_visible; -- idx_new);
+                preset_name = presets[idx_new].name;
+                BOOST_LOG_TRIVIAL(info) << boost::format("cause by delete current ,choose the next visible, idx %1%, name %2%")
+                                            %idx_new %preset_name;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("cause by delete current ,choose base, name %1%") % preset_name;
+            }
         } else {
             //BBS select first visible item first
             const std::deque<Preset> &presets 		= this->m_presets->get_presets();
