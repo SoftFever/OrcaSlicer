@@ -3351,9 +3351,12 @@ void StatusPanel::update_ams(MachineObject *obj)
             if (obj->m_extder_data.current_busy_for_loading && obj->m_extder_data.current_loading_extder_id != -1 ) {
                 auto tar = obj->m_extder_data.extders[obj->m_extder_data.current_loading_extder_id].star;
                 auto now = obj->m_extder_data.extders[obj->m_extder_data.current_loading_extder_id].snow;
-                if ( (tar.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || tar.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) &&
-                    ((now.ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID) || now.ams_id != std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) || (now.ams_id != "255"))
-                   ) {
+
+                if ((tar.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || tar.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) &&
+                    (tar.slot_id == std::to_string(VIRTUAL_TRAY_MAIN_ID))) {
+                    busy_for_vt_loading = false;
+                } else if ((tar.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || tar.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) &&
+                           ((now.ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID) || now.ams_id != std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) || (now.ams_id != "255"))) {
                     busy_for_vt_loading = true;
                 }
             }
