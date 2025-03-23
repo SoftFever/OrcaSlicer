@@ -424,8 +424,6 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    m_tip_readonly->SetLabelText(wxEmptyString);
-
     if (!en) {
         m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
     }
@@ -434,6 +432,7 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
     }
 
     if (!m_is_third) {
+        m_tip_readonly->SetLabelText(wxEmptyString);
         m_tip_readonly->Hide();
     }
     else {
@@ -443,6 +442,8 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
             } else {
                 m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
             }
+        } else {
+            m_tip_readonly->SetLabelText(wxEmptyString);
         }
 
         m_tip_readonly->Wrap(FromDIP(380));
