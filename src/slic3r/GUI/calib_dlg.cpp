@@ -722,7 +722,7 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     auto end_length_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_length_text = new wxStaticText(this, wxID_ANY, end_length_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiEnd = new TextInput(this, std::to_string(2), _L("mm"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
-    m_tiEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));//m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));//TODO: IANALEXIS CHECK
+    m_tiEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));//m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_length_sizer->Add(end_length_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     end_length_sizer->Add(m_tiEnd, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     settings_sizer->Add(end_length_sizer);
@@ -789,11 +789,11 @@ void Retraction_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
 
 }
 
-// Input_Shaping_Test_Dlg
+// Input_Shaping_Freq_Test_Dlg
 //
 
-Input_Shaping_Test_Dlg::Input_Shaping_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
-    : DPIDialog(parent, id, _L("Input shaping test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_plater(plater)
+Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Input shaping Frequency test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_plater(plater)
 {
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
@@ -854,10 +854,10 @@ Input_Shaping_Test_Dlg::Input_Shaping_Test_Dlg(wxWindow* parent, wxWindowID id, 
     m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
     m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &Input_Shaping_Test_Dlg::on_start, this);
+    m_btnStart->Bind(wxEVT_BUTTON, &Input_Shaping_Freq_Test_Dlg::on_start, this);
     v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(5));
 
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Test_Dlg::on_start), NULL, this);
+    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
 
     //wxGetApp().UpdateDlgDarkUI(this);//FIXME: dark mode background color
 
@@ -865,12 +865,12 @@ Input_Shaping_Test_Dlg::Input_Shaping_Test_Dlg(wxWindow* parent, wxWindowID id, 
     Fit();
 }
 
-Input_Shaping_Test_Dlg::~Input_Shaping_Test_Dlg() {
+Input_Shaping_Freq_Test_Dlg::~Input_Shaping_Freq_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Test_Dlg::on_start), NULL, this);
+    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
 }
 
-void Input_Shaping_Test_Dlg::on_start(wxCommandEvent& event) {
+void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double = m_tiStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
@@ -879,7 +879,7 @@ void Input_Shaping_Test_Dlg::on_start(wxCommandEvent& event) {
     bool read_damping = m_tiDampingFactor->GetTextCtrl()->GetValue().ToDouble(&dampingFactor);
     
     if (!read_double || m_params.start < 0 || m_params.end > 500|| m_params.end < m_params.start) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart >= 0\nEnd <= 500\nStart < End"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart > 0\nEnd < 500\nStart < End"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -891,12 +891,104 @@ void Input_Shaping_Test_Dlg::on_start(wxCommandEvent& event) {
     }
 
     m_params.step = dampingFactor;
-    m_params.mode = CalibMode::Calib_Input_shaping;
-    m_plater->calib_input_shaping(m_params);
+    m_params.mode = CalibMode::Calib_Input_shaping_freq;
+    m_plater->calib_input_shaping_freq(m_params);
     EndModal(wxID_OK);
 }
 
-void Input_Shaping_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+void Input_Shaping_Freq_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+    this->Refresh();
+    Fit();
+
+}
+
+// Input_Shaping_Damp_Test_Dlg
+//
+
+Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Input shaping Damp test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_plater(plater)
+{
+    wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
+    SetSizer(v_sizer);
+
+   // Settings
+    //
+    wxString start_length_str = _L("X: ");
+    wxString end_length_str = _L("Y: ");
+    auto text_size = wxWindow::GetTextExtent(start_length_str);
+    text_size.IncTo(wxWindow::GetTextExtent(end_length_str));
+    text_size.x = text_size.x * 1.5;
+    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Frequency settings"));
+
+    auto st_size = FromDIP(wxSize(text_size.x, -1));
+    auto ti_size = FromDIP(wxSize(90, -1));
+
+    auto start_length_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto start_length_text = new wxStaticText(this, wxID_ANY, start_length_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiStart = new TextInput(this, std::to_string(40), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto end_length_text = new wxStaticText(this, wxID_ANY, end_length_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiEnd = new TextInput(this, std::to_string(40), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    
+    start_length_sizer->Add(start_length_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    start_length_sizer->Add(m_tiStart, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    start_length_sizer->Add(end_length_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    start_length_sizer->Add(m_tiEnd, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(start_length_sizer);
+   
+    // Add a note to explain users to use their previously calculated frequency
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Set frequencies to the previously calculated values"), 
+                                    wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    note_text->SetForegroundColour(wxColour(128, 128, 128));
+    settings_sizer->Add(note_text, 0, wxALL, 5);
+
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
+    m_btnStart = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+
+    m_btnStart->SetBackgroundColor(btn_bg_green);
+    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
+    m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetCornerRadius(FromDIP(3));
+    m_btnStart->Bind(wxEVT_BUTTON, &Input_Shaping_Damp_Test_Dlg::on_start, this);
+    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(5));
+
+    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
+
+    //wxGetApp().UpdateDlgDarkUI(this);//FIXME: dark mode background color
+
+    Layout();
+    Fit();
+}
+
+Input_Shaping_Damp_Test_Dlg::~Input_Shaping_Damp_Test_Dlg() {
+    // Disconnect Events
+    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
+}
+
+void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
+    bool read_double = false;
+    read_double = m_tiStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
+    read_double = read_double && m_tiEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
+        
+    if (!read_double || m_params.start < 0 || m_params.start > 500 || m_params.end < 0 || m_params.end > 500) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values\n(0 < Freq < 500"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    m_params.mode = CalibMode::Calib_Input_shaping_damp;
+    m_plater->calib_input_shaping_damp(m_params);
+    EndModal(wxID_OK);
+}
+
+void Input_Shaping_Damp_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     this->Refresh();
     Fit();
 

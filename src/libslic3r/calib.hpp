@@ -22,7 +22,8 @@ enum class CalibMode : int {
     Calib_Vol_speed_Tower,
     Calib_VFA_Tower,
     Calib_Retraction_tower,
-    Calib_Input_shaping
+    Calib_Input_shaping_freq,
+    Calib_Input_shaping_damp
 };
 
 enum class CalibState { Start = 0, Preset, Calibration, CoarseSave, FineCalibration, Save, Finish };
@@ -31,13 +32,13 @@ struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){};
     double    start, end, step;
-        bool      print_numbers;
+    bool      print_numbers;
 
     std::vector<double> accelerations;
     std::vector<double> speeds;
 
     CalibMode mode;
-    };
+};
 
 enum FlowRatioCalibrationType {
     COMPLETE_CALIBRATION = 0,
