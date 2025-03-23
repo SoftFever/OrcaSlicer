@@ -439,6 +439,9 @@ void MaterialSyncItem::render(wxDC &dc)
         dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(real_left_offset), m_text_pos_y));
     }
     else {
+        if (mcolor.Alpha() == 0) {//Because there is no unknown background color
+            material_name_colour = StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30));
+        }
         dc.SetTextForeground(material_name_colour);
         if (mapping_txt_size.x > GetSize().x - 10) {
             dc.SetFont(::Label::Body_10);
