@@ -197,7 +197,7 @@ modules:
 
       # MPFR
       - type: file
-        url: https://www.mpfr.org/mpfr-current/mpfr-4.2.2.tar.bz2
+        url: https://www.mpfr.org/mpfr-4.2.2/mpfr-4.2.2.tar.bz2
         dest: external-packages/MPFR
         sha256: 9ad62c7dc910303cd384ff8f1f4767a655124980bb6d8650fe62c815a231bb7b
 
