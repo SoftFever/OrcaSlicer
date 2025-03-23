@@ -57,8 +57,10 @@ std::string get_calib_mode_name(CalibMode cali_mode, int stage)
         return "vfa_tower_calib_mode";
     case CalibMode::Calib_Retraction_tower:
         return "retration_tower_calib_mode";
-    case CalibMode::Calib_Input_shaping:
-        return "input_shaping_calib_mode";
+    case CalibMode::Calib_Input_shaping_freq:
+        return "input_shaping_freq_calib_mode";
+    case CalibMode::Calib_Input_shaping_damp:
+        return "input_shaping_damp_calib_mode";
     default:
         assert(false);
         return "";
@@ -198,8 +200,10 @@ CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_s
         return CalibMode::Calib_VFA_Tower;
     else if (name == "retration_tower_calib_mode")
         return CalibMode::Calib_Retraction_tower;
-    else if (name == "input_shaping_calib_mode")
-        return CalibMode::Calib_Input_shaping;
+    else if (name == "input_shaping_freq_calib_mode")
+        return CalibMode::Calib_Input_shaping_freq;
+    else if (name == "input_shaping_damp_calib_mode")
+        return CalibMode::Calib_Input_shaping_damp;
     return CalibMode::Calib_None;
 }
 

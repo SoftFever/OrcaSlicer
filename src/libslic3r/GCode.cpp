@@ -3768,8 +3768,15 @@ LayerResult GCode::process_layer(
         writer().config.apply(_cfg);
         sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
         gcode += buf;
-    } else if (print.calib_mode() == CalibMode::Calib_Input_shaping) {
-        gcode += writer().set_input_shaping(m_layer_index < 2 ? 0.f : (print.calib_params().start) + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index - 2) / (m_layer_count - 3), (print.calib_params().step));
+    } else if (print.calib_mode() == CalibMode::Calib_Input_shaping_freq) {
+        gcode += writer().set_input_shaping('A', print.calib_params().step, m_layer_index < 2 ? 0.f : (print.calib_params().start) + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index - 2) / (m_layer_count - 3));
+    } else if (print.calib_mode() == CalibMode::Calib_Input_shaping_damp) {
+        if (m_layer_index == 1){
+        gcode += writer().set_input_shaping('X', 0.f, print.calib_params().start);
+        gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().end);
+        } else {
+        gcode += writer().set_input_shaping('A', float(m_layer_index) / float(m_layer_count), 0.f);
+        }
     }
 
     //BBS
