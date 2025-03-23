@@ -81,12 +81,11 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/multi_array.hpp>
-#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/cstdlib.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <boost/nowide/integration/filesystem.hpp>
+#include <boost/nowide/filesystem.hpp>
 #include <boost/nowide/iostream.hpp>
 
 // boost/property_tree/json_parser/detail/parser.hpp includes boost/bind.hpp, which is deprecated.

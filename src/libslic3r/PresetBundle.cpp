@@ -16,7 +16,6 @@
 #include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/range/adaptor/transformed.hpp>
-#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
