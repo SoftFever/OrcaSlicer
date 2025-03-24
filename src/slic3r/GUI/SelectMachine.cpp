@@ -3238,14 +3238,8 @@ static wxString _check_kval_not_default(const MachineObject* obj, const std::vec
 
     wxString ams_names;
     for (const auto& info : mapping_result) {
-
-        auto ams_iter = obj->amsList.find(info.ams_id);
-        if (ams_iter == obj->amsList.end()) { continue; }
-
-        auto tray_iter = ams_iter->second->trayList.find(std::to_string(info.tray_id));
-        if (tray_iter == ams_iter->second->trayList.end()) { continue; }
-
-        if (tray_iter->second->cali_idx == -1) { continue; } /*-1 means default*/
+        if (!obj->contains_tray(info.ams_id, std::to_string(info.tray_id))) { continue; }
+        if (obj->get_tray(info.ams_id, std::to_string(info.tray_id)).cali_idx == -1) { continue; } /*-1 means default*/
 
         wxString ams_name;
         if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {

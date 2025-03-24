@@ -5897,6 +5897,42 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
     return vt_tray;
 }
 
+bool MachineObject::contains_tray(const std::string &ams_id, const std::string &tray_id) const
+{
+    if (ams_id != VIRTUAL_AMS_MAIN_ID_STR && ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) {
+        auto ams_iter = amsList.find(ams_id);
+        if (ams_iter != amsList.end()) {
+            auto tray_iter = ams_iter->second->trayList.find(tray_id);
+            if (tray_iter != ams_iter->second->trayList.end()) { return true;}
+        }
+    } else {
+        for (const auto& tray : vt_slot) {
+            if (tray.id == tray_id) { return true; }
+        }
+    }
+
+    return false;
+}
+
+AmsTray MachineObject::get_tray(const std::string &ams_id, const std::string &tray_id) const
+{
+    if (ams_id != VIRTUAL_AMS_MAIN_ID_STR && ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) {
+        auto ams_iter = amsList.find(ams_id);
+        if (ams_iter != amsList.end()) {
+            auto tray_iter = ams_iter->second->trayList.find(tray_id);
+            if (tray_iter != ams_iter->second->trayList.end()) { return *tray_iter->second; }
+        }
+    }
+    else {
+        for (const auto &tray : vt_slot) {
+            if (tray.id == tray_id) { return tray; }
+        }
+    }
+
+    assert(0);/*use contains_tray() check first*/
+    return AmsTray(tray_id);
+}
+
 bool MachineObject::check_enable_np(const json& print) const
 {
     if (print.contains("cfg") && print.contains("fun") && print.contains("aux") && print.contains("stat"))
