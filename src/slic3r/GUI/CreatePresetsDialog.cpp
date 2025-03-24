@@ -1718,6 +1718,10 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
             MessageDialog dlg(this, _L("The model was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
         }
+
+        m_select_printer->SetSelection(-1);
+        m_select_printer->SetValue(_L("Select Printer"));
+        m_select_printer->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
         e.Skip();
     });
 
@@ -2455,6 +2459,8 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
     int len = radiobox_list.size();
     for (int i = 0; i < len; ++i) {
         if (i == btn_idx) {
+            if (!radiobox_list[i].first->IsEnabled())
+                return;
             radiobox_list[i].first->SetValue(true);
             wxString curr_selected_type = radiobox_list[i].second;
             this->Freeze();
@@ -2554,10 +2560,21 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_preset_item(wxWindow *pare
     m_printer_vendor           = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, PRINTER_PRESET_VENDOR_SIZE, 0, nullptr, wxCB_READONLY);
     m_printer_vendor->SetValue(_L("Select Vendor"));
     m_printer_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
+
+    VendorMap     vendors;
+    wxArrayString exist_vendor_choice = get_exist_vendor_choices(vendors);
+    m_printer_vendor->Set(exist_vendor_choice);
+    m_printer_vendor->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
+        e.SetExtraLong(1);  // 0 means form last page,  1 means form cur combobox
+        on_select_printer_model(e);
+    });
+
     comboBox_sizer->Add(m_printer_vendor, 0, wxEXPAND, 0);
     m_printer_model = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, PRINTER_PRESET_MODEL_SIZE, 0, nullptr, wxCB_READONLY);
     m_printer_model->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_printer_model->SetValue(_L("Select Model"));
+
+    m_printer_model->Bind(wxEVT_COMBOBOX, &CreatePrinterPresetDialog::on_preset_model_value_change, this);
 
     comboBox_sizer->Add(m_printer_model, 0, wxEXPAND | wxLEFT, FromDIP(10));
     vertical_sizer->Add(comboBox_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
@@ -2909,52 +2926,96 @@ void CreatePrinterPresetDialog::show_page2()
 
 bool CreatePrinterPresetDialog::data_init()
 {
-    std::string nozzle_type  = into_u8(m_nozzle_diameter->GetStringSelection());
-    size_t      index_mm    = nozzle_type.find(" mm");
-    if (std::string::npos != index_mm) {
-        nozzle_type = nozzle_type.substr(0, index_mm);
+    wxCommandEvent e;
+    e.SetExtraLong(0);  // 0 means form last page,  1 means form cur combobox
+    on_select_printer_model(e);
+
+    auto get_nozzle_size_for_printer_model = [this](const std::string &model_name) -> size_t {
+        auto iter = m_printer_name_to_preset.find(model_name);
+        if (iter != m_printer_name_to_preset.end()) {
+            std::shared_ptr<Preset> printer_preset = iter->second;
+            if (printer_preset) {
+                auto nozzle_diameter = dynamic_cast<ConfigOptionFloatsNullable *>(printer_preset->config.option("nozzle_diameter", true));
+                return nozzle_diameter->values.size();
+            }
+        }
+        return 1; // default nozzle size
+    };
+
+    size_t selected_nozzle_size = get_nozzle_size_for_printer_model(into_u8(m_select_printer->GetStringSelection()));
+
+    bool has_set_value = false;
+    for (size_t i = 0; i < m_create_presets_btns.size(); ++i) {
+        auto &item = m_create_presets_btns[i];
+        if (item.second == m_create_type.base_template) {
+            if (selected_nozzle_size > 1) {
+                item.first->Disable();
+                item.first->SetValue(false);
+            }
+            else {
+                item.first->Enable();
+                if (!has_set_value) {
+                    select_curr_radiobox(m_create_presets_btns, i);
+                    has_set_value = true;
+                }
+            }
+        }
+        else {
+            if (!has_set_value) {
+                select_curr_radiobox(m_create_presets_btns, i);
+                has_set_value = true;
+            } else {
+                item.first->SetValue(false);
+            }
+        }
     }
-    float nozzle             = nozzle_diameter_map[nozzle_type];
+
+    m_page2->SetSizerAndFit(m_page2_sizer);
+    return true;
+}
+
+void CreatePrinterPresetDialog::on_select_printer_model(wxCommandEvent &e)
+{
+    bool is_from_last_page = e.GetExtraLong() == 0; // 0 means form last page,  1 means form cur combobox
+    m_printer_vendor->SetLabelColor(*wxBLACK);
+    VendorMap     vendors;
+    wxArrayString exist_vendor_choice  = get_exist_vendor_choices(vendors);
+    std::string curr_selected_vendor = into_u8(m_printer_vendor->GetStringSelection());
+    auto        iterator             = vendors.find(curr_selected_vendor);
+    if (iterator != vendors.end()) {
+        m_printer_preset_vendor_selected = iterator->second;
+    } else {
+        if (is_from_last_page) {
+            m_printer_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
+            return;
+        }
+
+        MessageDialog dlg(this, _L("Vendor was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        dlg.ShowModal();
+        return;
+    }
+
+    std::string nozzle_type = into_u8(m_nozzle_diameter->GetStringSelection());
+    size_t      index_mm    = nozzle_type.find(" mm");
+    if (std::string::npos != index_mm) { nozzle_type = nozzle_type.substr(0, index_mm); }
+    float nozzle = nozzle_diameter_map[nozzle_type];
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry and nozzle type is: " << nozzle_type << " and nozzle is: " << nozzle;
 
-    VendorMap vendors;
-    wxArrayString exist_vendor_choice = get_exist_vendor_choices(vendors);
-    m_printer_vendor->Set(exist_vendor_choice);
-
-    m_printer_model->Bind(wxEVT_COMBOBOX, &CreatePrinterPresetDialog::on_preset_model_value_change, this);
-
-    m_printer_vendor->Bind(wxEVT_COMBOBOX, [this, vendors, nozzle](wxCommandEvent e) {
-        m_printer_vendor->SetLabelColor(*wxBLACK);
-
-        std::string   curr_selected_vendor = into_u8(m_printer_vendor->GetStringSelection());
-        auto          iterator             = vendors.find(curr_selected_vendor);
-        if (iterator != vendors.end()) {
-            m_printer_preset_vendor_selected = iterator->second;
-        } else {
-            MessageDialog dlg(this, _L("Vendor was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
-            dlg.ShowModal();
-            return;
-        }
-
-        wxArrayString printer_preset_model = printer_preset_sort_with_nozzle_diameter(m_printer_preset_vendor_selected, nozzle);
-        if (printer_preset_model.size() == 0) {
-            MessageDialog dlg(this, _L("Current vendor has no models, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
-            dlg.ShowModal();
-            return;
-        }
-        m_printer_model->Set(printer_preset_model);
-        if (!printer_preset_model.empty()) {
-            m_printer_model->SetSelection(0);
-            wxCommandEvent e;
-            on_preset_model_value_change(e);
-            update_preset_list_size();
-        }
-        rewritten = false;
-        e.Skip();
-
-    });
-    return true;
-
+    wxArrayString printer_preset_model = printer_preset_sort_with_nozzle_diameter(m_printer_preset_vendor_selected, nozzle);
+    if (printer_preset_model.size() == 0) {
+        MessageDialog dlg(this, _L("Current vendor has no models, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+        dlg.ShowModal();
+        return;
+    }
+    m_printer_model->Set(printer_preset_model);
+    if (!printer_preset_model.empty()) {
+        m_printer_model->SetSelection(0);
+        wxCommandEvent e;
+        on_preset_model_value_change(e);
+        update_preset_list_size();
+    }
+    rewritten = false;
+    e.Skip();
 }
 
 void CreatePrinterPresetDialog::set_current_visible_printer()

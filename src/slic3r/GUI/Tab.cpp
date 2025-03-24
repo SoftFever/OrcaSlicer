@@ -6577,10 +6577,11 @@ void Tab::update_extruder_variants(int extruder_id)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << extruder_id;
     if (m_extruder_switch) {
-        Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-        auto    nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        if (nozzle_volumes->size() == 2) {
-            auto     nozzle_volumes_def = printer_preset.config.def()->get("nozzle_volume_type");
+        auto    nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        int extruder_nums = m_preset_bundle->get_printer_extruder_count();
+        nozzle_volumes->values.resize(extruder_nums);
+        if (extruder_nums == 2) {
+            auto     nozzle_volumes_def = m_preset_bundle->project_config.def()->get("nozzle_volume_type");
             wxString left, right;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (nozzle_volumes->values[0] == i) left = _L(nozzle_volumes_def->enum_labels[i]);
