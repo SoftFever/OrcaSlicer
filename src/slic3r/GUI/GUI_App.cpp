@@ -1575,8 +1575,8 @@ void GUI_App::init_networking_callbacks()
         //    GUI::wxGetApp().request_user_handle(online_login);
         //    });
 
-        m_agent->set_server_callback([this](std::string url, int status) {
-
+        m_agent->set_server_callback([](std::string url, int status) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": server_callback, url=%1%, status=%2%") % url % status;
             //CallAfter([this]() {
             //    if (!m_server_error_dialog) {
             //        /*m_server_error_dialog->EndModal(wxCLOSE);
