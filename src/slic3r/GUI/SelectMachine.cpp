@@ -4454,10 +4454,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                     }
                 }
 
-                if (obj_ &&
-                    obj_->has_ams() &&
-                    (m_checkbox_list["use_ams"]->getValue() == "on") &&
-                    obj_->dev_id == m_printer_last_select)
+                if (obj_ && obj_->dev_id == m_printer_last_select)
                 {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(fo.id);
