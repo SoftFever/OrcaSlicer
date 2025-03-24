@@ -124,6 +124,14 @@ int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r,
 
 
     flush_volume = calc_flush_vol_rgb(src_r, src_g, src_b, dst_r, dst_g, dst_b);
+
+    constexpr float dark_color_thres = 180.f/255.f;
+    constexpr float light_color_thres = 75.f/255.f;
+    bool is_from_dark = get_luminance(src_r, src_g, src_b) > dark_color_thres;
+    bool is_to_light = get_luminance(dst_r, dst_g, dst_b) < light_color_thres;
+    if (m_machine_type != FlushPredict::Standard && is_from_dark && is_to_light)
+        flush_volume *= 1.3;
+
     flush_volume += m_min_flush_vol;
     return std::min((int)flush_volume, m_max_flush_vol);
 }
