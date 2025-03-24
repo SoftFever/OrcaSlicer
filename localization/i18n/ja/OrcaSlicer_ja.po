@@ -4681,19 +4681,19 @@ msgstr ""
 
 msgid ""
 "Automatically switch between orthographic and perspective when changing from "
-"top/bottom/side views"
+"top/bottom/side views."
 msgstr ""
 
 msgid "Show &G-code Window"
 msgstr ""
 
-msgid "Show G-code window in Preview scene"
+msgid "Show G-code window in Preview scene."
 msgstr ""
 
 msgid "Show 3D Navigator"
 msgstr ""
 
-msgid "Show 3D navigator in Prepare and Preview scene"
+msgid "Show 3D navigator in Prepare and Preview scene."
 msgstr ""
 
 msgid "Reset Window Layout"
@@ -4705,19 +4705,19 @@ msgstr ""
 msgid "Show &Labels"
 msgstr "ラベルを表示"
 
-msgid "Show object labels in 3D scene"
+msgid "Show object labels in 3D scene."
 msgstr "3Dシーンにラベルを表示"
 
 msgid "Show &Overhang"
 msgstr ""
 
-msgid "Show object overhang highlight in 3D scene"
+msgid "Show object overhang highlight in 3D scene."
 msgstr ""
 
 msgid "Show Selected Outline (beta)"
 msgstr ""
 
-msgid "Show outline around selected object in 3D scene"
+msgid "Show outline around selected object in 3D scene."
 msgstr ""
 
 msgid "Preferences"
@@ -9295,8 +9295,8 @@ msgid "Elephant foot compensation"
 msgstr "コーナーはみ出し補正"
 
 msgid ""
-"Shrink the initial layer on build plate to compensate for elephant foot "
-"effect"
+"Shrinks the initial layer on build plate to compensate for elephant foot "
+"effect."
 msgstr "1層目を縮小して、コーナーのはみ出しを軽減します。"
 
 msgid "Elephant foot compensation layers"
@@ -9314,20 +9314,20 @@ msgstr "積層"
 
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
-"more printing time"
+"more printing time."
 msgstr ""
 "積層の高さです。小さい値では仕上がりがと良くなりますが、造形時間が伸びます。"
 
 msgid "Printable height"
 msgstr "造形可能高さ"
 
-msgid "Maximum printable height which is limited by mechanism of printer"
+msgid "Maximum printable height which is limited by mechanism of printer."
 msgstr "造形可能の最大高さです。"
 
 msgid "Preferred orientation"
 msgstr ""
 
-msgid "Automatically orient stls on the Z-axis upon initial import"
+msgid "Automatically orient stls on the Z-axis upon initial import."
 msgstr ""
 
 msgid "Printer preset names"
@@ -9336,7 +9336,7 @@ msgstr "プリセット名"
 msgid "Use 3rd-party print host"
 msgstr ""
 
-msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts."
 msgstr ""
 
 msgid "Hostname, IP or URL"
@@ -9356,7 +9356,7 @@ msgid "Device UI"
 msgstr ""
 
 msgid ""
-"Specify the URL of your device user interface if it's not same as print_host"
+"Specify the URL of your device user interface if it's not same as print_host."
 msgstr ""
 
 msgid "API Key / Password"
@@ -9367,7 +9367,7 @@ msgid ""
 "contain the API Key or the password required for authentication."
 msgstr "APIキーとパスワードを入力してください。"
 
-msgid "Name of the printer"
+msgid "Name of the printer."
 msgstr "プリンター名"
 
 msgid "HTTPS CA File"
@@ -9394,7 +9394,7 @@ msgid ""
 "certificates if connection fails."
 msgstr "HTTPS証書の失効チェックを省略します。"
 
-msgid "Names of presets related to the physical printer"
+msgid "Names of presets related to the physical printer."
 msgstr "プリンターに関連するプリセット名"
 
 msgid "Authorization Type"
@@ -9511,7 +9511,7 @@ msgstr ""
 "1層目のベッド温度。値が0の場合は、フィラメントがPEIプレートをサポートしない意"
 "味です。"
 
-msgid "Bed types supported by the printer"
+msgid "Bed types supported by the printer."
 msgstr "適応ベッド種類"
 
 msgid "Smooth Cool Plate"
@@ -9532,7 +9532,7 @@ msgstr ""
 msgid "Other layers filament sequence"
 msgstr ""
 
-msgid "This G-code is inserted at every layer change before lifting z"
+msgid "This G-code is inserted at every layer change before the Z lift."
 msgstr "積層が変わる直前に実行するG-codeです。"
 
 msgid "Bottom shell layers"
@@ -9541,7 +9541,7 @@ msgstr "底面層数"
 msgid ""
 "This is the number of solid layers of bottom shell, including the bottom "
 "surface layer. When the thickness calculated by this value is thinner than "
-"bottom shell thickness, the bottom shell layers will be increased"
+"bottom shell thickness, the bottom shell layers will be increased."
 msgstr ""
 "底面に使用するソリッド層数です。この値が底面の厚みより小さい場合、層数を増や"
 "して厚みに合わせます。"
@@ -9554,7 +9554,7 @@ msgid ""
 "calculated by bottom shell layers is thinner than this value. This can avoid "
 "having too thin shell when layer height is small. 0 means that this setting "
 "is disabled and thickness of bottom shell is absolutely determined by bottom "
-"shell layers"
+"shell layers."
 msgstr ""
 "底面の厚さです、底面層数で決まった厚みがこの値より小さい場合、層数を増やしま"
 "す。この値が0にする場合、この設定が無効となり、設定した層数で造形します。"
@@ -9587,7 +9587,7 @@ msgid ""
 "to the model's strength. For models where excessive gap fill is generated "
 "between perimeters, a better option would be to switch to the arachne wall "
 "generator and use this option to control whether the cosmetic top and bottom "
-"surface gap fill is generated"
+"surface gap fill is generated."
 msgstr ""
 
 msgid "Everywhere"
@@ -9745,8 +9745,8 @@ msgid "Only one wall on top surfaces"
 msgstr "トップ面に1層"
 
 msgid ""
-"Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"Use only one wall on flat top surfaces, to give more space to the top infill "
+"pattern."
 msgstr "トップ面に1層だけ造形します、インフィルを多い空間を与えます。"
 
 msgid "One wall threshold"
@@ -9769,7 +9769,7 @@ msgstr ""
 
 msgid ""
 "Use only one wall on first layer, to give more space to the bottom infill "
-"pattern"
+"pattern."
 msgstr ""
 
 msgid "Extra perimeters on overhangs"
@@ -9848,13 +9848,13 @@ msgstr ""
 msgid "Classic mode"
 msgstr ""
 
-msgid "Enable this option to use classic mode"
+msgid "Enable this option to use classic mode."
 msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "オーバーハング減速"
 
-msgid "Enable this option to slow printing down for different overhang degree"
+msgid "Enable this option to slow printing down for different overhang degree."
 msgstr ""
 "オーバーハングを造形時に速度を下げます。各角度のオーバーハングに対して、下記"
 "の減速パラメータを設定してください。"
@@ -9865,11 +9865,11 @@ msgstr ""
 #, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have "
-"curled upwards.For example, additional slowdown will be applied when "
+"curled upwards. For example, additional slowdown will be applied when "
 "printing overhangs on sharp corners like the front of the Benchy hull, "
 "reducing curling which compounds over multiple layers.\n"
 "\n"
-" It is generally recommended to have this option switched on unless your "
+"It is generally recommended to have this option switched on unless your "
 "printer cooling is powerful enough or the print speed slow enough that "
 "perimeter curling does not happen. If printing with a high external "
 "perimeter speed, this parameter may introduce slight artifacts when slowing "
@@ -9909,7 +9909,7 @@ msgstr ""
 msgid "Brim width"
 msgstr "ブリム幅"
 
-msgid "Distance from model to the outermost brim line"
+msgid "Distance from model to the outermost brim line."
 msgstr "一番外側のブリム線がモデルと距離です。"
 
 msgid "Brim type"
@@ -9928,7 +9928,7 @@ msgstr "ブリムとオブジェクトの間隔"
 
 msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
-"easily"
+"easily."
 msgstr ""
 "ブリムを取り外しやすくする為、一番内側のブリムラインをモデルと少し距離を設け"
 "ます。"
@@ -9954,7 +9954,7 @@ msgstr ""
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
 "indicates the minimum length of the deviation for the decimation.\n"
-"0 to deactivate"
+"0 to deactivate."
 msgstr ""
 
 msgid "Compatible machine"
@@ -9990,7 +9990,7 @@ msgstr ""
 "の場合、このプロファイルはアクティブなプリントプロファイルと互換性があるとみ"
 "なされます。"
 
-msgid "Print sequence, layer by layer or object by object"
+msgid "Print sequence, layer by layer or object by object."
 msgstr "造形の順番を設定します、積層順かオブジェクト順にしてください"
 
 msgid "By layer"
@@ -10002,7 +10002,7 @@ msgstr "オブジェクト順"
 msgid "Intra-layer order"
 msgstr ""
 
-msgid "Print order within a single layer"
+msgid "Print order within a single layer."
 msgstr ""
 
 msgid "As object list"
@@ -10015,7 +10015,7 @@ msgid ""
 "Enable this option to slow printing speed down to make the final layer time "
 "not shorter than the layer time threshold in \"Max fan speed threshold\", so "
 "that layer can be cooled for longer time. This can improve the cooling "
-"quality for needle and small details"
+"quality for needle and small details."
 msgstr ""
 "この設定を有効にする場合、最終層の造形で速度を下げます。よって、最終層の冷却"
 "時間を延長されますので、細部の品質を改善に繋がります。"
@@ -10025,19 +10025,19 @@ msgstr "通常造形"
 
 msgid ""
 "The default acceleration of both normal printing and travel except initial "
-"layer"
+"layer."
 msgstr "造形と移動時のデフォルト加速度です。"
 
 msgid "Default filament profile"
 msgstr "デフォルト フィラメント プロファイル"
 
-msgid "Default filament profile when switch to this machine profile"
+msgid "Default filament profile when switching to this machine profile."
 msgstr "デバイスを切替える時のデフォルト フィラメント プロファイル"
 
 msgid "Default process profile"
 msgstr "デフォルト プロセスプロファイル"
 
-msgid "Default process profile when switch to this machine profile"
+msgid "Default process profile when switching to this machine profile."
 msgstr "デバイスを切替える時のデフォルト プロセス プロファイル"
 
 msgid "Activate air filtration"
@@ -10054,7 +10054,7 @@ msgid ""
 "filament custom G-code."
 msgstr ""
 
-msgid "Speed of exhaust fan after printing completes"
+msgid "Speed of exhaust fan after printing completes."
 msgstr ""
 
 msgid "No cooling for the first"
@@ -10233,7 +10233,7 @@ msgstr ""
 msgid "Top surface pattern"
 msgstr "トップ面パターン"
 
-msgid "Line pattern of top surface infill"
+msgid "Line pattern of top surface infill."
 msgstr "トップ面のインフィルのパターンです。"
 
 msgid "Concentric"
@@ -10263,7 +10263,7 @@ msgstr "オクタグラムスパイラル"
 msgid "Bottom surface pattern"
 msgstr "底面パターン"
 
-msgid "Line pattern of bottom surface infill, not bridge infill"
+msgid "Line pattern of bottom surface infill, not bridge infill."
 msgstr "底面のインフィル パターンです、ブリッジインフィルが含まれていません。"
 
 msgid "Internal solid infill pattern"
@@ -10299,7 +10299,7 @@ msgid "Small perimeters threshold"
 msgstr ""
 
 msgid ""
-"This sets the threshold for small perimeter length. Default threshold is 0mm"
+"This sets the threshold for small perimeter length. Default threshold is 0mm."
 msgstr ""
 
 msgid "Walls printing order"
@@ -10452,7 +10452,7 @@ msgstr ""
 msgid "Extruder Color"
 msgstr "押出機の色"
 
-msgid "Only used as a visual help on UI"
+msgid "Only used as a visual help on UI."
 msgstr "ビジュアル情報として使用される"
 
 msgid "Extruder offset"
@@ -10609,7 +10609,7 @@ msgstr "積層時間"
 msgid ""
 "Part cooling fan will be enabled for layers of which estimated time is "
 "shorter than this value. Fan speed is interpolated between the minimum and "
-"maximum fan speeds according to layer printing time"
+"maximum fan speeds according to layer printing time."
 msgstr "パーツ冷却ファンは、積層造形時間がこの値より短い時に作動します。"
 
 msgid "Default color"
@@ -10637,7 +10637,7 @@ msgstr ""
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
-"case of too high and unreasonable speed setting. Can't be zero"
+"case of too high and unreasonable speed setting. Can't be zero."
 msgstr ""
 "この設定は、単位時間で押出できるフィラメントの体積を示します。造形速度はこの"
 "パラメータにも制限されています。0に設定できません。"
@@ -10651,7 +10651,7 @@ msgstr "フィラメントロード時間"
 msgid ""
 "Time to load new filament when switch filament. It's usually applicable for "
 "single-extruder multi-material machines. For tool changers or multi-tool "
-"machines, it's typically 0. For statistics only"
+"machines, it's typically 0. For statistics only."
 msgstr ""
 
 msgid "Filament unload time"
@@ -10660,7 +10660,7 @@ msgstr "フィラメントアンロード時間"
 msgid ""
 "Time to unload old filament when switch filament. It's usually applicable "
 "for single-extruder multi-material machines. For tool changers or multi-tool "
-"machines, it's typically 0. For statistics only"
+"machines, it's typically 0. For statistics only."
 msgstr ""
 
 msgid "Tool change time"
@@ -10669,7 +10669,7 @@ msgstr ""
 msgid ""
 "Time taken to switch tools. It's usually applicable for tool changers or "
 "multi-tool machines. For single-extruder multi-material machines, it's "
-"typically 0. For statistics only"
+"typically 0. For statistics only."
 msgstr ""
 
 msgid ""
@@ -10851,27 +10851,27 @@ msgstr "ツールチェンジ前のフィラメントのラミングに使うフ
 msgid "Density"
 msgstr "密度"
 
-msgid "Filament density. For statistics only"
+msgid "Filament density. For statistics only."
 msgstr "フィラメント密度"
 
 msgid "g/cm³"
 msgstr "g/cm³"
 
-msgid "The material type of filament"
+msgid "The material type of filament."
 msgstr "フィラメント素材タイプ"
 
 msgid "Soluble material"
 msgstr "可溶性材料"
 
 msgid ""
-"Soluble material is commonly used to print support and support interface"
+"Soluble material is commonly used to print supports and support interfaces."
 msgstr "可溶性材料は、サポート又はサポート接触面の造形によく使われます"
 
 msgid "Support material"
 msgstr "サポート材料"
 
 msgid ""
-"Support material is commonly used to print support and support interface"
+"Support material is commonly used to print supports and support interfaces."
 msgstr "サポート素材は、サポート又はサポート接触面の造形によく使われます。"
 
 msgid "Softening temperature"
@@ -10886,7 +10886,7 @@ msgstr ""
 msgid "Price"
 msgstr "価格"
 
-msgid "Filament price. For statistics only"
+msgid "Filament price. For statistics only."
 msgstr "フィラメント単価"
 
 msgid "money/kg"
@@ -10895,7 +10895,7 @@ msgstr "USD/kg"
 msgid "Vendor"
 msgstr ""
 
-msgid "Vendor of filament. For show only"
+msgid "Vendor of filament. For show only."
 msgstr ""
 
 msgid "(Undefined)"
@@ -10906,7 +10906,7 @@ msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
-"of line"
+"of line."
 msgstr "スパース インフィル パターンの角度です"
 
 msgid "Solid infill direction"
@@ -10914,7 +10914,7 @@ msgstr ""
 
 msgid ""
 "Angle for solid infill pattern, which controls the start or main direction "
-"of line"
+"of line."
 msgstr ""
 
 msgid "Rotate solid infill direction"
@@ -10929,13 +10929,13 @@ msgstr "充填密度"
 #, no-c-format, no-boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
-"infill and internal solid infill pattern will be used"
+"infill and internal solid infill pattern will be used."
 msgstr ""
 
 msgid "Sparse infill pattern"
 msgstr "充填パターン"
 
-msgid "Line pattern for internal sparse infill"
+msgid "Line pattern for internal sparse infill."
 msgstr "スパース インフィルのパターンです。"
 
 msgid "Grid"
@@ -11034,23 +11034,23 @@ msgstr ""
 msgid "0 (Simple connect)"
 msgstr ""
 
-msgid "Acceleration of outer walls"
+msgid "Acceleration of outer walls."
 msgstr ""
 
-msgid "Acceleration of inner walls"
+msgid "Acceleration of inner walls."
 msgstr ""
 
-msgid "Acceleration of travel moves"
+msgid "Acceleration of travel moves."
 msgstr ""
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
-"surface quality"
+"surface quality."
 msgstr ""
 "トップ面のインフィル加速度です。遅くすると表面の仕上がりが向上させることがで"
 "きます"
 
-msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgid "Acceleration of outer wall. Using a lower value can improve quality."
 msgstr "外壁の加速度：低い値では品質を向上させることができます。"
 
 msgid ""
@@ -11081,7 +11081,7 @@ msgstr ""
 msgid "Enable accel_to_decel"
 msgstr ""
 
-msgid "Klipper's max_accel_to_decel will be adjusted automatically"
+msgid "Klipper's max_accel_to_decel will be adjusted automatically."
 msgstr ""
 
 msgid "accel_to_decel"
@@ -11089,25 +11089,25 @@ msgstr "accel_to_decel"
 
 #, c-format, boost-format
 msgid ""
-"Klipper's max_accel_to_decel will be adjusted to this %% of acceleration"
+"Klipper's max_accel_to_decel will be adjusted to this %% of acceleration."
 msgstr ""
 
-msgid "Jerk of outer walls"
+msgid "Jerk of outer walls."
 msgstr ""
 
-msgid "Jerk of inner walls"
+msgid "Jerk of inner walls."
 msgstr ""
 
-msgid "Jerk for top surface"
+msgid "Jerk for top surface."
 msgstr ""
 
-msgid "Jerk for infill"
+msgid "Jerk for infill."
 msgstr ""
 
-msgid "Jerk for initial layer"
+msgid "Jerk for initial layer."
 msgstr ""
 
-msgid "Jerk for travel"
+msgid "Jerk for travel."
 msgstr ""
 
 msgid ""
@@ -11120,22 +11120,22 @@ msgstr "1層目の高さ"
 
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhesion"
+"can improve build plate adhesion."
 msgstr "1層目の高さです。高さを大きくすればプレートとの接着性が良くなります。"
 
-msgid "Speed of initial layer except the solid infill part"
+msgid "Speed of initial layer except the solid infill part."
 msgstr "1層目を造形時に、ソリッド インフィル以外の部分の造形速度です。"
 
 msgid "Initial layer infill"
 msgstr "1層目インフィル"
 
-msgid "Speed of solid infill part of initial layer"
+msgid "Speed of solid infill part of initial layer."
 msgstr "1層目のソリッド インフィルの造形速度です。"
 
 msgid "Initial layer travel speed"
 msgstr ""
 
-msgid "Travel speed of initial layer"
+msgid "Travel speed of initial layer."
 msgstr ""
 
 msgid "Number of slow layers"
@@ -11149,7 +11149,7 @@ msgstr ""
 msgid "Initial layer nozzle temperature"
 msgstr "1層目のノズル温度"
 
-msgid "Nozzle temperature for printing initial layer when using this filament"
+msgid "Nozzle temperature for printing initial layer when using this filament."
 msgstr "1層目でのノズル温度"
 
 msgid "Full fan speed at layer"
@@ -11192,7 +11192,7 @@ msgstr ""
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
-"look. This setting controls the fuzzy position"
+"look. This setting controls the fuzzy position."
 msgstr ""
 "この設定により、壁面を造形時にノズルがランダムで軽微な振動を加えます。これに"
 "より、表面にザラザラ感が出来上がります。"
@@ -11211,7 +11211,7 @@ msgstr "厚さ"
 
 msgid ""
 "The width within which to jitter. It's advised to be below outer wall line "
-"width"
+"width."
 msgstr "ジッターの幅：外壁の線幅より小さくするのをお勧めします。"
 
 msgid "Fuzzy skin point distance"
@@ -11219,20 +11219,20 @@ msgstr "ポイント距離"
 
 msgid ""
 "The average distance between the random points introduced on each line "
-"segment"
+"segment."
 msgstr "ポイント間の平均距離"
 
 msgid "Apply fuzzy skin to first layer"
 msgstr ""
 
-msgid "Whether to apply fuzzy skin on the first layer"
+msgid "Whether to apply fuzzy skin on the first layer."
 msgstr ""
 
 msgid "Fuzzy skin noise type"
 msgstr ""
 
 msgid ""
-"Noise type to use for fuzzy skin generation.\n"
+"Noise type to use for fuzzy skin generation:\n"
 "Classic: Classic uniform random noise.\n"
 "Perlin: Perlin noise, which gives a more consistent texture.\n"
 "Billow: Similar to perlin noise, but clumpier.\n"
@@ -11295,7 +11295,7 @@ msgstr ""
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
-"printed more slowly"
+"printed more slowly."
 msgstr ""
 "ギャップを充填時の速度です。ギャップの幅が不規則なので、遅くするのが推奨で"
 "す。"
@@ -11335,7 +11335,7 @@ msgstr "1層目を検査"
 
 msgid ""
 "Enable this to enable the camera on printer to check the quality of first "
-"layer"
+"layer."
 msgstr "カメラで1層目検査を有効にします"
 
 msgid "Nozzle type"
@@ -11343,7 +11343,7 @@ msgstr "ノズルタイプ"
 
 msgid ""
 "The metallic material of nozzle. This determines the abrasive resistance of "
-"nozzle, and what kind of filament can be printed"
+"nozzle, and what kind of filament can be printed."
 msgstr ""
 "ノズル材料：これにより、ノズルの耐摩耗性と使用できるフィラメントが決まりま"
 "す。"
@@ -11374,7 +11374,7 @@ msgstr "HRC"
 msgid "Printer structure"
 msgstr ""
 
-msgid "The physical arrangement and components of a printing device"
+msgid "The physical arrangement and components of a printing device."
 msgstr ""
 
 msgid "CoreXY"
@@ -11432,7 +11432,7 @@ msgstr ""
 msgid "Time cost"
 msgstr ""
 
-msgid "The printer cost per hour"
+msgid "The printer cost per hour."
 msgstr ""
 
 msgid "money/h"
@@ -11466,13 +11466,13 @@ msgstr ""
 msgid "Pellet Modded Printer"
 msgstr ""
 
-msgid "Enable this option if your printer uses pellets instead of filaments"
+msgid "Enable this option if your printer uses pellets instead of filaments."
 msgstr ""
 
 msgid "Support multi bed types"
 msgstr ""
 
-msgid "Enable this option if you want to use multiple bed types"
+msgid "Enable this option if you want to use multiple bed types."
 msgstr ""
 
 msgid "Label objects"
@@ -11562,16 +11562,16 @@ msgid ""
 "bonding and to minimize the appearance of pinholes where the top infill "
 "meets the walls. A value of 25-30% is a good starting point, minimizing the "
 "appearance of pinholes. The percentage value is relative to line width of "
-"sparse infill"
+"sparse infill."
 msgstr ""
 
-msgid "Speed of internal sparse infill"
+msgid "Speed of internal sparse infill."
 msgstr "スパース インフィルの造形速度です。"
 
 msgid "Inherits profile"
 msgstr "プロファイルを継承"
 
-msgid "Name of parent profile"
+msgid "Name of parent profile."
 msgstr ""
 
 msgid "Interface shells"
@@ -11580,7 +11580,7 @@ msgstr ""
 msgid ""
 "Force the generation of solid shells between adjacent materials/volumes. "
 "Useful for multi-extruder prints with translucent materials or manual "
-"soluble support material"
+"soluble support material."
 msgstr ""
 
 msgid "Maximum width of a segmented region"
@@ -11682,7 +11682,7 @@ msgstr "全てのソリッド積層"
 msgid "Ironing Pattern"
 msgstr ""
 
-msgid "The pattern that will be used when ironing"
+msgid "The pattern that will be used when ironing."
 msgstr ""
 
 msgid "Ironing flow"
@@ -11690,13 +11690,13 @@ msgstr "アイロン時の流量比率"
 
 msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
-"layer height. Too high value results in overextrusion on the surface"
+"layer height. Too high value results in overextrusion on the surface."
 msgstr "アイロン時の押出量です。通常流量の比率で決まります。"
 
 msgid "Ironing line spacing"
 msgstr "アイロン時にライン間隔"
 
-msgid "The distance between the lines of ironing"
+msgid "The distance between the lines of ironing."
 msgstr "アイロン時の線間隔です。"
 
 msgid "Ironing inset"
@@ -11704,13 +11704,13 @@ msgstr ""
 
 msgid ""
 "The distance to keep from the edges. A value of 0 sets this to half of the "
-"nozzle diameter"
+"nozzle diameter."
 msgstr ""
 
 msgid "Ironing speed"
 msgstr "アイロン時の移動速度"
 
-msgid "Print speed of ironing lines"
+msgid "Print speed of ironing lines."
 msgstr "アイロン時の造形速度です。"
 
 msgid "Ironing angle"
@@ -11729,7 +11729,7 @@ msgstr "サイレントモード"
 
 msgid ""
 "Whether the machine supports silent mode in which machine use lower "
-"acceleration to print"
+"acceleration to print."
 msgstr "サイレントモード有無"
 
 msgid "Emit limits to G-code"
@@ -11750,13 +11750,13 @@ msgstr ""
 "このG-codeは造形を一時停止用です。ユーザがこれをG-codeに入れて造形を一時停止"
 "できます。"
 
-msgid "This G-code will be used as a custom code"
+msgid "This G-code will be used as a custom code."
 msgstr "このG-codeがカスタム用です。"
 
 msgid "Small area flow compensation (beta)"
 msgstr ""
 
-msgid "Enable flow compensation for small infill areas"
+msgid "Enable flow compensation for small infill areas."
 msgstr ""
 
 msgid "Flow Compensation Model"
@@ -11868,7 +11868,7 @@ msgstr "リトラクション最大加速度 (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "移動最大加速度"
 
-msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2."
 msgstr ""
 
 msgid ""
@@ -11945,7 +11945,7 @@ msgid ""
 "not be visible to the user."
 msgstr ""
 
-msgid "Minimum speed for part cooling fan"
+msgid "Minimum speed for part cooling fan."
 msgstr "パーツ冷却ファンの最低回転数"
 
 msgid ""
@@ -11999,7 +11999,7 @@ msgstr "ホストタイプを入力してください。"
 msgid "Nozzle volume"
 msgstr "内腔容積"
 
-msgid "Volume of nozzle between the cutter and the end of nozzle"
+msgid "Volume of nozzle between the cutter and the end of nozzle."
 msgstr "ノズル先端とフィラメントカッターの間の体積"
 
 msgid "Cooling tube position"
@@ -12063,7 +12063,7 @@ msgstr "ｲﾝﾌｨﾙのﾘﾄﾗｸｼｮﾝ低減"
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
 "oozing can't been seen. This can reduce times of retraction for complex "
-"model and save printing time, but make slicing and G-code generating slower"
+"model and save printing time, but make slicing and G-code generating slower."
 msgstr ""
 "インフィル領域内の移動はリトラクションしません。造形時間を節約できます。"
 
@@ -12125,10 +12125,10 @@ msgid ""
 "nozzle diameter."
 msgstr ""
 
-msgid "Speed of inner wall"
+msgid "Speed of inner wall."
 msgstr "内壁の造形速度です。"
 
-msgid "Number of walls of every layer"
+msgid "Number of walls of every layer."
 msgstr "壁面の層数です。"
 
 msgid "Alternate extra wall"
@@ -12171,7 +12171,7 @@ msgstr "プリンターバリエーション"
 msgid "Raft contact Z distance"
 msgstr "ラフト接触面Z間隔"
 
-msgid "Z gap between object and raft. Ignored for soluble interface"
+msgid "Z gap between object and raft. Ignored for soluble interface."
 msgstr ""
 "ラフトとオブジェクトのZ方向の間隔。可溶性材料を使用する場合この設定が無効で"
 "す。"
@@ -12179,19 +12179,19 @@ msgstr ""
 msgid "Raft expansion"
 msgstr "ラフト拡張"
 
-msgid "Expand all raft layers in XY plane"
+msgid "Expand all raft layers in XY plane."
 msgstr "この設定により、ラフトのXYサイズを拡大します。"
 
 msgid "Initial layer density"
 msgstr "1層目の密度"
 
-msgid "Density of the first raft or support layer"
+msgid "Density of the first raft or support layer."
 msgstr "ラフト或はサポートの1層目の密度です。"
 
 msgid "Initial layer expansion"
 msgstr "1層目拡張"
 
-msgid "Expand the first raft or support layer to improve bed plate adhesion"
+msgid "Expand the first raft or support layer to improve bed plate adhesion."
 msgstr ""
 "この設定により、ラフト或はサポートの1層目を拡大します。ベッドとの接着性が良く"
 "なります。"
@@ -12219,21 +12219,21 @@ msgstr "移動距離閾値"
 
 msgid ""
 "Only trigger retraction when the travel distance is longer than this "
-"threshold"
+"threshold."
 msgstr "移動距離が閾値以上の場合のみ、リトラクションを作動します。"
 
 msgid "Retract amount before wipe"
 msgstr "拭き上げ前のリトラクション量"
 
 msgid ""
-"The length of fast retraction before wipe, relative to retraction length"
+"The length of fast retraction before wipe, relative to retraction length."
 msgstr ""
 "拭き上げ前のリトラクション量です、通常のリトラクション量の比率で指定します。"
 
 msgid "Retract when change layer"
 msgstr "積層変更時のリトラクション"
 
-msgid "Force a retraction when changes layer"
+msgid "Force a retraction when changes layer."
 msgstr "この設定により、積層を変更時にリトラクションを実行します。"
 
 msgid "Retract on top layer"
@@ -12241,7 +12241,7 @@ msgstr ""
 
 msgid ""
 "Force a retraction on top layer. Disabling could prevent clog on very slow "
-"patterns with small movements, like Hilbert curve"
+"patterns with small movements, like Hilbert curve."
 msgstr ""
 
 msgid "Retraction Length"
@@ -12372,15 +12372,15 @@ msgstr ""
 msgid "Retraction Speed"
 msgstr "リトラクション速度"
 
-msgid "Speed of retractions"
+msgid "Speed of retractions."
 msgstr "リトラクションの速度です。"
 
 msgid "De-retraction Speed"
 msgstr "復帰速度"
 
 msgid ""
-"Speed for reloading filament into extruder. Zero means same speed with "
-"retraction"
+"Speed for reloading filament into extruder. Zero means same speed of "
+"retraction."
 msgstr ""
 "リトラクション後フィラメントをロードする時の速度です、値が0の場合、リトラク"
 "ションの速度と同じくなります。"
@@ -12409,7 +12409,7 @@ msgstr ""
 msgid "Seam position"
 msgstr "継ぎ目位置"
 
-msgid "The start position to print each part of outer wall"
+msgid "The start position to print each part of outer wall."
 msgstr "各パーツに対して、外壁を造形時の開始位置です。"
 
 msgid "Nearest"
@@ -12595,7 +12595,7 @@ msgstr ""
 msgid "Skirt height"
 msgstr ""
 
-msgid "How many layers of skirt. Usually only one layer"
+msgid "How many layers of skirt. Usually only one layer."
 msgstr ""
 
 msgid "Single loop draft shield"
@@ -12642,7 +12642,7 @@ msgstr ""
 msgid "Skirt loops"
 msgstr "スカートのループ数"
 
-msgid "Number of loops for the skirt. Zero means disabling skirt"
+msgid "Number of loops for the skirt. Zero means disabling skirt."
 msgstr "スカートのループ数です、値が0の場合、スカートが無効になります。"
 
 msgid "Skirt speed"
@@ -12676,7 +12676,7 @@ msgstr "スパース インフィルの下閾値"
 
 msgid ""
 "Sparse infill area which is smaller than threshold value is replaced by "
-"internal solid infill"
+"internal solid infill."
 msgstr ""
 "スパース インフィルの面積がこの値以下の場合、ソリッド インフィルに変換されま"
 "す"
@@ -12692,13 +12692,13 @@ msgid ""
 "computed over the nozzle diameter."
 msgstr ""
 
-msgid "Speed of internal solid infill, not the top and bottom surface"
+msgid "Speed of internal solid infill, not the top and bottom surface."
 msgstr "ソリッド インフィルの造形速度です。"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
-"generated model has no seam"
+"generated model has no seam."
 msgstr ""
 "スパイラルモードでは、輪郭面を一筆書きで造形します。Z方向の移動に段差がないの"
 "で、シームはありません。"
@@ -12708,7 +12708,7 @@ msgstr ""
 
 msgid ""
 "Smooth Spiral smooths out X and Y moves as well, resulting in no visible "
-"seam at all, even in the XY directions on walls that are not vertical"
+"seam at all, even in the XY directions on walls that are not vertical."
 msgstr ""
 
 msgid "Max XY Smoothing"
@@ -12717,7 +12717,7 @@ msgstr ""
 #, no-c-format, no-boost-format
 msgid ""
 "Maximum distance to move points in XY to try to achieve a smooth spiral. If "
-"expressed as a %, it will be computed over nozzle diameter"
+"expressed as a %, it will be computed over nozzle diameter."
 msgstr ""
 
 msgid "Spiral starting flow ratio"
@@ -12799,7 +12799,7 @@ msgstr "このフィラメントを使用開始時のG-code"
 msgid "Single Extruder Multi Material"
 msgstr "シングルエクストルーダー・マルチマテリアル"
 
-msgid "Use single nozzle to print multi filament"
+msgid "Use single nozzle to print multi filament."
 msgstr ""
 
 msgid "Manual Filament Change"
@@ -12816,10 +12816,10 @@ msgstr ""
 msgid "Purge in prime tower"
 msgstr ""
 
-msgid "Purge remaining filament into prime tower"
+msgid "Purge remaining filament into prime tower."
 msgstr ""
 
-msgid "Enable filament ramming"
+msgid "Enable filament ramming."
 msgstr ""
 
 msgid "No sparse layers (beta)"
@@ -12914,7 +12914,7 @@ msgstr "ツリー (手動)"
 msgid "Support/object xy distance"
 msgstr "水平間隔"
 
-msgid "XY separation between an object and its support"
+msgid "XY separation between an object and its support."
 msgstr "オブジェクトとサポートのXY距離です。"
 
 msgid "Support/object first layer gap"
@@ -12932,7 +12932,7 @@ msgstr "この設定でサポートのパターンを回転させます。"
 msgid "On build plate only"
 msgstr "ビルドプレートのみ"
 
-msgid "Don't create support on model surface, only on build plate"
+msgid "Don't create support on model surface, only on build plate."
 msgstr "この設定により、プレートから生成するサポートのみを造形します。"
 
 msgid "Support critical regions only"
@@ -12952,13 +12952,13 @@ msgstr ""
 msgid "Top Z distance"
 msgstr "トップ面とのZ間隔"
 
-msgid "The z gap between the top support interface and object"
+msgid "The Z gap between the top support interface and object."
 msgstr "サポート接触面とオブジェクトのZ方向の間隔"
 
 msgid "Bottom Z distance"
 msgstr "底面とのZ間隔"
 
-msgid "The z gap between the bottom support interface and object"
+msgid "The Z gap between the bottom support interface and object."
 msgstr "サポート底面とオブジェクトのZ方向間隔"
 
 msgid "Support/raft base"
@@ -12966,7 +12966,7 @@ msgstr ""
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
-"filament for support and current filament is used"
+"filament for support and current filament is used."
 msgstr ""
 "サポートとラフトを造形用のフィラメント。「デフォルト」では当時のフィラメント"
 "を使用する意味です。"
@@ -12997,7 +12997,7 @@ msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
-"for support interface and current filament is used"
+"for support interface and current filament is used."
 msgstr ""
 "サポートの接触面用のフィラメントです。「デフォルト」では指定しなく、当時の"
 "フィラメントを使用する意味です。"
@@ -13005,13 +13005,13 @@ msgstr ""
 msgid "Top interface layers"
 msgstr "トップ接触面の層数"
 
-msgid "Number of top interface layers"
+msgid "Number of top interface layers."
 msgstr "トップ接触面の層数"
 
 msgid "Bottom interface layers"
 msgstr "底部接触面層数"
 
-msgid "Number of bottom interface layers"
+msgid "Number of bottom interface layers."
 msgstr ""
 
 msgid "Same as top"
@@ -13020,22 +13020,22 @@ msgstr ""
 msgid "Top interface spacing"
 msgstr "トップ接触面間隔"
 
-msgid "Spacing of interface lines. Zero means solid interface"
+msgid "Spacing of interface lines. Zero means solid interface."
 msgstr "接触面を造形時に線の距離です。0はソリッド接触面です。"
 
 msgid "Bottom interface spacing"
 msgstr "底部接触面間隔"
 
-msgid "Spacing of bottom interface lines. Zero means solid interface"
+msgid "Spacing of bottom interface lines. Zero means solid interface."
 msgstr "底部接触面を造形時に線の距離です。0はソリッド接触面です。"
 
-msgid "Speed of support interface"
+msgid "Speed of support interface."
 msgstr "サポート接触面の造形速度です。"
 
 msgid "Base pattern"
 msgstr "基本パターン"
 
-msgid "Line pattern of support"
+msgid "Line pattern of support."
 msgstr "サポートのサターンです。"
 
 msgid "Rectilinear grid"
@@ -13050,7 +13050,7 @@ msgstr "接触面パターン"
 msgid ""
 "Line pattern of support interface. Default pattern for non-soluble support "
 "interface is Rectilinear, while default pattern for soluble support "
-"interface is Concentric"
+"interface is Concentric."
 msgstr ""
 "サポート接触面のパターンです。非可溶性材を使用する場合はRectilinear、可溶性材"
 "を使用する場合同心です。"
@@ -13061,16 +13061,16 @@ msgstr ""
 msgid "Base pattern spacing"
 msgstr "基本パターン間隔"
 
-msgid "Spacing between support lines"
+msgid "Spacing between support lines."
 msgstr "サポートの線の間隔です"
 
 msgid "Normal Support expansion"
 msgstr "通常サポート拡大"
 
-msgid "Expand (+) or shrink (-) the horizontal span of normal support"
+msgid "Expand (+) or shrink (-) the horizontal span of normal support."
 msgstr "+/-でサポートの水平サイズを調整します"
 
-msgid "Speed of support"
+msgid "Speed of support."
 msgstr "サポートの造形速度です。"
 
 msgid ""
@@ -13178,7 +13178,7 @@ msgstr "アダプティブ積層ピッチ"
 
 msgid ""
 "Enabling this option means the height of tree support layer except the "
-"first will be automatically calculated "
+"first will be automatically calculated."
 msgstr ""
 
 msgid "Auto brim width"
@@ -13186,13 +13186,13 @@ msgstr "オートブリム幅"
 
 msgid ""
 "Enabling this option means the width of the brim for tree support will be "
-"automatically calculated"
+"automatically calculated."
 msgstr ""
 
 msgid "Tree support brim width"
 msgstr "ツリーサポートブリム幅"
 
-msgid "Distance from tree branch to the outermost brim line"
+msgid "Distance from tree branch to the outermost brim line."
 msgstr ""
 
 msgid "Tip Diameter"
@@ -13236,7 +13236,7 @@ msgstr "ツリーサポートインフィル使用"
 
 msgid ""
 "This setting specifies whether to add infill inside large hollows of tree "
-"support"
+"support."
 msgstr ""
 "この設定により、大きいツリーサポートを造形する時に、インフィルを追加します。"
 
@@ -13279,7 +13279,7 @@ msgid ""
 "heater is installed."
 msgstr ""
 
-msgid "Nozzle temperature for layers after the initial one"
+msgid "Nozzle temperature for layers after the initial one."
 msgstr "1層目後のノズル温度"
 
 msgid "Detect thin wall"
@@ -13287,7 +13287,7 @@ msgstr "薄い壁を検出"
 
 msgid ""
 "Detect thin wall which can't contain two line width. And use single line to "
-"print. Maybe printed not very well, because it's not closed loop"
+"print. Maybe printed not very well, because it's not closed loop."
 msgstr ""
 "2ラインの入らない薄い壁面を検出し、1ラインで造形します。仕上がりが悪くなり可"
 "能性があります。"
@@ -13305,7 +13305,7 @@ msgid ""
 "the nozzle diameter."
 msgstr ""
 
-msgid "Speed of top surface infill which is solid"
+msgid "Speed of top surface infill which is solid."
 msgstr "トップ面のインフィルの造形速度です。"
 
 msgid "Top shell layers"
@@ -13314,7 +13314,7 @@ msgstr "トップ面層数"
 msgid ""
 "This is the number of solid layers of top shell, including the top surface "
 "layer. When the thickness calculated by this value is thinner than top shell "
-"thickness, the top shell layers will be increased"
+"thickness, the top shell layers will be increased."
 msgstr ""
 "トップ面に使用するソリッド層数です。この値がトップ面の厚みより小さい場合、層"
 "数を増やして厚みに合わせます。"
@@ -13330,13 +13330,13 @@ msgid ""
 "calculated by top shell layers is thinner than this value. This can avoid "
 "having too thin shell when layer height is small. 0 means that this setting "
 "is disabled and thickness of top shell is absolutely determined by top shell "
-"layers"
+"layers."
 msgstr ""
 "トップ面の厚さです、トップ面層数で決まった厚みがこの値より小さい場合、層数を"
 "増やします。この値が0にする場合、この設定が無効となり、設定した層数で造形しま"
 "す。"
 
-msgid "Speed of travel which is faster and without extrusion"
+msgid "Speed of travel which is faster and without extrusion."
 msgstr "移動完了時の速度です。"
 
 msgid "Wipe while retracting"
@@ -13391,7 +13391,7 @@ msgstr "プライム量"
 msgid "The volume of material to prime extruder on tower."
 msgstr "フィラメントのフラッシュ量です。"
 
-msgid "Width of prime tower"
+msgid "Width of the prime tower."
 msgstr "プライムタワーの幅です。"
 
 msgid "Wipe tower rotation angle"
@@ -13582,7 +13582,7 @@ msgstr "Gコードサムネイルのフォーマット"
 
 msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
-"QOI for low memory firmware"
+"QOI for low memory firmware."
 msgstr ""
 "Gコードサムネイルのフォーマット。PNGは最高の品質、JPGは最小のサイズ、QOIは低"
 "メモリのファームウェアのため"
@@ -13600,7 +13600,7 @@ msgstr ""
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
 "very thin areas is used gap-fill. Arachne engine produces walls with "
-"variable extrusion width"
+"variable extrusion width."
 msgstr ""
 "クラシックでは従来通りの壁面を生成しますが、Arachneでは押出線幅が可変になりま"
 "す。"
@@ -13614,7 +13614,7 @@ msgstr "壁面遷移長さ"
 msgid ""
 "When transitioning between different numbers of walls as the part becomes "
 "thinner, a certain amount of space is allotted to split or join the wall "
-"segments. It's expressed as a percentage over nozzle diameter"
+"segments. It's expressed as a percentage over nozzle diameter."
 msgstr ""
 
 msgid "Wall transitioning filter margin"
@@ -13627,7 +13627,7 @@ msgid ""
 "margin reduces the number of transitions, which reduces the number of "
 "extrusion starts/stops and travel time. However, large extrusion width "
 "variation can lead to under- or overextrusion problems. It's expressed as a "
-"percentage over nozzle diameter"
+"percentage over nozzle diameter."
 msgstr ""
 
 msgid "Wall transitioning threshold angle"
@@ -13638,7 +13638,7 @@ msgid ""
 "shape with an angle greater than this setting will not have transitions and "
 "no walls will be printed in the center to fill the remaining space. Reducing "
 "this setting reduces the number and length of these center walls, but may "
-"leave gaps or overextrude"
+"leave gaps or overextrude."
 msgstr ""
 
 msgid "Wall distribution count"
@@ -13646,7 +13646,7 @@ msgstr "壁面分布カウント"
 
 msgid ""
 "The number of walls, counted from the center, over which the variation needs "
-"to be spread. Lower values mean that the outer walls don't change in width"
+"to be spread. Lower values mean that the outer walls don't change in width."
 msgstr "壁の層数"
 
 msgid "Minimum feature size"
@@ -13690,7 +13690,7 @@ msgid ""
 "Width of the wall that will replace thin features (according to the Minimum "
 "feature size) of the model. If the Minimum wall width is thinner than the "
 "thickness of the feature, the wall will become as thick as the feature "
-"itself. It's expressed as a percentage over nozzle diameter"
+"itself. It's expressed as a percentage over nozzle diameter."
 msgstr ""
 
 msgid "Detect narrow internal solid infill"
@@ -13732,7 +13732,7 @@ msgstr "スライスデータをエクスポート"
 msgid "Load slicing data"
 msgstr "スライスデータを読込み"
 
-msgid "Load cached slicing data from directory"
+msgid "Load cached slicing data from directory."
 msgstr "スライスデータを読込み"
 
 msgid "Export STL"
@@ -13744,7 +13744,7 @@ msgstr ""
 msgid "Export multiple STLs"
 msgstr ""
 
-msgid "Export the objects as multiple STLs to directory"
+msgid "Export the objects as multiple STLs to directory."
 msgstr ""
 
 msgid "Slice"
@@ -13767,13 +13767,13 @@ msgstr ""
 
 msgid ""
 "check whether current machine downward compatible with the machines in the "
-"list"
+"list."
 msgstr ""
 
 msgid "Load default filaments"
 msgstr ""
 
-msgid "Load first filament as default for those not loaded"
+msgid "Load first filament as default for those not loaded."
 msgstr ""
 
 msgid "Minimum save"
@@ -13840,7 +13840,7 @@ msgid "Ensure on bed"
 msgstr "ベッド上で確認"
 
 msgid ""
-"Lift the object above the bed when it is partially below. Disabled by default"
+"Lift the object above the bed when it is partially below. Disabled by default."
 msgstr ""
 
 msgid ""
@@ -13853,7 +13853,7 @@ msgstr ""
 msgid "Convert Unit"
 msgstr "単位変換"
 
-msgid "Convert the units of model"
+msgid "Convert the units of model."
 msgstr "モデルの単位を変換"
 
 msgid "Orient Options"
@@ -13871,54 +13871,54 @@ msgstr "Y軸周りの回転"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "Y軸を中心とした回転角（度単位）。"
 
-msgid "Scale the model by a float factor"
+msgid "Scale the model by a float factor."
 msgstr "指定した比率で伸縮する"
 
 msgid "Load General Settings"
 msgstr "一般設定を読込む"
 
-msgid "Load process/machine settings from the specified file"
+msgid "Load process/machine settings from the specified file."
 msgstr "指定ファイルから設定値を読込む"
 
 msgid "Load Filament Settings"
 msgstr "フィラメント設定を読込む"
 
-msgid "Load filament settings from the specified file list"
+msgid "Load filament settings from the specified file list."
 msgstr "指定したファイルリストからフィラメント設定を読込む"
 
 msgid "Skip Objects"
 msgstr "オブジェクトスキップ"
 
-msgid "Skip some objects in this print"
+msgid "Skip some objects in this print."
 msgstr ""
 
 msgid "Clone Objects"
 msgstr ""
 
-msgid "Clone objects in the load list"
+msgid "Clone objects in the load list."
 msgstr ""
 
-msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
-
-msgid ""
-"load uptodate process/machine settings from the specified file when using "
-"uptodate"
-msgstr ""
-
-msgid "load uptodate filament settings when using uptodate"
+msgid "Load uptodate process/machine settings when using uptodate."
 msgstr ""
 
 msgid ""
-"load uptodate filament settings from the specified file when using uptodate"
+"Load uptodate process/machine settings from the specified file when using "
+"uptodate."
+msgstr ""
+
+msgid "Load uptodate filament settings when using uptodate."
 msgstr ""
 
 msgid ""
-"if enabled, check whether current machine downward compatible with the "
-"machines in the list"
+"Load uptodate filament settings from the specified file when using uptodate."
 msgstr ""
 
-msgid "downward machines settings"
+msgid ""
+"If enabled, check whether current machine downward compatible with the "
+"machines in the list."
+msgstr ""
+
+msgid "Downward machines settings"
 msgstr ""
 
 msgid "The machine settings list needs to do downward checking."
@@ -13927,7 +13927,7 @@ msgstr ""
 msgid "Load assemble list"
 msgstr ""
 
-msgid "Load assemble object list from config file"
+msgid "Load assemble object list from config file."
 msgstr ""
 
 msgid "Data directory"
@@ -13960,7 +13960,7 @@ msgstr ""
 msgid "Enable timelapse for print"
 msgstr ""
 
-msgid "If enabled, this slicing will be considered using timelapse"
+msgid "If enabled, this slicing will be considered using timelapse."
 msgstr ""
 
 msgid "Load custom G-code"
@@ -14025,7 +14025,7 @@ msgstr ""
 msgid "metadata value list added into 3mf"
 msgstr ""
 
-msgid "Allow 3mf with newer version to be sliced"
+msgid "Allow 3mf with newer version to be sliced."
 msgstr ""
 
 msgid "Current Z-hop"
@@ -16549,13 +16549,13 @@ msgstr ""
 #~ msgid "Speed of bridge and completely overhang wall"
 #~ msgstr "ブリッジを造形する時に速度です。"
 
-#~ msgid "Time to load new filament when switch filament. For statistics only"
+#~ msgid "Time to load new filament when switch filament. For statistics only."
 #~ msgstr ""
 #~ "フィラメントを入れ替える時に、フィラメントをロードする時間です、統計目的に"
 #~ "使用されています。"
 
 #~ msgid ""
-#~ "Time to unload old filament when switch filament. For statistics only"
+#~ "Time to unload old filament when switch filament. For statistics only."
 #~ msgstr ""
 #~ "フィラメントを入れ替える時に、フィラメントをアンロードする時間です、統計目"
 #~ "的に使用されています。"
