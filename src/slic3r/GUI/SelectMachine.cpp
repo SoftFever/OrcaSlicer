@@ -3517,11 +3517,11 @@ void SelectMachineDialog::update_show_status()
     if (m_checkbox_list["use_ams"]->getValue() != "on") {
         m_ams_mapping_result.clear();
         sync_ams_mapping_result(m_ams_mapping_result);
-    }
-
-    if (!m_ams_mapping_res && !obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-        show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
-        return;
+    } else {
+        if (!m_ams_mapping_res && !obj_->is_valid_mapping_result(m_ams_mapping_result)) {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+            return;
+        }
     }
 
     /*Warnings*/
@@ -3555,40 +3555,6 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (!obj_->is_support_ams_mapping()) {
-        int exceed_index = -1;
-        if (obj_->is_mapping_exceed_filament(m_ams_mapping_result, exceed_index)) {
-            std::vector<wxString> params;
-            params.push_back(wxString::Format("%02d", exceed_index+1));
-            show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms, params);
-        } else {
-            if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-
-                if (has_timelapse_warning()) {
-                    show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-                }
-                else {
-                    show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
-                }
-                
-            } else {
-                int mismatch_index = -1;
-                for (int i = 0; i < m_ams_mapping_result.size(); i++) {
-                    if (m_ams_mapping_result[i].mapping_result == MappingResult::MAPPING_RESULT_TYPE_MISMATCH) {
-                        mismatch_index = m_ams_mapping_result[i].id;
-                        break;
-                    }
-                }
-                std::vector<wxString> params;
-                if (mismatch_index >= 0) {
-                    params.push_back(wxString::Format("%02d", mismatch_index+1));
-                    params.push_back(wxString::Format("%02d", mismatch_index+1));
-                }
-                show_status(PrintDialogStatus::PrintStatusAmsMappingU0Invalid, params);
-            }
-        }
-        return;
-    }
 
     if (m_ams_mapping_res) {
         if (has_timelapse_warning()) {
@@ -3604,10 +3570,6 @@ void SelectMachineDialog::update_show_status()
                     return;
                 }
             }
-        }
-        else {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
-            return;
         }
     }
 
