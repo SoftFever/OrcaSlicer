@@ -193,6 +193,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "gcode_label_objects", 
         "exclude_object",
         "support_material_interface_fan_speed",
+        "internal_bridge_fan_speed", // ORCA: Add support for separate internal bridge fan speed control
         "single_extruder_multi_material_priming",
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",
@@ -227,6 +228,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
             || opt_key == "min_skirt_length"
+            || opt_key == "single_loop_draft_shield"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "skirt_start_angle"
@@ -1166,7 +1168,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     // Custom layering is not allowed for tree supports as of now.
     for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx)
         if (const PrintObject &print_object = *m_objects[print_object_idx];
-            print_object.has_support_material() && is_tree(print_object.config().support_type.value) && (print_object.config().support_style.value == smsOrganic || 
+            print_object.has_support_material() && is_tree(print_object.config().support_type.value) && (print_object.config().support_style.value == smsTreeOrganic || 
                 // Orca: use organic as default
                 print_object.config().support_style.value == smsDefault) &&
             print_object.model_object()->has_custom_layering()) {
@@ -1239,7 +1241,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 #if 0
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
-                    return  {("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
+                    return  {L("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
@@ -1299,7 +1301,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         unsigned int total_extruders_count = m_config.nozzle_diameter.size();
         for (const auto& extruder_idx : extruders)
             if ( extruder_idx >= total_extruders_count )
-                return ("One or more object were assigned an extruder that the printer does not have.");
+                return {L("One or more object were assigned an extruder that the printer does not have.")};
 #endif
 
         auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
@@ -1324,7 +1326,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     // The object has some form of support and either support_filament or support_interface_filament
                     // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
                     // are of the same diameter.
-                    return {("Printing with multiple extruders of differing nozzle diameters. "
+                    return {L("Printing with multiple extruders of differing nozzle diameters. "
                            "If support is to be printed with the current filament (support_filament == 0 or support_interface_filament == 0), "
                            "all nozzles have to be of the same diameter."), object, "support_filament"};
                 }
@@ -1339,7 +1341,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
                 // Prusa: Fixing crashes with invalid tip diameter or branch diameter
                 // https://github.com/prusa3d/PrusaSlicer/commit/96b3ae85013ac363cd1c3e98ec6b7938aeacf46d
-                if (is_tree(object->config().support_type.value) && (object->config().support_style == smsOrganic ||
+                if (is_tree(object->config().support_type.value) && (object->config().support_style == smsTreeOrganic ||
                     // Orca: use organic as default
                     object->config().support_style == smsDefault)) {
                     float extrusion_width = std::min(
@@ -2518,7 +2520,7 @@ FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
         catch (const json::parse_error& err){
             in.close();
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
-            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
+            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF", "PETG-GF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
             filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH","SBS"};
             filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG","PCTG","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
         }
@@ -2595,7 +2597,7 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
     if (!is_step_done(psWipeTower) && filaments_cnt != 0) {
         double width        = m_config.prime_tower_width;
         double layer_height = 0.2; // hard code layer height
-        if (m_config.purge_in_prime_tower) {
+        if (m_config.purge_in_prime_tower && m_config.single_extruder_multi_material) {
             // Calculating depth should take into account currently set wiping volumes.
             // For a long time, the initial preview would just use 900/width per toolchange (15mm on a 60mm wide tower)
             // and it worked well enough. Let's try to do slightly better by accounting for the purging volumes.
@@ -2644,7 +2646,7 @@ void Print::_make_wipe_tower()
 
     const auto bUseWipeTower2 = is_BBL_printer() ? false : true;
     // Orca: itertate over wipe_volumes and change the non-zero values to the prime_volume
-    if (!m_config.purge_in_prime_tower && !is_BBL_printer()) {
+    if ((!m_config.purge_in_prime_tower || !m_config.single_extruder_multi_material) && !is_BBL_printer()) {
         for (unsigned int i = 0; i < number_of_extruders; ++i) {
             for (unsigned int j = 0; j < number_of_extruders; ++j) {
                 if (wipe_volumes[i][j] > 0) {
@@ -2823,7 +2825,7 @@ void Print::_make_wipe_tower()
                     if ((first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || extruder_id !=
                         current_extruder_id) {
                         float volume_to_wipe = m_config.prime_volume;
-                        if (m_config.purge_in_prime_tower) {
+                        if (m_config.purge_in_prime_tower && m_config.single_extruder_multi_material) {
                             volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id]; // total volume to wipe after this toolchange
                             volume_to_wipe *= m_config.flush_multiplier;
                             // Not all of that can be used for infill purging:
@@ -2941,6 +2943,7 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
 {
     try {
         GCodeProcessor processor;
+        GCodeProcessor::s_IsBBLPrinter = is_BBL_printer();
         const Vec3d origin = this->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
         //processor.enable_producers(true);

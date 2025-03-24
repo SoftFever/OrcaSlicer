@@ -1447,7 +1447,7 @@ static std::vector<CubeProperties> make_cubes_properties(double max_cube_edge_le
 static inline bool is_overhang_triangle(const Vec3d &a, const Vec3d &b, const Vec3d &c, const Vec3d &up)
 {
     // Calculate triangle normal.
-    auto n = (b - a).cross(c - b);
+    Vec3d n = (b - a).cross(c - b);
     return n.dot(up) > 0.707 * n.norm();
 }
 
@@ -1493,9 +1493,9 @@ OctreePtr build_octree(
         };
         auto up_vector = support_overhangs_only ? Vec3d(transform_to_octree() * Vec3d(0., 0., 1.)) : Vec3d();
         for (auto &tri : triangle_mesh.indices) {
-            auto a = triangle_mesh.vertices[tri[0]].cast<double>();
-            auto b = triangle_mesh.vertices[tri[1]].cast<double>();
-            auto c = triangle_mesh.vertices[tri[2]].cast<double>();
+            Vec3d a = triangle_mesh.vertices[tri[0]].cast<double>();
+            Vec3d b = triangle_mesh.vertices[tri[1]].cast<double>();
+            Vec3d c = triangle_mesh.vertices[tri[2]].cast<double>();
             if (! support_overhangs_only || is_overhang_triangle(a, b, c, up_vector))
                 process_triangle(a, b, c);
         }

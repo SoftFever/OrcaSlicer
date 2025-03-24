@@ -107,6 +107,15 @@ using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
+class SidebarProps
+{
+public:
+    static int TitlebarMargin();
+    static int ContentMargin();
+    static int IconSpacing();
+    static int ElementSpacing();
+};
+
 class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
@@ -811,6 +820,7 @@ private:
     int start_next_slice();
 
     void _calib_pa_pattern(const Calib_Params& params);
+    void _calib_pa_pattern_gen_gcode();
     void _calib_pa_tower(const Calib_Params& params);
     void _calib_pa_select_added_objects();
 
