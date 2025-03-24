@@ -73,7 +73,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         applied_mode,
         plater_ref->get_machine_sync_status(),
         false,
-        force_pop_up
+        false
     );
     auto ret = map_dlg.ShowModal();
 
