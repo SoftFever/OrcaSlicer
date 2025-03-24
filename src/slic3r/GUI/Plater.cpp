@@ -520,7 +520,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->AddStretchSpacer(1);
-            hsizer->Add(image_printer, 1, wxEXPAND | wxTOP, FromDIP(8));
+            hsizer->Add(image_printer, 0, wxEXPAND | wxTOP, FromDIP(8));
             hsizer->Add(hsizer_printer_btn, 1, wxEXPAND, 0);
             hsizer->AddSpacer(FromDIP(6));
             vsizer->AddSpacer(FromDIP(4));
