@@ -1,49 +1,36 @@
 {
     "type": "process",
-    "name": "0.08mm Extra Fine @BBL H2D",
-    "inherits": "fdm_process_dual_0.08_nozzle_0.4",
+    "name": "0.20mm High Quality @BBL H2D",
+    "inherits": "fdm_process_dual_0.20_nozzle_0.4",
     "from": "system",
-    "setting_id": "GP136",
+    "setting_id": "GP173",
     "instantiation": "true",
     "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
-    "bottom_shell_layers": "7",
+    "bottom_shell_layers": "4",
     "default_acceleration": [
         "4000",
         "4000",
         "4000",
         "4000"
     ],
-    "gap_infill_speed": [
+    "initial_layer_speed": [
         "50",
         "50",
         "50",
         "50"
     ],
-    "initial_layer_infill_speed": [
-        "70",
-        "70",
-        "70",
-        "70"
-    ],
-    "initial_layer_speed": [
-        "40",
-        "40",
-        "40",
-        "40"
-    ],
     "inner_wall_speed": [
-        "120",
-        "120",
-        "120",
-        "120"
+        "150",
+        "150",
+        "150",
+        "150"
     ],
     "internal_solid_infill_speed": [
-        "120",
-        "120",
-        "120",
-        "120"
+        "200",
+        "200",
+        "200",
+        "200"
     ],
-    "layer_height": "0.08",
     "outer_wall_acceleration": [
         "2000",
         "2000",
@@ -70,21 +57,21 @@
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
-    "sparse_infill_pattern": "gyroid",
     "sparse_infill_speed": [
-        "100",
-        "100",
-        "100",
-        "100"
+        "200",
+        "200",
+        "200",
+        "200"
     ],
-    "top_shell_layers": "9",
+    "top_shell_layers": "6",
     "top_surface_speed": [
-        "120",
-        "120",
-        "120",
-        "120"
+        "150",
+        "150",
+        "150",
+        "150"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D 0.4 nozzle"
+        "Bambu Lab H2D 0.4 nozzle",
+        "Bambu Lab O1C 0.4 nozzle"
     ]
 }

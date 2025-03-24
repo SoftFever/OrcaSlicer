@@ -248,12 +248,20 @@
             "sub_path": "process/0.14mm Extra Draft @BBL H2D 0.2 nozzle.json"
         },
         {
+            "name": "0.16mm High Quality @BBL H2D",
+            "sub_path": "process/0.16mm High Quality @BBL H2D.json"
+        },
+        {
             "name": "0.16mm Optimal @BBL H2D",
             "sub_path": "process/0.16mm Optimal @BBL H2D.json"
         },
         {
             "name": "0.18mm Extra Fine @BBL H2D 0.6 nozzle",
             "sub_path": "process/0.18mm Extra Fine @BBL H2D 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm High Quality @BBL H2D",
+            "sub_path": "process/0.20mm High Quality @BBL H2D.json"
         },
         {
             "name": "0.20mm Standard @BBL H2D",
