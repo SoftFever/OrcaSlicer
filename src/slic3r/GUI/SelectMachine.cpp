@@ -1791,11 +1791,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusReading) {
         wxString msg_text = _L("Synchronizing device information");
         update_print_status_msg(msg_text, true, false, true);
-    } else if (status == PrintDialogStatus::PrintStatusReadingFinished) {
-        update_print_status_msg(wxEmptyString, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
         wxString msg_text = _L("Synchronizing device information time out");
-        update_print_status_msg(msg_text, true, true, true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusModeNotFDM) {
         update_print_status_msg(_L("Cannot send the print job when the printer is not at FDM mode"), true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
@@ -1809,8 +1807,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsOnSettingup) {
         update_print_status_msg(_L("AMS is setting up. Please try again later."), false, false, true);
-    } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
-        update_print_status_msg(wxEmptyString, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusInvalidMapping) {
         update_print_status_msg(wxEmptyString, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
@@ -1820,9 +1816,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         else
             msg_text = _L("Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, false, false, true);
-    }  else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
-        update_print_status_msg(wxEmptyString, false, true, true);
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
+    }  else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         update_print_status_msg(wxEmptyString, false, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with AMS");
@@ -1844,23 +1838,16 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         else
             msg_text = _L("Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, false, false, true);
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
-        update_print_status_msg(wxEmptyString, false, true, true);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
         update_print_status_msg(wxEmptyString, true, false, false);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
         update_print_status_msg(wxEmptyString, true, false, false);
-    } else if (status == PrintDialogStatus::PrintStatusSendingCanceled) {
-        update_print_status_msg(wxEmptyString, true, true, true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
         update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
         wxString msg_text = _L("Storage is not available or is in read-only mode.");
-        update_print_status_msg(msg_text, true, true, true);
-    } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
-        wxString msg_text = _L("External storage is not available or is in read-only mode.");
-        update_print_status_msg(msg_text, true, true, true);
+        update_print_status_msg(msg_text, true, false, true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
         wxString msg_text = _L("The printer firmware only supports sequential mapping of filament => AMS slot.");
         update_print_status_msg(msg_text, false, true, true);
@@ -3285,9 +3272,6 @@ void SelectMachineDialog::update_show_status()
     if (get_status() == PrintDialogStatus::PrintStatusSending)
         return;
 
-    if (get_status() == PrintDialogStatus::PrintStatusSendingCanceled)
-        return;
-
     NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!agent) {
@@ -3531,35 +3515,28 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-        // no ams
-    if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
-        if (!has_tips(obj_)) {
-            if (has_timelapse_warning()) {
-                show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-            } else {
-                show_status(PrintDialogStatus::PrintStatusReadingFinished);
-            }
-        }
+    if (obj_->is_ams_on_settingup()) {
+        show_status(PrintDialogStatus::PrintStatusAmsOnSettingup);
         return;
     }
 
     if (m_checkbox_list["use_ams"]->getValue() != "on") {
         m_ams_mapping_result.clear();
         sync_ams_mapping_result(m_ams_mapping_result);
+    }
 
-        if (has_timelapse_warning()) {
-            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-        } else {
-            show_status(PrintDialogStatus::PrintStatusDisableAms);
-        }
-
+    if (!m_ams_mapping_res && !obj_->is_valid_mapping_result(m_ams_mapping_result)) {
+        show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
         return;
     }
 
-    if (obj_->is_ams_on_settingup())
-    {
-        show_status(PrintDialogStatus::PrintStatusAmsOnSettingup);
-        return;
+    /*Warnings*/
+        // no ams
+    if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
+        if (has_timelapse_warning()) {
+            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+            return;
+        }
     }
 
     struct ExtruderStatus

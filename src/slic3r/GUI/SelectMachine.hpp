@@ -62,52 +62,84 @@ enum PrintPageMode {
     PrintPageModeFinish
 };
 
-enum PrintDialogStatus {
-    PrintStatusInit = 0,
+enum PrintDialogStatus : unsigned int {
+    /*Errors*/
+    PrintStatusErrorBegin,
+
+    //Errors for printer, Block Print
+    PrintStatusPrinterErrorBegin,
+    PrintStatusInit,
     PrintStatusNoUserLogin,
     PrintStatusInvalidPrinter,
     PrintStatusConnectingServer,
-    PrintStatusReading,
-    PrintStatusReadingFinished,
     PrintStatusReadingTimeout,
+    PrintStatusReading,
     PrintStatusInUpgrading,
     PrintStatusModeNotFDM,
-    PrintStatusNeedUpgradingAms,
     PrintStatusInSystemPrinting,
     PrintStatusInPrinting,
-    PrintStatusDisableAms,
-    PrintStatusAmsOnSettingup,
-    PrintStatusAmsMappingSuccess,
-    PrintStatusAmsMappingInvalid,
-    PrintStatusAmsMappingU0Invalid,
-    PrintStatusAmsMappingMixInvalid,
     PrintStatusNozzleMatchInvalid,
     PrintStatusNozzleDataInvalid,
     PrintStatusNozzleDiameterMismatch,
     PrintStatusNozzleTypeMismatch,
-    PrintStatusAmsMappingValid,
-    PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
     PrintStatusSending,
-    PrintStatusSendingCanceled,
     PrintStatusLanModeNoSdcard,
-    PrintStatusLanModeSDcardNotAvailable,
     PrintStatusNoSdcard,
-    PrintStatusTimelapseNoSdcard,
-    PrintStatusNotOnTheSameLAN,
+    PrintStatusLanModeSDcardNotAvailable,
     PrintStatusNeedForceUpgrading,
     PrintStatusNeedConsistencyUpgrading,
-    PrintStatusNotSupportedSendToSDCard,
     PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate,
     PrintStatusUnsupportedPrinter,
+    PrintStatusInvalidMapping,
+    PrintStatusPrinterErrorEnd,
+
+    //Errors for filament, Block Print
+    PrintStatusFilamentErrorBegin,
+    PrintStatusNeedUpgradingAms,
+    PrintStatusAmsOnSettingup,
+    PrintStatusAmsMappingInvalid,
+    PrintStatusAmsMappingU0Invalid,
+    PrintStatusAmsMappingMixInvalid,
+    PrintStatusTPUUnsupportAutoCali,
+    PrintStatusFilamentErrorEnd,
+
+    PrintStatusErrorEnd,
+
+    /*Warnings*/
+    PrintStatusWarningBegin,
+
+    //Warnings for printer
+    PrintStatusPrinterWarningBegin,
+    PrintStatusTimelapseNoSdcard,
     PrintStatusTimelapseWarning,
     PrintStatusMixAmsAndVtSlotWarning,
+    PrintStatusPrinterWarningEnd,
+
+    //Warnings for filament
+    PrintStatusFilamentWarningBegin,
+    PrintStatusAmsMappingByOrder,
+    PrintStatusWarningKvalueNotUsed,
+    PrintStatusFilamentWarningEnd,
+
+    PrintStatusWarningEnd,
+
+    /*Success*/
+    //printer
+    PrintStatusReadingFinished,
+    PrintStatusSendingCanceled,
+
+    //filament
+    PrintStatusDisableAms,
+    PrintStatusAmsMappingSuccess,
+    PrintStatusAmsMappingValid,
+
+    /*Other, SendToPrinterDialog*/
+    PrintStatusNotOnTheSameLAN,
+    PrintStatusNotSupportedSendToSDCard,
     PrintStatusPublicInitFailed,
     PrintStatusPublicUploadFiled,
-    PrintStatusInvalidMapping,
-    PrintStatusTPUUnsupportAutoCali,
-    PrintStatusWarningKvalueNotUsed,
 };
 
 
@@ -523,6 +555,14 @@ public:
 
 private:
     void EnableEditing(bool enable);
+
+    /*go check*/
+    bool is_error(PrintDialogStatus status)            { return (PrintStatusErrorBegin < status)           && (PrintStatusErrorEnd > status); };
+    bool is_error_printer(PrintDialogStatus status)    { return (PrintStatusPrinterErrorBegin < status)    && (PrintStatusPrinterErrorEnd > status); };
+    bool is_error_filament(PrintDialogStatus status)   { return (PrintStatusFilamentErrorBegin < status)   && (PrintStatusFilamentErrorEnd > status); };
+    bool is_warning(PrintDialogStatus status)          { return (PrintStatusWarningBegin < status)         && (PrintStatusWarningEnd > status); };
+    bool is_warning_printer(PrintDialogStatus status)  { return (PrintStatusPrinterWarningBegin < status)  && (PrintStatusPrinterWarningEnd > status); };
+    bool is_warning_filament(PrintDialogStatus status) { return (PrintStatusFilamentWarningBegin < status) && (PrintStatusFilamentWarningEnd > status); };
 };
 
 
