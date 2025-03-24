@@ -1577,28 +1577,28 @@ void GUI_App::init_networking_callbacks()
 
         m_agent->set_server_callback([this](std::string url, int status) {
 
-            CallAfter([this]() {
-                if (!m_server_error_dialog) {
-                    /*m_server_error_dialog->EndModal(wxCLOSE);
-                    m_server_error_dialog->Destroy();
-                    m_server_error_dialog = nullptr;*/
-                    m_server_error_dialog = new NetworkErrorDialog(mainframe);
-                }
-
-                if(plater()->get_select_machine_dialog() && plater()->get_select_machine_dialog()->IsShown()){
-                    return;
-                }
-
-                if (m_server_error_dialog->m_show_again) {
-                    return;
-                }
-
-                if (m_server_error_dialog->IsShown()) {
-                    return;
-                }
-
-                m_server_error_dialog->ShowModal();
-            });
+            //CallAfter([this]() {
+            //    if (!m_server_error_dialog) {
+            //        /*m_server_error_dialog->EndModal(wxCLOSE);
+            //        m_server_error_dialog->Destroy();
+            //        m_server_error_dialog = nullptr;*/
+            //        m_server_error_dialog = new NetworkErrorDialog(mainframe);
+            //    }
+            //
+            //    if(plater()->get_select_machine_dialog() && plater()->get_select_machine_dialog()->IsShown()){
+            //        return;
+            //    }
+            //
+            //    if (m_server_error_dialog->m_show_again) {
+            //        return;
+            //    }
+            //
+            //    if (m_server_error_dialog->IsShown()) {
+            //        return;
+            //    }
+            //
+            //    m_server_error_dialog->ShowModal();
+            //});
         });
 
 
