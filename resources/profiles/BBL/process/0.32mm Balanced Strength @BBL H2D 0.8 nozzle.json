@@ -1,9 +1,9 @@
 {
     "type": "process",
-    "name": "0.56mm Extra Draft @BBL H2D 0.8 nozzle",
-    "inherits": "fdm_process_dual_0.56_nozzle_0.8",
+    "name": "0.32mm Balanced Strength @BBL H2D 0.8 nozzle",
+    "inherits": "fdm_process_dual_0.32_nozzle_0.8",
     "from": "system",
-    "setting_id": "GP151",
+    "setting_id": "GP149",
     "instantiation": "true",
     "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
     "bridge_speed": [
@@ -48,7 +48,7 @@
         "250",
         "300"
     ],
-    "layer_height": "0.56",
+    "layer_height": "0.32",
     "outer_wall_speed": [
         "200",
         "200",

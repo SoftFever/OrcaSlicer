@@ -1,9 +1,9 @@
 {
     "type": "process",
-    "name": "0.14mm Extra Draft @BBL H2D 0.2 nozzle",
-    "inherits": "fdm_process_dual_0.14_nozzle_0.2",
+    "name": "0.12mm Balanced Quality @BBL H2D 0.2 nozzle",
+    "inherits": "fdm_process_dual_0.12_nozzle_0.2",
     "from": "system",
-    "setting_id": "GP141",
+    "setting_id": "GP140",
     "instantiation": "true",
     "description": "It has a small layer height, and results in almost negligible layer lines and high printing quality. It is suitable for most general printing cases.",
     "default_acceleration": [
@@ -18,7 +18,7 @@
         "40",
         "40"
     ],
-    "layer_height": "0.14",
+    "layer_height": "0.12",
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
     "travel_speed": [

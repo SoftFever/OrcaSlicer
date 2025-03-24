@@ -1,11 +1,11 @@
 {
     "type": "process",
-    "name": "0.48mm Draft @BBL H2D 0.8 nozzle",
-    "inherits": "fdm_process_dual_0.48_nozzle_0.8",
+    "name": "0.18mm Balanced Quality @BBL H2D 0.6 nozzle",
+    "inherits": "fdm_process_dual_0.18_nozzle_0.6",
     "from": "system",
-    "setting_id": "GP150",
+    "setting_id": "GP137",
     "instantiation": "true",
-    "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
+    "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",
     "bridge_speed": [
         "50",
         "50",
@@ -48,7 +48,7 @@
         "250",
         "300"
     ],
-    "layer_height": "0.48",
+    "layer_height": "0.18",
     "outer_wall_speed": [
         "200",
         "200",
@@ -60,12 +60,6 @@
         "30",
         "30",
         "30"
-    ],
-    "overhang_4_4_speed": [
-        "10",
-        "10",
-        "10",
-        "10"
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
@@ -88,6 +82,6 @@
         "1000"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D 0.8 nozzle"
+        "Bambu Lab H2D 0.6 nozzle"
     ]
 }

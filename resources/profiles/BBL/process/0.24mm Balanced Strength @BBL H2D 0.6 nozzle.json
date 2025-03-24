@@ -1,11 +1,11 @@
 {
     "type": "process",
-    "name": "0.24mm Extra Fine @BBL H2D 0.8 nozzle",
-    "inherits": "fdm_process_dual_0.24_nozzle_0.8",
+    "name": "0.24mm Balanced Strength @BBL H2D 0.6 nozzle",
+    "inherits": "fdm_process_dual_0.24_nozzle_0.6",
     "from": "system",
-    "setting_id": "GP138",
+    "setting_id": "GP146",
     "instantiation": "true",
-    "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
+    "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",
     "bridge_speed": [
         "50",
         "50",
@@ -61,12 +61,6 @@
         "30",
         "30"
     ],
-    "overhang_4_4_speed": [
-        "10",
-        "10",
-        "10",
-        "10"
-    ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
     "sparse_infill_speed": [
@@ -88,6 +82,6 @@
         "1000"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D 0.8 nozzle"
+        "Bambu Lab H2D 0.6 nozzle"
     ]
 }
