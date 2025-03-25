@@ -783,12 +783,19 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
             if (model_it.second.size() > 0) {
                 variant = *model_it.second.begin();
                 if (model_it.second.size() > 1) {
-                    const VendorProfile::PrinterModel &printer_model   = *std::find_if(printer_profile.models.begin(), printer_profile.models.end(),
-                                                                                  [id = model_it.first](auto &m) { return m.id == id; });
-                    for (auto &vt : printer_model.variants) {
-                        if (std::find(model_it.second.begin(), model_it.second.end(), vt.name) != model_it.second.end()) { variant = vt.name; break; }
+                    if (printer_profile.models.size() > 0) {
+                        const VendorProfile::PrinterModel& printer_model = *std::find_if(printer_profile.models.begin(), printer_profile.models.end(),
+                            [id = model_it.first](auto& m) { return m.id == id; });
+                        for (auto& vt : printer_model.variants) {
+                            if (std::find(model_it.second.begin(), model_it.second.end(), vt.name) != model_it.second.end()) { variant = vt.name; break; }
+                        }
+                    }
+                    else if (variant != PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT){
+                        if (std::find(model_it.second.begin(), model_it.second.end(), PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT) != model_it.second.end())
+                            variant = PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT;
                     }
                 }
+
                 const auto config_old = old_enabled_vendors.find(bundle_name);
                 if (config_old == old_enabled_vendors.end())
                     return model_it.first;
