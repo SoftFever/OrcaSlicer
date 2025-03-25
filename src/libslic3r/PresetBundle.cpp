@@ -3,6 +3,7 @@
 #include "PresetBundle.hpp"
 #include "PrintConfig.hpp"
 #include "libslic3r.h"
+#include "I18N.hpp"
 #include "Utils.hpp"
 #include "Model.hpp"
 #include "format.hpp"
@@ -24,6 +25,8 @@
 #include <boost/log/trivial.hpp>
 #include <miniz/miniz.h>
 
+// Mark string for localization and translate.
+#define L(s) Slic3r::I18N::translate(s)
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
 // This breaks compatibility with the upstream Slic3r if the --datadir is used to switch between the two versions.
