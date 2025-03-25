@@ -1,4 +1,5 @@
 #include "FilamentGroupUtils.hpp"
+#include <regex>
 #include <sstream>
 
 namespace Slic3r
