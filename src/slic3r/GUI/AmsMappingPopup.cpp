@@ -575,7 +575,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
  {
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
-     #if __APPLE__
+     #ifdef __APPLE__
      Bind(wxEVT_LEFT_DOWN, &AmsMapingPopup::on_left_down, this);
      #endif
 
@@ -611,7 +611,9 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      title_panel->Fit();
 
      m_left_marea_panel = new wxPanel(this);
+     m_left_marea_panel->SetName("left");
      m_right_marea_panel = new wxPanel(this);
+     m_right_marea_panel->SetName("right");
      m_left_first_text_panel  = new wxPanel(m_left_marea_panel);
      m_right_first_text_panel = new wxPanel(m_right_marea_panel);
      auto sizer_temp = new wxBoxSizer(wxHORIZONTAL);
@@ -808,8 +810,13 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
         if (pos.x > p_rect.x && pos.y > p_rect.y && pos.x < (p_rect.x + item->GetSize().x) && pos.y < (p_rect.y + item->GetSize().y)) {
             if (item->m_tray_data.type == TrayType::NORMAL  && !is_match_material(item->m_tray_data.filament_type)) return;
             if (item->m_tray_data.type == TrayType::EMPTY) return;
-            item->send_event(m_current_filament_id);
-            Dismiss();
+            if ((m_show_type == ShowType::LEFT && item->GetParent()->GetName() == "left") ||
+                (m_show_type == ShowType::RIGHT && item->GetParent()->GetName() == "right") ||
+                m_show_type == ShowType::LEFT_AND_RIGHT) {
+                item->send_event(m_current_filament_id);
+                Dismiss();
+                break;
+            }
         }
     }
 }
@@ -1089,6 +1096,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
             auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
             auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel,
                                                                    ams_iter->second->get_ams_device_name(), ams_iter->second->trayList.size());
+            ams_mapping_item_container->SetName(nozzle_id == 0 ? m_right_marea_panel->GetName() : m_left_marea_panel->GetName());
             ams_mapping_item_container->SetSizer(sizer_mapping_list);
             ams_mapping_item_container->Layout();
 
