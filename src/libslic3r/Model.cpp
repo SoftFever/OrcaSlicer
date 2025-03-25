@@ -190,26 +190,34 @@ Model Model::read_from_step(const std::string&                                  
     Model model;
     bool result = false;
     bool is_cb_cancel = false;
-    std::string message;
-    Step step_file(input_file);
-    step_file.load();
+    Step::Step_Status status;
+    Step step_file(input_file, stepFn);
+    status = step_file.load();
+    if(status != Step::Step_Status::LOAD_SUCCESS) {
+        goto _finished;
+    }
     if (step_mesh_fn) {
         if (step_mesh_fn(step_file, linear_defletion, angle_defletion, is_split_compound) == -1) {
+            status = Step::Step_Status::CANCEL;
+            goto _finished;
+        }
+    }
+    
+    status = step_file.mesh(&model, is_cb_cancel, is_split_compound, linear_defletion, angle_defletion);
+
+_finished:
+
+    switch (status){
+        case Step::Step_Status::CANCEL: {
             Model empty_model;
             return empty_model;
         }
-    }
-    result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, is_split_compound, stepFn, stepIsUtf8Fn);
-    if (is_cb_cancel) {
-        Model empty_model;
-        return empty_model;
-    }
-
-    if (!result) {
-        if (message.empty())
+        case Step::Step_Status::LOAD_ERROR:
             throw Slic3r::RuntimeError(_L("Loading of a model file failed."));
-        else
-            throw Slic3r::RuntimeError(message);
+        case Step::Step_Status::MESH_ERROR:
+            throw Slic3r::RuntimeError(_L("Meshing of a model file failed or no valid shape."));
+        default:
+            break;
     }
 
     if (model.objects.empty())
