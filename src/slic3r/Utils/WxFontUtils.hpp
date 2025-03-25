@@ -5,6 +5,7 @@
 #include <optional>
 #include <string_view>
 #include <boost/bimap.hpp>
+#include <wx/dc.h>
 #include <wx/font.h>
 #include "libslic3r/Emboss.hpp"
 
