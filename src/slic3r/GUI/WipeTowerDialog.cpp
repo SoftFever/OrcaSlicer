@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <wx/display.h>
 #include <wx/sizer.h>
 #include "libslic3r/FlushVolCalc.hpp"
 #include "WipeTowerDialog.hpp"
