@@ -9,6 +9,7 @@
 
 #include "GCodeProcessor.hpp"
 #include "BoundingBox.hpp"
+#include "ClipperUtils.hpp"
 #include "LocalesUtils.hpp"
 #include "Triangulation.hpp"
 
