@@ -19,6 +19,12 @@
         "40"
     ],
     "layer_height": "0.08",
+    "overhang_1_4_speed": [
+        "60",
+        "60",
+        "60",
+        "60"
+    ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
     "travel_speed": [
