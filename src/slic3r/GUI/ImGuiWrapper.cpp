@@ -26,6 +26,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "libslic3r/libslic3r.h"
+#include <libslic3r/ClipperUtils.hpp>
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/Shape/TextShape.hpp"
