@@ -414,13 +414,22 @@ static void insert_points(std::vector<PointWithFlag> &pl, int idx, Vec2f pos, in
 
 static Polylines remove_points_from_polygon(const Polygon &polygon, const std::vector<Vec2f> &skip_points, double range, bool is_left ,Polygon& insert_skip_pg)
 {
-    Polylines result;
-    std::vector<PointWithFlag> new_pl; // add intersection points for gaps, where bool indicates whether it's a gap point.
+    assert(polygon.size() > 2);
+    Polylines                     result;
+    std::vector<PointWithFlag>    new_pl; // add intersection points for gaps, where bool indicates whether it's a gap point.
     std::vector<IntersectionInfo> inter_info;
     Vec2f                         ray = is_left ? Vec2f(-1, 0) : Vec2f(1, 0);
+    auto                          polygon_box  = get_extents(polygon);
+    Point                         anchor_point = is_left ? Point{polygon_box.max[0], polygon_box.min[1]} : polygon_box.min; // rd:ld
     std::vector<Vec2f>            points;
-    points.reserve(polygon.points.size());
-    for (auto &p : polygon.points) points.push_back(unscale(p).cast<float>());
+    {
+        points.reserve(polygon.points.size());
+        int idx = polygon.closest_point_index(anchor_point);
+        Polyline tmp_poly = polygon.split_at_index(idx);
+        for (auto &p : tmp_poly) points.push_back(unscale(p).cast<float>());
+        points.pop_back();
+    }
+    
     for (int i = 0; i < skip_points.size(); i++) {
         for (int j = 0; j < points.size(); j++) {
             Vec2f& p1                   = points[j];
@@ -451,30 +460,7 @@ static Polylines remove_points_from_polygon(const Polygon &polygon, const std::v
         for (auto &p : new_pl) insert_skip_pg.points.push_back(scaled(p.pos));
     }
 
-    //assume that no interval is completely contained within another interval.
-    int beg = -1;
-    for (int i = 0; i < skip_points.size(); i++) {
-        if (beg != -1) break;
-        for (int j = 0; j < new_pl.size(); j++) {
-            if (new_pl[j].pair_idx == i && !new_pl[j].is_forward) {
-                bool is_include_pair = false;
-                int  k               = (j + 1) % new_pl.size();
-                while (k != j) {
-                    if (new_pl[k].pair_idx == i && new_pl[k].is_forward) { break; }
-                    if (new_pl[k].pair_idx != -1 && new_pl[k].pair_idx != i && new_pl[k].is_forward) {
-                        is_include_pair = true;
-                        break;
-                    }
-                    k = (k + 1) % new_pl.size();
-                }
-                if (!is_include_pair) {
-                    beg = k;
-                    break;
-                }
-            }
-        }
-    }
-    if (beg == -1) beg = 0;
+    int beg = 0;
     bool skip = true;
     int  i    = beg;
     Polyline pl;
@@ -492,7 +478,10 @@ static Polylines remove_points_from_polygon(const Polygon &polygon, const std::v
             }
             int left = new_pl[i].pair_idx;
             int j    = (i + 1) % new_pl.size();
-            while (j != beg && new_pl[j].pair_idx != left) j = (j + 1) % new_pl.size();
+            while (j != beg && new_pl[j].pair_idx != left) {
+                if (new_pl[j].pair_idx != -1 && !new_pl[j].is_forward) left = new_pl[j].pair_idx;
+                j = (j + 1) % new_pl.size();
+            }
             i    = j;
             skip = true;
         }
