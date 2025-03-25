@@ -4638,7 +4638,7 @@ int Print::load_cached_data(const std::string& directory)
     return ret;
 }
 
-BoundingBoxf3 PrintInstance::get_bounding_box() {
+BoundingBoxf3 PrintInstance::get_bounding_box() const {
     return print_object->model_object()->instance_bounding_box(*model_instance, false);
 }
 

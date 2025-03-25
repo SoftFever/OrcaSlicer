@@ -27,6 +27,8 @@
 // ORCA: post processor below used for Dynamic Pressure advance
 #include "GCode/AdaptivePAProcessor.hpp"
 
+#include "GCode/TimelapsePosPicker.hpp"
+
 #include <memory>
 #include <map>
 #include <set>
@@ -523,6 +525,7 @@ private:
     Wipe                                m_wipe;
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
     RetractWhenCrossingPerimeters       m_retract_when_crossing_perimeters;
+    TimelapsePosPicker                  m_timelapse_pos_picker;
     bool                                m_enable_loop_clipping;
     //resonance avoidance
     bool                                m_resonance_avoidance; 
@@ -606,6 +609,8 @@ private:
     bool m_silent_time_estimator_enabled;
 
     Print *m_print{nullptr};
+
+    std::set<const PrintObject*> m_printed_objects;
 
     // Processor
     GCodeProcessor m_processor;
