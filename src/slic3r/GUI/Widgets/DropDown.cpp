@@ -9,6 +9,8 @@
 #include <gtk/gtk.h>
 #endif
 
+#include <set>
+
 wxDEFINE_EVENT(EVT_DISMISS, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(DropDown, PopupWindow)
