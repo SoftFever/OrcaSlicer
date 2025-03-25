@@ -755,6 +755,11 @@ void SecondaryCheckDialog::update_text(wxString text)
 
 void SecondaryCheckDialog::on_show()
 {
+#ifdef __APPLE__
+    if (wxGetApp().mainframe && wxGetApp().mainframe->get_mac_full_screen()) {
+        SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
+    }
+#endif
     wxGetApp().UpdateFrameDarkUI(this);
     // recover button color
     wxMouseEvent evt_ok(wxEVT_LEFT_UP);
@@ -763,7 +768,7 @@ void SecondaryCheckDialog::on_show()
     m_button_cancel->GetEventHandler()->ProcessEvent(evt_cancel);
 
     this->Show();
-    //this->Raise();
+    this->Raise();
 }
 
 void SecondaryCheckDialog::on_hide()

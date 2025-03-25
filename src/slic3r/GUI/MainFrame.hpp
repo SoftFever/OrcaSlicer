@@ -91,7 +91,10 @@ protected:
 
 class MainFrame : public DPIFrame
 {
-    bool        m_loaded {false};
+#ifdef __APPLE__
+    bool     m_mac_fullscreen{false};
+#endif
+    bool     m_loaded {false};
     wxTimer* m_reset_title_text_colour_timer{ nullptr };
 
     wxString    m_qs_last_input_file = wxEmptyString;
@@ -205,7 +208,9 @@ protected:
 public:
     MainFrame();
     ~MainFrame() = default;
-
+#ifdef __APPLE__
+    bool get_mac_full_screen() { return m_mac_fullscreen; }
+#endif
     //BBS GUI refactor
     enum TabPosition
     {
