@@ -662,8 +662,8 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams_left->Add(sizer_temp, 0, wxEXPAND | wxTOP, FromDIP(8));
 
      m_right_tips = new Label(m_right_first_text_panel);
-     m_right_tips->SetForegroundColour(0x262E30);
-     m_right_tips->SetBackgroundColour(*wxWHITE);
+     m_right_tips->SetForegroundColour(StateColor::darkModeColorFor("0x262E30"));
+     m_right_tips->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
      m_right_tips->SetFont(::Label::Body_13);
      m_right_tips->SetLabel(m_right_tip_text);
      m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND , 0);
