@@ -4,7 +4,9 @@
 #include <vector>
 #include <optional>
 #include <functional>
+#include <limits>
 #include <memory>
+#include <unordered_set>
 
 namespace Slic3r {
 
