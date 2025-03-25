@@ -8,6 +8,9 @@
 #include <algorithm>
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Polyline.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 #include <unordered_set>
 
 namespace Slic3r
