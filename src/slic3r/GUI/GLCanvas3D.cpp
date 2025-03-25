@@ -6049,8 +6049,8 @@ void GLCanvas3D::_render_3d_navigator()
     strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_BACK], _utf8("Back").c_str());
     strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_TOP], _utf8("Top").c_str());
     strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_BOTTOM], _utf8("Bottom").c_str());
-    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_LEFT], _utf8("Left").c_str());
-    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_RIGHT], _utf8("Right").c_str());
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_LEFT], _CTX_utf8(L_CONTEXT("Left", "Camera"), "Camera").c_str());
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_RIGHT], _CTX_utf8(L_CONTEXT("Right", "Camera"), "Camera").c_str());
 
     float sc = get_scale();
 #ifdef WIN32
