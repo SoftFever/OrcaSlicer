@@ -1,6 +1,7 @@
 #ifndef FILAMENT_GROUP_HOVER_HPP
 #define FILAMENT_GROUP_HOVER_HPP
 
+#include <wx/timer.h>
 #include "libslic3r/PrintConfig.hpp"
 #include "Widgets/PopupWindow.hpp"
 #include "Widgets/Label.hpp"
