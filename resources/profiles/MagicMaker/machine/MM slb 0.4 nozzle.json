@@ -120,7 +120,6 @@
 		"MM Generic PLA"
 
     ],
-    "gcode_flavor": "marlin",
     "is_custom_defined": "0",
     "machine_max_acceleration_x": [
         "2000",
