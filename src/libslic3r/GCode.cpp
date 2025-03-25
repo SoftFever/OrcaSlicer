@@ -2117,6 +2117,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     PROFILE_FUNC();
 
     m_print = &print;
+    m_timelapse_pos_picker.init(&print,m_writer.get_xy_offset().cast<coord_t>());
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
@@ -2864,7 +2865,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
                 tool_ordering.cal_most_used_extruder(print.config());
-                this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
+                m_printed_objects.insert(&object);
+                this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file,
+                                     prime_extruder);
                 {
                     // save the flush statitics stored in tool ordering by object
                     print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
@@ -4112,7 +4115,6 @@ LayerResult GCode::process_layer(
     bool has_insert_timelapse_gcode = false;
     bool has_wipe_tower             = (layer_tools.has_wipe_tower && m_wipe_tower);
 
-    int physical_extruder_id = print.config().physical_extruder_map.get_at(most_used_extruder);
 
     ZHopType z_hope_type = ZHopType(FILAMENT_CONFIG(z_hop_types));
     LiftType auto_lift_type = LiftType::NormalLift;
@@ -4137,7 +4139,7 @@ LayerResult GCode::process_layer(
     }
     if (! m_config.layer_change_gcode.value.empty()) {
         DynamicConfig config;
-        config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(physical_extruder_id));
+        config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
         gcode += this->placeholder_parser_process("layer_change_gcode",
@@ -4561,14 +4563,34 @@ LayerResult GCode::process_layer(
         }
     }
 
-    auto insert_timelapse_gcode = [this, print_z, &print, &physical_extruder_id, &layer_object_label_ids]() -> std::string {
+    auto insert_timelapse_gcode = [this, print_z, &print, &most_used_extruder, &layer_object_label_ids,&printed_objects = std::as_const(m_printed_objects)]() -> std::string {
+        PosPickCtx ctx;
+        ctx.curr_pos = { (coord_t)(scale_(m_writer.get_position().x())),(coord_t)(scale_(m_writer.get_position().y())) };
+        ctx.curr_layer = this->layer();
+        ctx.curr_extruder_id = m_writer.filament()->extruder_id();
+        ctx.picture_extruder_id = most_used_extruder;
+        if (m_config.nozzle_diameter.size() > 1) {
+            ctx.extruder_height_gap = m_config.extruder_printable_height.values[0] - m_config.extruder_printable_height.values[1];
+            ctx.liftable_extruder_id = m_config.extruder_printable_height.values[0] < m_config.extruder_printable_height.values[0] ? 0 : 1;
+        }
+
+        ctx.print_sequence = m_config.print_sequence;
+        if (m_config.print_sequence == PrintSequence::ByObject)
+            ctx.printed_objects = printed_objects;
+        ctx.based_on_all_layer = m_config.timelapse_type == TimelapseType::tlSmooth;
+
+        auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
+
         std::string timepals_gcode;
         if (!print.config().time_lapse_gcode.value.empty()) {
             DynamicConfig config;
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
             config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-            config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(physical_extruder_id));
+            config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
+            config.set_key_value("timelapse_pos_x", new ConfigOptionInt((int)timelapse_pos.x()));
+            config.set_key_value("timelapse_pos_y", new ConfigOptionInt((int)timelapse_pos.y()));
+            config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(timelapse_pos != DefaultTimelapsePos));
             timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
         }
         if (!timepals_gcode.empty()) {
