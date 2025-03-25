@@ -6,6 +6,7 @@
 
 #include <wx/simplebook.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
 #include <wx/timer.h>
 #include <vector>
 
