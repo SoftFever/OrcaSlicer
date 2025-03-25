@@ -130,13 +130,13 @@ class Sidebar : public wxPanel
     Button *         btn_sync{nullptr};
     ScalableButton *  ams_btn{nullptr};
     bool                                    m_last_slice_state = false;
-    std::shared_ptr<SyncNozzleAndAmsDialog> m_sna_dialog{nullptr};
-    std::shared_ptr<FinishSyncAmsDialog>    m_fna_dialog{nullptr};
+    SyncNozzleAndAmsDialog*                 m_sna_dialog{nullptr};
+    FinishSyncAmsDialog*                    m_fna_dialog{nullptr};
     std::vector<BedType>                    m_cur_combox_bed_types;
     std::string                             m_cur_image_bed_type;
     int                                     m_last_combo_bedtype_count{0};
     bool                                    m_begin_sync_printer_status{false};
-    std::shared_ptr<SyncAmsInfoDialog>      m_sync_dlg{nullptr};
+    SyncAmsInfoDialog*                      m_sync_dlg{nullptr};
 
     void update_sync_ams_btn_enable(wxUpdateUIEvent &e);
 
