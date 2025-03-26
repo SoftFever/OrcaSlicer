@@ -2252,9 +2252,9 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         if (obj->is_multi_extruders()) {
             update_multi_extruder_filament_combobox(std::to_string(VIRTUAL_TRAY_MAIN_ID), 0);
             update_multi_extruder_filament_combobox(std::to_string(VIRTUAL_TRAY_DEPUTY_ID), 1);
+        } else {
+            update_filament_combobox(std::to_string(VIRTUAL_TRAY_MAIN_ID));
         }
-
-        update_filament_combobox();
     }
 
     m_ams_id_to_extruder_id_map.clear();
@@ -2471,9 +2471,17 @@ std::vector<FilamentComboBox*> CalibrationPresetPage::get_selected_filament_comb
         }
     }
     else {
-        for (auto &fcb : m_filament_comboBox_list) {
-            if (fcb->GetCheckBox()->GetValue()) {
-                fcb_list.push_back(fcb);
+        if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_MULITI) {
+            for (auto &fcb : m_filament_comboBox_list) {
+                if (fcb->GetCheckBox()->GetValue()) {
+                    fcb_list.push_back(fcb);
+                }
+            }
+        } else if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
+            for (auto &fcb : m_filament_comboBox_list) {
+                if (fcb->GetRadioBox()->GetValue()) {
+                    fcb_list.push_back(fcb);
+                }
             }
         }
     }
