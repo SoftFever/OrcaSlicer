@@ -117,9 +117,8 @@
         "0.4"
     ],
 	"default_filament_profile": [
-		"MM Generic PLA"
-
-    ],
+		"Generic PLA @System"
+	],
     "is_custom_defined": "0",
     "machine_max_acceleration_x": [
         "2000",
