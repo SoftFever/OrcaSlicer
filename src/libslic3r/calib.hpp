@@ -33,7 +33,8 @@ struct Calib_Params
     Calib_Params() : mode(CalibMode::Calib_None){};
     double    start, end, step;
     bool      print_numbers;
-
+    double freqStartX, freqEndX, freqStartY, freqEndY;
+    int test_model;
     std::vector<double> accelerations;
     std::vector<double> speeds;
 
@@ -338,4 +339,4 @@ private:
     const double m_glyph_padding_vertical{1};
 };
 
-} // namespace Slic3
+} // namespace Slic3r
