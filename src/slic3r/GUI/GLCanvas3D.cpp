@@ -4180,11 +4180,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         int volume_idx = get_first_hover_volume_idx();
                         bool already_selected = m_selection.contains_volume(volume_idx);
                         bool ctrl_down = evt.CmdDown();
-
+                        bool alt_down  = evt.AltDown();
                         Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
 
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
+                        else if (alt_down) {
+                            Selection::EMode mode = Selection::Volume;
+                            if (already_selected) {
+                                std::vector<unsigned int> volume_idxs;
+                                for (auto idx : curr_idxs) { volume_idxs.emplace_back(idx); }
+                                m_selection.remove_volumes(mode, volume_idxs);
+                            }
+                            std::vector<unsigned int> add_volume_idxs;
+                            add_volume_idxs.emplace_back(volume_idx);
+                            m_selection.add_volumes(mode, add_volume_idxs, true);
+                        }
                         else {
                             m_selection.add(volume_idx, !ctrl_down, true);
                             m_mouse.drag.move_requires_threshold = !already_selected;
