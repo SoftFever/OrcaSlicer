@@ -137,8 +137,11 @@ protected:
     virtual void on_start(wxCommandEvent& event);
     Calib_Params m_params;
 
-    TextInput* m_tiStart;
-    TextInput* m_tiEnd;
+    wxRadioBox* m_rbModel;
+    TextInput* m_tiFreqStartX;
+    TextInput* m_tiFreqEndX;
+    TextInput* m_tiFreqStartY;
+    TextInput* m_tiFreqEndY;
     TextInput* m_tiDampingFactor;
     Button* m_btnStart;
     Plater* m_plater;
@@ -156,8 +159,11 @@ protected:
     virtual void on_start(wxCommandEvent& event);
     Calib_Params m_params;
 
-    TextInput* m_tiStart;
-    TextInput* m_tiEnd;
+    wxRadioBox* m_rbModel;
+    TextInput* m_tiFreqX;
+    TextInput* m_tiFreqY;
+    TextInput* m_tiDampingFactorStart;
+    TextInput* m_tiDampingFactorEnd;
     Button* m_btnStart;
     Plater* m_plater;
 };

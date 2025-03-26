@@ -10155,7 +10155,7 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     if (params.mode != CalibMode::Calib_Input_shaping_freq)
         return;
 
-    add_model(false, Slic3r::resources_dir() + "/calib/input_shaping/ringing_tower.stl");
+    add_model(false, Slic3r::resources_dir() + (params.test_model < 1 ? "/calib/input_shaping/ringing_tower.stl" : "/calib/input_shaping/fast_input_shaping_test.stl"));
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 2.0 });
@@ -10166,7 +10166,9 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
+    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(true));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
@@ -10188,7 +10190,7 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     if (params.mode != CalibMode::Calib_Input_shaping_damp)
         return;
 
-    add_model(false, Slic3r::resources_dir() + "/calib/input_shaping/ringing_tower.stl");
+    add_model(false, Slic3r::resources_dir() + (params.test_model < 1 ? "/calib/input_shaping/ringing_tower.stl" : "/calib/input_shaping/fast_input_shaping_test.stl"));
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 2.0 });
@@ -10199,7 +10201,9 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
+    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(true));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
