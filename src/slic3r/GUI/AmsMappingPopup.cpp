@@ -732,6 +732,10 @@ void AmsMapingPopup::show_reset_button() {
     m_reset_btn->Show();
 }
 
+void AmsMapingPopup::set_only_show_ext_spool(bool flag) {
+    m_only_show_ext_spool = flag;
+}
+
 void AmsMapingPopup::msw_rescale()
 {
     m_left_extra_slot->msw_rescale();
@@ -1078,100 +1082,94 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
         }
     }
 
+    if (!m_only_show_ext_spool) {
+        /*ams*/
+        bool                            has_left_ams = false, has_right_ams = false;
+        std::list<MappingContainer *>   left_one_slot_containers;
+        std::list<MappingContainer *>   right_one_slot_containers;
+        std::vector<MappingContainer *> left_four_slots_containers;
+        std::vector<MappingContainer *> right_four_slot_containers;
+        for (std::map<std::string, Ams *>::iterator ams_iter = obj->amsList.begin(); ams_iter != obj->amsList.end(); ams_iter++) {
+            int ams_indx  = atoi(ams_iter->first.c_str());
+            int ams_type  = ams_iter->second->type;
+            int nozzle_id = ams_iter->second->nozzle;
 
-    /*ams*/
-    bool has_left_ams = false, has_right_ams = false;
-    std::list<MappingContainer*> left_one_slot_containers;
-    std::list<MappingContainer*> right_one_slot_containers;
-    std::vector<MappingContainer*> left_four_slots_containers;
-    std::vector<MappingContainer*> right_four_slot_containers;
-    for (std::map<std::string, Ams *>::iterator ams_iter = obj->amsList.begin(); ams_iter != obj->amsList.end(); ams_iter++) {
+            if (ams_type >= 1 || ams_type <= 3) { // 1:ams 2:ams-lite 3:n3f
 
-        int ams_indx = atoi(ams_iter->first.c_str());
-        int ams_type = ams_iter->second->type;
-        int nozzle_id = ams_iter->second->nozzle;
+                auto sizer_mapping_list         = new wxBoxSizer(wxHORIZONTAL);
+                auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel, ams_iter->second->get_ams_device_name(),
+                                                                       ams_iter->second->trayList.size());
+                ams_mapping_item_container->SetName(nozzle_id == 0 ? m_right_marea_panel->GetName() : m_left_marea_panel->GetName());
+                ams_mapping_item_container->SetSizer(sizer_mapping_list);
+                ams_mapping_item_container->Layout();
 
-        if (ams_type >=1 || ams_type <= 3) { //1:ams 2:ams-lite 3:n3f
+                m_has_unmatch_filament = false;
 
-            auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-            auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel,
-                                                                   ams_iter->second->get_ams_device_name(), ams_iter->second->trayList.size());
-            ams_mapping_item_container->SetName(nozzle_id == 0 ? m_right_marea_panel->GetName() : m_left_marea_panel->GetName());
-            ams_mapping_item_container->SetSizer(sizer_mapping_list);
-            ams_mapping_item_container->Layout();
+                BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams id " << ams_iter->first.c_str();
 
-            m_has_unmatch_filament = false;
+                Ams *                                      ams_group = ams_iter->second;
+                std::vector<TrayData>                      tray_datas;
+                std::map<std::string, AmsTray *>::iterator tray_iter;
 
-            BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams id " << ams_iter->first.c_str();
+                for (tray_iter = ams_group->trayList.begin(); tray_iter != ams_group->trayList.end(); tray_iter++) {
+                    AmsTray *tray_data = tray_iter->second;
+                    TrayData td;
 
-            Ams* ams_group = ams_iter->second;
-            std::vector<TrayData>                      tray_datas;
-            std::map<std::string, AmsTray*>::iterator tray_iter;
+                    td.id      = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
+                    td.ams_id  = std::stoi(ams_iter->second->id);
+                    td.slot_id = std::stoi(tray_iter->second->id);
 
-            for (tray_iter = ams_group->trayList.begin(); tray_iter != ams_group->trayList.end(); tray_iter++) {
-                AmsTray* tray_data = tray_iter->second;
-                TrayData td;
-
-                td.id       = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
-                td.ams_id   = std::stoi(ams_iter->second->id);
-                td.slot_id  = std::stoi(tray_iter->second->id);
-
-                if (!tray_data->is_exists) {
-                    td.type = EMPTY;
-                }
-                else {
-                    if (!tray_data->is_tray_info_ready()) {
-                        td.type = THIRD;
-                    }
-                    else {
-                        td.type = NORMAL;
-                        td.remain = tray_data->remain;
-                        td.colour = AmsTray::decode_color(tray_data->color);
-                        td.name = tray_data->get_display_filament_type();
-                        td.filament_type = tray_data->get_filament_type();
-                        td.ctype = tray_data->ctype;
-                        for (auto col : tray_data->cols) {
-                            td.material_cols.push_back(AmsTray::decode_color(col));
+                    if (!tray_data->is_exists) {
+                        td.type = EMPTY;
+                    } else {
+                        if (!tray_data->is_tray_info_ready()) {
+                            td.type = THIRD;
+                        } else {
+                            td.type          = NORMAL;
+                            td.remain        = tray_data->remain;
+                            td.colour        = AmsTray::decode_color(tray_data->color);
+                            td.name          = tray_data->get_display_filament_type();
+                            td.filament_type = tray_data->get_filament_type();
+                            td.ctype         = tray_data->ctype;
+                            for (auto col : tray_data->cols) { td.material_cols.push_back(AmsTray::decode_color(col)); }
                         }
                     }
+
+                    tray_datas.push_back(td);
                 }
 
-                tray_datas.push_back(td);
-            }
+                ams_mapping_item_container->Show();
+                add_ams_mapping(tray_datas, obj->ams_calibrate_remain_flag, ams_mapping_item_container, sizer_mapping_list);
+                m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
+                m_amsmapping_container_list.push_back(ams_mapping_item_container);
 
-            ams_mapping_item_container->Show();
-            add_ams_mapping(tray_datas, obj->ams_calibrate_remain_flag, ams_mapping_item_container, sizer_mapping_list);
-            m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
-            m_amsmapping_container_list.push_back(ams_mapping_item_container);
-
-            if (nozzle_id == 0) {
-                has_right_ams = true;
-                if (ams_mapping_item_container->get_slots_num() == 1) {
-                    right_one_slot_containers.push_back(ams_mapping_item_container);
-                } else {
-                    right_four_slot_containers.push_back(ams_mapping_item_container);
+                if (nozzle_id == 0) {
+                    has_right_ams = true;
+                    if (ams_mapping_item_container->get_slots_num() == 1) {
+                        right_one_slot_containers.push_back(ams_mapping_item_container);
+                    } else {
+                        right_four_slot_containers.push_back(ams_mapping_item_container);
+                    }
+                } else if (nozzle_id == 1) {
+                    has_left_ams = true;
+                    if (ams_mapping_item_container->get_slots_num() == 1) {
+                        left_one_slot_containers.push_back(ams_mapping_item_container);
+                    } else {
+                        left_four_slots_containers.push_back(ams_mapping_item_container);
+                    }
                 }
-            }
-            else if (nozzle_id == 1) {
-                has_left_ams = true;
-                if (ams_mapping_item_container->get_slots_num() == 1) {
-                    left_one_slot_containers.push_back(ams_mapping_item_container);
-                } else {
-                    left_four_slots_containers.push_back(ams_mapping_item_container);
-                }
+            } else if (ams_type == 4) { // 4:n3s
             }
         }
-        else if(ams_type == 4){ //4:n3s
-        }
+
+        _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
+        _add_containers(this, right_one_slot_containers, right_four_slot_containers, m_sizer_ams_basket_right);
+        m_left_split_ams_sizer->Show(has_left_ams);
+        m_right_split_ams_sizer->Show(has_right_ams);
+        update_items_check_state(ams_mapping_result);
+    } else {
+        m_right_split_ams_sizer->Show(false);
     }
-
-    _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
-    _add_containers(this, right_one_slot_containers, right_four_slot_containers, m_sizer_ams_basket_right);
-    m_left_split_ams_sizer->Show(has_left_ams);
-    m_right_split_ams_sizer->Show(has_right_ams);
-    update_items_check_state(ams_mapping_result);
-
-
     Layout();
     Fit();
     Refresh();

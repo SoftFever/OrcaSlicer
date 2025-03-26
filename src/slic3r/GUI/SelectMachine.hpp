@@ -538,7 +538,8 @@ public:
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
-    bool     do_ams_mapping(MachineObject *obj_);
+    void show_init();
+    bool do_ams_mapping(MachineObject *obj_,bool use_ams);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
     bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(ExtderData data);

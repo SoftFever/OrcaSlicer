@@ -641,11 +641,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     );
 
     option_use_ams->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto& e) {
-        m_ams_mapping_result.clear();
-        sync_ams_mapping_result(m_ams_mapping_result);
+        m_ams_mapping_result.clear();//clear and Scheduled call update_show_status
     });
 
-    option_use_ams->setValue("off");
+    option_use_ams->setValue("on");
     m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_use_ams, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
     m_sizer_options_other->Add(option_auto_bed_level, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
@@ -1187,7 +1186,7 @@ void print_ams_mapping_result(std::vector<FilamentInfo>& result)
     }
 }
 
-bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
+bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
 {
     if (!obj_) return false;
     obj_->get_ams_colors(m_cur_colors_in_thumbnail);
@@ -1243,8 +1242,16 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
             }
 
             map_opt = {true, false, !has_left_ams, false};   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+            if (!use_ams) {
+                map_opt[0] = false;
+                map_opt[2] = true;
+            }
             int result_first = obj_->ams_filament_mapping(m_filament_left, m_ams_mapping_result_left, map_opt);
             map_opt = { false, true, false, !has_right_ams };
+            if (!use_ams) {
+                map_opt[1] = false;
+                map_opt[3] = true;
+            }
             int result_second = obj_->ams_filament_mapping(m_filament_right, m_ams_mapping_result_right, map_opt);
 
             //m_ams_mapping_result.clear();
@@ -1259,6 +1266,10 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
         //can hybrid mapping
         else {
             map_opt = { true, true, true, true };   //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+            if (!use_ams) {
+                map_opt[0] = false;
+                map_opt[1] = false;
+            }
             filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
         }
         //When filaments cannot be matched automatically, whether to use ext for automatic supply
@@ -1269,11 +1280,19 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     else {
         if (obj_->is_support_amx_ext_mix_mapping()){
             map_opt = { false, true, false, false }; //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+            if (!use_ams) {
+                map_opt[1] = false;
+                map_opt[3] = true;
+            }
             filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
             //auto_supply_with_ext(obj_->vt_slot);
         }
         else {
             map_opt = { false, true, false, false };
+            if (!use_ams) {
+                map_opt[1] = false;
+                map_opt[3] = true;
+            }
             filament_result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result, map_opt);
         }
     }
@@ -3064,11 +3083,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if(!obj_) return;
 
 
-    if (!m_check_flag && obj_->is_info_ready()) {
-        update_select_layout(obj_);
-        update_ams_check(obj_);
-        m_check_flag = true;
-    }
+
 
     if (obj_->m_extder_data.total_extder_count > 1) {
         change_materialitem_tip(false); /*mapping to both ams and ext, is supported while total_extder_count is 2*/
@@ -3362,21 +3377,15 @@ void SelectMachineDialog::update_show_status()
         return;
     }
 
-
-    // do ams mapping if no ams result
-    bool clean_ams_mapping = false;
-    if (m_ams_mapping_result.empty()) {
-        if (m_checkbox_list["use_ams"]->getValue() == "on") {
-            do_ams_mapping(obj_);
-            update_filament_change_count();
-        } else {
-            clean_ams_mapping = true;
-        }
+    if (!m_check_flag && obj_->is_info_ready()) {
+        update_select_layout(obj_);
+        update_ams_check(obj_);
+        m_check_flag = true;
     }
-
-    if (clean_ams_mapping) {
-        m_ams_mapping_result.clear();
-        sync_ams_mapping_result(m_ams_mapping_result);
+    // do ams mapping if no ams result
+    if (m_ams_mapping_result.empty()) {
+       do_ams_mapping(obj_, m_checkbox_list["use_ams"]->getValue() == "on");
+       update_filament_change_count();
     }
 
     // reading done
@@ -3548,16 +3557,10 @@ void SelectMachineDialog::update_show_status()
         return;
     }
 
-    if (m_checkbox_list["use_ams"]->getValue() != "on") {
-        m_ams_mapping_result.clear();
-        sync_ams_mapping_result(m_ams_mapping_result);
-    } else {
-        if (!m_ams_mapping_res && !obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
-            return;
-        }
+    if (!m_ams_mapping_res && !obj_->is_valid_mapping_result(m_ams_mapping_result)) {
+        show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+        return;
     }
-
     /*Warnings*/
         // no ams
     if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
@@ -3996,6 +3999,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
                 if (obj_ && m_checkbox_list["use_ams"]->getValue() == "on" && obj_->dev_id == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
+                    m_mapping_popup.set_only_show_ext_spool(m_checkbox_list["use_ams"]->getValue() == "off");
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
@@ -4597,7 +4601,7 @@ bool SelectMachineDialog::Show(bool show)
 
         return DPIDialog::Show(false);
     }
-
+    show_init();
     show_status(PrintDialogStatus::PrintStatusInit);
 
 
@@ -4636,6 +4640,10 @@ bool SelectMachineDialog::Show(bool show)
     Fit();
     CenterOnParent();
     return DPIDialog::Show(show);
+}
+
+void SelectMachineDialog::show_init() {
+    m_ams_mapping_result.clear();
 }
 
 wxString SelectMachineDialog::format_bed_name(std::string plate_name)
