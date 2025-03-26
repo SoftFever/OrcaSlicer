@@ -1522,11 +1522,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         else {
             auto brush = dc.GetBrush();
             if (alpha != 0 && alpha != 255 && alpha != 254) dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-#ifdef __APPLE__
-            dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius - 1);
-#else
             dc.DrawRoundedRectangle(FromDIP(2), FromDIP(1) + top, size.x - FromDIP(4), curr_height, m_radius - 1);
-#endif
             dc.SetBrush(brush);
         }
     }
