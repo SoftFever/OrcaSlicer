@@ -31,6 +31,8 @@ protected:
     std::unordered_map<wxString, wxImage> m_hms_local_images; // key-> image name
     mutable std::mutex m_hms_mutex;
 
+    std::unordered_map<string, time_t> m_cloud_hms_last_update_time;
+
 public:
     HMSQuery() { }
     ~HMSQuery() { clear_hms_info(); };

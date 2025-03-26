@@ -7,8 +7,8 @@ static const char* HMS_PATH = "hms";
 static const char* HMS_LOCAL_IMG_PATH = "hms/local_image";
 
 // the local HMS info
-static unordered_set<string> package_dev_id_types;
-static unordered_set<string> cloud_dev_id_types{"00M", "00W", "03W", "01P", "01S", "030", "039", "094"};
+static unordered_set<string> package_dev_id_types {"094"};
+//static unordered_set<string> cloud_dev_id_types{"00M", "00W", "03W", "01P", "01S", "030", "039", "094"};
 
 namespace Slic3r {
 namespace GUI {
@@ -599,38 +599,36 @@ void HMSQuery::clear_hms_info()
 void HMSQuery::init_hms_info(const std::string& dev_type_id)
 {
     std::unique_lock unique_lock(m_hms_mutex);
-    if (m_hms_info_jsons.count(dev_type_id) != 0)
-    {
-        return;
-    }
-
     if (package_dev_id_types.count(dev_type_id) != 0)
     {
-        copy_from_data_dir_to_local();// STUDIO-9512
+        /*the local one only load once*/
+        if (m_hms_info_jsons.count(dev_type_id) == 0) {
 
-        string dev_type = "094";
-        m_hms_info_jsons.emplace(dev_type, json());
-        m_hms_action_jsons.emplace(dev_type, json());
+            std::string load_version;
+            load_from_local(QUERY_HMS_INFO, dev_type_id, &m_hms_info_jsons[dev_type_id], load_version);/*load from local first*/
+            if (load_version.empty() || load_version == "0") {
+                copy_from_data_dir_to_local(); // STUDIO-9512
+                load_from_local(QUERY_HMS_INFO, dev_type_id, &m_hms_info_jsons[dev_type_id], load_version);/*copy files to local, and retry load*/
+            }
+        }
 
-        std::string load_version;
-        load_from_local(QUERY_HMS_INFO, dev_type, &m_hms_info_jsons[dev_type], load_version);
-        load_from_local(QUERY_HMS_ACTION, dev_type, &m_hms_action_jsons[dev_type], load_version);
+        if (m_hms_action_jsons.count(dev_type_id) == 0) {
+            std::string load_version;
+            load_from_local(QUERY_HMS_ACTION, dev_type_id, &m_hms_action_jsons[dev_type_id], load_version);/*load from local first*/
+            if (load_version.empty() || load_version == "0") {
+                copy_from_data_dir_to_local(); // STUDIO-9512
+                load_from_local(QUERY_HMS_ACTION, dev_type_id, &m_hms_action_jsons[dev_type_id], load_version);/*copy files to local, and retry load*/
+            }
+        }
     }
 
-    if (cloud_dev_id_types.count(dev_type_id) != 0)
+    /*download from cloud*/
+    time_t info_last_update_time = m_cloud_hms_last_update_time[dev_type_id];
+    if (time(nullptr) - info_last_update_time > (60 * 60 * 24))/*do not update in one day to reduce waiting*/
     {
-        if (m_hms_info_jsons.count(dev_type_id) == 0)
-        {
-            m_hms_info_jsons.emplace(dev_type_id, json());
-        }
-
-        if (m_hms_action_jsons.count(dev_type_id) == 0)
-        {
-            m_hms_action_jsons.emplace(dev_type_id, json());
-        }
-
         download_hms_related(QUERY_HMS_INFO, dev_type_id, &m_hms_info_jsons[dev_type_id]);
         download_hms_related(QUERY_HMS_ACTION, dev_type_id, &m_hms_action_jsons[dev_type_id]);
+        m_cloud_hms_last_update_time[dev_type_id] = time(nullptr);
     }
 }
 
