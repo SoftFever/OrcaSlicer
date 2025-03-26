@@ -15570,14 +15570,11 @@ bool Plater::is_same_printer_for_connected_and_selected()
     }
     if (!check_printer_initialized(obj,true))
         return false;
-    std::string   machine_print_name = obj->printer_type;
-    PresetBundle *preset_bundle      = wxGetApp().preset_bundle;
-    std::string   target_model_id    = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
     Preset *      machine_preset     = get_printer_preset(obj);
     if (!machine_preset)
         return false;
 
-    if (machine_print_name != target_model_id) {
+    if (wxGetApp().is_blocking_printing()) {
         auto printer_name = get_selected_printer_name_in_combox(); // wxString(obj->get_preset_printer_model_name(machine_print_name))
         pop_warning_and_go_to_device_page(printer_name, PrinterWarningType::INCONSISTENT, _L("Synchronize AMS Filament Information"));
         return false;

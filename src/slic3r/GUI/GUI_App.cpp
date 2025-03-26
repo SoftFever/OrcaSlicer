@@ -1902,6 +1902,31 @@ GUI_App::~GUI_App()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit");
 }
 
+bool GUI_App::is_blocking_printing(MachineObject *obj_)
+{
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return true;
+    std::string target_model;
+    if (obj_ == nullptr) {
+        auto        obj_         = dev->get_selected_machine();
+        target_model = obj_->printer_type;
+    } else {
+        target_model = obj_->printer_type;
+    }
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    std::string    source_model  = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+
+    if (source_model != target_model) {
+        std::vector<std::string>      compatible_machine = dev->get_compatible_machine(target_model);
+        vector<std::string>::iterator it                 = find(compatible_machine.begin(), compatible_machine.end(), source_model);
+        if (it == compatible_machine.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
 // Otherwise HTML formatted for the system info dialog.
 std::string GUI_App::get_gl_info(bool for_github)
