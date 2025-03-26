@@ -915,11 +915,6 @@ bool MachineObject::can_unload_filament()
     return result;
 }
 
-bool MachineObject::is_support_ams_mapping()
-{
-    return true;
-}
-
 bool MachineObject::is_support_amx_ext_mix_mapping() {
     return true;
 }

@@ -2598,15 +2598,9 @@ void SelectMachineDialog::on_send_print()
         }
     }
 
-    if (obj_->is_support_ams_mapping()) {
-        m_print_job->task_ams_mapping      = ams_mapping_array;
-        m_print_job->task_ams_mapping2     = ams_mapping_array2;
-        m_print_job->task_ams_mapping_info = ams_mapping_info;
-    } else {
-        m_print_job->task_ams_mapping      = "";
-        m_print_job->task_ams_mapping2     = "";
-        m_print_job->task_ams_mapping_info = "";
-    }
+    m_print_job->task_ams_mapping      = ams_mapping_array;
+    m_print_job->task_ams_mapping2     = ams_mapping_array2;
+    m_print_job->task_ams_mapping_info = ams_mapping_info;
 
     /* build nozzles info for multi extruders printers */
     if (build_nozzles_info(m_print_job->task_nozzles_info)) {
@@ -2733,6 +2727,9 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
             }
         }
 
+        int use_ext_count = 0;
+        int use_ams_count = 0;
+
         for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
             if (m_ams_mapping_result[i].id == wxAtoi(selection_data_arr[5])) {
                 m_ams_mapping_result[i].tray_id = evt.GetInt();
@@ -2744,8 +2741,22 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 
                 m_ams_mapping_result[i].ams_id = selection_data_arr[6].ToStdString();
                 m_ams_mapping_result[i].slot_id = selection_data_arr[7].ToStdString();
+
+                if (m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                    use_ext_count++;
+                } else if (m_ams_mapping_result[i].ams_id >= std::to_string(0)) {
+                    use_ams_count++;
+                }
             }
             BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
+        }
+
+        /*check use ams options*/
+        if (m_checkbox_list["use_ams"]->IsShown() && use_ext_count == m_ams_mapping_result.size()) {
+            m_checkbox_list["use_ams"]->setValue("off");
+        }
+        else if (use_ams_count > 0) {
+            m_checkbox_list["use_ams"]->setValue("on");
         }
 
         MaterialHash::iterator iter = m_materialList.begin();
@@ -4439,7 +4450,7 @@ void SelectMachineDialog::set_default_from_sdcard()
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
 
-            if (obj_ && obj_->is_support_ams_mapping()) {
+            if (obj_) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;

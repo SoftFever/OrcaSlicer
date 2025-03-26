@@ -765,7 +765,6 @@ public:
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
     bool can_unload_filament();
-    bool is_support_ams_mapping();
     bool is_support_amx_ext_mix_mapping();
 
     void get_ams_colors(std::vector<wxColour>& ams_colors);
