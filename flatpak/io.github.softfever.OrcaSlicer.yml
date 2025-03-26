@@ -153,7 +153,7 @@ modules:
         cmake --build . 
         rm -r /run/build/orca_deps/external-packages
         ls -al
-        find . -mindepth 1 -maxdepth 1 ! -name 'destdir' -exec rm -rf {} +)
+        find . -mindepth 1 -maxdepth 1 ! -name 'destdir' -exec rm -rf {} +
         ls -al
     
     cleanup:
