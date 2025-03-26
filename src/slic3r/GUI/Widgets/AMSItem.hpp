@@ -691,6 +691,7 @@ public:
     void         UnSelected();
     virtual bool Enable(bool enable = true);
     void         msw_rescale();
+    bool         IsSelected() const;
 
 
     std::string  get_ams_id() const { return m_amsinfo.ams_id; };

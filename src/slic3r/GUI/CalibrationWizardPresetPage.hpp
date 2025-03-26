@@ -230,7 +230,6 @@ public:
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
-    void create_ext_spool_panel(wxWindow* parent);
 
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
@@ -276,7 +275,6 @@ protected:
     Label*             m_filament_list_tips{ nullptr };
     wxPanel*                  m_multi_ams_panel { nullptr };
     wxPanel*                  m_filament_list_panel { nullptr };
-    wxPanel*                  m_ext_spool_panel { nullptr };
     CaliPresetWarningPanel*   m_warning_panel { nullptr };
     CaliPresetCustomRangePanel* m_custom_range_panel { nullptr };
     CaliPresetTipsPanel*      m_tips_panel { nullptr };
@@ -333,12 +331,8 @@ protected:
 
 
 
-    wxRadioButton*      m_ams_radiobox;
-    wxRadioButton*      m_ext_spool_radiobox;
-    
     ScalableButton*      m_ams_sync_button;
     FilamentComboBoxList m_filament_comboBox_list;
-    FilamentComboBox*    m_virtual_tray_comboBox;
 
 
     std::vector<AMSPreview*> m_ams_preview_list;

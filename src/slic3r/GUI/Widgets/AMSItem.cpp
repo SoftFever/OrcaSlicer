@@ -2554,6 +2554,11 @@ void AMSPreview::OnLeaveWindow(wxMouseEvent &evt)
     // Refresh();
 }
 
+bool AMSPreview::IsSelected() const
+{
+    return m_selected;
+}
+
 void AMSPreview::OnSelected()
 {
     if (!wxWindow::IsEnabled()) { return; }
