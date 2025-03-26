@@ -906,6 +906,15 @@ wxSize ScalableBitmap::GetBmpSize() const
 #endif
 }
 
+wxSize ScalableBitmap::GetBmpSize(const wxBitmap &bmp)
+{
+#ifdef __APPLE__
+    return bmp.GetScaledSize();
+#else
+    return bmp.GetSize();
+#endif
+}
+
 int ScalableBitmap::GetBmpWidth() const
 {
 #ifdef __APPLE__

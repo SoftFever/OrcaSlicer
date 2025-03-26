@@ -127,7 +127,7 @@ public:
     bool        IsAmsInRightPanel(std::string ams_id);
 	wxColour GetCanColour(std::string amsid, std::string canid);
     void createAms(wxSimplebook* parent, int& idx, AMSinfo info, AMSPanelPos pos);
-    void createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSinfo>infos, AMSPanelPos pos, int total_ext_num);
+    void createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSinfo> infos, const std::string &series_name, const std::string &printer_type, AMSPanelPos pos, int total_ext_num);
     AMSRoadShowMode findFirstMode(AMSPanelPos pos);
 
     AMSModel m_ams_model{AMSModel::EXT_AMS};
@@ -149,10 +149,17 @@ public:
 
     void UpdatePassRoad(string ams_id, AMSPassRoadType type, AMSPassRoadSTEP step);
     void CreateAms();
-    void CreateAmsDoubleNozzle();
-    void CreateAmsSingleNozzle();
+    void CreateAmsDoubleNozzle(const std::string &series_name, const std::string& printer_type);
+    void CreateAmsSingleNozzle(const std::string &series_name, const std::string &printer_type);
     void ClearAms();
-    void UpdateAms(const std::string& series_name, std::vector<AMSinfo> ams_info, std::vector<AMSinfo> ext_info, ExtderData data, std::string dev_id, bool is_reset = true, bool test = false);
+    void UpdateAms(const std::string   &series_name,
+                   const std::string   &printer_type,
+                   std::vector<AMSinfo> ams_info,
+                   std::vector<AMSinfo> ext_info,
+                   ExtderData           data,
+                   std::string          dev_id,
+                   bool                 is_reset = true,
+                   bool                 test     = false);
     std::vector<AMSinfo> GenerateSimulateData();
 
     void AddAms(AMSinfo info, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
@@ -160,7 +167,7 @@ public:
     void AddAmsPreview(AMSinfo info, AMSModel type);
     //void AddExtraAms(AMSinfo info);
 
-    void AddAms(std::vector<AMSinfo>single_info, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
+    void AddAms(std::vector<AMSinfo> single_info, const std::string &series_name, const std::string &printer_type, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
     void AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos);
     //void AddExtraAms(std::vector<AMSinfo>single_info);
     void SetExtruder(bool on_off, std::string ams_id, std::string slot_id);

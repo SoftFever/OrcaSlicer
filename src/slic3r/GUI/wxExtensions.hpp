@@ -41,7 +41,7 @@ wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string,
 
 wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent & event)> cb, wxEvtHandler* event_handler,
-    std::function<bool()> const enable_condition = []() { return true; }, 
+    std::function<bool()> const enable_condition = []() { return true; },
     std::function<bool()> const check_condition = []() { return true; }, wxWindow* parent = nullptr);
 
 void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condition, wxMenuItem* item, wxWindow* win);
@@ -68,7 +68,7 @@ wxBitmap create_scaled_bitmap2(const std::string& bmp_name_in, Slic3r::GUI::Bitm
     const int px_cnt = 16, const bool grayscale = false, const bool resize = false,
     const std::vector<std::string>& array_new_color = std::vector<std::string>()); // color witch will used instead of orange
 #else
-wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr, 
+wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr,
     const int px_cnt = 16, const bool grayscale = false, const bool resize = false);
 #endif
 
@@ -157,7 +157,7 @@ public:
     ScalableBitmap() {};
     ScalableBitmap( wxWindow *parent,
                     const std::string& icon_name = "",
-                    const int px_cnt = 16, 
+                    const int px_cnt = 16,
                     const bool grayscale = false,
                     const bool resize = false,
                     const bool bitmap2 = false,
@@ -166,6 +166,8 @@ public:
     ~ScalableBitmap() {}
 
     wxSize  GetBmpSize() const;
+    static wxSize GetBmpSize(const wxBitmap &bmp);
+
     int     GetBmpWidth() const;
     int     GetBmpHeight() const;
 
@@ -271,7 +273,7 @@ private:
 
     bool            m_use_default_disabled_bitmap {false};
 
-    // bitmap dimensions 
+    // bitmap dimensions
     int             m_px_cnt{ 16 };
     bool            m_has_border {false};
 };

@@ -367,19 +367,28 @@ public:
 class AMSExtImage : public wxWindow
 {
 private:
+    std::string m_series_name;
+    std::string m_printer_type_name;
+
     bool    m_show_ams_ext = false;
     bool    m_show_ext     = false;
 
     AMSPanelPos m_ext_pos;
     int         total_ext_num = 1;
 
-    ScalableBitmap m_ams_ext_left;
-    ScalableBitmap m_ams_ext_right;
-    ScalableBitmap m_ams_single_ext;
+    ScalableBitmap m_ams_ext_o_left;
+    ScalableBitmap m_ams_ext_o_right;
+    ScalableBitmap m_ams_ext_xp;
+    ScalableBitmap m_ams_ext_n1;
+    ScalableBitmap m_ams_ext_n2s;
+    ScalableBitmap m_ams_ext_default;
 
-    ScalableBitmap m_ext_left;
-    ScalableBitmap m_ext_right;
-    ScalableBitmap m_ext_single_nozzle;
+    ScalableBitmap m_ext_o_left;
+    ScalableBitmap m_ext_o_right;
+    ScalableBitmap m_ext_xp;
+    ScalableBitmap m_ext_n1;
+    ScalableBitmap m_ext_n2s;
+    ScalableBitmap m_ext_default;
 
 public:
     AMSExtImage(wxWindow *parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, ExtderData *data = nullptr, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition);
@@ -387,12 +396,15 @@ public:
 
     void msw_rescale();
     void setShowAmsExt(bool show);
-    void setTotalExtNum(int num);
+    void setTotalExtNum(const std::string &series_name, const std::string &printer_type, int num);
 
 private:
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
+
+    void createImages();
+    const wxBitmap &get_bmp(const std::string &series_name, const std::string &printer_type, bool is_ams_ext, AMSPanelPos pos) const;
 };
 
 
