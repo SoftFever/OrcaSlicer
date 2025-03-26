@@ -12411,7 +12411,7 @@ msgstr ""
 "linii"
 
 msgid "Apply fuzzy skin to first layer"
-msgstr "Skóry fuzzy na pierwszej warstwie"
+msgstr "Skóra fuzzy na pierwszej warstwie"
 
 msgid "Whether to apply fuzzy skin on the first layer"
 msgstr "Określa czy zastosować skórę fuzzy od pierwszej warstwy"
