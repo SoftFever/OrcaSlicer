@@ -529,6 +529,10 @@ void ImGuiWrapper::new_frame()
 
     ImGuiIO& io = ImGui::GetIO();
 
+    ImGui::NewFrame();
+    m_new_frame_open = true;
+
+    // BBL: we should render the new frame first, than reset keys' status
     // BBL: copy & paste form prusa github repo (https://github.com/prusa3d/PrusaSlicer/blob/master/src/slic3r/GUI/ImGuiWrapper.cpp#L375C5-L402C6)
     // synchronize key states
     // when the application loses the focus it may happen that the key up event is not processed
@@ -559,9 +563,6 @@ void ImGuiWrapper::new_frame()
     }
 
     // BBL: end copy & paste
-
-    ImGui::NewFrame();
-    m_new_frame_open = true;
 }
 
 void ImGuiWrapper::render()
