@@ -334,7 +334,7 @@ var LangText = {
   },
   it_IT: {
     t1: "Benvenuti in OrcaSlicer",
-    t2: "Orca Slicer verrà configurato seguendo diversi passaggi. Cominciamo!",
+    t2: "OrcaSlicer verrà configurato seguendo diversi passaggi. Cominciamo!",
     t3: "Condizioni d'uso",
     t4: "Non accetto",
     t5: "Accetto",
@@ -379,7 +379,7 @@ var LangText = {
     t50: "Disconnettiti",
     t52: "Salta",
     t53: "Unisciti",
-    t54: "Nella comunità di stampa 3D, impariamo dai successi e dagli insuccessi di ognuno per adattare i nostri parametri e le nostre impostazioni di slicing. OrcaSlicer segue lo stesso principio, utilizzando l'apprendimento automatico per migliorare le sue prestazioni sfruttando i successi e gli insuccessi delle numerose stampe dei nostri utenti. Stiamo addestrando Orca Slicer ad essere più intelligente, fornendogli dati del mondo reale. Se lo desideri, questo servizio accederà alle informazioni dei tuoi registri di errore e di utilizzo, i quali possono includere informazioni descritte in ",
+    t54: "Nella comunità di stampa 3D, impariamo dai successi e dagli insuccessi di ognuno per adattare i nostri parametri e le nostre impostazioni di slicing. OrcaSlicer segue lo stesso principio, utilizzando l'apprendimento automatico per migliorare le sue prestazioni sfruttando i successi e gli insuccessi delle numerose stampe dei nostri utenti. Stiamo addestrando OrcaSlicer ad essere più intelligente, fornendogli dati del mondo reale. Se lo desideri, questo servizio accederà alle informazioni dei tuoi registri di errore e di utilizzo, i quali possono includere informazioni descritte in ",
     t55: "Politica sulla riservatezza",
     t56: ". Non raccoglieremo alcun Dato Personale tramite il quale un individuo possa essere identificato direttamente o indirettamente, inclusi (senza limitazioni) nomi, indirizzi, informazioni di pagamento o numeri di telefono. Abilitando questo servizio, accetti questi termini e la dichiarazione sulla Politica sulla riservatezza.",
     t57: "",
