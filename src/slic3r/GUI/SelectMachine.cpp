@@ -3947,9 +3947,10 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                 {
                     m_mapping_popup.set_show_type(ShowType::RIGHT);
                 }
+            } else {
+                m_mapping_popup.set_show_type(ShowType::RIGHT);
             }
-            //m_mapping_popup.set_show_type(ShowType::RIGHT);
-            if (obj_ && obj_->is_support_ams_mapping()) {
+            if (obj_) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
@@ -4452,6 +4453,8 @@ void SelectMachineDialog::set_default_from_sdcard()
                     } else if (m_filaments_map[m_current_filament_id] == 2) {
                         m_mapping_popup.set_show_type(ShowType::RIGHT);
                     }
+                } else {
+                    m_mapping_popup.set_show_type(ShowType::RIGHT);
                 }
 
                 if (obj_ && obj_->dev_id == m_printer_last_select)
