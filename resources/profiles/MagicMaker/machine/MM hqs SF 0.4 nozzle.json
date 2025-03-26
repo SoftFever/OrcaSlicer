@@ -117,7 +117,7 @@
         "0.4"
     ],
 	"default_filament_profile": [
-		"MM Generic PLA"
+		"Generic PLA @System"
 	],
     "gcode_flavor": "marlin2",
     "is_custom_defined": "0",
