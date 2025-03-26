@@ -256,7 +256,7 @@ void MaterialItem::doRender(wxDC& dc)
     //bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
     auto left = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
     auto up = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
-    auto right = left + MATERIAL_REC_WHEEL_SIZE.x;
+    auto right = left + MATERIAL_REC_WHEEL_SIZE.x - FromDIP(3);
     dc.SetPen(*wxTRANSPARENT_PEN);
     //bottom
     if (m_ams_cols.size() > 1) {
@@ -481,7 +481,7 @@ void MaterialSyncItem::doRender(wxDC &dc)
     // bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
     auto left  = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
     auto up    = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
-    auto right = left + MATERIAL_REC_WHEEL_SIZE.x;
+    auto right = left + MATERIAL_REC_WHEEL_SIZE.x - FromDIP(3);
     dc.SetPen(*wxTRANSPARENT_PEN);
     int real_left_offset = get_real_offset();
     // bottom
