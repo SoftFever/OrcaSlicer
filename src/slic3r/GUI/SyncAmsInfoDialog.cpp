@@ -116,24 +116,6 @@ void SyncAmsInfoDialog::updata_ui_data_after_connected_printer() {
     m_button_cancel->Show();
 }
 
-void SyncAmsInfoDialog::update_ams_check(MachineObject *obj)
-{
-    if (!obj) { return; }
-
-    if (!obj->is_enable_np) {
-        if (obj->has_ams()) {
-            //m_checkbox_list["use_ams"]->Show();
-            m_checkbox_list["use_ams"]->setValue("on");
-        } else {
-            m_checkbox_list["use_ams"]->Hide();
-            //m_checkbox_list["use_ams"]->setValue("off");
-        }
-    } else {
-        m_checkbox_list["use_ams"]->Hide();
-        m_checkbox_list["use_ams"]->setValue("on");
-    }
-}
-
 void SyncAmsInfoDialog::update_select_layout(MachineObject *obj)
 {
     m_checkbox_list["timelapse"]->Hide();
@@ -922,11 +904,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
                         _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing; skip if unnecessary."), ops_auto);
 
     auto option_use_ams = new PrintOption(m_options_other, _L("Use AMS"), wxEmptyString, ops_no_auto);
-
-    option_use_ams->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) {
-        m_ams_mapping_result.clear();
-        sync_ams_mapping_result(m_ams_mapping_result);
-    });
 
     option_use_ams->setValue("on");
     m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND  | wxBOTTOM, FromDIP(5));
@@ -2375,7 +2352,6 @@ void SyncAmsInfoDialog::on_timer(wxTimerEvent &event)
 
     if (!m_check_flag && obj_->is_info_ready()) {
         update_select_layout(obj_);
-        update_ams_check(obj_);
         m_check_flag = true;
     }
 
@@ -2410,7 +2386,6 @@ void SyncAmsInfoDialog::update_show_status()
     NetworkAgent * agent = Slic3r::GUI::wxGetApp().getAgent();
     DeviceManager *dev   = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!agent) {
-        update_ams_check(nullptr);
         return;
     }
     if (!dev) return;
@@ -2419,7 +2394,6 @@ void SyncAmsInfoDialog::update_show_status()
     if (is_must_finish_slice_then_connected_printer()) { return; }
     MachineObject * obj_ = dev->get_selected_machine();
     if (!obj_) {
-        update_ams_check(nullptr);
         if (agent) {
             if (agent->is_user_login()) {
                 show_status(PrintDialogStatus::PrintStatusInvalidPrinter);
@@ -2462,19 +2436,10 @@ void SyncAmsInfoDialog::update_show_status()
     }
 
     // do ams mapping if no ams result
-    bool clean_ams_mapping = false;
     if (m_ams_mapping_result.empty()) {
-        if (m_checkbox_list.find("use_ams") != m_checkbox_list.end() && m_checkbox_list["use_ams"]->getValue() == "on") {
-            do_ams_mapping(obj_);
-        } else {
-            clean_ams_mapping = true;
-        }
+        do_ams_mapping(obj_);
     }
 
-    if (clean_ams_mapping) {
-        m_ams_mapping_result.clear();
-        sync_ams_mapping_result(m_ams_mapping_result);
-    }
 
     // reading done
     if (wxGetApp().app_config && wxGetApp().app_config->get("internal_debug").empty()) {
@@ -2526,19 +2491,6 @@ void SyncAmsInfoDialog::update_show_status()
                 show_status(PrintDialogStatus::PrintStatusReadingFinished);
             }
         }
-        return;
-    }
-
-    if (m_checkbox_list["use_ams"]->getValue() != "on") {
-        m_ams_mapping_result.clear();
-        sync_ams_mapping_result(m_ams_mapping_result);
-
-        if (has_timelapse_warning()) {
-            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-        } else {
-            show_status(PrintDialogStatus::PrintStatusDisableAms);
-        }
-
         return;
     }
 

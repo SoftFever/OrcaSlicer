@@ -253,7 +253,6 @@ public:
 public:
     bool Show(bool show) override;
     void updata_ui_data_after_connected_printer();
-    void update_ams_check(MachineObject *obj);
     void set_default(bool hide_some = false);
     void update_select_layout(MachineObject *obj);
     void set_default_normal(const ThumbnailData &);
