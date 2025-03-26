@@ -417,42 +417,55 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     std::string downloaded_gcode;
     std::string response_error;
 
-    int number_of_attempts = 0;
-    int max_attempts       = 4;
+    int number_of_attempts                  = 0;
+    int max_attempts                        = 7;
+    int number_of_seconds_till_next_attempt = 0;
+
     while (response_status != 200 && !was_canceled()) {
-        http.on_complete([&downloaded_gcode, &response_error, &response_status](std::string body, unsigned status) {
-                response_status = status;
-                if (status == 200) {
-                    downloaded_gcode = body;
-                } else {
-                    response_error = (boost::format("status: %1%, error: %2%") % status % body).str();
-                }
-            })
-            .on_error([&response_error, &response_status](std::string body, std::string error, unsigned status) {
-                response_status = status;
-                response_error  = (boost::format("status: %1%, error: %2%") % status % body).str();
-            })
-            .perform_sync();
+        if (number_of_seconds_till_next_attempt <= 0) {
+            http.on_complete([&downloaded_gcode, &response_error, &response_status](std::string body, unsigned status) {
+                    response_status = status;
+                    if (status == 200) {
+                        downloaded_gcode = body;
+                    } else {
+                        response_error = (boost::format("status: %1%, error: %2%") % status % body).str();
+                    }
+                })
+                .on_error([&response_error, &response_status](std::string body, std::string error, unsigned status) {
+                    response_status = status;
+                    response_error  = (boost::format("status: %1%, error: %2%") % status % body).str();
+                })
+                .perform_sync();
 
-        if (response_status != 200) {
-            number_of_attempts++;
-            Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(
-                80, (boost::format("Helio: Could not download file. Attempts left %1%") % (max_attempts - number_of_attempts)).str());
-            Slic3r::SlicingStatusEvent* evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+            if (response_status != 200) {
+                number_of_attempts++;
+                Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(
+                    80, (boost::format("Helio: Could not download file. Attempts left %1%") % (max_attempts - number_of_attempts)).str());
+                Slic3r::SlicingStatusEvent* evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
+                wxQueueEvent(GUI::wxGetApp().plater(), evt);
+                number_of_seconds_till_next_attempt = number_of_attempts * 5;
+            }
+
+            if (response_status == 200) {
+                response_error = "";
+                break;
+            }
+
+            else if (number_of_attempts >= max_attempts) {
+                response_error = "Max attempts reached but file was not found";
+                break;
+            }
+
+        } else {
+            Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(80,
+                                                                                       (boost::format("Helio: Next attemp in %1% seconds") %
+                                                                                        number_of_seconds_till_next_attempt)
+                                                                                           .str());
+            Slic3r::SlicingStatusEvent*      evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
             wxQueueEvent(GUI::wxGetApp().plater(), evt);
-
-            boost::this_thread::sleep_for(boost::chrono::seconds(2));
         }
-
-        if (response_status == 200) {
-            response_error = "";
-            break;
-        }
-
-        else if (number_of_attempts >= max_attempts) {
-            response_error = "Max attempts reached but file was not found";
-            break;
-        }
+            boost::this_thread::sleep_for(boost::chrono::seconds(1));
+            number_of_seconds_till_next_attempt--;
     }
 
     if (response_error.empty() && !was_canceled()) {
@@ -467,8 +480,9 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     } else {
         set_state(STATE_CANCELED);
 
-        Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "", false,
-                                                                             (boost::format("Helio: GCode download failed: %1%") % response_error).str());
+        Slic3r::HelioCompletionEvent* evt =
+            new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "", false,
+                                             (boost::format("Helio: GCode download failed: %1%") % response_error).str());
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
     }
 }

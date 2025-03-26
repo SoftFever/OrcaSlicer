@@ -185,7 +185,7 @@ public:
                             BackgroundSlicingProcess::State&           slicing_state,
                             std::unique_ptr<GUI::NotificationManager>& notification_manager);
 
-    HelioBackgroundProcess() { helio_api_url = "https://api2.helioadditive.com/graphql/sdk"; }
+    HelioBackgroundProcess() { helio_api_url = "https://api.helioadditive.com/graphql/sdk"; }
 
     ~HelioBackgroundProcess()
     {
