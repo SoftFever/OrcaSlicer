@@ -49,8 +49,8 @@ then
     # TODO: optimize this by checking which, if any, packages are already installed
 
     # install them all at once
-    sudo apt update
-    sudo apt install -y ${REQUIRED_DEV_PACKAGES[@]}
+    apt update
+    apt install -y ${REQUIRED_DEV_PACKAGES[@]}
 
     echo -e "done\n"
     exit 0
