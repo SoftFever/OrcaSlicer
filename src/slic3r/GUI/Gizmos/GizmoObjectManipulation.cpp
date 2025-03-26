@@ -6,8 +6,8 @@
 //#include "I18N.hpp"
 #include "GLGizmosManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
-
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 #include "libslic3r/Model.hpp"
@@ -266,7 +266,8 @@ void GizmoObjectManipulation::change_position_value(int axis, double value)
         trafo_type.set_instance();
     }
     selection.translate(position - m_cache.position, trafo_type);
-    m_glcanvas.do_move(L("Set Position"));
+    wxGetApp().plater()->take_snapshot("Set Position", UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_move("");
 
     m_cache.position = position;
 	m_cache.position_rounded(axis) = DBL_MAX;
@@ -295,10 +296,9 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
         transformation_type.set_instance();
 
     selection.setup_cache();
-	selection.rotate(
-		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
-		transformation_type);
-    m_glcanvas.do_rotate(L("Set Orientation"));
+    selection.rotate((M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), transformation_type);
+    wxGetApp().plater()->take_snapshot(_u8L("Set Orientation"), UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_rotate("");
 
     m_cache.rotation = rotation;
 	m_cache.rotation_rounded(axis) = DBL_MAX;
@@ -456,7 +456,8 @@ void GizmoObjectManipulation::reset_position_value()
         return;
 
     // Copy position values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-    m_glcanvas.do_move(L("Reset Position"));
+    wxGetApp().plater()->take_snapshot(_u8L("Reset Position"), UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_move("");
 
     UpdateAndShow(true);
 }

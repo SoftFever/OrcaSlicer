@@ -1181,12 +1181,14 @@ void Selection::translate(const Vec3d& displacement, TransformationType transfor
     else if (m_mode == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
-
-    ensure_not_below_bed();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        ensure_not_below_bed();
+    }
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
-
 // Rotate an object around one of the axes. Only one rotation component is expected to be changing.
 void Selection::rotate(const Vec3d& rotation, TransformationType transformation_type)
 {
@@ -1287,7 +1289,9 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
 #endif // !DISABLE_INSTANCES_SYNCH
 
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 void Selection::flattening_rotate(const Vec3d& normal)
@@ -1629,7 +1633,9 @@ void Selection::scale_and_translate(const Vec3d& scale, const Vec3d& world_trans
 
     ensure_on_bed();
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
@@ -3052,6 +3058,9 @@ void Selection::ensure_not_below_bed()
 
 bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 {
+    if (m_mode == Instance && wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        return true;
+    }
     struct SameInstance
     {
         int obj_idx;

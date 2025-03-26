@@ -14,7 +14,6 @@
 #include "libslic3r/Technologies.hpp"
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include "3DBed.hpp"
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "GLShader.hpp"
@@ -1939,6 +1938,9 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
+        if (m_show_world_axes) {
+            m_axes.render();
+        }
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         //_render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
         _render_plane();
@@ -4658,11 +4660,19 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr) {
-                if (selection_mode == Selection::Instance)
-                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                if (selection_mode == Selection::Instance) {
+                    if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+                        if ((model_object->instances[instance_idx]->get_assemble_offset() - v->get_instance_offset()).norm() > 1e-2) {
+                            model_object->instances[instance_idx]->set_assemble_transformation(v->get_instance_transformation());
+                        }
+                    } else {
+                        model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                    }
+                }
                 else if (selection_mode == Selection::Volume) {
-                    if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
-                        model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
+                    auto cur_mv = model_object->volumes[volume_idx];
+                    if (cur_mv->get_transformation() != v->get_volume_transformation()) {
+                        cur_mv->set_transformation(v->get_volume_transformation());
                         // BBS: backup
                         Slic3r::save_object_mesh(*model_object);
                     }
@@ -4769,11 +4779,17 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         // Rotate instances/volumes.
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance)
-                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+            if (selection_mode == Selection::Instance) {
+                if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+                    model_object->instances[instance_idx]->set_assemble_from_transform(v->get_instance_transformation().get_matrix());
+                } else {
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                }
+            }
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
-                	model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
+                auto cur_mv = model_object->volumes[volume_idx];
+                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
+                    cur_mv->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4784,23 +4800,24 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 
     //BBS: notify instance updates to part plater list
     m_selection.notify_instance_update(-1, -1);
+    if (m_canvas_type != CanvasAssembleView) {
+        // Fixes sinking/flying instances
+        for (const std::pair<int, int> &i : done) {
+            ModelObject *m = m_model->objects[i.first];
 
-    // Fixes sinking/flying instances
-    for (const std::pair<int, int>& i : done) {
-        ModelObject* m = m_model->objects[i.first];
+            // BBS: don't call translate if the z is zero
+            const double shift_z = m->get_instance_min_z(i.second);
+            // leave sinking instances as sinking
+            if ((min_zs.find({i.first, i.second})->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+                const Vec3d shift(0.0, 0.0, -shift_z);
+                m_selection.translate(i.first, i.second, shift);
+                m->translate_instance(i.second, shift);
+                // BBS: notify instance updates to part plater list
+                m_selection.notify_instance_update(i.first, i.second);
+            }
 
-        //BBS: don't call translate if the z is zero
-        const double shift_z = m->get_instance_min_z(i.second);
-        // leave sinking instances as sinking
-        if ((min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
-            const Vec3d shift(0.0, 0.0, -shift_z);
-            m_selection.translate(i.first, i.second, shift);
-            m->translate_instance(i.second, shift);
-            //BBS: notify instance updates to part plater list
-            m_selection.notify_instance_update(i.first, i.second);
+            wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
         }
-
-        wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
     //BBS: nofity object list to update
     wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
@@ -4850,12 +4867,14 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance)
+            if (selection_mode == Selection::Instance) {
                 model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+            }
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                auto cur_mv = model_object->volumes[volume_idx];
+                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
                     model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
-                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
+                    cur_mv->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -7267,6 +7286,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
+    bool                 partly_inside_enable = canvas_type == ECanvasType::CanvasAssembleView ? false : true;
     if (shader != nullptr) {
         shader->start_using();
 
@@ -7310,7 +7330,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                         else {
                             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                         }
-                        });
+                        },
+                        partly_inside_enable);
                 }
             }
             else {
@@ -7344,7 +7365,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 else {
                     return true;
                 }
-                });
+                },
+                partly_inside_enable);
             if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 shader->stop_using();
@@ -8169,6 +8191,7 @@ void GLCanvas3D::_render_return_toolbar() const
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
         const_cast<GLGizmosManager*>(&m_gizmos)->reset_all_states();
         wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+        wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);

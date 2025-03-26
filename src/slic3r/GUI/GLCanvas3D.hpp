@@ -18,7 +18,7 @@
 #include "Camera.hpp"
 #include "SceneRaycaster.hpp"
 #include "IMToolbar.hpp"
-
+#include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
 
 #include <float.h>
@@ -611,8 +611,8 @@ private:
 
     PrinterTechnology current_printer_technology() const;
 
-
-
+    bool        m_show_world_axes{false};
+    Bed3D::Axes m_axes;
     //BBS:record key botton frequency
     int auto_orient_count = 0;
     int auto_arrange_count = 0;
@@ -807,6 +807,7 @@ public:
     void set_color_clip_plane(const Vec3d& cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
     void set_color_clip_plane_colors(const std::array<ColorRGBA, 2>& colors) { m_volumes.set_color_clip_plane_colors(colors); }
 
+    void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
     void refresh_camera_scene_box();
     void set_color_by(const std::string& value);
 

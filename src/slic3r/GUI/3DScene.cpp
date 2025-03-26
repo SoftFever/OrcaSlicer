@@ -895,8 +895,13 @@ int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_suppo
 }
 
 //BBS: add outline drawing logic
-void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, const Transform3d& projection_matrix, const GUI::Size& cnv_size,
-    std::function<bool(const GLVolume&)> filter_func) const
+void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
+                                bool                                  disable_cullface,
+                                const Transform3d &                   view_matrix,
+                                const Transform3d&                    projection_matrix,
+                                const GUI::Size&                      cnv_size,
+                                std::function<bool(const GLVolume &)> filter_func,
+                                bool                                  partly_inside_enable) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -964,7 +969,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         //shader->set_uniform("print_volume.xy_data", m_render_volume.data);
         //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
 
-        if (volume.first->partly_inside) {
+        if (volume.first->partly_inside && partly_inside_enable) {
             //only partly inside volume need to be painted with boundary check
             shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
             shader->set_uniform("print_volume.xy_data", m_print_volume.data);
