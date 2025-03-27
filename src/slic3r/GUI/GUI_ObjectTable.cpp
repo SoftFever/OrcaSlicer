@@ -1890,6 +1890,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
     col->choices.Add(_L("Auto"));
     col->choices.Add(_L("Mouse ear"));
+    col->choices.Add(_L("Painted"));
     col->choices.Add(_L("Outer brim only"));
     col->choices.Add(_L("Inner brim only"));
     col->choices.Add(_L("Outer and inner brim"));
