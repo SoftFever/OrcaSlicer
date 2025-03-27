@@ -210,17 +210,25 @@ void GLGizmoMove3D::on_render()
     render_grabbers(box);
 
     if (!selection.is_multiple_full_object()) {
-        glsafe(::glPushMatrix());
-        Geometry::Transformation cur_tran;
-        if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
-            cur_tran = mi->get_transformation();
+        shader = wxGetApp().get_shader("flat");
+        if (shader != nullptr) {
+            shader->start_using();
+            const Camera& camera = wxGetApp().plater()->get_camera();
+
+            Geometry::Transformation cur_tran;
+            if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
+                cur_tran = mi->get_transformation();
+            } else {
+                cur_tran = selection.get_first_volume()->get_instance_transformation();
+            }
+
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix() * cur_tran.get_matrix());
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+            render_cross_mark(Vec3f::Zero(), true);
+
+            shader->stop_using();
         }
-        else {
-            cur_tran = selection.get_first_volume()->get_instance_transformation();
-        }
-        glsafe(::glMultMatrixd(cur_tran.get_matrix().data()));
-        render_cross_mark(Vec3f::Zero(), true);
-        glsafe(::glPopMatrix());
     }
 }
 

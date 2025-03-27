@@ -229,38 +229,66 @@ bool GLGizmoBase::render_combo(const std::string &label, const std::vector<std::
 
 void GLGizmoBase::render_cross_mark(const Vec3f &target, bool is_single)
 {
-    double half_length = 4.0;
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
+    const float half_length = 4.0f;
 
     glsafe(::glLineWidth(2.0f));
-    ::glBegin(GL_LINES);
+
+    auto render_line = [](const Vec3f& p1, const Vec3f& p2, const ColorRGBA& color) {
+        GLModel::Geometry init_data;
+        init_data.format = {GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3};
+        init_data.color  = color;
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
+
+        // vertices
+        init_data.add_vertex(p1);
+        init_data.add_vertex(p2);
+
+        // indices
+        init_data.add_line(0, 1);
+
+        GLModel model;
+        model.init_from(std::move(init_data));
+        model.render();
+    };
+
     // draw line for x axis
-    ::glColor3f(1.0f, 0.0f, 0.0f);
     if (!is_single) {
-        ::glVertex3f(target(0) - half_length, target(1), target(2));
+        render_line(
+            {target(0) - half_length, target(1), target(2)}, 
+            {target(0) + half_length, target(1), target(2)},
+            ColorRGBA::RED());
     }
     else {
-        ::glVertex3f(target(0), target(1), target(2));
+        render_line(
+            {target(0), target(1), target(2)}, 
+            {target(0) + half_length, target(1), target(2)},
+            ColorRGBA::RED());
     }
-    ::glVertex3f(target(0) + half_length, target(1), target(2));
     // draw line for y axis
-    ::glColor3f(0.0f, 1.0f, 0.0f);
     if (!is_single) {
-        ::glVertex3f(target(0), target(1) - half_length, target(2));
+        render_line(
+            {target(0), target(1) - half_length, target(2)}, 
+            {target(0), target(1) + half_length, target(2)},
+            ColorRGBA::GREEN());
     } else {
-        ::glVertex3f(target(0), target(1), target(2));
+        render_line(
+            {target(0), target(1), target(2)}, 
+            {target(0), target(1) + half_length, target(2)},
+            ColorRGBA::GREEN());
     }
-    ::glVertex3f(target(0), target(1) + half_length, target(2));
     // draw line for z axis
-    ::glColor3f(0.0f, 0.0f, 1.0f);
     if (!is_single) {
-        ::glVertex3f(target(0), target(1), target(2) - half_length);
+        render_line(
+            {target(0), target(1), target(2) - half_length}, 
+            {target(0), target(1), target(2) + half_length},
+            ColorRGBA::BLUE());
     } else {
-        ::glVertex3f(target(0), target(1), target(2));
+        render_line(
+            {target(0), target(1), target(2)}, 
+            {target(0), target(1), target(2) + half_length},
+            ColorRGBA::BLUE());
     }
-    ::glVertex3f(target(0), target(1), target(2) + half_length);
-    glsafe(::glEnd());
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
