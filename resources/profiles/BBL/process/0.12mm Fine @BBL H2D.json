@@ -8,103 +8,25 @@
     "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
     "bottom_color_penetration_layers": "5",
     "bottom_shell_layers": "7",
-    "default_acceleration": [
-        "4000",
-        "4000",
-        "4000",
-        "4000"
-    ],
-    "gap_infill_speed": [
-        "50",
-        "50",
-        "50",
-        "50"
-    ],
-    "initial_layer_infill_speed": [
-        "70",
-        "70",
-        "70",
-        "70"
-    ],
-    "initial_layer_line_width": "0.25",
-    "initial_layer_print_height": "0.1",
-    "initial_layer_speed": [
-        "40",
-        "40",
-        "40",
-        "40"
-    ],
-    "inner_wall_line_width": "0.22",
-    "inner_wall_speed": [
-        "120",
-        "120",
-        "120",
-        "120"
-    ],
-    "internal_solid_infill_line_width": "0.22",
-    "internal_solid_infill_speed": [
-        "150",
-        "150",
-        "150",
-        "150"
-    ],
-    "ironing_inset": "0.11",
-    "layer_height": "0.12",
-    "line_width": "0.22",
-    "outer_wall_acceleration": [
-        "2000",
-        "2000",
-        "2000",
-        "2000"
-    ],
-    "outer_wall_line_width": "0.22",
-    "outer_wall_speed": [
-        "60",
-        "60",
-        "60",
-        "60"
-    ],
-    "overhang_1_4_speed": [
-        "60",
-        "60",
-        "60",
-        "60"
-    ],
-    "overhang_2_4_speed": [
-        "30",
-        "30",
-        "30",
-        "30"
-    ],
-    "overhang_3_4_speed": [
-        "10",
-        "10",
-        "10",
-        "10"
-    ],
+    "default_acceleration": "4000",
+    "gap_infill_speed": "50",
+    "initial_layer_infill_speed": "70",
+    "initial_layer_speed": "40",
+    "inner_wall_speed": "120",
+    "internal_solid_infill_speed": "150",
+    "outer_wall_acceleration": "2000",
+    "outer_wall_speed": "60",
+    "overhang_1_4_speed": "60",
+    "overhang_2_4_speed": "30",
+    "overhang_3_4_speed": "10",
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
-    "sparse_infill_line_width": "0.22",
     "sparse_infill_pattern": "gyroid",
-    "sparse_infill_speed": [
-        "100",
-        "100",
-        "100",
-        "100"
-    ],
-    "support_bottom_z_distance": "0.1",
-    "support_line_width": "0.22",
-    "support_top_z_distance": "0.1",
+    "sparse_infill_speed": "100",
     "top_color_penetration_layers": "7",
     "top_shell_layers": "9",
     "top_shell_thickness": "0.8",
-    "top_surface_line_width": "0.22",
-    "top_surface_speed": [
-        "150",
-        "150",
-        "150",
-        "150"
-    ],
+    "top_surface_speed": "150",
     "wall_loops": "4",
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"
