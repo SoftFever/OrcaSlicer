@@ -967,22 +967,20 @@ const BoundingBoxf3& Selection::get_full_unscaled_instance_local_bounding_box() 
     return *m_full_unscaled_instance_local_bounding_box;
 }
 
-const std::pair<BoundingBoxf3, Transform3d>& Selection::get_bounding_box_in_current_reference_system() const
+const std::pair<BoundingBoxf3, Transform3d> &Selection::get_bounding_box_in_current_reference_system() const
 {
     static int last_coordinates_type = -1;
 
     assert(!is_empty());
 
     ECoordinatesType coordinates_type = wxGetApp().obj_manipul()->get_coordinates_type();
-    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local)
-        coordinates_type = ECoordinatesType::World;
+    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local) coordinates_type = ECoordinatesType::World;
 
-    if (last_coordinates_type != int(coordinates_type))
-        const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>>*>(&m_bounding_box_in_current_reference_system)->reset();
+    if (last_coordinates_type != int(coordinates_type)) const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system)->reset();
 
     if (!m_bounding_box_in_current_reference_system.has_value()) {
-        last_coordinates_type = int(coordinates_type);
-        *const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>>*>(&m_bounding_box_in_current_reference_system) = get_bounding_box_in_reference_system(coordinates_type);
+        last_coordinates_type                                                                                            = int(coordinates_type);
+        *const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system) = get_bounding_box_in_reference_system(coordinates_type);
     }
 
     return *m_bounding_box_in_current_reference_system;
@@ -994,11 +992,19 @@ std::pair<BoundingBoxf3, Transform3d> Selection::get_bounding_box_in_reference_s
     // trafo to current reference system
     //
     Transform3d trafo;
-    switch (type)
-    {
-    case ECoordinatesType::World:    { trafo = Transform3d::Identity(); break; }
-    case ECoordinatesType::Instance: { trafo = get_first_volume()->get_instance_transformation().get_matrix(); break; }
-    case ECoordinatesType::Local:    { trafo = get_first_volume()->world_matrix(); break; }
+    switch (type) {
+    case ECoordinatesType::World: {
+        trafo = Transform3d::Identity();
+        break;
+    }
+    case ECoordinatesType::Instance: {
+        trafo = get_first_volume()->get_instance_transformation().get_matrix();
+        break;
+    }
+    case ECoordinatesType::Local: {
+        trafo = get_first_volume()->world_matrix();
+        break;
+    }
     }
 
     //
@@ -1006,60 +1012,54 @@ std::pair<BoundingBoxf3, Transform3d> Selection::get_bounding_box_in_reference_s
     //
     Geometry::Transformation t(trafo);
     t.reset_scaling_factor();
-    const Transform3d basis_trafo = t.get_matrix_no_offset();
-    std::vector<Vec3d> axes = { Vec3d::UnitX(), Vec3d::UnitY(), Vec3d::UnitZ() };
-    for (size_t i = 0; i < axes.size(); ++i) {
-        axes[i] = basis_trafo * axes[i];
-    }
+    const Transform3d  basis_trafo = t.get_matrix_no_offset();
+    std::vector<Vec3d> axes        = {Vec3d::UnitX(), Vec3d::UnitY(), Vec3d::UnitZ()};
+    for (size_t i = 0; i < axes.size(); ++i) { axes[i] = basis_trafo * axes[i]; }
 
     //
     // calculate bounding box aligned to trafo basis
     //
-    Vec3d min = { DBL_MAX, DBL_MAX, DBL_MAX };
-    Vec3d max = { -DBL_MAX, -DBL_MAX, -DBL_MAX };
+    Vec3d min = {DBL_MAX, DBL_MAX, DBL_MAX};
+    Vec3d max = {-DBL_MAX, -DBL_MAX, -DBL_MAX};
     for (unsigned int id : m_list) {
-        const GLVolume& vol = *get_volume(id);
-        const Transform3d vol_world_rafo = vol.world_matrix();
-        const TriangleMesh* mesh = vol.convex_hull();
-        if (mesh == nullptr)
-            mesh = &m_model->objects[vol.object_idx()]->volumes[vol.volume_idx()]->mesh();
+        const GLVolume &    vol            = *get_volume(id);
+        const Transform3d   vol_world_rafo = vol.world_matrix();
+        const TriangleMesh *mesh           = vol.convex_hull();
+        if (mesh == nullptr) mesh = &m_model->objects[vol.object_idx()]->volumes[vol.volume_idx()]->mesh();
         assert(mesh != nullptr);
-        for (const stl_vertex& v : mesh->its.vertices) {
+        for (const stl_vertex &v : mesh->its.vertices) {
             const Vec3d world_v = vol_world_rafo * v.cast<double>();
             for (int i = 0; i < 3; ++i) {
                 const double i_comp = world_v.dot(axes[i]);
-                min(i) = std::min(min(i), i_comp);
-                max(i) = std::max(max(i), i_comp);
+                min(i)              = std::min(min(i), i_comp);
+                max(i)              = std::max(max(i), i_comp);
             }
         }
     }
 
-    const Vec3d box_size = max - min;
-    Vec3d half_box_size = 0.5 * box_size;
+    const Vec3d              box_size      = max - min;
+    Vec3d                    half_box_size = 0.5 * box_size;
     Geometry::Transformation out_trafo(trafo);
-    Vec3d center = 0.5 * (min + max);
+    Vec3d                    center = 0.5 * (min + max);
 
-    // Fix for non centered volume 
+    // Fix for non centered volume
     // by move with calculated center(to volume center) and extend half box size
     // e.g. for right aligned embossed text
-    if (m_list.size() == 1 &&
-        type == ECoordinatesType::Local) {
-        const GLVolume& vol = *get_volume(*m_list.begin());
+    if (m_list.size() == 1 && type == ECoordinatesType::Local) {
+        const GLVolume &  vol             = *get_volume(*m_list.begin());
         const Transform3d vol_world_trafo = vol.world_matrix();
-        Vec3d world_zero = vol_world_trafo * Vec3d::Zero();
-        for (size_t i = 0; i < 3; i++){
+        Vec3d             world_zero      = vol_world_trafo * Vec3d::Zero();
+        for (size_t i = 0; i < 3; i++) {
             // move center to local volume zero
             center[i] = world_zero.dot(axes[i]);
             // extend half size to bigger distance from center
-            half_box_size[i] = std::max(
-                abs(center[i] - min[i]),
-                abs(center[i] - max[i]));
+            half_box_size[i] = std::max(abs(center[i] - min[i]), abs(center[i] - max[i]));
         }
     }
-    
+
     const BoundingBoxf3 out_box(-half_box_size, half_box_size);
     out_trafo.set_offset(basis_trafo * center);
-    return { out_box, out_trafo.get_matrix_no_scaling_factor() };
+    return {out_box, out_trafo.get_matrix_no_scaling_factor()};
 }
 
 const std::pair<Vec3d, double> Selection::get_bounding_sphere() const
