@@ -82,6 +82,7 @@ bool GLGizmoMove3D::on_is_activable() const
 void GLGizmoMove3D::on_set_state() {
     if (get_state() == On) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+        m_object_manipulation->set_use_object_cs(false);
     }
 }
 
@@ -91,7 +92,7 @@ void GLGizmoMove3D::on_start_dragging()
 
     m_displacement = Vec3d::Zero();
     const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    m_starting_drag_position = m_grabbers[m_hover_id].center;
+    m_starting_drag_position = m_grabbers[m_hover_id].matrix * m_grabbers[m_hover_id].center;
     m_starting_box_center = box.center();
     m_starting_box_bottom_center = box.center();
     m_starting_box_bottom_center(2) = box.min(2);
@@ -131,42 +132,35 @@ void GLGizmoMove3D::on_render()
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    const Vec3d& center = box.center();
+    const auto &[box, box_trafo]    = selection.get_bounding_box_in_current_reference_system();
+    m_bounding_box                  = box;
+    m_center                        = box_trafo.translation();
+    const Transform3d base_matrix   = box_trafo;
     float space_size = 20.f *INV_ZOOM;
 
-#if ENABLE_FIXED_GRABBER
+    for (int i = 0; i < 3; ++i) {
+        m_grabbers[i].matrix = base_matrix;
+    }
+
+    const Vec3d zero = Vec3d::Zero();
+
     // x axis
-    m_grabbers[0].center = { box.max.x() + space_size, center.y(), center.z() };
+    m_grabbers[0].center = {m_bounding_box.max.x() + space_size, 0, 0};
     // y axis
-    m_grabbers[1].center = { center.x(), box.max.y() + space_size, center.z() };
+    m_grabbers[1].center = {0, m_bounding_box.max.y() + space_size,0};
     // z axis
-    m_grabbers[2].center = { center.x(), center.y(), box.max.z() + space_size };
+    m_grabbers[2].center = {0,0, m_bounding_box.max.z() + space_size};
 
     for (int i = 0; i < 3; ++i) {
         m_grabbers[i].color       = AXES_COLOR[i];
         m_grabbers[i].hover_color = AXES_HOVER_COLOR[i];
     }
-#else
-    // x axis
-    m_grabbers[0].center = { box.max.x() + Offset, center.y(), center.z() };
-    m_grabbers[0].color = AXES_COLOR[0];
-
-    // y axis
-    m_grabbers[1].center = { center.x(), box.max.y() + Offset, center.z() };
-    m_grabbers[1].color = AXES_COLOR[1];
-
-    // z axis
-    m_grabbers[2].center = { center.x(), center.y(), box.max.z() + Offset };
-    m_grabbers[2].color = AXES_COLOR[2];
-#endif
-
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
-    auto render_grabber_connection = [this, &center](unsigned int id) {
+    auto render_grabber_connection = [this, &zero](unsigned int id) {
         if (m_grabbers[id].enabled) {
             //if (!m_grabber_connections[id].model.is_initialized() || !m_grabber_connections[id].old_center.isApprox(center)) {
-                m_grabber_connections[id].old_center = center;
+                m_grabber_connections[id].old_center = m_grabbers[id].center;
                 m_grabber_connections[id].model.reset();
 
                 GLModel::Geometry init_data;
@@ -176,7 +170,7 @@ void GLGizmoMove3D::on_render()
                 init_data.reserve_indices(2);
 
                 // vertices
-                init_data.add_vertex((Vec3f)center.cast<float>());
+                init_data.add_vertex((Vec3f)zero.cast<float>());
                 init_data.add_vertex((Vec3f)m_grabbers[id].center.cast<float>());
 
                 // indices
@@ -196,7 +190,7 @@ void GLGizmoMove3D::on_render()
     if (shader != nullptr) {
         shader->start_using();
         const Camera& camera = wxGetApp().plater()->get_camera();
-        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix() * base_matrix);
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
         // draw axes

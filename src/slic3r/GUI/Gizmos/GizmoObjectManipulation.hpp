@@ -56,7 +56,7 @@ public:
     Cache m_cache;
 
     bool            m_imperial_units { false };
-    
+    bool            m_use_object_cs{false};
     // Mirroring buttons and their current state
     //enum MirrorButtonState {
     //    mbHidden,
@@ -109,6 +109,7 @@ public:
 
     void        set_uniform_scaling(const bool uniform_scale);
     bool        get_uniform_scaling() const { return m_uniform_scale; }
+    void        set_use_object_cs(bool flag) { m_use_object_cs = flag; }
     // Does the object manipulation panel work in World or Local coordinates?
     void        set_coordinates_type(ECoordinatesType type);
     ECoordinatesType get_coordinates_type() const { return m_coordinates_type; }
@@ -124,6 +125,7 @@ public:
     void do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     float max_unit_size(int number, Vec3d &vec1, Vec3d &vec2,std::string str);
     bool reset_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
+    bool bbl_checkbox(const wxString &label, bool &value);
 
 private:
     void reset_settings_value();
