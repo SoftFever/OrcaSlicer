@@ -733,8 +733,6 @@ void PrintObject::simplify_extrusion_path()
     }
 
     if (this->set_started(posSimplifySupportPath)) {
-        //BBS: disable circle simplification for support as it causes separation of support walls
-        #if 0
         m_print->set_status(75, L("Optimizing toolpath"));
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - start";
         tbb::parallel_for(
@@ -748,7 +746,6 @@ void PrintObject::simplify_extrusion_path()
         );
         m_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - end";
-        #endif
         this->set_done(posSimplifySupportPath);
     }
 }
