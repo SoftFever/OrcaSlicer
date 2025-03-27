@@ -6,6 +6,9 @@
     "setting_id": "GFSU98_04",
     "instantiation": "true",
     "description": "If you are to print a kind of soft TPU, please don't slice with this profile, and it is only for TPU that has high enough hardness (not less than 55D) and is compatible with the AMS. To get better printing quality, please refer to this wiki: TPU printing guide.",
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
     "fan_cooling_layer_time": [
         "40"
     ],
@@ -30,6 +33,10 @@
     "filament_max_volumetric_speed": [
         "10.5",
         "10.5"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "2.625",
+        "2.625"
     ],
     "filament_retract_before_wipe": [
         "nil",
