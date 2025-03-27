@@ -177,7 +177,7 @@ protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
 
 private:
-
+    const GLVolume *m_last_volume;
     class RotoptimzeWindow
     {
         ImGuiWrapper *m_imgui = nullptr;

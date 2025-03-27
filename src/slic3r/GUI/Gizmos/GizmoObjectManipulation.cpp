@@ -263,7 +263,7 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
             scale = volume->get_volume_scaling_factor();
             min_z = get_volume_min_z(volume);
         }
-        m_show_clear_rotation = !rotation.isApprox(Vec3d::Zero());
+        m_show_clear_rotation = !rotation.isApprox(m_init_rotation);
         m_show_clear_scale = (m_cache.scale / 100.0f - Vec3d::Ones()).norm() > 0.001;
         m_show_drop_to_bed = (std::abs(min_z) > EPSILON);
     }
@@ -493,23 +493,29 @@ void GizmoObjectManipulation::reset_position_value()
 
 void GizmoObjectManipulation::reset_rotation_value()
 {
-    Selection& selection = m_glcanvas.get_selection();
-
-    if (selection.is_single_volume() || selection.is_single_modifier()) {
-        GLVolume* volume = const_cast<GLVolume*>(selection.get_first_volume());
-        volume->set_volume_rotation(Vec3d::Zero());
-    }
-    else if (selection.is_single_full_instance()) {
+    Selection &selection = m_glcanvas.get_selection();
+    selection.setup_cache();
+    if (selection.is_single_volume_or_modifier()) {
+        GLVolume *               vol   = const_cast<GLVolume *>(selection.get_first_volume());
+        Geometry::Transformation trafo = vol->get_volume_transformation();
+        auto offset = trafo.get_offset();
+        trafo.set_matrix(m_init_rotation_scale_tran);
+        trafo.set_offset(offset);
+        vol->set_volume_transformation(trafo);
+    } else if (selection.is_single_full_instance()) {
+        Geometry::Transformation trafo = selection.get_first_volume()->get_instance_transformation();
+        auto                     offset = trafo.get_offset();
+        trafo.set_matrix(m_init_rotation_scale_tran);
+        trafo.set_offset(offset);
         for (unsigned int idx : selection.get_volume_idxs()) {
-            GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(idx));
-            volume->set_instance_rotation(Vec3d::Zero());
+            const_cast<GLVolume *>(selection.get_volume(idx))->set_instance_transformation(trafo);
         }
-    }
-    else
+    } else
         return;
 
-    // Update rotation at the GLVolumes.
-    selection.synchronize_unselected_instances(Selection::SyncRotationType::GENERAL);
+    // Synchronize instances/volumes.
+
+    selection.synchronize_unselected_instances(Selection::SyncRotationType::RESET);
     selection.synchronize_unselected_volumes();
     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
     m_glcanvas.do_rotate(L("Reset Rotation"));
@@ -701,6 +707,11 @@ void GizmoObjectManipulation::show_scale_tooltip_information(ImGuiWrapper *imgui
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(2);
+}
+
+void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &value) {
+    m_init_rotation_scale_tran = value.get_matrix_no_offset();
+    m_init_rotation      = value.get_rotation();
 }
 
 void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)

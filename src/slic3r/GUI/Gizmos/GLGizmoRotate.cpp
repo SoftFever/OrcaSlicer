@@ -527,25 +527,6 @@ bool GLGizmoRotate3D::on_mouse(const wxMouseEvent &mouse_event)
     return use_grabbers(mouse_event);
 }
 
-void GLGizmoRotate3D::data_changed(bool is_serializing) {
-    const Selection &selection = m_parent.get_selection();
-    bool is_wipe_tower = selection.is_wipe_tower();
-    if (is_wipe_tower) {
-        DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        float wipe_tower_rotation_angle =
-            dynamic_cast<const ConfigOptionFloat *>(
-                config.option("wipe_tower_rotation_angle"))
-                ->value;
-        set_rotation(Vec3d(0., 0., (M_PI / 180.) * wipe_tower_rotation_angle));
-        m_gizmos[0].disable_grabber();
-        m_gizmos[1].disable_grabber();
-    } else {
-        set_rotation(Vec3d::Zero());
-        m_gizmos[0].enable_grabber();
-        m_gizmos[1].enable_grabber();
-    }
-}
-
 bool GLGizmoRotate3D::on_init()
 {
     for (GLGizmoRotate& g : m_gizmos) 
@@ -574,6 +555,37 @@ void GLGizmoRotate3D::on_set_state()
         g.set_state(m_state);
     if (get_state() == On) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+    }
+}
+
+void GLGizmoRotate3D::data_changed(bool is_serializing) {
+    const Selection &selection = m_parent.get_selection();
+    const GLVolume * volume    = selection.get_first_volume();
+    if (m_last_volume != volume) {
+        m_last_volume = volume;
+        Geometry::Transformation tran;
+        if (selection.is_single_full_instance()) {
+            tran = volume->get_instance_transformation();
+        } else {
+            tran = volume->get_volume_transformation();
+        }
+        m_object_manipulation->set_init_rotation(tran);
+    }
+
+    bool is_wipe_tower = selection.is_wipe_tower();
+    if (is_wipe_tower) {
+        DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        float wipe_tower_rotation_angle =
+            dynamic_cast<const ConfigOptionFloat *>(
+                config.option("wipe_tower_rotation_angle"))
+                ->value;
+        set_rotation(Vec3d(0., 0., (M_PI / 180.) * wipe_tower_rotation_angle));
+        m_gizmos[0].disable_grabber();
+        m_gizmos[1].disable_grabber();
+    } else {
+        set_rotation(Vec3d::Zero());
+        m_gizmos[0].enable_grabber();
+        m_gizmos[1].enable_grabber();
     }
 }
 

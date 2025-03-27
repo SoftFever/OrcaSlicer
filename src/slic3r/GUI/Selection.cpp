@@ -416,7 +416,7 @@ ModelVolume *Selection::get_selected_single_volume(int &out_object_idx, int &out
 
 ModelObject *Selection::get_selected_single_object(int &out_object_idx) const
 {
-    if (is_single_volume() || is_single_modifier()) {
+    if (is_single_volume() || is_single_modifier() || is_single_full_object()) {
         const GLVolume *gl_volume = get_first_volume();
         out_object_idx            = gl_volume->object_idx();
         return get_model()->objects[out_object_idx];
@@ -1648,6 +1648,11 @@ void Selection::scale_and_translate(const Vec3d &scale, const Vec3d &world_trans
             } else
                 transform_instance_relative(v, volume_data, transformation_type, Geometry::translation_transform(world_translation) * Geometry::scale_transform(relative_scale),
                                             m_cache.dragging_center);
+            // update the instance assemble transform
+            ModelObject *            object             = m_model->objects[v.object_idx()];
+            Geometry::Transformation assemble_transform = object->instances[v.instance_idx()]->get_assemble_transformation();
+            assemble_transform.set_scaling_factor(v.get_instance_scaling_factor());
+            object->instances[v.instance_idx()]->set_assemble_transformation(assemble_transform);
         } else {
             if (!is_single_volume_or_modifier()) {
                 assert(transformation_type.world());

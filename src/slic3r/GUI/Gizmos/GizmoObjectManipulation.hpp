@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Geometry.hpp"
 #include <float.h>
 
 #include "slic3r/GUI/GUI_Geometry.hpp"
@@ -136,6 +137,8 @@ public:
     void show_move_tooltip_information(ImGuiWrapper *imgui_wrapper, float caption_max, float x, float y);
     void show_rotate_tooltip_information(ImGuiWrapper *imgui_wrapper, float caption_max, float x, float y);
     void show_scale_tooltip_information(ImGuiWrapper *imgui_wrapper, float caption_max, float x, float y);
+    void set_init_rotation(const Geometry::Transformation &value);
+
 private:
     void reset_settings_value();
     void update_settings_value(const Selection& selection);
@@ -161,6 +164,8 @@ private:
     std::map<std::string, wxString> m_desc_move;
     std::map<std::string, wxString> m_desc_rotate;
     std::map<std::string, wxString> m_desc_scale;
+    Vec3d                           m_init_rotation;
+    Transform3d                     m_init_rotation_scale_tran;
 };
 
 }}
