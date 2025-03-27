@@ -760,6 +760,8 @@ void PressureAdvanceWizard::on_cali_start()
             Preset *preset               = selected_filaments.begin()->second;
             Preset * temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
+            if (preset->type == Preset::TYPE_FILAMENT)
+                temp_filament_preset->filament_id = preset->filament_id;
 
             calib_info.bed_type      = plate_type;
             calib_info.process_bar   = preset_page->get_sending_progress_bar();
@@ -1233,6 +1235,8 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             Preset* preset = selected_filaments.begin()->second;
             temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
+            if (preset->type == Preset::TYPE_FILAMENT)
+                temp_filament_preset->filament_id = preset->filament_id;
 
             calib_info.bed_type = plate_type;
             calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
