@@ -697,6 +697,8 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     full_config.apply(filament_config);
     full_config.apply(printer_config);
 
+    full_config.set_key_value("filament_ids", new ConfigOptionStrings({calib_info.filament_prest->filament_id}));
+
     init_multi_extruder_params_for_cali(full_config, calib_info);
 
     Calib_Params params;
@@ -807,6 +809,8 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
     full_config.apply(print_config);
     full_config.apply(filament_config);
     full_config.apply(printer_config);
+
+    full_config.set_key_value("filament_ids", new ConfigOptionStrings({calib_info.filament_prest->filament_id}));
 
     init_multi_extruder_params_for_cali(full_config, calib_info);
 
