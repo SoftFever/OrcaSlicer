@@ -2453,6 +2453,20 @@ void SelectMachineDialog::connect_printer_mqtt()
     }
 }
 
+static bool _HasExt(const std::vector<FilamentInfo> &ams_mapping_result) {
+    if (ams_mapping_result.empty()) {
+        return true;
+    };
+
+    for (const auto &info : ams_mapping_result) {
+        if (info.ams_id == VIRTUAL_AMS_MAIN_ID_STR || info.ams_id == VIRTUAL_AMS_DEPUTY_ID_STR) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void SelectMachineDialog::on_send_print()
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
@@ -2475,8 +2489,11 @@ void SelectMachineDialog::on_send_print()
 
     MachineObject* obj_ = dev->get_selected_machine();
     assert(obj_->dev_id == m_printer_last_select);
-    if (obj_ == nullptr) {
-        return;
+    if (obj_ == nullptr) { return; }
+
+    /*github-6179*/
+    if (obj_->m_extder_data.total_extder_count < 2 && _HasExt(m_ams_mapping_result)) {
+        m_checkbox_list["use_ams"]->setValue("off");
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
@@ -3051,6 +3068,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         update_select_layout(obj_);
         update_ams_check(obj_);
         m_check_flag = true;
+    }
+
+    if (obj_->m_extder_data.total_extder_count > 1) {
+        change_materialitem_tip(false); /*mapping to both ams and ext, is supported while total_extder_count is 2*/
+    } else {
+        change_materialitem_tip(true);
     }
 
     if (!obj_
@@ -3821,11 +3844,15 @@ void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
         int       id   = iter->first;
         Material *item = iter->second;
         if (item) {
-            if (no_ams_only_ext) {
-                item->item->SetToolTip(m_ams_tooltip_ext);
+            if (no_ams_only_ext && (item->item->m_ams_name == "Ext") && (m_checkbox_list["use_ams"]->getValue() != "on")) {
+                if (item->item->GetToolTipText() != m_ams_tooltip_ext) {
+                    item->item->SetToolTip(m_ams_tooltip_ext);
+                }
             }
             else {
-                item->item->SetToolTip(m_ams_tooltip);
+                if (item->item->GetToolTipText() != m_ams_tooltip) {
+                    item->item->SetToolTip(m_ams_tooltip);
+                }
             }
         }
         iter++;
@@ -3879,7 +3906,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_materialList.clear();
     m_filaments.clear();
     m_ams_tooltip =_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
-    m_ams_tooltip_ext = _L("Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited.");
+    m_ams_tooltip_ext  = _L("To map to AMS, enable 'Use AMS' in 'Advanced Options'.");
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
