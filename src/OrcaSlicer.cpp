@@ -1326,7 +1326,7 @@ int CLI::run(int argc, char **argv)
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
-    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false;
+    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -1388,6 +1388,10 @@ int CLI::run(int argc, char **argv)
     if (allow_newer_file_option)
         allow_newer_file = allow_newer_file_option->value;
 
+    ConfigOptionBool* allow_mix_temp_option = m_config.option<ConfigOptionBool>("allow_mix_temp");
+    if (allow_mix_temp_option)
+        allow_mix_temp = allow_mix_temp_option->value;
+
     ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
     if (avoid_extrusion_cali_region_option)
         avoid_extrusion_cali_region = avoid_extrusion_cali_region_option->value;
@@ -1439,8 +1443,8 @@ int CLI::run(int argc, char **argv)
     const std::vector<int>  clone_objects  = m_config.option<ConfigOptionInts>("clone_objects", true)->values;
     //when load objects from stl/obj, the total used filaments set
     std::set<int> used_filament_set;
-    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%, skip_useless_pick %7%, allow_newer_file %8%")
-        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size() %skip_useless_pick %allow_newer_file;
+    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%, skip_useless_pick %7%, allow_newer_file %8%, allow_mix_temp %9%")
+        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size() %skip_useless_pick %allow_newer_file %allow_mix_temp;
     if (clone_objects.size() > 0)
     {
         if (clone_objects.size() != m_input_files.size())
@@ -5562,6 +5566,7 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
                         StringObjectException warning;
+                        print_fff->set_check_multi_filaments_compatibility(!allow_mix_temp);
                         auto err = print->validate(&warning);
                         if (!err.string.empty()) {
                             if ((STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT == err.type) && no_check) {

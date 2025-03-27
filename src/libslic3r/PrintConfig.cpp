@@ -9495,6 +9495,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Allow 3mf with newer version to be sliced.");
     def->cli_params = "option";
     def->set_default_value(new  ConfigOptionBool(false));
+
+    def = this->add("allow_mix_temp", coBool);
+    def->label = "Allow filaments with high/low temperature to be printed together";
+    def->tooltip = "Allow filaments with high/low temperature to be printed together";
+    def->cli_params = "option";
+    def->set_default_value(new  ConfigOptionBool(false));
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;
