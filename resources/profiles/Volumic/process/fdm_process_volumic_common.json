@@ -48,7 +48,7 @@
     "wall_infill_order": "inner wall/outer wall/infill",
     "infill_direction": "45",
     "sparse_infill_density": "25%",
-    "sparse_infill_pattern": "grid",
+    "sparse_infill_pattern": "crosshatch",
     "infill_combination": "0",
 	"infill_anchor":"20%",
     "infill_wall_overlap": "20%",
