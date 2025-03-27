@@ -555,6 +555,8 @@ void GLGizmoRotate3D::on_set_state()
         g.set_state(m_state);
     if (get_state() == On) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+    } else {
+        m_last_volume = nullptr;
     }
 }
 
