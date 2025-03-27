@@ -209,7 +209,7 @@ void GLGizmoMove3D::on_render()
 	// draw grabbers
     render_grabbers(box);
 
-    if (!selection.is_multiple_full_object()) {
+    if (m_object_manipulation->is_instance_coordinates()) {
         shader = wxGetApp().get_shader("flat");
         if (shader != nullptr) {
             shader->start_using();

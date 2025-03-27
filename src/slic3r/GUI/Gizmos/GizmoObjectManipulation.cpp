@@ -431,6 +431,36 @@ void GizmoObjectManipulation::on_change(const std::string& opt_key, int axis, do
         change_size_value(axis, new_value);
 }
 
+bool GizmoObjectManipulation::render_combo(
+    ImGuiWrapper *imgui_wrapper, const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx, float label_width, float item_width)
+{
+    ImGui::AlignTextToFramePadding();
+    imgui_wrapper->text(label);
+    ImGui::SameLine(label_width);
+    ImGui::PushItemWidth(item_width);
+
+    size_t selection_out = selection_idx;
+
+    const char *selected_str = (selection_idx >= 0 && selection_idx < int(lines.size())) ? lines[selection_idx].c_str() : "";
+    if (ImGui::BBLBeginCombo(("##" + label).c_str(), selected_str, 0)) {
+        for (size_t line_idx = 0; line_idx < lines.size(); ++line_idx) {
+            ImGui::PushID(int(line_idx));
+            if (ImGui::Selectable("", line_idx == selection_idx)) selection_out = line_idx;
+
+            ImGui::SameLine();
+            ImGui::Text("%s", lines[line_idx].c_str());
+            ImGui::PopID();
+        }
+
+        ImGui::EndCombo();
+    }
+
+    bool is_changed = selection_idx != selection_out;
+    selection_idx   = selection_out;
+
+    return is_changed;
+}
+
 void GizmoObjectManipulation::reset_position_value()
 {
     Selection& selection = m_glcanvas.get_selection();
@@ -705,8 +735,8 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     float space_size    = imgui_wrapper->get_style_scaling() * 8;
     float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
-    float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
-    float caption_max   = std::max(position_size, World_size) + 2 * space_size;
+    float object_cs_size = imgui_wrapper->calc_text_size(_L("Object coordinates")).x + imgui_wrapper->calc_text_size("      ").x + space_size;
+    float caption_max    = std::max(position_size, object_cs_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
     // position
@@ -726,12 +756,25 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
     ImGui::PushItemWidth(caption_max);
-    if (!m_glcanvas.get_selection().is_multiple_full_instance() && m_use_object_cs) {
-        imgui_wrapper->text(_L("Object coordinates"));
+    Selection &              selection = m_glcanvas.get_selection();
+    std::vector<std::string> modes     = {_u8L("World coordinates"), _u8L("Object coordinates")};//_u8L("Part coordinates")
+    if (selection.is_multiple_full_object()) {
+        modes.pop_back();
     }
-    else {
-        imgui_wrapper->text(_L("World coordinates"));
+    size_t selection_idx = (int) m_coordinates_type;
+    if (selection_idx >= modes.size()) {
+        set_coordinates_type(ECoordinatesType::World);
+        selection_idx = 0;
     }
+    float caption_cs_size     = imgui_wrapper->calc_text_size("").x;
+    float combox_content_size = imgui_wrapper->calc_text_size(_L("Object coordinates")).x * 1.1 + ImGui::GetStyle().FramePadding.x * 18.0f;
+    float caption_size        = caption_cs_size + 2 * space_size;
+    ImGuiWrapper::push_combo_style(m_glcanvas.get_scale());
+    bool combox_changed = false;
+    if (render_combo(imgui_wrapper, "", modes, selection_idx, caption_size, combox_content_size)) {
+        combox_changed = true;
+    }
+    ImGuiWrapper::pop_combo_style();
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -758,16 +801,11 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
     bool is_avoid_one_update{false};
-    if (!m_glcanvas.get_selection().is_multiple_full_object()) {
-        if (bbl_checkbox(_L("Object coordinates"), m_use_object_cs)) {
-            if (m_use_object_cs) {
-                set_coordinates_type(ECoordinatesType::Instance);
-            } else {
-                set_coordinates_type(ECoordinatesType::World);
-            }
-            UpdateAndShow(true);
-            is_avoid_one_update = true; // avoid update(current_active_id, "position", original_position
-        }
+    if (combox_changed) {
+        combox_changed = false;
+        set_coordinates_type((ECoordinatesType) selection_idx);
+        UpdateAndShow(true);
+        is_avoid_one_update = true; // avoid update(current_active_id, "position", original_position
     }
 
     if (!is_avoid_one_update) {
