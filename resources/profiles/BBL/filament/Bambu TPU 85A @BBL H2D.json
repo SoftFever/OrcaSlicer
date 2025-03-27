@@ -6,6 +6,9 @@
     "setting_id": "GFSU04_02",
     "instantiation": "true",
     "description": "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
     "filament_deretraction_speed": [
         "10",
         "10"
@@ -21,6 +24,10 @@
     "filament_max_volumetric_speed": [
         "2.2",
         "2.2"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "0.55",
+        "0.55"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -69,10 +76,6 @@
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
-    ],
-    "filament_ramming_volumetric_speed": [
-        "0.55",
-        "0.55"
     ],
     "filament_pre_cooling_temperature": [
         "195",
