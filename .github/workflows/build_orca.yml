@@ -81,7 +81,7 @@ jobs:
       - name: Install tools mac
         if: inputs.os == 'macos-14'
         run: |
-          brew install ninja libtool
+          brew install libtool
           brew list
           mkdir -p ${{ github.workspace }}/deps/build
 

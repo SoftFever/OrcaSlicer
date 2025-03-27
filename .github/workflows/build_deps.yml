@@ -74,7 +74,7 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install automake texinfo ninja libtool
+            brew install automake texinfo libtool
             brew list
             brew uninstall --ignore-dependencies zstd
             ./build_release_macos.sh -dx -a universal -t 10.15 -1
