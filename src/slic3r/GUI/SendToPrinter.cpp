@@ -827,7 +827,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     if (!obj_->is_lan_mode_printer()) {
         result = m_plater->export_config_3mf(m_print_plate_idx);
         if (result < 0) {
-            BOOST_LOG_TRIVIAL(trace) << "export_config_3mf failed, result = " << result;
+            BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
             return;
         }
     }

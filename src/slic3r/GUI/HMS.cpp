@@ -704,7 +704,7 @@ std::string get_error_message(int error_code)
         }
         })
         .on_error([](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(trace) << boost::format("[BBL ErrorMessage]: status=%1%, error=%2%, body=%3%") % status % error % body;
+            BOOST_LOG_TRIVIAL(info) << boost::format("[BBL ErrorMessage]: status=%1%, error=%2%, body=%3%") % status % error % body;
         }).perform_sync();
 
         return result_str;

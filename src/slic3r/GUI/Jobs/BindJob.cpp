@@ -97,7 +97,7 @@ void BindJob::process(Ctl &ctl)
     );
 
     if (result < 0) {
-        BOOST_LOG_TRIVIAL(trace) << "login: result = " << result;
+        BOOST_LOG_TRIVIAL(info) << "login: result = " << result;
 
         if (result_code == BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED || result_code == BAMBU_NETWORK_ERR_BIND_GET_PRINTER_TICKET_TIMEOUT) {
             int         error_code;
@@ -119,7 +119,7 @@ void BindJob::process(Ctl &ctl)
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
-        BOOST_LOG_TRIVIAL(trace) << "login: dev is null";
+        BOOST_LOG_TRIVIAL(error) << "login: dev is null";
         post_fail_event(result_code, result_info);
         return;
     }

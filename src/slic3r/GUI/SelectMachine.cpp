@@ -1120,7 +1120,7 @@ void SelectMachineDialog::finish_mode()
 void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &result)
 {
     if (result.empty()) {
-        BOOST_LOG_TRIVIAL(trace) << "ams_mapping result is empty";
+        BOOST_LOG_TRIVIAL(info) << "ams_mapping result is empty";
         for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
             wxString ams_id = "Ext";//
             wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
@@ -2580,7 +2580,7 @@ void SelectMachineDialog::on_send_print()
         if (!obj_->is_lan_mode_printer()) {
             result = m_plater->export_config_3mf(m_print_plate_idx);
             if (result < 0) {
-                BOOST_LOG_TRIVIAL(trace) << "export_config_3mf failed, result = " << result;
+                BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
                 return;
             }
         }
