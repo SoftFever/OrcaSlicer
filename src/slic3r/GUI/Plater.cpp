@@ -7980,7 +7980,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 // BBS
 void Plater::priv::on_combobox_select(wxCommandEvent &evt)
 {
-    if (q->sidebar().is_new_project_in_gcode3mf()) { return; }
     PlaterPresetComboBox* preset_combo_box = dynamic_cast<PlaterPresetComboBox*>(evt.GetEventObject());
     if (preset_combo_box) {
         this->on_select_preset(evt);
