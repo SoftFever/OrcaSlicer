@@ -6825,12 +6825,10 @@ void DeviceManager::check_pushing()
     }
 }
 
-
-
 void DeviceManager::on_machine_alive(std::string json_str)
 {
     try {
-        BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, json" << json_str;
+        //BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, json" << json_str;
         json j = json::parse(json_str);
         std::string dev_name        = j["dev_name"].get<std::string>();
         std::string dev_id          = j["dev_id"].get<std::string>();
@@ -6863,11 +6861,19 @@ void DeviceManager::on_machine_alive(std::string json_str)
         /* update userMachineList info */
         auto it = userMachineList.find(dev_id);
         if (it != userMachineList.end()) {
-            it->second->dev_ip                  = dev_ip;
-            it->second->bind_state              = bind_state;
-            it->second->bind_sec_link           = sec_link;
-            it->second->dev_connection_type     = connect_type;
-            it->second->bind_ssdp_version       = ssdp_version;
+            if (it->second->dev_ip != dev_ip ||
+                it->second->bind_state != bind_state ||
+                it->second->bind_sec_link != sec_link ||
+                it->second->dev_connection_type != connect_type ||
+                it->second->bind_ssdp_version != ssdp_version)
+            {
+                it->second->dev_ip              = dev_ip;
+                it->second->bind_state          = bind_state;
+                it->second->bind_sec_link       = sec_link;
+                it->second->dev_connection_type = connect_type;
+                it->second->bind_ssdp_version   = ssdp_version;
+                BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, update userMachineList json" << json_str;
+            }
         }
 
         /* update localMachineList */
@@ -6893,19 +6899,27 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 /* ip changed reconnect mqtt */
             }
 
-
-            obj->wifi_signal        = printer_signal;
-            obj->dev_connection_type= connect_type;
-            obj->bind_state         = bind_state;
-            obj->bind_sec_link      = sec_link;
-            obj->bind_ssdp_version = ssdp_version;
-            obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
+            if (obj->wifi_signal != printer_signal ||
+                obj->dev_connection_type != connect_type ||
+                obj->bind_state != bind_state ||
+                obj->bind_sec_link != sec_link ||
+                obj->bind_ssdp_version != ssdp_version ||
+                obj->printer_type != MachineObject::parse_printer_type(printer_type_str))
+            {
+                obj->wifi_signal         = printer_signal;
+                obj->dev_connection_type = connect_type;
+                obj->bind_state          = bind_state;
+                obj->bind_sec_link       = sec_link;
+                obj->bind_ssdp_version   = ssdp_version;
+                obj->printer_type        = MachineObject::parse_printer_type(printer_type_str);
+                BOOST_LOG_TRIVIAL(trace) << "DeviceManager::SsdpDiscovery, update localMachineList json" << json_str;
+            }
 
             // U0 firmware
             if (obj->dev_connection_type.empty() && obj->bind_state.empty())
                 obj->bind_state = "free";
 
-            BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
+            //BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
             obj->last_alive = Slic3r::Utils::get_current_time_utc();
             obj->m_is_online = true;
 
@@ -6938,8 +6952,6 @@ void DeviceManager::on_machine_alive(std::string json_str)
                  Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                  Slic3r::GUI::wxGetApp().app_config->save();
              }*/
-
-
             BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
         }
         update_local_machine(*obj);
