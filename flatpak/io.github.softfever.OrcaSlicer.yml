@@ -152,6 +152,7 @@ modules:
           -DCMAKE_INSTALL_PREFIX=/app
         cmake --build . 
         rm -r /run/build/orca_deps/external-packages
+        cd /run/build/orca_deps/deps/build
         ls -al
         find . -mindepth 1 -maxdepth 1 ! -name 'destdir' -exec rm -rf {} +
         ls -al
