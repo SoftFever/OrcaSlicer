@@ -686,7 +686,7 @@ std::string AppConfig::load()
                             if (iter.value().is_string())
                                 m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                             else {
-                                BOOST_LOG_TRIVIAL(trace) << "load config warning...";
+                                BOOST_LOG_TRIVIAL(warning) << "load config warning...";
                             }
                         }
                     }

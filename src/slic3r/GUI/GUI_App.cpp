@@ -4135,7 +4135,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
         }
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(trace) << "parse json cmd failed " << cmd;
+        BOOST_LOG_TRIVIAL(warning) << "parse json cmd failed " << cmd;
         return "";
     }
     return "";
