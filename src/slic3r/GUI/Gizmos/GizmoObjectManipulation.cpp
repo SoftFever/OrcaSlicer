@@ -94,7 +94,8 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
 			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
 		}
         else {//if (is_local_coordinates()) {//for scale
-            m_new_position = Vec3d::Zero();
+            auto tran      = selection.get_first_volume()->get_instance_transformation();
+            m_new_position = tran.get_matrix().inverse() * cs_center;
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
 			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
 			m_new_scale    = volume->get_instance_scaling_factor() * 100.;
@@ -623,7 +624,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
     ImGui::PushItemWidth(caption_max);
-    if (m_use_object_cs) {
+    if (!m_glcanvas.get_selection().is_multiple_full_instance() && m_use_object_cs) {
         imgui_wrapper->text(_L("Object coordinates"));
     }
     else {
@@ -655,15 +656,16 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
     bool is_avoid_one_update{false};
-    if (bbl_checkbox(_L("Object coordinates"), m_use_object_cs)) {
-        if (m_use_object_cs) {
-            set_coordinates_type(ECoordinatesType::Instance);
+    if (!m_glcanvas.get_selection().is_multiple_full_object()) {
+        if (bbl_checkbox(_L("Object coordinates"), m_use_object_cs)) {
+            if (m_use_object_cs) {
+                set_coordinates_type(ECoordinatesType::Instance);
+            } else {
+                set_coordinates_type(ECoordinatesType::World);
+            }
+            UpdateAndShow(true);
+            is_avoid_one_update = true; // avoid update(current_active_id, "position", original_position
         }
-        else {
-            set_coordinates_type(ECoordinatesType::World);
-        }
-        UpdateAndShow(true);
-        is_avoid_one_update = true;//avoid update(current_active_id, "position", original_position
     }
 
     if (!is_avoid_one_update) {

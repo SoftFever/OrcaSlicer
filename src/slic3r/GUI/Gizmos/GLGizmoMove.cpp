@@ -137,6 +137,9 @@ void GLGizmoMove3D::on_render()
     const auto &[box, box_trafo]    = selection.get_bounding_box_in_current_reference_system();
     m_bounding_box                  = box;
     m_center                        = box_trafo.translation();
+    if (m_object_manipulation) {
+        m_object_manipulation->cs_center = box_trafo.translation();
+    }
     const Transform3d base_matrix   = box_trafo;
     float space_size = 20.f *INV_ZOOM;
 
@@ -205,6 +208,20 @@ void GLGizmoMove3D::on_render()
 	
 	// draw grabbers
     render_grabbers(box);
+
+    if (!selection.is_multiple_full_object()) {
+        glsafe(::glPushMatrix());
+        Geometry::Transformation cur_tran;
+        if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
+            cur_tran = mi->get_transformation();
+        }
+        else {
+            cur_tran = selection.get_first_volume()->get_instance_transformation();
+        }
+        glsafe(::glMultMatrixd(cur_tran.get_matrix().data()));
+        render_cross_mark(Vec3f::Zero(), true);
+        glsafe(::glPopMatrix());
+    }
 }
 
 void GLGizmoMove3D::on_register_raycasters_for_picking()
@@ -260,13 +277,13 @@ void GLGizmoMove3D::change_cs_by_selection() {
     }
     m_last_selected_obejct_idx = obejct_idx;
     m_last_selected_volume_idx = volume_idx;
-    if (m_parent.get_selection().is_multiple_full_instance() || m_parent.get_selection().is_single_full_instance()) {
+    if (m_parent.get_selection().is_multiple_full_object()) {
         m_object_manipulation->set_use_object_cs(false);
     }
-    else if (model_volume && model_volume->is_model_part()) {
-        m_object_manipulation->set_use_object_cs(false);
+    else if (model_volume) {
+         m_object_manipulation->set_use_object_cs(true);
     } else {
-        m_object_manipulation->set_use_object_cs(true);
+        m_object_manipulation->set_use_object_cs(false);
     }
     if (m_object_manipulation->get_use_object_cs()) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::Instance);

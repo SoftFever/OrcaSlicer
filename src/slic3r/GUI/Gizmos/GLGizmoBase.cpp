@@ -227,7 +227,43 @@ bool GLGizmoBase::render_combo(const std::string &label, const std::vector<std::
     return is_changed;
 }
 
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+void GLGizmoBase::render_cross_mark(const Vec3f &target, bool is_single)
+{
+    double half_length = 4.0;
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    glsafe(::glLineWidth(2.0f));
+    ::glBegin(GL_LINES);
+    // draw line for x axis
+    ::glColor3f(1.0f, 0.0f, 0.0f);
+    if (!is_single) {
+        ::glVertex3f(target(0) - half_length, target(1), target(2));
+    }
+    else {
+        ::glVertex3f(target(0), target(1), target(2));
+    }
+    ::glVertex3f(target(0) + half_length, target(1), target(2));
+    // draw line for y axis
+    ::glColor3f(0.0f, 1.0f, 0.0f);
+    if (!is_single) {
+        ::glVertex3f(target(0), target(1) - half_length, target(2));
+    } else {
+        ::glVertex3f(target(0), target(1), target(2));
+    }
+    ::glVertex3f(target(0), target(1) + half_length, target(2));
+    // draw line for z axis
+    ::glColor3f(0.0f, 0.0f, 1.0f);
+    if (!is_single) {
+        ::glVertex3f(target(0), target(1), target(2) - half_length);
+    } else {
+        ::glVertex3f(target(0), target(1), target(2));
+    }
+    ::glVertex3f(target(0), target(1), target(2) + half_length);
+    glsafe(::glEnd());
+}
+
+GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)

@@ -81,6 +81,7 @@ public:
     Vec3d           m_buffered_rotation;
     Vec3d           m_buffered_scale;
     Vec3d           m_buffered_size;
+    Vec3d           cs_center;
     bool            m_new_enabled {true};
     bool            m_uniform_scale {true};
     // Does the object manipulation panel work in World or Local coordinates?

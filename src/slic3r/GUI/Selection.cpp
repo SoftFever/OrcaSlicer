@@ -414,6 +414,26 @@ ModelVolume *Selection::get_selected_single_volume(int &out_object_idx, int &out
     return nullptr;
 }
 
+ModelObject *Selection::get_selected_single_object(int &out_object_idx) const
+{
+    if (is_single_volume() || is_single_modifier()) {
+        const GLVolume *gl_volume = get_first_volume();
+        out_object_idx            = gl_volume->object_idx();
+        return get_model()->objects[out_object_idx];
+    }
+    return nullptr;
+}
+
+const ModelInstance *Selection::get_selected_single_intance() const
+{
+    int  object_idx;
+    auto mo = get_selected_single_object(object_idx);
+    if (mo) {
+        return mo->instances[get_instance_idx()];
+    }
+    return nullptr;
+}
+
 void Selection::add_curr_plate()
 {
     if (!m_valid)
@@ -2029,40 +2049,33 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    const Transform3d base_matrix = Geometry::assemble_transform(get_bounding_box().center());
+    Vec3d center = get_bounding_box().center();
     Transform3d orient_matrix = Transform3d::Identity();
 
     if (!boost::starts_with(sidebar_field, "layer")) {
         shader->set_uniform("emission_factor", 0.05f);
+        const auto &[box, box_trafo] = get_bounding_box_in_current_reference_system();
         // BBS
-        if (is_single_full_instance()/* && !wxGetApp().obj_manipul()->get_world_coordinates()*/) {
-            if (!boost::starts_with(sidebar_field, "position")) {
-                if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
+        if (is_single_full_instance() && !wxGetApp().obj_manipul()->is_world_coordinates()) {
+            center                       = box_trafo.translation();
+            orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
+        } else if (is_single_volume_or_modifier()) {
+            if (!wxGetApp().obj_manipul()->is_world_coordinates()) {
+                if (wxGetApp().obj_manipul()->is_local_coordinates()) {
+                    orient_matrix               = get_bounding_box_in_current_reference_system().second;
+                    orient_matrix.translation() = Vec3d::Zero();
+                } else {
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
-                else if (boost::starts_with(sidebar_field, "rotation")) {
-                    if (boost::ends_with(sidebar_field, "x"))
-                        orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
-                    else if (boost::ends_with(sidebar_field, "y")) {
-                        const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
-                        if (rotation.x() == 0.0)
-                            orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
-                        else
-                            orient_matrix.rotate(Eigen::AngleAxisd(rotation.z(), Vec3d::UnitZ()));
-                    }
+                    center       = box_trafo.translation();
                 }
             }
-        }
-        else if (is_single_volume() || is_single_modifier()) {
-            orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
-            if (!boost::starts_with(sidebar_field, "position"))
-                orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_rotation_matrix();
-
-        }
-        else {
-            if (requires_local_axes())
+        } else {
+            if (requires_local_axes()) {
                 orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
+            }
         }
     }
+    const Transform3d base_matrix = Geometry::assemble_transform(center);
 
     if (!boost::starts_with(sidebar_field, "layer"))
         glsafe(::glClear(GL_DEPTH_BUFFER_BIT));

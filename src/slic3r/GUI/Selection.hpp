@@ -15,6 +15,7 @@ class Model;
 class ModelObject;
 class ModelVolume;
 class ObjectID;
+class ModelInstance;
 class GLVolume;
 class GLArrow;
 class GLCurvedArrow;
@@ -226,6 +227,8 @@ public:
 
     //BBS
     ModelVolume *                   get_selected_single_volume(int &out_object_idx, int &out_volume_idx) const;
+    ModelObject *                   get_selected_single_object(int &out_object_idx) const;
+    const ModelInstance *           get_selected_single_intance() const;
     void add_curr_plate();
     void add_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate();
@@ -358,11 +361,11 @@ public:
     void erase();
 
     void render(float scale_factor = 1.0);
-    //BBS: GUI refactor: add uniform scale from gizmo
-    void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale);
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging);
 #endif // ENABLE_RENDER_SELECTION_CENTER
+    //BBS: GUI refactor: add uniform scale from gizmo
+    void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale);
 
     bool requires_local_axes() const;
 
