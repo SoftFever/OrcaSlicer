@@ -512,18 +512,18 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         if (!str.IsEmpty()) {
             bool invalid_val = false;
             bool out_of_range_val = false;
-            wxStringTokenizer points(str, ",");
-            while (points.HasMoreTokens()) {
-                wxString token = points.GetNextToken();
+            wxStringTokenizer thumbnails(str, ",");
+            while (thumbnails.HasMoreTokens()) {
+                wxString token = thumbnails.GetNextToken();
                 double x, y;
-                wxStringTokenizer _point(token, "x");
-                if (_point.HasMoreTokens()) {
-                    wxString x_str = _point.GetNextToken();
-                    if (x_str.ToDouble(&x) && _point.HasMoreTokens()) {
-                        wxString y_str = _point.GetNextToken();
-                        if (y_str.ToDouble(&y) && !_point.HasMoreTokens()) {
+                wxStringTokenizer thumbnail(token, "x");
+                if (thumbnail.HasMoreTokens()) {
+                    wxString x_str = thumbnail.GetNextToken();
+                    if (x_str.ToDouble(&x) && thumbnail.HasMoreTokens()) {
+                        wxString y_str = thumbnail.GetNextToken();
+                        if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
-                                if (0 <= x &&  0 <= y) {
+                                if (0 <= x && x <= 350 && 0 <= y && y <= 350) {
                                     out_values.push_back(Vec2d(x, y));
                                     continue;
                                 }
