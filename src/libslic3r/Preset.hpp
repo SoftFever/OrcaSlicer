@@ -66,6 +66,8 @@
 
 // Orca extension
 #define ORCA_JSON_KEY_RENAMED_FROM              "renamed_from"
+#define ORCA_JSON_KEY_CONTENT                   "content"
+#define ORCA_JSON_KEY_BUNDLE                    "bundle"
 
 
 namespace Slic3r {

@@ -76,7 +76,10 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_bbl_bund
     std::string parent_path = source_path.parent_path().string();
     //BBS: add json logic for vendor bundles
     std::string vendor_name = source_path.filename().string();
-    if (Slic3r::is_json_file(path_string)) {
+    if (Slic3r::is_preset_bundle_file(path_string)) {
+        // Remove the .bundle.json suffix.
+        vendor_name.erase(vendor_name.size() - 12);
+    } else if (Slic3r::is_json_file(path_string)) {
         // Remove the .json suffix.
         vendor_name.erase(vendor_name.size() - 5);
     }
@@ -128,7 +131,7 @@ BundleMap BundleMap::load()
     auto orca_bundle_path = (vendor_dir / PresetBundle::ORCA_DEFAULT_BUNDLE).replace_extension(".json");
     auto orca_bundle_rsrc = false;
     if (!boost::filesystem::exists(orca_bundle_path)) {
-        orca_bundle_path = (rsrc_vendor_dir / PresetBundle::ORCA_DEFAULT_BUNDLE).replace_extension(".json");
+        orca_bundle_path = (rsrc_vendor_dir / PresetBundle::ORCA_DEFAULT_BUNDLE).replace_extension(".bundle.json");
         orca_bundle_rsrc = true;
     }
     {
@@ -143,16 +146,19 @@ BundleMap BundleMap::load()
     for (auto dir : { &vendor_dir, &rsrc_vendor_dir }) {
         for (const auto &dir_entry : boost::filesystem::directory_iterator(*dir)) {
             //BBS: add json logic for vendor bundle
-            if (Slic3r::is_json_file(dir_entry.path().string())) {
-                std::string id = dir_entry.path().stem().string();  // stem() = filename() without the trailing ".json" part
+            std::string id;
+            if (is_in_resources && Slic3r::is_preset_bundle_file(dir_entry.path().string())) {
+                id = dir_entry.path().stem().stem().string(); // remove .bundle.json suffix
+            } else if (!is_in_resources && Slic3r::is_json_file(dir_entry.path().string())) {
+                id = dir_entry.path().stem().string(); // remove .json suffix
+            } else { continue; }
 
-                // Don't load this bundle if we've already loaded it.
-                if (res.find(id) != res.end()) { continue; }
+            // Don't load this bundle if we've already loaded it.
+            if (res.find(id) != res.end()) { continue; }
 
-                Bundle bundle;
-                if (bundle.load(dir_entry.path(), is_in_resources))
-                    res.emplace(std::move(id), std::move(bundle));
-            }
+            Bundle bundle;
+            if (bundle.load(dir_entry.path(), is_in_resources))
+                res.emplace(std::move(id), std::move(bundle));
         }
 
         is_in_resources = true;
