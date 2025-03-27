@@ -714,8 +714,8 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
 
     caption_max += imgui_wrapper->calc_text_size(": "sv).x + 35.f;
 
-    float  font_size   = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    float  scale       = m_glcanvas.get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, ImGui::GetStyle().FramePadding.y});
     ImGui::ImageButton3(normal_id, hover_id, button_size);
@@ -742,8 +742,8 @@ void GizmoObjectManipulation::show_rotate_tooltip_information(ImGuiWrapper *imgu
 
     caption_max += imgui_wrapper->calc_text_size(": "sv).x + 35.f;
 
-    float  font_size   = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    float  scale       = m_glcanvas.get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, ImGui::GetStyle().FramePadding.y});
     ImGui::ImageButton3(normal_id, hover_id, button_size);
@@ -770,8 +770,8 @@ void GizmoObjectManipulation::show_scale_tooltip_information(ImGuiWrapper *imgui
 
     caption_max += imgui_wrapper->calc_text_size(": "sv).x + 35.f;
 
-    float  font_size   = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    float  scale       = m_glcanvas.get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, ImGui::GetStyle().FramePadding.y});
     ImGui::ImageButton3(normal_id, hover_id, button_size);
