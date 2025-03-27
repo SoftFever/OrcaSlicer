@@ -393,30 +393,6 @@ void GizmoObjectManipulation::on_change(const std::string& opt_key, int axis, do
         change_size_value(axis, new_value);
 }
 
-void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
-{ 
-    const Selection &selection = m_glcanvas.get_selection();
-    if (selection.is_single_full_instance() && is_world_coordinates() && !new_value) {
-        // Verify whether the instance rotation is multiples of 90 degrees, so that the scaling in world coordinates is possible.
-        // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
-        const GLVolume* volume = selection.get_first_volume();
-        // Is the angle close to a multiple of 90 degrees?
-
-		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
-            // Cannot apply scaling in the world coordinate system.
-            // BBS: remove tilt prompt dialog
-
-            // Bake the rotation into the meshes of the object.
-            wxGetApp().model().objects[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
-            // Update the 3D scene, selections etc.
-            wxGetApp().plater()->update();
-            // Recalculate cached values at this panel, refresh the screen.
-            this->UpdateAndShow(true);
-        }
-    }
-    m_uniform_scale = new_value;
-}
-
 void GizmoObjectManipulation::set_coordinates_type(ECoordinatesType type)
 {
     if (wxGetApp().get_mode() == comSimple)
@@ -495,6 +471,16 @@ void GizmoObjectManipulation::reset_scale_value()
     change_scale_value(0, 100.);
     change_scale_value(1, 100.);
     change_scale_value(2, 100.);
+}
+
+void GizmoObjectManipulation::set_uniform_scaling(const bool use_uniform_scale)
+{ 
+    if (!use_uniform_scale)
+        // Recalculate cached values at this panel, refresh the screen.
+        this->UpdateAndShow(true);
+
+    m_uniform_scale = use_uniform_scale;
+    set_dirty();
 }
 
 static const char* label_values[2][3] = {

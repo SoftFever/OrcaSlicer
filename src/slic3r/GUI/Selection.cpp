@@ -2006,7 +2006,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
         // BBS
         if (is_single_full_instance()/* && !wxGetApp().obj_manipul()->get_world_coordinates()*/) {
             if (!boost::starts_with(sidebar_field, "position")) {
-                if (boost::starts_with(sidebar_field, "scale"))
+                if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
                 else if (boost::starts_with(sidebar_field, "rotation")) {
                     if (boost::ends_with(sidebar_field, "x"))
