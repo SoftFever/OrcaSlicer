@@ -909,8 +909,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                         }
 
                         if (filament_it->filament_id == ams_filament_id) {
-                            hint_filament_name = filament_it->alias;
-                            bambu_filament_name = filament_it->alias;
+                            hint_filament_name = from_u8(filament_it->alias);
+                            bambu_filament_name = from_u8(filament_it->alias);
 
 
                             // update if nozzle_temperature_range is found
