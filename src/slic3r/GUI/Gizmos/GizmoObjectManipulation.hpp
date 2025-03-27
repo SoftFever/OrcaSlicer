@@ -83,6 +83,7 @@ public:
     Vec3d           m_buffered_size;
     bool            m_new_enabled {true};
     bool            m_uniform_scale {true};
+    // Does the object manipulation panel work in World or Local coordinates?
     ECoordinatesType m_coordinates_type{ECoordinatesType::World};
 
     bool            m_show_clear_rotation { false };

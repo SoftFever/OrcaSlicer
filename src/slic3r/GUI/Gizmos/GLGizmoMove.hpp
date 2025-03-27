@@ -57,6 +57,7 @@ protected:
     bool on_init() override;
     std::string on_get_name() const override;
     bool on_is_activable() const override;
+    virtual void on_set_state() override;
     void on_start_dragging() override;
     void on_stop_dragging() override;
     void on_dragging(const UpdateData& data) override;

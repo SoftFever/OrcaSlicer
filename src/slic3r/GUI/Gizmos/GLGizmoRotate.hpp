@@ -151,11 +151,9 @@ public:
 protected:
     bool on_init() override;
     std::string on_get_name() const override;
-    void on_set_state() override {
-        for (GLGizmoRotate& g : m_gizmos)
-            g.set_state(m_state);
-    }
-    void on_set_hover_id() override {
+    void on_set_state() override;
+    void on_set_hover_id() override
+    {
         for (int i = 0; i < 3; ++i)
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
     }
