@@ -108,15 +108,17 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         if (is_world_coordinates()) {//for move and rotate
 			m_new_rotate_label_string = L("Rotate");
             m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
-			m_new_size     = selection.get_scaled_instance_bounding_box().size();
-			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
+            m_new_size     = selection.get_bounding_box_in_current_reference_system().first.size();
+            m_unscale_size = selection.get_unscaled_instance_bounding_box().size();
+            m_new_scale    = m_new_size.cwiseQuotient(m_unscale_size) * 100.0;
 		}
         else {//if (is_local_coordinates()) {//for scale
             auto tran      = selection.get_first_volume()->get_instance_transformation();
             m_new_position = tran.get_matrix().inverse() * cs_center;
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
-			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
-			m_new_scale    = volume->get_instance_scaling_factor() * 100.;
+            m_new_size  = selection.get_bounding_box_in_current_reference_system().first.size();
+            m_unscale_size = selection.get_full_unscaled_instance_local_bounding_box().size();
+            m_new_scale    = m_new_size.cwiseQuotient(m_unscale_size) * 100.0;
 		}
 
         m_new_enabled  = true;
@@ -128,44 +130,45 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         m_new_position = box.center();
         m_new_rotation = Vec3d::Zero();
         m_new_scale    = Vec3d(100., 100., 100.);
-        m_new_size     = box.size();
+        m_new_size     = selection.get_bounding_box_in_current_reference_system().first.size();
         m_new_rotate_label_string = L("Rotate");
 		m_new_scale_label_string  = L("Scale");
         m_new_enabled  = true;
         m_new_title_string = L("Object Operations");
-    }
-    else if (selection.is_single_modifier() || selection.is_single_volume()) {
+    } else if (selection.is_single_volume_or_modifier()) {
         const GLVolume *volume = selection.get_first_volume();
         if (is_world_coordinates()) {//for move and rotate
             const Geometry::Transformation trafo(volume->world_matrix());
             const Vec3d &offset = trafo.get_offset();
             m_new_position            = offset;
-            m_new_rotation            = volume->get_volume_rotation() * (180. / M_PI);
-            m_new_scale               = volume->get_volume_scaling_factor() * 100.;
+            m_new_rotation            = Vec3d::Zero();
+            m_new_scale               = Vec3d(100.0, 100.0, 100.0);
+            m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
             m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         } else if (is_local_coordinates()) {//for scale
             m_new_position            = Vec3d::Zero();
             m_new_rotation            = Vec3d::Zero();
             m_new_scale               = volume->get_volume_scaling_factor() * 100.0;
-            m_new_size                = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(
-                volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size()));
+            m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
+            m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         } else {
             m_new_position            = volume->get_volume_offset();
             m_new_rotate_label_string = L("Rotate (relative)");
             m_new_rotation            = Vec3d::Zero();
             m_new_scale_label_string  = L("Scale");
             m_new_scale               = Vec3d(100.0, 100.0, 100.0);
+            m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
             m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         }
         m_new_enabled = true;
         m_new_title_string = L("Volume Operations");
-    }
-    else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot)) {
+    } else if (obj_list->is_connectors_item_selected() || obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot)) {
         reset_settings_value();
 		m_new_move_label_string   = L("Translate");
 		m_new_rotate_label_string = L("Rotate");
 		m_new_scale_label_string  = L("Scale");
-        m_new_size = selection.get_bounding_box().size();
+        m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
+        m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         m_new_enabled  = true;
         m_new_title_string = L("Group Operations");
     }
@@ -250,8 +253,9 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
 {
     const Selection& selection = m_glcanvas.get_selection();
 
-    if (selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume()) {
-        const GLVolume* volume = selection.get_first_volume();
+    if (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) {
+        const GLVolume *               volume = selection.get_first_volume();
+
         Vec3d rotation;
         Vec3d scale;
         double min_z = 0.;
@@ -266,7 +270,7 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
             min_z = get_volume_min_z(volume);
         }
         m_show_clear_rotation = !rotation.isApprox(Vec3d::Zero());
-        m_show_clear_scale = !scale.isApprox(Vec3d::Ones(), EPSILON);
+        m_show_clear_scale = (m_cache.scale / 100.0f - Vec3d::Ones()).norm() > 0.001;
         m_show_drop_to_bed = (std::abs(min_z) > EPSILON);
     }
 }
@@ -343,18 +347,20 @@ void GizmoObjectManipulation::change_scale_value(int axis, double value)
 {
     if (value <= 0.0)
         return;
-    if (std::abs(m_cache.scale_rounded(axis) - value) < EPSILON)
+    if (std::abs(m_cache.scale_rounded(axis) - value) < EPSILON) {
+        m_show_clear_scale = (m_cache.scale / 100.0f - Vec3d::Ones()).norm() > 0.001;
         return;
-
-    Vec3d scale = m_cache.scale;
-    if (scale[axis] != 0 && std::abs(m_cache.size[axis] * value / scale[axis]) > MAX_NUM) {
-        scale[axis] *= MAX_NUM / m_cache.size[axis];
     }
-    else {
-        scale(axis) = value;
-    }
-
-    this->do_scale(axis, scale);
+    Vec3d scale     = m_cache.scale;
+    scale(axis)     = value;
+    Vec3d ref_scale = m_cache.scale;
+    const Selection &selection = m_glcanvas.get_selection();
+    if (selection.is_single_volume_or_modifier()) {
+        scale     = scale.cwiseQuotient(ref_scale); // scale / ref_scale
+        ref_scale =  Vec3d::Ones();
+    } else if (selection.is_single_full_instance())
+        ref_scale = 100 * Vec3d::Ones();
+    this->do_scale(axis, scale.cwiseQuotient(ref_scale));
 
     m_cache.scale = scale;
 	m_cache.scale_rounded(axis) = DBL_MAX;
@@ -375,17 +381,17 @@ void GizmoObjectManipulation::change_size_value(int axis, double value)
     const Selection& selection = m_glcanvas.get_selection();
 
     Vec3d ref_size = m_cache.size;
-    if (selection.is_single_volume() || selection.is_single_modifier()) {
-        Vec3d instance_scale = wxGetApp().model().objects[selection.get_first_volume()->object_idx()]->instances[0]->get_transformation().get_scaling_factor();
-        ref_size = selection.get_first_volume()->bounding_box().size();
-        ref_size = Vec3d(instance_scale[0] * ref_size[0], instance_scale[1] * ref_size[1], instance_scale[2] * ref_size[2]);
+    if (selection.is_single_volume_or_modifier()) {
+        size     = size.cwiseQuotient(ref_size);
+        ref_size = Vec3d::Ones();
+    } else if (selection.is_single_full_instance()) {
+        if (is_world_coordinates())
+            ref_size = selection.get_full_unscaled_instance_bounding_box().size();
+        else
+            ref_size = selection.get_full_unscaled_instance_local_bounding_box().size();
     }
-    else if (selection.is_single_full_instance())
-        ref_size = is_world_coordinates() ?
-            selection.get_unscaled_instance_bounding_box().size() :
-            wxGetApp().model().objects[selection.get_first_volume()->object_idx()]->raw_mesh_bounding_box().size();
 
-    this->do_scale(axis, 100. * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
+    this->do_scale(axis, size.cwiseQuotient(ref_size));
 
     m_cache.size = size;
 	m_cache.size_rounded(axis) = DBL_MAX;
@@ -395,23 +401,26 @@ void GizmoObjectManipulation::change_size_value(int axis, double value)
 void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
 {
     Selection& selection = m_glcanvas.get_selection();
-    Vec3d scaling_factor = scale;
 
-    TransformationType transformation_type(TransformationType::World_Relative_Joint);
-    if (selection.is_single_full_instance()) {
-        transformation_type.set_absolute();
-        if (!is_world_coordinates())
-            transformation_type.set_local();
+    TransformationType transformation_type;
+    if (is_local_coordinates())
+        transformation_type.set_local();
+    else if (is_instance_coordinates())
+        transformation_type.set_instance();
+    if (selection.is_single_volume_or_modifier() && !is_local_coordinates())
+        transformation_type.set_relative();
+
+    Vec3d scaling_factor = m_uniform_scale ? scale(axis) * Vec3d::Ones() : scale;
+    for (size_t i = 0; i < scaling_factor.size(); i++) {//range protect //scaling_factor too big has problem
+        if (scaling_factor[i] * m_unscale_size[i] > MAX_NUM) {
+            scaling_factor[i] = MAX_NUM/ m_unscale_size[i];
+        }
     }
-
-    // BBS: when select multiple objects, uniform scale can be deselected
-    if (m_uniform_scale/* || selection.requires_uniform_scale()*/)
-        scaling_factor = scale(axis) * Vec3d::Ones();
-
     selection.setup_cache();
-    selection.scale_legacy(scaling_factor * 0.01, transformation_type);
+    selection.scale(scaling_factor, transformation_type);
     m_glcanvas.do_scale(L("Set Scale"));
 }
+
 
 void GizmoObjectManipulation::on_change(const std::string& opt_key, int axis, double new_value)
 {
@@ -735,8 +744,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     float space_size    = imgui_wrapper->get_style_scaling() * 8;
     float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
-    float object_cs_size = imgui_wrapper->calc_text_size(_L("Object coordinates")).x + imgui_wrapper->calc_text_size("      ").x + space_size;
-    float caption_max    = std::max(position_size, object_cs_size) + 2 * space_size;
+    float caption_max    = imgui_wrapper->calc_text_size(_L("Object coordinates")).x + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
     // position
@@ -755,7 +763,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
-    ImGui::PushItemWidth(caption_max);
+
     Selection &              selection = m_glcanvas.get_selection();
     std::vector<std::string> modes     = {_u8L("World coordinates"), _u8L("Object coordinates")};//_u8L("Part coordinates")
     if (selection.is_multiple_full_object()) {
@@ -766,15 +774,17 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         set_coordinates_type(ECoordinatesType::World);
         selection_idx = 0;
     }
-    float caption_cs_size     = imgui_wrapper->calc_text_size("").x;
-    float combox_content_size = imgui_wrapper->calc_text_size(_L("Object coordinates")).x * 1.1 + ImGui::GetStyle().FramePadding.x * 18.0f;
+
+    float caption_cs_size     = imgui_wrapper->calc_text_size(""sv).x;
     float caption_size        = caption_cs_size + 2 * space_size;
+    float combox_content_size = imgui_wrapper->calc_text_size(_L("Object coordinates")).x * 1.2 + imgui_wrapper->calc_text_size("xxx"sv).x + imgui_wrapper->scaled(3);
     ImGuiWrapper::push_combo_style(m_glcanvas.get_scale());
     bool combox_changed = false;
     if (render_combo(imgui_wrapper, "", modes, selection_idx, caption_size, combox_content_size)) {
         combox_changed = true;
     }
     ImGuiWrapper::pop_combo_style();
+    caption_max = combox_content_size - 4 * space_size;
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -1011,8 +1021,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     float space_size = imgui_wrapper->get_style_scaling() * 8;
     float scale_size = imgui_wrapper->calc_text_size(_L("Scale")).x + space_size;
-    float size_len = imgui_wrapper->calc_text_size(_L("Size")).x + space_size;
-    float caption_max = std::max(scale_size, size_len) + 2 * space_size;
+    float caption_max   = imgui_wrapper->calc_text_size(_L("Object coordinates")).x + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
@@ -1028,10 +1037,30 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     int index      = 2;
     int index_unit = 1;
 
-    ImGui::PushItemWidth(caption_max);
-    ImGui::Dummy(ImVec2(caption_max, -1));
-    //imgui_wrapper->text(_L(" "));
-    //ImGui::PushItemWidth(unit_size * 1.5);
+    Selection &              selection = m_glcanvas.get_selection();
+    std::vector<std::string> modes     = {_u8L("World coordinates"), _u8L("Object coordinates"), _u8L("Part coordinates")};
+    if (selection.is_single_full_object()) { modes.pop_back(); }
+    if (selection.is_multiple_full_object()) {
+        modes.pop_back();
+        modes.pop_back();
+    }
+    size_t selection_idx = (int) m_coordinates_type;
+    if (selection_idx >= modes.size()) {
+        set_coordinates_type(ECoordinatesType::World);
+        selection_idx = 0;
+    }
+
+    float caption_cs_size     = imgui_wrapper->calc_text_size(""sv).x;
+    float caption_size        = caption_cs_size + 2 * space_size;
+    float combox_content_size = imgui_wrapper->calc_text_size(_L("Object coordinates")).x * 1.2 + imgui_wrapper->calc_text_size("xxx"sv).x + imgui_wrapper->scaled(3);
+    ImGuiWrapper::push_combo_style(m_glcanvas.get_scale());
+    bool combox_changed = false;
+    if (render_combo(imgui_wrapper, "", modes, selection_idx, caption_size, combox_content_size)) {
+        combox_changed = true;
+    }
+    ImGuiWrapper::pop_combo_style();
+    caption_max = combox_content_size - 4 * space_size;
+    //ImGui::Dummy(ImVec2(caption_max, -1));
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -1095,20 +1124,31 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::BBLInputDouble(label_scale_values[1][2], &display_size[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
-
-    for (int i = 0;i<display_size.size();i++)
-    {
-        if (std::abs(display_size[i]) > MAX_NUM) display_size[i] = MAX_NUM;
+    for (int i = 0; i < display_size.size(); i++) {
+        if (std::abs(display_size[i]) > MAX_NUM) {
+            display_size[i] = MAX_NUM;
+        }
     }
     if (display_size.x() > 0 && display_size.y() > 0 && display_size.z() > 0) {
         m_buffered_size = display_size;
     }
-
-    int size_sel = update(current_active_id, "size", original_size, m_buffered_size);
-    ImGui::PopStyleVar(1);
-
     ImGui::Separator();
+    ImGui::AlignTextToFramePadding();
+    bool is_avoid_one_update{false};
+    if (combox_changed) {
+        combox_changed = false;
+        set_coordinates_type((ECoordinatesType) selection_idx);
+        UpdateAndShow(true);
+        is_avoid_one_update = true;
+    }
 
+    auto uniform_scale_size =imgui_wrapper->calc_text_size(_L("uniform scale")).x;
+    ImGui::PushItemWidth(uniform_scale_size);
+    int size_sel{-1};
+    if (!is_avoid_one_update) {
+        size_sel    = update(current_active_id, "size", original_size, m_buffered_size);
+    }
+    ImGui::PopStyleVar(1);
     bool uniform_scale = this->m_uniform_scale;
 
     // BBS: when select multiple objects, uniform scale can be deselected
@@ -1148,9 +1188,6 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
             if (i != size_sel) ImGui::ClearInputTextInitialData(label_scale_values[1][i], m_buffered_size[i]);
         }
     }
-
-
-
 
     //send focus to m_glcanvas
     bool focued_on_text = false;

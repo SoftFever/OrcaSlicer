@@ -19,24 +19,27 @@ class GLGizmoScale3D : public GLGizmoBase
     {
         Vec3d scale;
         Vec3d drag_position;
+        Vec3d constraint_position;
+        Vec3d center{Vec3d::Zero()};//sphere bounding box center
+        Vec3d instance_center{Vec3d::Zero()};
         Vec3d plane_center;  // keep the relative center position for scale in the bottom plane
-        Vec3d plane_nromal;  // keep the bottom plane 
+        Vec3d plane_nromal;  // keep the bottom plane
         BoundingBoxf3 box;
-        Vec3d pivots[6];
+        Vec3d pivots[6];// Vec3d constraint_position{Vec3d::Zero()};
+        Vec3d local_pivots[6];
         bool ctrl_down;
 
         StartingData() : scale(Vec3d::Ones()), drag_position(Vec3d::Zero()), ctrl_down(false) { for (int i = 0; i < 5; ++i) { pivots[i] = Vec3d::Zero(); } }
     };
 
-    BoundingBoxf3 m_box;
-    Transform3d m_transform;
-    Vec3d m_scale{ Vec3d::Ones() };
-    double m_snap_step{ 0.05 };
+    mutable BoundingBoxf3 m_bounding_box;
+    Geometry::Transformation m_grabbers_tran;//m_grabbers_transform
+    Vec3d                 m_center{Vec3d::Zero()};
+    Vec3d                 m_instance_center{Vec3d::Zero()};
+    Vec3d m_scale;
+    Vec3d m_offset;
+    double m_snap_step;
     StartingData m_starting;
-
-    ColorRGBA m_base_color;
-    ColorRGBA m_drag_color;
-    ColorRGBA m_highlight_color;
 
     struct GrabberConnection
     {
@@ -60,6 +63,8 @@ public:
 
     const Vec3d& get_scale() const { return m_scale; }
     void set_scale(const Vec3d& scale) { m_starting.scale = scale; m_scale = scale; }
+
+    const Vec3d& get_offset() const { return m_offset; }
 
     std::string get_tooltip() const override;
 
@@ -93,7 +98,10 @@ private:
     void do_scale_uniform(const UpdateData& data);
 
     double calc_ratio(const UpdateData& data) const;
-    void update_render_data();
+    void   update_grabbers_data();
+    void   change_cs_by_selection(); // cs mean Coordinate System
+private:
+    int m_last_selected_obejct_idx, m_last_selected_volume_idx;
 };
 
 

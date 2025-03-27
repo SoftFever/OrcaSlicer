@@ -342,7 +342,7 @@ public:
 #else
     void scale_to_fit_print_volume(const DynamicPrintConfig& config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
-    void scale_and_translate(const Vec3d& scale, const Vec3d& world_translation, TransformationType transformation_type);
+    void scale_and_translate(const Vec3d &scale, const Vec3d &world_translation, TransformationType transformation_type);
     void mirror(Axis axis, TransformationType transformation_type);
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
@@ -408,7 +408,8 @@ private:
     void set_bounding_boxes_dirty() {
         m_bounding_box.reset();
         m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset();
-        m_full_unscaled_instance_bounding_box.reset(); m_full_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_bounding_box.reset();
+        m_full_scaled_instance_bounding_box.reset();
         m_full_unscaled_instance_local_bounding_box.reset();
         m_bounding_box_in_current_reference_system.reset();
         m_bounding_sphere.reset();

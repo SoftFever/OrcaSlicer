@@ -77,6 +77,7 @@ public:
     Vec3d           m_new_rotation;
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
+    Vec3d           m_unscale_size;
     Vec3d           m_buffered_position;
     Vec3d           m_buffered_rotation;
     Vec3d           m_buffered_scale;
