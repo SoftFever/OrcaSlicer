@@ -2234,7 +2234,14 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
                 }
 
                 const Transform3d matrix = model_instance->get_matrix() * vol->get_matrix();
-                BuildVolume::ObjectState state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
+
+                const auto bboxt = bb.transformed(matrix);
+                const BoundingBoxf bbox2d{to_2d(bboxt.min), to_2d(bboxt.max)};
+                BuildVolume::ObjectState state;
+                if (!build_volume.bounding_volume2d().inflated(BuildVolume::SceneEpsilon).overlap(bbox2d))
+                    state = BuildVolume::ObjectState::Outside;
+                else
+                    state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
                 if (state == BuildVolume::ObjectState::Inside)
                     // Volume is completely inside.
                     inside_outside |= INSIDE;
