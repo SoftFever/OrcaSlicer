@@ -75,9 +75,7 @@ jobs:
         variant:
           - arch: x86_64
             runner: ubuntu-24.04
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.variant.runner }}
+    runs-on: self-hosted
     env:
       date:
       ver:
