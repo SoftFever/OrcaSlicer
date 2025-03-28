@@ -65,11 +65,6 @@ jobs:
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-46
       options: --privileged
-      volumes:
-        - /usr/local/lib/android:/usr/local/lib/android
-        - /usr/share/dotnet:/usr/share/dotnet
-        - /opt/ghc:/opt/ghc1
-        - /usr/local/share/boost:/usr/local/share/boost1
     strategy:
       matrix:
         variant:
@@ -81,9 +76,9 @@ jobs:
       ver:
       ver_pure:
     steps:
-    - name: "Remove unneeded stuff to free disk space"
-      run:
-        rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
+    # - name: "Remove unneeded stuff to free disk space"
+    #   run:
+    #     rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
     - uses: actions/checkout@v4
     - name: Get the version and date
       run: |
