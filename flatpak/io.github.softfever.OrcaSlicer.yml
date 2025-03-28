@@ -21,23 +21,24 @@ finish-args:
   - --env=SPNAV_SOCKET=/run/spnav.sock
 
 modules:
-
-  # JPEG codec for the liveview
-  - name: gst-plugins-good
+  # Check if we can skip building dependencies
+  - name: check-destdir
     buildsystem: simple
     build-commands:
       - |
         if [ -d "/app/destdir" ] && [ "$(ls -A /app/destdir)" ]; then
-          echo "export DESTDIR_NOT_EMPTY=1" >> /app/destdir_check
+          echo "true" > /app/skip_deps
         else
-          echo "export DESTDIR_NOT_EMPTY=0" >> /app/destdir_check
+          echo "false" > /app/skip_deps
         fi
+
+  # JPEG codec for the liveview
+  - name: gst-plugins-good
+    skip: |
+      cat /app/skip_deps
+    buildsystem: simple
+    build-commands:
       - |
-        source /app/destdir_check
-        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
-          echo "Skipping building deps..."
-          exit 0
-        fi
         meson --prefix=/app/destdir -Dauto_features=disabled -Djpeg=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir/
         ninja -C builddir install
     sources:
@@ -47,14 +48,11 @@ modules:
 
   # For libOSMesa
   - name: mesa
+    skip: |
+      cat /app/skip_deps
     buildsystem: simple
     build-commands:
       - |
-        source /app/destdir_check
-        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
-          echo "Skipping building deps..."
-          exit 0
-        fi
         meson --prefix=/app/destdir -Dosmesa=classic -Ddri-drivers=[] -Dgallium-drivers=[] -Dvulkan-drivers=[] -Dplatforms=[] builddir/
         ninja -C builddir install
     build-options:
@@ -72,14 +70,11 @@ modules:
         sha256: f12ca3c6c622f11cd79ad66b4220f04514fa96f795062fe92a37339ab19885db
 
   - name: glu
+    skip: |
+      cat /app/skip_deps
     buildsystem: simple
     build-commands:
       - |
-        source /app/destdir_check
-        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
-          echo "Skipping building deps..."
-          exit 0
-        fi
         ./configure --prefix=/app/destdir --disable-static
         make -j$FLATPAK_BUILDER_N_JOBS
         make install
@@ -94,6 +89,8 @@ modules:
         sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
 
   - name: kde-extra-cmake-modules
+    skip: |
+      cat /app/skip_deps
     buildsystem: cmake-ninja
     sources:
       - type: git
@@ -103,14 +100,11 @@ modules:
       - / 
 
   - name: libspnav
+    skip: |
+      cat /app/skip_deps
     buildsystem: simple
     build-commands:
       - |
-        source /app/destdir_check
-        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
-          echo "Skipping building deps..."
-          exit 0
-        fi
         ./configure --prefix=/app/destdir
         make -j$FLATPAK_BUILDER_N_JOBS
         make install
@@ -120,14 +114,11 @@ modules:
         sha256: 04b297f68a10db4fa40edf68d7f823ba7b9d0442f2b665181889abe2cea42759
 
   - name: orca_wxwidgets
+    skip: |
+      cat /app/skip_deps
     buildsystem: simple
     build-commands:
       - |
-        source /app/destdir_check
-        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
-          echo "Skipping building deps..."
-          exit 0
-        fi
         mkdir builddir && cd builddir
         cmake ../ -GNinja \
           -DwxBUILD_PRECOMP=ON \
@@ -174,15 +165,11 @@ modules:
       - /app/destdir/bin/*
 
   - name: orca_deps
+    skip: |
+      cat /app/skip_deps
     buildsystem: simple
     build-commands:
-      # start build
       - |
-        source /app/destdir_check
-        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
-          echo "Skipping building deps..."
-          exit 0
-        fi
         mkdir deps/build && cd deps/build
         cmake ../ \
           -DDEP_WX_GTK3=ON \
