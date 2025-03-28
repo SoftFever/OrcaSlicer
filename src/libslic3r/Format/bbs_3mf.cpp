@@ -4145,6 +4145,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //std::string type = bbs_get_attribute_value_string(attributes, num_attributes, TYPE_ATTR);
         std::string key = bbs_get_attribute_value_string(attributes, num_attributes, KEY_ATTR);
         std::string value = bbs_get_attribute_value_string(attributes, num_attributes, VALUE_ATTR);
+        if (key.empty())
+            return true;
 
         auto get_vector_from_string = [](const std::string& str) -> std::vector<int> {
             std::stringstream stream(str);
