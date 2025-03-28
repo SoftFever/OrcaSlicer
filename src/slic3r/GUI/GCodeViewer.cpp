@@ -3367,6 +3367,19 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                 else if (!is_in_layers_range(path, m_layers_z_range[0], m_layers_z_range[1]))
                     continue;
 
+                if (top_layer_only) {
+                    if (path.type == EMoveType::Travel) {
+                        if (is_travel_in_layers_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
+                            top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.sub_paths.front().first.s_id);
+                            top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.sub_paths.back().last.s_id);
+                        }
+                    }
+                    else if (is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1])) {
+                        top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.sub_paths.front().first.s_id);
+                        top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.sub_paths.back().last.s_id);
+                    }
+                }
+
                 if (path.type == EMoveType::Extrude && !is_visible(path))
                     continue;
 
@@ -3380,19 +3393,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
                 global_endpoints.first = std::min(global_endpoints.first, path.sub_paths.front().first.s_id);
                 global_endpoints.last = std::max(global_endpoints.last, path.sub_paths.back().last.s_id);
-
-                if (top_layer_only) {
-                    if (path.type == EMoveType::Travel) {
-                        if (is_travel_in_layers_range(i, m_layers_z_range[1], m_layers_z_range[1])) {
-                            top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.sub_paths.front().first.s_id);
-                            top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.sub_paths.back().last.s_id);
-                        }
-                    }
-                    else if (is_in_layers_range(path, m_layers_z_range[1], m_layers_z_range[1])) {
-                        top_layer_endpoints.first = std::min(top_layer_endpoints.first, path.sub_paths.front().first.s_id);
-                        top_layer_endpoints.last = std::max(top_layer_endpoints.last, path.sub_paths.back().last.s_id);
-                    }
-                }
             }
         }
     }
