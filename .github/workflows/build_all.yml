@@ -92,11 +92,11 @@ jobs:
         echo "ver_pure=$ver_pure" >> $GITHUB_ENV
         echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
       shell: bash
-    - name: Cache flatpak_app folder
+    - name: Cache deps
       uses: actions/cache@v4
       with:
-        path: flatpak_app/destdir
-        key: flatpak-app-destdir-${{ matrix.variant.arch }}-${{ hashFiles('deps/**', 'flatpak/io.github.softfever.OrcaSlicer.yml') }}
+        path: /app/destdir
+        key: ${{ matrix.os }}-cache-orcaslicer_deps-build-flatpak-${{ matrix.variant.arch }}-${{ hashFiles('deps/**', 'flatpak/io.github.softfever.OrcaSlicer.yml') }}
     - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
       with:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
