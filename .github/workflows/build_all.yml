@@ -95,7 +95,7 @@ jobs:
     - name: Cache deps
       uses: actions/cache@v4
       with:
-        path: /app/destdir
+        path: /__w/OrcaSlicer/OrcaSlicer/flatpak_app
         key: ${{ matrix.os }}-cache-orcaslicer_deps-build-flatpak-${{ matrix.variant.arch }}-${{ hashFiles('deps/**', 'flatpak/io.github.softfever.OrcaSlicer.yml') }}
     - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
       with:

@@ -24,13 +24,22 @@ modules:
 
   # JPEG codec for the liveview
   - name: gst-plugins-good
-    buildsystem: meson
-    config-opts:
-      - -Dauto_features=disabled
-      - -Djpeg=enabled
-      - -Ddoc=disabled
-      - -Dexamples=disabled
-      - -Dtests=disabled
+    buildsystem: simple
+    build-commands:
+      - |
+        if [ -d "/app/destdir" ] && [ "$(ls -A /app/destdir)" ]; then
+          echo "export DESTDIR_NOT_EMPTY=1" >> /app/destdir_check
+        else
+          echo "export DESTDIR_NOT_EMPTY=0" >> /app/destdir_check
+        fi
+      - |
+        source /app/destdir_check
+        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
+          echo "Skipping building deps..."
+          exit 0
+        fi
+        meson --prefix=/app/destdir -Dauto_features=disabled -Djpeg=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir/
+        ninja -C builddir install
     sources:
       - type: archive
         url: https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.22.8.tar.xz
@@ -38,13 +47,16 @@ modules:
 
   # For libOSMesa
   - name: mesa
-    buildsystem: meson
-    config-opts:
-      - -Dosmesa=classic
-      - -Ddri-drivers=[]
-      - -Dgallium-drivers=[]
-      - -Dvulkan-drivers=[]
-      - -Dplatforms=[]
+    buildsystem: simple
+    build-commands:
+      - |
+        source /app/destdir_check
+        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
+          echo "Skipping building deps..."
+          exit 0
+        fi
+        meson --prefix=/app/destdir -Dosmesa=classic -Ddri-drivers=[] -Dgallium-drivers=[] -Dvulkan-drivers=[] -Dplatforms=[] builddir/
+        ninja -C builddir install
     build-options:
       arch:
         aarch64:
@@ -60,17 +72,26 @@ modules:
         sha256: f12ca3c6c622f11cd79ad66b4220f04514fa96f795062fe92a37339ab19885db
 
   - name: glu
-    config-opts:
-      - --disable-static
-    sources:
-      - type: archive
-        url: https://ftp.osuosl.org/pub/blfs/conglomeration/glu/glu-9.0.2.tar.xz
-        sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
+    buildsystem: simple
+    build-commands:
+      - |
+        source /app/destdir_check
+        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
+          echo "Skipping building deps..."
+          exit 0
+        fi
+        ./configure --prefix=/app/destdir --disable-static
+        make -j$FLATPAK_BUILDER_N_JOBS
+        make install
     cleanup:
       - /include
       - /lib/*.a
       - /lib/*.la
       - /lib/pkgconfig
+    sources:
+      - type: archive
+        url: https://ftp.osuosl.org/pub/blfs/conglomeration/glu/glu-9.0.2.tar.xz
+        sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
 
   - name: kde-extra-cmake-modules
     buildsystem: cmake-ninja
@@ -82,23 +103,25 @@ modules:
       - / 
 
   - name: libspnav
+    buildsystem: simple
+    build-commands:
+      - |
+        source /app/destdir_check
+        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
+          echo "Skipping building deps..."
+          exit 0
+        fi
+        ./configure --prefix=/app/destdir
+        make -j$FLATPAK_BUILDER_N_JOBS
+        make install
     sources:
       - type: archive
         url: https://github.com/FreeSpacenav/libspnav/releases/download/v1.1/libspnav-1.1.tar.gz
         sha256: 04b297f68a10db4fa40edf68d7f823ba7b9d0442f2b665181889abe2cea42759
- 
+
   - name: orca_wxwidgets
     buildsystem: simple
     build-commands:
-      # First command to check destdir and export the result
-      - |
-        # Check if destdir is empty once at the beginning and export to environment
-        if [ -d "/app/destdir" ] && [ "$(ls -A /app/destdir)" ]; then
-          echo "export DESTDIR_NOT_EMPTY=1" >> /app/destdir_check
-        else
-          echo "export DESTDIR_NOT_EMPTY=0" >> /app/destdir_check
-        fi
-      # Main build command
       - |
         source /app/destdir_check
         if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
