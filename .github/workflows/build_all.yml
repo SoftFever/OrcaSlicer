@@ -96,7 +96,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: flatpak_app/destdir
-        key: flatpak-app-destdir-${{ matrix.variant.arch }}-${{ hashFiles('deps/**') }}-${{ hashFiles('flatpak/io.github.softfever.OrcaSlicer.yml') }}
+        key: flatpak-app-destdir-${{ matrix.variant.arch }}-${{ hashFiles('deps/**', 'flatpak/io.github.softfever.OrcaSlicer.yml') }}
     - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
       with:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak

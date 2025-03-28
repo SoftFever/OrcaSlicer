@@ -90,8 +90,18 @@ modules:
   - name: orca_wxwidgets
     buildsystem: simple
     build-commands:
+      # First command to check destdir and export the result
       - |
+        # Check if destdir is empty once at the beginning and export to environment
         if [ -d "/app/destdir" ] && [ "$(ls -A /app/destdir)" ]; then
+          echo "export DESTDIR_NOT_EMPTY=1" >> /app/destdir_check
+        else
+          echo "export DESTDIR_NOT_EMPTY=0" >> /app/destdir_check
+        fi
+      # Main build command
+      - |
+        source /app/destdir_check
+        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
           echo "Skipping building deps..."
           exit 0
         fi
@@ -145,7 +155,8 @@ modules:
     build-commands:
       # start build
       - |
-        if [ -d "/app/destdir" ] && [ "$(ls -A /app/destdir)" ]; then
+        source /app/destdir_check
+        if [ "$DESTDIR_NOT_EMPTY" -eq 1 ]; then
           echo "Skipping building deps..."
           exit 0
         fi
