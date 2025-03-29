@@ -303,7 +303,7 @@ static void read_model_from_file(const std::string& input_file, Model& model)
     std::vector<Preset *> project_presets;
 
     model = Model::read_from_file(input_file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets,
-        &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, nullptr, nullptr, plate_to_slice);
+        &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
 
     model.add_default_instances();
     for (auto object : model.objects)

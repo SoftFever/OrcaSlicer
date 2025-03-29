@@ -174,6 +174,8 @@ protected:
     void find_single();
 };
 
+wxDECLARE_EVENT(wxEVT_THREAD_DONE, wxCommandEvent);
+
 } // namespace GUI
 } // namespace Slic3r
 
