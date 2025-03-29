@@ -51,10 +51,9 @@ if(NOT NLopt_DIR)
 	if(NOT NLopt_FOUND)
 		set(NLopt_ERROR_REASON "${NLopt_ERROR_REASON} NLopt not found in system directories (and environment variable NLOPT is not set).")
 	else()
-	get_filename_component(NLopt_INCLUDE_DIR ${_NLopt_HEADER_FILE} DIRECTORY )
+		get_filename_component(NLopt_INCLUDE_DIR ${_NLopt_HEADER_FILE} DIRECTORY )
 	endif()
-
-    unset(_NLopt_HEADER_FILE CACHE)
+ 	unset(_NLopt_HEADER_FILE CACHE)
 
 else()
 
@@ -94,7 +93,6 @@ else()
 	endif()
 	unset(_NLopt_HEADER_FILE_NAME)
 	unset(_NLopt_HEADER_FILE CACHE)
-
 endif()
 
 
@@ -116,9 +114,6 @@ if(NLopt_FOUND)
 	set_target_properties(NLopt::nlopt PROPERTIES INTERFACE_LINK_LIBRARIES ${NLopt_LIBS})
 	set_target_properties(NLopt::nlopt PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${NLopt_INCLUDE_DIR})
 	set_target_properties(NLopt::nlopt PROPERTIES INTERFACE_COMPILE_DEFINITIONS "${NLopt_DEFINITIONS}")
-	# target_link_libraries(Nlopt::Nlopt INTERFACE ${NLopt_LIBS})
-	# target_include_directories(Nlopt::Nlopt INTERFACE ${NLopt_INCLUDE_DIR})
-    # target_compile_definitions(Nlopt::Nlopt INTERFACE ${NLopt_DEFINITIONS})
 else()
 	if(NLopt_FIND_REQUIRED)
 		message(FATAL_ERROR "Unable to find requested NLopt installation:${NLopt_ERROR_REASON}")
