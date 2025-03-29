@@ -26,7 +26,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        if [ -d "/app" ] && [ "$(ls -A /app)" ]; then
+        if [ -d "/app" ] && [ -n "$(ls -A /app 2>/dev/null)" ]; then
           echo "true" > /app/skip_deps
         else
           echo "false" > /app/skip_deps
