@@ -94,15 +94,16 @@ modules:
         sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
 
   - name: kde-extra-cmake-modules
-    buildsystem: simple
-    build-commands:
-      - |
-        if [ -f "/app/deps_built" ]; then
-          echo "Dependencies already built, skipping kde-extra-cmake-modules..."
-          exit 0
-        fi
-        cmake -GNinja -DCMAKE_INSTALL_PREFIX=/app . && \
-        ninja install
+    skip: |
+      cat /app/skip_deps
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/KDE/extra-cmake-modules
+        tag: v5.249.0
+        shallow: true
+    cleanup:
+      - / 
 
   - name: libspnav
     buildsystem: simple
