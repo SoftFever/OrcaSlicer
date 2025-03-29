@@ -1429,7 +1429,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("during_print_exhaust_fan_speed", coInts);
     def->label   = L("Fan speed");
-    def->tooltip=L("Speed of exhaust fan during printing.This speed will overwrite the speed in filament custom gcode");
+    def->tooltip=L("Speed of exhaust fan during printing. This speed will overwrite the speed in filament custom G-code");
     def->sidetext = L("%");
     def->min=0;
     def->max=100;
@@ -1555,8 +1555,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n"));
 
     def             = this->add("printing_by_object_gcode", coString);
-    def->label      = L("Between Object Gcode");
-    def->tooltip    = L("Insert Gcode between objects. This parameter will only come into effect when you print your models object by object");
+    def->label      = L("Between Object G-code");
+    def->tooltip    = L("Insert G-code between objects. This parameter will only come into effect when you print your models object by object");
     def->multiline  = true;
     def->full_width = true;
     def->height     = 12;
@@ -1821,7 +1821,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_flow_ratio", coFloats);
     def->label = L("Flow ratio");
     def->tooltip = L("The material may have volumetric change after switching between molten state and crystalline state. "
-                     "This setting changes all extrusion flow of this filament in gcode proportionally. "
+                     "This setting changes all extrusion flow of this filament in G-code proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
                      "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow");
     def->max = 2;
@@ -1831,7 +1831,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("print_flow_ratio", coFloat);
     def->label = L("Flow ratio");
     def->tooltip = L("The material may have volumetric change after switching between molten state and crystalline state. "
-                     "This setting changes all extrusion flow of this filament in gcode proportionally. "
+                     "This setting changes all extrusion flow of this filament in G-code proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
                      "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow. "
                      "\n\nThe final object flow ratio is this value multiplied by the filament flow ratio.");
@@ -2016,7 +2016,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
-    def->tooltip = L("Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate");
+    def->tooltip = L("Filament diameter is used to calculate extrusion in G-code, so it's important and should be accurate");
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 1.75 });
@@ -2138,7 +2138,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_stamping_distance", coFloats);
     def->label = L("Stamping distance measured from the center of the cooling tube");
-    def->tooltip = L("If set to nonzero value, filament is moved toward the nozzle between the individual cooling moves (\"stamping\"). "
+    def->tooltip = L("If set to non-zero value, filament is moved toward the nozzle between the individual cooling moves (\"stamping\"). "
                      "This option configures how long this movement should be before the filament is retracted again.");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2846,7 +2846,7 @@ void PrintConfigDef::init_fff_params()
     // BBS
     def = this->add("gcode_add_line_number", coBool);
     def->label = L("Add line number");
-    def->tooltip = L("Enable this to add line number(Nx) at the beginning of each G-Code line");
+    def->tooltip = L("Enable this to add line number(Nx) at the beginning of each G-code line");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(0));
 
@@ -2927,8 +2927,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Start the fan this number of seconds earlier than its target start time (you can use fractional seconds)."
         " It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting"
         " is unsupported)."
-        "\nIt won't move fan commands from custom gcodes (they act as a sort of 'barrier')."
-        "\nIt won't move fan commands into the start gcode if the 'only custom start gcode' is activated."
+        "\nIt won't move fan commands from custom G-codes (they act as a sort of 'barrier')."
+        "\nIt won't move fan commands into the start G-code if the 'only custom start G-code' is activated."
         "\nUse 0 to deactivate.");
     def->sidetext = L("s");
     def->mode = comAdvanced;
@@ -2976,7 +2976,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
-    def->tooltip = L("What kind of gcode the printer is compatible with");
+    def->tooltip = L("What kind of G-code the printer is compatible with");
     def->enum_keys_map = &ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("marlin");
     def->enum_values.push_back("klipper");
@@ -3021,7 +3021,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("gcode_label_objects", coBool);
     def->label = L("Label objects");
-    def->tooltip = L("Enable this to add comments into the G-Code labeling print moves with what object they belong to,"
+    def->tooltip = L("Enable this to add comments into the G-code labeling print moves with what object they belong to,"
                    " which is useful for the Octoprint CancelObject plugin. This settings is NOT compatible with "
                    "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.");
     def->mode = comAdvanced;
@@ -3029,7 +3029,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("exclude_object", coBool);
     def->label = L("Exclude objects");
-    def->tooltip = L("Enable this option to add EXCLUDE OBJECT command in g-code");
+    def->tooltip = L("Enable this option to add EXCLUDE OBJECT command in G-code");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -3149,7 +3149,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Interlocking depth of a segmented region");
     def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
                     "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\""
-                    "is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.");
+                    "is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature.");
     def->sidetext = L("mm"); 
     def->min      = 0;
     def->category = L("Advanced");
@@ -3301,7 +3301,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("time_lapse_gcode",coString);
-    def->label = L("Time lapse G-code");
+    def->label = L("Timelapse G-code");
     def->multiline = true;
     def->full_width = true;
     def->height =5;
@@ -3317,14 +3317,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("emit_machine_limits_to_gcode", coBool);
     def->label = L("Emit limits to G-code");
     def->category = L("Machine limits");
-    def->tooltip  = L("If enabled, the machine limits will be emitted to G-code file.\nThis option will be ignored if the g-code flavor is "
+    def->tooltip  = L("If enabled, the machine limits will be emitted to G-code file.\nThis option will be ignored if the G-code flavor is "
                        "set to Klipper.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("machine_pause_gcode", coString);
     def->label = L("Pause G-code");
-    def->tooltip = L("This G-code will be used as a code for the pause print. User can insert pause G-code in gcode viewer");
+    def->tooltip = L("This G-code will be used as a code for the pause print. User can insert pause G-code in G-code viewer");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
@@ -3535,7 +3535,7 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coFloat);
     def->label = L("Smoothing segment length");
-    def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
+    def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger G-code file "
     				 "and more instructions for the printer to process. \n\n"
     				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
     				 "Allowed values: 0.5-5");
@@ -3904,7 +3904,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("resolution", coFloat);
     def->label = L("Resolution");
     def->tooltip = L("G-code path is generated after simplifying the contour of model to avoid too much points and gcode lines "
-                     "in gcode file. Smaller value means higher resolution and more time to slice");
+                     "in G-code file. Smaller value means higher resolution and more time to slice");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3987,16 +3987,16 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def             = this->add("retract_lift_above", coFloats);
-    def->label      = L("Z hop lower boundary");
-    def->tooltip    = L("Z hop will only come into effect when Z is above this value and is below the parameter: \"Z hop upper boundary\"");
+    def->label      = L("Z-hop lower boundary");
+    def->tooltip    = L("Z-hop will only come into effect when Z is above this value and is below the parameter: \"Z-hop upper boundary\"");
     def->sidetext   = L("mm");
     def->mode       = comAdvanced;
     def->min        = 0;
     def->set_default_value(new ConfigOptionFloats{0.});
 
     def             = this->add("retract_lift_below", coFloats);
-    def->label      = L("Z hop upper boundary");
-    def->tooltip    = L("If this value is positive, Z hop will only come into effect when Z is above the parameter: \"Z hop lower boundary\" and is below this value");
+    def->label      = L("Z-hop upper boundary");
+    def->tooltip    = L("If this value is positive, Z-hop will only come into effect when Z is above the parameter: \"Z-hop lower boundary\" and is below this value");
     def->sidetext   = L("mm");
     def->mode       = comAdvanced;
     def->min        = 0;
@@ -4005,7 +4005,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("z_hop_types", coEnums);
     def->label = L("Z-hop type");
-    def->tooltip = L("Z hop type");
+    def->tooltip = L("Z-hop type");
     def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
     def->enum_values.push_back("Auto Lift");
     def->enum_values.push_back("Normal Lift");
@@ -4020,7 +4020,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("travel_slope", coFloats);
     def->label = L("Traveling angle");
-    def->tooltip = L("Traveling angle for Slope and Spiral Z hop type. Setting it to 90° results in Normal Lift");
+    def->tooltip = L("Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results in Normal Lift");
     def->sidetext = L("°");
     def->mode = comAdvanced;
     def->min = 1;
@@ -4043,7 +4043,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("retract_lift_enforce", coEnums);
     def->label = L("On surfaces");
-    def->tooltip = L("Enforce Z Hop behavior. This setting is impacted by the above settings (Only lift Z above/below).");
+    def->tooltip = L("Enforce Z-Hop behavior. This setting is impacted by the above settings (Only lift Z above/below).");
     def->enum_keys_map = &ConfigOptionEnum<RetractLiftEnforceType>::get_enum_values();
     def->enum_values.push_back("All Surfaces");
     def->enum_values.push_back("Top Only");
@@ -4348,13 +4348,13 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.0));
-    
+
     def = this->add("min_skirt_length", coFloat);
     def->label = L("Skirt minimum extrusion length");
     def->full_label = L("Skirt minimum extrusion length");
     def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
-                     "Using a non zero value is useful if the printer is set up to print without a prime line.\n"
-                     "Final number of loops is not taling into account whli arranging or validating objects distance. Increase loop number in such case.");
+                     "Using a non-zero value is useful if the printer is set up to print without a prime line.\n"
+                     "Final number of loops is not taking into account while arranging or validating objects distance. Increase loop number in such case.");
     def->min = 0;
     def->sidetext = L("mm");
     def->mode = comAdvanced;
@@ -4481,7 +4481,7 @@ void PrintConfigDef::init_fff_params()
     // TRN PrintSettings : "Ooze prevention" > "Temperature variation"
     def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
                      "The value is not used when 'idle_temperature' in filament settings "
-                     "is set to non zero value.");
+                     "is set to non-zero value.");
     def->sidetext = "∆°C";
     def->min = -max_temp;
     def->max = max_temp;
@@ -5234,7 +5234,7 @@ void PrintConfigDef::init_fff_params()
     //def->label = L("Z travel");
     //def->tooltip = L("Speed of vertical travel along z axis. "
     //                 "This is typically lower because build plate or gantry is hard to be moved. "
-    //                 "Zero means using travel speed directly in gcode, but will be limited by printer's ability when run gcode");
+    //                 "Zero means using travel speed directly in G-code, but will be limited by printer's ability when run gcode");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comDevelop;
@@ -5397,7 +5397,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Flush options");
     def->label = L("Flush into this object");
     def->tooltip = L("This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. "
-        "Colours of the objects will be mixed as a result. "
+        "Colors of the objects will be mixed as a result. "
         "It will not take effect, unless the prime tower is enabled.");
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -7323,7 +7323,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     // must define new params here, otherwise comamnd param check will fail
     def = this->add("no_check", coBool);
     def->label = L("No check");
-    def->tooltip = L("Do not run any validity checks, such as gcode path conflicts check.");
+    def->tooltip = L("Do not run any validity checks, such as G-code path conflicts check.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("normative_check", coBool);
@@ -7406,8 +7406,8 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("repetitions", coInt);
-    def->label = L("Repetions count");
-    def->tooltip = L("Repetions count of the whole model");
+    def->label = L("Repetitions count");
+    def->tooltip = L("Repetitions count of the whole model.");
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -7548,10 +7548,10 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("downward_settings", coStrings);
     def->label = L("downward machines settings");
-    def->tooltip = L("the machine settings list need to do downward checking");
+    def->tooltip = L("The machine settings list needs to do downward checking.");
     def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
-    
+
     def = this->add("load_assemble_list", coString);
     def->label = L("Load assemble list");
     def->tooltip = L("Load assemble object list from config file");
@@ -7606,8 +7606,8 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 #endif /* _MSC_VER */
 
     def = this->add("load_custom_gcodes", coString);
-    def->label = L("Load custom gcode");
-    def->tooltip = L("Load custom gcode from json");
+    def->label = L("Load custom G-code");
+    def->tooltip = L("Load custom G-code from json");
     def->cli_params = "custom_gcode_toolchange.json";
     def->set_default_value(new ConfigOptionString());
 
@@ -7623,18 +7623,18 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("allow_rotations", coBool);
-    def->label = L("Allow rotatations when arrange");
-    def->tooltip = L("If enabled, the arrange will allow rotations when place object");
+    def->label = L("Allow rotations when arranging");
+    def->tooltip = L("If enabled, the arrange will allow rotations when placing objects.");
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("avoid_extrusion_cali_region", coBool);
     def->label = L("Avoid extrusion calibrate region when doing arrange");
-    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when place object");
+    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when placing objects.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("skip_modified_gcodes", coBool);
-    def->label = L("Skip modified gcodes in 3mf");
-    def->tooltip = L("Skip the modified gcodes in 3mf from Printer or filament Presets");
+    def->label = L("Skip modified G-codes in 3mf");
+    def->tooltip = L("Skip the modified G-codes in 3mf from Printer or filament Presets");
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -7971,7 +7971,7 @@ OtherPresetsConfigDef::OtherPresetsConfigDef()
 
 
 static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificPlaceholders{
-    // Machine Gcode
+    // Machine G-code
     {"machine_start_gcode",         {}},
     {"machine_end_gcode",           {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
     {"before_layer_change_gcode",   {"layer_num", "layer_z", "max_layer_z"}},
@@ -7988,7 +7988,7 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"printing_by_object_gcode",    {}},
     {"machine_pause_gcode",         {}},
     {"template_custom_gcode",       {}},
-    //Filament Gcode
+    // Filament G-code
     {"filament_start_gcode",        {"filament_extruder_id"}},
     {"filament_end_gcode",          {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
 };
