@@ -96,6 +96,7 @@ modules:
       - type: git
         url: https://github.com/KDE/extra-cmake-modules
         tag: v5.249.0
+        shallow: true
     cleanup:
       - / 
 
@@ -155,6 +156,7 @@ modules:
         url: https://github.com/SoftFever/Orca-deps-wxWidgets
         branch: master
         path: ../
+        shallow: true
       - type: patch
         path: patches/0001-Enable-using-a-dark-theme-when-Gnome-dark-style-is-s.patch
     cleanup:
