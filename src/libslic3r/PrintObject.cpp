@@ -1383,12 +1383,25 @@ void PrintObject::detect_surfaces_type()
                     // and top surfaces; let's do an intersection to discover them and consider them
                     // as bottom surfaces (to allow for bridge detection)
                     if (! top.empty() && ! bottom.empty()) {
-        //                Polygons overlapping = intersection(to_polygons(top), to_polygons(bottom));
-        //                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->layer->id, scalar(@$overlapping)
-        //                    if $Slic3r::debug;
-                        Polygons top_polygons = to_polygons(std::move(top));
-                        top.clear();
-                        surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
+                        const auto cracks = intersection_ex(top, bottom);
+                        if (!cracks.empty()) {
+                            const float small_crack_threshold = -(layerm->flow(frExternalPerimeter).scaled_width());
+                            
+                            for (const auto& crack : cracks) {
+                                if (offset_ex(crack, small_crack_threshold).empty()) {
+                                    // Crack too small, leave it as part of the top surface, remove it from bottom surfaces
+                                    Surfaces bot_tmp;
+                                    for (auto& b : bottom) {
+                                        surfaces_append(bot_tmp, diff_ex(b.expolygon, crack), b.surface_type);
+                                    }
+                                    bottom = std::move(bot_tmp);
+                                }
+                            }
+
+                            Polygons top_polygons = to_polygons(std::move(top));
+                            top.clear();
+                            surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
+                        }
                     }
 
         #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
