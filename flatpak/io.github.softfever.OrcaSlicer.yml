@@ -26,7 +26,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        if [ -d "/app" ] && [ -n "$(ls -A /app 2>/dev/null)" ]; then
+        if [ -d "/run/build/OrcaSlicer_deps" ] && [ -n "$(ls -A /run/build/OrcaSlicer_deps 2>/dev/null)" ]; then
           echo "Dependencies already built, skipping remaining modules..."
           touch /app/deps_built
         fi
@@ -40,7 +40,7 @@ modules:
           echo "Dependencies already built, skipping gst-plugins-good..."
           exit 0
         fi
-        meson --prefix=/app -Dauto_features=disabled -Djpeg=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir/ && \
+        meson --prefix=/run/build/OrcaSlicer_deps -Dauto_features=disabled -Djpeg=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir/ && \
         ninja -C builddir install
     sources:
       - type: archive
@@ -56,7 +56,7 @@ modules:
           echo "Dependencies already built, skipping mesa..."
           exit 0
         fi
-        meson --prefix=/app -Dosmesa=classic -Ddri-drivers=[] -Dgallium-drivers=[] -Dvulkan-drivers=[] -Dplatforms=[] builddir/ && \
+        meson --prefix=/run/build/OrcaSlicer_deps -Dosmesa=classic -Ddri-drivers=[] -Dgallium-drivers=[] -Dvulkan-drivers=[] -Dplatforms=[] builddir/ && \
         ninja -C builddir install
     build-options:
       arch:
@@ -80,7 +80,7 @@ modules:
           echo "Dependencies already built, skipping glu..."
           exit 0
         fi
-        ./configure --prefix=/app --disable-static && \
+        ./configure --prefix=/run/build/OrcaSlicer_deps --disable-static && \
         make -j$FLATPAK_BUILDER_N_JOBS && \
         make install
     cleanup:
@@ -113,7 +113,7 @@ modules:
           echo "Dependencies already built, skipping libspnav..."
           exit 0
         fi
-        ./configure --prefix=/app && \
+        ./configure --prefix=/run/build/OrcaSlicer_deps && \
         make -j$FLATPAK_BUILDER_N_JOBS && \
         make install
     sources:
@@ -156,8 +156,8 @@ modules:
           -DwxUSE_LIBTIFF=sys \
           -DwxUSE_EXPAT=sys \
           -DBUILD_SHARED_LIBS:BOOL=ON \
-          -DCMAKE_INSTALL_PREFIX:STRING=/app \
-          -DCMAKE_PREFIX_PATH=/app \
+          -DCMAKE_INSTALL_PREFIX:STRING=/run/build/OrcaSlicer_deps \
+          -DCMAKE_PREFIX_PATH=/run/build/OrcaSlicer_deps \
           -DCMAKE_BUILD_TYPE=Release && \
         cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
     sources:
@@ -187,19 +187,19 @@ modules:
         cmake ../ \
           -DDEP_WX_GTK3=ON \
           -DDEP_DOWNLOAD_DIR=/run/build/orca_deps/external-packages \
-          -DCMAKE_PREFIX_PATH=/app \
-          -DDESTDIR=/app \
-          -DCMAKE_INSTALL_LIBDIR=/app/lib \
+          -DCMAKE_PREFIX_PATH=/run/build/OrcaSlicer_deps \
+          -DDESTDIR=/run/build/OrcaSlicer_deps \
+          -DCMAKE_INSTALL_LIBDIR=/run/build/OrcaSlicer_deps/lib \
           -DFLATPAK=ON \
-          -DCMAKE_INSTALL_PREFIX=/app && \
+          -DCMAKE_INSTALL_PREFIX=/run/build/OrcaSlicer_deps && \
         cmake --build . && \
         rm -r /run/build/orca_deps/external-packages
     
     cleanup:
-      - /app/include
+      - /run/build/OrcaSlicer_deps/include
       - "*.a"
       - "*.la"
-      - /app/lib/cmake
+      - /run/build/OrcaSlicer_deps/lib/cmake
     
     sources:
       # -
@@ -323,7 +323,7 @@ modules:
           -DCMAKE_BUILD_TYPE=Release \
           -DFLATPAK=ON \
           -DBBL_RELEASE_TO_PUBLIC=1 \
-          -DCMAKE_PREFIX_PATH=/app \
+          -DCMAKE_PREFIX_PATH=/run/build/OrcaSlicer_deps \
           -DCMAKE_INSTALL_PREFIX=/app
         CXXFLAGS=-std=gnu++20 cmake --build build --target OrcaSlicer -j$FLATPAK_BUILDER_N_JOBS
         ./run_gettext.sh
