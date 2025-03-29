@@ -358,25 +358,25 @@ void Tab::create_preset_tab()
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
 
-    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
+    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ContentMargin()));
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 8);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ElementSpacing()));
     } else {
-        m_top_sizer->AddSpacer(10);
+        m_top_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_top_sizer->AddStretchSpacer(1);
     }
 
     const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
 #ifndef DISABLE_UNDO_SYS
-    m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_top_sizer->AddSpacer(8);
+    m_top_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_top_sizer->AddSpacer(FromDIP(SidebarProps::IconSpacing()));
 #endif
-    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
-    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT , 8 );
+    m_top_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ContentMargin()));
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(m_top_panel, Label::Body_12, _L("Advance"));
@@ -385,13 +385,13 @@ void Tab::create_preset_tab()
         m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
             restore_last_select_item();
         });
-        m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
+        m_top_sizer->Add(m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
-        m_top_sizer->AddSpacer(4);
+        m_top_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
     }
 
-    m_top_sizer->AddSpacer(10);
+    m_top_sizer->AddSpacer(FromDIP(SidebarProps::ContentMargin()));
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
@@ -1069,17 +1069,21 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                 to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                 load_key_value("compatible_printers", true/*some value*/, true);
 
-                bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-                m_compatible_printers.checkbox->SetValue(is_empty);
-                is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+                if (m_compatible_printers.checkbox) {
+                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+                    m_compatible_printers.checkbox->SetValue(is_empty);
+                    is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+                }
             }
             if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                 load_key_value("compatible_prints", true/*some value*/, true);
 
-                bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
-                m_compatible_prints.checkbox->SetValue(is_empty);
-                is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+                if (m_compatible_prints.checkbox) {
+                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+                    m_compatible_prints.checkbox->SetValue(is_empty);
+                    is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+                }
             }
         }
         for (const auto &kvp : group->opt_map()) {
@@ -1496,50 +1500,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_config_manipulation.apply(m_config, &new_conf);
     }
 
-    // BBS popup a message to ask the user to set optimum parameters for tree support
-    if (opt_key == "support_type" || opt_key == "support_style") {
-        if (is_tree_slim(m_config->opt_enum<SupportType>("support_type"), m_config->opt_enum<SupportMaterialStyle>("support_style")) &&
-            !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_int("support_interface_top_layers") == 0 && m_config->opt_int("tree_support_wall_count") == 2)) {
-            wxString msg_text = _L("We have added an experimental style \"Tree Slim\" that features smaller support volume but weaker strength.\n"
-                                    "We recommend using it with: 0 interface layers, 0 top distance, 2 walls.");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(0));
-                new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(2));
-                m_config_manipulation.apply(m_config, &new_conf);
-            }
-            wxGetApp().plater()->update();
-        } else if ((m_config->opt_enum<SupportType>("support_type")==stTreeAuto && (m_config->opt_enum<SupportMaterialStyle>("support_style")==smsTreeStrong || m_config->opt_enum<SupportMaterialStyle>("support_style") == smsTreeHybrid)) &&
-                   !((m_config->opt_float("support_top_z_distance") >=0.1 || is_support_filament(m_config->opt_int("support_interface_filament") - 1))
-                       && m_config->opt_int("support_interface_top_layers") >1) ) {
-            wxString msg_text = _L("For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following settings: at least 2 interface layers, at least 0.1mm top z distance or using support materials on interface.");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                if (!is_support_filament(m_config->opt_int("support_interface_filament") - 1) && m_config->opt_float("support_top_z_distance") < 0.1)
-                    new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0.2));
-                new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(2));
-                m_config_manipulation.apply(m_config, &new_conf);
-            }
-            wxGetApp().plater()->update();
-        }
-    }
-
     // BBS popup a message to ask the user to set optimum parameters for support interface if support materials are used
     if (opt_key == "support_interface_filament") {
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
         if (is_support_filament(interface_filament_id) && !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
-                                                            m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipConcentric)) {
+                                                            m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) {
             wxString msg_text = _L("When using support material for the support interface, We recommend the following settings:\n"
-                                   "0 top z distance, 0 interface spacing, concentric pattern and disable independent support layer height");
+                                   "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
@@ -1548,7 +1515,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             if (dialog.ShowModal() == wxID_YES) {
                 new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipConcentric));
+                new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
@@ -2262,6 +2229,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
         optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
+        optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_angle");
@@ -2274,8 +2242,9 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance", "support");
+        optgroup->append_single_option_line("support_object_first_layer_gap", "support");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
-        optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
+        optgroup->append_single_option_line("max_bridge_length", "support#tree-support-only-options");
         optgroup->append_single_option_line("independent_support_layer_height", "support");
 
         optgroup = page->new_optgroup(L("Tree supports"), L"param_support_tree");
@@ -2289,8 +2258,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_angle_organic", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_angle_slow");
-        optgroup->append_single_option_line("tree_support_branch_diameter_double_wall");
-        optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_adaptive_layer_height");
         optgroup->append_single_option_line("tree_support_auto_brim");
         optgroup->append_single_option_line("tree_support_brim_width");
@@ -2347,6 +2314,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
         optgroup->append_single_option_line("draft_shield");
+        optgroup->append_single_option_line("single_loop_draft_shield");
         
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
@@ -2458,7 +2426,7 @@ void TabPrint::toggle_options()
     if (auto choice = dynamic_cast<Choice*>(field)) {
         auto def = print_config_def.get("support_style");
         std::vector<int> enum_set_normal = {smsDefault, smsGrid, smsSnug };
-        std::vector<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic };
+        std::vector<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic };
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         auto &           opt             = const_cast<ConfigOptionDef &>(field->m_opt);
         auto             cb              = dynamic_cast<ComboBox *>(choice->window);
@@ -3797,6 +3765,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
+        optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
@@ -4221,7 +4190,9 @@ if (is_marlin_flavor)
             // optgroup->get_value() return int for def.type == coInt,
             // Thus, there should be boost::any_cast<int> !
             // Otherwise, boost::any_cast<size_t> causes an "unhandled unknown exception"
-            size_t extruders_count = size_t(boost::any_cast<int>(optgroup_sh->get_value("extruders_count")));
+            const auto v = optgroup_sh->get_value("extruders_count");
+            if (v.empty()) return;
+            size_t extruders_count = size_t(boost::any_cast<int>(v));
             wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
                 if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
                     extruders_count_changed(extruders_count);
@@ -5596,8 +5567,12 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
         exist_preset = true;
     }
 
-    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    m_presets->save_current_preset(name, detach, save_to_project);
+    Preset* _current_printer = nullptr;
+    if (m_presets->type() == Preset::TYPE_FILAMENT) {
+        _current_printer = const_cast<Preset*>(&wxGetApp().preset_bundle->printers.get_selected_preset_base());
+    }
+    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.json
+    m_presets->save_current_preset(name, detach, save_to_project, nullptr, _current_printer);
 
     //BBS create new settings
     new_preset = m_presets->find_preset(name, false, true);

@@ -1,6 +1,6 @@
 {
     "name": "OrcaFilamentLibrary",
-    "version": "02.03.00.00",
+    "version":  "02.03.00.03",
     "force_update": "0",
     "description": "Orca Filament Library",
     "filament_list": [
@@ -405,6 +405,10 @@
             "sub_path": "filament/eSUN/eSUN PLA+ @base.json"
         },
         {
+            "name": "eSUN PETG @base",
+            "sub_path": "filament/eSUN/eSUN PETG @base.json"
+        },
+        {
             "name": "fdm_filament_pla_silk",
             "sub_path": "filament/base/fdm_filament_pla_silk.json"
         },
@@ -723,6 +727,14 @@
         {
             "name": "eSUN PLA+ @System",
             "sub_path": "filament/eSUN/eSUN PLA+ @System.json"
+        },
+        {
+            "name": "eSUN ePLA-LW @System",
+            "sub_path": "filament/eSUN/eSUN ePLA-LW @System.json"
+        },
+        {
+            "name": "eSUN PETG @System",
+            "sub_path": "filament/eSUN/eSUN PETG @System.json"
         },
         {
             "name": "Generic PLA Silk @System",

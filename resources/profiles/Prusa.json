@@ -1,6 +1,6 @@
 {
     "name": "Prusa",
-    "version": "02.03.00.00",
+    "version":  "02.03.00.03",
     "force_update": "0",
     "description": "Prusa configurations",
     "machine_model_list": [
@@ -277,6 +277,10 @@
         {
             "name": "process_detail_MK3.5",
             "sub_path": "process/process_detail_MK3.5.json"
+        },
+        {
+            "name": "0.05mm Detail @MK3.5",
+            "sub_path": "process/0.05mm Detail @MK3.5.json"
         },
         {
             "name": "0.07mm Detail @MK3.5",

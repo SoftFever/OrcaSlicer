@@ -15,7 +15,6 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
@@ -169,6 +168,9 @@ void AppConfig::set_defaults()
 
     if (get("use_perspective_camera").empty())
         set_bool("use_perspective_camera", true);
+
+    if (get("auto_perspective").empty())
+        set_bool("auto_perspective", false);
 
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);

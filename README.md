@@ -10,11 +10,11 @@ Join our Discord community here:<br>
  
  <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
 
+The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://www.orcaslicer.com/">**orcaslicer.com**</a>, and the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>.
+
 Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised. 
 
 If you see the above sites in your searches, report them as spam or unsafe to the search engine. This small action will assist everyone.
-
-The only official platforms for OrcaSlicer are our GitHub project page and the  <a href="https://discord.gg/P4VE9UY9gJ">official Discord channel</a> .
 
 We deeply value our OrcaSlicer community and appreciate all the social groups that support us. However, it is crucial to address the risk posed by any group that falsely claims to be official or misleads its members. If you encounter such a group or are part of one, please assist by encouraging the group owner to add a clear disclaimer or by alerting its members.
 
@@ -97,7 +97,9 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
 - Mac 64-bit  
   - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf, texinfo
       - You can install most of them by running `brew install cmake gettext libtool automake autoconf texinfo`
+      - If you haven't since upgrading Xcode, start Xcode and install macOS build support.
   - run `build_release_macos.sh`
+  - open `build_arm64/OrcaSlicer/OrcaSlicer.app`
   - To build and debug in Xcode:
       - run `Xcode.app`
       - open ``build_`arch`/OrcaSlicer.Xcodeproj``
@@ -119,7 +121,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
     - Ubuntu 
       - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
       - run 'sudo ./BuildLinux.sh -u'
-      - run './BuildLinux.sh -dsir'
+      - run './BuildLinux.sh -dsi'
 
 # Note: 
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
