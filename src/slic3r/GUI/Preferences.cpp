@@ -512,6 +512,59 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     return sizer_input;
 }
 
+wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wxWindow *parent, wxString tooltip)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    auto        input_title   = new wxStaticText(parent, wxID_ANY, title);
+    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetFont(::Label::Body_13);
+    input_title->SetToolTip(tooltip);
+    input_title->Wrap(-1);
+    auto param = "camera_orbit_mult";
+
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_NUMERIC);
+    input->GetTextCtrl()->SetValidator(validator);
+
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
+    sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 3);
+    
+    const double min = 0.05;
+    const double max = 2.0;
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input, min, max](wxCommandEvent &e) {
+        auto value = input->GetTextCtrl()->GetValue();
+        double conv = 1.0;
+        if (value.ToCDouble(&conv)) {
+            conv = conv < min ? min : conv > max ? max : conv;
+            auto strval = std::string(wxString::FromCDouble(conv, 2).mb_str());
+            input->GetTextCtrl()->SetValue(strval);
+            app_config->set(param, strval);
+            app_config->save();
+        }
+        e.Skip();
+    });
+
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input, min, max](wxFocusEvent &e) {
+        auto value = input->GetTextCtrl()->GetValue();
+        double conv = 1.0;
+        if (value.ToCDouble(&conv)) {
+            conv = conv < min ? min : conv > max ? max : conv;
+            auto strval = std::string(wxString::FromCDouble(conv, 2).mb_str());
+            input->GetTextCtrl()->SetValue(strval);
+            app_config->set(param, strval);
+        }
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param)
 {
     wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
@@ -1164,6 +1217,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
     auto item_use_free_camera_settings = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), 50, "use_free_camera");
     auto reverse_mouse_zoom = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), 50, "reverse_mouse_wheel_zoom");
+    auto camera_orbit_mult = create_camera_orbit_mult_input(_L("Orbit speed multiplier"), page, _L("Multiplies the orbit speed for finer or coarser camera movement."));
 
     auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), 50, "show_splash_screen");
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
@@ -1246,6 +1300,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_use_free_camera_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(reverse_mouse_zoom, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(camera_orbit_mult, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_splash_screen, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
