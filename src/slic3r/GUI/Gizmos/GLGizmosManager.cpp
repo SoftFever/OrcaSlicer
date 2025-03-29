@@ -62,7 +62,9 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     out.reserve(m_gizmos.size());
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         for (size_t i = 0; i < m_gizmos.size(); ++i)
-            if (m_gizmos[i]->get_sprite_id() == (unsigned int) Measure ||
+            if (m_gizmos[i]->get_sprite_id() == (unsigned int) Move ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) Rotate ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) Measure ||
                 m_gizmos[i]->get_sprite_id() == (unsigned int) Assembly ||
                 m_gizmos[i]->get_sprite_id() == (unsigned int) MmuSegmentation)
                 out.push_back(i);
@@ -247,6 +249,16 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_reset_zero.svg", 14, 14, texture_id))
+        icon_list.insert(std::make_pair((int) IC_TOOLBAR_RESET_ZERO, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_reset_zero_hover.svg", 14, 14, texture_id))
+        icon_list.insert(std::make_pair((int) IC_TOOLBAR_RESET_ZERO_HOVER, texture_id));
+    else
+        return false;
+
     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip.svg", 25, 25, texture_id)) // ORCA: Use same resolution with gizmos to prevent blur on icon
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP, texture_id));
     else
@@ -371,6 +383,9 @@ void GLGizmosManager::update_assemble_view_data()
 void GLGizmosManager::update_data()
 {
     if (!m_enabled) return;
+
+    const Selection& selection = m_parent.get_selection();
+
     if (m_common_gizmos_data)
         m_common_gizmos_data->update(get_current()
                                    ? get_current()->get_requirements()
@@ -381,8 +396,10 @@ void GLGizmosManager::update_data()
     if (m_current != Flatten && !m_gizmos.empty()) m_gizmos[Flatten]->data_changed(m_serializing);
 
     //BBS: GUI refactor: add object manipulation in gizmo
-    m_object_manipulation.update_ui_from_settings();
-    m_object_manipulation.UpdateAndShow(true);
+    if (!selection.is_empty()) {
+        m_object_manipulation.update_ui_from_settings();
+        m_object_manipulation.UpdateAndShow(true);
+    }
 }
 
 bool GLGizmosManager::is_running() const
@@ -459,6 +476,22 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoBrimEars*>(m_gizmos[BrimEars].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else
         return false;
+}
+
+bool GLGizmosManager::is_paint_gizmo()
+{
+    return m_current == EType::FdmSupports ||
+           m_current == EType::MmuSegmentation ||
+           m_current == EType::Seam;
+}
+
+bool GLGizmosManager::is_allow_select_all() {
+    if (m_current == Undefined || m_current == EType::Move||
+        m_current == EType::Rotate ||
+        m_current == EType::Scale) {
+        return true;
+    }
+    return false;
 }
 
 ClippingPlane GLGizmosManager::get_clipping_plane() const

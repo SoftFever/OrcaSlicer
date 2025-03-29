@@ -1024,20 +1024,6 @@ void GLGizmoText::show_tooltip_information(float x, float y)
     ImGui::PopStyleVar(2);
 }
 
-ModelVolume *GLGizmoText::get_selected_single_volume(int &out_object_idx, int &out_volume_idx) const
-{
-    if (m_parent.get_selection().is_single_volume() || m_parent.get_selection().is_single_modifier()) {
-        const Selection &selection = m_parent.get_selection();
-        const GLVolume * gl_volume = selection.get_first_volume();
-        out_object_idx             = gl_volume->object_idx();
-        ModelObject *model_object  = selection.get_model()->objects[out_object_idx];
-        out_volume_idx             = gl_volume->volume_idx();
-        if (out_volume_idx < model_object->volumes.size())
-            return model_object->volumes[out_volume_idx];
-    }
-    return nullptr;
-}
-
 void GLGizmoText::reset_text_info()
 {
     m_font_name     = "";

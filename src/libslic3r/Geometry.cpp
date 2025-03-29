@@ -478,6 +478,16 @@ Transform3d Transformation::get_rotation_matrix() const
     return extract_rotation_matrix(m_matrix);
 }
 
+Vec3d Transformation::get_rotation_by_quaternion() const
+{
+    Matrix3d           rotation_matrix = m_matrix.matrix().block(0, 0, 3, 3);
+    Eigen::Quaterniond quaternion(rotation_matrix);
+    quaternion.normalize();
+    Vec3d temp_rotation = quaternion.matrix().eulerAngles(2, 1, 0);
+    std::swap(temp_rotation(0), temp_rotation(2));
+    return temp_rotation;
+}
+
 void Transformation::set_rotation(const Vec3d& rotation)
 {
     const Vec3d offset = get_offset();
@@ -837,6 +847,17 @@ TransformationSVD::TransformationSVD(const Transform3d& trafo)
     curMat.set_offset(new_pos);
 
     return curMat;
+}
+
+Transformation generate_transform(const Vec3d& x_dir, const Vec3d& y_dir, const Vec3d& z_dir, const Vec3d& origin) {
+     Matrix3d m;
+     m.col(0) = x_dir.normalized();
+     m.col(1) = y_dir.normalized();
+     m.col(2) = z_dir.normalized();
+     Transform3d    mm(m);
+     Transformation tran(mm);
+     tran.set_offset(origin);
+     return tran;
 }
 
 bool is_point_inside_polygon_corner(const Point &a, const Point &b, const Point &c, const Point &query_point) {
