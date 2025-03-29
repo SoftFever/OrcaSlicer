@@ -54,10 +54,6 @@ endif()
 
 set (CMAKE_DEBUG_POSTFIX "d")
 
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(MCUT_MAJOR 1)
@@ -234,7 +230,7 @@ if(${MCUT_BUILD_TESTS} OR ${MCUT_BUILD_TUTORIALS})
 	#set(libigl_include_dir ${CMAKE_BINARY_DIR}/libigl-src/include)
 	set(libigl_include_dir ${libigl_SOURCE_DIR}/include)
 
-	set(LIBIGL_EIGEN_VERSION 3.3.7 CACHE STRING "Default version of Eigen used by libigl.")
+	set(LIBIGL_EIGEN_VERSION 3.4.0 CACHE STRING "Default version of Eigen used by libigl.")
 
 	# used by tests & tutorials
 	#download_project(PROJ                eigen
@@ -292,93 +288,6 @@ endif()
 ### Consult the CPack documentations for a full set. ###
 ########################################################
 
-# https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack
-# https://stackoverflow.com/questions/6003374/what-is-cmake-equivalent-of-configure-prefix-dir-make-all-install
-
-# TODO: package documentation files
-
-# if(MCUT_BUILD_AS_SHARED_LIB)
-# 	#
-# 	# dynamic libs
-# 	#
-
-# 	install(TARGETS ${mpn_shared_lib_name}
-# 			LIBRARY
-# 			DESTINATION lib/shared
-# 			COMPONENT dynamic_libraries)
-# else()
-# 	#
-# 	# static libs
-# 	#
-	
-# 	install(TARGETS ${mpn_static_lib_name}
-# 			ARCHIVE
-# 			DESTINATION lib/static
-# 			COMPONENT static_libraries)
-# endif()
-
-#
-# headers
-#
-# install(FILES ${MCUT_INCLUDE_DIR}/mcut/mcut.h ${MCUT_INCLUDE_DIR}/mcut/platform.h
-#   		DESTINATION include/mcut
-# 	  	COMPONENT headers)
-	  
-# install(FILES 
-# 		${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt
-# 		${CMAKE_CURRENT_SOURCE_DIR}/README.md
-# 		DESTINATION ./
-# 		COMPONENT text_files)
-
-#
-# notify CPack of the names of all of the components in the project
-#
-# set(CPACK_COMPONENTS_ALL static_libraries dynamic_libraries headers text_files) # applications
-
-# set(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "MCUT Application")
-# set(CPACK_COMPONENT_STATIC_LIBRARIES_DISPLAY_NAME "Static Libraries")
-# set(CPACK_COMPONENT_DYNAMIC_LIBRARIES_DISPLAY_NAME "Dynamics Libraries")
-# set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C++ Headers")
-
-# set(CPACK_COMPONENT_APPLICATIONS_DESCRIPTION
-#   "A simple application using MCUT")
-# set(CPACK_COMPONENT_STATIC_LIBRARIES_DESCRIPTION
-#   "Static libraries used to build programs with MCUT")
-#   set(CPACK_COMPONENT_DYNAMIC_LIBRARIES_DESCRIPTION
-#   "Dynamic libraries used to build programs with MCUT")
-# set(CPACK_COMPONENT_HEADERS_DESCRIPTION
-#   "C/C++ header files for use with MCUT")
-
-# #  
-# # component dependencies
-# #
-# set(CPACK_COMPONENT_HEADERS_DEPENDS static_libraries dynamic_libraries)
-
-# set(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
-# set(CPACK_COMPONENT_STATIC_LIBRARIES_GROUP "Development")
-# set(CPACK_COMPONENT_DYNAMIC_LIBRARIES_GROUP "Development")
-# set(CPACK_COMPONENT_HEADERS_GROUP "Development")
-
-# set(CPACK_COMPONENT_GROUP_DEVELOPMENT_DESCRIPTION
-#   "All of the tools you'll ever need to develop software")
-
-# set (CPACK_PACKAGE_NAME "MCUT")
-# set (CPACK_PACKAGE_VENDOR "Floyd M. Chitalu")
-# set (CPACK_PACKAGE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-# set (CPACK_PACKAGE_VERSION_MAJOR "${MCUT_MAJOR}")
-# set (CPACK_PACKAGE_VERSION_MINOR "${MCUT_MINOR}")
-# set (CPACK_PACKAGE_VERSION_PATCH "${MCUT_PATCH}")
-# #set (CPACK_PACKAGE_DESCRIPTION "MCUT (pronounced ‘emcut’) is a tool for cutting meshes.")
-# #set (CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/DESCRIPTION.txt)
-# set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "MCUT is a library for cutting meshes to perform tasks like boolean operations and more.")
-# set (CPACK_PACKAGE_HOMEPAGE_URL "https://cutdigital.github.io/mcut.site/")
-# set (CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
-# # set (CPACK_PACKAGE_ICON ) 
-# set (CPACK_PACKAGE_CHECKSUM SHA256)
-# #set (CPACK_PROJECT_CONFIG_FILE ) 
-# set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt) # must also include in install command
-# set (CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-# #set (CPACK_RESOURCE_FILE_WELCOME ${CMAKE_CURRENT_SOURCE_DIR}/WELCOME.txt)
 
 if (WIN32)
     if (USE_WIX_TOOLSET)
@@ -392,26 +301,5 @@ else ()
     set(CPACK_GENERATOR "TGZ")
 endif ()
 
-#set (CPACK_OUTPUT_CONFIG_FILE ) # Defaults to CPackConfig.cmake.
-#set (CPACK_PACKAGE_EXECUTABLES ) 
-# set (CPACK_STRIP_FILES TRUE)
-# set (CPACK_VERBATIM_VARIABLES )
-# set (CPACK_SOURCE_PACKAGE_FILE_NAME )
-# set (CPACK_SOURCE_STRIP_FILES )
-# set (CPACK_SOURCE_GENERATOR )
-# set (CPACK_SOURCE_OUTPUT_CONFIG_FILE )
-# set (CPACK_SOURCE_IGNORE_FILES )
-# set (CPACK_CMAKE_GENERATOR )
-# set (CPACK_INSTALL_CMAKE_PROJECTS ) 
-# set (CPACK_INSTALL_CMAKE_PROJECTS )
-# set (CPACK_SYSTEM_NAME )
-# set (CPACK_PACKAGE_VERSION )
-# set (CPACK_TOPLEVEL_TAG )
-# set (CPACK_INSTALL_COMMANDS )
-# set (CPACK_INSTALLED_DIRECTORIES )
-# set ( )
-
-
-# include(CPack)
 
 # eof
