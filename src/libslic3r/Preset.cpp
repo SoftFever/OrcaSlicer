@@ -34,7 +34,6 @@
 //BBS: add regex
 #include <boost/algorithm/string/regex.hpp>
 
-#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
