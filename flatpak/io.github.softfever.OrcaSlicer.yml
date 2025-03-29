@@ -26,7 +26,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        if [ -d "/app/destdir" ] && [ "$(ls -A /app/destdir)" ]; then
+        if [ -d "/app" ] && [ "$(ls -A /app)" ]; then
           echo "true" > /app/skip_deps
         else
           echo "false" > /app/skip_deps
@@ -39,7 +39,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        meson --prefix=/app/destdir -Dauto_features=disabled -Djpeg=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir/
+        meson --prefix=/app -Dauto_features=disabled -Djpeg=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir/
         ninja -C builddir install
     sources:
       - type: archive
@@ -53,7 +53,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        meson --prefix=/app/destdir -Dosmesa=classic -Ddri-drivers=[] -Dgallium-drivers=[] -Dvulkan-drivers=[] -Dplatforms=[] builddir/
+        meson --prefix=/app -Dosmesa=classic -Ddri-drivers=[] -Dgallium-drivers=[] -Dvulkan-drivers=[] -Dplatforms=[] builddir/
         ninja -C builddir install
     build-options:
       arch:
@@ -75,7 +75,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        ./configure --prefix=/app/destdir --disable-static
+        ./configure --prefix=/app --disable-static
         make -j$FLATPAK_BUILDER_N_JOBS
         make install
     cleanup:
@@ -105,7 +105,7 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        ./configure --prefix=/app/destdir
+        ./configure --prefix=/app
         make -j$FLATPAK_BUILDER_N_JOBS
         make install
     sources:
@@ -146,8 +146,8 @@ modules:
           -DwxUSE_LIBTIFF=sys \
           -DwxUSE_EXPAT=sys \
           -DBUILD_SHARED_LIBS:BOOL=ON \
-          -DCMAKE_INSTALL_PREFIX:STRING=/app/destdir \
-          -DCMAKE_PREFIX_PATH=/app/destdir \
+          -DCMAKE_INSTALL_PREFIX:STRING=/app \
+          -DCMAKE_PREFIX_PATH=/app \
           -DCMAKE_BUILD_TYPE=Release
         cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
     sources:
@@ -162,7 +162,7 @@ modules:
       - "*.a"
       - "*.cmake"
       - /include
-      - /app/destdir/bin/*
+      - /app/bin/*
 
   - name: orca_deps
     skip: |
@@ -174,24 +174,19 @@ modules:
         cmake ../ \
           -DDEP_WX_GTK3=ON \
           -DDEP_DOWNLOAD_DIR=/run/build/orca_deps/external-packages \
-          -DCMAKE_PREFIX_PATH=/app/destdir \
-          -DDESTDIR=/app/destdir \
-          -DCMAKE_INSTALL_LIBDIR=/app/destdir/lib \
+          -DCMAKE_PREFIX_PATH=/app \
+          -DDESTDIR=/app \
+          -DCMAKE_INSTALL_LIBDIR=/app/lib \
           -DFLATPAK=ON \
-          -DCMAKE_INSTALL_PREFIX=/app/destdir
+          -DCMAKE_INSTALL_PREFIX=/app
         cmake --build . 
         rm -r /run/build/orca_deps/external-packages
-        ls /run/build
-        cd /run/build/orca_deps/deps/build
-        ls -al
-        find . -mindepth 1 -maxdepth 1 ! -name 'destdir' -exec rm -rf {} +
-        ls -al
     
     cleanup:
-      - /app/destdir/include
+      - /app/include
       - "*.a"
       - "*.la"
-      - /app/destdir/lib/cmake
+      - /app/lib/cmake
     
     sources:
       # -
@@ -315,7 +310,7 @@ modules:
           -DCMAKE_BUILD_TYPE=Release \
           -DFLATPAK=ON \
           -DBBL_RELEASE_TO_PUBLIC=1 \
-          -DCMAKE_PREFIX_PATH=/app/destdir \
+          -DCMAKE_PREFIX_PATH=/app \
           -DCMAKE_INSTALL_PREFIX=/app
         CXXFLAGS=-std=gnu++20 cmake --build build --target OrcaSlicer -j$FLATPAK_BUILDER_N_JOBS
         ./run_gettext.sh
