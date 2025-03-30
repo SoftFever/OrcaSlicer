@@ -216,14 +216,16 @@ function FilterModelList(keyword) {
 
 	let nTotal = pModel.length;
 	let ModelHtml = {};
+	let kwSplit = keyword.toLowerCase().match(/\S+/g) || [];
 
 	$('#Content').empty();
 	for (let n = 0; n < nTotal; n++) {
 		let OneModel = pModel[n];
 
 		let strVendor = OneModel['vendor'];
-		let ModelName = OneModel['model'];
-		if (ModelName.toLowerCase().indexOf(keyword.toLowerCase()) == -1)
+		let search = (OneModel['model'] + '\0' + strVendor).toLowerCase();
+
+		if (!kwSplit.every(s => search.includes(s)))
 			continue;
 
 		//Add Vendor Html Node

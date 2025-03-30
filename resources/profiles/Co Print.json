@@ -1,6 +1,6 @@
 {
   "name": "Co Print",
-  "version": "02.03.00.00",
+  "version":  "02.03.00.03",
   "force_update": "0",
   "description": "CoPrint configurations",
   "machine_model_list": [
@@ -36,6 +36,18 @@
     {
       "name": "CoPrint Generic PLA",
       "sub_path": "filament/CoPrint Generic PLA.json"
+    },
+    {
+      "name": "CoPrint Generic ABS",
+      "sub_path": "filament/CoPrint Generic ABS.json"
+    },
+    {
+      "name": "CoPrint Generic PETG",
+      "sub_path": "filament/CoPrint Generic PETG.json"
+    },
+	{
+      "name": "CoPrint Generic TPU",
+      "sub_path": "filament/CoPrint Generic TPU.json"
     }
 	],
   "machine_list": [

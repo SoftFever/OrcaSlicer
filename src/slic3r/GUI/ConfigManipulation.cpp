@@ -322,7 +322,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->opt_bool("alternate_extra_wall") &&
         (config->opt_enum<EnsureVerticalShellThickness>("ensure_vertical_shell_thickness") == evstAll)) {
-        wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All. "));
+        wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All."));
 
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"
@@ -565,8 +565,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    for (auto el : {"skirt_type", "skirt_distance", "skirt_start_angle", "draft_shield"})
-        toggle_field(el, have_skirt);
+    toggle_line("single_loop_draft_shield", have_skirt && config->opt_enum<DraftShield>("draft_shield") == dsEnabled); // ORCA: Display one wall draft shield if draft shield is enabled and skirt enabled
+    for (auto el : {"skirt_type","min_skirt_length", "skirt_distance", "skirt_start_angle","skirt_height","skirt_speed", "draft_shield", "single_loop_draft_shield"})
+        toggle_field(el, have_skirt);   
     
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim);
     toggle_field("brim_object_gap", have_brim);

@@ -6,7 +6,7 @@
   "setting_id": "GP001",
   "instantiation": "true",
   "layer_height": "0.2",
-  "initial_layer_print_height" : "0.2",
+  "initial_layer_print_height": "0.2",
   "line_width": "0.4",
   "initial_layer_line_width": "0.4",
   "outer_wall_line_width": "0.4",
@@ -54,9 +54,7 @@
   "wipe_speed": "200",
   "reduce_crossing_wall": "1",
   "max_travel_detour_distance": "50",
-  "compatible_printers": [
-    "Flashforge Adventurer 3 Series 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Adventurer 3 Series 0.4 Nozzle"],
   "filename_format": "{input_filename_base}.gcode",
   "post_process": ""
 }
