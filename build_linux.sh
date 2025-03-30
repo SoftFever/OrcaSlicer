@@ -15,21 +15,24 @@ function check_available_memory_and_disk() {
     MIN_DISK_KB=$((10 * 1024 * 1024))
 
     if [[ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]] ; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
+        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (system has only ${FREE_MEM_GB}G available)"
         echo && free --human && echo
+        echo "Invoke with -r to skip RAM and disk checks."
         exit 2
     fi
 
     if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]] ; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo ${MIN_DISK_KB} |awk '{ printf "%.1fG\n", $1/1024/1024; }') (systen has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
+        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo ${MIN_DISK_KB} |awk '{ printf "%.1fG\n", $1/1024/1024; }') (system has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
         echo && df --human-readable . && echo
+        echo "Invoke with -r to skip ram and disk checks."
         exit 1
     fi
 }
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-r][-s][-u]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u]"
     echo "   -1: limit builds to one core (where possible)"
+    echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in debug mode"
     echo "   -c: force a clean build"
     echo "   -d: download and build dependencies in ./deps/ (build prerequisite)"
@@ -46,10 +49,13 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1bcdghiprsu" opt ; do
+while getopts ":1j:bcdhiprsu" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
+        ;;
+    j )
+        export CMAKE_BUILD_PARALLEL_LEVEL=$OPTARG
         ;;
     b )
         BUILD_DEBUG="1"
@@ -67,11 +73,11 @@ while getopts ":1bcdghiprsu" opt ; do
         BUILD_IMAGE="1"
         ;;
     p )
-    	    SLIC3R_PRECOMPILED_HEADERS="OFF"
-    	  ;;
+        SLIC3R_PRECOMPILED_HEADERS="OFF"
+        ;;
     r )
-	    SKIP_RAM_CHECK="1"
-	      ;;
+        SKIP_RAM_CHECK="1"
+        ;;
     s )
         BUILD_ORCA="1"
         ;;
