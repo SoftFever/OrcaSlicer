@@ -15,23 +15,27 @@ function check_available_memory_and_disk() {
     MIN_DISK_KB=$((10 * 1024 * 1024))
 
     if [[ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]] ; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
+        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (system has only ${FREE_MEM_GB}G available)"
         echo && free --human && echo
+        echo "Invoke with -r to skip RAM and disk checks."
         exit 2
     fi
 
     if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]] ; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo ${MIN_DISK_KB} |awk '{ printf "%.1fG\n", $1/1024/1024; }') (systen has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
+        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo ${MIN_DISK_KB} |awk '{ printf "%.1fG\n", $1/1024/1024; }') (system has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
         echo && df --human-readable . && echo
+        echo "Invoke with -r to skip ram and disk checks."
         exit 1
     fi
 }
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-r][-s][-u]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u]"
     echo "   -1: limit builds to one core (where possible)"
+    echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in debug mode"
     echo "   -c: force a clean build"
+    echo "   -C: enable ANSI-colored compile output (GNU/Clang only)"
     echo "   -d: download and build dependencies in ./deps/ (build prerequisite)"
     echo "   -h: prints this help text"
     echo "   -i: build the Orca Slicer AppImage (optional)"
@@ -46,16 +50,22 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1bcdghiprsu" opt ; do
+while getopts ":1j:bcCdhiprsu" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
+        ;;
+    j )
+        export CMAKE_BUILD_PARALLEL_LEVEL=$OPTARG
         ;;
     b )
         BUILD_DEBUG="1"
         ;;
     c )
         CLEAN_BUILD=1
+        ;;
+    C )
+        COLORED_OUTPUT="-DCOLORED_OUTPUT=ON"
         ;;
     d )
         BUILD_DEPS="1"
@@ -67,11 +77,11 @@ while getopts ":1bcdghiprsu" opt ; do
         BUILD_IMAGE="1"
         ;;
     p )
-    	    SLIC3R_PRECOMPILED_HEADERS="OFF"
-    	  ;;
+        SLIC3R_PRECOMPILED_HEADERS="OFF"
+        ;;
     r )
-	    SKIP_RAM_CHECK="1"
-	      ;;
+        SKIP_RAM_CHECK="1"
+        ;;
     s )
         BUILD_ORCA="1"
         ;;
@@ -86,6 +96,9 @@ if [ ${OPTIND} -eq 1 ] ; then
     exit 0
 fi
 
+# cmake 4.x compatibility workaround
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release | tr -d '"')
 DISTRIBUTION_LIKE=$(awk -F= '/^ID_LIKE=/ {print $2}' /etc/os-release | tr -d '"')
 # Check for direct distribution match to Ubuntu/Debian
@@ -94,6 +107,8 @@ if [ "${DISTRIBUTION}" == "ubuntu" ] || [ "${DISTRIBUTION}" == "linuxmint" ] ; t
 # Check if distribution is Debian/Ubuntu-like based on ID_LIKE
 elif [[ "${DISTRIBUTION_LIKE}" == *"debian"* ]] || [[ "${DISTRIBUTION_LIKE}" == *"ubuntu"* ]] ; then
     DISTRIBUTION="debian"
+elif [[ "${DISTRIBUTION_LIKE}" == *"arch"* ]] ; then
+    DISTRIBUTION="arch"
 fi
 
 if [ ! -f ./linux.d/${DISTRIBUTION} ] ; then
@@ -140,13 +155,13 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         if [ ! -d "deps/build/release" ] ; then
             mkdir deps/build/release
         fi
-        cmake -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${BUILD_ARGS}
+        cmake -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${COLORED_OUTPUT} ${BUILD_ARGS}
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
     echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
+    cmake -S deps -B deps/build -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
     cmake --build deps/build
 fi
 
@@ -164,13 +179,16 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     else
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
-    echo -e "cmake -S . -B build -G Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
-    cmake -S . -B build -G Ninja \
-        -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
-        -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
-        -DSLIC3R_STATIC=1 \
-        -DORCA_TOOLS=ON \
-        ${BUILD_ARGS}
+
+    CMAKE_CMD="cmake -S . -B build -G Ninja \
+-DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
+-DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
+-DSLIC3R_STATIC=1 \
+-DORCA_TOOLS=ON \
+${COLORED_OUTPUT} \
+${BUILD_ARGS}"
+    echo -e "${CMAKE_CMD}"
+    ${CMAKE_CMD}
     echo "done"
     echo "Building OrcaSlicer ..."
     cmake --build build --target OrcaSlicer
