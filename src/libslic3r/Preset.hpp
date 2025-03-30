@@ -239,6 +239,9 @@ public:
     // certain printer models defined in the vendor profile as well, in this case we want to hide this generic preset for these printer models.
     std::set<std::string> m_excluded_from;
 
+    // Orca: flag to indicate if this preset is from Orca Filament Library
+    bool m_from_orca_filament_lib = false;
+
     //BBS
     Semver              version;         // version of preset
     std::string         ini_str;         // ini string of preset
@@ -519,7 +522,7 @@ public:
     // a new preset is stored into the list of presets.
     // All presets are marked as not modified and the new preset is activated.
     //BBS: add project embedded preset logic
-    void            save_current_preset(const std::string &new_name, bool detach = false, bool save_to_project = false, Preset* _curr_preset = nullptr);
+    void            save_current_preset(const std::string &new_name, bool detach = false, bool save_to_project = false, Preset* _curr_preset = nullptr, const Preset* _current_printer = nullptr);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
@@ -563,6 +566,8 @@ public:
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
 
+    const Preset& get_selected_preset_base() const { return *get_preset_base(m_presets[m_idx_selected]); }
+
     // Return the last saved preset.
 //  const Preset&   get_saved_preset() const { return m_saved_preset; }
 
@@ -598,24 +603,29 @@ public:
 
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
     // If a preset is not found by its name, null is returned.
-    // BBS return real pointer if set real = true
-    Preset*         find_preset(const std::string &name, bool first_visible_if_not_found = false, bool real = false);
-    const Preset*   find_preset(const std::string &name, bool first_visible_if_not_found = false) const
-        { return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found); }
-    // Orca: find preset, if not found, keep searching in the renamed history
-    const Preset*   find_preset2(const std::string &name) const;
-
-    size_t          first_visible_idx() const;
+    // return real pointer if set real = true
+    Preset* find_preset(const std::string& name, bool first_visible_if_not_found = false, bool real = false, bool only_from_library = false);
+    const Preset* find_preset(const std::string& name, bool first_visible_if_not_found = false) const
+    {
+        return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found);
+    }
+    // Orca: find preset, if not found, keep searching in the renamed history. This is function should only be used when find
+    // system(parent) presets for custom preset.
+    Preset* find_preset2(const std::string& name, bool auto_match = true);
+    const Preset* find_preset2(const std::string& name, bool auto_match = true) const
+    {
+        return const_cast<PresetCollection*>(this)->find_preset2(name, auto_match);
+    }
+    size_t first_visible_idx() const;
     // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
     // If one of the prefered_alternates is compatible, select it.
-    template<typename PreferedCondition>
-    size_t          first_compatible_idx(PreferedCondition prefered_condition) const
+    template<typename PreferedCondition> size_t first_compatible_idx(PreferedCondition prefered_condition) const
     {
-        size_t i = m_default_suppressed ? m_num_default_presets : 0;
-        size_t n = this->m_presets.size();
-        size_t i_compatible = n;
+        size_t i             = m_default_suppressed ? m_num_default_presets : 0;
+        size_t n             = this->m_presets.size();
+        size_t i_compatible  = n;
         int    match_quality = -1;
-        for (; i < n; ++ i)
+        for (; i < n; ++i)
             // Since we use the filament selection from Wizard, it's needed to control the preset visibility too
             if (m_presets[i].is_compatible && m_presets[i].is_visible) {
                 int this_match_quality = prefered_condition(m_presets[i]);
@@ -624,16 +634,16 @@ public:
                         // Better match will not be found.
                         return i;
                     // Store the first compatible profile with highest match quality into i_compatible.
-                    i_compatible = i;
+                    i_compatible  = i;
                     match_quality = this_match_quality;
                 }
             }
         return (i_compatible == n) ?
-            // No compatible preset found, return the default preset.
-            0 :
-            // Compatible preset found.
-            i_compatible;
-    }
+                    // No compatible preset found, return the default preset.
+                    0 :
+                    // Compatible preset found.
+                    i_compatible;
+}
     // Return index of the first compatible preset. Certainly at least the '- default -' preset shall be compatible.
     size_t          first_compatible_idx() const { return this->first_compatible_idx([](const Preset&) -> int { return 0; }); }
 
@@ -738,13 +748,13 @@ private:
     // The "-- default -- " preset is always the first, so it needs
     // to be handled differently.
     // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
-    std::deque<Preset>::iterator find_preset_internal(const std::string &name)
+    std::deque<Preset>::iterator find_preset_internal(const std::string &name, bool from_orca_lib_only = false)
     {
         auto it = Slic3r::lower_bound_by_predicate(m_presets.begin() + m_num_default_presets, m_presets.end(), [&name](const auto& l) { return l.name < name;  });
         if (it == m_presets.end() || it->name != name) {
             // Preset has not been not found in the sorted list of non-default presets. Try the defaults.
             for (size_t i = 0; i < m_num_default_presets; ++ i)
-                if (m_presets[i].name == name) {
+                if (m_presets[i].name == name && (!from_orca_lib_only || m_presets[i].m_from_orca_filament_lib)) {
                     it = m_presets.begin() + i;
                     break;
                 }

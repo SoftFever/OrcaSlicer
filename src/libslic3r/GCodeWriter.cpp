@@ -45,6 +45,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
     std::sort(extruder_ids.begin(), extruder_ids.end());
+    m_extruder = nullptr; // this points to object inside `m_extruders`, so should be cleared too
     m_extruders.clear();
     m_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
@@ -446,12 +447,6 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     // Calculation of feedrate was not updated accordingly. If you want to use
     // this function, fix it first.
     //std::terminate();
-
-    // Orca: If moving down during below the current layer nominal Z, force XY->Z moves to avoid collisions with previous extrusions
-    double nominal_z = m_pos(2) - m_lifted;
-    if (point(2) < nominal_z - EPSILON) { // EPSILON to avoid false matches due to rounding errors
-        this->set_current_position_clear(false); // This forces XYZ moves to be split into XY->Z
-    }
 
     /*  If target Z is lower than current Z but higher than nominal Z we
         don't perform the Z move but we only move in the XY plane and

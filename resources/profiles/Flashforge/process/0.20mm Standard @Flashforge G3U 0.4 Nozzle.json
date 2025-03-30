@@ -20,9 +20,7 @@
   "brim_object_gap": "0.1",
   "brim_type": "no_brim",
   "brim_width": "5",
-  "compatible_printers": [
-    "Flashforge Guider 3 Ultra 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Guider 3 Ultra 0.4 Nozzle"],
   "compatible_printers_condition": "",
   "default_acceleration": "10000",
   "default_jerk": "0",
@@ -119,7 +117,7 @@
   "overhang_speed_classic": "0",
   "post_process": [],
   "precise_outer_wall": "0",
-  "prime_tower_brim_width": "8",
+  "prime_tower_brim_width": "5",
   "prime_tower_width": "12",
   "prime_volume": "40",
   "print_flow_ratio": "1",
@@ -136,7 +134,7 @@
   "role_based_wipe_speed": "1",
   "seam_gap": "10%",
   "seam_position": "aligned",
-  "single_extruder_multi_material_priming": "0",
+  "single_extruder_multi_material_priming": "1",
   "skirt_distance": "2",
   "skirt_height": "1",
   "skirt_loops": "2",
@@ -176,7 +174,7 @@
   "support_object_xy_distance": "0.3",
   "support_on_build_plate_only": "0",
   "support_remove_small_overhang": "1",
-  "support_speed": "120",
+  "support_speed": "80",
   "support_style": "default",
   "support_threshold_angle": "30",
   "support_top_z_distance": "0.2",
@@ -240,5 +238,6 @@
     "70"
   ],
   "xy_contour_compensation": "0",
-  "xy_hole_compensation": "0"
+  "xy_hole_compensation": "0",
+  "version": "2.1.1.0"
 }

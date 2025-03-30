@@ -67,7 +67,7 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist)
+std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
@@ -84,20 +84,58 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
     std::vector<wxString>::iterator iter;
-    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+    for (iter = vlist.begin(); iter != vlist.end(); iter++) {
+        combobox->Append(*iter);
+    }
 
-
-    auto use_inch = app_config->get(param);
-    if (!use_inch.empty()) { combobox->SetSelection(atoi(use_inch.c_str())); }
+    combobox->SetSelection(current_index);
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
+    return {m_sizer_combox, combobox};
+}
+
+wxBoxSizer* PreferencesDialog::create_item_combobox(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist)
+{
+    unsigned int current_index = 0;
+
+    auto current_setting = app_config->get(param);
+    if (!current_setting.empty()) {
+        current_index = atoi(current_setting.c_str());
+    }
+
+    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index);
+
     //// save config
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent &e) {
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent& e) {
         app_config->set(param, std::to_string(e.GetSelection()));
         e.Skip();
     });
-    return m_sizer_combox;
+
+    return sizer;
+}
+
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index)
+{
+    assert(vlist.size() == config_name_index.size());
+    unsigned int current_index = 0;
+
+    auto current_setting = app_config->get(param);
+    if (!current_setting.empty()) {
+        auto compare  = [current_setting](string possible_setting) { return current_setting == possible_setting; };
+        auto iterator = find_if(config_name_index.begin(), config_name_index.end(), compare); 
+        current_index = iterator - config_name_index.begin();
+    }
+
+    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index);
+
+    //// save config
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, config_name_index](wxCommandEvent& e) {
+        app_config->set(param, config_name_index[e.GetSelection()]);
+        e.Skip();
+    });
+
+    return sizer;
 }
 
 wxBoxSizer *PreferencesDialog::create_item_language_combobox(
@@ -468,6 +506,59 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
         auto value = input->GetTextCtrl()->GetValue();
         app_config->set(param, std::string(value.mb_str()));
         onchange(value);
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
+wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wxWindow *parent, wxString tooltip)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    auto        input_title   = new wxStaticText(parent, wxID_ANY, title);
+    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetFont(::Label::Body_13);
+    input_title->SetToolTip(tooltip);
+    input_title->Wrap(-1);
+    auto param = "camera_orbit_mult";
+
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_NUMERIC);
+    input->GetTextCtrl()->SetValidator(validator);
+
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
+    sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 3);
+    
+    const double min = 0.05;
+    const double max = 2.0;
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input, min, max](wxCommandEvent &e) {
+        auto value = input->GetTextCtrl()->GetValue();
+        double conv = 1.0;
+        if (value.ToCDouble(&conv)) {
+            conv = conv < min ? min : conv > max ? max : conv;
+            auto strval = std::string(wxString::FromCDouble(conv, 2).mb_str());
+            input->GetTextCtrl()->SetValue(strval);
+            app_config->set(param, strval);
+            app_config->save();
+        }
+        e.Skip();
+    });
+
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input, min, max](wxFocusEvent &e) {
+        auto value = input->GetTextCtrl()->GetValue();
+        double conv = 1.0;
+        if (value.ToCDouble(&conv)) {
+            conv = conv < min ? min : conv > max ? max : conv;
+            auto strval = std::string(wxString::FromCDouble(conv, 2).mb_str());
+            input->GetTextCtrl()->SetValue(strval);
+            app_config->set(param, strval);
+        }
         e.Skip();
     });
 
@@ -1131,6 +1222,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
     auto item_use_free_camera_settings = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), 50, "use_free_camera");
     auto reverse_mouse_zoom = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), 50, "reverse_mouse_wheel_zoom");
+    auto camera_orbit_mult = create_camera_orbit_mult_input(_L("Orbit speed multiplier"), page, _L("Multiplies the orbit speed for finer or coarser camera movement."));
 
     auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), 50, "show_splash_screen");
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
@@ -1171,6 +1263,11 @@ wxWindow* PreferencesDialog::create_general_page()
     // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
 
     auto title_project = create_item_title(_L("Project"), page, "");
+
+    std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
+    std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
+    auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
@@ -1210,6 +1307,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_use_free_camera_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(reverse_mouse_zoom, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(camera_orbit_mult, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_splash_screen, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
@@ -1248,6 +1346,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // update_modelmall(eee);
     // item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));

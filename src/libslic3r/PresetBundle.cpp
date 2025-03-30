@@ -16,7 +16,6 @@
 #include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/range/adaptor/transformed.hpp>
-#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -48,7 +47,7 @@ static std::vector<std::string> s_project_options {
 const char *PresetBundle::ORCA_DEFAULT_BUNDLE = "Custom";
 const char *PresetBundle::ORCA_DEFAULT_PRINTER_MODEL = "MyKlipper 0.4 nozzle";
 const char *PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT = "0.4";
-const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "My Generic PLA";
+const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "Generic PLA @System";
 const char *PresetBundle::ORCA_FILAMENT_LIBRARY = "OrcaFilamentLibrary";
 
 PresetBundle::PresetBundle()
@@ -365,6 +364,29 @@ bool PresetBundle::use_bbl_device_tab() {
     const auto cfg = printers.get_edited_preset().config;
     // Use bbl device tab if printhost webui url is not set 
     return cfg.opt_string("print_host_webui").empty();
+}
+
+bool PresetBundle::backup_user_folder() const
+{
+    const std::string backup_folderpath = data_dir() + "/" + (boost::format("user_backup-v%1%") % SoftFever_VERSION).str();
+
+    // Check if backup file already exists
+    if (boost::filesystem::exists(boost::filesystem::path(backup_folderpath)))
+        return false;
+
+    BOOST_LOG_TRIVIAL(info) << "Backing up user folder to: " << backup_folderpath;
+    try {
+        // Copy the user folder to the backup folder
+        boost::filesystem::copy(data_dir() + "/" + PRESET_USER_DIR, backup_folderpath, boost::filesystem::copy_options::recursive);
+        BOOST_LOG_TRIVIAL(info) << "User folder backup completed successfully";
+        return true;
+    } catch (const std::exception& ex) {
+        BOOST_LOG_TRIVIAL(error) << "Exception during user folder backup: " << ex.what();
+        // Try to clean up partially copied backup folder
+        if (boost::filesystem::exists(boost::filesystem::path(backup_folderpath)))
+            boost::filesystem::remove_all(boost::filesystem::path(backup_folderpath));
+        return false;
+    }
 }
 
 //BBS: load project embedded presets
@@ -1209,7 +1231,7 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
 
     for (auto &vendor_name : vendor_names)
     {
-        if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate)
+        if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate && vendor_name != ORCA_FILAMENT_LIBRARY)
             continue;
 
         try {
@@ -1961,7 +1983,7 @@ std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle
         if (printer_it->name.find(nozzle_diameter_str) != std::string::npos) printer_names.insert(printer_it->name);
     }
 
-    //assert(printer_names.size() == 1);
+    assert(printer_names.size() == 1);
 
     for (auto& printer_name : printer_names) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " printer name: " << printer_name;
@@ -2504,7 +2526,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         old_filament_profile_names->values.resize(num_filaments, std::string());
 
         if (num_filaments <= 1) {
-            // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
+            // Split the "compatible_printers_condition" and "inherits" values from the cummulative vectors to separate filament presets.
             inherits                      = inherits_values[1];
             compatible_printers_condition = compatible_printers_condition_values[1];
 			compatible_prints_condition   = compatible_prints_condition_values.front();
@@ -2852,7 +2874,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         std::map<std::string, DynamicPrintConfig>& config_maps,
         std::map<std::string, std::string>& filament_id_maps,
         PresetCollection* presets_collection,
-        size_t& count) -> std::string {
+        size_t& count, bool is_from_lib = false) -> std::string {
 
         std::string subfile = path + "/" + vendor_name + "/" + subfile_iter.second;
         // Load the print, filament or printer preset.
@@ -2877,7 +2899,16 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             }
             preset_name = key_values[BBL_JSON_KEY_NAME];
             description     = key_values[BBL_JSON_KEY_DESCRIPTION];
+            if(key_values.find(BBL_JSON_KEY_INSTANTIATION) == key_values.end())
+            {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Missing instantiation attribute for " << preset_name;
+                ++m_errors;
+            }
             instantiation   = key_values[BBL_JSON_KEY_INSTANTIATION];
+            if(instantiation != "false" && instantiation != "true"){
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Missing instantiation attribute for " << preset_name;
+                ++m_errors;
+            }
             auto setting_it = key_values.find(BBL_JSON_KEY_SETTING_ID);
             if (setting_it != key_values.end())
                 setting_id = setting_it->second;
@@ -3019,6 +3050,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.description = description;
             loaded.setting_id = setting_id;
             loaded.filament_id = filament_id;
+            loaded.m_from_orca_filament_lib = is_from_lib;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << loaded.name << " load filament_id: " << filament_id;
             if (presets_collection->type() == Preset::TYPE_FILAMENT) {
                 if (filament_id.empty() && "Template" != vendor_name) {
@@ -3085,9 +3117,11 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     presets = &this->filaments;
     configs.clear();
     filament_id_maps.clear();
+    const auto is_orca_lib = vendor_name == ORCA_FILAMENT_LIBRARY;
     for (auto& subfile : filament_subfiles)
     {
-        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets, presets_loaded);
+        std::string reason = parse_subfile(substitution_context, substitutions, flags, subfile, configs, filament_id_maps, presets,
+                                           presets_loaded, is_orca_lib);
         if (!reason.empty()) {
             ++m_errors;
             //parse error
@@ -3096,7 +3130,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
     }
-    if (vendor_name == ORCA_FILAMENT_LIBRARY) {
+    if (is_orca_lib) {
         m_config_maps      = configs;
         m_filament_id_maps = filament_id_maps;
     }

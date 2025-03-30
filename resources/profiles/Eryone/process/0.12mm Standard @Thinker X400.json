@@ -11,6 +11,7 @@
     "is_custom_defined": "0",
     "layer_height": "0.12",
     "name": "0.12mm Standard @Thinker X400",
+    "instantiation": "true",
     "only_one_wall_top": "1",
     "outer_wall_speed": "200",
     "overhang_1_4_speed": "60",
