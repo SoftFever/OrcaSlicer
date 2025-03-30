@@ -441,7 +441,7 @@ var LangText = {
     orca1: "Modifica informazioni progetto",
     orca2: "nessuna informazione sul modello",
     orca3: "Modalità invisibile",
-    orca4: "Interrompe la trasmissione dei dati ai servizi cloud di Bambu. Gli utenti che non utilizzano macchine BBL o che usano solo la modalità LAN possono attivare questa funzione in modo sicuro.",
+    orca4: "Con questa modalità, la trasmissione dei dati ai servizi cloud di Bambu sarà interrotta. Gli utenti che non utilizzano macchine BBL o che usano solo la modalità LAN possono attivare questa funzione in modo sicuro.",
     orca5: "Abilita la modalità invisibile.",
   },
   de_DE: {
