@@ -7,15 +7,15 @@
 	"inherits": "fdm_creality_common",
 	"printer_model": "Creality CR-10 V3",
 	"printer_structure": "i3",
-	"default_print_profile": "0.20mm Standard @Creality CR10V3",
+	"default_print_profile": "0.20mm Standard @Creality CR10V3 0.4",
 	"nozzle_diameter": [
 		"0.4"
 	],
 	"printable_area": [
-		"0x0",
-		"300x0",
-		"300x300",
-		"0x300"
+		"5x5",
+		"305x5",
+		"305x305",
+		"5x305"
 	],
 	"printable_height": "400",
 	"nozzle_type": "undefine",
@@ -97,7 +97,7 @@
 	],
 	"retraction_speed": [
         "60"
-    ],
+    	],
 	"deretraction_speed": [
 		"40"
 	],
