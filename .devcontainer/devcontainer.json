@@ -1,14 +1,14 @@
 {
 	"name": "OrcaSlicer",
 	"build": {
-	"dockerfile": "Dockerfile",
-		"args": {
-			"PLATFORM": "linux/amd64",
-			"BASE_IMAGE": "mcr.microsoft.com/devcontainers/cpp:ubuntu-20.04"
-		},
-		"options": ["--platform=linux/amd64"]
+		"dockerfile": "Dockerfile",
+			"args": {
+				"PLATFORM": "linux/amd64",
+				"BASE_IMAGE": "mcr.microsoft.com/devcontainers/cpp:ubuntu-22.04"
+			},
+			"options": ["--platform=linux/amd64"]
 	},
-	"runArgs": ["--env-file", "/tmp/devcontainer.env"],
+	"runArgs": ["--env-file", "/tmp/devcontainer.env", "--platform=linux/amd64"],
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {
 			"password": "orca"
@@ -16,7 +16,7 @@
     },
 	"customizations": {
 		"vscode": {
-			"settings": { 
+			"settings": {
 				"cmake.configureArgs": [
 					"-DSLIC3R_GTK=3",
 					"-DBBL_RELEASE_TO_PUBLIC=1",
