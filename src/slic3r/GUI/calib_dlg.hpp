@@ -168,5 +168,22 @@ protected:
     Plater* m_plater;
 };
 
+class Junction_Deviation_Test_Dlg : public DPIDialog
+{
+public:
+    Junction_Deviation_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Junction_Deviation_Test_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    
+protected:
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    wxRadioBox* m_rbModel;
+    TextInput* m_tiJDStart;
+    TextInput* m_tiJDEnd;
+    Button* m_btnStart;
+    Plater* m_plater;
+};
 }} // namespace Slic3r::GUI
 #endif
