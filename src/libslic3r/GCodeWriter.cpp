@@ -313,6 +313,16 @@ std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double je
 
 }
 
+std::string GCodeWriter::set_junction_deviation(double junction_deviation){
+    std::ostringstream gcode;
+    if (FLAVOR_IS_NOT(gcfMarlinFirmware)) {
+        throw std::runtime_error("Junction deviation is only supported by Marlin firmware");
+    }
+        gcode << "M205 J" << junction_deviation << " ; Junction Deviation\n";
+    return gcode.str();
+}
+
+
 std::string GCodeWriter::set_pressure_advance(double pa) const
 {
     std::ostringstream gcode;

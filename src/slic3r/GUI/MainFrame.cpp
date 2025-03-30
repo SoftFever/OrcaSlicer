@@ -3000,6 +3000,17 @@ void MainFrame::init_menubar_as_editor()
     
     m_topbar->GetCalibMenu()->AppendSubMenu(input_shaping_menu, _L("Input Shaping"));
     
+    // Add Junction Deviation option to More menu
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
+        [this](wxCommandEvent&) {
+            if (!m_junction_deviation_calib_dlg)
+                m_junction_deviation_calib_dlg = new Junction_Deviation_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_junction_deviation_calib_dlg->ShowModal();
+        },
+        "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+        
     m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
 
     // help 
@@ -3098,6 +3109,16 @@ void MainFrame::init_menubar_as_editor()
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);    
        
+    // Add Junction Deviation option to More menu
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
+        [this](wxCommandEvent&) {
+            if (!m_junction_deviation_calib_dlg)
+                m_junction_deviation_calib_dlg = new Junction_Deviation_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_junction_deviation_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+        
     // Input Shaping calibrations
     auto input_shaping_menu = new wxMenu();
     

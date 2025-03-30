@@ -3749,7 +3749,6 @@ LayerResult GCode::process_layer(
     //BBS: set layer time fan speed after layer change gcode
     gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
 
-    //TODO: Why this is not a Switch-case?
     if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
         gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
     } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
@@ -3770,9 +3769,13 @@ LayerResult GCode::process_layer(
         gcode += buf;
     } else if (print.calib_mode() == CalibMode::Calib_Input_shaping_freq) {
         if (m_layer_index == 1){
+            if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
+                gcode += writer().set_junction_deviation(0.25);//Set junction deviation at high value to maximize ringing.
+            }
             gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
         } else {
             if (print.calib_params().freqStartX == print.calib_params().freqStartY && print.calib_params().freqEndX == print.calib_params().freqEndY) {
+                gcode += writer().set_junction_deviation(0.25);
                 gcode += writer().set_input_shaping('A', 0.f, (print.calib_params().freqStartX) + ((print.calib_params().freqEndX)-(print.calib_params().freqStartX)) * (m_layer_index - 2) / (m_layer_count - 3));
             } else {
                 gcode += writer().set_input_shaping('X', 0.f, (print.calib_params().freqStartX) + ((print.calib_params().freqEndX)-(print.calib_params().freqStartX)) * (m_layer_index - 2) / (m_layer_count - 3));
@@ -3781,11 +3784,16 @@ LayerResult GCode::process_layer(
         }
     } else if (print.calib_mode() == CalibMode::Calib_Input_shaping_damp) {
         if (m_layer_index == 1){
-        gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX);
+            if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
+                gcode += writer().set_junction_deviation(0.25); // Set junction deviation at high value to maximize ringing.
+            }
+            gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX);
         gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY);
         } else {
         gcode += writer().set_input_shaping('A', print.calib_params().start + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index) / (m_layer_count), 0.f);
         }
+    } else if (print.calib_mode() == CalibMode::Calib_Junction_Deviation){
+        gcode += writer().set_junction_deviation(print.calib_params().start + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index) / (m_layer_count));
     }
 
     //BBS
