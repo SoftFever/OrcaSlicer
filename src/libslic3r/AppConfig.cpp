@@ -181,6 +181,9 @@ void AppConfig::set_defaults()
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
 
+    if (get("camera_orbit_mult").empty())
+        set("camera_orbit_mult", "1.0");
+
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
 
