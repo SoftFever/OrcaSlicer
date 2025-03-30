@@ -9,6 +9,10 @@
 - [Advanced calibration](#Advanced-Calibration)
   1. [Max Volumetric speed](#Max-Volumetric-speed)
   2. [VFA]  
+  - [Input Shaping](#input-shaping)
+    - [ZV Input Shaping](#zv-input-shaping)
+    - [Fixed-Time Motion](#fixed-time-motion)
+  - [Junction Deviation](#junction-deviation)
 
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
@@ -152,6 +156,39 @@ You can also return to OrcaSlicer in the "Preview" tab, make sure the color sche
 > [!NOTE]
 > You may also choose to conservatively reduce the flow by 5-10% to ensure print quality.
 
+## Input Shaping
+During high-speed movements, vibrations can cause a phenomenon called "ringing," where periodic ripples appear on the print surface. Input Shaping provides an effective solution by counteracting these vibrations, improving print quality and reducing wear on components without needing to significantly lower print speeds.
+
+### ZV Input Shaping
+ZV Input Shaping introduces an anti-vibration signal into the stepper motion for the X and Y axes. It works by splitting the step count into two halves: the first at half the frequency and the second as an "echo," delayed by half the ringing interval. This simple approach effectively reduces vibrations, improving print quality and allowing for higher speeds.
+
+1. You need to print the Input SHaping Frequency test.
+   1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
+2. When you find the best X and Y frequency, its time to Damp test setting your X and Y frequency to the value you found in the previous step.
+3. Save the settings
+   1. You need to go to the printer settings and set the X and Y frequency to the value you found in the previous step.
+   2. Use the following G-code to set the frequency:
+   ```gcode
+   M593 X F#Xfrequency D#XDamping;
+   M593 Y F#Yfrequency D#YDamping;
+   M500;
+   ```
+   Example
+   ```gcode
+   M593 X F37.25 D0.16;
+   M593 Y F37.5 D0.06;
+   M500;
+   ```
+
+### Fixed-Time Motion
+TODO
+
+
+## Junction Deviation
+Junction Deviation in MarlinFW printers is the new default cornering speed control method.
+TODO TEST
+
 ***
 *Credits:*  
 - *The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer)*  
@@ -159,4 +196,5 @@ You can also return to OrcaSlicer in the "Preview" tab, make sure the color sche
 - *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html)*
 - *The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076)
 - *The max flowrate test was inspired by Stefan(CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure).
+- *ZV Input Shaping is inspired by [Marlin Input Shaping](https://marlinfw.org/docs/features/input_shaping.html) and [Ringing Tower 3D STL](https://marlinfw.org/assets/stl/ringing_tower.stl)
 - *ChatGPT* ;)
