@@ -17667,7 +17667,7 @@ msgstr "Połączenie z AstroBox działa poprawnie."
 msgid "Could not connect to AstroBox"
 msgstr "Nie udało się połączyć z AstroBox"
 
-msgid "Note: AstroBox version at least 1.1.0 is required."
+msgid "Note: AstroBox version 1.1.0 or higher is required."
 msgstr "Uwaga: Wymagana jest wersja AstroBox co najmniej 1.1.0."
 
 msgid "Connection to Duet is working correctly."
@@ -17713,7 +17713,7 @@ msgstr "Połączenie z OctoPrint działa poprawnie."
 msgid "Could not connect to OctoPrint"
 msgstr "Nie udało się połączyć z OctoPrint"
 
-msgid "Note: OctoPrint version at least 1.1.0 is required."
+msgid "Note: OctoPrint version 1.1.0 or higher is required."
 msgstr "Uwaga: Wymagana jest wersja OctoPrint co najmniej 1.1.0."
 
 msgid "Connection to Prusa SL1 / SL1S is working correctly."
@@ -17759,7 +17759,7 @@ msgstr "Połączenie z Repetier działa poprawnie."
 msgid "Could not connect to Repetier"
 msgstr "Nie udało się połączyć z Repetier"
 
-msgid "Note: Repetier version at least 0.90.0 is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr "Uwaga: Wymagana jest wersja Repetier co najmniej 0.90.0."
 
 #, boost-format
