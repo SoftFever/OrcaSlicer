@@ -16938,7 +16938,7 @@ msgstr "AstroBox 연결이 올바르게 작동합니다."
 msgid "Could not connect to AstroBox"
 msgstr "AstroBox에 연결할 수 없습니다"
 
-msgid "Note: AstroBox version at least 1.1.0 is required."
+msgid "Note: AstroBox version 1.1.0 or higher is required."
 msgstr "참고: AstroBox 버전 1.1.0 이상이 필요합니다."
 
 msgid "Connection to Duet is working correctly."
@@ -16984,7 +16984,7 @@ msgstr "OctoPrint에 대한 연결이 올바르게 작동합니다."
 msgid "Could not connect to OctoPrint"
 msgstr "OctoPrint에 연결할 수 없습니다"
 
-msgid "Note: OctoPrint version at least 1.1.0 is required."
+msgid "Note: OctoPrint version 1.1.0 or higher is required."
 msgstr "참고: OctoPrint 버전 1.1.0 이상이 필요합니다."
 
 msgid "Connection to Prusa SL1 / SL1S is working correctly."
@@ -17029,7 +17029,7 @@ msgstr "Repetier에 대한 연결이 올바르게 작동합니다."
 msgid "Could not connect to Repetier"
 msgstr "Repetier에 연결할 수 없습니다"
 
-msgid "Note: Repetier version at least 0.90.0 is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr "참고: 최소 0.90.0 이상의 반복 버전이 필요합니다."
 
 #, boost-format
