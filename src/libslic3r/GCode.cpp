@@ -3774,7 +3774,6 @@ LayerResult GCode::process_layer(
             gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
         } else {
             if (print.calib_params().freqStartX == print.calib_params().freqStartY && print.calib_params().freqEndX == print.calib_params().freqEndY) {
-                gcode += writer().set_junction_deviation(0.25);
                 gcode += writer().set_input_shaping('A', 0.f, (print.calib_params().freqStartX) + ((print.calib_params().freqEndX)-(print.calib_params().freqStartX)) * (m_layer_index - 2) / (m_layer_count - 3));
             } else {
                 gcode += writer().set_input_shaping('X', 0.f, (print.calib_params().freqStartX) + ((print.calib_params().freqEndX)-(print.calib_params().freqStartX)) * (m_layer_index - 2) / (m_layer_count - 3));
