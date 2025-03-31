@@ -478,6 +478,7 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow             
     : DPIDialog(parent, wxID_ANY, _L("Edit Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_new_result(result)
     , m_history_results(history_results)
+    , m_old_name(result.name)
 {
     curr_obj = obj;
 
@@ -604,21 +605,23 @@ void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
     m_k_value->GetTextCtrl()->SetValue(k_str);
     m_new_result.k_value = k;
 
-    auto iter = std::find_if(m_history_results.begin(), m_history_results.end(), [this](const PACalibResult &item) {
-        bool has_same_name = item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
-        if (curr_obj && curr_obj->is_multi_extruders()) {
-            has_same_name &= (item.extruder_id == m_new_result.extruder_id && item.nozzle_volume_type == m_new_result.nozzle_volume_type);
-        }
-        return has_same_name;
-    });
+    if (m_new_result.name != m_old_name) {
+        auto iter = std::find_if(m_history_results.begin(), m_history_results.end(), [this](const PACalibResult &item) {
+            bool has_same_name = item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
+            if (curr_obj && curr_obj->is_multi_extruders()) {
+                has_same_name &= (item.extruder_id == m_new_result.extruder_id && item.nozzle_volume_type == m_new_result.nozzle_volume_type);
+            }
+            return has_same_name;
+        });
 
-    if (iter != m_history_results.end()) {
-        wxString duplicate_name_info = wxString::Format(
-            _L("Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow are identical. Please choose a different name."),
-            m_new_result.name);
-        MessageDialog msg_dlg(nullptr, duplicate_name_info, wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return;
+        if (iter != m_history_results.end()) {
+            wxString duplicate_name_info = wxString::Format(_L("Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow "
+                                                               "are identical. Please choose a different name."),
+                                                            m_new_result.name);
+            MessageDialog msg_dlg(nullptr, duplicate_name_info, wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
     }
 
     EndModal(wxID_OK);
