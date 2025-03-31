@@ -228,7 +228,7 @@ FileArchiveDialog::FileArchiveDialog(wxWindow* parent_window, mz_zip_archive* ar
                 path = boost::filesystem::path(extra.substr(0, extra_size));
             } else {
                 wxString wname = boost::nowide::widen(stat.m_filename);
-                std::string name = boost::nowide::narrow(wname);
+                std::string name = into_u8(wname);
                 path = boost::filesystem::path(name);
             }
             assert(!path.empty());
