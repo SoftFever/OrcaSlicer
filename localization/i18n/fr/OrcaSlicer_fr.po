@@ -16564,7 +16564,7 @@ msgid "The name cannot be empty."
 msgstr "Le nom ne peut pas être vide."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "Le préréglage sélectionné : %s est introuvable."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17529,7 +17529,7 @@ msgstr "Importer un préréglage"
 msgid "Create Type"
 msgstr "Créer un type"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "Le modèle n’est pas trouvé, il faut resélectionner le fournisseur."
 
 msgid "Select Model"
@@ -17574,7 +17574,7 @@ msgstr ""
 "Exception dans l’obtention de la taille du fichier, veuillez importer à "
 "nouveau."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr ""
 "Le chemin d’accès prédéfini n’est pas trouvé, veuillez resélectionner le "
 "vendeur."
@@ -17582,10 +17582,10 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr "Le modèle d’imprimante n’a pas été trouvé, veuillez resélectionner."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "Le diamètre de la buse n’est pas bon, resélectionner l’emplacement."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "Le préréglage de l’imprimante n’est pas bon, placez le préréglage."
 
 msgid "Printer Preset"
@@ -17651,7 +17651,7 @@ msgstr "La création de préréglages de filaments a échoué. Comme suit :\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "La création de préréglages de traitement a échoué. Comme suit :\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Le vendeur n’est pas trouvé, veuillez resélectionner."
 
 msgid "Current vendor has no models, please reselect."

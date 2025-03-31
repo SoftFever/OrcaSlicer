@@ -16332,7 +16332,7 @@ msgid "The name cannot be empty."
 msgstr "El nom no pot estar buit."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "El perfil seleccionat: %s no es troba."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17279,7 +17279,7 @@ msgstr "Importar Perfil"
 msgid "Create Type"
 msgstr "Crea un Tipus"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "No s'ha trobat el model, torneu a seleccionar el proveïdor."
 
 msgid "Select Model"
@@ -17324,16 +17324,16 @@ msgstr ""
 "S'ha produït una excepció obtenint la mida del fitxer, si us plau, torneu a "
 "importar-lo."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "No es troba la ruta predeterminada, torneu a seleccionar el proveïdor."
 
 msgid "The printer model was not found, please reselect."
 msgstr "No s'ha trobat el model d'impressora, torneu a seleccionar."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "No es troba el diàmetre del broquet, torneu a seleccionar-lo."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr ""
 "No s'ha trobat el valor predefinit de la impressora, torneu a seleccionar-lo."
 
@@ -17403,7 +17403,7 @@ msgstr ""
 "següent:\n"
 "\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "El proveïdor no es troba, torneu a seleccionar-ne un."
 
 msgid "Current vendor has no models, please reselect."

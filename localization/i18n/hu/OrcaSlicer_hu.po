@@ -14990,7 +14990,7 @@ msgid "The name cannot be empty."
 msgstr "A név nem lehet üres."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "A kiválasztott beállítás: %s nem található."
 
 msgid "The name cannot be the same as the system preset name."
@@ -15880,7 +15880,7 @@ msgstr "Beállítás importálása"
 msgid "Create Type"
 msgstr "Típus létrehozása"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -15926,16 +15926,16 @@ msgstr ""
 "Kivétel történt a fájlméret megállapításakor, kérjük ismételd meg az "
 "importálást."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "Útvonal nem található. Kérjük, válaszd ki újra a gyártót."
 
 msgid "The printer model was not found, please reselect."
 msgstr "A nyomtató modellje nem található, kérjük, válaszd ki újra."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
@@ -15999,7 +15999,7 @@ msgstr "A következő filamentbeállítások létrehozása nem sikerült:\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "A következő folyamatbeállítások létrehozása nem sikerült:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Gyártó nem található. Kérjük, válaszd ki újból."
 
 msgid "Current vendor has no models, please reselect."

@@ -14967,7 +14967,7 @@ msgid "The name cannot be empty."
 msgstr "名稱不能為空。"
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "找不到所選的預設：%s。"
 
 msgid "The name cannot be the same as the system preset name."
@@ -15842,7 +15842,7 @@ msgstr "匯入預設"
 msgid "Create Type"
 msgstr "建立類型"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "找不到該型號，請重新選擇廠牌。"
 
 msgid "Select Model"
@@ -15885,16 +15885,16 @@ msgstr "檔案超過 %d MB，請重新匯入。"
 msgid "Exception in obtaining file size, please import again."
 msgstr "取得檔案大小時發生例外，請重新匯入。"
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "找不到預設路徑，請重新選擇廠牌。"
 
 msgid "The printer model was not found, please reselect."
 msgstr "找不到列印設備型號，請重新選擇。"
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "找不到噴嘴直徑，請重新選擇。"
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "未找到列印設備預設設定，請重新選擇。"
 
 msgid "Printer Preset"
@@ -15951,7 +15951,7 @@ msgstr "建立線材預設設定失敗，原因如下：\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "建立處理預設設定失敗，原因如下：\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "未找到廠牌，請重新選擇。"
 
 msgid "Current vendor has no models, please reselect."

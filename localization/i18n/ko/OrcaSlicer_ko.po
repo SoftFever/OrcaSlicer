@@ -15563,7 +15563,7 @@ msgid "The name cannot be empty."
 msgstr "이름은 비워둘 수 없습니다."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "선택한 사전 설정: %s을(를) 찾을 수 없습니다."
 
 msgid "The name cannot be the same as the system preset name."
@@ -16470,7 +16470,7 @@ msgstr "사전 설정 가져오기"
 msgid "Create Type"
 msgstr "유형 생성"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "모델을 찾을 수 없습니다. 공급업체를 다시 선택하세요."
 
 msgid "Select Model"
@@ -16513,16 +16513,16 @@ msgstr "파일이 %d MB를 초과합니다. 다시 가져오십시오."
 msgid "Exception in obtaining file size, please import again."
 msgstr "파일 크기를 가져오는 중 예외가 발생했습니다. 다시 가져오세요."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "사전 설정 경로를 찾을 수 없습니다. 공급업체를 다시 선택하세요."
 
 msgid "The printer model was not found, please reselect."
 msgstr "프린터 모델을 찾을 수 없습니다. 다시 선택하세요."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "노즐 직경이 마음에 들지 않으면 다시 선택하세요."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "프린터 사전 설정이 마음에 들지 않습니다. 다시 선택하세요."
 
 msgid "Printer Preset"
@@ -16585,7 +16585,7 @@ msgstr "필라멘트 사전 설정 생성에 실패했습니다. 다음과 같�
 msgid "Create process presets failed. As follows:\n"
 msgstr "프로세스 사전 설정 생성에 실패했습니다. 다음과 같이:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "공급업체를 찾을 수 없습니다. 다시 선택하세요."
 
 msgid "Current vendor has no models, please reselect."
@@ -19093,7 +19093,7 @@ msgstr ""
 #~ msgstr "X축을 중심으로 한 회전 각도입니다."
 
 #, boost-format
-#~ msgid "The selected preset: %1% is not found."
+#~ msgid "The selected preset: %1% was not found."
 #~ msgstr "선택한 사전 설정: %1%을(를) 찾을 수 없습니다."
 
 #~ msgid ""

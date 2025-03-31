@@ -14823,7 +14823,7 @@ msgid "The name cannot be empty."
 msgstr "Namnet får inte vara tomt."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "Den valda inställningen: %s hittades inte."
 
 msgid "The name cannot be the same as the system preset name."
@@ -15712,7 +15712,7 @@ msgstr "Importera inställning"
 msgid "Create Type"
 msgstr "Skapa typ"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -15755,16 +15755,16 @@ msgstr "Filen överstiger %d MB, vänligen importera igen."
 msgid "Exception in obtaining file size, please import again."
 msgstr "Undantag vid erhållande av filstorlek, vänligen importera igen."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "Inställd sökväg hittades inte; vänligen välj leverantör igen."
 
 msgid "The printer model was not found, please reselect."
 msgstr "Printer modellen hittades inte, välj igen."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "The nozzle diameter was not found; please reselect."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
@@ -15828,7 +15828,7 @@ msgstr "Skapa inställningar för filament misslyckades. Enligt följande:\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "Skapa process inställningar misslyckades. Enligt följande:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Leverantören hittades inte; välj igen."
 
 msgid "Current vendor has no models, please reselect."

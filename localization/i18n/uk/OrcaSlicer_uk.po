@@ -16176,7 +16176,7 @@ msgid "The name cannot be empty."
 msgstr "Ім’я не може бути порожнім."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "Обраний пресет: %s не знайдено."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17117,7 +17117,7 @@ msgstr "Імпорт набору параметрів"
 msgid "Create Type"
 msgstr "Тип"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "Модель не знайдено. Будь ласка, перевиберіть виробника."
 
 msgid "Select Model"
@@ -17162,16 +17162,16 @@ msgstr ""
 "Виникла помилка під час визначення розміру файлу, будь ласка, імпортуйте "
 "знову."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "Шлях до налаштувань не знайдено. Будь ласка, перевиберіть виробника."
 
 msgid "The printer model was not found, please reselect."
 msgstr "Модель принтера не було знайдено. Будь ласка, перевиберіть її."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "Діаметр сопла не знайдено. Будь ласка, перевиберіть його."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "Налаштування принтера не знайдено. Будь ласка, перевиберіть його."
 
 msgid "Printer Preset"
@@ -17235,7 +17235,7 @@ msgstr "Створення налаштувань філаменту не вда
 msgid "Create process presets failed. As follows:\n"
 msgstr "Створення налаштувань процесу не вдалося. Ось докладніше:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Виробника не знайдено, будь ласка, перевиберіть."
 
 msgid "Current vendor has no models, please reselect."

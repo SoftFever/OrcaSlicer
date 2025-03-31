@@ -16179,7 +16179,7 @@ msgid "The name cannot be empty."
 msgstr "Pavadinimas negali būti tuščias."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "Pasirinktas profilis: %s nerastas."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17114,7 +17114,7 @@ msgstr "Importuoti nustatymus"
 msgid "Create Type"
 msgstr "Sukurti tipą"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "Modelis nerastas, iš naujo pasirinkite pardavėją."
 
 msgid "Select Model"
@@ -17157,16 +17157,16 @@ msgstr "Failas viršija %d MB, importuokite dar kartą."
 msgid "Exception in obtaining file size, please import again."
 msgstr "Išimtis gaunant failo dydį, importuokite dar kartą."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "Nerastas nustatymų kelias, iš naujo pasirinkite pardavėją."
 
 msgid "The printer model was not found, please reselect."
 msgstr "Spausdintuvo modelis nerastas, pasirinkite iš naujo."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "Purkštuko skersmuo nerastas, pasirinkite iš naujo."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "Spausdintuvo išankstinis nustatymas nerastas, pasirinkite iš naujo."
 
 msgid "Printer Preset"
@@ -17232,7 +17232,7 @@ msgstr ""
 "Nepavyko sukurti proceso nustatymų. Taip:\n"
 "\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Pardavėjas nerastas, pasirinkite iš naujo."
 
 msgid "Current vendor has no models, please reselect."

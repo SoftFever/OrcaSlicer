@@ -14674,7 +14674,7 @@ msgid "The name cannot be empty."
 msgstr "名称不能为空。"
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "未找到选定的预设：%s。"
 
 msgid "The name cannot be the same as the system preset name."
@@ -15548,7 +15548,7 @@ msgstr "导入预设"
 msgid "Create Type"
 msgstr "创建类型"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "该模型未找到，请重新选择供应商。"
 
 msgid "Select Model"
@@ -15591,16 +15591,16 @@ msgstr "文件超过 %d MB，请重新导入。"
 msgid "Exception in obtaining file size, please import again."
 msgstr "获取文件大小异常，请重新导入。"
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "预设路径未找到，请重新选择供应商。"
 
 msgid "The printer model was not found, please reselect."
 msgstr "未找到打印机型号，请重新选择。"
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "未找到喷嘴直径，请重新选择。"
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "打印机预设未找到，请重新选择。"
 
 msgid "Printer Preset"
@@ -15657,7 +15657,7 @@ msgstr "创建材料预设失败。如下：\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "创建工艺预设失败。如下：\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "供应商未找到，请重新选择。"
 
 msgid "Current vendor has no models, please reselect."
@@ -17666,7 +17666,7 @@ msgstr ""
 #~ msgstr "绕X轴的旋转角度（以度为单位）。"
 
 #, boost-format
-#~ msgid "The selected preset: %1% is not found."
+#~ msgid "The selected preset: %1% was not found."
 #~ msgstr "未找到选定的预设：%1%。"
 
 #~ msgid ""
