@@ -2576,7 +2576,7 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
-"Wybierz gniazdo AMS, a następnie naciśnij przycisk „Ładuj” lub „Rozładuj” ,"
+"Wybierz gniazdo AMS, a następnie naciśnij przycisk „Ładuj” lub „Rozładuj”, "
 "aby automatycznie załadować lub wyładować filamenty."
 
 msgid "Edit"
@@ -5244,7 +5244,7 @@ msgid "Show all files, recent first."
 msgstr "Pokaż wszystkie pliki, najnowsze na początku."
 
 msgid "Switch to timelapse files."
-msgstr "Przełącz na pliki filmów timelaps."
+msgstr "Przełącz na pliki filmów timelapse."
 
 msgid "Video"
 msgstr "Wideo"
@@ -6769,7 +6769,7 @@ msgid "Login Region"
 msgstr "Region logowania"
 
 msgid "Stealth Mode"
-msgstr "Tryb \"Niewidzialny\""
+msgstr "Tryb niewidoczny"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -12074,7 +12074,7 @@ msgid "Tri-hexagon"
 msgstr "Trójkątne"
 
 msgid "Gyroid"
-msgstr "Gyroid"
+msgstr "Gyroidalny"
 
 msgid "Honeycomb"
 msgstr "Plaster miodu"
@@ -15687,7 +15687,7 @@ msgstr ""
 "debug, 5:trace\n"
 
 msgid "Enable timelapse for print"
-msgstr "Włącz timelaps dla druku"
+msgstr "Włącz timelapse dla druku"
 
 msgid "If enabled, this slicing will be considered using timelapse"
 msgstr "Jeśli włączone, to cięcie będzie uwzględniać tryb timelapse."
@@ -17865,7 +17865,7 @@ msgid ""
 msgstr ""
 "W porównaniu ze standardowym profilem dyszy o średnicy 0.2 mm, ma on "
 "mniejszą wysokość warstwy, niższe prędkości i przyspieszenia, a także "
-"zastosowany jest wzór wypełnienia Gyroid. To prowadzi do praktycznie "
+"zastosowany jest wzór wypełnienia Gyroidalny. To prowadzi do praktycznie "
 "niewidocznych warstw i znacznie lepszej jakości wydruku, ale jednocześnie "
 "wydłuża jego czas."
 
@@ -18139,7 +18139,7 @@ msgid "Set the brim type to \"painted\""
 msgstr "Ustaw rodzaj brimu na „malowane“"
 
 msgid " invalid brim ears"
-msgstr "nieprawidłowe uszy brim"
+msgstr " nieprawidłowe uszy brim"
 
 msgid "Brim Ears"
 msgstr "Uszy brim"
