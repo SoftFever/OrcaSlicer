@@ -16192,7 +16192,7 @@ msgid "The name cannot be empty."
 msgstr "El nombre no puede estar vacío."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "El perfil seleccionado: %s no ha sido encontrado."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17151,7 +17151,7 @@ msgstr "Importar Perfil"
 msgid "Create Type"
 msgstr "Crear Tipo"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "No se encuentra el modelo, vuelva a seleccionar fabricante."
 
 msgid "Select Model"
@@ -17196,18 +17196,18 @@ msgstr ""
 "Se ha producido una excepción obteniendo el tamaño de archivo, por favor, "
 "impórtelo de nuevo."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr ""
 "No se encuentra la ruta del perfil, vuelva a seleccionar el fabricante."
 
 msgid "The printer model was not found, please reselect."
 msgstr "No se ha encontrado el modelo de impresora, vuelva a seleccionarlo."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr ""
 "El diámetro de la boquilla no se ha encontrado, vuelva a seleccionarlo."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr ""
 "El perfil de impresora no se ha encontrado, por favor, vuelva a "
 "seleccionarlo."
@@ -17275,7 +17275,7 @@ msgstr "Fallo creando perfiles de filamento:\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "Fallo crenado perfiles de proceso:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Fabricante no encontrado, por favor seleccione uno."
 
 msgid "Current vendor has no models, please reselect."
@@ -20050,7 +20050,7 @@ msgstr ""
 #~ msgstr "El ángulo de rotación alrededor del eje X en grados."
 
 #, boost-format
-#~ msgid "The selected preset: %1% is not found."
+#~ msgid "The selected preset: %1% was not found."
 #~ msgstr "El ajuste seleccionado: %1% no encontrado."
 
 #~ msgid ""

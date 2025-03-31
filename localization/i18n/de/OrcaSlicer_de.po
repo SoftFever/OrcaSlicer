@@ -16448,7 +16448,7 @@ msgid "The name cannot be empty."
 msgstr "Der Name darf nicht leer sein."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "Die ausgewählte Voreinstellung: %s wurde nicht gefunden."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17402,7 +17402,7 @@ msgstr "Voreinstellung importieren"
 msgid "Create Type"
 msgstr "Typ erstellen"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "Das Modell ist nicht gefunden, bitte Hersteller erneut auswählen."
 
 msgid "Select Model"
@@ -17445,16 +17445,16 @@ msgstr "Die Datei überschreitet %d MB, bitte erneut importieren."
 msgid "Exception in obtaining file size, please import again."
 msgstr "Ausnahme beim Abrufen der Dateigröße, bitte erneut importieren."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "Voreinstellungspfad nicht gefunden, bitte Hersteller erneut auswählen."
 
 msgid "The printer model was not found, please reselect."
 msgstr "Das Druckermodell wurde nicht gefunden, bitte erneut auswählen."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "Der Düsendurchmesser ist nicht gefunden, bitte erneut auswählen."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "Die Druckervoreinstellung ist nicht gefunden, bitte erneut auswählen."
 
 msgid "Printer Preset"
@@ -17522,7 +17522,7 @@ msgstr "Erstellen von Filament-Voreinstellungen fehlgeschlagen. Wie folgt:\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "Erstellen von Prozess-Voreinstellungen fehlgeschlagen. Wie folgt:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Hersteller nicht gefunden, bitte erneut auswählen."
 
 msgid "Current vendor has no models, please reselect."
@@ -20434,7 +20434,7 @@ msgstr ""
 #~ msgstr "Rotationswinkel um die X-Achse in Grad."
 
 #, boost-format
-#~ msgid "The selected preset: %1% is not found."
+#~ msgid "The selected preset: %1% was not found."
 #~ msgstr "Die ausgewählte Voreinstellung: %1% wurde nicht gefunden."
 
 #~ msgid ""

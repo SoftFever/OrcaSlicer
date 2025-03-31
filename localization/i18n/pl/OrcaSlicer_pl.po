@@ -16243,7 +16243,7 @@ msgid "The name cannot be empty."
 msgstr "Nazwa nie może być pusta."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "Nie znaleziono wybranej przedustawionej opcji: %s."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17176,7 +17176,7 @@ msgstr "Importuj profil wstępny"
 msgid "Create Type"
 msgstr "Utwórz rodzaj"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "Nie znaleziono modelu, proszę wybrać dostawcę ponownie."
 
 msgid "Select Model"
@@ -17220,7 +17220,7 @@ msgid "Exception in obtaining file size, please import again."
 msgstr ""
 "Wyjątek podczas uzyskiwania rozmiaru pliku, proszę zaimportuj ponownie."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr ""
 "Ścieżka ustawień wstępnych nie została znaleziona, proszę wybrać dostawcę "
 "ponownie."
@@ -17228,10 +17228,10 @@ msgstr ""
 msgid "The printer model was not found, please reselect."
 msgstr "Model drukarki nie został znaleziony, proszę wybrać ponownie"
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "Średnica dyszy nie została znaleziona, proszę wybrać ponownie."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "Profil drukarki nie został znaleziony, proszę wybrać ponownie."
 
 msgid "Printer Preset"
@@ -17292,7 +17292,7 @@ msgstr "Tworzenie ustawień filamentu nie powiodło się. Oto szczegóły:\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "Tworzenie ustawień procesu nie powiodło się. Oto szczegóły:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Dostawca nie został znaleziony, proszę wybrać ponownie."
 
 msgid "Current vendor has no models, please reselect."
@@ -21239,7 +21239,7 @@ msgstr ""
 #~ msgid "Rotation angle around the X axis in degrees."
 #~ msgstr "Kąt obrotu wokół osi X w stopniach."
 
-#~ msgid "The selected preset: %1% is not found."
+#~ msgid "The selected preset: %1% was not found."
 #~ msgstr "Wybrana przędło: %1% nie została znaleziona."
 
 #~ msgid ""

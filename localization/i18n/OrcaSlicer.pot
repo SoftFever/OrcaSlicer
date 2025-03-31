@@ -13934,7 +13934,7 @@ msgid "The name cannot be empty."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -14737,7 +14737,7 @@ msgstr ""
 msgid "Create Type"
 msgstr ""
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr ""
 
 msgid "Select Model"
@@ -14780,16 +14780,16 @@ msgstr ""
 msgid "Exception in obtaining file size, please import again."
 msgstr ""
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr ""
 
 msgid "The printer model was not found, please reselect."
 msgstr ""
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr ""
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr ""
 
 msgid "Printer Preset"
@@ -14842,7 +14842,7 @@ msgstr ""
 msgid "Create process presets failed. As follows:\n"
 msgstr ""
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr ""
 
 msgid "Current vendor has no models, please reselect."

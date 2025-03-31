@@ -15190,7 +15190,7 @@ msgid "The name cannot be empty."
 msgstr "De naam mag niet leeg zijn."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "De geselecteerde preset: %s is niet gevonden."
 
 msgid "The name cannot be the same as the system preset name."
@@ -16090,7 +16090,7 @@ msgstr "Preset importeren"
 msgid "Create Type"
 msgstr "Type maken"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
@@ -16133,16 +16133,16 @@ msgstr "Het bestand is groter dan %d MB, importeer opnieuw."
 msgid "Exception in obtaining file size, please import again."
 msgstr "Uitzondering in het verkrijgen van bestandsgrootte, importeer opnieuw."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr "Preset-pad niet gevonden; selecteer leverancier opnieuw."
 
 msgid "The printer model was not found, please reselect."
 msgstr "Het printermodel is niet gevonden, selecteer opnieuw."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "De diameter van het mondstuk is niet gevonden. Selecteer opnieuw."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
@@ -16206,7 +16206,7 @@ msgstr "Voorinstellingen voor filament maken mislukt. Als volgt:\n"
 msgid "Create process presets failed. As follows:\n"
 msgstr "Procesvoorinstellingen maken mislukt. Als volgt:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Leverancier is niet gevonden; selecteer opnieuw."
 
 msgid "Current vendor has no models, please reselect."

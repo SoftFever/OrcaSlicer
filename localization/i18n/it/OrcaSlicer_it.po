@@ -16473,7 +16473,7 @@ msgid "The name cannot be empty."
 msgstr "Il nome non può essere vuoto."
 
 #, c-format, boost-format
-msgid "The selected preset: %s is not found."
+msgid "The selected preset: %s was not found."
 msgstr "Il profilo selezionato: %s non è stato trovato."
 
 msgid "The name cannot be the same as the system preset name."
@@ -17435,7 +17435,7 @@ msgstr "Importa Profilo"
 msgid "Create Type"
 msgstr "Crea tipo"
 
-msgid "The model is not found, please reselect vendor."
+msgid "The model was not found, please reselect vendor."
 msgstr ""
 "Il modello non è stato trovato. Si prega di selezionare nuovamente il "
 "produttore."
@@ -17482,17 +17482,17 @@ msgstr ""
 "Eccezione nell'ottenere la dimensione del file, si prega di importare di "
 "nuovo."
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path was not found, please reselect vendor."
 msgstr ""
 "Percorso del profilo non trovato, selezionare nuovamente il produttore."
 
 msgid "The printer model was not found, please reselect."
 msgstr "Il modello della stampante non è stato trovato, riselezionare."
 
-msgid "The nozzle diameter is not found, please reselect."
+msgid "The nozzle diameter was not found, please reselect."
 msgstr "Il diametro del nozzle non trovato, riselezionare."
 
-msgid "The printer preset is not found, please reselect."
+msgid "The printer preset was not found, please reselect."
 msgstr ""
 "La configurazione predefinita della stampante non è stata trovata. Si prega "
 "di selezionare nuovamente."
@@ -17561,7 +17561,7 @@ msgid "Create process presets failed. As follows:\n"
 msgstr ""
 "Creazione dei profili di processo non riuscita. Come indicato di seguito:\n"
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor was not found, please reselect."
 msgstr "Il produttore non è stato trovato, si prega di selezionare di nuovo."
 
 msgid "Current vendor has no models, please reselect."
@@ -20140,7 +20140,7 @@ msgstr ""
 #~ msgstr "Angolo di rotazione attorno all'asse X in gradi."
 
 #, boost-format
-#~ msgid "The selected preset: %1% is not found."
+#~ msgid "The selected preset: %1% was not found."
 #~ msgstr "Il preset selezionato: %1% non è stato trovato."
 
 #~ msgid ""
