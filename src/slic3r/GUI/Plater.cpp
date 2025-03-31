@@ -10163,6 +10163,8 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 2.0 });
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
+    //filament_config->set_key_value("enable_pressure_advance", new ConfigOptionBoolsNullable {false });
+    filament_config->set_key_value("pressure_advance", new ConfigOptionFloats { 0.0 });
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
@@ -10198,7 +10200,9 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 2.0 });
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
-    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
+    //filament_config->set_key_value("enable_pressure_advance", new ConfigOptionBoolsNullable{false});
+    filament_config->set_key_value("pressure_advance", new ConfigOptionFloats{0.0});
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -10232,8 +10236,10 @@ void Plater::calib_junction_deviation(const Calib_Params& params)
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 2.0 });
-    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
-    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
+    // filament_config->set_key_value("enable_pressure_advance", new ConfigOptionBoolsNullable{false});
+    filament_config->set_key_value("pressure_advance", new ConfigOptionFloats{0.0});
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
