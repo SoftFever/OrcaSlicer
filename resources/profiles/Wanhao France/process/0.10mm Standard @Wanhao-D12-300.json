@@ -41,7 +41,7 @@
   "top_surface_acceleration": "1000",
   "top_surface_line_width": "0.42",
   "top_surface_speed": "40",
-  "travel_acceleration": "2000",
+  "travel_acceleration": "500",
   "version": "1.0.1.0",
   "wall_generator": "classic",
   "wall_loops": "2",
