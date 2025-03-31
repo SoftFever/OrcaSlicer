@@ -100,7 +100,7 @@ bool Repetier::test(wxString &msg) const
 
 wxString Repetier::get_test_ok_msg () const
 {
-    return _(L("Connection to Repetier works correctly."));
+    return _(L("Connection to Repetier is working correctly."));
 }
 
 wxString Repetier::get_test_failed_msg (wxString &msg) const
