@@ -13,6 +13,9 @@
         "8"
     ],
     "compatible_printers": [
-	"Lulzbot Taz 6 0.5 nozzle"
+	"Lulzbot Taz 6 0.5 nozzle",
+        "Lulzbot Taz 4 or 5 0.5 nozzle",
+        "Lulzbot Taz Pro Dual 0.5 nozzle"
     ]
+
 }

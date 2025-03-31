@@ -74,12 +74,14 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install automake texinfo ninja libtool
+            brew install automake texinfo libtool
             brew list
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
-            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
             brew uninstall --ignore-dependencies zstd
-            ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15 -1
+            ./build_release_macos.sh -dx -a universal -t 10.15 -1
+            for arch in arm64 x86_64; do
+                (cd "${{ github.workspace }}/deps/build/${arch}" && \
+                find . -mindepth 1 -maxdepth 1 ! -name 'OrcaSlicer_dep' -exec rm -rf {} +)
+            done
             brew install zstd
 
 
@@ -111,12 +113,12 @@ jobs:
 
 
       # Upload Artifacts
-      - name: Upload Mac ${{ inputs.arch }} artifacts
-        if: inputs.os == 'macos-14'
-        uses: actions/upload-artifact@v4
-        with:
-          name: OrcaSlicer_dep_mac_${{ inputs.arch }}_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep*.tar.gz
+      # - name: Upload Mac ${{ inputs.arch }} artifacts
+      #   if: inputs.os == 'macos-14'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: OrcaSlicer_dep_mac_${{ env.date }}
+      #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
         if: inputs.os == 'windows-latest'

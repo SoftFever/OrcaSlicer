@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
-"PO-Revision-Date: 2025-02-23 19:27+0900\n"
-"Last-Translator: ElectricalBoy <15651807+ElectricalBoy@users.noreply.github."
-"com>\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
+"PO-Revision-Date: 2025-03-04 04:56+0900\n"
+"Last-Translator: ElectricalBoy "
+"<15651807+ElectricalBoy@users.noreply.github.com>\n"
 "Language-Team: crwusiz@gmail.com\n"
 "Language: ko_KR\n"
 "MIME-Version: 1.0\n"
@@ -59,7 +59,7 @@ msgid "Erase all painting"
 msgstr "모든 페인팅 삭제"
 
 msgid "Highlight overhang areas"
-msgstr "돌출부 영역 강조"
+msgstr "오버행 영역 강조"
 
 msgid "Gap fill"
 msgstr "간격 채우기"
@@ -77,7 +77,7 @@ msgid "Smart fill angle"
 msgstr "스마트 채우기 각도"
 
 msgid "On overhangs only"
-msgstr "돌출부에만 칠하기"
+msgstr "오버행에만 칠하기"
 
 msgid "Auto support threshold angle: "
 msgstr "자동 서포트 임계값 각도: "
@@ -99,7 +99,7 @@ msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "\"%1%\"에서 선택한 영역에만 칠하기 허용"
 
 msgid "Highlight faces according to overhang angle."
-msgstr "돌출부 각도에 따라 면을 강조 표시합니다."
+msgstr "오버행 각도에 따라 면을 강조 표시합니다."
 
 msgid "No auto support"
 msgstr "자동 서포트 비활성"
@@ -108,7 +108,7 @@ msgid "Support Generated"
 msgstr "서포트 생성됨"
 
 msgid "Gizmo-Place on Face"
-msgstr "도구상자 - 면에 배치"
+msgstr "변형도구 - 면에 배치"
 
 msgid "Lay on face"
 msgstr "바닥면 선택"
@@ -189,13 +189,13 @@ msgid "Move"
 msgstr "이동"
 
 msgid "Gizmo-Move"
-msgstr "도구상자 - 이동"
+msgstr "변형도구 - 이동"
 
 msgid "Rotate"
 msgstr "회전"
 
 msgid "Gizmo-Rotate"
-msgstr "도구상자 - 회전"
+msgstr "변형도구 - 회전"
 
 msgid "Optimize orientation"
 msgstr "방향 최적화"
@@ -207,7 +207,7 @@ msgid "Scale"
 msgstr "배율"
 
 msgid "Gizmo-Scale"
-msgstr "도구상자 - 배율"
+msgstr "변형도구 - 배율"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "오류: 먼저 모든 도구 모음 메뉴를 닫으십시오."
@@ -514,7 +514,7 @@ msgid "Some connectors are overlapped"
 msgstr "일부 커넥터가 겹칩니다"
 
 msgid "Select at least one object to keep after cutting."
-msgstr "잘라낸 후 보관할 개체를 하나 이상 선택합니다."
+msgstr "잘라낸 후 보관할 객체를 하나 이상 선택합니다."
 
 msgid "Cut plane is placed out of object"
 msgstr "절단면이 객체 밖으로 배치됨"
@@ -615,25 +615,25 @@ msgid "Brush shape"
 msgstr "붓 모양"
 
 msgid "Enforce seam"
-msgstr "솔기 적용"
+msgstr "재봉선 적용"
 
 msgid "Block seam"
-msgstr "솔기 차단"
+msgstr "재봉선 차단"
 
 msgid "Seam painting"
-msgstr "솔기 칠하기"
+msgstr "재봉선 칠하기"
 
 msgid "Remove selection"
 msgstr "선택 삭제"
 
 msgid "Entering Seam painting"
-msgstr "솔기 칠하기 입력"
+msgstr "재봉선 칠하기 입력"
 
 msgid "Leaving Seam painting"
-msgstr "솔기 칠하기 떠나기"
+msgstr "재봉선 칠하기 떠나기"
 
 msgid "Paint-on seam editing"
-msgstr "페인트칠 솔기 편집"
+msgstr "페인트칠 재봉선 편집"
 
 #. TRN - Input label. Be short as possible
 #. Select look of letter shape
@@ -689,10 +689,10 @@ msgid "Embossed text"
 msgstr "텍스트 양각"
 
 msgid "Enter emboss gizmo"
-msgstr "도구상자 - 양각 입력"
+msgstr "변형도구 - 양각 입력"
 
 msgid "Leave emboss gizmo"
-msgstr "도구상자 - 양각 나가기"
+msgstr "변형도구 - 양각 나가기"
 
 msgid "Embossing actions"
 msgstr "양각 작업"
@@ -771,7 +771,7 @@ msgid "Click to change text into object part."
 msgstr "텍스트를 객체 부분으로 변경하려면 클릭하세요."
 
 msgid "You can't change a type of the last solid part of the object."
-msgstr "개체의 마지막 솔리드 부분 유형은 변경할 수 없습니다."
+msgstr "객체의 마지막 솔리드 부분 유형은 변경할 수 없습니다."
 
 msgctxt "EmbossOperation"
 msgid "Cut"
@@ -1003,6 +1003,10 @@ msgid "Orient the text towards the camera."
 msgstr "텍스트 방향을 카메라 쪽으로 향하게 합니다."
 
 #, boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+
+#, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1086,10 +1090,10 @@ msgid "SVG move"
 msgstr "SVG 이동"
 
 msgid "Enter SVG gizmo"
-msgstr "도구상자 - SVG 입력"
+msgstr "변형도구 - SVG 입력"
 
 msgid "Leave SVG gizmo"
-msgstr "도구상자 - SVG 나가기"
+msgstr "변형도구 - SVG 나가기"
 
 msgid "SVG actions"
 msgstr "SVG 작업"
@@ -1258,6 +1262,9 @@ msgstr "나노 SVG 파서는 파일(%1%)에서 로드할 수 없습니다."
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG 파일에는 양각할 단일 경로(%1%)가 포함되어 있지 않습니다."
 
+msgid "No feature"
+msgstr ""
+
 msgid "Vertex"
 msgstr "꼭지점"
 
@@ -1305,10 +1312,10 @@ msgstr "측정"
 
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
-msgstr "폭발 비율 = 1인지 확인하고 개체를 하나 이상 선택하십시오."
+msgstr "폭발 비율 = 1인지 확인하고 객체를 하나 이상 선택하십시오."
 
 msgid "Please select at least one object."
-msgstr "개체를 하나 이상 선택하세요."
+msgstr "객체를 하나 이상 선택하세요."
 
 msgid "Edit to scale"
 msgstr "규모에 맞게 편집"
@@ -1337,7 +1344,7 @@ msgid ""
 " make objects assemble together."
 msgstr ""
 "객체에서 2개의 면을 선택하고\n"
-" 개체를 함께 조립합니다."
+" 객체를 함께 조립합니다."
 
 msgid ""
 "Select 2 points or circles on objects and \n"
@@ -1620,7 +1627,7 @@ msgid "Ongoing uploads"
 msgstr "진행 중인 업로드"
 
 msgid "Select a G-code file:"
-msgstr "G코드 파일 선택:"
+msgstr "Gcode 파일 선택:"
 
 msgid ""
 "Could not start URL download. Destination folder is not set. Please choose "
@@ -1697,7 +1704,7 @@ msgid "Extrusion Width"
 msgstr "압출 너비"
 
 msgid "Wipe options"
-msgstr "닦기 옵션"
+msgstr "노즐 청소 옵션"
 
 msgid "Bed adhesion"
 msgstr "베드 안착"
@@ -1813,16 +1820,16 @@ msgid "Change type"
 msgstr "유형 변경"
 
 msgid "Set as an individual object"
-msgstr "개별 개체로 설정"
+msgstr "개별 객체로 설정"
 
 msgid "Set as individual objects"
-msgstr "개별 개체로 설정"
+msgstr "개별 객체로 설정"
 
 msgid "Fill bed with copies"
 msgstr "베드에 복사본으로 채우기"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr "베드의 나머지 영역을 선택한 개체의 복사본으로 채웁니다"
+msgstr "베드의 나머지 영역을 선택한 객체의 복사본으로 채웁니다"
 
 msgid "Printable"
 msgstr "출력 가능"
@@ -1874,13 +1881,13 @@ msgid "Flush Options"
 msgstr "버리기 옵션"
 
 msgid "Flush into objects' infill"
-msgstr "개체의 채우기에서 버리기"
+msgstr "객체의 채우기에서 버리기"
 
 msgid "Flush into this object"
-msgstr "개체에서 버리기"
+msgstr "객체에서 버리기"
 
 msgid "Flush into objects' support"
-msgstr "개체의 서포트에서 버리기"
+msgstr "객체의 서포트에서 버리기"
 
 msgid "Edit in Parameter Table"
 msgstr "객체/부품 설정에서 편집"
@@ -1901,10 +1908,10 @@ msgid "Assemble"
 msgstr "병합"
 
 msgid "Assemble the selected objects to an object with multiple parts"
-msgstr "선택한 개체를 여러 부품이 있는 개체로 조립"
+msgstr "선택한 객체를 여러 부품이 있는 객체로 조립"
 
 msgid "Assemble the selected objects to an object with single part"
-msgstr "선택한 개체를 단일 부품이 있는 개체로 조립"
+msgstr "선택한 객체를 단일 부품이 있는 객체로 조립"
 
 msgid "Mesh boolean"
 msgstr "메시 합집합/차집합/교집합"
@@ -1961,16 +1968,16 @@ msgid "Show Labels"
 msgstr "이름표 보기"
 
 msgid "To objects"
-msgstr "개체로"
+msgstr "객체로"
 
 msgid "Split the selected object into multiple objects"
-msgstr "선택한 개체를 여러 개체로 분할"
+msgstr "선택한 객체를 여러 객체로 분할"
 
 msgid "To parts"
 msgstr "부품으로"
 
 msgid "Split the selected object into multiple parts"
-msgstr "선택한 개체를 여러 부품으로 분할"
+msgstr "선택한 객체를 여러 부품으로 분할"
 
 msgid "Split"
 msgstr "분할"
@@ -1982,7 +1989,7 @@ msgid "Auto orientation"
 msgstr "자동 방향 지정"
 
 msgid "Auto orient the object to improve print quality."
-msgstr "개체의 방향을 자동으로 지정하여 출력 품질을 향상시킵니다."
+msgstr "객체의 방향을 자동으로 지정하여 출력 품질을 향상시킵니다."
 
 msgid "Select All"
 msgstr "모두 선택"
@@ -2036,7 +2043,7 @@ msgid "Edit Process Settings"
 msgstr "프로세스 설정에서 편집"
 
 msgid "Edit print parameters for a single object"
-msgstr "단일 개체에 대한 출력 매개변수 편집"
+msgstr "단일 객체에 대한 출력 매개변수 편집"
 
 msgid "Change Filament"
 msgstr "필라멘트 변경"
@@ -2078,28 +2085,28 @@ msgid_plural "%1$d non-manifold edges"
 msgstr[0] "%1$d 비다양체 가장자리"
 
 msgid "Right click the icon to fix model object"
-msgstr "아이콘을 마우스 우클릭하여 모델 개체를 고칩니다"
+msgstr "아이콘을 마우스 우클릭하여 모델 객체를 고칩니다"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr "아이콘을 마우스 우클릭하여 객체 설정을 드롭합니다"
 
 msgid "Click the icon to reset all settings of the object"
-msgstr "아이콘을 클릭하여 개체의 모든 설정을 초기화합니다"
+msgstr "아이콘을 클릭하여 객체의 모든 설정을 초기화합니다"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "아이콘을 마우스 우클릭하여 객체 출력 가능 속성을 드롭합니다"
 
 msgid "Click the icon to toggle printable property of the object"
-msgstr "아이콘을 쿨릭하여 개체의 출력 가능한 속성을 전환합니다"
+msgstr "아이콘을 쿨릭하여 객체의 출력 가능한 속성을 전환합니다"
 
 msgid "Click the icon to edit support painting of the object"
-msgstr "아이콘을 클릭하여 개체의 서포트 칠하기를 편집합니다"
+msgstr "아이콘을 클릭하여 객체의 서포트 칠하기를 편집합니다"
 
 msgid "Click the icon to edit color painting of the object"
-msgstr "아이콘을 클릭하여 개체의 색상 칠하기를 편집합니다"
+msgstr "아이콘을 클릭하여 객체의 색상 칠하기를 편집합니다"
 
 msgid "Click the icon to shift this object to the bed"
-msgstr "아이콘을 클릭하여 이 개체를 베드로 옮깁니다"
+msgstr "아이콘을 클릭하여 이 객체를 베드로 옮깁니다"
 
 msgid "Loading file"
 msgstr "파일 로딩 중"
@@ -2117,27 +2124,27 @@ msgid "Add Modifier"
 msgstr "수정자 추가"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
-msgstr "개체별 설정 모드로 전환하여 수정자 설정을 편집합니다."
+msgstr "객체별 설정 모드로 전환하여 수정자 설정을 편집합니다."
 
 msgid ""
 "Switch to per-object setting mode to edit process settings of selected "
 "objects."
-msgstr "개체별 설정 모드로 전환하여 선택한 개체의 프로세스 설정을 편집합니다."
+msgstr "객체별 설정 모드로 전환하여 선택한 객체의 프로세스 설정을 편집합니다."
 
 msgid "Delete connector from object which is a part of cut"
-msgstr "잘라내기의 일부인 개체에서 커넥터 삭제"
+msgstr "잘라내기의 일부인 객체에서 커넥터 삭제"
 
 msgid "Delete solid part from object which is a part of cut"
-msgstr "잘라내기의 일부인 개체에서 꽉찬 부품 삭제"
+msgstr "잘라내기의 일부인 객체에서 꽉찬 부품 삭제"
 
 msgid "Delete negative volume from object which is a part of cut"
-msgstr "잘라내기의 일부인 개체에서 음수 비우기 용량 삭제"
+msgstr "잘라내기의 일부인 객체에서 음수 비우기 용량 삭제"
 
 msgid ""
 "To save cut correspondence you can delete all connectors from all related "
 "objects."
 msgstr ""
-"잘라내기 연결을 저장하기 위해 모든 관련 개체에서 모든 커넥터를 삭제할 수 있습"
+"잘라내기 연결을 저장하기 위해 모든 관련 객체에서 모든 커넥터를 삭제할 수 있습"
 "니다."
 
 msgid ""
@@ -2160,7 +2167,7 @@ msgid "Deleting the last solid part is not allowed."
 msgstr "마지막 꽉찬 부품을 삭제할 수 없습니다."
 
 msgid "The target object contains only one part and can not be split."
-msgstr "대상 개체는 한 부품만 포함하고 있어 분할할 수 없습니다."
+msgstr "대상 객체는 한 부품만 포함하고 있어 분할할 수 없습니다."
 
 msgid "Assembly"
 msgstr "조립"
@@ -2203,13 +2210,13 @@ msgstr "선택 출돌함"
 
 msgid ""
 "If first selected item is an object, the second one should also be object."
-msgstr "첫 번째로 선택한 항목이 개체이면 두 번째 항목도 개체여야 합니다."
+msgstr "첫 번째로 선택한 항목이 객체이면 두 번째 항목도 객체여야 합니다."
 
 msgid ""
 "If first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
-"첫 번째로 선택한 항목이 부품이면 두 번째 항목은 동일한 개체의 부품이어야 합니"
+"첫 번째로 선택한 항목이 부품이면 두 번째 항목은 동일한 객체의 부품이어야 합니"
 "다."
 
 msgid "The type of the last solid object part is not to be changed."
@@ -2238,7 +2245,7 @@ msgstr "이름 변경 중"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
-msgstr[0] "다음 모델 개체가 수리되었습니다"
+msgstr[0] "다음 모델 객체가 수리되었습니다"
 
 msgid "Failed to repair following model object"
 msgid_plural "Failed to repair following model objects"
@@ -2353,13 +2360,13 @@ msgid "Custom Template:"
 msgstr "사용자 정의 템플릿:"
 
 msgid "Custom G-code:"
-msgstr "사용자 정의 G코드:"
+msgstr "사용자 정의 Gcode:"
 
 msgid "Custom G-code"
-msgstr "사용자 정의 G코드"
+msgstr "사용자 정의 Gcode"
 
 msgid "Enter Custom G-code used on current layer:"
-msgstr "현재 레이어에 사용될 사용자 정의 G코드 입력:"
+msgstr "현재 레이어에 사용될 사용자 정의 Gcode 입력:"
 
 msgid "Jump to Layer"
 msgstr "다음 레이어로 이동"
@@ -2374,7 +2381,7 @@ msgid "Insert a pause command at the beginning of this layer."
 msgstr "이 레이어의 시작 부분에 일시 정지 명령을 삽입합니다."
 
 msgid "Add Custom G-code"
-msgstr "사용자 정의 G코드 추가"
+msgstr "사용자 정의 Gcode 추가"
 
 msgid "Insert custom G-code at the beginning of this layer."
 msgstr "이 레이어의 시작 부분에 사용자 정의 G코드를 삽입합니다."
@@ -2398,10 +2405,10 @@ msgid "Delete Custom Template"
 msgstr "사용자 정의 템플릿 삭제"
 
 msgid "Edit Custom G-code"
-msgstr "사용자 정의 G코드 편집"
+msgstr "사용자 정의 Gcode 편집"
 
 msgid "Delete Custom G-code"
-msgstr "사용자 정의 G코드 삭제"
+msgstr "사용자 정의 Gcode 삭제"
 
 msgid "Delete Filament Change"
 msgstr "필라멘트 변경 삭제"
@@ -2532,10 +2539,10 @@ msgid ""
 "We can not do auto-arrange on these objects."
 msgstr ""
 "선택한 모든 물체는 잠긴 플레이트에 있습니다,\n"
-"이러한 개체에 대해 자동 정렬을 수행할 수 없습니다."
+"이러한 객체에 대해 자동 정렬을 수행할 수 없습니다."
 
 msgid "No arrangeable objects are selected."
-msgstr "정렬 가능한 개체를 선택하지 않았습니다."
+msgstr "정렬 가능한 객체를 선택하지 않았습니다."
 
 msgid ""
 "This plate is locked,\n"
@@ -2572,7 +2579,7 @@ msgid ""
 "bed:\n"
 "%s"
 msgstr ""
-"정렬이 단일 플레이트에 들어갈 수 없는 다음 개체를 무시했습니다:\n"
+"정렬이 단일 플레이트에 들어갈 수 없는 다음 객체를 무시했습니다:\n"
 "%s"
 
 msgid ""
@@ -2580,7 +2587,7 @@ msgid ""
 "We can not do auto-orient on these objects."
 msgstr ""
 "선택한 모든 물체는 잠긴 플레이트에 있습니다,\n"
-"이러한 개체에 대해 자동 방향 지정을 수행할 수 없습니다."
+"이러한 객체에 대해 자동 방향 지정을 수행할 수 없습니다."
 
 msgid ""
 "This plate is locked,\n"
@@ -2703,10 +2710,10 @@ msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "LAN을 통해 출력하기 전에 SD 카드를 삽입해야 합니다."
 
 msgid "Sending gcode file over LAN"
-msgstr "LAN을 통해 G코드 파일 전송 중"
+msgstr "LAN을 통해 Gcode 파일 전송 중"
 
 msgid "Sending gcode file to sdcard"
-msgstr "SD 카드로 G코드 파일 전송 중"
+msgstr "SD 카드로 Gcode 파일 전송 중"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
@@ -2739,7 +2746,7 @@ msgstr ""
 "되었습니다."
 
 msgid "You cannot load SLA project with a multi-part object on the bed"
-msgstr "베드에 다중 부품 개체가 있는 SLA 프로젝트를 로드할 수 없습니다"
+msgstr "베드에 다중 부품 객체가 있는 SLA 프로젝트를 로드할 수 없습니다"
 
 msgid "Please check your object list before preset changing."
 msgstr "사전 설정을 변경하기 전에 객체 목록을 확인하세요."
@@ -2850,7 +2857,7 @@ msgid "SN"
 msgstr "SN"
 
 msgid "Factors of Flow Dynamics Calibration"
-msgstr "동적 유량 교정 계수"
+msgstr "동적 압출량 교정 계수"
 
 msgid "PA Profile"
 msgstr "PA 사전설정"
@@ -2888,7 +2895,7 @@ msgid "Custom Color"
 msgstr "사용자 정의 색상"
 
 msgid "Dynamic flow calibration"
-msgstr "동적 유량 교정"
+msgstr "동적 압출량 교정"
 
 msgid ""
 "The nozzle temp and max volumetric speed will affect the calibration "
@@ -2957,7 +2964,7 @@ msgid "%s does not support %s"
 msgstr "%s 은(는) %s 을(를) 지원하지 않습니다"
 
 msgid "Dynamic flow Calibration"
-msgstr "동적 유량 교정"
+msgstr "동적 압출량 교정"
 
 msgid "Step"
 msgstr "단계"
@@ -3169,8 +3176,12 @@ msgid ""
 msgstr ""
 "오류가 발생했습니다. 시스템 메모리가 부족하거나 프로그램의 버그일 수 있습니다"
 
-msgid "Please save project and restart the program. "
-msgstr "프로젝트를 저장하고 프로그램을 다시 시작하세요. "
+#, boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr ""
+
+msgid "Please save project and restart the program."
+msgstr "프로젝트를 저장하고 프로그램을 다시 시작하세요."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "이전 파일의 G코드를 처리하는 중..."
@@ -3248,12 +3259,12 @@ msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
-"임시 G코드 복사가 완료되었지만 복사 확인 중에 내보낸 코드를 열 수 없습니다. "
+"임시 Gcode 복사가 완료되었지만 복사 확인 중에 내보낸 코드를 열 수 없습니다. "
 "출력 G-코드는 %1%.tmp에 있습니다."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr "%1%로 내보낸 G코드 파일"
+msgstr "%1%로 내보낸 Gcode 파일"
 
 msgid "Unknown error when export G-code."
 msgstr "G코드를 내보낼 때 알 수 없는 오류가 발생했습니다."
@@ -3264,7 +3275,7 @@ msgid ""
 "Error message: %1%.\n"
 "Source file %2%."
 msgstr ""
-"G코드 파일을 저장하지 못했습니다.\n"
+"Gcode 파일을 저장하지 못했습니다.\n"
 "오류 메시지: %1%.\n"
 "원본 파일 %2%."
 
@@ -3447,7 +3458,7 @@ msgid "Timelapse"
 msgstr "타임랩스"
 
 msgid "Flow Dynamic Calibration"
-msgstr "유량 동적 보정"
+msgstr "압출량 동적 보정"
 
 msgid "Send Options"
 msgstr "전송 옵션"
@@ -3503,7 +3514,7 @@ msgstr "직사각형 플레이트의 X 및 Y 크기."
 msgid ""
 "Distance of the 0,0 G-code coordinate from the front left corner of the "
 "rectangle."
-msgstr "직사각형의 전면 왼쪽 모서리에서 G코드 좌표 0,0 까지의 거리입니다."
+msgstr "직사각형의 전면 왼쪽 모서리에서 Gcode 좌표 0,0 까지의 거리입니다."
 
 msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
@@ -3596,9 +3607,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "현재 챔버 온도가 재료의 안전 온도보다 높으므로 재료가 부드러워지고 막힐 수 있"
 "습니다. 재료의 최대 안전 온도는 %d입니다"
@@ -3655,9 +3666,9 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr ""
-"세로 셸 두께가 모두로 설정된 경우 대체 여분의 벽이 제대로 작동하지 않습니다. "
+"세로 쉘 두께가 모두로 설정된 경우 대체 여분의 벽이 제대로 작동하지 않습니다."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3785,7 +3796,7 @@ msgid "Calibrating the micro lida"
 msgstr "마이크로 라이다 교정"
 
 msgid "Calibrating extrusion flow"
-msgstr "압출 유량 교정"
+msgstr "압출 압출량 교정"
 
 msgid "Paused due to nozzle temperature malfunction"
 msgstr "노즐 온도 오작동으로 일시 정지됨"
@@ -3891,7 +3902,7 @@ msgid ""
 msgstr "이 교정은 현재 선택된 노즐 직경을 지원하지 않습니다"
 
 msgid "Current flowrate cali param is invalid"
-msgstr "현재 유량 교정 매개변수가 잘못되었습니다"
+msgstr "현재 압출량 교정 매개변수가 잘못되었습니다"
 
 msgid "Selected diameter and machine diameter do not match"
 msgstr "선택한 직경과 장치의 직경이 일치하지 않습니다"
@@ -3927,13 +3938,13 @@ msgstr "기본값"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr "사용자 지정 G코드 편집 (%1%)"
+msgstr "사용자 지정 Gcode 편집 (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr "기본 제공 플레이스홀더 (항목을 두 번 클릭하여 G코드에 추가)"
 
 msgid "Search gcode placeholders"
-msgstr "G코드 자리 표시자 검색"
+msgstr "Gcode 자리 표시자 검색"
 
 msgid "Add selected placeholder to G-code"
 msgstr "선택한 플레이스홀더를 G코드에 추가"
@@ -4047,7 +4058,7 @@ msgid "Temperature"
 msgstr "온도"
 
 msgid "Flow"
-msgstr "유량"
+msgstr "압출량"
 
 msgid "Tool"
 msgstr "툴"
@@ -4068,7 +4079,7 @@ msgid "Speed: "
 msgstr "속도: "
 
 msgid "Flow: "
-msgstr "유량: "
+msgstr "압출량: "
 
 msgid "Layer Time: "
 msgstr "레이어 시간: "
@@ -4080,7 +4091,7 @@ msgid "Temperature: "
 msgstr "온도: "
 
 msgid "Loading G-codes"
-msgstr "G코드 불러오는 중"
+msgstr "Gcode 불러오는 중"
 
 msgid "Generating geometry vertex data"
 msgstr "기하학 정점 데이터 생성"
@@ -4149,13 +4160,13 @@ msgid "Temperature (°C)"
 msgstr "온도 (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
-msgstr "압출 유량 (mm³/s)"
+msgstr "압출 압출량 (mm³/s)"
 
 msgid "Travel"
 msgstr "이동"
 
 msgid "Seams"
-msgstr "솔기"
+msgstr "재봉선"
 
 msgid "Retract"
 msgstr "후퇴"
@@ -4167,7 +4178,7 @@ msgid "Filament Changes"
 msgstr "필라멘트 변경"
 
 msgid "Wipe"
-msgstr "닦기"
+msgstr "노즐 청소"
 
 msgid "Options"
 msgstr "옵션"
@@ -4194,7 +4205,7 @@ msgid "Printer"
 msgstr "프린터"
 
 msgid "Custom g-code"
-msgstr "사용자 정의 G코드"
+msgstr "사용자 정의 Gcode"
 
 msgid "ToolChange"
 msgstr "툴체인지"
@@ -4332,7 +4343,7 @@ msgid "Arrange objects on selected plates"
 msgstr "선택한 플레이트의 객체 정렬"
 
 msgid "Split to objects"
-msgstr "개체로 분할"
+msgstr "객체로 분할"
 
 msgid "Split to parts"
 msgstr "부품으로 분할"
@@ -4373,32 +4384,32 @@ msgstr "용량:"
 msgid "Size:"
 msgstr "크기:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
-"레이어 %d, z = %.2lf mm에서 G코드 경로 충돌이 발견되었습니다. 충돌하는 개체"
+"레이어 %d, z = %.2lf mm에서 Gcode 경로 충돌이 발견되었습니다. 충돌하는 객체"
 "를 더 멀리 분리하세요 (%s <-> %s)."
 
 msgid "An object is layed over the boundary of plate."
-msgstr "개체가 플레이트 경계 위에 놓여 있습니다."
+msgstr "객체가 플레이트 경계 위에 놓여 있습니다."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr "G코드 경로가 출력 최대 높이를 넘어갑니다."
+msgstr "Gcode 경로가 출력 최대 높이를 넘어갑니다."
 
 msgid "A G-code path goes beyond the boundary of plate."
-msgstr "G코드 경로가 플레이트 경계를 넘어갑니다."
+msgstr "Gcode 경로가 플레이트 경계를 넘어갑니다."
 
 msgid "Only the object being edit is visible."
-msgstr "편집 중인 개체만 표시됩니다."
+msgstr "편집 중인 객체만 표시됩니다."
 
 msgid ""
 "An object is laid over the boundary of plate or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
-"개체가 플레이트 경계를 넘었거나 높이 제한을 초과했습니다.\n"
+"객체가 플레이트 경계를 넘었거나 높이 제한을 초과했습니다.\n"
 "플레이트 위 또는 밖으로 완전히 이동시키고 높이가 빌드 출력 가능 영역 내에 있"
 "는지 확인하여 문제를 해결하세요."
 
@@ -4429,7 +4440,7 @@ msgstr ""
 "이를 통해 장치가 최적의 성능을 유지하도록 합니다."
 
 msgid "Calibration Flow"
-msgstr "유량 교정"
+msgstr "압출량 교정"
 
 msgid "Start Calibration"
 msgstr "교정 시작"
@@ -4532,7 +4543,7 @@ msgid "Slice all"
 msgstr "모두 슬라이스"
 
 msgid "Export G-code file"
-msgstr "G코드 파일 내보내기"
+msgstr "Gcode 파일 내보내기"
 
 msgid "Export plate sliced file"
 msgstr "플레이트 슬라이스 파일 내보내기"
@@ -4670,10 +4681,10 @@ msgid "Import"
 msgstr "가져오기"
 
 msgid "Export all objects as one STL"
-msgstr "모든 개체를 하나의 STL로 내보내기"
+msgstr "모든 객체를 하나의 STL로 내보내기"
 
 msgid "Export all objects as STLs"
-msgstr "모든 개체를 여러 STL로 내보내기"
+msgstr "모든 객체를 여러 STL로 내보내기"
 
 msgid "Export Generic 3MF"
 msgstr "일반 3MF 내보내기"
@@ -4688,7 +4699,7 @@ msgid "Export all plate sliced file"
 msgstr "모든 플레이트의 슬라이스 파일 내보내기"
 
 msgid "Export G-code"
-msgstr "G코드 내보내기"
+msgstr "Gcode 내보내기"
 
 msgid "Export current plate as G-code"
 msgstr "현재 플레이트를 G코드로 내보내기"
@@ -4742,7 +4753,7 @@ msgid "Clone selected"
 msgstr "선택된 객체 복제"
 
 msgid "Clone copies of selections"
-msgstr "선택된 개체의 복사본 복제"
+msgstr "선택된 객체의 복사본 복제"
 
 msgid "Duplicate Current Plate"
 msgstr "현재 플레이트 복제"
@@ -4768,11 +4779,19 @@ msgstr "원근법 보기 사용"
 msgid "Use Orthogonal View"
 msgstr "평행 투영 보기 사용"
 
+msgid "Auto Perspective"
+msgstr ""
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
+msgstr ""
+
 msgid "Show &G-code Window"
-msgstr "G코드 창 표시 (&G)"
+msgstr "Gcode 창 표시 (&G)"
 
 msgid "Show g-code window in Preview scene"
-msgstr "예측 장면에 G코드 창 표시"
+msgstr "예측 장면에 Gcode 창 표시"
 
 msgid "Show 3D Navigator"
 msgstr "3D 내비게이터 표시"
@@ -4793,16 +4812,16 @@ msgid "Show object labels in 3D scene"
 msgstr "3D 화면에 객체 이름표 표시"
 
 msgid "Show &Overhang"
-msgstr "돌출부 보기 (&O)"
+msgstr "오버행 보기 (&O)"
 
 msgid "Show object overhang highlight in 3D scene"
-msgstr "3D 장면에서 객체 돌출부 하이라이트 표시"
+msgstr "3D 장면에서 객체 오버행 하이라이트 표시"
 
 msgid "Show Selected Outline (beta)"
 msgstr "선택된 개요 표시(실험적)"
 
 msgid "Show outline around selected object in 3D scene"
-msgstr "3D 장면에서 선택한 오브젝트 주변에 윤곽선 표시"
+msgstr "3D 장면에서 선택한 객체 주변에 윤곽선 표시"
 
 msgid "Preferences"
 msgstr "기본 설정"
@@ -4817,28 +4836,28 @@ msgid "Pass 1"
 msgstr "1차 테스트"
 
 msgid "Flow rate test - Pass 1"
-msgstr "유량 테스트 - 1차"
+msgstr "압출량 테스트 - 1차"
 
 msgid "Pass 2"
 msgstr "2차 테스트"
 
 msgid "Flow rate test - Pass 2"
-msgstr "유량 테스트 - 2차"
+msgstr "압출량 테스트 - 2차"
 
 msgid "YOLO (Recommended)"
 msgstr "YOLO(권장)"
 
 msgid "Orca YOLO flowrate calibration, 0.01 step"
-msgstr "Orca YOLO 유량 보정, 0.01 단계"
+msgstr "Orca YOLO 압출량 보정, 0.01 단계"
 
 msgid "YOLO (perfectionist version)"
 msgstr "YOLO(완벽주의자 버전)"
 
 msgid "Orca YOLO flowrate calibration, 0.005 step"
-msgstr "Orca YOLO 유량 보정, 0.005 단계"
+msgstr "Orca YOLO 압출량 보정, 0.005 단계"
 
 msgid "Flow rate"
-msgstr "유량"
+msgstr "압출량"
 
 msgid "Pressure advance"
 msgstr "프레셔 어드밴스"
@@ -4850,7 +4869,7 @@ msgid "Orca Tolerance Test"
 msgstr "Orca 공차 테스트"
 
 msgid "Max flowrate"
-msgstr "최대 유량"
+msgstr "최대 압출량"
 
 msgid "VFA"
 msgstr "VFA"
@@ -4868,10 +4887,10 @@ msgid "More calibrations"
 msgstr "추가 교정"
 
 msgid "&Open G-code"
-msgstr "G코드 열기 (&O)"
+msgstr "Gcode 열기 (&O)"
 
 msgid "Open a G-code file"
-msgstr "G코드 파일 열기"
+msgstr "Gcode 파일 열기"
 
 msgid "Re&load from Disk"
 msgstr "디스크에서 다시 불러오기 (&l)"
@@ -4908,15 +4927,18 @@ msgid "&Help"
 msgstr "도움말 (&H)"
 
 #, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "같은 이름을 가진 파일이 존재합니다: %s, 덮어 쓰겠습니까."
 
 #, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "같은 이름을 가진 설정이 존재합니다: %s, 덮어 쓰겠습니까."
 
 msgid "Overwrite file"
 msgstr "파일 덮어쓰기"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "모두 예"
@@ -5178,8 +5200,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
 "and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf 파일에는 G코드 데이터가 없습니다. OrcaSlicer에서 슬라이스하고 새 ."
-"gcode.3mf 파일을 내보내십시오."
+".gcode.3mf 파일에는 Gcode 데이터가 없습니다. OrcaSlicer에서 슬라이스하고 "
+"새 .gcode.3mf 파일을 내보내십시오."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -5654,17 +5676,17 @@ msgstr "하드웨어를 안전하게 제거합니다."
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
-msgstr[0] "%1$d 개체에 사용자 정의 서포트가 있습니다."
+msgstr[0] "%1$d 객체에 사용자 정의 서포트가 있습니다."
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
-msgstr[0] "%1$d 개체에 컬러 페인팅이 있습니다."
+msgstr[0] "%1$d 객체에 컬러 페인팅이 있습니다."
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
-msgstr[0] "%1$d 개체가 잘라낸 개체의 부품으로 로드되었습니다."
+msgstr[0] "%1$d 객체가 잘라낸 객체의 부품으로 로드되었습니다."
 
 msgid "ERROR"
 msgstr "오류"
@@ -5709,7 +5731,7 @@ msgid "Your model needs support ! Please make support material enable."
 msgstr "모델에 서포트가 필요합니다! 서포트를 활성화하세요."
 
 msgid "Gcode path overlap"
-msgstr "G코드 경로 겹침"
+msgstr "Gcode 경로 겹침"
 
 msgid "Support painting"
 msgstr "서포트 칠하기"
@@ -6042,7 +6064,7 @@ msgid ""
 msgstr "이 수정된 G코드가 손상을 방지하기 위해 안전한지 확인하세요.장치!"
 
 msgid "Modified G-codes"
-msgstr "수정된 G코드"
+msgstr "수정된 Gcode"
 
 msgid "The 3mf has following customized filament or printer presets:"
 msgstr "3mf에는 다음과 같은 맞춤형 필라멘트 또는 프린터 사전 설정이 있습니다:"
@@ -6071,7 +6093,7 @@ msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "파일 \"%1%\"을(를) 로드하지 못했습니다. 잘못된 구성이 발견되었습니다."
 
 msgid "Objects with zero volume removed"
-msgstr "부피가 0인 개체가 제거됨"
+msgstr "부피가 0인 객체가 제거됨"
 
 msgid "The volume of the object is zero"
 msgstr "물체의 부피는 0입니다"
@@ -6081,29 +6103,29 @@ msgid ""
 "The object from file %s is too small, and maybe in meters or inches.\n"
 " Do you want to scale to millimeters?"
 msgstr ""
-"%s 파일의 개체가 너무 작습니다. 단위가 미터나 인치일 수 있습니다.\n"
+"%s 파일의 객체가 너무 작습니다. 단위가 미터나 인치일 수 있습니다.\n"
 " 밀리미터 단위로 확장하시겠습니까?"
 
 msgid "Object too small"
-msgstr "개체가 너무 작음"
+msgstr "객체가 너무 작음"
 
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should \n"
 "the file be loaded as a single object having multiple parts?"
 msgstr ""
-"이 파일에는 여러 높이에 배치된 여러 개체가 포함되어 있습니다.\n"
-"여러 개체로 간주하는 대신\n"
-"파일을 여러 부품이 있는 단일 개체로 로드하시겠습니까?"
+"이 파일에는 여러 높이에 배치된 여러 객체가 포함되어 있습니다.\n"
+"여러 객체로 간주하는 대신\n"
+"파일을 여러 부품이 있는 단일 객체로 로드하시겠습니까?"
 
 msgid "Multi-part object detected"
 msgstr "여러 부품으로 구성된 객체 감지됨"
 
 msgid "Load these files as a single object with multiple parts?\n"
-msgstr "이 파일을 여러 부품이 있는 단일 개체로 로드하시겠습니까?\n"
+msgstr "이 파일을 여러 부품이 있는 단일 객체로 로드하시겠습니까?\n"
 
 msgid "Object with multiple parts was detected"
-msgstr "여러 부품으로 구성된 개체가 감지되었습니다"
+msgstr "여러 부품으로 구성된 객체가 감지되었습니다"
 
 msgid "The file does not contain any geometry data."
 msgstr "파일에 형상 데이터가 포함되어 있지 않습니다."
@@ -6111,10 +6133,10 @@ msgstr "파일에 형상 데이터가 포함되어 있지 않습니다."
 msgid ""
 "Your object appears to be too large, Do you want to scale it down to fit the "
 "heat bed automatically?"
-msgstr "개체가 너무 큽니다. 자동으로 고온 베드에 맞게 크기를 줄이시겠습니까?"
+msgstr "객체가 너무 큽니다. 자동으로 고온 베드에 맞게 크기를 줄이시겠습니까?"
 
 msgid "Object too large"
-msgstr "개체가 너무 큼"
+msgstr "객체가 너무 큼"
 
 msgid "Export STL file:"
 msgstr "STL 파일 내보내기:"
@@ -6140,19 +6162,19 @@ msgid "Confirm Save As"
 msgstr "다른 이름으로 저장 확인"
 
 msgid "Delete object which is a part of cut object"
-msgstr "잘라낸 개체의 일부인 객체 삭제"
+msgstr "잘라낸 객체의 일부인 객체 삭제"
 
 msgid ""
 "You try to delete an object which is a part of a cut object.\n"
 "This action will break a cut correspondence.\n"
 "After that model consistency can't be guaranteed."
 msgstr ""
-"잘라낸 개체의 일부인 개체를 삭제하려고 합니다.\n"
-"이 작업을 수행하면 잘라낸 개체간 연결이 끊어집니다.\n"
+"잘라낸 객체의 일부인 객체를 삭제하려고 합니다.\n"
+"이 작업을 수행하면 잘라낸 객체간 연결이 끊어집니다.\n"
 "그 이후 모델의 일관성은 보장되지 않습니다."
 
 msgid "The selected object couldn't be split."
-msgstr "선택한 개체를 분할할 수 없습니다."
+msgstr "선택한 객체를 분할할 수 없습니다."
 
 msgid "Another export job is running."
 msgstr "다른 내보내기 작업이 실행 중입니다."
@@ -6269,6 +6291,22 @@ msgstr ""
 "Orca Slicer로 가져오는 데 실패했습니다. 파일을 다운로드하여 수동으로 가져오세"
 "요."
 
+msgid "INFO:"
+msgstr ""
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+
+msgid "mm/s"
+msgstr "mm/s"
+
 msgid "Import SLA archive"
 msgstr "SLA 압축파일 가져오기"
 
@@ -6279,7 +6317,7 @@ msgid "does not contain valid gcode."
 msgstr "유효한 G코드를 포함하지 않습니다."
 
 msgid "Error occurs while loading G-code file"
-msgstr "G코드 파일을 로드하는 중 오류가 발생했습니다"
+msgstr "Gcode 파일을 로드하는 중 오류가 발생했습니다"
 
 #. TRN %1% is archive path
 #, boost-format
@@ -6313,19 +6351,19 @@ msgid ""
 msgstr "이 옵션은 나중에 환경설정에서 '로드 동작'에서 변경할 수 있습니다."
 
 msgid "Only one G-code file can be opened at the same time."
-msgstr "동시에 하나의 G코드 파일만 열 수 있습니다."
+msgstr "동시에 하나의 Gcode 파일만 열 수 있습니다."
 
 msgid "G-code loading"
-msgstr "G코드 불러오는 중"
+msgstr "Gcode 불러오는 중"
 
 msgid "G-code files can not be loaded with models together!"
-msgstr "G코드 파일은 모델과 함께 로드할 수 없습니다!"
+msgstr "Gcode 파일은 모델과 함께 로드할 수 없습니다!"
 
 msgid "Can not add models when in preview mode!"
 msgstr "미리보기 모드에서는 모델을 추가할 수 없습니다!"
 
 msgid "All objects will be removed, continue?"
-msgstr "모든 개체가 제거됩니다. 계속하시겠습니까?"
+msgstr "모든 객체가 제거됩니다. 계속하시겠습니까?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
@@ -6336,10 +6374,10 @@ msgid "Number of copies:"
 msgstr "복제본 수:"
 
 msgid "Copies of the selected object"
-msgstr "선택한 개체의 복제본"
+msgstr "선택한 객체의 복제본"
 
 msgid "Save G-code file as:"
-msgstr "G코드 파일을 다음으로 저장:"
+msgstr "Gcode 파일을 다음으로 저장:"
 
 msgid "Save SLA file as:"
 msgstr "SLA 파일을 다음으로 저장:"
@@ -6410,11 +6448,11 @@ msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
-"개체별 출력:\n"
+"객체별 출력:\n"
 "출력 시 충돌을 방지하기 위해 자동 정렬을 사용할 것을 제안합니다."
 
 msgid "Send G-code"
-msgstr "G코드 전송"
+msgstr "Gcode 전송"
 
 msgid "Send to printer"
 msgstr "프린터로 전송"
@@ -6479,12 +6517,12 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"% d: %s플레이트는 %s(%s)필라멘트를 출력하는데 사용하지 않는 것이 좋습니다. "
-"이 출력을 계속하려면 이 필라멘트의 베드 온도를 0이 아닌 값으로 설정하세요."
+"%d: %s플레이트는 %s(%s)필라멘트를 출력하는데 사용하지 않는 것이 좋습니다. 이 "
+"출력을 계속하려면 이 필라멘트의 베드 온도를 0이 아닌 값으로 설정하세요."
 
 msgid "Switching the language requires application restart.\n"
 msgstr "언어를 전환하려면 애플리케이션을 다시 시작해야 합니다.\n"
@@ -6691,7 +6729,7 @@ msgid "Auto arrange plate after cloning"
 msgstr "복제 후 플레이트 자동 정렬"
 
 msgid "Auto arrange plate after object cloning"
-msgstr "개체를 복제한 후 플레이트를 자동으로 정렬합니다"
+msgstr "객체를 복제한 후 플레이트를 자동으로 정렬합니다"
 
 msgid "Network"
 msgstr "네트워크"
@@ -6780,7 +6818,7 @@ msgid ""
 msgstr "간헐적인 충돌로부터 복원하기 위해 주기적으로 프로젝트를 백업하세요."
 
 msgid "every"
-msgstr "매"
+msgstr "매번"
 
 msgid "The period of backup in seconds."
 msgstr "백업 기간(초)입니다."
@@ -6975,7 +7013,7 @@ msgid "By Layer"
 msgstr "레이어별"
 
 msgid "By Object"
-msgstr "개체별"
+msgstr "객체별"
 
 msgid "Accept"
 msgstr "수락"
@@ -7122,7 +7160,7 @@ msgid "Send print job to"
 msgstr "출력 작업 보내기"
 
 msgid "Flow Dynamics Calibration"
-msgstr "동적 유량 교정"
+msgstr "동적 압출량 교정"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
@@ -7239,7 +7277,7 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"출력 순서가 \"개체별\"로 설정되어 있으므로 시간 경과는 지원되지 않습니다."
+"출력 순서가 \"객체별\"로 설정되어 있으므로 시간 경과는 지원되지 않습니다."
 
 msgid "Errors"
 msgstr "오류"
@@ -7300,11 +7338,11 @@ msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
 "scattered surface."
 msgstr ""
-"사용상의 주의! 텍스처 PEI 플레이트의 유량 교정은 표면이 분산되어 실패할 수 있"
-"습니다."
+"사용상의 주의! 텍스처 PEI 플레이트의 압출량 교정은 표면이 분산되어 실패할 수 "
+"있습니다."
 
 msgid "Automatic flow calibration using Micro Lidar"
-msgstr "마이크로 라이다를 사용한 자동 유량 교정"
+msgstr "마이크로 라이다를 사용한 자동 압출량 교정"
 
 msgid "Modifying the device name"
 msgstr "장치 이름 수정"
@@ -7503,16 +7541,17 @@ msgstr ""
 "까?"
 
 msgid "Still print by object?"
-msgstr "아직도 개체별로 출력하시나요?"
+msgstr "아직도 객체별로 출력하시나요?"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"서포트 부피는 작지만 강도는 약한 것이 특징인 실험적 모양 \"얇은 나무\"를 추가"
-"했습니다.\n"
-"접점 레이어 0, 상단 Z 거리 0, 벽 루프 2 와 함께 사용하는 것이 좋습니다."
+"지원 인터페이스에 대한 지원 자료를 사용할 때 다음 설정을 권장합니다.\n"
+"0 상단 z 거리, 0 인터페이스 간격, 인터레이스된 직선 패턴 및 독립 지지 레이어 "
+"높이 비활성화"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7522,23 +7561,6 @@ msgstr ""
 "이 설정을 자동으로 변경하시겠습니까?\n"
 "예 - 이 설정을 자동으로 변경합니다\n"
 "아니요 - 이 설정을 변경하지 않습니다"
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"\"강한 나무\" 및 \"혼합 나무\" 모양의 경우 최소 접점 레이어 2, 상단 Z 거리 "
-"0.1 또는 접점에서 서포트 재료를 사용하는 설정을 권장합니다."
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
-msgstr ""
-"서포트 접점에 서포트 재료를 사용하는 경우 다음 설정을 권장합니다:\n"
-"상단 Z 거리 0, 접점 간격 0, 접점 패턴 동심원 및 독립적 서포트 높이 비활성화"
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -7684,7 +7706,7 @@ msgid "Line width"
 msgstr "선 너비"
 
 msgid "Seam"
-msgstr "솔기"
+msgstr "재봉선"
 
 msgid "Precision"
 msgstr "정밀도"
@@ -7699,7 +7721,7 @@ msgid "Bridging"
 msgstr "브릿지"
 
 msgid "Overhangs"
-msgstr "돌출부"
+msgstr "오버행"
 
 msgid "Walls"
 msgstr "벽"
@@ -7714,15 +7736,15 @@ msgid "Other layers speed"
 msgstr "다른 레이어 속도"
 
 msgid "Overhang speed"
-msgstr "돌출부 속도"
+msgstr "오버행 속도"
 
 msgid ""
 "This is the speed for various overhang degrees. Overhang degrees are "
 "expressed as a percentage of line width. 0 speed means no slowing down for "
 "the overhang degree range and wall speed is used"
 msgstr ""
-"다양한 돌출부 각도에 대한 속도입니다. 돌출부 정도는 선 너비의 백분율로 표시됩"
-"니다. 0 속도는 돌출부 정도에 대한 감속이 없음을 의미하며 벽 속도가 사용됩니다"
+"다양한 오버행 각도에 대한 속도입니다. 오버행 정도는 선 너비의 백분율로 표시됩"
+"니다. 0 속도는 오버행 정도에 대한 감속이 없음을 의미하며 벽 속도가 사용됩니다"
 
 msgid "Bridge"
 msgstr "브릿지"
@@ -7767,7 +7789,7 @@ msgid "Special mode"
 msgstr "특수 모드"
 
 msgid "G-code output"
-msgstr "G코드 출력"
+msgstr "Gcode 출력"
 
 msgid "Post-processing Scripts"
 msgstr "후처리 스크립트"
@@ -7789,7 +7811,7 @@ msgid_plural ""
 "estimation."
 msgstr[0] ""
 "다음 줄 %s에는 예약어가 포함되어 있습니다.\n"
-"제거해 주십시오. 그렇지 않으면 G코드 시각화 및 출력 시간 추정치를 능가할 것입"
+"제거해 주십시오. 그렇지 않으면 Gcode 시각화 및 출력 시간 추정치를 능가할 것입"
 "니다."
 
 msgid "Reserved keywords found"
@@ -7811,7 +7833,7 @@ msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "이 필라멘트의 권장 노즐 온도 범위. 0은 설정하지 않음을 의미합니다"
 
 msgid "Flow ratio and Pressure Advance"
-msgstr "유량 비율 및 압력 사전"
+msgstr "압출량 비율 및 압력 사전"
 
 msgid "Print chamber temperature"
 msgstr "출력 챔버 온도"
@@ -7933,10 +7955,10 @@ msgid "Complete print"
 msgstr "출력 완료"
 
 msgid "Filament start G-code"
-msgstr "필라멘트 시작 G코드"
+msgstr "필라멘트 시작 Gcode"
 
 msgid "Filament end G-code"
-msgstr "필라멘트 종료 G코드"
+msgstr "필라멘트 종료 Gcode"
 
 msgid "Wipe tower parameters"
 msgstr "프라임 타워 매개변수"
@@ -7965,7 +7987,7 @@ msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "%1% 매개변수에 잘못된 값이 입력됨: %2%"
 
 msgid "G-code flavor is switched"
-msgstr "G코드 유형이 변경됨"
+msgstr "Gcode 유형이 변경됨"
 
 msgid "Cooling Fan"
 msgstr "냉각 팬"
@@ -7983,37 +8005,37 @@ msgid "Accessory"
 msgstr "악세서리"
 
 msgid "Machine gcode"
-msgstr "장치 G코드"
+msgstr "장치 Gcode"
 
 msgid "Machine start G-code"
-msgstr "장치 시작 G코드"
+msgstr "장치 시작 Gcode"
 
 msgid "Machine end G-code"
-msgstr "장치 종료 G코드"
+msgstr "장치 종료 Gcode"
 
 msgid "Printing by object G-code"
 msgstr "객체 G코드로 출력"
 
 msgid "Before layer change G-code"
-msgstr "레이어 변경 전 G코드"
+msgstr "레이어 변경 전 Gcode"
 
 msgid "Layer change G-code"
-msgstr "레이어 변경 G코드"
+msgstr "레이어 변경 Gcode"
 
 msgid "Time lapse G-code"
-msgstr "타임랩스 G코드"
+msgstr "타임랩스 Gcode"
 
 msgid "Change filament G-code"
-msgstr "필라멘트 교체 G코드"
+msgstr "필라멘트 교체 Gcode"
 
 msgid "Change extrusion role G-code"
-msgstr "압출 역할 G코드 변경"
+msgstr "압출 역할 Gcode 변경"
 
 msgid "Pause G-code"
-msgstr "일시 정지 G코드"
+msgstr "일시 정지 Gcode"
 
 msgid "Template Custom G-code"
-msgstr "템플릿 사용자 정의 G코드"
+msgstr "템플릿 사용자 정의 Gcode"
 
 msgid "Motion ability"
 msgstr "동작 능력"
@@ -8076,7 +8098,7 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"닦기 옵션은 펌웨어 후퇴 모드를 사용하는 경우에는 사용할 수 없습니다.\n"
+"노즐 청소 옵션은 펌웨어 후퇴 모드를 사용하는 경우에는 사용할 수 없습니다.\n"
 "\n"
 "펌웨어 후퇴를 활성화하기 위해 비활성화하겠습니까?"
 
@@ -8217,8 +8239,8 @@ msgstr ""
 "않은 변경 사항을 포함:"
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
-msgstr "사전 설정 \"%1%\"의 일부 설정을 변경했습니다. "
+msgid "You have changed some settings of preset \"%1%\"."
+msgstr "사전 설정 \"%1%\"의 일부 설정을 변경했습니다."
 
 msgid ""
 "\n"
@@ -8605,8 +8627,8 @@ msgid ""
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr ""
-"선택한 객체 또는 모든 개체의 방향을 자동으로 지정합니다.선택한 개체가 있는 경"
-"우 선택한 개체의 방향만 지정합니다.그렇지 않으면 현재 디스크에 있는 모든 개체"
+"선택한 객체 또는 모든 객체의 방향을 자동으로 지정합니다.선택한 객체가 있는 경"
+"우 선택한 객체의 방향만 지정합니다.그렇지 않으면 현재 디스크에 있는 모든 객체"
 "의 방향이 지정됩니다."
 
 msgid "Shift+Tab"
@@ -8706,28 +8728,28 @@ msgid "Select all objects"
 msgstr "모든 객체 선택"
 
 msgid "Gizmo move"
-msgstr "도구 상자 이동"
+msgstr "변형도구 이동"
 
 msgid "Gizmo scale"
-msgstr "도구 상자 배율"
+msgstr "변형도구 배율"
 
 msgid "Gizmo rotate"
-msgstr "도구 상자 회전"
+msgstr "변형도구 회전"
 
 msgid "Gizmo cut"
-msgstr "도구 상자 잘라내기"
+msgstr "변형도구 잘라내기"
 
 msgid "Gizmo Place face on bed"
-msgstr "도구 상자 바닥면 선택"
+msgstr "변형도구 바닥면 선택"
 
 msgid "Gizmo SLA support points"
-msgstr "도구 상자 서포트 칠하기"
+msgstr "변형도구 서포트 칠하기"
 
 msgid "Gizmo FDM paint-on seam"
-msgstr "도구 상자 솔기 칠하기"
+msgstr "변형도구 재봉선 칠하기"
 
 msgid "Gizmo Text emboss / engrave"
-msgstr "도구상자 - 텍스트 엠보싱/인그레이빙"
+msgstr "변형도구 - 텍스트 엠보싱/인그레이빙"
 
 msgid "Zoom in"
 msgstr "확대"
@@ -8763,7 +8785,7 @@ msgid "Alt+Mouse wheel"
 msgstr "Alt+마우스 휠"
 
 msgid "Gizmo"
-msgstr "도구 상자"
+msgstr "변형도구"
 
 msgid "Set extruder number for the objects and parts"
 msgstr "객체 및 부품에 대한 압출기 번호 설정"
@@ -8799,7 +8821,7 @@ msgid "On/Off one layer mode of the vertical slider"
 msgstr "수직 슬라이더의 한 레이어 모드 켜기/끄기"
 
 msgid "On/Off g-code window"
-msgstr "G코드 창 켜기/끄기"
+msgstr "Gcode 창 켜기/끄기"
 
 msgid "Move slider 5x faster"
 msgstr "슬라이더를 5배 빠르게 이동"
@@ -9006,7 +9028,7 @@ msgid "Extension Board"
 msgstr "확장 보드"
 
 msgid "Saving objects into the 3mf failed."
-msgstr "개체를 3mf에 저장하지 못했습니다."
+msgstr "객체를 3mf에 저장하지 못했습니다."
 
 msgid "Only Windows 10 is supported."
 msgstr "윈도우 10만 지원합니다."
@@ -9018,7 +9040,7 @@ msgid "Exporting objects"
 msgstr "객체 내보내는 중"
 
 msgid "Failed loading objects."
-msgstr "개체를 로드하지 못했습니다."
+msgstr "객체를 로드하지 못했습니다."
 
 msgid "Repairing object by Windows service"
 msgstr "Windows 서비스로 객체 수리 중"
@@ -9036,10 +9058,10 @@ msgid "Import 3mf file failed"
 msgstr "3mf 파일 가져오기 실패"
 
 msgid "Repaired 3mf file does not contain any object"
-msgstr "수리된 3mf 파일에 개체가 없습니다"
+msgstr "수리된 3mf 파일에 객체가 없습니다"
 
 msgid "Repaired 3mf file contains more than one object"
-msgstr "수리된 3mf 파일에 둘 이상의 개체가 포함되어 있습니다"
+msgstr "수리된 3mf 파일에 둘 이상의 객체가 포함되어 있습니다"
 
 msgid "Repaired 3mf file does not contain any volume"
 msgstr "수리된 3mf 파일에 부피가 없습니다"
@@ -9067,7 +9089,7 @@ msgid " updated to "
 msgstr " 로 업데이트되었습니다 "
 
 msgid "Open G-code file:"
-msgstr "G코드 파일 열기:"
+msgstr "Gcode 파일 열기:"
 
 msgid ""
 "One object has empty initial layer and can't be printed. Please Cut the "
@@ -9078,7 +9100,7 @@ msgstr ""
 
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
-msgstr "%1%에서 %2% 사이의 빈 레이어에 대해 개체를 출력할 수 없습니다."
+msgstr "%1%에서 %2% 사이의 빈 레이어에 대해 객체를 출력할 수 없습니다."
 
 #, boost-format
 msgid "Object: %1%"
@@ -9088,11 +9110,11 @@ msgid ""
 "Maybe parts of the object at these height are too thin, or the object has "
 "faulty mesh"
 msgstr ""
-"이 높이에 있는 개체의 일부가 너무 얇거나 개체에 결함이 있는 메시가 있을 수 있"
+"이 높이에 있는 객체의 일부가 너무 얇거나 객체에 결함이 있는 메시가 있을 수 있"
 "습니다"
 
 msgid "No object can be printed. Maybe too small"
-msgstr "개체를 출력할 수 없습니다. 너무 작을 수 있습니다"
+msgstr "객체를 출력할 수 없습니다. 너무 작을 수 있습니다"
 
 msgid ""
 "Your print is very close to the priming regions. Make sure there is no "
@@ -9111,7 +9133,7 @@ msgstr "사용자 정의 G코드를 확인하거나 기본 사용자 정의 G코
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
-msgstr "G코드 생성 중: 레이어 %1%"
+msgstr "Gcode 생성 중: 레이어 %1%"
 
 msgid "Inner wall"
 msgstr "내벽"
@@ -9120,7 +9142,7 @@ msgid "Outer wall"
 msgstr "외벽"
 
 msgid "Overhang wall"
-msgstr "돌출부 벽"
+msgstr "오버행 벽"
 
 msgid "Sparse infill"
 msgstr "드문 채우기"
@@ -9262,14 +9284,14 @@ msgstr ""
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
-msgstr "%1% 이(가) 다른 개체와 너무 가까워 출력 시 충돌이 발생 할 수 있습니다."
+msgstr "%1% 이(가) 다른 객체와 너무 가까워 출력 시 충돌이 발생 할 수 있습니다."
 
 #, boost-format
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% 이(가) 너무 높아서 충돌이 출력 시 발생할 수 있습니다."
 
 msgid " is too close to others, there may be collisions when printing."
-msgstr " 이(가) 다른 개체와 너무 가까워 출력 시 충돌이 발생 할 수 있습니다."
+msgstr " 이(가) 다른 객체와 너무 가까워 출력 시 충돌이 발생 할 수 있습니다."
 
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
@@ -9279,7 +9301,7 @@ msgid "Prime Tower"
 msgstr "프라임 타워"
 
 msgid " is too close to others, and collisions may be caused.\n"
-msgstr " 이(가) 다른 개체와 너무 가까워 출력 시 충돌이 발생 할 수 있습니다.\n"
+msgstr " 이(가) 다른 객체와 너무 가까워 출력 시 충돌이 발생 할 수 있습니다.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr ""
@@ -9300,32 +9322,32 @@ msgid ""
 "Smooth mode of timelapse is not supported when \"by object\" sequence is "
 "enabled."
 msgstr ""
-"타임랩스의 유연 모드는 \"개체별\" 출력순서가 활성화된 경우 지원되지 않습니다."
+"타임랩스의 유연 모드는 \"객체별\" 출력순서가 활성화된 경우 지원되지 않습니다."
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
 "spiral vase mode."
 msgstr ""
-"나선형 꽃병 모드에서 여러 개체를 출력하려면 \"개체별\" 출력 순서를 선택하세"
+"나선형 꽃병 모드에서 여러 객체를 출력하려면 \"객체별\" 출력 순서를 선택하세"
 "요."
 
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
 "materials."
 msgstr ""
-"개체에 둘 이상의 재료가 포함된 경우 나선형 꽃병 모드가 작동하지 않습니다."
+"객체에 둘 이상의 재료가 포함된 경우 나선형 꽃병 모드가 작동하지 않습니다."
 
 #, boost-format
 msgid ""
 "While the object %1% itself fits the build volume, it exceeds the maximum "
 "build volume height because of material shrinkage compensation."
 msgstr ""
-"오브젝트 %1% 자체는 빌드 볼륨에 맞지만, 머티리얼 수축 보정 때문에 최대 빌드 "
-"볼륨 높이를 초과합니다."
+"객체 %1% 자체는 빌드 볼륨에 맞지만, 머티리얼 수축 보정 때문에 최대 빌드 볼륨 "
+"높이를 초과합니다."
 
 #, boost-format
 msgid "The object %1% exceeds the maximum build volume height."
-msgstr "%1% 개체가 최대 빌드 부피 높이를 초과합니다."
+msgstr "%1% 객체가 최대 빌드 부피 높이를 초과합니다."
 
 #, boost-format
 msgid ""
@@ -9370,41 +9392,50 @@ msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
-"프라임 타워는 현재 Marlin, RepRap/Sprinter, RepRapFirmware 및 Repetier G코드 "
+"프라임 타워는 현재 Marlin, RepRap/Sprinter, RepRapFirmware 및 Repetier Gcode "
 "유형에서만 지원됩니다."
 
 msgid "The prime tower is not supported in \"By object\" print."
-msgstr "프라임 타워는 \"개체별\" 출력에서 지원되지 않습니다."
+msgstr "프라임 타워는 \"객체별\" 출력에서 지원되지 않습니다."
 
 msgid ""
 "The prime tower is not supported when adaptive layer height is on. It "
 "requires that all objects have the same layer height."
 msgstr ""
-"적응형 레이어 높이가 켜져 있으면 프라임 타워가 지원되지 않습니다. 모든 개체"
+"적응형 레이어 높이가 켜져 있으면 프라임 타워가 지원되지 않습니다. 모든 객체"
 "의 레이어 높이가 동일해야 합니다."
 
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
 msgstr "프라임 타워는 \"서포트 간격\"이 레이어 높이의 배수여야 합니다"
 
 msgid "The prime tower requires that all objects have the same layer heights"
-msgstr "프라임 타워는 모든 개체의 레이어 높이가 동일해야 합니다"
+msgstr "프라임 타워는 모든 객체의 레이어 높이가 동일해야 합니다"
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
 "of raft layers"
 msgstr ""
-"프라임 타워는 모든 개체가 동일한 수의 라프트 레이어 위에 출력되어야 합니다"
+"프라임 타워는 모든 객체가 동일한 수의 라프트 레이어 위에 출력되어야 합니다"
+
+msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
 
 msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
-msgstr "프라임 타워는 모든 개체가 동일한 레이어 높이로 슬라이스되어야 합니다."
+msgstr "프라임 타워는 모든 객체가 동일한 레이어 높이로 슬라이스되어야 합니다."
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
 "layer height"
 msgstr ""
-"프라임 타워는 모든 개체의 가변 레이어 높이가 동일한 경우에만 지원됩니다"
+"프라임 타워는 모든 객체의 가변 레이어 높이가 동일한 경우에만 지원됩니다"
+
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
 
 msgid "Too small line width"
 msgstr "선 너비가 너무 작습니다"
@@ -9413,8 +9444,15 @@ msgid "Too large line width"
 msgstr "선 너비가 너무 큽니다"
 
 msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
+msgstr ""
+
+msgid ""
 "The prime tower requires that support has the same layer height with object."
-msgstr "프라임 타워는 서포트가 개체와 동일한 레이어 높이를 갖도록 요구합니다."
+msgstr "프라임 타워는 서포트가 객체와 동일한 레이어 높이를 갖도록 요구합니다."
 
 msgid ""
 "Organic support tree tip diameter must not be smaller than support material "
@@ -9524,13 +9562,16 @@ msgid "Generating skirt & brim"
 msgstr "스커트 & 브림 생성 중"
 
 msgid "Exporting G-code"
-msgstr "G코드 내보내는 중"
+msgstr "Gcode 내보내는 중"
 
 msgid "Generating G-code"
-msgstr "G코드 생성 중"
+msgstr "Gcode 생성 중"
 
 msgid "Failed processing of the filename_format template."
 msgstr "파일 이름 형식 템플릿 처리에 실패했습니다."
+
+msgid "Printer technology"
+msgstr "프린터 기술"
 
 msgid "Printable area"
 msgstr "출력 가능 영역"
@@ -9616,11 +9657,11 @@ msgid ""
 "user name and password into the URL in the following format: https://"
 "username:password@your-octopi-address/"
 msgstr ""
-"Orca Slicer은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 "
+"Orca Slicer은 Gcode 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 "
 "프린터 호스트 인스턴스의 호스트 이름, IP 주소 또는 URL이 포함되어야 합니다. "
-"기본 인증이 활성화된 HAProxy 뒤의 출력 호스트는 https://username:"
-"password@your-octopi-address/ 형식의 URL에 사용자 이름과 암호를 입력하여 액세"
-"스할 수 있습니다"
+"기본 인증이 활성화된 HAProxy 뒤의 출력 호스트는 https://"
+"username:password@your-octopi-address/ 형식의 URL에 사용자 이름과 암호를 입력"
+"하여 액세스할 수 있습니다"
 
 msgid "Device UI"
 msgstr "장치 UI"
@@ -9637,7 +9678,7 @@ msgid ""
 "Orca Slicer can upload G-code files to a printer host. This field should "
 "contain the API Key or the password required for authentication."
 msgstr ""
-"Orca Slicer은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 "
+"Orca Slicer은 Gcode 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 "
 "인증에 필요한 API 키 또는 비밀번호가 포함되어야 합니다."
 
 msgid "Name of the printer"
@@ -9913,7 +9954,7 @@ msgid "Nowhere"
 msgstr "아무데도"
 
 msgid "Force cooling for overhangs and bridges"
-msgstr "돌출부 및 브릿지에 대한 강제 냉각"
+msgstr "오버행 및 브릿지에 대한 강제 냉각"
 
 msgid ""
 "Enable this option to allow adjustment of the part cooling fan speed for "
@@ -9921,12 +9962,12 @@ msgid ""
 "speed specifically for these features can improve overall print quality and "
 "reduce warping."
 msgstr ""
-"이 옵션을 활성화하면 돌출부, 내부 및 외부 브릿지에 대한 부품 냉각 팬 속도를 "
+"이 옵션을 활성화하면 오버행, 내부 및 외부 브릿지에 대한 부품 냉각 팬 속도를 "
 "조정할 수 있습니다. 이러한 기능에 맞게 팬 속도를 설정하면 전반적인 출력 품질"
 "을 개선하고 뒤틀림을 줄일 수 있습니다."
 
 msgid "Overhangs and external bridges fan speed"
-msgstr "돌출부 및 외부 브릿지 팬 속도"
+msgstr "오버행 및 외부 브릿지 팬 속도"
 
 msgid ""
 "Use this part cooling fan speed when printing bridges or overhang walls with "
@@ -9939,8 +9980,8 @@ msgid ""
 "speed threshold set above. It is also adjusted upwards up to the maximum fan "
 "speed threshold when the minimum layer time threshold is not met."
 msgstr ""
-"돌출부 임계값이 위의 '돌출부 냉각 임계값' 파라미터에 설정된 값을 초과하는 브"
-"릿지 또는 돌출부 벽을 출력할 때 이 부품 냉각 팬 속도를 사용합니다. 돌출부 및 "
+"오버행 임계값이 위의 '오버행 냉각 임계값' 파라미터에 설정된 값을 초과하는 브"
+"릿지 또는 오버행 벽을 출력할 때 이 부품 냉각 팬 속도를 사용합니다. 오버행 및 "
 "브릿지에 대한 냉각을 강화하면 이러한 기능의 전반적인 출력 품질이 향상될 수 있"
 "습니다.\n"
 "\n"
@@ -9949,7 +9990,7 @@ msgstr ""
 "까지 상향 조정됩니다."
 
 msgid "Overhang cooling activation threshold"
-msgstr "돌출부 냉각 활성화 임계값"
+msgstr "오버행 냉각 활성화 임계값"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -9959,7 +10000,7 @@ msgid ""
 "by the layer beneath it. Setting this value to 0% forces the cooling fan to "
 "run for all outer walls, regardless of the overhang degree."
 msgstr ""
-"돌출부가 이 지정된 임계값을 초과하면 아래에 설정된 '돌출부 팬 속도'로 냉각 팬"
+"오버행가 이 지정된 임계값을 초과하면 아래에 설정된 '오버행 팬 속도'로 냉각 팬"
 "이 강제로 작동합니다. 이 임계값은 백분율로 표시되며, 각 선 너비에서 그 아래 "
 "레이어가 지원하지 않는 부분을 나타냅니다. 이 값을 0%로 설정하면 돌출 정도에 "
 "관계없이 모든 외벽에 대해 냉각 팬이 강제로 작동합니다."
@@ -10037,7 +10078,7 @@ msgstr ""
 "이 압출되기 전에 내부 브릿지 구조를 더욱 개선할 수 있습니다."
 
 msgid "Bridge flow ratio"
-msgstr "브릿지 유량 비율"
+msgstr "브릿지 압출량 비율"
 
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
@@ -10049,11 +10090,11 @@ msgstr ""
 "이 값을 약간 낮추면(예: 0.9) 브릿지의 재질 양을 줄여 처짐을 개선할 수 있습니"
 "다.\n"
 "\n"
-"실제 사용되는 브릿지 유량은 이 값에 필라멘트 유량 비율을 곱하여 계산되며, 설"
-"정된 경우 오브젝트의 유량 비율을 곱합니다."
+"실제 사용되는 브릿지 압출량은 이 값에 필라멘트 압출량 비율을 곱하여 계산되"
+"며, 설정된 경우 객체의 압출량 비율을 곱합니다."
 
 msgid "Internal bridge flow ratio"
-msgstr "내부 브릿지 유량 비율"
+msgstr "내부 브릿지 압출량 비율"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the "
@@ -10069,10 +10110,10 @@ msgstr ""
 "면 품질을 향상시킬 수 있습니다.\n"
 "\n"
 "사용되는 실제 내부 브릿지 흐름은 이 값에 브릿지 흐름 비율, 필라멘트 흐름 비"
-"율, 설정된 경우 오브젝트의 흐름 비율을 곱하여 계산됩니다."
+"율, 설정된 경우 객체의 흐름 비율을 곱하여 계산됩니다."
 
 msgid "Top surface flow ratio"
-msgstr "상단 표면 유량 비율"
+msgstr "상단 표면 압출량 비율"
 
 msgid ""
 "This factor affects the amount of material for top solid infill. You can "
@@ -10084,11 +10125,11 @@ msgstr ""
 "이 요소는 상단 솔리드 인필의 재료 양에 영향을 줍니다. 표면 마감을 매끄럽게 하"
 "려면 이 값을 약간 낮출 수 있습니다.\n"
 "\n"
-"사용되는 실제 상단 표면 유량은 이 값에 필라멘트 유량 비율을 곱하여 계산되며, "
-"설정된 경우 오브젝트의 유량 비율을 곱합니다."
+"사용되는 실제 상단 표면 압출량은 이 값에 필라멘트 압출량 비율을 곱하여 계산되"
+"며, 설정된 경우 객체의 압출량 비율을 곱합니다."
 
 msgid "Bottom surface flow ratio"
-msgstr "하단 표면 유량 비율"
+msgstr "하단 표면 압출량 비율"
 
 msgid ""
 "This factor affects the amount of material for bottom solid infill. \n"
@@ -10098,8 +10139,8 @@ msgid ""
 msgstr ""
 "이 요소는 바닥 솔리드 인필의 재료 양에 영향을 줍니다.\n"
 "\n"
-"사용되는 실제 바닥 솔리드 인필 유량은 이 값에 필라멘트 유량 비율을 곱하여 계"
-"산되며, 설정된 경우 오브젝트의 유량 비율을 곱합니다."
+"사용되는 실제 바닥 솔리드 인필 압출량은 이 값에 필라멘트 압출량 비율을 곱하"
+"여 계산되며, 설정된 경우 객체의 압출량 비율을 곱합니다."
 
 msgid "Precise wall"
 msgstr "정밀한 벽"
@@ -10153,19 +10194,19 @@ msgstr ""
 "첫 레이어에 하나의 벽만 사용하여 하단 표면 패턴에 더 많은 공간을 제공합니다"
 
 msgid "Extra perimeters on overhangs"
-msgstr "돌출부 추가 둘레"
+msgstr "오버행 추가 둘레"
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr ""
-"가파른 돌출부와 브릿지를 고정할 수 없는 지역 위에 추가 둘레 경로를 만듭니다. "
+"가파른 오버행와 브릿지를 고정할 수 없는 지역 위에 추가 둘레 경로를 만듭니다."
 
 msgid "Reverse on even"
 msgstr "짝수에 반전"
 
 msgid "Overhang reversal"
-msgstr "돌출부 반전"
+msgstr "오버행 반전"
 
 msgid ""
 "Extrude perimeters that have a part over an overhang in the reverse "
@@ -10175,7 +10216,7 @@ msgid ""
 "This setting can also help reduce part warping due to the reduction of "
 "stresses in the part walls."
 msgstr ""
-"짝수 레이어에서 반대 방향으로 돌출부 위에 부분이 있는 둘레를 돌출시킵니다. 이"
+"짝수 레이어에서 반대 방향으로 오버행 위에 부분이 있는 둘레를 돌출시킵니다. 이"
 "러한 교대 패턴은 가파른 오버행을 대폭 개선할 수 있습니다.\n"
 "\n"
 "이 설정은 부품 벽의 응력 감소로 인한 부품 뒤틀림을 줄이는 데도 도움이 될 수 "
@@ -10235,7 +10276,7 @@ msgid "Reverse threshold"
 msgstr "반전 임계값"
 
 msgid "Overhang reversal threshold"
-msgstr "돌출부 반전 임계값"
+msgstr "오버행 반전 임계값"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -10258,10 +10299,10 @@ msgid "Enable this option to use classic mode"
 msgstr "클래식 모드를 사용하려면 이 옵션을 활성화합니다"
 
 msgid "Slow down for overhang"
-msgstr "돌출부에서 감속"
+msgstr "오버행에서 감속"
 
 msgid "Enable this option to slow printing down for different overhang degree"
-msgstr "돌출부 정도에 따라 출력 속도를 낮추려면 이 옵션을 활성화합니다"
+msgstr "오버행 정도에 따라 출력 속도를 낮추려면 이 옵션을 활성화합니다"
 
 msgid "Slow down for curled perimeters"
 msgstr "구부러진 둘레에서 감속"
@@ -10287,7 +10328,7 @@ msgid ""
 "speed will be applied."
 msgstr ""
 "주변이 위쪽으로 말릴 수 있는 영역에서 출력 속도를 늦추려면 이 옵션을 활성화합"
-"니다. 예를 들어 벤치 선체 전면과 같이 날카로운 모서리에 돌출부를 출력할 때 추"
+"니다. 예를 들어 벤치 선체 전면과 같이 날카로운 모서리에 오버행를 출력할 때 추"
 "가 속도 저하가 적용되어 여러 레이어에 걸쳐 합성되는 말림을 줄입니다.\n"
 "\n"
 " 프린터 냉각 성능이 충분히 강력하거나 출력 속도가 느려 주변 말림이 발생하지 "
@@ -10296,8 +10337,8 @@ msgstr ""
 "팩트가 발생할 수 있습니다. 아티팩트가 발견되면 압력 진행이 올바르게 조정되었"
 "는지 확인하십시오.\n"
 "\n"
-"참고: 이 옵션을 활성화하면 돌출부 둘레가 돌출부처럼 처리됩니다. 즉, 돌출부 둘"
-"레가 교량의 일부인 경우에도 돌출부 속도가 적용됩니다. 예를 들어, 둘레가 100% "
+"참고: 이 옵션을 활성화하면 오버행 둘레가 오버행처럼 처리됩니다. 즉, 오버행 둘"
+"레가 교량의 일부인 경우에도 오버행 속도가 적용됩니다. 예를 들어, 둘레가 100% "
 "돌출되어 있고 아래에서 이를 지지하는 벽이 없으면 100% 돌출 속도가 적용됩니다."
 
 msgid "mm/s or %"
@@ -10316,12 +10357,9 @@ msgid ""
 msgstr ""
 "외부에서 볼 수 있는 브릿지 돌출 속도입니다. \n"
 "\n"
-"또한, 구부러진 둘레에 대한 속도 저하가 비활성화되거나 클래식 돌출부 모드가 활"
-"성화된 경우 브릿지의 일부이든 오버행이든 상관없이 돌출부 벽의 출력 속도는 "
+"또한, 구부러진 둘레에 대한 속도 저하가 비활성화되거나 클래식 오버행 모드가 활"
+"성화된 경우 브릿지의 일부이든 오버행이든 상관없이 오버행 벽의 출력 속도는 "
 "13% 미만으로 지원됩니다."
-
-msgid "mm/s"
-msgstr "mm/s"
 
 msgid "Internal"
 msgstr "내부"
@@ -10424,13 +10462,13 @@ msgstr ""
 "로 평가되면 이 프로필은 활성 출력 프로필과 호환되는 것으로 간주됩니다."
 
 msgid "Print sequence, layer by layer or object by object"
-msgstr "출력순서, 레이어별 또는 개체별"
+msgstr "출력순서, 레이어별 또는 객체별"
 
 msgid "By layer"
 msgstr "레이어별"
 
 msgid "By object"
-msgstr "개체별"
+msgstr "객체별"
 
 msgid "Intra-layer order"
 msgstr "레이어 내 순서"
@@ -10462,9 +10500,6 @@ msgid ""
 "layer"
 msgstr "초기 레이어를 제외한 모든 일반 출력 및 이동의 기본 가속"
 
-msgid "mm/s²"
-msgstr "mm/s²"
-
 msgid "Default filament profile"
 msgstr "기본 필라멘트 사전설정"
 
@@ -10481,7 +10516,7 @@ msgid "Activate air filtration"
 msgstr "공기 여과 활성화"
 
 msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
-msgstr "더 나은 공기 여과를 위해 활성화하세요. G코드 명령: M106 P3 S(0-255)"
+msgstr "더 나은 공기 여과를 위해 활성화하세요. Gcode 명령: M106 P3 S(0-255)"
 
 msgid "Fan speed"
 msgstr "팬 속도"
@@ -10691,23 +10726,23 @@ msgstr ""
 "0으로 설정하고 브릿지에 서포트를 생성하지 않으려면 매우 큰 값으로 설정합니다."
 
 msgid "End G-code"
-msgstr "종료 G코드"
+msgstr "종료 Gcode"
 
 msgid "End G-code when finish the whole printing"
-msgstr "전체 출력이 끝날때의 종료 G코드"
+msgstr "전체 출력이 끝날때의 종료 Gcode"
 
 msgid "Between Object Gcode"
-msgstr "객체 사이의 G코드"
+msgstr "객체 사이의 Gcode"
 
 msgid ""
 "Insert Gcode between objects. This parameter will only come into effect when "
 "you print your models object by object"
 msgstr ""
-"객체 사이에 G코드를 삽입하세요. 이 매개변수는 개체별 출력을 사용할 때만 적용"
+"객체 사이에 G코드를 삽입하세요. 이 매개변수는 객체별 출력을 사용할 때만 적용"
 "됩니다"
 
 msgid "End G-code when finish the printing of this filament"
-msgstr "이 필라멘트의 출력이 끝날때의 종료 G코드"
+msgstr "이 필라멘트의 출력이 끝날때의 종료 Gcode"
 
 msgid "Ensure vertical shell thickness"
 msgstr "수직 쉘 두께 확보"
@@ -10844,13 +10879,13 @@ msgid ""
 msgstr ""
 "내부(내벽) 및 외부(외벽)의 출력 순서를 지정합니다.\n"
 "\n"
-"돌출부를 가장 잘 출력하려면 내부/외부를 사용합니다. 이는 돌출된 벽이 출력하"
+"오버행를 가장 잘 출력하려면 내부/외부를 사용합니다. 이는 돌출된 벽이 출력하"
 "는 동안 인접한 경계에 부착될 수 있기 때문입니다. 그러나 이 옵션을 사용하면 외"
 "부 경계가 내부 경계에 눌려 변형되므로 표면 품질이 약간 저하됩니다.\n"
 "\n"
 "내부/외부/내부를 사용하면 외부 벽이 내부 경계에서 방해받지 않고 출력되므로 최"
 "상의 외부 표면 마감과 치수 정확도를 얻을 수 있습니다. 그러나 외부 벽을 출력"
-"할 내부 경계가 없으므로 돌출부 성능이 저하됩니다. 이 옵션은 세 번째 경계부터 "
+"할 내부 경계가 없으므로 오버행 성능이 저하됩니다. 이 옵션은 세 번째 경계부터 "
 "내부 벽을 먼저 출력한 다음 외부 경계, 마지막으로 첫 번째 내부 경계를 출력하므"
 "로 최소 3개 이상의 벽이 있어야 효과적입니다. 이 옵션은 대부분의 경우 외부/내"
 "부 옵션보다 권장됩니다.\n"
@@ -10886,7 +10921,7 @@ msgstr ""
 "벽/채우기 순서. 확인란을 선택 취소하면 벽이 먼저 출력되며 이는 대부분의 경우 "
 "가장 잘 작동합니다.\n"
 "\n"
-"충전재를 먼저 출력하면 벽에 접착할 인접 충전재가 있으므로 돌출부가 심한 경우 "
+"충전재를 먼저 출력하면 벽에 접착할 인접 충전재가 있으므로 오버행가 심한 경우 "
 "도움이 될 수 있습니다. 그러나 충전재는 출력된 벽이 부착된 부분을 약간 밀어내"
 "어 외부 표면 마감이 더 나빠집니다. 또한 충전재가 부품의 외부 표면을 통해 빛"
 "날 수도 있습니다."
@@ -10925,7 +10960,7 @@ msgid ""
 "Distance of the nozzle tip to the lower rod. Used for collision avoidance in "
 "by-object printing."
 msgstr ""
-"노즐 끝에서 하부 레일까지의 거리. 개체별 출력에서 충돌 방지에 사용됩니다."
+"노즐 끝에서 하부 레일까지의 거리. 객체별 출력에서 충돌 방지에 사용됩니다."
 
 msgid "Height to lid"
 msgstr "덮개까지의 높이"
@@ -10933,12 +10968,12 @@ msgstr "덮개까지의 높이"
 msgid ""
 "Distance of the nozzle tip to the lid. Used for collision avoidance in by-"
 "object printing."
-msgstr "노즐 끝에서 덮개까지의 거리. 개체별 출력에서 충돌 방지에 사용됩니다."
+msgstr "노즐 끝에서 덮개까지의 거리. 객체별 출력에서 충돌 방지에 사용됩니다."
 
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
-msgstr "압출기 주변의 회피 반경. 개체별 출력에서 충돌 방지에 사용됩니다."
+msgstr "압출기 주변의 회피 반경. 객체별 출력에서 충돌 방지에 사용됩니다."
 
 msgid "Nozzle height"
 msgstr "노즐 높이"
@@ -11020,7 +11055,7 @@ msgid "Extruder offset"
 msgstr "압출기 옵셋"
 
 msgid "Flow ratio"
-msgstr "유량 비율"
+msgstr "압출량 비율"
 
 msgid ""
 "The material may have volumetric change after switching between molten state "
@@ -11030,9 +11065,9 @@ msgid ""
 "has slight overflow or underflow"
 msgstr ""
 "재료는 용융 상태와 결정 상태 사이를 전환한 후 부피 변화가 있을 수 있습니다. "
-"이 설정은 이 필라멘트 코드의 모든 압출 유량을 비례적으로 변경합니다. 권장 값 "
-"범위는 0.95와 1.05 사이입니다. 약간의 과대압출 또는 과소압출이 있을 때 이 값"
-"을 조정하여 평평한 표면을 얻을 수 있습니다"
+"이 설정은 이 필라멘트 코드의 모든 압출 압출량을 비례적으로 변경합니다. 권장 "
+"값 범위는 0.95와 1.05 사이입니다. 약간의 과대압출 또는 과소압출이 있을 때 이 "
+"값을 조정하여 평평한 표면을 얻을 수 있습니다"
 
 msgid ""
 "The material may have volumetric change after switching between molten state "
@@ -11134,8 +11169,8 @@ msgid ""
 "your filament profile\n"
 "\n"
 msgstr ""
-"압력 전진(PA) 값 세트, 측정된 압출 유량 속도 및 가속도를 쉼표로 구분하여 추가"
-"합니다. 한 줄에 하나의 값 세트가 있습니다. 예를 들어\n"
+"압력 전진(PA) 값 세트, 측정된 압출 압출량 속도 및 가속도를 쉼표로 구분하여 추"
+"가합니다. 한 줄에 하나의 값 세트가 있습니다. 예를 들어\n"
 "0.04,3.96,3000\n"
 "0.033,3.96,10000\n"
 "0.029,7.91,3000\n"
@@ -11150,7 +11185,7 @@ msgstr ""
 "2. 각 압출 유속 및 가속도에 대한 최적의 PA 값을 기록해 두십시오. 색상 구성표 "
 "드롭다운에서 흐름을 선택하고 PA 패턴 라인 위로 수평 슬라이더를 이동하여 흐름 "
 "번호를 찾을 수 있습니다. 페이지 하단에 번호가 표시되어야 합니다. 이상적인 PA "
-"값은 압출 유량이 높을수록 감소해야 합니다. 그렇지 않은 경우 압출기가 올바르"
+"값은 압출 압출량이 높을수록 감소해야 합니다. 그렇지 않은 경우 압출기가 올바르"
 "게 작동하는지 확인하십시오. 출력 속도가 느리고 가속도가 낮을수록 허용되는 PA "
 "값의 범위는 더 커집니다. 차이가 보이지 않으면 더 빠른 테스트의 PA 값을 사용하"
 "십시오.3. 여기 텍스트 상자에 PA 값, 흐름 및 가속도의 세 가지 값을 입력하고 필"
@@ -11165,9 +11200,9 @@ msgid ""
 "set accurately, it will cause uniformity issues on the external surfaces "
 "before and after overhangs.\n"
 msgstr ""
-"돌출부뿐만 아니라 동일한 기능 내에서 흐름이 변경되는 경우 적응형 PA를 활성화"
-"합니다. 이는 실험적인 옵션입니다. PA 프로파일이 정확하게 설정되지 않으면 돌출"
-"부 전후의 외부 표면에 균일성 문제가 발생할 수 있습니다.\n"
+"오버행뿐만 아니라 동일한 기능 내에서 흐름이 변경되는 경우 적응형 PA를 활성화"
+"합니다. 이는 실험적인 옵션입니다. PA 프로파일이 정확하게 설정되지 않으면 오버"
+"행 전후의 외부 표면에 균일성 문제가 발생할 수 있습니다.\n"
 
 msgid "Pressure advance for bridges"
 msgstr "브릿지를 위한 압력 전진"
@@ -11316,7 +11351,7 @@ msgstr ""
 "니다"
 
 msgid "Pellet flow coefficient"
-msgstr "펠릿 유량 계수"
+msgstr "펠릿 압출량 계수"
 
 msgid ""
 "Pellet flow coefficient is empirically derived and allows for volume "
@@ -11327,7 +11362,7 @@ msgid ""
 "\n"
 "filament_diameter = sqrt( (4 * pellet_flow_coefficient) / PI )"
 msgstr ""
-"펠릿 유량 계수는 경험적으로 추산되며 펠릿 프린터에서의 부피 계산에 사용됩니"
+"펠릿 압출량 계수는 경험적으로 추산되며 펠릿 프린터에서의 부피 계산에 사용됩니"
 "다.\n"
 "\n"
 "내부적으로 이 값은 filament_diameter로 변환됩니다. 다른 부피 계산은 영향을 받"
@@ -11450,7 +11485,7 @@ msgid ""
 msgstr ""
 "툴 체인지 후 노즐 내부에 새로 로드된 필라멘트의 정확한 위치를 알 수 없으며 필"
 "라멘트 압력이 아직 안정적이지 않을 수 있습니다. 프린트 헤드를 채우기 또는 희"
-"생 개체로 청소하기 전에 Orca Slicer은 항상 이 양의 재료를 프라임 타워로 프라"
+"생 객체로 청소하기 전에 Orca Slicer은 항상 이 양의 재료를 프라임 타워로 프라"
 "이밍하여 연속적인 채우기 또는 희생 물체 압출을 안정적으로 생성합니다."
 
 msgid "Speed of the last cooling move"
@@ -11490,10 +11525,10 @@ msgid "The volume to be rammed before the toolchange."
 msgstr "툴 체인지 전에 채워넣을 양 입니다."
 
 msgid "Multi-tool ramming flow"
-msgstr "다중 압출기 채워넣기 유량"
+msgstr "다중 압출기 채워넣기 압출량"
 
 msgid "Flow used for ramming the filament before the toolchange."
-msgstr "툴 체인지 전에 필라멘트를 채워넣기에 사용되는 유량입니다."
+msgstr "툴 체인지 전에 필라멘트를 채워넣기에 사용되는 압출량입니다."
 
 msgid "Density"
 msgstr "밀도"
@@ -11733,8 +11768,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² 또는 %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "드문 채우기 가속도. 값이 백분율 (예. 100%)로 표시되면 기본 가속도를 기준으로 "
 "계산됩니다."
@@ -11878,7 +11913,7 @@ msgid ""
 "can help reduce part warping due to excessive cooling applied over a large "
 "surface for a prolonged period of time."
 msgstr ""
-"모든 내부 브릿지에 사용되는 부품 냉각 팬 속도입니다. 돌출부 팬 속도 설정을 대"
+"모든 내부 브릿지에 사용되는 부품 냉각 팬 속도입니다. 오버행 팬 속도 설정을 대"
 "신 사용하려면 -1로 설정합니다.\n"
 "\n"
 "내부 브릿지 팬 속도를 일반 팬 속도보다 낮추면 넓은 표면에 장시간 과도한 냉각"
@@ -11997,11 +12032,11 @@ msgstr "레이어와 윤곽선"
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 "지정된 임계값(mm 단위)보다 길이가 작은 간격 채우기를 출력하지 마십시오. 이 설"
 "정은 상단, 하단 및 솔리드 채우기에 적용되며, 클래식 주변 생성기를 사용하는 경"
-"우 벽 간격 채우기에 적용됩니다. "
+"우 벽 간격 채우기에 적용됩니다."
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -12035,7 +12070,7 @@ msgid ""
 "quality as line segments are converted to arcs by the slicer and then back "
 "to line segments by the firmware."
 msgstr ""
-"G2 및 G3 이동이 있는 G코드 파일을 얻으려면 이 옵션을 활성화하십시오. 피팅 공"
+"G2 및 G3 이동이 있는 Gcode 파일을 얻으려면 이 옵션을 활성화하십시오. 피팅 공"
 "차는 분해능과 동일합니다. \n"
 "\n"
 "참고: Klipper 기계의 경우 이 옵션을 비활성화하는 것이 좋습니다. Klipper는 "
@@ -12048,7 +12083,7 @@ msgstr "라인 번호 추가"
 
 msgid "Enable this to add line number(Nx) at the beginning of each G-Code line"
 msgstr ""
-"각 G코드 라인의 시작 부분에 라인 번호(Nx)를 추가하려면 이 기능을 활성화하세요"
+"각 Gcode 라인의 시작 부분에 라인 번호(Nx)를 추가하려면 이 기능을 활성화하세요"
 
 msgid "Scan first layer"
 msgstr "첫 레이어 스캔"
@@ -12122,7 +12157,7 @@ msgid ""
 "Enable this option if machine has auxiliary part cooling fan. G-code "
 "command: M106 P2 S(0-255)."
 msgstr ""
-"장치에 보조 출력물 냉각팬이 있는 경우 이 옵션을 활성화합니다. G코드 명령: "
+"장치에 보조 출력물 냉각팬이 있는 경우 이 옵션을 활성화합니다. Gcode 명령: "
 "M106 P2 S(0-255)."
 
 msgid ""
@@ -12145,10 +12180,10 @@ msgstr ""
 "비활성화하려면 0을 사용하세요."
 
 msgid "Only overhangs"
-msgstr "돌출부 만"
+msgstr "오버행 만"
 
 msgid "Will only take into account the delay for the cooling of overhangs."
-msgstr "돌출부 냉각 지연만 고려합니다."
+msgstr "오버행 냉각 지연만 고려합니다."
 
 msgid "Fan kick-start time"
 msgstr "팬 시동 시간"
@@ -12183,7 +12218,7 @@ msgid ""
 "G-code command: M141 S(0-255)"
 msgstr ""
 "이 옵션은 기계가 챔버 온도 제어를 지원하는 경우 활성화됩니다.\n"
-"G코드 명령: M141 S(0-255)"
+"Gcode 명령: M141 S(0-255)"
 
 msgid "Support air filtration"
 msgstr "공기 여과 지원"
@@ -12193,13 +12228,13 @@ msgid ""
 "G-code command: M106 P3 S(0-255)"
 msgstr ""
 "프린터가 공기 여과를 지원하는 경우 활성화하세요.\n"
-"G코드 명령: M106 P3 S(0-255)"
+"Gcode 명령: M106 P3 S(0-255)"
 
 msgid "G-code flavor"
-msgstr "G코드 유형"
+msgstr "Gcode 유형"
 
 msgid "What kind of gcode the printer is compatible with"
-msgstr "프린터와 호환되는 G코드 종류"
+msgstr "프린터와 호환되는 Gcode 종류"
 
 msgid "Klipper"
 msgstr "Klipper"
@@ -12226,10 +12261,10 @@ msgid ""
 "plugin. This settings is NOT compatible with Single Extruder Multi Material "
 "setup and Wipe into Object / Wipe into Infill."
 msgstr ""
-"이 옵션을 선택하면 G코드 출력시 이동에 설명을 추가할 수 있습니다. 이는 "
+"이 옵션을 선택하면 Gcode 출력시 이동에 설명을 추가할 수 있습니다. 이는 "
 "Octoprint CancelObject 플러그인에 유용합니다. \n"
-"이 설정은 단일 압출기 다중 재료 설정 및 개체에서 닦기 / 채우기에서 닦기와 호"
-"환되지 않습니다."
+"이 설정은 단일 압출기 다중 재료 설정 및 객체에서 노즐 청소 / 채우기에서 노즐 "
+"청소와 호환되지 않습니다."
 
 msgid "Exclude objects"
 msgstr "객체 제외"
@@ -12238,14 +12273,14 @@ msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
 msgstr "G코드에 객체 제외 명령을 추가하려면 이 옵션을 활성화하세요"
 
 msgid "Verbose G-code"
-msgstr "상세한 G코드"
+msgstr "상세한 Gcode"
 
 msgid ""
 "Enable this to get a commented G-code file, with each line explained by a "
 "descriptive text. If you print from SD card, the additional weight of the "
 "file could make your firmware slow down."
 msgstr ""
-"주석이 달린 G코드 파일을 가져오려면 이 기능을 활성화하세요. 각 라인은 설명 텍"
+"주석이 달린 Gcode 파일을 가져오려면 이 기능을 활성화하세요. 각 라인은 설명 텍"
 "스트로 설명됩니다. SD 카드에서 출력하는 경우 파일의 추가 크기로 인해 펌웨어 "
 "속도가 느려질 수 있습니다."
 
@@ -12326,6 +12361,12 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "내부 드문 채우기 속도"
+
+msgid "Inherits profile"
+msgstr "프로필 상속"
+
+msgid "Name of parent profile"
+msgstr "부모 프로필 이름"
 
 msgid "Interface shells"
 msgstr "접점 쉘"
@@ -12439,14 +12480,14 @@ msgid "The pattern that will be used when ironing"
 msgstr "다림질할 때 사용할 패턴"
 
 msgid "Ironing flow"
-msgstr "다림질 유량"
+msgstr "다림질 압출량"
 
 msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
 "layer height. Too high value results in overextrusion on the surface"
 msgstr ""
-"다림질 중에 압출할 재료의 양입니다. 정상 레이어 높이의 유량에 상대적입니다. "
-"값이 너무 높으면 표면에 과다 압출이 발생합니다"
+"다림질 중에 압출할 재료의 양입니다. 정상 레이어 높이의 압출량에 상대적입니"
+"다. 값이 너무 높으면 표면에 과다 압출이 발생합니다"
 
 msgid "Ironing line spacing"
 msgstr "다림질 선 간격"
@@ -12500,27 +12541,27 @@ msgid ""
 "If enabled, the machine limits will be emitted to G-code file.\n"
 "This option will be ignored if the g-code flavor is set to Klipper."
 msgstr ""
-"활성화되면 기계의 한계가 G코드 파일로 내보내집니다.\n"
-"G코드 유형이 Klipper로 설정된 경우 이 옵션은 무시됩니다."
+"활성화되면 기계의 한계가 Gcode 파일로 내보내집니다.\n"
+"Gcode 유형이 Klipper로 설정된 경우 이 옵션은 무시됩니다."
 
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
 msgstr ""
-"이 G코드는 출력 일시 정지를 위한 코드로 사용됩니다. 사용자는 G코드 뷰어에서 "
+"이 G코드는 출력 일시 정지를 위한 코드로 사용됩니다. 사용자는 Gcode 뷰어에서 "
 "일시 정지 G코드를 삽입할 수 있습니다"
 
 msgid "This G-code will be used as a custom code"
 msgstr "이 G코드는 사용자 정의 코드로 사용됩니다"
 
 msgid "Small area flow compensation (beta)"
-msgstr "작은 영역 유량 보상 (베타)"
+msgstr "작은 영역 압출량 보상 (베타)"
 
 msgid "Enable flow compensation for small infill areas"
-msgstr "작은 채우기 영역에 대한 유량 보상 활성화"
+msgstr "작은 채우기 영역에 대한 압출량 보상 활성화"
 
 msgid "Flow Compensation Model"
-msgstr "유량 보상 모델"
+msgstr "압출량 보상 모델"
 
 msgid ""
 "Flow Compensation Model, used to adjust the flow for small infill areas. The "
@@ -12528,9 +12569,9 @@ msgid ""
 "and flow correction factors, one per line, in the following format: "
 "\"1.234,5.678\""
 msgstr ""
-"작은 채우기 영역의 유량을 조정하는 데 사용되는 유량 보상 모델. 모델은 "
-"\"1.234,5.678\" 형식으로 한 줄에 하나씩 압출 길이 및 유량 수정 계수에 대한 쉼"
-"표로 구분된 값 쌍으로 표현됩니다."
+"작은 채우기 영역의 압출량을 조정하는 데 사용되는 압출량 보상 모델. 모델은 "
+"\"1.234,5.678\" 형식으로 한 줄에 하나씩 압출 길이 및 압출량 수정 계수에 대한 "
+"쉼표로 구분된 값 쌍으로 표현됩니다."
 
 msgid "Maximum speed X"
 msgstr "X축 최대 속도"
@@ -12652,7 +12693,7 @@ msgstr ""
 "를 활성화할 때 최대 레이어 높이를 제한합니다"
 
 msgid "Extrusion rate smoothing"
-msgstr "유연한 압출 유량"
+msgstr "유연한 압출 압출량"
 
 msgid ""
 "This parameter smooths out sudden extrusion rate changes that happen when "
@@ -12682,22 +12723,22 @@ msgid ""
 "\n"
 "Note: this parameter disables arc fitting."
 msgstr ""
-"이 매개변수는 프린터가 높은 유량(고속/더 큰 너비) 압출에서 낮은 유량(낮은 속"
-"도/더 작은 너비) 압출로 또는 그 반대로 출력할 때 발생하는 급격한 압출 속도 변"
-"화를 완화합니다.\n"
+"이 매개변수는 프린터가 높은 압출량(고속/더 큰 너비) 압출에서 낮은 압출량(낮"
+"은 속도/더 작은 너비) 압출로 또는 그 반대로 출력할 때 발생하는 급격한 압출 속"
+"도 변화를 완화합니다.\n"
 "\n"
-"이는 압출된 압출 유량(mm3/초)이 시간에 따라 변할 수 있는 최대 속도를 정의합니"
-"다. 값이 높을수록 더 높은 압출 속도 변경이 허용되어 속도 전환이 더 빨라진다"
+"이는 압출된 압출 압출량(mm3/초)이 시간에 따라 변할 수 있는 최대 속도를 정의합"
+"니다. 값이 높을수록 더 높은 압출 속도 변경이 허용되어 속도 전환이 더 빨라진다"
 "는 의미입니다.\n"
 "\n"
 "값이 0이면 기능이 비활성화됩니다.\n"
 "\n"
-"고속, 고유량 직접 구동 프린터(예: 뱀부랩 또는 보론)의 경우 일반적으로 이 값"
+"고속, 고압출량 직접 구동 프린터(예: 뱀부랩 또는 보론)의 경우 일반적으로 이 값"
 "이 필요하지 않습니다. 그러나 기능 속도가 크게 달라지는 특정 경우에는 약간의 "
-"이점을 제공할 수 있습니다. 예를 들어 돌출부로 인해 급격하게 감속이 발생하는 "
+"이점을 제공할 수 있습니다. 예를 들어 오버행로 인해 급격하게 감속이 발생하는 "
 "경우입니다. 이러한 경우 약 300-350mm3/s2의 높은 값이 권장됩니다. 이렇게 하면 "
-"프레셔 어드밴스가 더 부드러운 유량 전환을 달성하는 데 도움이 될 만큼 충분히 "
-"매끄러워질 수 있기 때문입니다.\n"
+"프레셔 어드밴스가 더 부드러운 압출량 전환을 달성하는 데 도움이 될 만큼 충분"
+"히 매끄러워질 수 있기 때문입니다.\n"
 "\n"
 "프레셔 어드밴스 기능이 없는 느린 프린터의 경우 값을 훨씬 낮게 설정해야 합니"
 "다. 10-15mm3/s2 값은 직접 구동 압출기의 좋은 시작점이고 보우덴 스타일의 경우 "
@@ -12757,7 +12798,7 @@ msgid ""
 msgstr ""
 "보조 출력물 냉각팬의 속도. 냉각 레이어가 없는 것으로 정의된 처음 여러 레이어"
 "를 제외하고 출력 중에 보조 팬이 이 속도로 작동합니다.\n"
-"이 기능을 사용하려면 프린터 설정에서 보조 팬을 활성화하세요. G코드 명령: "
+"이 기능을 사용하려면 프린터 설정에서 보조 팬을 활성화하세요. Gcode 명령: "
 "M106 P2 S(0-255)"
 
 msgid "Min"
@@ -12791,7 +12832,7 @@ msgid ""
 "You can put here your personal notes. This text will be added to the G-code "
 "header comments."
 msgstr ""
-"여기에 개인 메모를 넣을 수 있습니다. 이 텍스트는 G코드 헤더 설명에 추가됩니"
+"여기에 개인 메모를 넣을 수 있습니다. 이 텍스트는 Gcode 헤더 설명에 추가됩니"
 "다."
 
 msgid "Host Type"
@@ -12801,7 +12842,7 @@ msgid ""
 "Orca Slicer can upload G-code files to a printer host. This field must "
 "contain the kind of the host."
 msgstr ""
-"Orca Slicer은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드는 호"
+"Orca Slicer은 Gcode 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드는 호"
 "스트의 종류를 포함해야 합니다."
 
 msgid "Nozzle volume"
@@ -12873,7 +12914,7 @@ msgid ""
 msgstr ""
 "이동 구간이 채우기 영역에 있을 때 수축하지 마십시오. 즉, 스며드는 것을 볼 수 "
 "없습니다. 이는 복잡한 모델의 후퇴 시간을 줄이고 출력 시간을 절약할 수 있지만 "
-"슬라이싱 및 G코드 생성 속도를 느리게 만듭니다"
+"슬라이싱 및 Gcode 생성 속도를 느리게 만듭니다"
 
 msgid ""
 "This option will drop the temperature of the inactive extruders to prevent "
@@ -12887,25 +12928,25 @@ msgid "User can self-define the project file name when export"
 msgstr "사용자가 내보낼 파일 이름을 자체 정의할 수 있습니다"
 
 msgid "Make overhangs printable"
-msgstr "돌출부 형상 변경"
+msgstr "오버행 형상 변경"
 
 msgid "Modify the geometry to print overhangs without support material."
-msgstr "서포트 없이 돌출부를 출력하도록 형상을 수정합니다."
+msgstr "서포트 없이 오버행를 출력하도록 형상을 수정합니다."
 
 msgid "Make overhangs printable - Maximum angle"
-msgstr "돌출부 형상 변경 최대 각도"
+msgstr "오버행 형상 변경 최대 각도"
 
 msgid ""
 "Maximum angle of overhangs to allow after making more steep overhangs "
 "printable.90° will not change the model at all and allow any overhang, while "
 "0 will replace all overhangs with conical material."
 msgstr ""
-"더 가파른 돌출부를 출력할 수 있게 허용되는 돌출부의 최대 각도. 90°는 형상을 "
-"전혀 변경하지 않고 돌출부를 허용하는 반면, 0은 모든 돌출부를 원뿔형 재료로 대"
+"더 가파른 오버행를 출력할 수 있게 허용되는 오버행의 최대 각도. 90°는 형상을 "
+"전혀 변경하지 않고 오버행를 허용하는 반면, 0은 모든 오버행를 원뿔형 재료로 대"
 "체합니다."
 
 msgid "Make overhangs printable - Hole area"
-msgstr "돌출부 형상 변경 구멍 영역"
+msgstr "오버행 형상 변경 구멍 영역"
 
 msgid ""
 "Maximum area of a hole in the base of the model before it's filled by "
@@ -12918,15 +12959,15 @@ msgid "mm²"
 msgstr "mm²"
 
 msgid "Detect overhang wall"
-msgstr "돌출부 벽 감지"
+msgstr "오버행 벽 감지"
 
 #, c-format, boost-format
 msgid ""
 "Detect the overhang percentage relative to line width and use different "
 "speed to print. For 100%% overhang, bridge speed is used."
 msgstr ""
-"선 너비에 비례하여 돌출부 백분율을 감지하고 다른 속도를 사용하여 출력합니다. "
-"100%% 돌출부의 경우 브릿지 속도가 사용됩니다."
+"선 너비에 비례하여 오버행 백분율을 감지하고 다른 속도를 사용하여 출력합니다. "
+"100%% 오버행의 경우 브릿지 속도가 사용됩니다."
 
 msgid "Filament to print walls"
 msgstr "벽을 출력하는 필라멘트"
@@ -12971,7 +13012,7 @@ msgid ""
 "environment variables."
 msgstr ""
 "사용자 정의 스크립트를 통해 출력 G코드를 처리하려면 여기에 절대 경로를 나열하"
-"세요. 여러 스크립트는 세미콜론(;)으로 구분합니다. 스크립트는 G코드 파일의 절"
+"세요. 여러 스크립트는 세미콜론(;)으로 구분합니다. 스크립트는 Gcode 파일의 절"
 "대 경로를 첫 번째 값으로 전달하며 환경 변수를 읽어 Orca Slicer 구성 설정에 접"
 "근할 수 있습니다."
 
@@ -12994,7 +13035,7 @@ msgid "Raft contact Z distance"
 msgstr "라프트 접점 Z 거리"
 
 msgid "Z gap between object and raft. Ignored for soluble interface"
-msgstr "개체와 라프트 사이의 Z 거리. 가용성 재료의 접점은 무시됨"
+msgstr "객체와 라프트 사이의 Z 거리. 가용성 재료의 접점은 무시됨"
 
 msgid "Raft expansion"
 msgstr "라프트 확장"
@@ -13021,7 +13062,7 @@ msgid ""
 "Object will be raised by this number of support layers. Use this function to "
 "avoid wrapping when print ABS"
 msgstr ""
-"개체를 이 레이어 수 많큼 들어올립니다. 이 기능을 사용하여 ABS 출력 시 뒤틀림"
+"객체를 이 레이어 수 많큼 들어올립니다. 이 기능을 사용하여 ABS 출력 시 뒤틀림"
 "(워핑)을 방지합니다"
 
 msgid ""
@@ -13029,7 +13070,7 @@ msgid ""
 "much points and gcode lines in gcode file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
-"G코드 경로는 G코드 파일에서 너무 많은 점과 G코드 라인을 방지하기 위해 모델의 "
+"Gcode 경로는 Gcode 파일에서 너무 많은 점과 Gcode 라인을 방지하기 위해 모델의 "
 "윤곽을 단순화한 후 생성됩니다. 작은 값은 높은 해상도와 많은 슬라이스 시간을 "
 "의미합니다"
 
@@ -13042,14 +13083,14 @@ msgid ""
 msgstr "이동 거리가 이 임계값보다 긴 경우에만 후퇴를 실행합니다"
 
 msgid "Retract amount before wipe"
-msgstr "닦기 전 후퇴량"
+msgstr "노즐 청소 전 후퇴량"
 
 msgid ""
 "The length of fast retraction before wipe, relative to retraction length"
 msgstr ""
-"후퇴 길이에 비례한 닦기 전 후퇴량(닦기를 시작하기 전에 일부 필라멘트를 후퇴시"
-"키면 노즐 끝에 녹아있는 소량의 필라멘트만 남게되어 추가 누수 위험이 줄어들 "
-"수 있습니다)"
+"후퇴 길이에 비례한 노즐 청소 전 후퇴량(노즐 청소를 시작하기 전에 일부 필라멘"
+"트를 후퇴시키면 노즐 끝에 녹아있는 소량의 필라멘트만 남게되어 추가 누수 위험"
+"이 줄어들 수 있습니다)"
 
 msgid "Retract when change layer"
 msgstr "레이어 변경 시 후퇴"
@@ -13247,7 +13288,7 @@ msgid ""
 msgstr "M73 생성 비활성화: 최종 G코드에 남은 출력 시간 설정"
 
 msgid "Seam position"
-msgstr "솔기 위치"
+msgstr "재봉선 위치"
 
 msgid "The start position to print each part of outer wall"
 msgstr "외벽 각 부분의 출력 시작 위치"
@@ -13265,17 +13306,17 @@ msgid "Random"
 msgstr "무작위"
 
 msgid "Staggered inner seams"
-msgstr "엇갈린 내부 솔기"
+msgstr "엇갈린 내부 재봉선"
 
 msgid ""
 "This option causes the inner seams to be shifted backwards based on their "
 "depth, forming a zigzag pattern."
 msgstr ""
-"이 옵션을 사용하면 내부 솔기가 깊이에 따라 뒤로 이동하여 지그재그 패턴을 형성"
-"합니다."
+"이 옵션을 사용하면 내부 재봉선가 깊이에 따라 뒤로 이동하여 지그재그 패턴을 형"
+"성합니다."
 
 msgid "Seam gap"
-msgstr "솔기 간격"
+msgstr "재봉선 간격"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
@@ -13283,17 +13324,18 @@ msgid ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
-"폐쇄 루프 압출에서 솔기의 가시성을 줄이기 위해 루프가 중단되고 지정된 양만큼 "
-"짧아집니다.\n"
+"폐쇄 루프 압출에서 재봉선의 가시성을 줄이기 위해 루프가 중단되고 지정된 양만"
+"큼 짧아집니다.\n"
 "이 양은 밀리미터로 지정하거나 현재 압출기 직경의 백분율로 지정할 수 있습니"
 "다. 이 매개 변수의 기본값은 10%입니다."
 
 msgid "Scarf joint seam (beta)"
-msgstr "스카프 조인트 솔기(베타)"
+msgstr "스카프 조인트 재봉선(베타)"
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr ""
-"솔기 가시성을 최소화하고 솔기 강도를 높이려면 스카프 조인트를 사용하십시오."
+"재봉선 가시성을 최소화하고 재봉선 강도를 높이려면 스카프 조인트를 사용하십시"
+"오."
 
 msgid "Conditional scarf joint"
 msgstr "조건부 스카프 조인트"
@@ -13302,8 +13344,8 @@ msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr ""
-"전통적인 솔기가 날카로운 모서리의 솔기를 효과적으로 숨기지 않는 매끄러운 둘레"
-"에만 스카프 조인트를 적용하십시오."
+"전통적인 재봉선가 날카로운 모서리의 재봉선를 효과적으로 숨기지 않는 매끄러운 "
+"둘레에만 스카프 조인트를 적용하십시오."
 
 msgid "Conditional angle threshold"
 msgstr "조건부 각도 임계값"
@@ -13315,12 +13357,13 @@ msgid ""
 "(indicating the absence of sharp corners), a scarf joint seam will be used. "
 "The default value is 155°."
 msgstr ""
-"이 옵션은 조건부 스카프 접합 솔기를 적용하기 위한 임계값 각도를 설정합니다.\n"
+"이 옵션은 조건부 스카프 접합 재봉선를 적용하기 위한 임계값 각도를 설정합니"
+"다.\n"
 "주변 루프 내의 최대 각도가 이 값을 초과하는 경우(뾰족한 모서리가 없음을 나타"
-"냄) 스카프 조인트 솔기가 사용됩니다. 기본값은 155°입니다."
+"냄) 스카프 조인트 재봉선가 사용됩니다. 기본값은 155°입니다."
 
 msgid "Conditional overhang threshold"
-msgstr "조건부 돌출부 임계값"
+msgstr "조건부 오버행 임계값"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -13357,7 +13400,7 @@ msgstr ""
 "습니다."
 
 msgid "Scarf joint flow ratio"
-msgstr "스카프 조인트 유량 비율"
+msgstr "스카프 조인트 압출량 비율"
 
 msgid "This factor affects the amount of material for scarf joints."
 msgstr "이 요소는 스카프 조인트의 재료 양에 영향을 미칩니다."
@@ -13403,25 +13446,25 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "내벽에도 스카프 조인트를 사용하십시오."
 
 msgid "Role base wipe speed"
-msgstr "역할 기반 닦기 속도"
+msgstr "역할 기반 노즐 청소 속도"
 
 msgid ""
 "The wipe speed is determined by the speed of the current extrusion role.e.g. "
 "if a wipe action is executed immediately following an outer wall extrusion, "
 "the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
-"닦기 속도는 현재 압출기의 속도에 따라 결정됩니다. ex)외벽 압출 직후에 닦기 동"
-"작을 실행하면 외벽 압출 속도가 닦기에 사용됩니다."
+"노즐 청소 속도는 현재 압출기의 속도에 따라 결정됩니다. ex)외벽 압출 직후에 노"
+"즐 청소 동작을 실행하면 외벽 압출 속도가 노즐 청소에 사용됩니다."
 
 msgid "Wipe on loops"
-msgstr "루프에서 닦기"
+msgstr "루프에서 노즐 청소"
 
 msgid ""
 "To minimize the visibility of the seam in a closed loop extrusion, a small "
 "inward movement is executed before the extruder leaves the loop."
 msgstr ""
-"폐쇄 루프 압출에서 솔기의 가시성을 최소화하기 위해 압출기가 루프를 떠나기 전"
-"에 안쪽으로의 작은 이동이 실행됩니다."
+"폐쇄 루프 압출에서 재봉선의 가시성을 최소화하기 위해 압출기가 루프를 떠나기 "
+"전에 안쪽으로의 작은 이동이 실행됩니다."
 
 msgid "Wipe before external loop"
 msgstr "외부 루프 전 닦아내기"
@@ -13446,7 +13489,7 @@ msgstr ""
 "드에서는 후퇴 이동 직후 외부 둘레가 출력될 가능성이 더 높기 때문입니다."
 
 msgid "Wipe speed"
-msgstr "닦기 속도"
+msgstr "노즐 청소 속도"
 
 msgid ""
 "The wipe speed is determined by the speed setting specified in this "
@@ -13454,15 +13497,15 @@ msgid ""
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 msgstr ""
-"닦기 속도는 이 구성에 지정된 속도 설정에 따라 결정됩니다. 값이 백분율(예: "
-"80%)로 표시되면 이동 속도 설정을 기준으로 계산됩니다. 이 매개 변수의 기본값"
-"은 80%입니다"
+"노즐 청소 속도는 이 구성에 지정된 속도 설정에 따라 결정됩니다. 값이 백분율"
+"(예: 80%)로 표시되면 이동 속도 설정을 기준으로 계산됩니다. 이 매개 변수의 기"
+"본값은 80%입니다"
 
 msgid "Skirt distance"
 msgstr "스커트 거리"
 
 msgid "Distance from skirt to brim or object"
-msgstr "스커트와 브림 또는 개체와의 거리"
+msgstr "스커트와 브림 또는 객체와의 거리"
 
 msgid "Skirt start point"
 msgstr "스커트 시작점"
@@ -13481,6 +13524,15 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr ""
 "얼마나 많은 스커트 레이어를 생성할지 결정합니다. 일반적으로 한개의 레이어를 "
 "사용합니다"
+
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
 
 msgid "Draft shield"
 msgstr "드래프트 실드"
@@ -13502,7 +13554,7 @@ msgstr ""
 "\n"
 "활성화 = 스커트가 가장 높은 출력물의 높이와 같습니다. 그렇지 않으면 '스커트 "
 "높이'가 사용됩니다.\n"
-"참고: 드래프트 실드가 활성화되면 스커트는 개체로부터 스커트 거리에 출력됩니"
+"참고: 드래프트 실드가 활성화되면 스커트는 객체로부터 스커트 거리에 출력됩니"
 "다. 따라서 챙이 활성화된 경우 챙과 교차할 수 있습니다. 이를 방지하려면 스커"
 "트 거리 값을 늘리십시오.\n"
 
@@ -13515,13 +13567,13 @@ msgstr "스커트 유형"
 msgid ""
 "Combined - single skirt for all objects, Per object - individual object "
 "skirt."
-msgstr "결합 - 모든 개체에 대한 단일 스커트, 개체별 - 개별 객체 스커트."
+msgstr "결합 - 모든 객체에 대한 단일 스커트, 객체별 - 개별 객체 스커트."
 
 msgid "Combined"
 msgstr "결합"
 
 msgid "Per object"
-msgstr "개체당"
+msgstr "객체당"
 
 msgid "Skirt loops"
 msgstr "스커트 루프"
@@ -13545,7 +13597,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 "스커트를 출력할 때 최소 필라멘트 압출 길이(mm)입니다. 0은 이 기능이 비활성화"
 "되었음을 의미합니다.\n"
@@ -13553,7 +13605,7 @@ msgstr ""
 "프린터가 프라임 라인 없이 출력하도록 설정된 경우 0이 아닌 값을 사용하는 것이 "
 "유용합니다.\n"
 "루프의 최종 수는 객체 거리를 정렬하거나 검증하는 동안 고려되지 않습니다. 그러"
-"한 경우에는 루프 수를 늘리십시오. "
+"한 경우에는 루프 수를 늘리십시오."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -13590,8 +13642,8 @@ msgid ""
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam"
 msgstr ""
-"나선형은 외부 윤곽선의 z 이동을 부드럽게 합니다. 그리고 개체를 꽉찬 하단 레이"
-"어가 있는 단일 벽으로 출력합니다. 최종 생성된 출력물에는 솔기가 없습니다"
+"나선형은 외부 윤곽선의 z 이동을 부드럽게 합니다. 그리고 객체를 꽉찬 하단 레이"
+"어가 있는 단일 벽으로 출력합니다. 최종 생성된 출력물에는 재봉선가 없습니다"
 
 msgid "Smooth Spiral"
 msgstr "부드러운 나선형"
@@ -13606,31 +13658,40 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "최대 XY 스무딩"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "부드러운 나선형을 얻기 위해 점을 XY로 이동하는 최대 거리 %로 표시할 경우 노"
 "즐 직경에 대해 계산됩니다"
 
+msgid "Spiral starting flow ratio"
+msgstr "나선형 시작 유량비"
+
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from 0% "
 "to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
-"마지막 하단 레이어에서 나선형으로 전환하는 동안 시작 유량 비율을 설정합니다. "
-"일반적으로 나선형 전환은 첫 번째 루프 동안 유량 비율을 0% 에서 100% 로 스케일"
-"링하므로 경우에 따라 나선형 시작 시 압출이 미달될 수 있습니다."
+"마지막 하단 레이어에서 나선형으로 전환하는 동안 시작 압출량 비율을 설정합니"
+"다. 일반적으로 나선형 전환은 첫 번째 루프 동안 압출량 비율을 0% 에서 100% 로 "
+"스케일링하므로 경우에 따라 나선형 시작 시 압출이 미달될 수 있습니다."
 
+msgid "Spiral finishing flow ratio"
+msgstr "나선형 종료 유량비"
+
+#, fuzzy, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
 "can in some cases lead to under extrusion at the end of the spiral."
 msgstr ""
-"나선형을 끝내는 동안 마무리 유량을 설정합니다. 일반적으로 나선형 전환은 마지"
-"막 루프 동안 유량 비율을 100% 에서 0% 로 스케일링하므로 경우에 따라 나선형 끝"
-"에서 압출이 미달될 수 있습니다."
+"나선형을 끝내는 동안 마무리 압출량을 설정합니다. 일반적으로 나선형 전환은 마"
+"지막 루프 동안 압출량 비율을 100% 에서 0% 로 스케일링하므로 경우에 따라 나선"
+"형 끝에서 압출이 미달될 수 있습니다."
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -13688,13 +13749,13 @@ msgstr ""
 "의 경우 1로 설정하세요."
 
 msgid "Start G-code"
-msgstr "시작 G코드"
+msgstr "시작 Gcode"
 
 msgid "Start G-code when start the whole printing"
-msgstr "전체 출력을 시작할 때의 시작 G코드"
+msgstr "전체 출력을 시작할 때의 시작 Gcode"
 
 msgid "Start G-code when start the printing of this filament"
-msgstr "이 필라멘트의 출력을 시작할 때의 시작 G코드"
+msgstr "이 필라멘트의 출력을 시작할 때의 시작 Gcode"
 
 msgid "Single Extruder Multi Material"
 msgstr "단일 압출기 다중 재료"
@@ -13824,7 +13885,13 @@ msgid "Support/object xy distance"
 msgstr "서포트/객체 XY 거리"
 
 msgid "XY separation between an object and its support"
-msgstr "개체와 서포트를 분리하는 XY 간격"
+msgstr "객체와 서포트를 분리하는 XY 간격"
+
+msgid "Support/object first layer gap"
+msgstr "Support/object first layer gap"
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr "XY separation between an object and its support at the first layer."
 
 msgid "Pattern angle"
 msgstr "패턴 각도"
@@ -13849,10 +13916,10 @@ msgstr ""
 "부위에 대해서만 서포트를 생성합니다."
 
 msgid "Remove small overhangs"
-msgstr "작은 돌출부 서포트 제거"
+msgstr "작은 오버행 서포트 제거"
 
 msgid "Remove small overhangs that possibly need no supports."
-msgstr "서포트가 필요하지 않은 작은 돌출부에서 서포트를 제거합니다."
+msgstr "서포트가 필요하지 않은 작은 오버행에서 서포트를 제거합니다."
 
 msgid "Top Z distance"
 msgstr "상단 Z 거리"
@@ -13990,10 +14057,10 @@ msgstr ""
 "서포트의 스타일과 모양. 일반 서포트의 경우, 격자는 보다 안정적인 서포트(기본"
 "값)가 생성되는 반면, 맞춤 서포트는 재료를 절약하고 서포트 자국을 줄입니다.\n"
 "트리 서포트의 경우, 얇은 및 유기체 모양은 가지를 보다 적극적으로 병합하고 많"
-"은 재료를 절약합니다(기본값 유기체). 반면 혼합 모양은 크고 평평한 돌출부 아래"
+"은 재료를 절약합니다(기본값 유기체). 반면 혼합 모양은 크고 평평한 오버행 아래"
 "에 일반 서포트와 유사한 구조를 만듭니다."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr "기본값(그리드/오가닉"
 
 msgid "Snug"
@@ -14029,7 +14096,7 @@ msgstr "임계값 각도"
 msgid ""
 "Support will be generated for overhangs whose slope angle is below the "
 "threshold."
-msgstr "경사각이 임계값 미만인 돌출부에 서포트가 생성됩니다."
+msgstr "경사각이 임계값 미만인 오버행에 서포트가 생성됩니다."
 
 msgid "Threshold overlap"
 msgstr "임계값 중복"
@@ -14050,7 +14117,7 @@ msgid ""
 "tree support allowed to make.If the angle is increased, the branches can be "
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
-"이 설정은 트리 서포트의 가지가 만들 수 있는 돌출부의 최대 각도를 결정합니다. "
+"이 설정은 트리 서포트의 가지가 만들 수 있는 오버행의 최대 각도를 결정합니다. "
 "각도가 증가하면 가지가 멀리까지 닿을 수 있도록 더 수평으로 출력될 수 있습니"
 "다."
 
@@ -14085,8 +14152,8 @@ msgid ""
 "interfaces instead of a high branch density value if dense interfaces are "
 "needed."
 msgstr ""
-"가지 끝을 생성하는 데 사용되는 서포트의 밀도를 조정합니다. 값이 높을수록 돌출"
-"부가 더 좋아지지만 서포트를 제거하기가 더 어렵습니다. 따라서 조밀한 인터페이"
+"가지 끝을 생성하는 데 사용되는 서포트의 밀도를 조정합니다. 값이 높을수록 오버"
+"행가 더 좋아지지만 서포트를 제거하기가 더 어렵습니다. 따라서 조밀한 인터페이"
 "스가 필요한 경우 높은 가지 밀도 값 대신 상단 지지 인터페이스를 활성화하는 것"
 "이 좋습니다."
 
@@ -14142,23 +14209,14 @@ msgstr ""
 "께를 가지는 가지가 됩니다. 약간의 각도는 유기체 서포트의 안정성을 증가시킬 "
 "수 있습니다."
 
-msgid "Branch Diameter with double walls"
-msgstr "이중 벽이 있는 가지 직경"
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-"이 직경의 원 면적보다 더 큰 면적을 가진 가지는 안정성을 위해 이중벽으로 출력"
-"됩니다. 이중벽을 허용하지 않으려면 이 값을 0으로 설정합니다."
-
 msgid "Support wall loops"
 msgstr "서포트 벽 루프"
 
-msgid "This setting specify the count of walls around support"
-msgstr "이 설정은 서포트 주변의 벽 수를 지정합니다"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr ""
+"이 설정은 [0,2] 범위에서 지지벽의 개수를 지정합니다. 0은 자동을 의미합니다."
 
 msgid "Tree support with infill"
 msgstr "채우기가 있는 트리 서포트"
@@ -14225,7 +14283,7 @@ msgstr ""
 "\n"
 "활성화된 경우 이 매개변수는 원하는 챔버 온도를 출력 시작 매크로 또는 "
 "PRINT_START(기타 변수) CHAMBER_TEMP=[chamber_temp]와 같은 열 흡수 매크로에 전"
-"달하는 데 사용할 수 있는 Chamber_temp라는 G코드 변수도 설정합니다. 이는 프린"
+"달하는 데 사용할 수 있는 Chamber_temp라는 Gcode 변수도 설정합니다. 이는 프린"
 "터가 M141/M191 명령을 지원하지 않거나 활성 챔버 히터가 설치되지 않은 경우 출"
 "력 시작 매크로에서 열 흡수를 처리하려는 경우 유용할 수 있습니다."
 
@@ -14293,7 +14351,7 @@ msgid "Speed of travel which is faster and without extrusion"
 msgstr "압출이 없을 때의 이동 속도"
 
 msgid "Wipe while retracting"
-msgstr "후퇴 시 닦기"
+msgstr "후퇴 시 노즐 청소"
 
 msgid ""
 "Move nozzle along the last extrusion path when retracting to clean leaked "
@@ -14303,7 +14361,7 @@ msgstr ""
 "즐을 이동합니다. 이동 후 출력을 시작할 때 방울을 최소화할 수 있습니다"
 
 msgid "Wipe Distance"
-msgstr "닦기 거리"
+msgstr "노즐 청소 거리"
 
 msgid ""
 "Describe how long the nozzle will move along the last path when "
@@ -14329,7 +14387,7 @@ msgid ""
 "stabilize the chamber pressure inside the nozzle, in order to avoid "
 "appearance defects when printing objects."
 msgstr ""
-"프라임 타워는 개체를 출력할 때 외관 결함을 방지하기 위해 노즐의 잔류물을 청소"
+"프라임 타워는 객체를 출력할 때 외관 결함을 방지하기 위해 노즐의 잔류물을 청소"
 "하고 노즐 내부의 압력을 안정화하는 데 사용할 수 있습니다."
 
 msgid "Purging volumes"
@@ -14433,7 +14491,7 @@ msgid ""
 "printed with transparent filament, the mixed color infill will be seen "
 "outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"필라멘트 교체 후 버리기는 개체의 채우기 내부에서 수행됩니다. 이렇게 하면 낭비"
+"필라멘트 교체 후 버리기는 객체의 채우기 내부에서 수행됩니다. 이렇게 하면 낭비"
 "되는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 벽이 투명 필라멘트로 출력"
 "된 경우 혼합 색상 충전재가 외부에 보입니다. 프라임 타워가 활성화되지 않으면 "
 "적용되지 않습니다."
@@ -14443,7 +14501,7 @@ msgid ""
 "lower the amount of waste and decrease the print time. It will not take "
 "effect, unless the prime tower is enabled."
 msgstr ""
-"필라멘트 변경 후 버리기는 개체의 서포트 내부에서 수행됩니다. 이렇게 하면 낭비"
+"필라멘트 변경 후 버리기는 객체의 서포트 내부에서 수행됩니다. 이렇게 하면 낭비"
 "되는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 프라임 타워가 활성화되지 "
 "않으면 적용되지 않습니다."
 
@@ -14452,8 +14510,8 @@ msgid ""
 "filament and decrease the print time. Colours of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"이 개체는 필라멘트를 절약하고 출력 시간을 줄이기 위해 필라멘트 변경 후 노즐"
-"에 남은 잔류물을 제거하는 데 사용됩니다. 결과적으로 개체의 색상이 혼합됩니"
+"이 객체는 필라멘트를 절약하고 출력 시간을 줄이기 위해 필라멘트 변경 후 노즐"
+"에 남은 잔류물을 제거하는 데 사용됩니다. 결과적으로 객체의 색상이 혼합됩니"
 "다. 기본 타워가 활성화되지 않으면 적용되지 않습니다."
 
 msgid "Maximal bridging distance"
@@ -14483,9 +14541,9 @@ msgid "Idle temperature"
 msgstr "공회전 온도"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 "도구가 현재 다중 도구 설정에서 사용되지 않을 때의 노즐 온도. 이는 출력 설정에"
 "서 '흘러내림 방지'가 활성화된 경우에만 사용됩니다. 비활성화하려면 0으로 설정"
@@ -14499,7 +14557,7 @@ msgid ""
 "Positive value makes holes bigger. Negative value makes holes smaller. This "
 "function is used to adjust size slightly when the object has assembling issue"
 msgstr ""
-"개체의 구멍(Holes)은 구성된 값에 의해 XY 평면에서 커지거나 줄어듭니다. 양수 "
+"객체의 구멍(Holes)은 구성된 값에 의해 XY 평면에서 커지거나 줄어듭니다. 양수 "
 "값은 구멍을 더 크게 만듭니다. 음수 값은 구멍을 더 작게 만듭니다. 이 기능은 개"
 "체의 조립 문제가 있을 때 크기를 약간 조정하는 데 사용됩니다"
 
@@ -14512,8 +14570,8 @@ msgid ""
 "smaller. This function is used to adjust size slightly when the object has "
 "assembling issue"
 msgstr ""
-"개체의 윤곽은 구성된 값에 의해 XY 평면에서 커지거나 줄어듭니다. 양수 값은 윤"
-"곽선을 더 크게 만듭니다. 음수 값은 윤곽선을 더 작게 만듭니다. 이 기능은 개체"
+"객체의 윤곽은 구성된 값에 의해 XY 평면에서 커지거나 줄어듭니다. 양수 값은 윤"
+"곽선을 더 크게 만듭니다. 음수 값은 윤곽선을 더 작게 만듭니다. 이 기능은 객체"
 "의 조립 문제가 있을 때 크기를 약간 조정하는 데 사용됩니다"
 
 msgid "Convert holes to polyholes"
@@ -14555,7 +14613,7 @@ msgid "Rotate the polyhole every layer."
 msgstr "레이어마다 폴리홀을 회전시킵니다."
 
 msgid "G-code thumbnails"
-msgstr "G코드 미리보기"
+msgstr "Gcode 미리보기"
 
 msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
@@ -14565,13 +14623,13 @@ msgstr ""
 "기"
 
 msgid "Format of G-code thumbnails"
-msgstr "G코드 미리보기 형식"
+msgstr "Gcode 미리보기 형식"
 
 msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
 "QOI for low memory firmware"
 msgstr ""
-"G코드 미리보기 포맷: 최고 품질은 PNG, 최소 크기는 JPG, 저메모리 펌웨어는 QOI"
+"Gcode 미리보기 포맷: 최고 품질은 PNG, 최소 크기는 JPG, 저메모리 펌웨어는 QOI"
 
 msgid "Use relative E distances"
 msgstr "상대적 E 거리 사용"
@@ -14737,17 +14795,124 @@ msgstr "너무 넓은 선 너비 "
 msgid " not in range "
 msgstr " 범위를 벗어남 "
 
+msgid "Export 3MF"
+msgstr "3MF 내보내기"
+
+msgid "Export project as 3MF."
+msgstr "프로젝트를 3MF로 내보내기."
+
+msgid "Export slicing data"
+msgstr "슬라이싱 데이터 내보내기"
+
+msgid "Export slicing data to a folder."
+msgstr "슬라이싱 데이터 폴더로 내보내기."
+
+msgid "Load slicing data"
+msgstr "슬라이싱 데이터 로드"
+
+msgid "Load cached slicing data from directory"
+msgstr "디렉토리에 캐시된 슬라이싱 데이터 로드"
+
+msgid "Export STL"
+msgstr "STL 내보내기"
+
+msgid "Export the objects as single STL."
+msgstr "객체를 단일 STL로 내보냅니다."
+
+msgid "Export multiple STLs"
+msgstr "여러 STL을 내보내기"
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr "객ㅊ를 디렉터리에 여러 STL로 내보내기"
+
+msgid "Slice"
+msgstr "슬라이스"
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr "플레이트 슬라이스: 0-모든 플레이트, i-플레이트 i, 기타-잘못됨"
+
+msgid "Show command help."
+msgstr "명령 도움말을 표시합니다."
+
+msgid "UpToDate"
+msgstr "최신 정보"
+
+msgid "Update the configs values of 3mf to latest."
+msgstr "3mf의 구성 값을 최신으로 업데이트합니다."
+
+msgid "downward machines check"
+msgstr "하향 머신 점검"
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr "현재 머신이 목록에 있는 머신과 하위 호환되는지 확인합니다."
+
+msgid "Load default filaments"
+msgstr "기본 필라멘트 로드"
+
+msgid "Load first filament as default for those not loaded"
+msgstr "로드되지 않은 경우 기본값으로 첫 번째 필라멘트 로드"
+
 msgid "Minimum save"
 msgstr "최소 크기로 저장"
 
 msgid "export 3mf with minimum size."
 msgstr "최소 크기로 3mf를 내보냅니다."
 
+msgid "mtcpp"
+msgstr "mtcpp"
+
+msgid "max triangle count per plate for slicing."
+msgstr "슬라이싱을 위한 플레이트당 최대 삼각형 개수."
+
+msgid "mstpp"
+msgstr "mstpp"
+
+msgid "max slicing time per plate in seconds."
+msgstr "플레이트당 최대 슬라이싱 시간(초)"
+
 msgid "No check"
 msgstr "확인 안 함"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
-msgstr "G코드 경로 충돌 검사와 같은 유효성 검사를 실행하지 마십시오."
+msgstr "Gcode 경로 충돌 검사와 같은 유효성 검사를 실행하지 마십시오."
+
+msgid "Normative check"
+msgstr "표준 검사"
+
+msgid "Check the normative items."
+msgstr "표준 항목을 확인합니다."
+
+msgid "Output Model Info"
+msgstr "모델 정보 출력"
+
+msgid "Output the model's information."
+msgstr "모델 정보를 출력합니다."
+
+msgid "Export Settings"
+msgstr "설정 내보내기"
+
+msgid "Export settings to a file."
+msgstr "설정을 파일로 내보내기."
+
+msgid "Send progress to pipe"
+msgstr "진행 상황을 파이프로 보내기"
+
+msgid "Send progress to pipe."
+msgstr "진행 상황을 파이프로 보내기."
+
+msgid "Arrange Options"
+msgstr "정렬 옵션"
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr "정렬 옵션: 0-사용 안 함, 1-사용, 기타-자동"
+
+msgid "Repetions count"
+msgstr "반복 횟수"
+
+msgid "Repetions count of the whole model"
+msgstr "전체 모델의 반복 횟수"
 
 msgid "Ensure on bed"
 msgstr "베드에서 확인"
@@ -14755,8 +14920,21 @@ msgstr "베드에서 확인"
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr ""
-"개체의 일부가 베드 아래에 있을 때 베드 위로 개체를 들어올립니다. 기본적으로 "
+"객체의 일부가 베드 아래에 있을 때 베드 위로 객체를 들어올립니다. 기본적으로 "
 "비활성화됩니다"
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+"제공된 모델을 플레이트에 배열하고 단일 모델로 병합하여 작업을 한 번 수행합니"
+"다."
+
+msgid "Convert Unit"
+msgstr "단위 변환"
+
+msgid "Convert the units of model"
+msgstr "모델의 단위를 변환"
 
 msgid "Orient Options"
 msgstr "방향 최적화 옵션"
@@ -14773,6 +14951,69 @@ msgstr "Y를 중심으로 회전"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "Y축을 중심으로 한 회전 각도입니다."
 
+msgid "Scale the model by a float factor"
+msgstr "부동 소수점 계수로 모델 크기 조정"
+
+msgid "Load General Settings"
+msgstr "일반 설정 로드"
+
+msgid "Load process/machine settings from the specified file"
+msgstr "지정된 파일에서 프로세스/기계 설정 로드"
+
+msgid "Load Filament Settings"
+msgstr "필라멘트 설정 로드"
+
+msgid "Load filament settings from the specified file list"
+msgstr "지정된 파일 목록에서 필라멘트 설정 불러오기"
+
+msgid "Skip Objects"
+msgstr "객체 건너뛰기"
+
+msgid "Skip some objects in this print"
+msgstr "이 출력에서 일부 객체를 건너뜁니다"
+
+msgid "Clone Objects"
+msgstr "객체 복제"
+
+msgid "Clone objects in the load list"
+msgstr "로드 목록에서 객체 복제"
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr "uptodate 사용 시 최신 프로세스/프린터 설정 로드"
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
+"uptodate를 사용할 때 지정된 파일에서 최신 프로세스/프린터 설정을 로드합니다"
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr "최신 필라멘트 설정 사용 시 최신 필라멘트 설정 로드"
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+"최신 필라멘트 설정을 사용할 때 지정된 파일에서 최신 필라멘트 설정을 로드합니"
+"다."
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+"활성화된 경우 현재 컴퓨터가 목록에 있는 컴퓨터와 하위 호환되는지 확인합니다."
+
+msgid "downward machines settings"
+msgstr "하향 머신 설정"
+
+msgid "the machine settings list need to do downward checking"
+msgstr "머신 설정 목록에서 아래쪽을 확인해야 합니다."
+
+msgid "Load assemble list"
+msgstr "조립 목록 로드"
+
+msgid "Load assemble object list from config file"
+msgstr "구성 파일에서 조립 객체 목록 로드"
+
 msgid "Data directory"
 msgstr "데이터 디렉토리"
 
@@ -14784,24 +15025,105 @@ msgstr ""
 "지정된 디렉토리에 설정을 로드하고 저장합니다. 이 기능은 서로 다른 사전설정을 "
 "유지하거나 네트워크 스토리지의 구성을 포함하는 데 유용합니다."
 
+msgid "Output directory"
+msgstr "출력 디렉토리"
+
+msgid "Output directory for the exported files."
+msgstr "내보내기 파일의 출력 디렉토리입니다."
+
+msgid "Debug level"
+msgstr "디버그 수준"
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
+msgstr ""
+"디버그 로깅 수준을 설정합니다. 0:치명적, 1:오류, 2:경고, 3:정보, 4:디버그, 5:"
+"추적\n"
+
+msgid "Enable timelapse for print"
+msgstr "출력에 타임랩스 활성화"
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr "활성화하면 타임랩스를 사용하여 이 슬라이싱을 고려합니다."
+
 msgid "Load custom gcode"
-msgstr "사용자 정의 G코드 불러오기"
+msgstr "사용자 정의 Gcode 불러오기"
 
 msgid "Load custom gcode from json"
 msgstr "사용자 정의 G코드를 json에서 불러오기"
+
+msgid "Load filament ids"
+msgstr "필라멘트 ID 불러오기"
+
+msgid "Load filament ids for each object"
+msgstr "각 객체에 대한 필라멘트 ID 로드"
+
+msgid "Allow multiple color on one plate"
+msgstr "한 플레이트에서 여러 색상 허용"
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr "활성화하면 하나의 플레이트에 여러 색상을 허용합니다."
+
+msgid "Allow rotatations when arrange"
+msgstr "정렬할 때 회전 허용"
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr "활성화하면 객체를 배치할 때 배열이 회전을 허용합니다."
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr "정렬 시 돌출 보정 영역을 피하십시오."
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr "활성화하면 객체를 배치할 때 돌출 보정 영역을 피합니다."
+
+msgid "Skip modified gcodes in 3mf"
+msgstr "3mf에서 수정된 Gcode 건너뛰기"
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr "프린터 또는 필라멘트 사전 설정에서 3mf의 수정된 gcodes 건너뛰기"
+
+msgid "MakerLab name"
+msgstr "메이커 랩 이름"
+
+msgid "MakerLab name to generate this 3mf"
+msgstr "이 3mf를 생성하는 메이커랩 이름"
+
+msgid "MakerLab version"
+msgstr "메이커 랩 버전"
+
+msgid "MakerLab version to generate this 3mf"
+msgstr "이 3mf를 생성하기 위한 메이커랩 버전"
+
+msgid "metadata name list"
+msgstr "메타데이터 이름 목록"
+
+msgid "metadata name list added into 3mf"
+msgstr "3mf에 메타데이터 이름 목록 추가됨"
+
+msgid "metadata value list"
+msgstr "메타데이터 값 목록"
+
+msgid "metadata value list added into 3mf"
+msgstr "메타데이터 값 목록이 3MF에 추가됨"
+
+msgid "Allow 3mf with newer version to be sliced"
+msgstr "최신 버전의 3mf를 슬라이스하도록 허용"
 
 msgid "Current z-hop"
 msgstr "현재 Z올리기"
 
 msgid "Contains z-hop present at the beginning of the custom G-code block."
-msgstr "사용자 정의 G코드 블록의 시작 부분에 있는 Z올리기를 포함합니다."
+msgstr "사용자 정의 Gcode 블록의 시작 부분에 있는 Z올리기를 포함합니다."
 
 msgid ""
 "Position of the extruder at the beginning of the custom G-code block. If the "
 "custom G-code travels somewhere else, it should write to this variable so "
 "OrcaSlicer knows where it travels from when it gets control back."
 msgstr ""
-"사용자 정의 G코드 블록 시작 부분의 압출기 위치입니다. 사용자 정의 G코드가 다"
+"사용자 정의 Gcode 블록 시작 부분의 압출기 위치입니다. 사용자 정의 G코드가 다"
 "른 곳으로 이동하는 경우 PrusaSlicer가 제어권을 다시 얻을 때 이동 위치를 알 "
 "수 있도록 이 변수에 기록해야 합니다."
 
@@ -14810,7 +15132,7 @@ msgid ""
 "G-code moves the extruder axis, it should write to this variable so "
 "OrcaSlicer de-retracts correctly when it gets control back."
 msgstr ""
-"사용자 정의 G코드 블록 시작 부분의 후퇴 상태입니다. 사용자 정의 G코드가 압출"
+"사용자 정의 Gcode 블록 시작 부분의 후퇴 상태입니다. 사용자 정의 G코드가 압출"
 "기 축을 이동하는 경우 PrusaSlicer가 다시 제어권을 얻었을 때 올바르게 후퇴할 "
 "수 있도록 이 변수에 기록해야 합니다."
 
@@ -14840,7 +15162,7 @@ msgstr "현재 객체 인덱스"
 msgid ""
 "Specific for sequential printing. Zero-based index of currently printed "
 "object."
-msgstr "순차 출력에만 해당됩니다. 현재 출력된 개체의 0 기반 인덱스입니다."
+msgstr "순차 출력에만 해당됩니다. 현재 출력된 객체의 0 기반 인덱스입니다."
 
 msgid "Has wipe tower"
 msgstr "와이프 타워 있음"
@@ -14932,10 +15254,10 @@ msgid "Number of instances"
 msgstr "인스턴스 수"
 
 msgid "Total number of object instances in the print, summed over all objects."
-msgstr "모든 개체에 대해 합산된 출력물의 총 객체 인스턴스 수입니다."
+msgstr "모든 객체에 대해 합산된 출력물의 총 객체 인스턴스 수입니다."
 
 msgid "Scale per object"
-msgstr "개체당 크기 조정"
+msgstr "객체당 크기 조정"
 
 msgid ""
 "Contains a string with the information about what scaling was applied to the "
@@ -14943,15 +15265,15 @@ msgid ""
 "index 0).\n"
 "Example: 'x:100% y:50% z:100'."
 msgstr ""
-"개별 개체에 어떤 크기 조정이 적용되었는지에 대한 정보가 포함된 문자열을 포함"
-"합니다. 개체의 인덱싱은 0부터 시작합니다(첫 번째 개체의 인덱스는 0입니다).\n"
+"개별 객체에 어떤 크기 조정이 적용되었는지에 대한 정보가 포함된 문자열을 포함"
+"합니다. 객체의 인덱싱은 0부터 시작합니다(첫 번째 객체의 인덱스는 0입니다).\n"
 "예: 'x:100% y:50% z:100'."
 
 msgid "Input filename without extension"
 msgstr "확장자가 없는 입력 파일 이름"
 
 msgid "Source filename of the first object, without extension."
-msgstr "확장자가 없는 첫 번째 개체의 소스 파일 이름입니다."
+msgstr "확장자가 없는 첫 번째 객체의 소스 파일 이름입니다."
 
 msgid ""
 "The vector has two elements: x and y coordinate of the point. Values in mm."
@@ -15080,10 +15402,7 @@ msgid "Generating infill toolpath"
 msgstr "채우기 툴 경로 생성 중"
 
 msgid "Detect overhangs for auto-lift"
-msgstr "Z 올리기를 위한 돌출부 감지"
-
-msgid "Generating support"
-msgstr "서포트 생성 중"
+msgstr "Z 올리기를 위한 오버행 감지"
 
 msgid "Checking support necessity"
 msgstr "서포트 필요성 확인"
@@ -15095,7 +15414,7 @@ msgid "floating cantilever"
 msgstr "떠있는 외팔보"
 
 msgid "large overhangs"
-msgstr "큰 돌출부"
+msgstr "큰 오버행"
 
 #, c-format, boost-format
 msgid ""
@@ -15104,6 +15423,9 @@ msgid ""
 msgstr ""
 "객체 %s에 %s이(가) 있는 것 같습니다. 물체의 방향을 바꾸거나 서포트 생성을 활"
 "성화하세요."
+
+msgid "Generating support"
+msgstr "서포트 생성 중"
 
 msgid "Optimizing toolpath"
 msgstr "툴 경로 최적화"
@@ -15123,39 +15445,11 @@ msgid ""
 "painted.\n"
 "XY Size compensation can not be combined with color-painting."
 msgstr ""
-"개체의 XY 크기 보정은 색으로 칠해져 있기 때문에 사용되지 않습니다.\n"
+"객체의 XY 크기 보정은 색으로 칠해져 있기 때문에 사용되지 않습니다.\n"
 "XY 크기 보정은 컬러 페인팅과 결합할 수 없습니다."
-
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "서포트: 레이어 %d에서 툴 경로 생성"
-
-msgid "Support: detect overhangs"
-msgstr "서포트: 돌출부 감지"
 
 msgid "Support: generate contact points"
 msgstr "서포트: 접점 생성"
-
-msgid "Support: propagate branches"
-msgstr "서포트: 가지 증식"
-
-msgid "Support: draw polygons"
-msgstr "서포트: 폴리곤 그리기"
-
-msgid "Support: generate toolpath"
-msgstr "서포트: 툴 경로 생성"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "서포트: 레이어 %d에서 폴리곤 생성"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "서포트: 레이어 %d의 구멍 수정"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "서포트: 레이어 %d에서 가지 증식"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -15195,7 +15489,7 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "이 OBJ 파일은 비어 있어서 읽을 수 없습니다."
 
 msgid "Flow Rate Calibration"
-msgstr "유량 교정"
+msgstr "압출량 교정"
 
 msgid "Max Volumetric Speed Calibration"
 msgstr "최대 압출 속도 교정"
@@ -15232,7 +15526,7 @@ msgstr "교정 결과를 어떻게 사용하나요?"
 
 msgid ""
 "You could change the Flow Dynamics Calibration Factor in material editing"
-msgstr "재료 편집에서 동적 유량 교정 계수를 변경할 수 있습니다"
+msgstr "재료 편집에서 동적 압출량 교정 계수를 변경할 수 있습니다"
 
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
@@ -15251,10 +15545,10 @@ msgid "Extra info"
 msgstr "추가 정보"
 
 msgid "Flow Dynamics"
-msgstr "동적 유량"
+msgstr "동적 압출량"
 
 msgid "Flow Rate"
-msgstr "유량"
+msgstr "압출량"
 
 msgid "Max Volumetric Speed"
 msgstr "최대 압출 속도"
@@ -15324,7 +15618,7 @@ msgid "The failed test result has been dropped."
 msgstr "실패한 테스트 결과가 삭제되었습니다."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr "동적 유량 교정 결과가 프린터에 저장되었습니다"
+msgstr "동적 압출량 교정 결과가 프린터에 저장되었습니다"
 
 #, c-format, boost-format
 msgid ""
@@ -15350,13 +15644,13 @@ msgid "Please select at least one filament for calibration"
 msgstr "교정을 위해 하나 이상의 필라멘트를 선택하세요"
 
 msgid "Flow rate calibration result has been saved to preset"
-msgstr "유량 교정 결과가 사전 설정에 저장되었습니다"
+msgstr "압출량 교정 결과가 사전 설정에 저장되었습니다"
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "최대 압출 속도 교정 결과가 사전 설정에 저장되었습니다"
 
 msgid "When do you need Flow Dynamics Calibration"
-msgstr "동적 유량 교정이 필요한 경우"
+msgstr "동적 압출량 교정이 필요한 경우"
 
 msgid ""
 "We now have added the auto-calibration for different filaments, which is "
@@ -15398,13 +15692,13 @@ msgid ""
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"우리 위키에서 동적 유량 교정에 대한 자세한 내용을 찾아보세요.\n"
+"우리 위키에서 동적 압출량 교정에 대한 자세한 내용을 찾아보세요.\n"
 "\n"
-"일반적으로 교정은 필요하지 않습니다. 출력 시작 메뉴에서 \"동적 유량 교정\" 옵"
-"션을 선택한 상태에서 단일 색상/재료 출력을 시작하면 프린터는 이전 방식을 따르"
-"며 출력 전에 필라멘트를 교정합니다. 다중 색상/재료 출력을 시작하면 프린터는 "
-"모든 필라멘트 전환 중에 필라멘트에 대한 기본 보상 매개변수를 사용하므로 대부"
-"분의 경우 좋은 결과를 얻을 수 있습니다.\n"
+"일반적으로 교정은 필요하지 않습니다. 출력 시작 메뉴에서 \"동적 압출량 교정\" "
+"옵션을 선택한 상태에서 단일 색상/재료 출력을 시작하면 프린터는 이전 방식을 따"
+"르며 출력 전에 필라멘트를 교정합니다. 다중 색상/재료 출력을 시작하면 프린터"
+"는 모든 필라멘트 전환 중에 필라멘트에 대한 기본 보상 매개변수를 사용하므로 대"
+"부분의 경우 좋은 결과를 얻을 수 있습니다.\n"
 "\n"
 "교정 결과를 신뢰할 수 없게 만드는 몇 가지 경우가 있습니다. 텍스처 플레이트를 "
 "사용하여 보정을 수행합니다. 빌드 플레이트의 접착력이 좋지 않습니다. (빌드 플"
@@ -15416,7 +15710,7 @@ msgstr ""
 "인을 계속 조사하고 있습니다."
 
 msgid "When to use Flow Rate Calibration"
-msgstr "유량 교정을 사용해야 하는 경우"
+msgstr "압출량 교정을 사용해야 하는 경우"
 
 msgid ""
 "After using Flow Dynamics Calibration, there might still be some extrusion "
@@ -15429,9 +15723,9 @@ msgid ""
 "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
 "they should be."
 msgstr ""
-"동적 유량 교정을 사용한 후에도 다음과 같은 압출 문제가 여전히 발생할 수 있습"
-"니다.\n"
-"1. 과다 압출: 출력된 개체에 재료가 너무 많아 얼룩이나 잡티가 형성되거나 레이"
+"동적 압출량 교정을 사용한 후에도 다음과 같은 압출 문제가 여전히 발생할 수 있"
+"습니다.\n"
+"1. 과다 압출: 출력된 객체에 재료가 너무 많아 얼룩이나 잡티가 형성되거나 레이"
 "어가 예상보다 두껍고 균일하지 않은 것처럼 보입니다.\n"
 "2. 과소 압출: 레이어가 매우 얇거나 충전 강도가 약하거나 천천히 출력할 때에도 "
 "모델 상단 레이어에 틈이 있습니다.\n"
@@ -15444,8 +15738,8 @@ msgid ""
 "PLA used in RC planes. These materials expand greatly when heated, and "
 "calibration provides a useful reference flow rate."
 msgstr ""
-"또한 RC 비행기에 사용되는 LW-PLA와 같은 발포 재료에는 유량 교정이 중요합니"
-"다. 이러한 물질은 가열되면 크게 팽창하며 교정은 유용한 기준 유량을 제공합니"
+"또한 RC 비행기에 사용되는 LW-PLA와 같은 발포 재료에는 압출량 교정이 중요합니"
+"다. 이러한 물질은 가열되면 크게 팽창하며 교정은 유용한 기준 압출량을 제공합니"
 "다."
 
 msgid ""
@@ -15456,11 +15750,11 @@ msgid ""
 "you still see the listed defects after you have done other calibrations. For "
 "more details, please check out the wiki article."
 msgstr ""
-"유량 교정은 예상되는 압출량과 실제 압출량의 비율을 측정합니다. 기본 설정은 사"
-"전 보정되고 미세 조정된 뱀부랩 프린터 및 공식 필라멘트에서 잘 작동합니다. 일"
-"반 필라멘트의 경우 일반적으로 다른 교정을 수행한 후에도 나열된 결함이 표시되"
-"지 않는 한 유량 교정을 수행할 필요가 없습니다. 자세한 내용은 위키를 확인하시"
-"기 바랍니다."
+"압출량 교정은 예상되는 압출량과 실제 압출량의 비율을 측정합니다. 기본 설정은 "
+"사전 보정되고 미세 조정된 뱀부랩 프린터 및 공식 필라멘트에서 잘 작동합니다. "
+"일반 필라멘트의 경우 일반적으로 다른 교정을 수행한 후에도 나열된 결함이 표시"
+"되지 않는 한 압출량 교정을 수행할 필요가 없습니다. 자세한 내용은 위키를 확인"
+"하시기 바랍니다."
 
 msgid ""
 "Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
@@ -15480,19 +15774,19 @@ msgid ""
 "can lead to sub-par prints or printer damage. Please make sure to carefully "
 "read and understand the process before doing it."
 msgstr ""
-"자동 유량 교정은 뱀부랩의 마이크로 라이다 기술을 활용하여 교정 패턴을 직접 측"
-"정합니다. 그러나 특정 유형의 재료를 사용하면 이 방법의 효율성과 정확성이 저하"
-"될 수 있다는 점에 유의하시기 바랍니다. 특히, 투명 또는 반투명, 반짝이는 입자 "
-"또는 고반사 마감 처리된 필라멘트는 이 교정에 적합하지 않을 수 있으며 바람직하"
-"지 않은 결과를 생성할 수 있습니다.\n"
+"자동 압출량 교정은 뱀부랩의 마이크로 라이다 기술을 활용하여 교정 패턴을 직접 "
+"측정합니다. 그러나 특정 유형의 재료를 사용하면 이 방법의 효율성과 정확성이 저"
+"하될 수 있다는 점에 유의하시기 바랍니다. 특히, 투명 또는 반투명, 반짝이는 입"
+"자 또는 고반사 마감 처리된 필라멘트는 이 교정에 적합하지 않을 수 있으며 바람"
+"직하지 않은 결과를 생성할 수 있습니다.\n"
 "\n"
 "교정 결과는 각 교정 또는 필라멘트마다 다를 수 있습니다. 우리는 시간이 지남에 "
 "따라 펌웨어 업데이트를 통해 이 교정의 정확성과 호환성을 계속 개선하고 있습니"
 "다.\n"
 "\n"
-"주의: 유량 교정은 목적과 의미를 완전히 이해하는 사람만이 시도할 수 있는 고급 "
-"프로세스입니다. 잘못 사용하면 수준 이하의 출력이나 프린터 손상이 발생할 수 있"
-"습니다. 반드시 절차를 주의 깊게 읽고 이해하신 후 진행하시기 바랍니다."
+"주의: 압출량 교정은 목적과 의미를 완전히 이해하는 사람만이 시도할 수 있는 고"
+"급 프로세스입니다. 잘못 사용하면 수준 이하의 출력이나 프린터 손상이 발생할 "
+"수 있습니다. 반드시 절차를 주의 깊게 읽고 이해하신 후 진행하시기 바랍니다."
 
 msgid "When you need Max Volumetric Speed Calibration"
 msgstr "최대 압출 속도 교정이 필요한 경우"
@@ -15510,7 +15804,7 @@ msgid "materials with inaccurate filament diameter"
 msgstr "필라멘트 직경이 부정확한 재료"
 
 msgid "We found the best Flow Dynamics Calibration Factor"
-msgstr "최고의 동적 유량 교정 계수를 찾았습니다"
+msgstr "최고의 동적 압출량 교정 계수를 찾았습니다"
 
 msgid ""
 "Part of the calibration failed! You may clean the plate and retry. The "
@@ -15559,13 +15853,13 @@ msgid "Record Factor"
 msgstr "계수 기록"
 
 msgid "We found the best flow ratio for you"
-msgstr "당신에게 가장 적합한 유량 비율을 찾았습니다"
+msgstr "당신에게 가장 적합한 압출량 비율을 찾았습니다"
 
 msgid "Flow Ratio"
-msgstr "유량 비율"
+msgstr "압출량 비율"
 
 msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
-msgstr "유효한 값을 입력하세요(0.0 < 유량비율 < 2.0)"
+msgstr "유효한 값을 입력하세요(0.0 < 압출량비율 < 2.0)"
 
 msgid "Please enter the name of the preset you want to save."
 msgstr "저장하고 싶은 사전 설정의 이름을 입력해주세요."
@@ -15577,7 +15871,7 @@ msgid "Calibration2"
 msgstr "교정2"
 
 msgid "Please find the best object on your plate"
-msgstr "당신의 플레이트에서 가장 좋은 개체를 찾아보세요"
+msgstr "당신의 플레이트에서 가장 좋은 객체를 찾아보세요"
 
 msgid "Fill in the value above the block with smoothest top surface"
 msgstr "가장 매끄러운 윗면을 가진 블록 위의 값을 입력하세요"
@@ -15587,7 +15881,7 @@ msgstr "교정2 건너뛰기"
 
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr "유량 비율 : %s "
+msgstr "압출량 비율 : %s "
 
 msgid "Please choose a block with smoothest top surface"
 msgstr "상단 표면이 가장 매끄러운 블록을 선택하세요"
@@ -15605,7 +15899,7 @@ msgid "Complete Calibration"
 msgstr "교정 완료"
 
 msgid "Fine Calibration based on flow ratio"
-msgstr "유량비율에 따른 미세 교정"
+msgstr "압출량비율에 따른 미세 교정"
 
 msgid "Title"
 msgstr "제목"
@@ -15652,7 +15946,7 @@ msgid "%s is not compatible with %s"
 msgstr "%s은(는) %s과(와) 호환되지 않습니다"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
-msgstr "TPU는 동적 유량 자동 교정에서 지원되지 않습니다."
+msgstr "TPU는 동적 압출량 자동 교정에서 지원되지 않습니다."
 
 msgid "Connecting to printer"
 msgstr "프린터에 연결 중"
@@ -15676,7 +15970,7 @@ msgid "To Volumetric Speed"
 msgstr "압출 속도로"
 
 msgid "Flow Dynamics Calibration Result"
-msgstr "동적 유량 교정 결과"
+msgstr "동적 압출량 교정 결과"
 
 msgid "New"
 msgstr "새로운"
@@ -15688,7 +15982,7 @@ msgid "Success to get history result"
 msgstr "기록 결과 가져오기 성공"
 
 msgid "Refreshing the historical Flow Dynamics Calibration records"
-msgstr "과거 동적 유량 교정 기록 새로 고침"
+msgstr "과거 동적 압출량 교정 기록 새로 고침"
 
 msgid "Action"
 msgstr "실행"
@@ -15698,10 +15992,10 @@ msgid "This machine type can only hold %d history results per nozzle."
 msgstr "이 기계 유형은 노즐당 %d개의 기록 결과만 보유할 수 있습니다."
 
 msgid "Edit Flow Dynamics Calibration"
-msgstr "동적 유량 교정 편집"
+msgstr "동적 압출량 교정 편집"
 
 msgid "New Flow Dynamic Calibration"
-msgstr "새로운 유량 동적 교정"
+msgstr "새로운 압출량 동적 교정"
 
 msgid "Ok"
 msgstr "확인"
@@ -15771,8 +16065,20 @@ msgstr "종료 PA: "
 msgid "PA step: "
 msgstr "PA 단계: "
 
+msgid "Accelerations: "
+msgstr ""
+
+msgid "Speeds: "
+msgstr ""
+
 msgid "Print numbers"
 msgstr "출력 수"
+
+msgid "Comma-separated list of printing accelerations"
+msgstr ""
+
+msgid "Comma-separated list of printing speeds"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -15999,7 +16305,7 @@ msgid "Part 2"
 msgstr "부품 2"
 
 msgid "Delete input"
-msgstr "입력개체 삭제"
+msgstr "입력객체 삭제"
 
 msgid "Network Test"
 msgstr "네트워크 테스트"
@@ -17035,6 +17341,52 @@ msgstr ""
 msgid "User cancelled."
 msgstr "사용자가 취소했습니다."
 
+msgid "Head diameter"
+msgstr "헤드 직경"
+
+msgid "Max angle"
+msgstr "최대 각도"
+
+msgid "Detection radius"
+msgstr "감지 반경"
+
+msgid "Remove selected points"
+msgstr "선택한 지점 제거"
+
+msgid "Remove all"
+msgstr "모두 제거"
+
+msgid "Auto-generate points"
+msgstr "포인트 자동 생성"
+
+msgid "Add a brim ear"
+msgstr "브림 귀 추가"
+
+msgid "Delete a brim ear"
+msgstr "브림 귀 삭제"
+
+msgid "Adjust section view"
+msgstr "섹션 보기 조정"
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr ""
+"경고: 브림 유형이 “페인트”로 설정되어 있지 않으면 브림 귀가 적용되지 않습니"
+"다!"
+
+msgid "Set the brim type to \"painted\""
+msgstr "브림 유형을 “페인트”로 설정합니다."
+
+msgid " invalid brim ears"
+msgstr " 유효하지 않은 브림 귀"
+
+msgid "Brim Ears"
+msgstr "브림 귀"
+
+msgid "Please select single object."
+msgstr "단일 객체를 선택하세요."
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -17053,7 +17405,7 @@ msgid ""
 "overhangs?"
 msgstr ""
 "샌드위치 모드\n"
-"모델에 가파른 돌출부가 없는 경우 샌드위치 모드(내부-외부-내부)를 사용하여 정"
+"모델에 가파른 오버행가 없는 경우 샌드위치 모드(내부-외부-내부)를 사용하여 정"
 "밀도와 레이어 일관성을 향상시킬 수 있다는 것을 알고 계셨나요?"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
@@ -17095,8 +17447,8 @@ msgid ""
 "G-code window\n"
 "You can turn on/off the G-code window by pressing the <b>C</b> key."
 msgstr ""
-"G코드 창\n"
-"<b>C</b> 키를 눌러 G코드 창을 켜거나 끌 수 있습니다."
+"Gcode 창\n"
+"<b>C</b> 키를 눌러 Gcode 창을 켜거나 끌 수 있습니다."
 
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
@@ -17161,7 +17513,7 @@ msgid ""
 "Did you know that you can auto-arrange all objects in your project?"
 msgstr ""
 "자동 정렬\n"
-"프로젝트의 모든 개체를 자동 정렬할 수 있다는 것을 알고 계섰나요?"
+"프로젝트의 모든 객체를 자동 정렬할 수 있다는 것을 알고 계섰나요?"
 
 #: resources/data/hints.ini: [hint:Auto-Orient]
 msgid ""
@@ -17170,7 +17522,7 @@ msgid ""
 "printing by a simple click?"
 msgstr ""
 "자동 방향 지정\n"
-"간단한 클릭만으로 개체를 최적의 출력 방향으로 회전할 수 있다는 것을 알고 계셨"
+"간단한 클릭만으로 객체를 최적의 출력 방향으로 회전할 수 있다는 것을 알고 계셨"
 "나요?"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
@@ -17231,7 +17583,7 @@ msgid ""
 "colorizing or printing?"
 msgstr ""
 "객체/부품으로 분할\n"
-"쉽게 색칠하거나 출력하기 위해 큰 개체를 작은 개체로 나눌 수 있다는 것을 알고 "
+"쉽게 색칠하거나 출력하기 위해 큰 객체를 작은 객체로 나눌 수 있다는 것을 알고 "
 "계섰나요?"
 
 #: resources/data/hints.ini: [hint:Subtract a Part]
@@ -17267,10 +17619,10 @@ msgid ""
 "paint it on your print, to have it in a less visible location? This improves "
 "the overall look of your model. Check it out!"
 msgstr ""
-"Z 솔기 위치\n"
-"Z 솔기의 위치를 사용자 정의하고 출력물에 칠하여 잘 보이지 않는 위치에 배치할 "
-"수 있다는 사실을 알고 계섰나요? 이렇게 하면 모델의 전반적인 모양이 향상됩니"
-"다. 확인해 보세요!"
+"Z 재봉선 위치\n"
+"Z 재봉선의 위치를 사용자 정의하고 출력물에 칠하여 잘 보이지 않는 위치에 배치"
+"할 수 있다는 사실을 알고 계섰나요? 이렇게 하면 모델의 전반적인 모양이 향상됩"
+"니다. 확인해 보세요!"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
@@ -17279,8 +17631,8 @@ msgid ""
 "prints? Depending on the material, you can improve the overall finish of the "
 "printed model by doing some fine-tuning."
 msgstr ""
-"유량 미세 조정\n"
-"더 보기 좋은 출력물을 위해 유량을 미세 조정할 수 있다는 사실을 알고 계셨나"
+"압출량 미세 조정\n"
+"더 보기 좋은 출력물을 위해 압출량을 미세 조정할 수 있다는 사실을 알고 계셨나"
 "요? 재료에 따라 약간의 미세 조정을 통해 출력된 모델의 전체적인 마감을 개선할 "
 "수 있습니다."
 
@@ -17356,8 +17708,8 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
-"여러 개체에 대한 매개변수 설정\n"
-"선택한 모든 개체에 대한 슬라이싱 매개변수를 한 번에 설정할 수 있다는 사실을 "
+"여러 객체에 대한 매개변수 설정\n"
+"선택한 모든 객체에 대한 슬라이싱 매개변수를 한 번에 설정할 수 있다는 사실을 "
 "알고 계섰나요?"
 
 #: resources/data/hints.ini: [hint:Stack objects]
@@ -17411,6 +17763,75 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 "
 "높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "서포트 부피는 작지만 강도는 약한 것이 특징인 실험적 모양 \"얇은 나무\"를 "
+#~ "추가했습니다.\n"
+#~ "접점 레이어 0, 상단 Z 거리 0, 벽 루프 2 와 함께 사용하는 것이 좋습니다."
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "\"강한 나무\" 및 \"혼합 나무\" 모양의 경우 최소 접점 레이어 2, 상단 Z 거"
+#~ "리 0.1 또는 접점에서 서포트 재료를 사용하는 설정을 권장합니다."
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "서포트 접점에 서포트 재료를 사용하는 경우 다음 설정을 권장합니다:\n"
+#~ "상단 Z 거리 0, 접점 간격 0, 접점 패턴 동심원 및 독립적 서포트 높이 비활성"
+#~ "화"
+
+#~ msgid "Branch Diameter with double walls"
+#~ msgstr "이중 벽이 있는 가지 직경"
+
+#~ msgid ""
+#~ "Branches with area larger than the area of a circle of this diameter will "
+#~ "be printed with double walls for stability. Set this value to zero for no "
+#~ "double walls."
+#~ msgstr ""
+#~ "이 직경의 원 면적보다 더 큰 면적을 가진 가지는 안정성을 위해 이중벽으로 출"
+#~ "력됩니다. 이중벽을 허용하지 않으려면 이 값을 0으로 설정합니다."
+
+#~ msgid "This setting specify the count of walls around support"
+#~ msgstr "이 설정은 서포트 주변의 벽 수를 지정합니다"
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "서포트: 레이어 %d에서 툴 경로 생성"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "서포트: 돌출부 감지"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "서포트: 가지 증식"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "서포트: 폴리곤 그리기"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "서포트: 툴 경로 생성"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "서포트: 레이어 %d에서 폴리곤 생성"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "서포트: 레이어 %d의 구멍 수정"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "서포트: 레이어 %d에서 가지 증식"
 
 #~ msgid "Current Cabin humidity"
 #~ msgstr "현재 기내 습도"
@@ -17616,18 +18037,6 @@ msgstr ""
 #~ "일반(자동) 및 나무(자동)은 지지대를 자동으로 생성합니다. 일반(수동) 또는 "
 #~ "나무(수동) 선택시에는 강제된 지지대만 생성됩니다"
 
-#~ msgid "normal(auto)"
-#~ msgstr "일반(자동)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "나무(자동)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "일반(수동)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "나무(수동)"
-
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Shift + 왼쪽 마우스 버튼"
 
@@ -17735,7 +18144,7 @@ msgstr ""
 #~ "While printing by Object, the extruder may collide skirt.\n"
 #~ "Thus, reset the skirt layer to 1 to avoid that."
 #~ msgstr ""
-#~ "개체별 출력시 압출기가 스커트와 충돌할 수 있습니다.\n"
+#~ "객체별 출력시 압출기가 스커트와 충돌할 수 있습니다.\n"
 #~ "스커트 레이어를 1로 재설정하여 이를 방지합니다."
 
 #~ msgid ""
@@ -17789,7 +18198,7 @@ msgstr ""
 #~ "활성화됨 = 스커트가 가장 높은 인쇄물의 높이와 같습니다.\n"
 #~ "제한됨 = 스커트가 스커트 높이에 지정된 높이만큼 높습니다.\n"
 #~ "\n"
-#~ "참고: 드래프트 쉴드가 활성화되면 스커트는 개체로부터 스커트 거리에 인쇄됩"
+#~ "참고: 드래프트 쉴드가 활성화되면 스커트는 객체로부터 스커트 거리에 인쇄됩"
 #~ "니다. 따라서 챙이 활성화된 경우 챙과 교차할 수 있습니다. 이를 방지하려면 "
 #~ "스커트 거리 값을 늘리십시오.\n"
 
@@ -18070,9 +18479,9 @@ msgstr ""
 #~ "may cause the result not exactly the same in each calibration. We are "
 #~ "still investigating the root cause to do improvements with new updates."
 #~ msgstr ""
-#~ "우리 위키에서 동적 유량 교정에 대한 자세한 내용을 찾아보세요.\n"
+#~ "우리 위키에서 동적 압출량 교정에 대한 자세한 내용을 찾아보세요.\n"
 #~ "\n"
-#~ "일반적으로 교정은 필요하지 않습니다. 출력 시작 메뉴에서 \"동적 유량 교정"
+#~ "일반적으로 교정은 필요하지 않습니다. 출력 시작 메뉴에서 \"동적 압출량 교정"
 #~ "\" 옵션을 선택한 상태에서 단일 색상/재료 출력을 시작하면 프린터는 이전 방"
 #~ "식을 따르며 출력 전에 필라멘트를 교정합니다. 다중 색상/재료 출력을 시작하"
 #~ "면 프린터는 모든 필라멘트 전환 중에 필라멘트에 대한 기본 보상 매개변수를 "
@@ -18450,12 +18859,12 @@ msgstr ""
 #~ msgstr "위키"
 
 #~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" option."
-#~ "Some extruders work better with this option unchecked (absolute extrusion "
-#~ "mode). Wipe tower is only compatible with relative mode. It is always "
-#~ "enabled on BambuLab printers. Default is checked"
+#~ "Relative extrusion is recommended when using \"label_objects\" "
+#~ "option.Some extruders work better with this option unchecked (absolute "
+#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
+#~ "always enabled on BambuLab printers. Default is checked"
 #~ msgstr ""
-#~ "상대적 압출은 \"label_objects\" 옵션(기타; 개체 이름표)을 사용할 때 권장됩"
+#~ "상대적 압출은 \"label_objects\" 옵션(기타; 객체 이름표)을 사용할 때 권장됩"
 #~ "니다. 일부 압출기는 이 옵션을 해제하면 더 잘 작동합니다(절대 압출 모드). "
 #~ "닦기 타워는 상대 모드에서만 호환됩니다"
 
@@ -18481,10 +18890,10 @@ msgstr ""
 #~ msgstr "커넥터가 잘라내기 윤곽을 벗어났습니다"
 
 #~ msgid "connector is out of object"
-#~ msgstr "커넥터가 개체에서 벗어났습니다"
+#~ msgstr "커넥터가 객체에서 벗어났습니다"
 
 #~ msgid "connectors is out of object"
-#~ msgstr "커넥터가 개체에서 벗어났습니다"
+#~ msgstr "커넥터가 객체에서 벗어났습니다"
 
 #~ msgid ""
 #~ "Invalid state. \n"
@@ -18638,7 +19047,7 @@ msgstr ""
 #~ msgstr "올바른 값을 입력하십시오 (K: 0~0.5, N: 0.6~2.0)"
 
 #~ msgid "Export all objects as STL"
-#~ msgstr "모든 개체를 STL로 내보내기"
+#~ msgstr "모든 객체를 STL로 내보내기"
 
 #~ msgid "The 3mf is not compatible, load geometry data only!"
 #~ msgstr "이 3mf는 호환되지 않습니다. 형상 데이터만 로드합니다!"
@@ -18653,7 +19062,7 @@ msgstr ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."
 #~ msgstr ""
-#~ "개체별로 출력할 때 I3 구조의 장치는 타임랩스 비디오를 생성하지 않습니다."
+#~ "객체별로 출력할 때 I3 구조의 장치는 타임랩스 비디오를 생성하지 않습니다."
 
 #, c-format, boost-format
 #~ msgid "%s is not supported by AMS."
@@ -18698,157 +19107,14 @@ msgstr ""
 #~ msgid "%%"
 #~ msgstr "%%"
 
-#~ msgid "Export 3MF"
-#~ msgstr "3MF 내보내기"
-
-#~ msgid "Export project as 3MF."
-#~ msgstr "프로젝트를 3MF로 내보내기."
-
-#~ msgid "Export slicing data"
-#~ msgstr "슬라이싱 데이터 내보내기"
-
-#~ msgid "Export slicing data to a folder."
-#~ msgstr "슬라이싱 데이터 폴더로 내보내기."
-
-#~ msgid "Load slicing data"
-#~ msgstr "슬라이싱 데이터 로드"
-
-#~ msgid "Load cached slicing data from directory"
-#~ msgstr "디렉토리에 캐시된 슬라이싱 데이터 로드"
-
-#~ msgid "Export STL"
-#~ msgstr "STL 내보내기"
-
 #~ msgid "Export the objects as multiple STL."
-#~ msgstr "개체를 여러개의 STL로 내보내기."
-
-#~ msgid "Slice"
-#~ msgstr "슬라이스"
-
-#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-#~ msgstr "플레이트 슬라이스: 0-모든 플레이트, i-플레이트 i, 기타-잘못됨"
-
-#~ msgid "Show command help."
-#~ msgstr "명령 도움말을 표시합니다."
-
-#~ msgid "UpToDate"
-#~ msgstr "최신 정보"
-
-#~ msgid "Update the configs values of 3mf to latest."
-#~ msgstr "3mf의 구성 값을 최신으로 업데이트합니다."
-
-#~ msgid "Load default filaments"
-#~ msgstr "기본 필라멘트 로드"
-
-#~ msgid "Load first filament as default for those not loaded"
-#~ msgstr "로드되지 않은 경우 기본값으로 첫 번째 필라멘트 로드"
-
-#~ msgid "mtcpp"
-#~ msgstr "mtcpp"
-
-#~ msgid "max triangle count per plate for slicing."
-#~ msgstr "슬라이싱을 위한 플레이트당 최대 삼각형 개수."
-
-#~ msgid "mstpp"
-#~ msgstr "mstpp"
-
-#~ msgid "max slicing time per plate in seconds."
-#~ msgstr "플레이트당 최대 슬라이싱 시간(초)"
-
-#~ msgid "Normative check"
-#~ msgstr "표준 검사"
-
-#~ msgid "Check the normative items."
-#~ msgstr "표준 항목을 확인합니다."
-
-#~ msgid "Output Model Info"
-#~ msgstr "모델 정보 출력"
-
-#~ msgid "Output the model's information."
-#~ msgstr "모델 정보를 출력합니다."
-
-#~ msgid "Export Settings"
-#~ msgstr "설정 내보내기"
-
-#~ msgid "Export settings to a file."
-#~ msgstr "설정을 파일로 내보내기."
-
-#~ msgid "Send progress to pipe"
-#~ msgstr "진행 상황을 파이프로 보내기"
-
-#~ msgid "Send progress to pipe."
-#~ msgstr "진행 상황을 파이프로 보내기."
-
-#~ msgid "Arrange Options"
-#~ msgstr "정렬 옵션"
-
-#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
-#~ msgstr "정렬 옵션: 0-사용 안 함, 1-사용, 기타-자동"
-
-#~ msgid "Repetions count"
-#~ msgstr "반복 횟수"
-
-#~ msgid "Repetions count of the whole model"
-#~ msgstr "전체 모델의 반복 횟수"
-
-#~ msgid "Convert Unit"
-#~ msgstr "단위 변환"
-
-#~ msgid "Convert the units of model"
-#~ msgstr "모델의 단위를 변환"
+#~ msgstr "객체를 여러개의 STL로 내보내기."
 
 #~ msgid "Rotate around X"
 #~ msgstr "X를 중심으로 회전"
 
 #~ msgid "Rotation angle around the X axis in degrees."
 #~ msgstr "X축을 중심으로 한 회전 각도입니다."
-
-#~ msgid "Scale the model by a float factor"
-#~ msgstr "부동 소수점 계수로 모델 크기 조정"
-
-#~ msgid "Load General Settings"
-#~ msgstr "일반 설정 로드"
-
-#~ msgid "Load process/machine settings from the specified file"
-#~ msgstr "지정된 파일에서 프로세스/기계 설정 로드"
-
-#~ msgid "Load Filament Settings"
-#~ msgstr "필라멘트 설정 로드"
-
-#~ msgid "Load filament settings from the specified file list"
-#~ msgstr "지정된 파일 목록에서 필라멘트 설정 불러오기"
-
-#~ msgid "Skip Objects"
-#~ msgstr "개체 건너뛰기"
-
-#~ msgid "Skip some objects in this print"
-#~ msgstr "이 출력에서 일부 개체를 건너뜁니다"
-
-#~ msgid "load uptodate process/machine settings when using uptodate"
-#~ msgstr "uptodate 사용 시 최신 프로세스/프린터 설정 로드"
-
-#~ msgid ""
-#~ "load uptodate process/machine settings from the specified file when using "
-#~ "uptodate"
-#~ msgstr ""
-#~ "uptodate를 사용할 때 지정된 파일에서 최신 프로세스/프린터 설정을 로드합니"
-#~ "다"
-
-#~ msgid "Output directory"
-#~ msgstr "출력 디렉토리"
-
-#~ msgid "Output directory for the exported files."
-#~ msgstr "내보내기 파일의 출력 디렉토리입니다."
-
-#~ msgid "Debug level"
-#~ msgstr "디버그 수준"
-
-#~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
-#~ msgstr ""
-#~ "디버그 로깅 수준을 설정합니다. 0:치명적, 1:오류, 2:경고, 3:정보, 4:디버"
-#~ "그, 5:추적\n"
 
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."
@@ -18860,7 +19126,7 @@ msgstr ""
 #~ "touchpanel in the 3D scene?"
 #~ msgstr ""
 #~ "3D 화면 작업\n"
-#~ "3D 화면에서 마우스와 터치패널로 보기 및 개체/부품 선택을 제어하는 방법을 "
+#~ "3D 화면에서 마우스와 터치패널로 보기 및 객체/부품 선택을 제어하는 방법을 "
 #~ "알고 있습니까?"
 
 #~ msgid ""
@@ -19060,7 +19326,7 @@ msgstr ""
 #~ "structure to normal support under large flat overhangs."
 #~ msgstr ""
 #~ "지지대의 모양. 일반 지지대의 경우, 격자는 보다 안정적인 지지대(기본값)가 "
-#~ "생성되는 반면 맞춤 지지대는 재료를 절약하고 개체 자국을 줄입니다.\n"
+#~ "생성되는 반면 맞춤 지지대는 재료를 절약하고 객체 자국을 줄입니다.\n"
 #~ "나무 지지대의 경우 얇은 모양은 가지를 더 적극적으로 병합하고 많은 재료를 "
 #~ "절약합니다(기본값). 반면 혼합 스타일은 크고 평평한 오버행 아래에 일반 지지"
 #~ "대와 유사한 구조를 만듭니다."

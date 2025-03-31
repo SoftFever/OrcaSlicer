@@ -907,6 +907,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,  interlocking_depth))
     ((ConfigOptionInt,  interlocking_boundary_avoidance))
 
+    // Orca: internal use only
+    ((ConfigOptionBool,  calib_flowrate_topinfill_special_order)) // ORCA: special flag for flow rate calibration
+
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -1286,6 +1290,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                skirt_loops))
     ((ConfigOptionEnum<SkirtType>,    skirt_type))
     ((ConfigOptionFloat,              skirt_speed))
+    ((ConfigOptionBool,               single_loop_draft_shield))
     ((ConfigOptionFloat,              min_skirt_length))
     ((ConfigOptionFloats,             slow_down_layer_time))
     ((ConfigOptionBool,               spiral_mode))

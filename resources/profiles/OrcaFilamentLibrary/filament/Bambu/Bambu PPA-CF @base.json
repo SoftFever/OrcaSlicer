@@ -3,7 +3,7 @@
     "name": "Bambu PPA-CF @base",
     "inherits": "fdm_filament_ppa",
     "from": "system",
-    "filament_id": "GFN06",
+    "filament_id": "OGFN06",
     "instantiation": "false",
     "filament_vendor": [
         "Bambu Lab"

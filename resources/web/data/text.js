@@ -1313,7 +1313,7 @@ var LangText = {
   },
   pt_BR: {
     t1: "Bem-vindo ao Orca Slicer",
-    t2: "Orca Slicer será configurado em algumas etapas. Vamos começar!",
+    t2: "Orca Slicer será configurado em várias etapas. Vamos começar!",
     t3: "Termos de Uso",
     t4: "Discordo",
     t5: "Concordo",
@@ -1376,8 +1376,8 @@ var LangText = {
     t69: "Instalar Bambu Network plug-in",
     t70: "",
     t71: "Baixando",
-    t72: "Baixando falhou",
-    t73: "Instalação concluida.",
+    t72: "Falha baixando",
+    t73: "Instalação concluída.",
     t74: "Reiniciar",
     t75: "Algumass fabricantes de impressoras exigem plugins proprietários para comunicação com suas impressoras. Se você utiliza tais impressoras, selecione o plug-in correspondente.",
     t76: "Bambu Network plug-in não detectado. Clique ",
@@ -1419,6 +1419,9 @@ var LangText = {
     t113: "Você pode alterar sua escolha nas Preferências a qualquer momento",
     orca1: "Editar Info do Projeto",
     orca2: "Sem informação do modelo",
+    orca3: "Modo Furtivo",
+    orca4: "Isso interrompe a transmissão de dados para os serviços de nuvem da Bambu. Usuários que não usam máquinas BBL ou usam somente o modo LAN podem ativar essa função com segurança.",
+    orca5: "Habilita Modo Furtivo.",
   },
 };
 
