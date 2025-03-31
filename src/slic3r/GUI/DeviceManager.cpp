@@ -5677,6 +5677,19 @@ void MachineObject::parse_new_info(json print)
 
             m_extder_data = extder_data;
         }
+
+        if (device.contains("ctc")) {
+            json const& ctc = device["ctc"];
+            int state = get_flag_bits(ctc["state"].get<int>(), 0, 4);
+
+            if (ctc.contains("info")) {
+                json const &info = ctc["info"];
+                chamber_temp = get_flag_bits(info["temp"].get<int>(), 0, 16);
+                chamber_temp_target  = get_flag_bits(info["temp"].get<int>(), 16, 16);
+            }
+
+
+        }
     }
 }
 
