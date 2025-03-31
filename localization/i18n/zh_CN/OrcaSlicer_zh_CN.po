@@ -15988,7 +15988,7 @@ msgstr "与 AstroBox 的连接正常。"
 msgid "Could not connect to AstroBox"
 msgstr "无法连接到 AstroBox。"
 
-msgid "Note: AstroBox version at least 1.1.0 is required."
+msgid "Note: AstroBox version 1.1.0 or higher is required."
 msgstr "请注意，需要至少 AstroBox 版本 1.1.0。"
 
 msgid "Connection to Duet is working correctly."
@@ -16032,7 +16032,7 @@ msgstr "成功连接到 OctoPrint。"
 msgid "Could not connect to OctoPrint"
 msgstr "无法连接到OctoPrint"
 
-msgid "Note: OctoPrint version at least 1.1.0 is required."
+msgid "Note: OctoPrint version 1.1.0 or higher is required."
 msgstr "注意：至少需要 OctoPrint 版本 1.1.0。"
 
 msgid "Connection to Prusa SL1 / SL1S is working correctly."
@@ -16077,7 +16077,7 @@ msgstr "与 Repetier 的连接正常。"
 msgid "Could not connect to Repetier"
 msgstr "无法连接到Repetier"
 
-msgid "Note: Repetier version at least 0.90.0 is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr "注意：需要 Repetier 版本至少为 0.90.0。"
 
 #, boost-format
