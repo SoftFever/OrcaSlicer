@@ -54,6 +54,7 @@ protected:
     virtual void on_cancel(wxCommandEvent& event);
 
 protected:
+    std::string m_old_name;
     PACalibResult m_new_result;
     std::vector<PACalibResult> m_history_results;
     const MachineObject * curr_obj;
