@@ -16164,20 +16164,20 @@ msgstr "Connection to printers connected via the print host failed."
 msgid "Mismatched type of print host: %s"
 msgstr "Mismatched type of print host: %s"
 
-msgid "Connection to AstroBox works correctly."
-msgstr "Connection to AstroBox is working correctly."
+msgid "Connection to AstroBox is working correctly."
+msgstr ""
 
 msgid "Could not connect to AstroBox"
-msgstr "Could not connect to AstroBox"
+msgstr ""
 
 msgid "Note: AstroBox version at least 1.1.0 is required."
 msgstr "Note: AstroBox version 1.1.0 or higher is required."
 
-msgid "Connection to Duet works correctly."
-msgstr "Connection to Duet is working correctly."
+msgid "Connection to Duet is working correctly."
+msgstr ""
 
 msgid "Could not connect to Duet"
-msgstr "Could not connect to Duet"
+msgstr ""
 
 msgid "Unknown error occurred"
 msgstr "Unknown error occurred"
@@ -16189,47 +16189,45 @@ msgid "Could not get resources to create a new connection"
 msgstr "Could not get resources to create a new connection"
 
 msgid "Upload not enabled on FlashAir card."
-msgstr "Upload not enabled on FlashAir card."
+msgstr ""
 
-msgid "Connection to FlashAir works correctly and upload is enabled."
-msgstr "Connection to FlashAir is working correctly and upload is enabled."
+msgid "Connection to FlashAir is working correctly and upload is enabled."
+msgstr ""
 
 msgid "Could not connect to FlashAir"
-msgstr "Could not connect to FlashAir"
+msgstr ""
 
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
-"Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
-"is required."
 
-msgid "Connection to MKS works correctly."
-msgstr "Connection to MKS is working correctly."
+msgid "Connection to MKS is working correctly."
+msgstr ""
 
 msgid "Could not connect to MKS"
-msgstr "Could not connect to MKS"
+msgstr ""
 
-msgid "Connection to OctoPrint works correctly."
-msgstr "Connection to OctoPrint is working correctly."
+msgid "Connection to OctoPrint is working correctly."
+msgstr ""
 
 msgid "Could not connect to OctoPrint"
-msgstr "Could not connect to OctoPrint"
+msgstr ""
 
 msgid "Note: OctoPrint version at least 1.1.0 is required."
 msgstr "Note: OctoPrint version 1.1.0 or higher is required."
 
-msgid "Connection to Prusa SL1 / SL1S works correctly."
-msgstr "Connection to Prusa SL1 / SL1S is working correctly."
+msgid "Connection to Prusa SL1 / SL1S is working correctly."
+msgstr ""
 
 msgid "Could not connect to Prusa SLA"
-msgstr "Could not connect to Prusa SLA"
+msgstr ""
 
-msgid "Connection to PrusaLink works correctly."
-msgstr "Connection to PrusaLink is working correctly."
+msgid "Connection to PrusaLink is working correctly."
+msgstr ""
 
 msgid "Could not connect to PrusaLink"
-msgstr "Could not connect to PrusaLink"
+msgstr ""
 
 msgid "Storages found"
 msgstr ""
@@ -16249,17 +16247,17 @@ msgstr ""
 msgid "Upload has failed. There is no suitable storage found at %1%."
 msgstr ""
 
-msgid "Connection to Prusa Connect works correctly."
+msgid "Connection to Prusa Connect is working correctly."
 msgstr ""
 
 msgid "Could not connect to Prusa Connect"
 msgstr ""
 
-msgid "Connection to Repetier works correctly."
-msgstr "Connection to Repetier is working correctly."
+msgid "Connection to Repetier is working correctly."
+msgstr ""
 
 msgid "Could not connect to Repetier"
-msgstr "Could not connect to Repetier"
+msgstr ""
 
 msgid "Note: Repetier version at least 0.90.0 is required."
 msgstr "Note: Repetier version 0.90.0 or higher is required."
@@ -16564,7 +16562,7 @@ msgstr ""
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
-msgid "Connection to Flashforge works correctly."
+msgid "Connection to Flashforge is working correctly."
 msgstr ""
 
 msgid "Could not connect to Flashforge"

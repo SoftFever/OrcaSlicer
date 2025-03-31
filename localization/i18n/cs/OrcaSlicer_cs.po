@@ -16423,7 +16423,7 @@ msgstr ""
 msgid "Mismatched type of print host: %s"
 msgstr "Nesprávný typ tiskového serveru: %s"
 
-msgid "Connection to AstroBox works correctly."
+msgid "Connection to AstroBox is working correctly."
 msgstr "Připojení k AstroBoxu funguje správně."
 
 msgid "Could not connect to AstroBox"
@@ -16432,7 +16432,7 @@ msgstr "Nelze se připojit k AstroBoxu"
 msgid "Note: AstroBox version at least 1.1.0 is required."
 msgstr "Poznámka: Je vyžadována verze AstroBoxu nejméně 1.1.0."
 
-msgid "Connection to Duet works correctly."
+msgid "Connection to Duet is working correctly."
 msgstr "Připojení k Duet funguje správně."
 
 msgid "Could not connect to Duet"
@@ -16450,7 +16450,7 @@ msgstr "Nelze získat prostředky pro vytvoření nového spojení"
 msgid "Upload not enabled on FlashAir card."
 msgstr "Na kartě FlashAir není nahrávání povoleno."
 
-msgid "Connection to FlashAir works correctly and upload is enabled."
+msgid "Connection to FlashAir is working correctly and upload is enabled."
 msgstr "Připojení k FlashAir funguje správně a nahrávání je povoleno."
 
 msgid "Could not connect to FlashAir"
@@ -16463,13 +16463,13 @@ msgstr ""
 "Poznámka: Vyžaduje se FlashAir s firmwarem 2.00.02 nebo novějším a "
 "aktivovanou funkcí nahrávání."
 
-msgid "Connection to MKS works correctly."
+msgid "Connection to MKS is working correctly."
 msgstr "Připojení k MKS funguje správně."
 
 msgid "Could not connect to MKS"
 msgstr "Nelze se připojit k MKS"
 
-msgid "Connection to OctoPrint works correctly."
+msgid "Connection to OctoPrint is working correctly."
 msgstr "Připojení k OctoPrint pracuje správně."
 
 msgid "Could not connect to OctoPrint"
@@ -16478,13 +16478,13 @@ msgstr "Nelze se spojit s OctoPrintem"
 msgid "Note: OctoPrint version at least 1.1.0 is required."
 msgstr "Poznámka: Je vyžadován OctoPrint ve verzi alespoň 1.1.0."
 
-msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgid "Connection to Prusa SL1 / SL1S is working correctly."
 msgstr "Připojení k tiskárně Prusa SL1 /SL1S funguje správně."
 
 msgid "Could not connect to Prusa SLA"
 msgstr "Nelze se připojit k Prusa SLA"
 
-msgid "Connection to PrusaLink works correctly."
+msgid "Connection to PrusaLink is working correctly."
 msgstr "Připojení k PrusaLinku funguje správně."
 
 msgid "Could not connect to PrusaLink"
@@ -16509,13 +16509,13 @@ msgid "Upload has failed. There is no suitable storage found at %1%."
 msgstr ""
 "Nahrání se nezdařilo. Na adrese %1% nebylo nalezeno žádné vhodné úložiště."
 
-msgid "Connection to Prusa Connect works correctly."
+msgid "Connection to Prusa Connect is working correctly."
 msgstr "Připojení k Prusa Connectu funguje správně."
 
 msgid "Could not connect to Prusa Connect"
 msgstr "Nelze se připojit k Prusa Connectu"
 
-msgid "Connection to Repetier works correctly."
+msgid "Connection to Repetier is working correctly."
 msgstr "Připojení k Repetieru funguje správně."
 
 msgid "Could not connect to Repetier"
@@ -16742,7 +16742,7 @@ msgstr ""
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
-msgid "Connection to Flashforge works correctly."
+msgid "Connection to Flashforge is working correctly."
 msgstr ""
 
 msgid "Could not connect to Flashforge"

@@ -17599,7 +17599,7 @@ msgstr "Nepavyko prisijungti prie spausdintuvų, prijungtų per tinklą."
 msgid "Mismatched type of print host: %s"
 msgstr "Neatitinka tinklinio spausdintuvo tipas: %s"
 
-msgid "Connection to AstroBox works correctly."
+msgid "Connection to AstroBox is working correctly."
 msgstr "Prisijungimas prie AstroBox veikia tinkamai."
 
 msgid "Could not connect to AstroBox"
@@ -17608,7 +17608,7 @@ msgstr "Nepavyko prisijungti prie AstroBox"
 msgid "Note: AstroBox version at least 1.1.0 is required."
 msgstr "Pastaba: reikalinga bent 1.1.0 AstroBox versija."
 
-msgid "Connection to Duet works correctly."
+msgid "Connection to Duet is working correctly."
 msgstr "Ryšys su Duet veikia tinkamai."
 
 msgid "Could not connect to Duet"
@@ -17626,7 +17626,7 @@ msgstr "Nepavyko gauti išteklių naujam ryšiui sukurti"
 msgid "Upload not enabled on FlashAir card."
 msgstr "Įkėlimas neįjungtas FlashAir kortelėje."
 
-msgid "Connection to FlashAir works correctly and upload is enabled."
+msgid "Connection to FlashAir is working correctly and upload is enabled."
 msgstr "Prisijungimas prie FlashAir veikia tinkamai ir įkėlimas įjungtas."
 
 msgid "Could not connect to FlashAir"
@@ -17639,13 +17639,13 @@ msgstr ""
 "Pastaba: reikalinga „FlashAir“ su 2.00.02 ar naujesne programine įranga ir "
 "aktyvuota įkėlimo funkcija."
 
-msgid "Connection to MKS works correctly."
+msgid "Connection to MKS is working correctly."
 msgstr "Ryšys su MKS veikia tinkamai."
 
 msgid "Could not connect to MKS"
 msgstr "Nepavyko prisijungti prie MKS"
 
-msgid "Connection to OctoPrint works correctly."
+msgid "Connection to OctoPrint is working correctly."
 msgstr "Prisijungimas prie OctoPrint veikia tinkamai."
 
 msgid "Could not connect to OctoPrint"
@@ -17654,13 +17654,13 @@ msgstr "Nepavyko prisijungti prie „OctoPrint“"
 msgid "Note: OctoPrint version at least 1.1.0 is required."
 msgstr "Pastaba: reikalinga bent 1.1.0 OctoPrint versija."
 
-msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgid "Connection to Prusa SL1 / SL1S is working correctly."
 msgstr "Ryšys su Prusa SL1 / SL1S veikia tinkamai."
 
 msgid "Could not connect to Prusa SLA"
 msgstr "Nepavyko prisijungti prie Prusa SLA"
 
-msgid "Connection to PrusaLink works correctly."
+msgid "Connection to PrusaLink is working correctly."
 msgstr "Ryšys su PrusaLink veikia tinkamai."
 
 msgid "Could not connect to PrusaLink"
@@ -17684,13 +17684,13 @@ msgstr "%1% : nėra laisvos vietos"
 msgid "Upload has failed. There is no suitable storage found at %1%."
 msgstr "Įkelti nepavyko. %1% tinkamos saugyklos nerasta."
 
-msgid "Connection to Prusa Connect works correctly."
+msgid "Connection to Prusa Connect is working correctly."
 msgstr "Ryšys su \"Prusa Connect\" veikia tinkamai."
 
 msgid "Could not connect to Prusa Connect"
 msgstr "Nepavyko prisijungti prie \"Prusa Connect\""
 
-msgid "Connection to Repetier works correctly."
+msgid "Connection to Repetier is working correctly."
 msgstr "Ryšys su REpieter veikia tinkamai."
 
 msgid "Could not connect to Repetier"
@@ -18011,7 +18011,7 @@ msgstr ""
 "\"SimplyPrint\" paskyra nesusieta. Eikite į Prisijungimo parinktis ir ją "
 "nustatykite."
 
-msgid "Connection to Flashforge works correctly."
+msgid "Connection to Flashforge is working correctly."
 msgstr "Ryšys su \"Flashforge\" veikia tinkamai."
 
 msgid "Could not connect to Flashforge"

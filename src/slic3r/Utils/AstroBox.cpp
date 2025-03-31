@@ -81,7 +81,7 @@ bool AstroBox::test(wxString &msg) const
 
 wxString AstroBox::get_test_ok_msg () const
 {
-    return _(L("Connection to AstroBox works correctly."));
+    return _(L("Connection to AstroBox is working correctly."));
 }
 
 wxString AstroBox::get_test_failed_msg (wxString &msg) const
