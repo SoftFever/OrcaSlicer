@@ -6163,11 +6163,6 @@ void MachineObject::parse_new_info(json print)
             bed_temp_target = get_flag_bits(device["bed_temp"].get<int>(), 16, 16);
         }
 
-        if (device.contains("cham_temp")) {
-            chamber_temp = get_flag_bits(device["cham_temp"].get<int>(), 0, 16);
-            chamber_temp_target = get_flag_bits(device["cham_temp"].get<int>(), 16, 16);
-        }
-
         if (device.contains("nozzle")) {
             json const &nozzle = device["nozzle"];
 
@@ -6195,6 +6190,10 @@ void MachineObject::parse_new_info(json print)
                         nozzle_obj.nozzle_flow = NozzleFlowType::S_FLOW;
                     } else if (type.substr(1, 1) == std::string("H")) {
                         nozzle_obj.nozzle_flow = NozzleFlowType::H_FLOW;
+                    } else if (type.substr(1, 1) == std::string("A")) {
+                        nozzle_obj.nozzle_flow = NozzleFlowType::S_FLOW;
+                    } else if (type.substr(1, 1) == std::string("X")) {
+                        nozzle_obj.nozzle_flow = NozzleFlowType::S_FLOW;
                     }
 
                     if (type.substr(2, 2) == std::string("00")) {
