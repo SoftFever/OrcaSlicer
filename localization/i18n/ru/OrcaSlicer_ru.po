@@ -18002,7 +18002,7 @@ msgstr "Не удалось подключиться к принтерам, по
 msgid "Mismatched type of print host: %s"
 msgstr "Несоответствующий тип хоста печати: %s"
 
-msgid "Connection to AstroBox works correctly."
+msgid "Connection to AstroBox is working correctly."
 msgstr "Подключение к AstroBox успешно установлено."
 
 msgid "Could not connect to AstroBox"
@@ -18011,7 +18011,7 @@ msgstr "Не удалось подключиться к AstroBox"
 msgid "Note: AstroBox version at least 1.1.0 is required."
 msgstr "Примечание: требуется версия AstroBox не ниже 1.1.0."
 
-msgid "Connection to Duet works correctly."
+msgid "Connection to Duet is working correctly."
 msgstr "Подключение к Duet успешно установлено."
 
 msgid "Could not connect to Duet"
@@ -18030,7 +18030,7 @@ msgid "Upload not enabled on FlashAir card."
 msgstr "Загрузка данных на карту FlashAir не включена."
 
 # ??? в смысле выгрузка
-msgid "Connection to FlashAir works correctly and upload is enabled."
+msgid "Connection to FlashAir is working correctly and upload is enabled."
 msgstr ""
 "Подключение к FlashAir успешно установлено. Загрузка на карту включена."
 
@@ -18044,13 +18044,13 @@ msgstr ""
 "Примечание: для активации функцией загрузки, требуется FlashAir с прошивкой "
 "2.00.02 и выше."
 
-msgid "Connection to MKS works correctly."
+msgid "Connection to MKS is working correctly."
 msgstr "Подключение к MKS успешно установлено."
 
 msgid "Could not connect to MKS"
 msgstr "Не удалось подключиться к MKS"
 
-msgid "Connection to OctoPrint works correctly."
+msgid "Connection to OctoPrint is working correctly."
 msgstr "Подключение к OctoPrint успешно установлено."
 
 msgid "Could not connect to OctoPrint"
@@ -18059,13 +18059,13 @@ msgstr "Не удалось подключиться к OctoPrint"
 msgid "Note: OctoPrint version at least 1.1.0 is required."
 msgstr "Примечание: требуется версия OctoPrint не ниже 1.1.0."
 
-msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgid "Connection to Prusa SL1 / SL1S is working correctly."
 msgstr "Подключение к Prusa SL1 / SL1S успешно установлено."
 
 msgid "Could not connect to Prusa SLA"
 msgstr "Не удалось подключиться к Prusa SLA"
 
-msgid "Connection to PrusaLink works correctly."
+msgid "Connection to PrusaLink is working correctly."
 msgstr "Подключение к PrusaLink успешно установлено."
 
 msgid "Could not connect to PrusaLink"
@@ -18089,13 +18089,13 @@ msgstr "%1% : нет свободного места"
 msgid "Upload has failed. There is no suitable storage found at %1%."
 msgstr "Ошибка при отправке. Не найдено подходящего хранилища в %1%."
 
-msgid "Connection to Prusa Connect works correctly."
+msgid "Connection to Prusa Connect is working correctly."
 msgstr "Подключение к Prusa Connect успешно установлено."
 
 msgid "Could not connect to Prusa Connect"
 msgstr "Не удалось подключиться к Prusa Connect"
 
-msgid "Connection to Repetier works correctly."
+msgid "Connection to Repetier is working correctly."
 msgstr "Подключение к Repetier успешно установлено."
 
 msgid "Could not connect to Repetier"
@@ -18414,7 +18414,7 @@ msgstr ""
 "Учётная запись SimplyPrint не привязана. Перейдите в раздел подключения для "
 "настройки."
 
-msgid "Connection to Flashforge works correctly."
+msgid "Connection to Flashforge is working correctly."
 msgstr "Подключение к Flashforge успешно установлено."
 
 msgid "Could not connect to Flashforge"

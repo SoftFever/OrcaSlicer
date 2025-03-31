@@ -15982,7 +15982,7 @@ msgstr "连接到通过打印主机连接的打印机失败。"
 msgid "Mismatched type of print host: %s"
 msgstr "打印主机的类型不匹配：%s"
 
-msgid "Connection to AstroBox works correctly."
+msgid "Connection to AstroBox is working correctly."
 msgstr "与 AstroBox 的连接正常。"
 
 msgid "Could not connect to AstroBox"
@@ -15991,7 +15991,7 @@ msgstr "无法连接到 AstroBox。"
 msgid "Note: AstroBox version at least 1.1.0 is required."
 msgstr "请注意，需要至少 AstroBox 版本 1.1.0。"
 
-msgid "Connection to Duet works correctly."
+msgid "Connection to Duet is working correctly."
 msgstr "成功连接到 Duet 控制器。"
 
 msgid "Could not connect to Duet"
@@ -16009,7 +16009,7 @@ msgstr "无法获取资源以创建新连接。"
 msgid "Upload not enabled on FlashAir card."
 msgstr "FlashAir卡未启用上传。"
 
-msgid "Connection to FlashAir works correctly and upload is enabled."
+msgid "Connection to FlashAir is working correctly and upload is enabled."
 msgstr "FlashAir连接正常，并启用了上传。"
 
 msgid "Could not connect to FlashAir"
@@ -16020,13 +16020,13 @@ msgid ""
 "is required."
 msgstr "需要 FlashAir 固件版本为 2.00.02 或更高，并激活上传功能。"
 
-msgid "Connection to MKS works correctly."
+msgid "Connection to MKS is working correctly."
 msgstr "MKS的连接正常。"
 
 msgid "Could not connect to MKS"
 msgstr "无法连接到MKS。"
 
-msgid "Connection to OctoPrint works correctly."
+msgid "Connection to OctoPrint is working correctly."
 msgstr "成功连接到 OctoPrint。"
 
 msgid "Could not connect to OctoPrint"
@@ -16035,13 +16035,13 @@ msgstr "无法连接到OctoPrint"
 msgid "Note: OctoPrint version at least 1.1.0 is required."
 msgstr "注意：至少需要 OctoPrint 版本 1.1.0。"
 
-msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgid "Connection to Prusa SL1 / SL1S is working correctly."
 msgstr "与 Prusa SL1 / SL1S 的连接正常。"
 
 msgid "Could not connect to Prusa SLA"
 msgstr "无法连接到 Prusa SLA。"
 
-msgid "Connection to PrusaLink works correctly."
+msgid "Connection to PrusaLink is working correctly."
 msgstr "连接到 PrusaLink 的连接正常。"
 
 msgid "Could not connect to PrusaLink"
@@ -16065,13 +16065,13 @@ msgstr "%1%：没有可用空间"
 msgid "Upload has failed. There is no suitable storage found at %1%."
 msgstr "上载失败。在%1%找不到合适的存储。"
 
-msgid "Connection to Prusa Connect works correctly."
+msgid "Connection to Prusa Connect is working correctly."
 msgstr "与Prusa Connect的连接工作正常。"
 
 msgid "Could not connect to Prusa Connect"
 msgstr "无法连接到Prusa connect"
 
-msgid "Connection to Repetier works correctly."
+msgid "Connection to Repetier is working correctly."
 msgstr "与 Repetier 的连接正常。"
 
 msgid "Could not connect to Repetier"
@@ -16344,7 +16344,7 @@ msgstr "未知错误"
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr "尚未连接到SimplyPrint账户，前往连接选项来进行配置。"
 
-msgid "Connection to Flashforge works correctly."
+msgid "Connection to Flashforge is working correctly."
 msgstr "与Flashforge的连接工作正常。"
 
 msgid "Could not connect to Flashforge"

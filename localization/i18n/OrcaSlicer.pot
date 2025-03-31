@@ -15146,7 +15146,7 @@ msgstr ""
 msgid "Mismatched type of print host: %s"
 msgstr ""
 
-msgid "Connection to AstroBox works correctly."
+msgid "Connection to AstroBox is working correctly."
 msgstr ""
 
 msgid "Could not connect to AstroBox"
@@ -15155,7 +15155,7 @@ msgstr ""
 msgid "Note: AstroBox version at least 1.1.0 is required."
 msgstr ""
 
-msgid "Connection to Duet works correctly."
+msgid "Connection to Duet is working correctly."
 msgstr ""
 
 msgid "Could not connect to Duet"
@@ -15173,7 +15173,7 @@ msgstr ""
 msgid "Upload not enabled on FlashAir card."
 msgstr ""
 
-msgid "Connection to FlashAir works correctly and upload is enabled."
+msgid "Connection to FlashAir is working correctly and upload is enabled."
 msgstr ""
 
 msgid "Could not connect to FlashAir"
@@ -15184,13 +15184,13 @@ msgid ""
 "is required."
 msgstr ""
 
-msgid "Connection to MKS works correctly."
+msgid "Connection to MKS is working correctly."
 msgstr ""
 
 msgid "Could not connect to MKS"
 msgstr ""
 
-msgid "Connection to OctoPrint works correctly."
+msgid "Connection to OctoPrint is working correctly."
 msgstr ""
 
 msgid "Could not connect to OctoPrint"
@@ -15199,13 +15199,13 @@ msgstr ""
 msgid "Note: OctoPrint version at least 1.1.0 is required."
 msgstr ""
 
-msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgid "Connection to Prusa SL1 / SL1S is working correctly."
 msgstr ""
 
 msgid "Could not connect to Prusa SLA"
 msgstr ""
 
-msgid "Connection to PrusaLink works correctly."
+msgid "Connection to PrusaLink is working correctly."
 msgstr ""
 
 msgid "Could not connect to PrusaLink"
@@ -15229,13 +15229,13 @@ msgstr ""
 msgid "Upload has failed. There is no suitable storage found at %1%."
 msgstr ""
 
-msgid "Connection to Prusa Connect works correctly."
+msgid "Connection to Prusa Connect is working correctly."
 msgstr ""
 
 msgid "Could not connect to Prusa Connect"
 msgstr ""
 
-msgid "Connection to Repetier works correctly."
+msgid "Connection to Repetier is working correctly."
 msgstr ""
 
 msgid "Could not connect to Repetier"
@@ -15454,7 +15454,7 @@ msgstr ""
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
-msgid "Connection to Flashforge works correctly."
+msgid "Connection to Flashforge is working correctly."
 msgstr ""
 
 msgid "Could not connect to Flashforge"

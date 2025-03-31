@@ -17893,7 +17893,7 @@ msgstr ""
 msgid "Mismatched type of print host: %s"
 msgstr "Typ des Druck-Hosts: %s ist falsch"
 
-msgid "Connection to AstroBox works correctly."
+msgid "Connection to AstroBox is working correctly."
 msgstr "Verbindung zum AstroBox funktioniert korrekt."
 
 msgid "Could not connect to AstroBox"
@@ -17902,7 +17902,7 @@ msgstr "Konnte keine Verbindung zum AstroBox herstellen"
 msgid "Note: AstroBox version at least 1.1.0 is required."
 msgstr "Hinweis: AstroBox Version mindestens 1.1.0 ist erforderlich."
 
-msgid "Connection to Duet works correctly."
+msgid "Connection to Duet is working correctly."
 msgstr "Verbindung zu Duet funktioniert korrekt."
 
 msgid "Could not connect to Duet"
@@ -17920,7 +17920,7 @@ msgstr "Konnte keine Ressourcen zum Erstellen einer neuen Verbindung erzeugen"
 msgid "Upload not enabled on FlashAir card."
 msgstr "Upload auf FlashAir-Karte nicht aktiviert."
 
-msgid "Connection to FlashAir works correctly and upload is enabled."
+msgid "Connection to FlashAir is working correctly and upload is enabled."
 msgstr "Verbindung zu FlashAir funktioniert korrekt und Upload ist aktiviert."
 
 msgid "Could not connect to FlashAir"
@@ -17933,13 +17933,13 @@ msgstr ""
 "Hinweis: FlashAir mit Firmware 2.00.02 oder neuer und aktivierter Upload-"
 "Funktion ist erforderlich."
 
-msgid "Connection to MKS works correctly."
+msgid "Connection to MKS is working correctly."
 msgstr "Verbindung zu MKS funktioniert korrekt."
 
 msgid "Could not connect to MKS"
 msgstr "Konnte keine Verbindung zu MKS herstellen"
 
-msgid "Connection to OctoPrint works correctly."
+msgid "Connection to OctoPrint is working correctly."
 msgstr "Verbindung zu OctoPrint funktioniert korrekt."
 
 msgid "Could not connect to OctoPrint"
@@ -17948,13 +17948,13 @@ msgstr "Konnte keine Verbindung zu OctoPrint herstellen"
 msgid "Note: OctoPrint version at least 1.1.0 is required."
 msgstr "Hinweis: OctoPrint Version mindestens 1.1.0 ist erforderlich."
 
-msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgid "Connection to Prusa SL1 / SL1S is working correctly."
 msgstr "Verbindung zu Prusa SL1 / SL1S funktioniert korrekt."
 
 msgid "Could not connect to Prusa SLA"
 msgstr "Konnte keine Verbindung zu Prusa SLA herstellen"
 
-msgid "Connection to PrusaLink works correctly."
+msgid "Connection to PrusaLink is working correctly."
 msgstr "Verbindung zu PrusaLink funktioniert korrekt."
 
 msgid "Could not connect to PrusaLink"
@@ -17980,13 +17980,13 @@ msgstr ""
 "Der Upload ist fehlgeschlagen. Es wurde kein geeigneter Speicherplatz unter "
 "%1% gefunden."
 
-msgid "Connection to Prusa Connect works correctly."
+msgid "Connection to Prusa Connect is working correctly."
 msgstr "Verbindung zu Prusa Connect funktioniert korrekt."
 
 msgid "Could not connect to Prusa Connect"
 msgstr "Konnte keine Verbindung zu Prusa Connect herstellen"
 
-msgid "Connection to Repetier works correctly."
+msgid "Connection to Repetier is working correctly."
 msgstr "Verbindung zu Repetier funktioniert korrekt."
 
 msgid "Could not connect to Repetier"
@@ -18310,7 +18310,7 @@ msgstr ""
 "SimplyPrint-Konto nicht verknüpft. Gehen Sie zu den Verbindungsoptionen, um "
 "es einzurichten."
 
-msgid "Connection to Flashforge works correctly."
+msgid "Connection to Flashforge is working correctly."
 msgstr "Verbindung zu Flashforge funktioniert korrekt."
 
 msgid "Could not connect to Flashforge"
