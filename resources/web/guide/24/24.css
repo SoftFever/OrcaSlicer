@@ -20,7 +20,11 @@
 	align-items: center;
 	height: 40px;
 	text-align: center;
-	margin-right: 10px;
+	margin-right: 0px;
+}
+
+.BannerBtns>.SmallBtn_Green.trans{
+	margin-right: 7px;
 }
 
 /*.Banner-Btn
@@ -59,7 +63,7 @@
 
 .PrinterArea
 {
-	padding: 10px;
+	padding: 10px 0;
 	display: flex;
 	flex-wrap: wrap;
 }
@@ -89,7 +93,7 @@
 	align-items: center;
 	justify-content:flex-start;
 	color: #5A5A5A;	
-	padding-left: 10px;
+	padding-left: 0px;
 }
 
 .pNozzel input
@@ -159,16 +163,39 @@
 	border: 3px solid #009688;
 	/*border-right: none;*/
 	padding: 5px;
+	padding-left:32px;
 	height: 20px;
+	line-height: 20px; /* ORCA center text vertically */
 	border-radius: 5px 5px 5px 5px;
 	outline: none;
 	color: #9DBFAF;
   }
-  
+
   .searchTerm:focus{
 	color: #009688;
+	border-color:#009688;
   }
-  
+
+#search-icon{ /*ORCA */
+	position:absolute;
+    top: 50%;
+    transform: translateY(-50%);
+	left:8px;
+	margin:0px auto;
+}
+
+/*ORCA match style of border on focus and text color */
+@media (prefers-color-scheme: light) {
+	.searchTerm:focus{color: #363636;}
+	.searchTerm {border: 1px solid #DBDBDB;}
+	#search-icon{fill:#7C8282}
+}
+@media (prefers-color-scheme: dark) {
+	.searchTerm:focus{color: #FFFFFF}
+	.searchTerm {border: 1px solid #4A4A51;}
+	#search-icon{fill:#949494}
+}
+
   /*Resize the wrap to see the search bar change!*/
   .wrap{
 	width: 30%;
