@@ -5574,7 +5574,7 @@ msgstr[0] "%1$d对象有涂色。"
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
-msgid_plural "%1$d objects were loaded as parts of cut object"
+msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] "%1$d对象加载为一个切割对象的子部件"
 
 msgid "ERROR"
@@ -9058,9 +9058,9 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr "离不可打印区域太近，会发生碰撞。\n"
 
 msgid ""
-"Can not print multiple filaments which have large difference of temperature "
+"Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
-"during printing"
+"during printing."
 msgstr ""
 "不能将温度差异过大的材料一起打印。否则挤出机和喷嘴在打印中可能被堵塞或损坏"
 
@@ -9139,20 +9139,21 @@ msgid ""
 "requires that all objects have the same layer height."
 msgstr "不支持在可变层高开启时使用擦拭塔。它要求所有对象拥有相同的层高。"
 
-msgid "The prime tower requires \"support gap\" to be multiple of layer height"
+msgid ""
+"The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr "擦拭塔要求”支撑间隙“为层高的整数倍。"
 
-msgid "The prime tower requires that all objects have the same layer heights"
+msgid "The prime tower requires that all objects have the same layer heights."
 msgstr "擦拭塔要求各个对象拥有同样的层高。"
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
-"of raft layers"
+"of raft layers."
 msgstr "擦拭塔要求各个对象使用同样的筏层数量。"
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
-"with the same support_top_z_distance"
+"with the same support_top_z_distance."
 msgstr ""
 
 msgid ""
@@ -9162,7 +9163,7 @@ msgstr "擦拭塔要求各个对象拥有同样的层高。"
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
-"layer height"
+"layer height."
 msgstr "各个对象的层高存在差异，无法启用擦料塔"
 
 msgid ""
@@ -9205,7 +9206,7 @@ msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr "使用了支撑添加器但没有打开支撑。请打开支撑。"
 
-msgid "Layer height cannot exceed nozzle diameter"
+msgid "Layer height cannot exceed nozzle diameter."
 msgstr "层高不能超过喷嘴直径"
 
 msgid ""

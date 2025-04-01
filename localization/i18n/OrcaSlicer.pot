@@ -5433,7 +5433,7 @@ msgstr[1] ""
 
 #, possible-c-format, possible-boost-format
 msgid "%1$d object was loaded as a part of cut object."
-msgid_plural "%1$d objects were loaded as parts of cut object"
+msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -8791,9 +8791,9 @@ msgid " is too close to exclusion area, and collisions will be caused.\n"
 msgstr ""
 
 msgid ""
-"Can not print multiple filaments which have large difference of temperature "
+"Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
-"during printing"
+"during printing."
 msgstr ""
 
 msgid "No extrusions under current settings."
@@ -8867,20 +8867,21 @@ msgid ""
 "requires that all objects have the same layer height."
 msgstr ""
 
-msgid "The prime tower requires \"support gap\" to be multiple of layer height"
+msgid ""
+"The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr ""
 
-msgid "The prime tower requires that all objects have the same layer heights"
+msgid "The prime tower requires that all objects have the same layer heights."
 msgstr ""
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
-"of raft layers"
+"of raft layers."
 msgstr ""
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
-"with the same support_top_z_distance"
+"with the same support_top_z_distance."
 msgstr ""
 
 msgid ""
@@ -8890,7 +8891,7 @@ msgstr ""
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
-"layer height"
+"layer height."
 msgstr ""
 
 msgid ""
@@ -8933,7 +8934,7 @@ msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 
-msgid "Layer height cannot exceed nozzle diameter"
+msgid "Layer height cannot exceed nozzle diameter."
 msgstr ""
 
 msgid ""
