@@ -543,9 +543,13 @@ void MachineObject::set_access_code(std::string code, bool only_refresh)
     this->access_code = code;
     if (only_refresh) {
         AppConfig* config = GUI::wxGetApp().app_config;
-        if (config && !code.empty()) {
-            GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
-            DeviceManager::update_local_machine(*this);
+        if (config) {
+            if (!code.empty()) {
+                GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
+                DeviceManager::update_local_machine(*this);
+            } else {
+                GUI::wxGetApp().app_config->erase("access_code", dev_id);
+            }
         }
     }
 }
