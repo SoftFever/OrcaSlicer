@@ -2501,6 +2501,8 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
+    preset_bundle->backup_user_folder();
+
     Bind(EVT_SET_SELECTED_MACHINE, &GUI_App::on_set_selected_machine, this);
     Bind(EVT_UPDATE_MACHINE_LIST, &GUI_App::on_update_machine_list, this);
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
@@ -4787,6 +4789,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         [this, progressFn, cancelFn, finishFn, t = std::weak_ptr<int>(m_user_sync_token)] {
             // get setting list, update setting list
             std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::ORCA_DEFAULT_BUNDLE).to_string();
+            if(!m_agent) return;
             int ret = m_agent->get_setting_list2(version, [this](auto info) {
                 auto type = info[BBL_JSON_KEY_TYPE];
                 auto name = info[BBL_JSON_KEY_NAME];
@@ -5921,7 +5924,7 @@ void GUI_App::MacOpenURL(const wxString& url)
 {
     if (url.empty())
         return;
-    start_download(boost::nowide::narrow(url));
+    start_download(into_u8(url));
 }
 
 // wxWidgets override to get an event on open files.
@@ -6683,7 +6686,7 @@ void GUI_App::associate_url(std::wstring url_prefix)
     }
     key_full = key_string;
 #elif defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION)
-    DesktopIntegrationDialog::perform_downloader_desktop_integration(boost::nowide::narrow(url_prefix));
+    DesktopIntegrationDialog::perform_downloader_desktop_integration(into_u8(url_prefix));
 #endif // WIN32
 }
 
