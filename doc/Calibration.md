@@ -172,6 +172,12 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
          1. If using a [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
          2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) this test will use 0.25 (high enough to most printers).
    2. Use a high gloss filament to make the ringing more visible.
+   3. In printer settigs:
+      1. Klipper:
+         1. Disable [Minimun Cruise Ratio](https://www.klipper3d.org/Kinematics.html#minimum-cruise-ratio) with:
+            ```gcode
+            SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
+            ```
 2. You need to print the Input SHaping Frequency test.
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
