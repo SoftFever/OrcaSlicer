@@ -556,6 +556,7 @@ void PrinterFileSystem::Stop(bool quit)
 
 void PrinterFileSystem::SetUploadFile(const std::string &path, const std::string &name, const std::string &select_storage)
 {
+    boost::unique_lock l(m_mutex);
     if (!m_upload_file) {
         m_upload_file = std::make_unique<UploadFile>();
     }
