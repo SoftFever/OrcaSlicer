@@ -685,6 +685,12 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings{""});
 
+    def          = this->add("printable_filament_types", coStrings);
+    def->label   = L("Printable filament type");
+    def->tooltip = L("Printable filament type");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
     def = this->add("preferred_orientation", coFloat);
     def->label = L("Preferred orientation");
     def->tooltip = L("Automatically orient stls on the Z axis upon initial import.");

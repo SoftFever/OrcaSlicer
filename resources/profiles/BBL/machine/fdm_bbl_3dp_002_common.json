@@ -47,6 +47,10 @@
         "320",
         "325"
     ],
+    "printable_filament_types" : [
+        "",
+        ""
+    ],
     "unprintable_filament_types" : [
         "",
         ""

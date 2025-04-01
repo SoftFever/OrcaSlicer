@@ -7753,25 +7753,43 @@ bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, con
     if (!printer_preset)
         return true;
 
-    ConfigOptionStrings *unprintable_filament_types_op = dynamic_cast<ConfigOptionStrings *>(printer_preset->config.option("unprintable_filament_types"));
-    if (!unprintable_filament_types_op)
-        return true;
-
     ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
     if (!physical_extruder_map_op)
         return true;
-
     std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
-    for (size_t idx = 0; idx < unprintable_filament_types_op->values.size(); ++idx) {
-        if (physical_extruder_maps[idx] == obj->get_extruder_id_by_ams_id(std::to_string(ams_id))) {
-            std::vector<std::string> filament_types = split_string(unprintable_filament_types_op->values.at(idx), ',');
-            auto iter = std::find(filament_types.begin(), filament_types.end(), tag_type);
-            if (iter != filament_types.end()) {
-                wxString extruder_name = idx == 0 ? _L("left") : _L("right");
-                ac                     = "prohibition";
-                info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
-                in_blacklist           = true;
-                return false;
+
+    ConfigOptionStrings *unprintable_filament_types_op = dynamic_cast<ConfigOptionStrings *>(printer_preset->config.option("unprintable_filament_types"));
+    if (unprintable_filament_types_op) {
+        for (size_t idx = 0; idx < unprintable_filament_types_op->values.size(); ++idx) {
+            if (physical_extruder_maps[idx] == obj->get_extruder_id_by_ams_id(std::to_string(ams_id))) {
+                std::vector<std::string> filament_types = split_string(unprintable_filament_types_op->values.at(idx), ',');
+                auto                     iter           = std::find(filament_types.begin(), filament_types.end(), tag_type);
+                if (iter != filament_types.end()) {
+                    wxString extruder_name = idx == 0 ? _L("left") : _L("right");
+                    ac                     = "prohibition";
+                    info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
+                    in_blacklist           = true;
+                    return false;
+                }
+            }
+        }
+    }
+
+    ConfigOptionStrings *printable_filament_types_op = dynamic_cast<ConfigOptionStrings *>(printer_preset->config.option("printable_filament_types"));
+    if (printable_filament_types_op) {
+        for (size_t idx = 0; idx < printable_filament_types_op->values.size(); ++idx) {
+            if (physical_extruder_maps[idx] == obj->get_extruder_id_by_ams_id(std::to_string(ams_id))) {
+                std::vector<std::string> filament_types = split_string(printable_filament_types_op->values.at(idx), ',');
+                if (!filament_types.empty()) {
+                    auto iter = std::find(filament_types.begin(), filament_types.end(), tag_type);
+                    if (iter == filament_types.end()) {
+                        wxString extruder_name = idx == 0 ? _L("left") : _L("right");
+                        ac                     = "prohibition";
+                        info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
+                        in_blacklist           = true;
+                        return false;
+                    }
+                }
             }
         }
     }

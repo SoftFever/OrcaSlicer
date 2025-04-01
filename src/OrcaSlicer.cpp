@@ -5482,6 +5482,16 @@ int CLI::run(int argc, char **argv)
                                         unprintable_filament_type_list[index] = unprintable_list;
                                     }
 
+                                    std::vector<std::string> & printable_filament_types = m_print_config.option<ConfigOptionStrings>("printable_filament_types", true)->values;
+                                    std::vector<std::vector<std::string>> printable_filament_type_list;
+                                    printable_filament_type_list.resize(new_extruder_count);
+                                    for (int index = 0; index < new_extruder_count; index++) {
+                                        std::vector<std::string> printable_list;
+                                        if (printable_filament_types.size() > index)
+                                            printable_list = split_string(printable_filament_types[index], ',');
+                                        printable_filament_type_list[index] = printable_list;
+                                    }
+
                                     for (int index = 0; index < filament_maps.size(); index++)
                                     {
                                         int filament_extruder = filament_maps[index];
@@ -5497,6 +5507,7 @@ int CLI::run(int argc, char **argv)
                                         if (plate_filaments[f_index] <= filament_count) {
                                             int filament_extruder = filament_maps[plate_filaments[f_index] - 1];
                                             std::vector<std::string>& unprintable_list = unprintable_filament_type_list[filament_extruder-1];
+                                            std::vector<std::string>& printable_list = printable_filament_type_list[filament_extruder-1];
                                             std::string filament_type;
                                             m_print_config.get_filament_type(filament_type, plate_filaments[f_index]-1);
                                             if (unprintable_list.size() > 0)
@@ -5505,6 +5516,15 @@ int CLI::run(int argc, char **argv)
                                                 if (iter != unprintable_list.end()) {
                                                     BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer") % (index + 1) %filament_type %filament_extruder;
                                                     record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1, cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
+                                                    flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
+                                                }
+                                            }
+                                            if (printable_list.size() > 0) {
+                                                auto iter = std::find(printable_list.begin(), printable_list.end(), filament_type);
+                                                if (iter == printable_list.end()) {
+                                                    BOOST_LOG_TRIVIAL(error) << boost::format("plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer, not in printable filament list") % (index + 1) % filament_type % filament_extruder;
+                                                    record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1,
+                                                                      cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
                                                     flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
                                                 }
                                             }
