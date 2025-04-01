@@ -3107,8 +3107,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     //}
     Polygon outer_wall;
     outer_wall = generate_support_wall_new(writer, wt_box, feedrate, first_layer, m_use_rib_wall, extrude_perimeter, m_use_gap_wall);
-    if (extrude_perimeter)
-        m_outer_wall[m_z_pos].push_back(to_polyline(outer_wall));
+    if (extrude_perimeter) {
+        Polyline shift_polyline = to_polyline(outer_wall);
+        shift_polyline.translate(0, scaled(m_y_shift));
+        m_outer_wall[m_z_pos].push_back(shift_polyline);
+    }
     // brim chamfer
     float spacing = m_perimeter_width - m_layer_height * float(1. - M_PI_4);
     // How many perimeters shall the brim have?
