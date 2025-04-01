@@ -238,7 +238,7 @@ CopyFileResult copy_file_inner(const std::string &from, const std::string &to, s
 // of the source file before renaming.
 // Additional error info is passed in error message.
 extern CopyFileResult copy_file(const std::string &from, const std::string &to, std::string& error_message, const bool with_check = false);
-
+extern bool           copy_framework(const std::string &from, const std::string &to);
 // Compares two files if identical.
 extern CopyFileResult check_copy(const std::string& origin, const std::string& copy);
 
