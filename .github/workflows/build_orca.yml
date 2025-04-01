@@ -81,10 +81,9 @@ jobs:
       - name: Install tools mac
         if: inputs.os == 'macos-14'
         run: |
-          brew install ninja libtool
+          brew install libtool
           brew list
-          mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}
-          mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
+          mkdir -p ${{ github.workspace }}/deps/build
 
       - name: Free disk space
         if: inputs.os == 'macos-14'
@@ -98,7 +97,7 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-          ./build_release_macos.sh -s -n -x -a ${{inputs.arch}} -t 10.15 -1
+          ./build_release_macos.sh -s -n -x -a universal -t 10.15 -1
 
  # Thanks to RaySajuuk, it's working now
       - name: Sign app and notary
@@ -119,27 +118,27 @@ jobs:
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/OrcaSlicer.app
-          ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer.app
+          ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
-          xcrun notarytool submit "OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
-          xcrun stapler staple OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          xcrun notarytool submit "OrcaSlicer_Mac_universal_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
 
       - name: Create DMG without notary
         if: github.ref != 'refs/heads/main' && inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-          ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}
-          path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          name: OrcaSlicer_Mac_universal_${{ env.ver }}
+          path: ${{ github.workspace }}/OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
 
       - name: Deploy Mac release
         if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
@@ -147,8 +146,8 @@ jobs:
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
-          asset_path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-          asset_name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          asset_path: ${{ github.workspace }}/OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          asset_name: OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
@@ -298,6 +297,14 @@ jobs:
           asset_name: OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+      - name: Deploy Ubuntu release
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-24.04' }}
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: "nightly-builds"
+          tag_exists_error: false
+          force_push_tag: true
+          message: "nightly-builds"
 
       - name: Deploy orca_custom_preset_tests
         if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}

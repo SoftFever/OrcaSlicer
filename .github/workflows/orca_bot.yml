@@ -31,6 +31,8 @@ jobs:
           exempt-all-issue-milestones: true
           # Exempt all issues with assignees from stale
           exempt-all-issue-assignees: true
+          # Exempt feature requests
+          exempt-issue-labels: "enhancement"
           # Idle number of days before marking issues stale
           days-before-issue-stale: 90
           # Idle number of days before marking issues close

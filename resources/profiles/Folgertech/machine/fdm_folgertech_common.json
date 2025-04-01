@@ -123,7 +123,7 @@
     "1"
   ],
   "default_filament_profile": [
-    "Generic PLA @folgertech"
+    "Generic PLA @System"
   ],
   "default_print_profile": "0.20mm Standard @FT 0.4 Nozzle",
   "bed_exclude_area": [

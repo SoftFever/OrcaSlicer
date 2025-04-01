@@ -2211,48 +2211,12 @@ double ModelObject::get_instance_max_z(size_t instance_idx) const
 unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume &build_volume)
 {
     unsigned int num_printable = 0;
-    enum {
-        INSIDE = 1,
-        OUTSIDE = 2
-    };
-
     //BBS: add logs for build_volume
     //const BoundingBoxf3& print_volume = build_volume.bounding_volume();
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", print_volume {%1%, %2%, %3%} to {%4%, %5%, %6%}")\
     //    %print_volume.min.x() %print_volume.min.y() %print_volume.min.z()%print_volume.max.x() %print_volume.max.y() %print_volume.max.z();
     for (ModelInstance* model_instance : this->instances) {
-        unsigned int inside_outside = 0;
-        for (const ModelVolume *vol : this->volumes) {
-            if (vol->is_model_part()) {
-                //BBS: add bounding box empty check logic, for some volume is empty before split(it will be removed after split to object)
-                BoundingBoxf3 bb = vol->get_convex_hull().bounding_box();
-                Vec3d size = bb.size();
-                if ((size.x() == 0.f) || (size.y() == 0.f) || (size.z() == 0.f)) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s vol %2% is empty, skip it, box: {%3%, %4%, %5%} to {%6%, %7%, %8%}")%this->name %vol->name\
-                        %bb.min.x() %bb.min.y() %bb.min.z()%bb.max.x() %bb.max.y() %bb.max.z();
-                    continue;
-                }
-
-                const Transform3d matrix = model_instance->get_matrix() * vol->get_matrix();
-                BuildVolume::ObjectState state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
-                if (state == BuildVolume::ObjectState::Inside)
-                    // Volume is completely inside.
-                    inside_outside |= INSIDE;
-                else if (state == BuildVolume::ObjectState::Outside)
-                    // Volume is completely outside.
-                    inside_outside |= OUTSIDE;
-                else if (state == BuildVolume::ObjectState::Below) {
-                    // Volume below the print bed, thus it is completely outside, however this does not prevent the object to be printable
-                    // if some of its volumes are still inside the build volume.
-                } else
-                    // Volume colliding with the build volume.
-                    inside_outside |= INSIDE | OUTSIDE;
-            }
-        }
-        model_instance->print_volume_state =
-            inside_outside == (INSIDE | OUTSIDE) ? ModelInstancePVS_Partly_Outside :
-            inside_outside == INSIDE ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
-        if (inside_outside == INSIDE) {
+        if (model_instance->update_print_volume_state(build_volume) == ModelInstancePVS_Inside) {
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s instance inside print volum")%this->name;
             ++num_printable;
         }
@@ -2991,11 +2955,11 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                     auto v0 = volume->mesh().its.vertices[face[0]];
                     auto v1 = volume->mesh().its.vertices[face[1]];
                     auto v2 = volume->mesh().its.vertices[face[2]];
-                    auto                 dir_0_1  = (v1 - v0).normalized();
-                    auto                 dir_0_2  = (v2 - v0).normalized();
+                    auto                 dir_0_1  = (v1 - v0).normalized().eval();
+                    auto                 dir_0_2  = (v2 - v0).normalized().eval();
                     float                sita0    = acos(dir_0_1.dot(dir_0_2));
-                    auto                 dir_1_0  = -dir_0_1;
-                    auto                 dir_1_2  = (v2 - v1).normalized();
+                    auto                 dir_1_0  = (-dir_0_1).eval();
+                    auto                 dir_1_2  = (v2 - v1).normalized().eval();
                     float                sita1    = acos(dir_1_0.dot(dir_1_2));
                     float                sita2    = PI - sita0 - sita1;
                     std::array<float, 3> sitas    = {sita0, sita1, sita2};
@@ -3278,6 +3242,46 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
+}
+
+ModelInstanceEPrintVolumeState ModelInstance::calc_print_volume_state(const BuildVolume& build_volume) const
+{
+    enum {
+        INSIDE = 1,
+        OUTSIDE = 2
+    };
+
+    unsigned int inside_outside = 0;
+    for (const ModelVolume* vol : this->object->volumes) {
+        if (vol->is_model_part()) {
+            //BBS: add bounding box empty check logic, for some volume is empty before split(it will be removed after split to object)
+            BoundingBoxf3 bb = vol->get_convex_hull().bounding_box();
+            Vec3d size = bb.size();
+            if ((size.x() == 0.f) || (size.y() == 0.f) || (size.z() == 0.f)) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s vol %2% is empty, skip it, box: {%3%, %4%, %5%} to {%6%, %7%, %8%}")%this->object->name %vol->name\
+                    %bb.min.x() %bb.min.y() %bb.min.z()%bb.max.x() %bb.max.y() %bb.max.z();
+                continue;
+            }
+
+            const Transform3d matrix = this->get_matrix() * vol->get_matrix();
+            BuildVolume::ObjectState state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
+            if (state == BuildVolume::ObjectState::Inside)
+                // Volume is completely inside.
+                inside_outside |= INSIDE;
+            else if (state == BuildVolume::ObjectState::Outside)
+                // Volume is completely outside.
+                inside_outside |= OUTSIDE;
+            else if (state == BuildVolume::ObjectState::Below) {
+                // Volume below the print bed, thus it is completely outside, however this does not prevent the object to be printable
+                // if some of its volumes are still inside the build volume.
+            } else
+                // Volume colliding with the build volume.
+                inside_outside |= INSIDE | OUTSIDE;
+        }
+    }
+
+    return inside_outside == (INSIDE | OUTSIDE) ? ModelInstancePVS_Partly_Outside :
+           inside_outside == INSIDE ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

@@ -1202,14 +1202,23 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
             || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double top_cd = object.config().support_top_z_distance;
-            double bottom_cd = object.config().support_bottom_z_distance;
-
+            double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
+            //if (!object.print()->config().independent_support_layer_height)
+            { // the actual support gap may be larger than the configured one due to rounding to layer height for organic support, regardless of independent support layer height
+                top_cd    = std::ceil(top_cd / object.config().layer_height) * object.config().layer_height;
+                bottom_cd = std::ceil(bottom_cd / object.config().layer_height) * object.config().layer_height;
+            }
             double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
             // raft contact distance should not trigger any warning
-            if(last_extrusion_layer && last_extrusion_layer->support_layer)
+            if (last_extrusion_layer && last_extrusion_layer->support_layer) {
+                double raft_gap = object.config().raft_contact_distance.value;
+                //if (!object.print()->config().independent_support_layer_height)
+                {
+                    raft_gap = std::ceil(raft_gap / object.config().layer_height) * object.config().layer_height;
+                }
                 extra_gap = std::max(extra_gap, object.config().raft_contact_distance.value);
-
+            }
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
                 + std::max(0., extra_gap);
@@ -2898,6 +2907,12 @@ void GCode::process_layers(
                 return in.gcode;
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
+    const auto pa_processor_filter = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [&pa_processor = *this->m_pa_processor](std::string in) -> std::string {
+            return pa_processor.process_layer(std::move(in));
+        }
+    );
+    
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
         [&output_stream](std::string s) { output_stream.write(s); }
     );
@@ -2926,9 +2941,9 @@ void GCode::process_layers(
     else if (m_spiral_vase)
     	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
     else if	(m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & output);
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & pa_processor_filter & output);
     else
-    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & pa_processor_filter & output);
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
@@ -3190,7 +3205,7 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
             // Set temperatures of all the printing extruders.
             for (unsigned int tool_id : print.extruders()) {
                 int temp = print.config().nozzle_temperature_initial_layer.get_at(tool_id);
-                if (print.config().ooze_prevention.value) {
+                if (m_ooze_prevention.enable && tool_id != first_printing_extruder_id) {
                     if (print.config().idle_temperature.get_at(tool_id) == 0)
                         temp += print.config().standby_temperature_delta.value;
                     else
@@ -3523,7 +3538,19 @@ std::string GCode::generate_skirt(const Print &print,
         m_avoid_crossing_perimeters.use_external_mp();
         Flow layer_skirt_flow = print.skirt_flow().with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
         double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
-        for (size_t i = first_layer ? loops.first : loops.second - 1; i < loops.second; ++i) {
+        // Decide where to start looping:
+        // - If it’s the first layer or if we do NOT want a single-wall draft shield,
+        //   start from loops.first (all loops).
+        // - Otherwise, if single_loop_draft_shield == true and draft_shield == true (and not the first layer),
+        //   start from loops.second - 1 (just one loop).
+        bool single_loop_draft_shield = print.m_config.single_loop_draft_shield &&
+                                    (print.m_config.draft_shield == dsEnabled);
+        const size_t start_idx = (first_layer || !single_loop_draft_shield)
+                                 ? loops.first
+                                 : (loops.second - 1);
+
+        // Loop over the skirt loops and extrude
+        for (size_t i = start_idx; i < loops.second; ++i) {
             // Adjust flow according to this layer's layer height.
             ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(skirt.entities[i]);
             for (ExtrusionPath &path : loop.paths) {
@@ -3537,8 +3564,10 @@ std::string GCode::generate_skirt(const Print &print,
 
             //FIXME using the support_speed of the 1st object printed.
             gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
-            if (!first_layer)
+            // If we only want a single wall on non-first layers, break now
+            if (!first_layer && single_loop_draft_shield) {
                 break;
+            }
         }
         m_avoid_crossing_perimeters.use_external_mp(false);
         // Allow a straight travel move to the first object point if this is the first layer (but don't in next layers).
@@ -4048,6 +4077,7 @@ LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
+        std::string gcode_toolchange;
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
@@ -4066,11 +4096,16 @@ LayerResult GCode::process_layer(
                     }
                     has_insert_timelapse_gcode = true;
                 }
-                gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
+                gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
         } else {
-            gcode += this->set_extruder(extruder_id, print_z);
+            gcode_toolchange = this->set_extruder(extruder_id, print_z);
         }
+        if (!gcode_toolchange.empty()) {
+            // Disable vase mode for layers that has toolchange
+            result.spiral_vase_enable = false;
+        }
+        gcode += std::move(gcode_toolchange);
 
         // let analyzer tag generator aware of a role type change
         if (layer_tools.has_wipe_tower && m_wipe_tower)
@@ -4568,8 +4603,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // if spiral vase, we have to ensure that all contour are in the same orientation.
         loop.make_counter_clockwise();
     }
-    if (loop.loop_role() == elrSkirt && (this->m_layer->id() % 2 == 1))
-        loop.reverse();
+    //if (loop.loop_role() == elrSkirt && (this->m_layer->id() % 2 == 1))
+    //    loop.reverse();
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
@@ -6035,7 +6070,8 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
-        if (m_spiral_vase) {
+        // Orca: use `travel_to_xyz` to ensure we start at the correct z, in case we moved z in custom/filament change gcode
+        if (false/*m_spiral_vase*/) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i) {
                 gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
@@ -6263,8 +6299,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     }
 
     if (needs_lift && can_lift) {
-        size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
+        gcode += m_writer.lift(lift_type, m_spiral_vase != nullptr);
     }
 
     return gcode;

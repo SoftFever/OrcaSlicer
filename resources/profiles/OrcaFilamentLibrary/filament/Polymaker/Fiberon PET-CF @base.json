@@ -3,7 +3,7 @@
     "name": "Fiberon PET-CF @base",
     "inherits": "fdm_filament_pet",
     "from": "system",
-    "filament_id": "GFL54",
+    "filament_id": "OGFL54",
     "instantiation": "false",
     "cool_plate_temp": [
         "0"
@@ -72,7 +72,7 @@
         "5"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "temperature_vitrification": [
         "147"

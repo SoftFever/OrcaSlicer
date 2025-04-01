@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -993,6 +993,10 @@ msgid "Orient the text towards the camera."
 msgstr "选择文字使其面向摄像头"
 
 #, boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+
+#, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1244,6 +1248,9 @@ msgstr "Nano SVG解析器无法从文件中加载 (%1%)。"
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG文件不包含路径以进行浮雕操作 (%1%)。"
+
+msgid "No feature"
+msgstr ""
 
 msgid "Vertex"
 msgstr "顶点"
@@ -3102,7 +3109,11 @@ msgid ""
 "program"
 msgstr "发生错误。可能系统内存不足或者程序存在bug。"
 
-msgid "Please save project and restart the program. "
+#, boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr ""
+
+msgid "Please save project and restart the program."
 msgstr "请保存项目并重启程序。"
 
 msgid "Processing G-Code from Previous file..."
@@ -3525,9 +3536,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温"
 "度为 %d。"
@@ -3579,7 +3590,7 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr "“交替添加额外”与“确保垂直外壳厚度”的”全部“选项不兼容。"
 
 msgid ""
@@ -4291,7 +4302,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4685,6 +4696,14 @@ msgstr "使用透视视角"
 msgid "Use Orthogonal View"
 msgstr "使用正交视角"
 
+msgid "Auto Perspective"
+msgstr ""
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
+msgstr ""
+
 msgid "Show &G-code Window"
 msgstr "显示G-code窗口"
 
@@ -4825,16 +4844,19 @@ msgstr "视图"
 msgid "&Help"
 msgstr "帮助"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "有一个同名的文件 %s。你想覆盖它吗？"
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "有一个同名的配置 %s。你想覆盖它吗？"
 
 msgid "Overwrite file"
 msgstr "覆盖文件"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "全是"
@@ -5086,8 +5108,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
 "and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf文件中不包含G-code数据。请使用Orca Slicer进行切片并导出新的."
-"gcode.3mf文件。"
+".gcode.3mf文件中不包含G-code数据。请使用Orca Slicer进行切片并导出新"
+"的.gcode.3mf文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -6125,6 +6147,22 @@ msgid ""
 "import it."
 msgstr "导入到Orca Slicer失败。请下载文件并手动导入。"
 
+msgid "INFO:"
+msgstr ""
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+
+msgid "mm/s"
+msgstr "mm/s"
+
 msgid "Import SLA archive"
 msgstr "导入 SLA 存档"
 
@@ -6328,11 +6366,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"热床% d：%s不建议被用于打印%s（%s）材料。如果你依然想打印，请设置耗材对应的热"
+"热床 %d：%s不建议被用于打印%s（%s）材料。如果你依然想打印，请设置耗材对应的热"
 "床温度为非零值。"
 
 msgid "Switching the language requires application restart.\n"
@@ -7324,12 +7362,13 @@ msgid "Still print by object?"
 msgstr "仍然按对象打印吗？"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"我们增加了一种实验性的风格 \"苗条树\"，它的特点是支撑体积较小，但强度较弱。\n"
-"因此我们推荐以下参数：接触层数为0，顶部Z距离为0，墙层数为2。"
+"当使用支持界面的支持材料时，我们推荐以下设置：\n"
+"0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -7339,23 +7378,6 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置\n"
 "否 - 不用为我调整这些设置"
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"对于 \"强壮树 \"和 \"混合树 \"风格，我们推荐以下设置：至少2层界面层，至少0.1"
-"毫米的顶部z距离或在界面上使用支撑材料。"
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
-msgstr ""
-"当使用支持界面的支持材料时，我们推荐以下设置：\n"
-"0顶层z距离，0接触层间距，同心图案，并且禁用独立支撑层高"
 
 msgid ""
 "Enabling this option will modify the model's shape. If your print requires "
@@ -7412,8 +7434,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -7421,22 +7443,24 @@ msgstr ""
 msgid ""
 "A copy of the current system preset will be created, which will be detached "
 "from the system preset."
-msgstr ""
+msgstr "将创建当前系统预设的副本，该副本将与系统预设分离。"
 
 msgid ""
 "The current custom preset will be detached from the parent system preset."
-msgstr ""
+msgstr "当前自定义预设将与父系统预设分离。"
 
 msgid "Modifications to the current profile will be saved."
-msgstr ""
+msgstr "将保存对当前配置文件的修改。"
 
 msgid ""
 "This action is not revertible.\n"
 "Do you want to proceed?"
 msgstr ""
+"此操作不可恢复。\n"
+"你想继续吗？"
 
 msgid "Detach preset"
-msgstr ""
+msgstr "分离预设"
 
 msgid "This is a default preset."
 msgstr "这是默认预设。"
@@ -8004,7 +8028,7 @@ msgid ""
 msgstr "预设“%1%”和新的工艺预设不兼容，并且它包含以下未保存的修改："
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
+msgid "You have changed some settings of preset \"%1%\"."
 msgstr "您已更改了预设 “%1%” 的一些设置。"
 
 msgid ""
@@ -8851,7 +8875,7 @@ msgstr "没有可打印的对象。可能是因为尺寸过小。"
 msgid ""
 "Your print is very close to the priming regions. Make sure there is no "
 "collision."
-msgstr ""
+msgstr "你的指纹非常接近启动区域。确保没有碰撞。"
 
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
@@ -9098,7 +9122,7 @@ msgstr ""
 msgid ""
 "Ooze prevention is only supported with the wipe tower when "
 "'single_extruder_multi_material' is off."
-msgstr ""
+msgstr "只有当'single_extruder_multi_material'关闭时，擦拭塔才支持防渗。"
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
@@ -9127,6 +9151,11 @@ msgid ""
 msgstr "擦拭塔要求各个对象使用同样的筏层数量。"
 
 msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
+
+msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
 msgstr "擦拭塔要求各个对象拥有同样的层高。"
@@ -9136,11 +9165,22 @@ msgid ""
 "layer height"
 msgstr "各个对象的层高存在差异，无法启用擦料塔"
 
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
+
 msgid "Too small line width"
 msgstr "线宽太小"
 
 msgid "Too large line width"
 msgstr "线宽太大"
+
+msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
+msgstr ""
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -9249,6 +9289,9 @@ msgstr "正在生成G-code"
 
 msgid "Failed processing of the filename_format template."
 msgstr "处理文件名格式模板失败。"
+
+msgid "Printer technology"
+msgstr "打印机类型"
 
 msgid "Printable area"
 msgstr "可打印区域"
@@ -9783,7 +9826,7 @@ msgstr "悬垂上的额外周长"
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr "在陡峭的悬垂和无法固定桥接的区域上创建额外的周长路径。"
 
 msgid "Reverse on even"
@@ -9921,9 +9964,6 @@ msgid ""
 "overhang."
 msgstr ""
 
-msgid "mm/s"
-msgstr "mm/s"
-
 msgid "Internal"
 msgstr "内部"
 
@@ -10056,9 +10096,6 @@ msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
 msgstr "除首层之外的默认的打印和空驶的加速度"
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "默认耗材配置"
@@ -11150,8 +11187,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² 或 %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "稀疏填充的加速度。如果该值表示为百分比（例如100%），则将根据默认加速度进行计"
 "算。"
@@ -11248,10 +11285,10 @@ msgstr "满速风扇在"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "风扇速度将从“禁用第一层”的零线性上升到“全风扇速度层”的最大。如果低于“禁用风扇"
 "第一层”，则“全风扇速度第一层”将被忽略，在这种情况下，风扇将在“禁用风扇第一"
@@ -11396,7 +11433,7 @@ msgstr "层和墙"
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 
 msgid ""
@@ -11679,6 +11716,12 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "内部稀疏填充的打印速度"
+
+msgid "Inherits profile"
+msgstr "继承配置文件"
+
+msgid "Name of parent profile"
+msgstr "父配置名称"
 
 msgid "Interface shells"
 msgstr "接触面外壳"
@@ -12179,7 +12222,7 @@ msgstr ""
 msgid ""
 "This option will drop the temperature of the inactive extruders to prevent "
 "oozing."
-msgstr ""
+msgstr "此选项将降低非活动挤出机的温度，以防止渗出。"
 
 msgid "Filename format"
 msgstr "文件名格式"
@@ -12731,6 +12774,15 @@ msgstr "Skirt高度"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "skirt有多少层。通常只有一层"
 
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
+
 msgid "Draft shield"
 msgstr "风挡"
 
@@ -12791,7 +12843,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 
 msgid ""
@@ -12843,22 +12895,29 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr "最大XY平滑阈值"
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 "在XY平面上移动点的最大距离，以尝试实现平滑的螺旋。如果以%表示，它将基于喷嘴直"
 "径来计算。"
 
-#, c-format, boost-format
+msgid "Spiral starting flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
-"to the spiral. Normally the spiral transition scales the flow ratio from "
-"0% to 100% during the first loop which can in some cases lead to under "
+"to the spiral. Normally the spiral transition scales the flow ratio from 0% "
+"to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
 
-#, c-format, boost-format
+msgid "Spiral finishing flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -13024,22 +13083,28 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "普通(自动)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "树状(自动)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "普通(手动)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "树状(手动)"
 
 msgid "Support/object xy distance"
 msgstr "支撑/模型xy间距"
 
 msgid "XY separation between an object and its support"
 msgstr "模型和支撑之间XY分离距离"
+
+msgid "Support/object first layer gap"
+msgstr "支撑/对象首层间距"
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr "物体与其首层支撑之间的 XY 间隔。"
 
 msgid "Pattern angle"
 msgstr "模式角度"
@@ -13201,8 +13266,8 @@ msgstr ""
 "强壮的支撑结构，但用料更多；而混合树是苗条树和普通支撑的结合，它会在大的平面"
 "悬垂下创建与正常支撑类似的结构（默认）。"
 
-msgid "Default (Grid/Organic"
-msgstr ""
+msgid "Default (Grid/Organic)"
+msgstr "默认 (网格/有机)"
 
 msgid "Snug"
 msgstr "紧贴"
@@ -13340,23 +13405,13 @@ msgstr ""
 "分支直径的角度，随着分支向底部逐渐变厚。如果角度为0，分支将在其长度上拥有均匀"
 "的厚度。一点角度可以增加organic的稳定性。"
 
-msgid "Branch Diameter with double walls"
-msgstr "分支直径双层墙"
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-"该值大于以分支直径得到的圆形面积时，将打印双层墙，以保持稳定性。如不使用双层"
-"墙，请将该值设置为0。"
-
 msgid "Support wall loops"
 msgstr "支撑外墙层数"
 
-msgid "This setting specify the count of walls around support"
-msgstr "此设置指定了支撑的外墙层数"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr "此设置指定[0,2]范围内的支撑墙层数。0表示自动。"
 
 msgid "Tree support with infill"
 msgstr "树状支撑生成填充"
@@ -13371,8 +13426,8 @@ msgstr "激活温度控制"
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the \"machine_start_gcode"
-"\"\n"
+"activates the emitting of an M191 command before the "
+"\"machine_start_gcode\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -13646,9 +13701,9 @@ msgid "Idle temperature"
 msgstr "待机温度"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -13876,11 +13931,82 @@ msgstr "线宽过大"
 msgid " not in range "
 msgstr " 不在合理的区间"
 
+msgid "Export 3MF"
+msgstr "导出3MF"
+
+msgid "Export project as 3MF."
+msgstr "导出项目为3MF。"
+
+msgid "Export slicing data"
+msgstr "导出切片数据"
+
+msgid "Export slicing data to a folder."
+msgstr "导出切片数据到目录"
+
+msgid "Load slicing data"
+msgstr "导入切片数据"
+
+msgid "Load cached slicing data from directory"
+msgstr "从目录导入缓存的切片数据"
+
+msgid "Export STL"
+msgstr "导出STL文件"
+
+msgid "Export the objects as single STL."
+msgstr ""
+
+msgid "Export multiple STLs"
+msgstr ""
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr ""
+
+msgid "Slice"
+msgstr "切片"
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr "切片平台：0-所有平台，i-第i个平台，其他-无效"
+
+msgid "Show command help."
+msgstr "显示命令行帮助。"
+
+msgid "UpToDate"
+msgstr ""
+
+msgid "Update the configs values of 3mf to latest."
+msgstr "将3mf的配置值更新为最新值。"
+
+msgid "downward machines check"
+msgstr ""
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr ""
+
+msgid "Load default filaments"
+msgstr "加载默认打印材料"
+
+msgid "Load first filament as default for those not loaded"
+msgstr "加载第一个打印材料为默认材料"
+
 msgid "Minimum save"
 msgstr "最小保存"
 
 msgid "export 3mf with minimum size."
 msgstr "以最小尺寸导出3mf。"
+
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr "切片时每个盘的最大三角形数。"
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr "每个盘的最大切片时间（秒）。"
 
 msgid "No check"
 msgstr "不要检查"
@@ -13888,12 +14014,60 @@ msgstr "不要检查"
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "不要运行任何有效性检查，如gcode路径冲突检查。"
 
+msgid "Normative check"
+msgstr "规范性检查"
+
+msgid "Check the normative items."
+msgstr "检查规范性项目。"
+
+msgid "Output Model Info"
+msgstr "输出模型信息"
+
+msgid "Output the model's information."
+msgstr "输出模型的信息。"
+
+msgid "Export Settings"
+msgstr "导出配置"
+
+msgid "Export settings to a file."
+msgstr "导出配置到文件。"
+
+msgid "Send progress to pipe"
+msgstr "将进度发送到管道"
+
+msgid "Send progress to pipe."
+msgstr "将进度发送到管道。"
+
+msgid "Arrange Options"
+msgstr "摆放选项"
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr "摆放选项：0-关闭，1-开启，其他-自动"
+
+msgid "Repetions count"
+msgstr "重复次数"
+
+msgid "Repetions count of the whole model"
+msgstr "整个模型的重复次数"
+
 msgid "Ensure on bed"
 msgstr "确保在热床上"
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr "当物体部分位于热床的下方时，将其提升到热床的上方。默认情况下禁用"
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+"将提供的模型排列在一个板中，并将它们合并到单个模型中，以便执行一次操作。"
+
+msgid "Convert Unit"
+msgstr "转换单位"
+
+msgid "Convert the units of model"
+msgstr "转换模型的单位"
 
 msgid "Orient Options"
 msgstr "方向选项"
@@ -13910,6 +14084,65 @@ msgstr "绕Y旋转"
 msgid "Rotation angle around the Y axis in degrees."
 msgstr "绕Y轴的旋转角度（以度为单位）"
 
+msgid "Scale the model by a float factor"
+msgstr "根据因子缩放模型"
+
+msgid "Load General Settings"
+msgstr "加载通用设置"
+
+msgid "Load process/machine settings from the specified file"
+msgstr "从指定文件加载工艺/打印机设置"
+
+msgid "Load Filament Settings"
+msgstr "加载耗材丝设置"
+
+msgid "Load filament settings from the specified file list"
+msgstr "从指定文件加载耗材丝设置"
+
+msgid "Skip Objects"
+msgstr "零件跳过"
+
+msgid "Skip some objects in this print"
+msgstr "打印过程中跳过一些零件"
+
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr "在使用最新设置时加载最新的进程/机器设置"
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr "在使用最新设置时，从指定的文件中加载最新的进程/机器设置。"
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+
+msgid "downward machines settings"
+msgstr ""
+
+msgid "the machine settings list need to do downward checking"
+msgstr ""
+
+msgid "Load assemble list"
+msgstr ""
+
+msgid "Load assemble object list from config file"
+msgstr ""
+
 msgid "Data directory"
 msgstr "数据目录"
 
@@ -13921,11 +14154,92 @@ msgstr ""
 "在给定目录加载和存储设置。这对于维护不同的配置文件或包括网络存储中的配置非常"
 "有用。"
 
+msgid "Output directory"
+msgstr "输出路径"
+
+msgid "Output directory for the exported files."
+msgstr "导出文件的输出路径。"
+
+msgid "Debug level"
+msgstr "调试等级"
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
+msgstr ""
+"设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， "
+"5:trace\n"
+
+msgid "Enable timelapse for print"
+msgstr ""
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr ""
+
 msgid "Load custom gcode"
 msgstr "加载自定义G-code"
 
 msgid "Load custom gcode from json"
 msgstr "从json文件加载自定义G-code"
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr ""
+
+msgid "Allow rotatations when arrange"
+msgstr ""
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr ""
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr ""
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr ""
+
+msgid "Skip modified gcodes in 3mf"
+msgstr ""
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr ""
+
+msgid "MakerLab name"
+msgstr ""
+
+msgid "MakerLab name to generate this 3mf"
+msgstr ""
+
+msgid "MakerLab version"
+msgstr ""
+
+msgid "MakerLab version to generate this 3mf"
+msgstr ""
+
+msgid "metadata name list"
+msgstr ""
+
+msgid "metadata name list added into 3mf"
+msgstr ""
+
+msgid "metadata value list"
+msgstr ""
+
+msgid "metadata value list added into 3mf"
+msgstr ""
+
+msgid "Allow 3mf with newer version to be sliced"
+msgstr ""
 
 msgid "Current z-hop"
 msgstr ""
@@ -14201,9 +14515,6 @@ msgstr "正在生成填充走线"
 msgid "Detect overhangs for auto-lift"
 msgstr "探测悬空区域为自动抬升做准备"
 
-msgid "Generating support"
-msgstr "正在生成支撑"
-
 msgid "Checking support necessity"
 msgstr "正在检查支撑必要性"
 
@@ -14221,6 +14532,9 @@ msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
 msgstr "似乎对象%s有%s。请重新调整对象的方向或启用支持生成。"
+
+msgid "Generating support"
+msgstr "正在生成支撑"
 
 msgid "Optimizing toolpath"
 msgstr "正在优化走线"
@@ -14242,36 +14556,8 @@ msgstr ""
 "对象的XY尺寸补偿不会生效，因为在此对象上做过涂色操作。\n"
 "XY尺寸补偿不能与涂色功能一起使用。"
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "支撑：正在生成层%d的走线路径"
-
-msgid "Support: detect overhangs"
-msgstr "支撑：正在检测悬空面"
-
 msgid "Support: generate contact points"
 msgstr "支撑：正在生成接触点"
-
-msgid "Support: propagate branches"
-msgstr "支撑：正在生长树枝"
-
-msgid "Support: draw polygons"
-msgstr "支撑：正在生成多边形"
-
-msgid "Support: generate toolpath"
-msgstr "支撑：正在生成走线路径"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "支撑：正在生成层%d的多边形"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "支撑：正在修补层%d的空洞"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "支撑：正在生长层%d的树枝"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -14507,10 +14793,10 @@ msgid ""
 msgstr ""
 "请从我们的wiki中找到动态流量校准的详细信息。\n"
 "\n"
-"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选"
-"了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
-"多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
-"生良好的效果。\n"
+"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选了"
+"“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/多"
+"材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产生"
+"良好的效果。\n"
 "\n"
 "有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使"
 "用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
@@ -14861,8 +15147,20 @@ msgstr "结束值"
 msgid "PA step: "
 msgstr "步距"
 
+msgid "Accelerations: "
+msgstr ""
+
+msgid "Speeds: "
+msgstr ""
+
 msgid "Print numbers"
 msgstr "打印数字"
+
+msgid "Comma-separated list of printing accelerations"
+msgstr ""
+
+msgid "Comma-separated list of printing speeds"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -15224,8 +15522,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "我们将会把预设重命名为“供应商类型名 @ 您选择的打印机”\n"
@@ -16061,6 +16359,50 @@ msgstr "在尝试登录时发生了异常，请重试。"
 msgid "User cancelled."
 msgstr "用户已取消。"
 
+msgid "Head diameter"
+msgstr "Brim 直径"
+
+msgid "Max angle"
+msgstr "最大角度"
+
+msgid "Detection radius"
+msgstr "检测半径"
+
+msgid "Remove selected points"
+msgstr "删除已选择的点"
+
+msgid "Remove all"
+msgstr "删除所有点"
+
+msgid "Auto-generate points"
+msgstr "自动生成点"
+
+msgid "Add a brim ear"
+msgstr "加入一个耳状Brim"
+
+msgid "Delete a brim ear"
+msgstr "删除一个耳状Brim"
+
+msgid "Adjust section view"
+msgstr "调整剖面视图"
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr "警告：Brim类型未设置为绘制模式，耳状Brim将不会生效！"
+
+msgid "Set the brim type to \"painted\""
+msgstr "将Brim类型设置为绘制模式"
+
+msgid " invalid brim ears"
+msgstr "个无效耳状Brim"
+
+msgid "Brim Ears"
+msgstr "耳状Brim"
+
+msgid "Please select single object."
+msgstr "请选中单个对象。"
+
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
 "Precise wall\n"
@@ -16416,6 +16758,65 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "我们增加了一种实验性的风格 \"苗条树\"，它的特点是支撑体积较小，但强度较"
+#~ "弱。\n"
+#~ "因此我们推荐以下参数：接触层数为0，顶部Z距离为0，墙层数为2。"
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "对于 \"强壮树 \"和 \"混合树 \"风格，我们推荐以下设置：至少2层界面层，至少"
+#~ "0.1毫米的顶部z距离或在界面上使用支撑材料。"
+
+#~ msgid "Branch Diameter with double walls"
+#~ msgstr "分支直径双层墙"
+
+#~ msgid ""
+#~ "Branches with area larger than the area of a circle of this diameter will "
+#~ "be printed with double walls for stability. Set this value to zero for no "
+#~ "double walls."
+#~ msgstr ""
+#~ "该值大于以分支直径得到的圆形面积时，将打印双层墙，以保持稳定性。如不使用双"
+#~ "层墙，请将该值设置为0。"
+
+#~ msgid "This setting specify the count of walls around support"
+#~ msgstr "此设置指定了支撑的外墙层数"
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "支撑：正在生成层%d的走线路径"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "支撑：正在检测悬空面"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "支撑：正在生长树枝"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "支撑：正在生成多边形"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "支撑：正在生成走线路径"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "支撑：正在生成层%d的多边形"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "支撑：正在修补层%d的空洞"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "支撑：正在生长层%d的树枝"
+
 #~ msgid "Current Cabin humidity"
 #~ msgstr "当前舱内湿度"
 
@@ -16523,18 +16924,6 @@ msgstr ""
 #~ "普通（自动）和树状（自动）用于自动生成支撑体。如果选择普通（手动）或树状"
 #~ "（手动），仅会在支撑强制面上生成支撑。"
 
-#~ msgid "normal(auto)"
-#~ msgstr "普通(自动)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "树状(自动)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "普通(手动)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "树状(手动)"
-
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Shift + 鼠标左键"
 
@@ -16629,7 +17018,7 @@ msgstr ""
 #~ "Using a non zero value is useful if the printer is set up to print "
 #~ "without a prime line.\n"
 #~ "Final number of loops is not taling into account whlie arranging or "
-#~ "validating objects distance. Increase loop number in such case. "
+#~ "validating objects distance. Increase loop number in such case."
 #~ msgstr ""
 #~ "打印skirt时的最小挤出长度，单位为mm。0表示关闭此功能。\n"
 #~ "\n"
@@ -17084,8 +17473,8 @@ msgstr ""
 #~ msgstr "配置包已更新到"
 
 #~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
-#~ "\". \n"
+#~ "We would rename the presets as \"Vendor Type Serial @printer you "
+#~ "selected\". \n"
 #~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
 #~ "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -17298,146 +17687,14 @@ msgstr ""
 #~ msgid "inner-outer-inner/infill"
 #~ msgstr "内墙/外墙/内墙/填充"
 
-#~ msgid "Export 3MF"
-#~ msgstr "导出3MF"
-
-#~ msgid "Export project as 3MF."
-#~ msgstr "导出项目为3MF。"
-
-#~ msgid "Export slicing data"
-#~ msgstr "导出切片数据"
-
-#~ msgid "Export slicing data to a folder."
-#~ msgstr "导出切片数据到目录"
-
-#~ msgid "Load slicing data"
-#~ msgstr "导入切片数据"
-
-#~ msgid "Load cached slicing data from directory"
-#~ msgstr "从目录导入缓存的切片数据"
-
-#~ msgid "Export STL"
-#~ msgstr "导出STL文件"
-
 #~ msgid "Export the objects as multiple STL."
 #~ msgstr "将对象导出为多个STL文件"
-
-#~ msgid "Slice"
-#~ msgstr "切片"
-
-#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-#~ msgstr "切片平台：0-所有平台，i-第i个平台，其他-无效"
-
-#~ msgid "Show command help."
-#~ msgstr "显示命令行帮助。"
-
-#~ msgid "Update the configs values of 3mf to latest."
-#~ msgstr "将3mf的配置值更新为最新值。"
-
-#~ msgid "Load default filaments"
-#~ msgstr "加载默认打印材料"
-
-#~ msgid "Load first filament as default for those not loaded"
-#~ msgstr "加载第一个打印材料为默认材料"
-
-#~ msgid "max triangle count per plate for slicing."
-#~ msgstr "切片时每个盘的最大三角形数。"
-
-#~ msgid "max slicing time per plate in seconds."
-#~ msgstr "每个盘的最大切片时间（秒）。"
-
-#~ msgid "Normative check"
-#~ msgstr "规范性检查"
-
-#~ msgid "Check the normative items."
-#~ msgstr "检查规范性项目。"
-
-#~ msgid "Output Model Info"
-#~ msgstr "输出模型信息"
-
-#~ msgid "Output the model's information."
-#~ msgstr "输出模型的信息。"
-
-#~ msgid "Export Settings"
-#~ msgstr "导出配置"
-
-#~ msgid "Export settings to a file."
-#~ msgstr "导出配置到文件。"
-
-#~ msgid "Send progress to pipe"
-#~ msgstr "将进度发送到管道"
-
-#~ msgid "Send progress to pipe."
-#~ msgstr "将进度发送到管道。"
-
-#~ msgid "Arrange Options"
-#~ msgstr "摆放选项"
-
-#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
-#~ msgstr "摆放选项：0-关闭，1-开启，其他-自动"
-
-#~ msgid "Repetions count"
-#~ msgstr "重复次数"
-
-#~ msgid "Repetions count of the whole model"
-#~ msgstr "整个模型的重复次数"
-
-#~ msgid "Convert Unit"
-#~ msgstr "转换单位"
-
-#~ msgid "Convert the units of model"
-#~ msgstr "转换模型的单位"
 
 #~ msgid "Rotate around X"
 #~ msgstr "绕X旋转"
 
 #~ msgid "Rotation angle around the X axis in degrees."
 #~ msgstr "绕X轴的旋转角度（以度为单位）。"
-
-#~ msgid "Scale the model by a float factor"
-#~ msgstr "根据因子缩放模型"
-
-#~ msgid "Load General Settings"
-#~ msgstr "加载通用设置"
-
-#~ msgid "Load process/machine settings from the specified file"
-#~ msgstr "从指定文件加载工艺/打印机设置"
-
-#~ msgid "Load Filament Settings"
-#~ msgstr "加载耗材丝设置"
-
-#~ msgid "Load filament settings from the specified file list"
-#~ msgstr "从指定文件加载耗材丝设置"
-
-#~ msgid "Skip Objects"
-#~ msgstr "零件跳过"
-
-#~ msgid "Skip some objects in this print"
-#~ msgstr "打印过程中跳过一些零件"
-
-#~ msgid "load uptodate process/machine settings when using uptodate"
-#~ msgstr "在使用最新设置时加载最新的进程/机器设置"
-
-#~ msgid ""
-#~ "load uptodate process/machine settings from the specified file when using "
-#~ "uptodate"
-#~ msgstr "在使用最新设置时，从指定的文件中加载最新的进程/机器设置。"
-
-#~ msgid "Output directory"
-#~ msgstr "输出路径"
-
-#~ msgid "Output directory for the exported files."
-#~ msgstr "导出文件的输出路径。"
-
-#~ msgid "Debug level"
-#~ msgstr "调试等级"
-
-#~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
-#~ msgstr ""
-#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
-#~ "trace\n"
 
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."

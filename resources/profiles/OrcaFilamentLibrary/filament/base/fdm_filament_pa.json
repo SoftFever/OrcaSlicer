@@ -2,11 +2,11 @@
     "type": "filament",
     "name": "fdm_filament_pa",
     "inherits": "fdm_filament_common",
-    "filament_id": "GFN99",
+    "filament_id": "OGFN99",
     "from": "system",
     "instantiation": "false",
     "activate_air_filtration": [
-        "1"
+        "0"
     ],
     "supertack_plate_temp": [
         "0"
@@ -75,7 +75,7 @@
         "2"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "temperature_vitrification": [
         "108"

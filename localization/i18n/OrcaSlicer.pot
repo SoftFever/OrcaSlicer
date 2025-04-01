@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 21:21+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -986,6 +986,10 @@ msgid "Orient the text towards the camera."
 msgstr ""
 
 #, possible-boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+
+#, possible-boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1234,6 +1238,9 @@ msgstr ""
 
 #, possible-boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgstr ""
+
+msgid "No feature"
 msgstr ""
 
 msgid "Vertex"
@@ -3048,7 +3055,11 @@ msgid ""
 "program"
 msgstr ""
 
-msgid "Please save project and restart the program. "
+#, possible-boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr ""
+
+msgid "Please save project and restart the program."
 msgstr ""
 
 msgid "Processing G-Code from Previous file..."
@@ -3453,9 +3464,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -3493,7 +3504,7 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr ""
 
 msgid ""
@@ -4174,7 +4185,7 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
+#, possible-boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4560,6 +4571,14 @@ msgstr ""
 msgid "Use Orthogonal View"
 msgstr ""
 
+msgid "Auto Perspective"
+msgstr ""
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
+msgstr ""
+
 msgid "Show &G-code Window"
 msgstr ""
 
@@ -4700,14 +4719,17 @@ msgid "&Help"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr ""
 
 msgid "Overwrite file"
+msgstr ""
+
+msgid "Overwrite config"
 msgstr ""
 
 msgid "Yes to All"
@@ -5969,6 +5991,22 @@ msgid ""
 "import it."
 msgstr ""
 
+msgid "INFO:"
+msgstr ""
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+
+msgid "mm/s²"
+msgstr ""
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+
+msgid "mm/s"
+msgstr ""
+
 msgid "Import SLA archive"
 msgstr ""
 
@@ -6166,9 +6204,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
 
 msgid "Switching the language requires application restart.\n"
@@ -7126,28 +7164,16 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
-msgstr ""
-
-msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
 msgstr ""
 
 msgid ""
@@ -7195,8 +7221,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -7766,7 +7792,7 @@ msgid ""
 msgstr ""
 
 #, possible-boost-format
-msgid "You have changed some settings of preset \"%1%\". "
+msgid "You have changed some settings of preset \"%1%\"."
 msgstr ""
 
 msgid ""
@@ -8853,6 +8879,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
+
+msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
 msgstr ""
@@ -8862,10 +8893,21 @@ msgid ""
 "layer height"
 msgstr ""
 
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
+
 msgid "Too small line width"
 msgstr ""
 
 msgid "Too large line width"
+msgstr ""
+
+msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
 msgstr ""
 
 msgid ""
@@ -8960,6 +9002,9 @@ msgid "Generating G-code"
 msgstr ""
 
 msgid "Failed processing of the filename_format template."
+msgstr ""
+
+msgid "Printer technology"
 msgstr ""
 
 msgid "Printable area"
@@ -9444,7 +9489,7 @@ msgstr ""
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr ""
 
 msgid "Reverse on even"
@@ -9561,9 +9606,6 @@ msgid ""
 "overhang mode is enabled, it will be the print speed of overhang walls that "
 "are supported by less than 13%, whether they are part of a bridge or an "
 "overhang."
-msgstr ""
-
-msgid "mm/s"
 msgstr ""
 
 msgid "Internal"
@@ -9684,9 +9726,6 @@ msgstr ""
 msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
-msgstr ""
-
-msgid "mm/s²"
 msgstr ""
 
 msgid "Default filament profile"
@@ -10683,8 +10722,8 @@ msgid "mm/s² or %"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid ""
@@ -10777,10 +10816,10 @@ msgstr ""
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "layer"
@@ -10908,7 +10947,7 @@ msgstr ""
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 
 msgid ""
@@ -11169,6 +11208,12 @@ msgid ""
 msgstr ""
 
 msgid "Speed of internal sparse infill"
+msgstr ""
+
+msgid "Inherits profile"
+msgstr ""
+
+msgid "Name of parent profile"
 msgstr ""
 
 msgid "Interface shells"
@@ -12136,6 +12181,15 @@ msgstr ""
 msgid "How many layers of skirt. Usually only one layer"
 msgstr ""
 
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
+
 msgid "Draft shield"
 msgstr ""
 
@@ -12190,7 +12244,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 
 msgid ""
@@ -12237,20 +12291,27 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
+msgid "Spiral starting flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
-"to the spiral. Normally the spiral transition scales the flow ratio from "
-"0% to 100% during the first loop which can in some cases lead to under "
+"to the spiral. Normally the spiral transition scales the flow ratio from 0% "
+"to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
+msgid "Spiral finishing flow ratio"
+msgstr ""
+
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -12418,6 +12479,12 @@ msgstr ""
 msgid "XY separation between an object and its support"
 msgstr ""
 
+msgid "Support/object first layer gap"
+msgstr ""
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr ""
+
 msgid "Pattern angle"
 msgstr ""
 
@@ -12570,7 +12637,7 @@ msgid ""
 "overhangs."
 msgstr ""
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr ""
 
 msgid "Snug"
@@ -12699,20 +12766,12 @@ msgid ""
 "support."
 msgstr ""
 
-msgid "Branch Diameter with double walls"
-msgstr ""
-
-#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
-msgid ""
-"Branches with area larger than the area of a circle of this diameter will be "
-"printed with double walls for stability. Set this value to zero for no "
-"double walls."
-msgstr ""
-
 msgid "Support wall loops"
 msgstr ""
 
-msgid "This setting specify the count of walls around support"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
 msgstr ""
 
 msgid "Tree support with infill"
@@ -12728,8 +12787,8 @@ msgstr ""
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the \"machine_start_gcode"
-"\"\n"
+"activates the emitting of an M191 command before the "
+"\"machine_start_gcode\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -12961,9 +13020,9 @@ msgid "Idle temperature"
 msgstr ""
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -13153,10 +13212,81 @@ msgstr ""
 msgid " not in range "
 msgstr ""
 
+msgid "Export 3MF"
+msgstr ""
+
+msgid "Export project as 3MF."
+msgstr ""
+
+msgid "Export slicing data"
+msgstr ""
+
+msgid "Export slicing data to a folder."
+msgstr ""
+
+msgid "Load slicing data"
+msgstr ""
+
+msgid "Load cached slicing data from directory"
+msgstr ""
+
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as single STL."
+msgstr ""
+
+msgid "Export multiple STLs"
+msgstr ""
+
+msgid "Export the objects as multiple STLs to directory"
+msgstr ""
+
+msgid "Slice"
+msgstr ""
+
+msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+msgstr ""
+
+msgid "Show command help."
+msgstr ""
+
+msgid "UpToDate"
+msgstr ""
+
+msgid "Update the configs values of 3mf to latest."
+msgstr ""
+
+msgid "downward machines check"
+msgstr ""
+
+msgid ""
+"check whether current machine downward compatible with the machines in the "
+"list"
+msgstr ""
+
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "Minimum save"
 msgstr ""
 
 msgid "export 3mf with minimum size."
+msgstr ""
+
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
 msgstr ""
 
 msgid "No check"
@@ -13165,11 +13295,58 @@ msgstr ""
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
+msgid "Output Model Info"
+msgstr ""
+
+msgid "Output the model's information."
+msgstr ""
+
+msgid "Export Settings"
+msgstr ""
+
+msgid "Export settings to a file."
+msgstr ""
+
+msgid "Send progress to pipe"
+msgstr ""
+
+msgid "Send progress to pipe."
+msgstr ""
+
+msgid "Arrange Options"
+msgstr ""
+
+msgid "Arrange options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Ensure on bed"
 msgstr ""
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+
+msgid "Convert Unit"
+msgstr ""
+
+msgid "Convert the units of model"
 msgstr ""
 
 msgid "Orient Options"
@@ -13187,6 +13364,65 @@ msgstr ""
 msgid "Rotation angle around the Y axis in degrees."
 msgstr ""
 
+msgid "Scale the model by a float factor"
+msgstr ""
+
+msgid "Load General Settings"
+msgstr ""
+
+msgid "Load process/machine settings from the specified file"
+msgstr ""
+
+msgid "Load Filament Settings"
+msgstr ""
+
+msgid "Load filament settings from the specified file list"
+msgstr ""
+
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
+
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
+
+msgid "load uptodate filament settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate filament settings from the specified file when using uptodate"
+msgstr ""
+
+msgid ""
+"if enabled, check whether current machine downward compatible with the "
+"machines in the list"
+msgstr ""
+
+msgid "downward machines settings"
+msgstr ""
+
+msgid "the machine settings list need to do downward checking"
+msgstr ""
+
+msgid "Load assemble list"
+msgstr ""
+
+msgid "Load assemble object list from config file"
+msgstr ""
+
 msgid "Data directory"
 msgstr ""
 
@@ -13196,10 +13432,89 @@ msgid ""
 "storage."
 msgstr ""
 
+msgid "Output directory"
+msgstr ""
+
+msgid "Output directory for the exported files."
+msgstr ""
+
+msgid "Debug level"
+msgstr ""
+
+msgid ""
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
+msgstr ""
+
+msgid "Enable timelapse for print"
+msgstr ""
+
+msgid "If enabled, this slicing will be considered using timelapse"
+msgstr ""
+
 msgid "Load custom gcode"
 msgstr ""
 
 msgid "Load custom gcode from json"
+msgstr ""
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate"
+msgstr ""
+
+msgid "Allow rotatations when arrange"
+msgstr ""
+
+msgid "If enabled, the arrange will allow rotations when place object"
+msgstr ""
+
+msgid "Avoid extrusion calibrate region when doing arrange"
+msgstr ""
+
+msgid ""
+"If enabled, the arrange will avoid extrusion calibrate region when place "
+"object"
+msgstr ""
+
+msgid "Skip modified gcodes in 3mf"
+msgstr ""
+
+msgid "Skip the modified gcodes in 3mf from Printer or filament Presets"
+msgstr ""
+
+msgid "MakerLab name"
+msgstr ""
+
+msgid "MakerLab name to generate this 3mf"
+msgstr ""
+
+msgid "MakerLab version"
+msgstr ""
+
+msgid "MakerLab version to generate this 3mf"
+msgstr ""
+
+msgid "metadata name list"
+msgstr ""
+
+msgid "metadata name list added into 3mf"
+msgstr ""
+
+msgid "metadata value list"
+msgstr ""
+
+msgid "metadata value list added into 3mf"
+msgstr ""
+
+msgid "Allow 3mf with newer version to be sliced"
 msgstr ""
 
 msgid "Current z-hop"
@@ -13476,9 +13791,6 @@ msgstr ""
 msgid "Detect overhangs for auto-lift"
 msgstr ""
 
-msgid "Generating support"
-msgstr ""
-
 msgid "Checking support necessity"
 msgstr ""
 
@@ -13495,6 +13807,9 @@ msgstr ""
 msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
+msgstr ""
+
+msgid "Generating support"
 msgstr ""
 
 msgid "Optimizing toolpath"
@@ -13514,35 +13829,7 @@ msgid ""
 "XY Size compensation can not be combined with color-painting."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr ""
-
-msgid "Support: detect overhangs"
-msgstr ""
-
 msgid "Support: generate contact points"
-msgstr ""
-
-msgid "Support: propagate branches"
-msgstr ""
-
-msgid "Support: draw polygons"
-msgstr ""
-
-msgid "Support: generate toolpath"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Support: fix holes at layer %d"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Support: propagate branches at layer %d"
 msgstr ""
 
 msgid ""
@@ -14077,7 +14364,19 @@ msgstr ""
 msgid "PA step: "
 msgstr ""
 
+msgid "Accelerations: "
+msgstr ""
+
+msgid "Speeds: "
+msgstr ""
+
 msgid "Print numbers"
+msgstr ""
+
+msgid "Comma-separated list of printing accelerations"
+msgstr ""
+
+msgid "Comma-separated list of printing speeds"
 msgstr ""
 
 msgid ""
@@ -14420,8 +14719,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -15174,6 +15473,50 @@ msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
 msgid "User cancelled."
+msgstr ""
+
+msgid "Head diameter"
+msgstr ""
+
+msgid "Max angle"
+msgstr ""
+
+msgid "Detection radius"
+msgstr ""
+
+msgid "Remove selected points"
+msgstr ""
+
+msgid "Remove all"
+msgstr ""
+
+msgid "Auto-generate points"
+msgstr ""
+
+msgid "Add a brim ear"
+msgstr ""
+
+msgid "Delete a brim ear"
+msgstr ""
+
+msgid "Adjust section view"
+msgstr ""
+
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr ""
+
+msgid "Set the brim type to \"painted\""
+msgstr ""
+
+msgid " invalid brim ears"
+msgstr ""
+
+msgid "Brim Ears"
+msgstr ""
+
+msgid "Please select single object."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]
