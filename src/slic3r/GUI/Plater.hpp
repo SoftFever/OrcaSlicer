@@ -153,6 +153,8 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
+    void on_enter_image_printer_bed(wxMouseEvent &evt);
+    void on_leave_image_printer_bed(wxMouseEvent &evt);
     void on_change_color_mode(bool is_dark);
     void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
