@@ -1564,7 +1564,7 @@ msgstr "打开项目"
 
 msgid ""
 "The version of Orca Slicer is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"version before it can be used normally."
 msgstr "逆戟鲸版本过低，需要更新到最新版本方可正常使用"
 
 msgid "Privacy Policy Update"
@@ -5304,7 +5304,7 @@ msgstr "继续退料"
 msgid "Still load"
 msgstr "继续进料"
 
-msgid "Please select an AMS slot before calibration"
+msgid "Please select an AMS slot before calibration."
 msgstr "请先选择一个AMS槽位后进行标定"
 
 msgid ""
@@ -5570,7 +5570,7 @@ msgstr[0] "%1$d对象有涂色。"
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
-msgid_plural "%1$d objects were loaded as parts of cut object"
+msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] "%1$d对象加载为一个切割对象的子部件"
 
 msgid "ERROR"
@@ -9076,7 +9076,7 @@ msgstr "离不可打印区域太近，会发生碰撞。\n"
 msgid ""
 "Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
-"during printing"
+"during printing."
 msgstr ""
 "不能将温度差异过大的材料一起打印。否则挤出机和喷嘴在打印中可能被堵塞或损坏"
 
@@ -9155,20 +9155,21 @@ msgid ""
 "requires that all objects have the same layer height."
 msgstr "不支持在可变层高开启时使用擦拭塔。它要求所有对象拥有相同的层高。"
 
-msgid "The prime tower requires \"support gap\" to be multiple of layer height"
+msgid ""
+"The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr "擦拭塔要求”支撑间隙“为层高的整数倍。"
 
-msgid "The prime tower requires that all objects have the same layer heights"
+msgid "The prime tower requires that all objects have the same layer heights."
 msgstr "擦拭塔要求各个对象拥有同样的层高。"
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
-"of raft layers"
+"of raft layers."
 msgstr "擦拭塔要求各个对象使用同样的筏层数量。"
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
-"with the same support_top_z_distance"
+"with the same support_top_z_distance."
 msgstr ""
 
 msgid ""
@@ -9178,7 +9179,7 @@ msgstr "擦拭塔要求各个对象拥有同样的层高。"
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
-"layer height"
+"layer height."
 msgstr "各个对象的层高存在差异，无法启用擦料塔"
 
 msgid ""
@@ -9221,7 +9222,7 @@ msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr "使用了支撑添加器但没有打开支撑。请打开支撑。"
 
-msgid "Layer height cannot exceed nozzle diameter"
+msgid "Layer height cannot exceed nozzle diameter."
 msgstr "层高不能超过喷嘴直径"
 
 msgid ""
@@ -14734,7 +14735,7 @@ msgstr "正在连接打印机..."
 msgid "The failed test result has been dropped."
 msgstr "测试失败的结果已被删除。"
 
-msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgid "Flow Dynamics Calibration result has been saved to the printer."
 msgstr "动态流量校准的结果已保存至打印机。"
 
 #, c-format, boost-format
@@ -14758,10 +14759,10 @@ msgstr "内部错误"
 msgid "Please select at least one filament for calibration"
 msgstr "请至少选择一种材料进行校准。"
 
-msgid "Flow rate calibration result has been saved to preset"
+msgid "Flow rate calibration result has been saved to preset."
 msgstr "流量比例校准结果已保存到预设"
 
-msgid "Max volumetric speed calibration result has been saved to preset"
+msgid "Max volumetric speed calibration result has been saved to preset."
 msgstr "最大体积速度校准结果已保存到预设值"
 
 msgid "When do you need Flow Dynamics Calibration"
@@ -14980,9 +14981,6 @@ msgstr "跳过校准2"
 #, c-format, boost-format
 msgid "flow ratio : %s "
 msgstr "流量比：%s "
-
-msgid "Please choose a block with smoothest top surface"
-msgstr "请选择顶部表面最光滑的块"
 
 msgid "Please choose a block with smoothest top surface."
 msgstr "请选择顶部表面最光滑的块。"
@@ -17766,7 +17764,7 @@ msgstr ""
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
 #~ "layer for more than %d degrees Celsius.\n"
-#~ "This may cause model broken free from build plate during printing"
+#~ "This may cause model broken free from build plate during printing."
 #~ msgstr ""
 #~ "其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
 #~ "这可能导致打印中模型从热床脱落"

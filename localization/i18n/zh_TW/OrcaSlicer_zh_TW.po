@@ -1569,7 +1569,7 @@ msgstr "打開專案項目"
 
 msgid ""
 "The version of Orca Slicer is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"version before it can be used normally."
 msgstr "Orca Slicer 版本過舊，需要更新到最新版本才能正常使用"
 
 msgid "Privacy Policy Update"
@@ -5317,7 +5317,7 @@ msgstr "繼續退料"
 msgid "Still load"
 msgstr "繼續進料"
 
-msgid "Please select an AMS slot before calibration"
+msgid "Please select an AMS slot before calibration."
 msgstr "請先選擇一個 AMS 槽位後進行校正"
 
 msgid ""
@@ -5585,7 +5585,7 @@ msgstr[0] "%1$d 物件有上色。"
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
-msgid_plural "%1$d objects were loaded as parts of cut object"
+msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] "%1$d 物件載入為一個切割物件的子零件。"
 
 msgid "ERROR"
@@ -9120,7 +9120,7 @@ msgstr "離淨空區域太近，會發生碰撞。\n"
 msgid ""
 "Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
-"during printing"
+"during printing."
 msgstr ""
 "無法法同時列印溫度差異較大的多種線材，否則在列印過程中可能會造成擠出機或噴嘴"
 "堵塞甚至損壞"
@@ -9203,20 +9203,21 @@ msgid ""
 "requires that all objects have the same layer height."
 msgstr "可變層高開啟時無法使用換料塔。它要求所有物件擁有相同的層高。"
 
-msgid "The prime tower requires \"support gap\" to be multiple of layer height"
+msgid ""
+"The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr "換料塔要求「支撐間隙」為層高的整數倍數"
 
-msgid "The prime tower requires that all objects have the same layer heights"
+msgid "The prime tower requires that all objects have the same layer heights."
 msgstr "換料塔要求各個物件擁有同樣的層高"
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
-"of raft layers"
+"of raft layers."
 msgstr "換料塔要求各個物件使用同樣的筏層數量"
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
-"with the same support_top_z_distance"
+"with the same support_top_z_distance."
 msgstr ""
 "只有當多個物件使用相同的支撐頂部 Z 距離 (support_top_z_distance) 列印時，才會"
 "支援換料塔"
@@ -9228,7 +9229,7 @@ msgstr "換料塔要求各個物件擁有同樣的層高。"
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
-"layer height"
+"layer height."
 msgstr "各個物件的層高存在差異，無法啟用換料塔"
 
 msgid ""
@@ -9274,7 +9275,7 @@ msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr "使用支撐添加器但沒有打開支撐。請打開支撐。"
 
-msgid "Layer height cannot exceed nozzle diameter"
+msgid "Layer height cannot exceed nozzle diameter."
 msgstr "層高不能超過噴嘴直徑"
 
 msgid ""
@@ -15017,7 +15018,7 @@ msgstr "正在連接列印設備..."
 msgid "The failed test result has been dropped."
 msgstr "測試失敗的結果已被刪除。"
 
-msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgid "Flow Dynamics Calibration result has been saved to the printer."
 msgstr "動態流量校正的結果已儲存至列印設備"
 
 #, c-format, boost-format
@@ -15041,10 +15042,10 @@ msgstr "內部錯誤"
 msgid "Please select at least one filament for calibration"
 msgstr "請至少選擇一種線材進行校正"
 
-msgid "Flow rate calibration result has been saved to preset"
+msgid "Flow rate calibration result has been saved to preset."
 msgstr "流量比例校正結果已儲存到預設值"
 
-msgid "Max volumetric speed calibration result has been saved to preset"
+msgid "Max volumetric speed calibration result has been saved to preset."
 msgstr "最大體積速度校正結果已儲存到預設值"
 
 msgid "When do you need Flow Dynamics Calibration"
@@ -15264,9 +15265,6 @@ msgstr "跳過校正2"
 #, c-format, boost-format
 msgid "flow ratio : %s "
 msgstr "流量比：%s "
-
-msgid "Please choose a block with smoothest top surface"
-msgstr "請選擇頂部表面最光滑的塊"
 
 msgid "Please choose a block with smoothest top surface."
 msgstr "請選擇頂部表面最光滑的塊。"

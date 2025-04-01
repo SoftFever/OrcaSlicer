@@ -1542,7 +1542,7 @@ msgstr ""
 
 msgid ""
 "The version of Orca Slicer is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"version before it can be used normally."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -5243,8 +5243,8 @@ msgstr ""
 msgid "Still load"
 msgstr ""
 
-msgid "Please select an AMS slot before calibration"
-msgstr "Please select an AMS slot before calibration."
+msgid "Please select an AMS slot before calibration."
+msgstr ""
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -5253,7 +5253,7 @@ msgstr ""
 "Cannot read filament info: the filament is loaded to the tool head. Please "
 "unload the filament and try again."
 
-msgid "This only takes effect during printing"
+msgid "This only takes effect during printing."
 msgstr ""
 
 msgid "Silent"
@@ -5505,7 +5505,7 @@ msgstr[1] ""
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
-msgid_plural "%1$d objects were loaded as parts of cut object"
+msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -8983,7 +8983,7 @@ msgstr " is too close to an exclusion area, and collisions will be caused.\n"
 msgid ""
 "Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
-"during printing"
+"during printing."
 msgstr ""
 "Unable to print multiple filaments which have large temperature differences "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
@@ -9064,23 +9064,24 @@ msgstr ""
 "A prime tower is not supported when adaptive layer height is on. It requires "
 "that all objects have the same layer height."
 
-msgid "The prime tower requires \"support gap\" to be multiple of layer height"
+msgid ""
+"The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr ""
 "A prime tower requires any “support gap” to be a multiple of layer height."
 
-msgid "The prime tower requires that all objects have the same layer heights"
+msgid "The prime tower requires that all objects have the same layer heights."
 msgstr "A prime tower requires that all objects have the same layer height."
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
-"of raft layers"
+"of raft layers."
 msgstr ""
 "A prime tower requires that all objects are printed over the same number of "
 "raft layers."
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
-"with the same support_top_z_distance"
+"with the same support_top_z_distance."
 msgstr ""
 
 msgid ""
@@ -9092,7 +9093,7 @@ msgstr ""
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
-"layer height"
+"layer height."
 msgstr ""
 
 msgid ""
@@ -9136,7 +9137,7 @@ msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 
-msgid "Layer height cannot exceed nozzle diameter"
+msgid "Layer height cannot exceed nozzle diameter."
 msgstr "Layer height cannot exceed nozzle diameter."
 
 msgid ""
@@ -14421,7 +14422,7 @@ msgstr ""
 msgid "The failed test result has been dropped."
 msgstr ""
 
-msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgid "Flow Dynamics Calibration result has been saved to the printer."
 msgstr ""
 
 #, c-format, boost-format
@@ -14448,10 +14449,10 @@ msgstr ""
 msgid "Please select at least one filament for calibration"
 msgstr ""
 
-msgid "Flow rate calibration result has been saved to preset"
+msgid "Flow rate calibration result has been saved to preset."
 msgstr ""
 
-msgid "Max volumetric speed calibration result has been saved to preset"
+msgid "Max volumetric speed calibration result has been saved to preset."
 msgstr ""
 
 msgid "When do you need Flow Dynamics Calibration"
@@ -14646,9 +14647,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr ""
-
-msgid "Please choose a block with smoothest top surface"
 msgstr ""
 
 msgid "Please choose a block with smoothest top surface."
@@ -16603,7 +16601,7 @@ msgstr ""
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
 #~ "layer for more than %d degrees Celsius.\n"
-#~ "This may cause model broken free from build plate during printing"
+#~ "This may cause model broken free from build plate during printing."
 #~ msgstr ""
 #~ "The bed temperature of other layers is lower than the bed temperature of "
 #~ "the first layer by more than %d degrees Celsius.\n"
