@@ -74,11 +74,13 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
 
 
     bool to_save_local = false;
+    json j;
+
     BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
     Slic3r::Http http = Slic3r::Http::get(url);
-    http.on_complete([this, receive_json, hms_type, &to_save_local, &local_version](std::string body, unsigned status) {
+    http.on_complete([this, receive_json, hms_type, &to_save_local, &j, & local_version](std::string body, unsigned status) {
         try {
-            json j = json::parse(body);
+            j = json::parse(body);
             if (j.contains("result")) {
                 if (j["result"] == 0 && j.contains("data")) {
 
@@ -120,7 +122,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
         }).perform_sync();
 
         if (to_save_local && !receive_json->empty()) {
-            save_to_local(lang, hms_type, dev_id_type, *receive_json);
+            save_to_local(lang, hms_type, dev_id_type, j);
         }
     return 0;
 }
@@ -192,41 +194,22 @@ int HMSQuery::load_from_local(const std::string& hms_type, const std::string& de
     try {
         if (json_file.is_open())
         {
-            if (package_dev_id_types.count(dev_id_type) != 0) /*temp for 094, the local file structure is different from saved cloud file*/
-            {
-                if (hms_type == QUERY_HMS_INFO)
-                {
-                    const json& j = json::parse(json_file);
-                    if (j.contains("data"))
-                    {
-                        *load_json = j["data"];
-                    }
-                }
-                else
-                {
-                    json_file >> (*load_json);
-                }
+            const json &j = json::parse(json_file);
+            if (hms_type.compare(QUERY_HMS_INFO) == 0) {
+                (*load_json)  = j["data"];
+            } else if (hms_type.compare(QUERY_HMS_ACTION) == 0) {
+                (*load_json)["data"] = j["data"];
+            }
 
-                if ((*load_json).contains("ver"))
-                {
-                    load_version = JsonValParser::get_longlong_val((*load_json)["ver"]);
-                }
-                else
-                {
-                    BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
-                }
+            if (j.contains("version")) {
+                load_version = JsonValParser::get_longlong_val(j["version"]);
+            }
+            else if (j.contains("ver")) {
+                load_version = JsonValParser::get_longlong_val(j["ver"]);
             }
             else
             {
-                json_file >> (*load_json);
-                if ((*load_json).contains("version"))
-                {
-                    load_version = JsonValParser::get_longlong_val((*load_json)["version"]);
-                }
-                else
-                {
-                    BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
-                }
+                BOOST_LOG_TRIVIAL(warning) << "HMS: load_from_local, no version info";
             }
 
             return 0;
@@ -594,6 +577,7 @@ void HMSQuery::clear_hms_info()
     std::unique_lock unique_lock(m_hms_mutex);
     m_hms_info_jsons.clear();
     m_hms_action_jsons.clear();
+    m_cloud_hms_last_update_time.clear();
 }
 
 void HMSQuery::init_hms_info(const std::string& dev_type_id)
