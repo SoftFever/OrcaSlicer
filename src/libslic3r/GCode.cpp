@@ -3558,12 +3558,15 @@ std::string GCode::generate_skirt(const Print &print,
                 path.mm3_per_mm = mm3_per_mm;
             }
 
-            //set skirt start point location
-            if (first_layer && i==loops.first)
-                this->set_last_pos(Skirt::find_start_point(loop, layer.object()->config().skirt_start_angle));
-
             //FIXME using the support_speed of the 1st object printed.
-            gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
+            if (first_layer && i==loops.first) {
+                //set skirt start point location
+                const Point desired_start_point = Skirt::find_start_point(loop, layer.object()->config().skirt_start_angle);
+                gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value, {}, &desired_start_point);
+            }
+            else
+                gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
+
             // If we only want a single wall on non-first layers, break now
             if (!first_layer && single_loop_draft_shield) {
                 break;
@@ -4591,7 +4594,7 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
     return out;
 }
 
-std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
+std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters, const Point* start_point)
 {
     
     // get a copy; don't modify the orientation of the original loop object otherwise
@@ -4607,12 +4610,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     //    loop.reverse();
 
     // find the point of the loop that is closest to the current extruder position
-    // or randomize if requested
-    Point last_pos = this->last_pos();
+    // or randomize if requested;
+    // or, if `start_point` is specified, start the loop at point closest to it
+    Point last_pos = start_point ? *start_point : this->last_pos();
     float seam_overhang = std::numeric_limits<float>::lowest();
     if (!m_config.spiral_mode && description == "perimeter") {
         assert(m_layer != nullptr);
-        m_seam_placer.place_seam(m_layer, loop, this->last_pos(), seam_overhang);
+        m_seam_placer.place_seam(m_layer, loop, last_pos, seam_overhang);
     } else
         loop.split_at(last_pos, false);
 
