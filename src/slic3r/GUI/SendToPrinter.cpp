@@ -844,7 +844,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		file_name = default_output_file_path.filename().string();
     }*/
 #if !BBL_RELEASE_TO_PUBLIC
-    if (!obj_->is_lan_mode_printer()) {
+    if (!obj_->is_lan_mode_printer() && obj_->is_support_brtc) {
         update_print_status_msg(wxEmptyString, false, false);
         if (m_file_sys) {
             PrintPrepareData print_data;
@@ -852,37 +852,38 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
             std::string project_name = m_current_project_name.utf8_string() + ".3mf";
             std::string _3mf_path    = print_data._3mf_path.string();
 
-            std::string storage;
             auto it = std::find_if(m_ability_list.begin(), m_ability_list.end(), [](const std::string& s) {
                 return s != EMMC_STORAGE;
             });
 
-            if (it != m_ability_list.end())
+            if (it != m_ability_list.end()) {
                 m_file_sys->SetUploadFile(_3mf_path, project_name, *it);
-            else {
-                BOOST_LOG_TRIVIAL(info) << "SendToPrinter::send job: The printer media capability set is incorrect.";
+                m_file_sys->RequestUploadFile();
+
+                // time out
+                if (m_task_timer && m_task_timer->IsRunning()) m_task_timer->Stop();
+
+                m_task_timer.reset(new wxTimer());
+                m_task_timer->SetOwner(this);
+
+                this->Bind(
+                    wxEVT_TIMER,
+                    [this, wfs = boost::weak_ptr(m_file_sys)](auto e) {
+                        show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
+
+                        boost::shared_ptr fs(wfs.lock());
+                        if (!fs) return;
+                        fs->CancelUploadTask(false);
+                        update_print_status_msg(_L("Upload file timeout, please check if the firmware version supports it."), false, true);
+                    },
+                    m_task_timer->GetId());
+                m_task_timer->StartOnce(timeout_period);
             }
-            m_file_sys->RequestUploadFile();
-
-            // time out
-            if (m_task_timer && m_task_timer->IsRunning())
-                m_task_timer->Stop();
-
-            m_task_timer.reset(new wxTimer());
-            m_task_timer->SetOwner(this);
-
-            this->Bind(
-                wxEVT_TIMER,
-                [this, wfs = boost::weak_ptr(m_file_sys)](auto e) {
-                    show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
-
-                    boost::shared_ptr fs(wfs.lock());
-                    if (!fs) return;
-                    fs->CancelUploadTask(false);
-                    update_print_status_msg(_L("Upload file timeout, please check if the firmware version supports it."), false, true);
-                },
-                m_task_timer->GetId());
-            m_task_timer->StartOnce(timeout_period);
+            else {
+                BOOST_LOG_TRIVIAL(error) << "SendToPrinter::send job: The printer media capability set is incorrect.";
+                show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
+                update_print_status_msg(_L("No available external storage was obtained. Please confirm and try again."), true, true);
+            }
         }
     } else {
 #endif
@@ -978,7 +979,10 @@ void SendToPrinterDialog::on_refresh(wxCommandEvent &event)
      show_status(PrintDialogStatus::PrintStatusRefreshingMachineList);
      update_user_machine_list();
     /*todo refresh*/
-    /*if (m_file_sys) { m_file_sys->Retry(); }*/
+    if (m_file_sys) {
+        m_file_sys->Stop(true);
+        m_file_sys.reset();
+    }
 }
 
 void SendToPrinterDialog::on_print_job_cancel(wxCommandEvent &evt)
@@ -1223,11 +1227,16 @@ void SendToPrinterDialog::update_show_status()
         return;
     }
 #else
-        if (obj_->connection_type() == "lan") {
+        if (obj_->connection_type() == "lan" || !obj_->is_support_brtc) {
+            if (m_file_sys) {
+                m_device_select.clear();
+                m_file_sys->Stop(true);
+                m_file_sys.reset();
+            }
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
             return;
         } else if (obj_->connection_type() == "cloud") {
-            Enable(obj_ && obj_->is_connected() && obj_->m_push_count > 0);
+            Enable(obj_ && obj_->is_connected());
             std::string dev_id = obj_->dev_ip;
             if (m_file_sys) {
                 if (dev_id == m_device_select) {
@@ -1265,11 +1274,8 @@ void SendToPrinterDialog::update_show_status()
                     m_task_timer->SetOwner(this);
 
                     this->Bind(wxEVT_TIMER, [this, wfs_1 = boost::weak_ptr(fs), seq](auto e) {
-                            show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
-                            boost::shared_ptr fs_1(wfs_1.lock());
-                            if (!fs_1) return;
-                            fs_1->CancelUploadTask(false);
-                            update_print_status_msg(_L("Media capability acquisition timeout, please check if the firmware version supports it."), false, true);
+                            show_status(PrintDialogStatus::PrintStatusPublicInitFailed);
+                            update_print_status_msg(_L("Media capability acquisition timeout, please check if the firmware version supports it."), true, true);
                         }, m_task_timer->GetId());
                     m_task_timer->StartOnce(timeout_period);
 
@@ -1670,11 +1676,10 @@ bool SendToPrinterDialog::Show(bool show)
     if (show) { CenterOnParent(); }
 
 #if !BBL_RELEASE_TO_PUBLIC
-    if (m_file_sys && !show) {
-        m_file_sys->Stop(true);
+    if (m_file_sys) {
         m_waiting_enable = false;
         m_waiting_support = false;
-        m_file_sys.reset();
+        show ? m_file_sys->Start() : m_file_sys->Stop();
     }
 #endif
 
