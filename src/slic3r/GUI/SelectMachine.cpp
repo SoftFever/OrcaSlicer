@@ -2541,18 +2541,18 @@ void SelectMachineDialog::on_send_print()
     std::string ams_mapping_array;
     std::string ams_mapping_array2;
     std::string ams_mapping_info;
-    if (m_checkbox_list["use_ams"]->getValue() == "on")
-        get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
-    else {
-        json mapping_info_json = json::array();
-        json item;
-        if (m_filaments.size() > 0) {
-            item["sourceColor"] = m_filaments[0].color.substr(1, 8);
-            item["filamentType"] = m_filaments[0].type;
-            mapping_info_json.push_back(item);
-            ams_mapping_info = mapping_info_json.dump();
-        }
-    }
+    //if (m_checkbox_list["use_ams"]->getValue() == "on")
+    get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
+    //else {
+    //    json mapping_info_json = json::array();
+    //    json item;
+    //    if (m_filaments.size() > 0) {
+    //        item["sourceColor"] = m_filaments[0].color.substr(1, 8);
+    //        item["filamentType"] = m_filaments[0].type;
+    //        mapping_info_json.push_back(item);
+    //        ams_mapping_info = mapping_info_json.dump();
+    //    }
+    //}
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
