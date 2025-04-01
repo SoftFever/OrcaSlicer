@@ -57,8 +57,8 @@ bool GLGizmoBrimEars::on_init()
     m_desc["left_click"]               = _L("Add a brim ear");
     m_desc["right_click_caption"]      = _L("Right click");
     m_desc["right_click"]              = _L("Delete a brim ear");
-    m_desc["ctrl_mouse_wheel_caption"] = _L("Ctrl+Mouse wheel");
-    m_desc["ctrl_mouse_wheel"]         = _L("Adjust section view");
+    m_desc["alt_mouse_wheel_caption"]  = _L("Alt + Mouse wheel");
+    m_desc["alt_mouse_wheel"]          = _L("Adjust section view");
 
     return true;
 }
@@ -479,14 +479,14 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
     }
 
     // mouse wheel up
-    if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
+    if (action == SLAGizmoEventType::MouseWheelUp && alt_down) {
         double pos = m_c->object_clipper()->get_position();
         pos        = std::min(1., pos + 0.01);
         m_c->object_clipper()->set_position_by_ratio(pos, false, true);
         return true;
     }
 
-    if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
+    if (action == SLAGizmoEventType::MouseWheelDown && alt_down) {
         double pos = m_c->object_clipper()->get_position();
         pos        = std::max(0., pos - 0.01);
         m_c->object_clipper()->set_position_by_ratio(pos, false, true);
@@ -737,7 +737,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
 
 void GLGizmoBrimEars::show_tooltip_information(float x, float y)
 {
-    std::array<std::string, 3> info_array  = std::array<std::string, 3>{"left_click", "right_click", "ctrl_mouse_wheel"};
+    std::array<std::string, 3> info_array  = std::array<std::string, 3>{"left_click", "right_click", "alt_mouse_wheel"};
     float                      caption_max = 0.f;
     for (const auto &t : info_array) { caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x); }
 
