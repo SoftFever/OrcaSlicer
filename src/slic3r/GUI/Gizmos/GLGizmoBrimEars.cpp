@@ -590,6 +590,9 @@ void GLGizmoBrimEars::begin_radius_change(float initial_value)
 
 void GLGizmoBrimEars::update_cache_radius()
 {
+    if (render_hover_point)
+        render_hover_point->brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
+
     for (auto &cache_entry : m_editing_cache)
         if (cache_entry.selected) {
             cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
