@@ -15305,7 +15305,7 @@ msgstr ""
 "purge multiplié par les volumes de purge dans le tableau."
 
 msgid "Prime volume"
-msgstr "Premier volume"
+msgstr "Volume d’amorçage"
 
 msgid "The volume of material to prime extruder on tower."
 msgstr "Le volume de matériau pour amorcer l'extrudeur sur la tour."
