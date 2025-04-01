@@ -169,7 +169,7 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
       3. Jerk
-         1. If using a [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
+         1. If using a [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) or [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) use a high value (e.g., 20).
          2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) this test will use 0.25 (high enough to most printers).
    2. Use a high gloss filament to make the ringing more visible.
    3. In printer settigs:
