@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -13083,16 +13083,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "普通(自动)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "树状(自动)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "普通(手动)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "树状(手动)"
 
 msgid "Support/object xy distance"
 msgstr "支撑/模型xy间距"
@@ -16923,18 +16923,6 @@ msgstr ""
 #~ msgstr ""
 #~ "普通（自动）和树状（自动）用于自动生成支撑体。如果选择普通（手动）或树状"
 #~ "（手动），仅会在支撑强制面上生成支撑。"
-
-#~ msgid "normal(auto)"
-#~ msgstr "普通(自动)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "树状(自动)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "普通(手动)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "树状(手动)"
 
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Shift + 鼠标左键"

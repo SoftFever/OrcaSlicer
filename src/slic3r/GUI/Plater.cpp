@@ -9794,7 +9794,7 @@ void Plater::_calib_pa_select_added_objects() {
 // For linear mode, pass 1 means normal version while pass 2 mean "for perfectionists" version
 void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, int pass)
 {
-auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
@@ -9852,7 +9852,7 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
         _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
         _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
-        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipArchimedeanChords));
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(135));
@@ -9861,7 +9861,9 @@ auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
         _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+        _obj->config.set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
         print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("calib_flowrate_topinfill_special_order", new ConfigOptionBool(true));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
@@ -10390,7 +10392,7 @@ bool Plater::preview_zip_archive(const boost::filesystem::path& archive_path)
                         if (size != stat.m_uncomp_size) // size must fit
                             continue;
                         wxString wname = boost::nowide::widen(stat.m_filename);
-                        std::string name = boost::nowide::narrow(wname);
+                        std::string name = into_u8(wname);
                         fs::path archive_path(name);
 
                         std::string extra(1024, 0);
@@ -11694,7 +11696,7 @@ void Plater::export_gcode_3mf(bool export_all)
         show_error(this, ex.what(), false);
         return;
     }
-    default_output_file.replace_extension(".3mf");
+    default_output_file.replace_extension(".gcode.3mf");
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
     //Get a last save path
@@ -11706,7 +11708,7 @@ void Plater::export_gcode_3mf(bool export_all)
         wxFileDialog dlg(this, _L("Save Sliced file as:"),
             start_dir,
             from_path(default_output_file.filename()),
-            GUI::file_wildcards(FT_3MF, ext),
+            GUI::file_wildcards(FT_GCODE_3MF, ""),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
         if (dlg.ShowModal() == wxID_OK) {

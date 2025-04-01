@@ -3205,7 +3205,7 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
             // Set temperatures of all the printing extruders.
             for (unsigned int tool_id : print.extruders()) {
                 int temp = print.config().nozzle_temperature_initial_layer.get_at(tool_id);
-                if (print.config().ooze_prevention.value) {
+                if (m_ooze_prevention.enable && tool_id != first_printing_extruder_id) {
                     if (print.config().idle_temperature.get_at(tool_id) == 0)
                         temp += print.config().standby_temperature_delta.value;
                     else
@@ -4077,6 +4077,7 @@ LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
+        std::string gcode_toolchange;
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
@@ -4095,11 +4096,16 @@ LayerResult GCode::process_layer(
                     }
                     has_insert_timelapse_gcode = true;
                 }
-                gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
+                gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
         } else {
-            gcode += this->set_extruder(extruder_id, print_z);
+            gcode_toolchange = this->set_extruder(extruder_id, print_z);
         }
+        if (!gcode_toolchange.empty()) {
+            // Disable vase mode for layers that has toolchange
+            result.spiral_vase_enable = false;
+        }
+        gcode += std::move(gcode_toolchange);
 
         // let analyzer tag generator aware of a role type change
         if (layer_tools.has_wipe_tower && m_wipe_tower)
@@ -6064,7 +6070,8 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
-        if (m_spiral_vase) {
+        // Orca: use `travel_to_xyz` to ensure we start at the correct z, in case we moved z in custom/filament change gcode
+        if (false/*m_spiral_vase*/) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i) {
                 gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
@@ -6292,8 +6299,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     }
 
     if (needs_lift && can_lift) {
-        size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
+        gcode += m_writer.lift(lift_type, m_spiral_vase != nullptr);
     }
 
     return gcode;

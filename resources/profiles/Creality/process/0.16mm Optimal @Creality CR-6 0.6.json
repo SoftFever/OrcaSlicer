@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.16mm Opitmal @Creality CR-6 0.6",
+    "name": "0.16mm Optimal @Creality CR-6 0.6",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_creality_common",

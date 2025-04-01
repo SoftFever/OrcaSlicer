@@ -1203,9 +1203,9 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
             auto machine_in_cache = (cache_profile_path / vendor_name / PRESET_PRINTER_NAME);
 
             if (( fs::exists(path_in_vendor))
-                &&( fs::exists(print_in_cache))
-                &&( fs::exists(filament_in_cache))
-                &&( fs::exists(machine_in_cache))) {
+                || fs::exists(print_in_cache)
+                || fs::exists(filament_in_cache)
+                || fs::exists(machine_in_cache)) {
                 Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
                 std::map<std::string, std::string> key_values;
@@ -1240,11 +1240,10 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                     Version version;
                     version.config_version = cache_ver;
                     version.comment        = description;
-
-                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
-
-                        //BBS: add directory support
-                        updates.updates.emplace_back(cache_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
+                    // Orca: update vendor.json
+                    updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
+                    //Orca: update vendor folder
+                    updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
                 }
             }
         }
