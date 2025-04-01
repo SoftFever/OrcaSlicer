@@ -4567,6 +4567,12 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 
         if (obj->m_extder_data.total_extder_count <= 1 && !obj->is_enable_np) {
             has_filament_at_extruder = obj->is_filament_at_extruder();
+
+            /*for xp support n3s/n3f*/
+            if (!ams_it->second->info.empty()) {
+                use_new_command = true;
+            }
+
         } else {
             use_new_command = true;
 
