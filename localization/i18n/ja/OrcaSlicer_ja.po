@@ -1567,7 +1567,7 @@ msgstr "プロジェクトを開く"
 
 msgid ""
 "The version of Orca Slicer is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"version before it can be used normally."
 msgstr ""
 "現在のOrca Slicerはバージョンが古いため使用できません、アップデートしてくださ"
 "い。"
@@ -5277,7 +5277,7 @@ msgstr "アンロード"
 msgid "Still load"
 msgstr "ロード"
 
-msgid "Please select an AMS slot before calibration"
+msgid "Please select an AMS slot before calibration."
 msgstr "キャリブレーション前に、AMSスロットを選択してください"
 
 msgid ""
@@ -5537,7 +5537,7 @@ msgstr[0] "%1$dのオブジェクトは色が付いています"
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
-msgid_plural "%1$d objects were loaded as parts of cut object"
+msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] ""
 
 msgid "ERROR"
@@ -9016,7 +9016,7 @@ msgstr "除外領域 に近すぎるので、衝突の可能性があります�
 msgid ""
 "Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
-"during printing"
+"during printing."
 msgstr ""
 "温度差が大きいフィラメントを一緒に造形することができません。ノズル詰まりや損"
 "傷する可能性があります"
@@ -9103,26 +9103,27 @@ msgid ""
 "requires that all objects have the same layer height."
 msgstr "[アダプティブ積層ピッチ]を使用する時に、プライムタワーを利用できません"
 
-msgid "The prime tower requires \"support gap\" to be multiple of layer height"
+msgid ""
+"The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr ""
 "プライムタワーを使用するにはサポートとのギャップを積層ピッチの整数倍である必"
 "要があります"
 
-msgid "The prime tower requires that all objects have the same layer heights"
+msgid "The prime tower requires that all objects have the same layer heights."
 msgstr ""
 "プライムタワーを使用するには、全てのオブジェクトが同じ積層ピッチを使う必要が"
 "あります"
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
-"of raft layers"
+"of raft layers."
 msgstr ""
 "プライムタワーを使用するには、全てのオブジェクトが同じラフト層数を使う必要が"
 "あります"
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
-"with the same support_top_z_distance"
+"with the same support_top_z_distance."
 msgstr ""
 
 msgid ""
@@ -9134,7 +9135,7 @@ msgstr ""
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
-"layer height"
+"layer height."
 msgstr ""
 "プライムタワーを使用するには、全てのオブジェクトが同じ積層ピッチを持つ必要が"
 "あります"
@@ -9189,7 +9190,7 @@ msgstr ""
 "サポート増強器を有効しましたが、サポート自体は有効されていません。有効にして"
 "ください。"
 
-msgid "Layer height cannot exceed nozzle diameter"
+msgid "Layer height cannot exceed nozzle diameter."
 msgstr "積層ピッチはノズルの直径を超える為設定できません"
 
 msgid ""
@@ -14518,7 +14519,7 @@ msgstr ""
 msgid "The failed test result has been dropped."
 msgstr ""
 
-msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgid "Flow Dynamics Calibration result has been saved to the printer."
 msgstr ""
 
 #, c-format, boost-format
@@ -14540,10 +14541,10 @@ msgstr ""
 msgid "Please select at least one filament for calibration"
 msgstr ""
 
-msgid "Flow rate calibration result has been saved to preset"
+msgid "Flow rate calibration result has been saved to preset."
 msgstr ""
 
-msgid "Max volumetric speed calibration result has been saved to preset"
+msgid "Max volumetric speed calibration result has been saved to preset."
 msgstr ""
 
 msgid "When do you need Flow Dynamics Calibration"
@@ -14738,9 +14739,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr ""
-
-msgid "Please choose a block with smoothest top surface"
 msgstr ""
 
 msgid "Please choose a block with smoothest top surface."
@@ -16917,7 +16915,7 @@ msgstr ""
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
 #~ "layer for more than %d degrees Celsius.\n"
-#~ "This may cause model broken free from build plate during printing"
+#~ "This may cause model broken free from build plate during printing."
 #~ msgstr ""
 #~ "ベッド温度が1層目温度より %d ℃以上低いです。造形中プレートより離脱する可能"
 #~ "性があります"

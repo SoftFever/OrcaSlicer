@@ -1542,7 +1542,7 @@ msgstr ""
 
 msgid ""
 "The version of Orca Slicer is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"version before it can be used normally."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -5166,7 +5166,7 @@ msgstr ""
 msgid "Still load"
 msgstr ""
 
-msgid "Please select an AMS slot before calibration"
+msgid "Please select an AMS slot before calibration."
 msgstr ""
 
 msgid ""
@@ -5426,7 +5426,7 @@ msgstr[1] ""
 
 #, possible-c-format, possible-boost-format
 msgid "%1$d object was loaded as a part of cut object."
-msgid_plural "%1$d objects were loaded as parts of cut object"
+msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -8803,7 +8803,7 @@ msgstr ""
 msgid ""
 "Cannot print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
-"during printing"
+"during printing."
 msgstr ""
 
 msgid "No extrusions under current settings."
@@ -8877,20 +8877,21 @@ msgid ""
 "requires that all objects have the same layer height."
 msgstr ""
 
-msgid "The prime tower requires \"support gap\" to be multiple of layer height"
+msgid ""
+"The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr ""
 
-msgid "The prime tower requires that all objects have the same layer heights"
+msgid "The prime tower requires that all objects have the same layer heights."
 msgstr ""
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
-"of raft layers"
+"of raft layers."
 msgstr ""
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
-"with the same support_top_z_distance"
+"with the same support_top_z_distance."
 msgstr ""
 
 msgid ""
@@ -8900,7 +8901,7 @@ msgstr ""
 
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
-"layer height"
+"layer height."
 msgstr ""
 
 msgid ""
@@ -8943,7 +8944,7 @@ msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 
-msgid "Layer height cannot exceed nozzle diameter"
+msgid "Layer height cannot exceed nozzle diameter."
 msgstr ""
 
 msgid ""
@@ -13979,7 +13980,7 @@ msgstr ""
 msgid "The failed test result has been dropped."
 msgstr ""
 
-msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgid "Flow Dynamics Calibration result has been saved to the printer."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -14001,10 +14002,10 @@ msgstr ""
 msgid "Please select at least one filament for calibration"
 msgstr ""
 
-msgid "Flow rate calibration result has been saved to preset"
+msgid "Flow rate calibration result has been saved to preset."
 msgstr ""
 
-msgid "Max volumetric speed calibration result has been saved to preset"
+msgid "Max volumetric speed calibration result has been saved to preset."
 msgstr ""
 
 msgid "When do you need Flow Dynamics Calibration"
@@ -14182,9 +14183,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "flow ratio : %s "
-msgstr ""
-
-msgid "Please choose a block with smoothest top surface"
 msgstr ""
 
 msgid "Please choose a block with smoothest top surface."
