@@ -8,7 +8,7 @@ struct CustomData
 {
     int filament_id;
     unsigned char r, g, b, a;
-    std::string type;
+    char type[64];
 };
 
 
@@ -39,7 +39,6 @@ public:
     ColorDataObject(const wxColour &color = *wxBLACK, int filament_id = 0, const std::string &type = "PLA")
         : wxCustomDataObject(wxDataFormat("application/customize_format"))
     {
-        std::memset(&m_data, 0, sizeof(m_data));
         set_custom_data_filament_id(filament_id);
         set_custom_data_color(color);
         set_custom_data_type(type);
@@ -55,7 +54,8 @@ public:
     void     SetType(const std::string &type) { set_custom_data_type(type); }
 
     void set_custom_data_type(const std::string& type) {
-        m_data.type = type;
+        std::strncpy(m_data.type, type.c_str(), sizeof(m_data.type) - 1);
+        m_data.type[sizeof(m_data.type) - 1] = '\0';
     }
 
     void set_custom_data_filament_id(int filament_id) {
