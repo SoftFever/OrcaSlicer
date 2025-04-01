@@ -972,7 +972,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     // reset checkbox
     m_checkbox_list["timelapse"]->Hide();
     m_checkbox_list["bed_leveling"]->Hide();
-    m_checkbox_list["use_ams"]->Hide();
     m_checkbox_list["flow_cali"]->Hide();
     m_checkbox_list["nozzle_offset_cali"]->Hide();
 
@@ -2788,7 +2787,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
         }
 
         /*check use ams options*/
-        if (m_checkbox_list["use_ams"]->IsShown() && use_ext_count == m_ams_mapping_result.size()) {
+        if (use_ext_count == m_ams_mapping_result.size()) {
             m_checkbox_list["use_ams"]->setValue("off");
         }
         else if (use_ams_count > 0) {
@@ -3216,17 +3215,14 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
 
     if (!obj->is_enable_np) {
         if (obj->has_ams()) {
-            m_checkbox_list["use_ams"]->Show();
             m_checkbox_list["use_ams"]->setValue("on");
             change_materialitem_tip(false);
         }
         else {
-            m_checkbox_list["use_ams"]->Hide();
             m_checkbox_list["use_ams"]->setValue("off");
             change_materialitem_tip(true);
         }
     }else{
-        m_checkbox_list["use_ams"]->Hide();
         m_checkbox_list["use_ams"]->setValue("on");
         change_materialitem_tip(false);
     }
@@ -3999,7 +3995,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
                 if (obj_ && m_checkbox_list["use_ams"]->getValue() == "on" && obj_->dev_id == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
-                    m_mapping_popup.set_only_show_ext_spool(m_checkbox_list["use_ams"]->getValue() == "off");
+                    m_mapping_popup.set_only_show_ext_spool(false);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
