@@ -100,7 +100,7 @@ void GLGizmoBrimEars::on_render()
 void GLGizmoBrimEars::render_points(const Selection &selection)
 {
     auto editing_cache = m_editing_cache;
-    if (render_hover_point != nullptr) { editing_cache.push_back(*render_hover_point); }
+    if (render_hover_point) { editing_cache.push_back(*render_hover_point); }
 
     size_t cache_size = editing_cache.size();
 
@@ -344,10 +344,9 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
         Transform3d             inverse_trsf = volume->get_instance_transformation().get_matrix_no_offset().inverse();
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
-            render_hover_point = new CacheEntry(BrimPoint(pos_and_normal.first, m_new_point_head_diameter / 2.f), false, (inverse_trsf * m_world_normal).cast<float>(), true);
+            render_hover_point = CacheEntry(BrimPoint(pos_and_normal.first, m_new_point_head_diameter / 2.f), false, (inverse_trsf * m_world_normal).cast<float>(), true);
         } else {
-            delete render_hover_point;
-            render_hover_point = nullptr;
+            render_hover_point.reset();
         }
     } else if (action == SLAGizmoEventType::LeftDown && (shift_down || alt_down || control_down)) {
         // left down with shift - show the selection rectangle:
