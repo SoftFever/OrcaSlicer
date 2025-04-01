@@ -17,6 +17,7 @@ wxDEFINE_EVENT(EVT_FAN_DEC, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FAN_CHANGED, wxCommandEvent);
 
 constexpr int time_out = 10;
+static bool not_show_fan_speed_warning_dlg = false;
 
 /*************************************************
 Description:Fan
@@ -219,10 +220,14 @@ void FanOperate::set_fan_speeds(int g)
 
 bool FanOperate::check_printing_state()
 {
-    if (m_obj && m_obj->is_in_printing()) {
+    if (m_obj && !not_show_fan_speed_warning_dlg && m_obj->is_in_printing()) {
         MessageDialog msg_wingow(nullptr, _L("Changing fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
         msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
-        if (msg_wingow.ShowModal() == wxID_CANCEL) { return false; }
+        msg_wingow.show_dsa_button();
+
+        bool ok = msg_wingow.ShowModal();
+        if (ok && msg_wingow.get_checkbox_state()) { not_show_fan_speed_warning_dlg = true; }
+        return ok;
     }
     return true;
 }
@@ -466,10 +471,14 @@ void FanControlNew::command_control_fan()
 
 bool FanControlNew::check_printing_state()
 {
-    if (m_obj && m_obj->is_in_printing()) {
+    if (m_obj && !not_show_fan_speed_warning_dlg && m_obj->is_in_printing()) {
         MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
         msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
-        if (msg_wingow.ShowModal() == wxID_CANCEL) { return false; }
+        msg_wingow.show_dsa_button();
+
+        bool ok = msg_wingow.ShowModal();
+        if (ok && msg_wingow.get_checkbox_state()) { not_show_fan_speed_warning_dlg = true; }
+        return ok;
     }
     return true;
 }
