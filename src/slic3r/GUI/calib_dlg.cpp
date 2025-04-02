@@ -432,8 +432,8 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
             end = 230;
             break;
 	case tPCTG:
-            start = 240;
-            end = 280;
+            start = 280;
+            end = 240;
             break;
         case tTPU:
             start = 240;
