@@ -499,25 +499,9 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     }
 
     if (obj) {
-        // set filament
-        if (is_virtual_tray()) {
-            auto tar_tray = VIRTUAL_TRAY_ID;
-
-            if (!obj->is_enable_np) {
-                tar_tray = VIRTUAL_TRAY_ID;
-            }
-            else {
-                tar_tray = 0;
-            }
-            obj->command_ams_filament_settings(ams_id, tar_tray, ams_filament_id, ams_setting_id, color_str, m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-        }
-        else if(m_is_third){
-            if (obj->is_enable_np) {
-                obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, color_str, m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-            }
-            else {
-                obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, color_str, m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-            }
+        if(m_is_third){
+            obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
+                                               nozzle_temp_max_int);
         }
 
         // set k / n value
@@ -629,16 +613,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
     // set filament
     if (m_is_third) {
-        if (is_virtual_tray()) {
-            obj->command_ams_filament_settings(ams_id, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-        }
-        else {
-            if (obj->is_enable_np) {
-                obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-            } else {
-                obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-            }
-        }
+        obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
     }
 
     //reset param
