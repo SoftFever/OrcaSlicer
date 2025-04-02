@@ -1005,9 +1005,10 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     }
 
     /*STUDIO-9197*/
-    if (obj && obj->canEnableTimelapse())
+    wxString error_messgae;
+    if (obj && obj->canEnableTimelapse(error_messgae))
     {
-        m_checkbox_list["timelapse"]->Enable();
+        m_checkbox_list["timelapse"]->enable(true);
         if (config->get("print", "timelapse") == "1" && !has_timelapse_warning()) {
             m_checkbox_list["timelapse"]->setValue("on");
             config->set_str("print", "timelapse", "1");
@@ -1018,10 +1019,11 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     }
     else
     {
-        m_checkbox_list["timelapse"]->Disable();
+        m_checkbox_list["timelapse"]->enable(false);
         m_checkbox_list["timelapse"]->setValue("off");
         config->set_str("print", "timelapse", "0");
     }
+    m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
 
     update_options_layout();
     Layout();
@@ -4797,7 +4799,7 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
 
      m_printoption_title = new Label(this, title);
      m_printoption_title->SetFont(Label::Body_13);
-     m_printoption_title->SetBackgroundColour(0xF8F8F8);
+     //m_printoption_title->SetBackgroundColour(0xF8F8F8);
      m_printoption_title->SetToolTip(tips);
 
      m_printoption_item = new PrintOptionItem(this, m_ops, param);
@@ -4856,6 +4858,11 @@ void PrintOption::update_options(std::vector<POItem> ops, const wxString &tips)
     m_ops = ops;
     m_printoption_item->update_options(ops);
 
+    if (m_printoption_title->GetToolTipText() != tips) { m_printoption_title->SetToolTip(tips); }
+    if (m_printoption_item->GetToolTipText() != tips) { m_printoption_item->SetToolTip(tips); }
+}
+
+void PrintOption::update_tooltip(const wxString &tips) {
     if (m_printoption_title->GetToolTipText() != tips) { m_printoption_title->SetToolTip(tips); }
     if (m_printoption_item->GetToolTipText() != tips) { m_printoption_item->SetToolTip(tips); }
 }
@@ -4930,6 +4937,8 @@ void PrintOptionItem::render(wxDC &dc)
 
 void PrintOptionItem::on_left_down(wxMouseEvent &evt)
 {
+    if (!m_enabled) { return;}
+
     auto pos  = ClientToScreen(evt.GetPosition());
     auto rect = ClientToScreen(wxPoint(0, 0));
     auto select_size = GetSize().x / m_ops.size();
@@ -4967,7 +4976,7 @@ void PrintOptionItem::doRender(wxDC &dc)
     auto size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(GetBackgroundColour());
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(5));
 
     auto left = FromDIP(4);
 

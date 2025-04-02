@@ -1756,10 +1756,10 @@ bool MachineObject::is_studio_cmd(int sequence_id)
     return false;
 }
 
-bool MachineObject::canEnableTimelapse() const
+bool MachineObject::canEnableTimelapse(wxString &error_message) const
 {
-    if (!is_support_timelapse)
-    {
+    if (!is_support_timelapse) {
+        error_message = _L("Timelapse is not supported on this printer.");
         return false;
     }
 
@@ -1768,7 +1768,19 @@ bool MachineObject::canEnableTimelapse() const
         return true;
     }
 
-    return sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+    if (sdcard_state != MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
+        if (sdcard_state == MachineObject::SdcardState::NO_SDCARD) {
+            error_message = _L("Timelapse is not supported while the SD card does not exist.");
+        } else if (sdcard_state == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL) {
+            error_message = _L("Timelapse is not supported while the SD card is unavailable.");
+        } else if (sdcard_state == MachineObject::SdcardState::HAS_SDCARD_READONLY) {
+            error_message = _L("Timelapse is not supported while the SD card is readonly.");
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
 int MachineObject::command_select_extruder(int id)
