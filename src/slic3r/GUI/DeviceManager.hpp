@@ -1150,7 +1150,7 @@ public:
     bool is_studio_cmd(int seq);
 
     /* quick check*/
-    bool canEnableTimelapse() const;
+    bool canEnableTimelapse(wxString& error_message) const;
 
     /* command commands */
     int command_get_version(bool with_retry = true);

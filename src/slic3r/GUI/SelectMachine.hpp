@@ -215,21 +215,25 @@ struct POItem
 
 class PrintOptionItem : public wxPanel
 {
+    ScalableBitmap      m_selected_bk;
+    std::vector<POItem> m_ops;
+    std::string         selected_key;
+    std::string         m_param;
+
+    bool                m_enabled = true;
+
 public:
     PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param = "");
     ~PrintOptionItem(){};
-    void OnPaint(wxPaintEvent &event);
-    void render(wxDC &dc);
-    void on_left_down(wxMouseEvent &evt);
-    void doRender(wxDC &dc);
 
-    ScalableBitmap m_selected_bk;
-    std::vector<POItem> m_ops;
-    std::string selected_key;
-    std::string m_param;
+public:
+    bool        Enable(bool enable) override { m_enabled = enable; return m_enabled;}
 
-    void setValue(std::string value);
-    void update_options(std::vector<POItem> ops){
+    void        setValue(std::string value);
+    std::string getValue();
+
+    void  msw_rescale() { m_selected_bk.msw_rescale(); Refresh();};
+    void  update_options(std::vector<POItem> ops){
         m_ops = ops;
         selected_key = "";
         auto width  = ops.size() * FromDIP(56) + FromDIP(8);
@@ -238,31 +242,42 @@ public:
         SetMaxSize(wxSize(width, height));
         Refresh();
     };
-    std::string getValue();
 
-public:
-    void msw_rescale() { m_selected_bk.msw_rescale(); Refresh(); };
+private:
+    void OnPaint(wxPaintEvent &event);
+    void render(wxDC &dc);
+    void on_left_down(wxMouseEvent &evt);
+    void doRender(wxDC &dc);
 };
 
 class PrintOption : public wxPanel
 {
+private:
+    std::string         m_param;
+    std::vector<POItem> m_ops;
+    Label              *m_printoption_title{nullptr};
+    PrintOptionItem    *m_printoption_item{nullptr};
+
 public:
     PrintOption(wxWindow *parent, wxString title, wxString tips, std::vector<POItem> ops, std::string param = "");
     ~PrintOption(){};
+
+public:
+    void        enable(bool en) { m_printoption_item->Enable(en); }
+
+    void        setValue(std::string value);
+    std::string getValue();
+    int         getValueInt();
+
+    void update_options(std::vector<POItem> ops, const wxString &tips);
+    void update_tooltip(const wxString &tips);
+
+    void msw_rescale() { m_printoption_item->msw_rescale(); };
+
+private:
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
-    void msw_rescale() { m_printoption_item->msw_rescale(); };
-    void enable(bool en){m_printoption_item->Enable(en);};
-
-    std::string m_param;
-    std::vector<POItem> m_ops;
-    Label*   m_printoption_title{nullptr};
-    PrintOptionItem* m_printoption_item{nullptr};
-    void setValue(std::string value);
-    void update_options(std::vector<POItem> ops, const wxString &tips);
-    std::string getValue();
-    int getValueInt();
 };
 
 class ThumbnailPanel : public wxPanel
