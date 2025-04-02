@@ -25,7 +25,7 @@ else ()
     endif ()
 
     ExternalProject_Add(dep_MPFR
-        URL https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.bz2
+        URL https://www.mpfr.org/mpfr-4.2.1/mpfr-4.2.1.tar.bz2
         URL_HASH SHA256=b9df93635b20e4089c29623b19420c4ac848a1b29df1cfd59f26cab0d2666aa0
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/MPFR
         BUILD_IN_SOURCE ON
