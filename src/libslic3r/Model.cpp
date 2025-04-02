@@ -360,7 +360,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
         if (proFn) {
             proFn(IMPORT_STAGE_ADD_INSTANCE, 0, 1, cb_cancel);
             if (cb_cancel)
-                throw Slic3r::RuntimeError(_L("Canceled"));
+                throw Slic3r::RuntimeError(_L("Cancelled"));
         }
     }
 
@@ -371,7 +371,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     if (proFn) {
         proFn(IMPORT_STAGE_UPDATE_GCODE, 0, 1, cb_cancel);
         if (cb_cancel)
-            throw Slic3r::RuntimeError(_L("Canceled"));
+            throw Slic3r::RuntimeError(_L("Cancelled"));
     }
 
     //BBS
@@ -382,7 +382,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     if (proFn) {
         proFn(IMPORT_STAGE_CHECK_MODE_GCODE, 0, 1, cb_cancel);
         if (cb_cancel)
-            throw Slic3r::RuntimeError(_L("Canceled"));
+            throw Slic3r::RuntimeError(_L("Cancelled"));
     }
 
     handle_legacy_sla(*config);

@@ -199,7 +199,7 @@ void BackgroundSlicingProcess::process_fff()
 	//BBS: add the logic to process from an existed gcode file
 	if (m_print->finished()) {
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
-		m_fff_print->set_status(80, _utf8(L("Processing G-Code from Previous file...")));
+		m_fff_print->set_status(80, _utf8(L("Processing G-code from Previous file...")));
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.
 		// Passing the timestamp 
@@ -555,11 +555,11 @@ bool BackgroundSlicingProcess::stop()
 		m_print->cancel();
 		// Wait until the background processing stops by being canceled.
 		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
-		// In the "Canceled" state. Reset the state to "Idle".
+		// In the "Cancelled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	} else if (m_state == STATE_FINISHED || m_state == STATE_CANCELED) {
-		// In the "Finished" or "Canceled" state. Reset the state to "Idle".
+		// In the "Finished" or "Cancelled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	}
@@ -605,7 +605,7 @@ void BackgroundSlicingProcess::stop_internal()
 		// Lock it back to be in a consistent state.
 		m_print->state_mutex().lock();
 	}
-	// In the "Canceled" state. Reset the state to "Idle".
+	// In the "Cancelled" state. Reset the state to "Idle".
 	m_state = STATE_IDLE;
 	m_print->set_cancel_callback([](){});
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", exit"<<std::endl;
@@ -865,7 +865,7 @@ void BackgroundSlicingProcess::export_gcode()
 	}
 	catch (...)
 	{
-		throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
+		throw Slic3r::ExportError(_utf8(L("Unknown error when exporting G-code.")));
 	}
 	switch (copy_ret_val) {
 	case CopyFileResult::SUCCESS: break; // no error
@@ -886,8 +886,8 @@ void BackgroundSlicingProcess::export_gcode()
 		//break;
 	default:
 		BOOST_LOG_TRIVIAL(error) << "Fail code(" << (int)copy_ret_val << ") when copy "<<output_path<<" to " << export_path << ".";
-		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save gcode file.\nError message: %1%.\nSource file %2%."))) % error_message % output_path).str());
-		//throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
+		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save G-code file.\nError message: %1%.\nSource file %2%."))) % error_message % output_path).str());
+		//throw Slic3r::ExportError(_utf8(L("Unknown error when exporting G-code.")));
 		break;
 	}
 

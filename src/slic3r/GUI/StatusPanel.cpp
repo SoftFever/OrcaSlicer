@@ -4879,7 +4879,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         m_upload_status_code = StatusCode::UPLOAD_PROGRESS;
 
         if (m_star_count == 0) {
-            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("InFo"), wxOK);
+            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxOK);
             dlg.ShowModal();
             return;
         }
@@ -4942,7 +4942,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                         ++it;
                         break;
                     case BAMBU_NETWORK_ERR_OPEN_FILE_FAILED:
-                        error_info += need_upload.second + _L(" can not be opened\n").ToUTF8().data() + "\n";
+                        error_info += need_upload.second + _L(" cannot be opened\n").ToUTF8().data() + "\n";
                         m_upload_status_code = StatusCode::UPLOAD_IMG_FAILED;
                         ++it;
                         break;
