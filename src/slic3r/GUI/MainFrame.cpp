@@ -2681,7 +2681,7 @@ void MainFrame::init_menubar_as_editor()
                     viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
                 else
                     viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
-            }, wxID_ANY);
+            }, perspective_item->GetId());
         append_menu_check_item(viewMenu, wxID_ANY, _L("Auto Perspective"), _L("Automatically switch between orthographic and perspective when changing from top/bottom/side views"),
             [this](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("auto_perspective", !wxGetApp().app_config->get_bool("auto_perspective"));
