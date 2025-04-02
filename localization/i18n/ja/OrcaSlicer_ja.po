@@ -3894,8 +3894,6 @@ msgid ""
 "Damp PVA will become flexible and get stuck inside AMS, please take care to "
 "dry it before use."
 msgstr ""
-"Damp PVA will become flexible and get stuck inside the AMS; please take care "
-"to dry it well before use."
 
 msgid ""
 "CF/GF filaments are hard and brittle, it's easy to break or get stuck in "

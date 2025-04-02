@@ -1486,10 +1486,6 @@ msgstr ""
 "OrcaSlicer se cerrará por falta de memoria. Le agradeceremos que comunique "
 "el suceso a nuestro equipo."
 
-# msgid "OrcaSlicer will terminate because of running out of memory.It may be
-# a bug. It will be appreciated if you report the issue to our team."
-# msgstr "OrcaSlicer se cerrará porque se está quedando sin memoria. Le
-# agradeceremos que informe de ello a nuestro equipo."
 msgid "Fatal error"
 msgstr "Error fatal"
 
