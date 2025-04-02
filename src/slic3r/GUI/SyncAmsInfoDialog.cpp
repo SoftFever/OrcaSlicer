@@ -128,13 +128,13 @@ void SyncAmsInfoDialog::update_select_layout(MachineObject *obj)
 
     if (obj->is_enable_np) {
         m_checkbox_list["nozzle_offset_cali"]->Show();
-        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
-        m_checkbox_list["bed_leveling"]->update_options(ops_auto);
+        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto, wxEmptyString);
+        m_checkbox_list["bed_leveling"]->update_options(ops_auto, wxEmptyString);
 
         m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         m_checkbox_list["bed_leveling"]->setValue("auto");
     } else {
-        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto);
+        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto, wxEmptyString);
 
         if (config && config->get("print", "bed_leveling") == "0") {
             m_checkbox_list["bed_leveling"]->setValue("off");

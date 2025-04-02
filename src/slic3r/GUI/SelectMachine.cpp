@@ -123,13 +123,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     SetBackgroundColour(m_colour_def_color);
 
     wxBoxSizer* m_scroll_sizer = new wxBoxSizer(wxVERTICAL);
-    wxScrolledWindow* scroll_area = new wxScrolledWindow(this);
-    scroll_area->SetScrollRate(20, 20);
-    scroll_area->SetBackgroundColour(m_colour_def_color);
-    scroll_area->SetMinSize(wxSize(FromDIP(700), FromDIP(600)));
-    scroll_area->SetMaxSize(wxSize(FromDIP(700), FromDIP(600)));
+    m_scroll_area              = new wxScrolledWindow(this);
+    m_scroll_area->SetScrollRate(20, 20);
+    m_scroll_area->SetBackgroundColour(m_colour_def_color);
 
-    m_line_top = new wxPanel(scroll_area, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_top = new wxPanel(m_scroll_area, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
     /*mode switch*/
@@ -152,7 +150,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         e.Skip();
     });*/
 
-    m_basic_panel = new wxPanel(scroll_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_basic_panel = new wxPanel(m_scroll_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_basic_panel->SetBackgroundColour(*wxWHITE);
     m_basicl_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -197,8 +195,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_rename_text->SetFont(::Label::Head_13);
     m_rename_text->SetBackgroundColour(*wxWHITE);
     m_rename_text->SetMaxSize(wxSize(FromDIP(340), -1));
-    rename_editable       = new ScalableBitmap(scroll_area, "rename_edit", FromDIP(13)); // ORCA Match edit icon and its size
-    rename_editable_light = new ScalableBitmap(scroll_area, "rename_edit", FromDIP(13)); // ORCA Match edit icon and its size
+    rename_editable       = new ScalableBitmap(m_scroll_area, "rename_edit", FromDIP(13)); // ORCA Match edit icon and its size
+    rename_editable_light = new ScalableBitmap(m_scroll_area, "rename_edit", FromDIP(13)); // ORCA Match edit icon and its size
     m_rename_button = new wxStaticBitmap(m_rename_normal_panel, wxID_ANY, rename_editable->bmp(), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
     m_rename_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
     m_rename_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
@@ -257,12 +255,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     /*weight & time*/
     wxBoxSizer *m_sizer_basic_weight_time = new wxBoxSizer(wxHORIZONTAL);
 
-    print_time   = new ScalableBitmap(scroll_area, "print-time", 18);
+    print_time   = new ScalableBitmap(m_scroll_area, "print-time", 18);
     timeimg = new wxStaticBitmap(m_basic_panel, wxID_ANY, print_time->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_stext_time = new Label(m_basic_panel, wxEmptyString);
     m_stext_time->SetFont(Label::Body_13);
 
-    print_weight   = new ScalableBitmap(scroll_area, "print-weight", 18);
+    print_weight   = new ScalableBitmap(m_scroll_area, "print-weight", 18);
     weightimg = new wxStaticBitmap(m_basic_panel, wxID_ANY, print_weight->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_stext_weight = new Label(m_basic_panel, wxEmptyString);
     m_stext_weight->SetFont(Label::Body_13);
@@ -274,12 +272,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     /*last & next page*/
     auto last_plate_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bitmap_last_plate = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_last_plate", scroll_area, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
+    m_bitmap_last_plate = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_last_plate", m_scroll_area, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
     m_bitmap_last_plate->Hide();
     last_plate_sizer->Add(m_bitmap_last_plate, 0, wxALIGN_CENTER, 0);
 
     auto next_plate_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bitmap_next_plate = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_next_plate", scroll_area, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
+    m_bitmap_next_plate = new wxStaticBitmap(m_basic_panel, wxID_ANY, create_scaled_bitmap("go_next_plate", m_scroll_area, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
     m_bitmap_next_plate->Hide();
     next_plate_sizer->Add(m_bitmap_next_plate, 0, wxALIGN_CENTER, 0);
 
@@ -311,7 +309,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     printer_staticbox->SetMaxSize(wxSize(FromDIP(338), FromDIP(68)));
     printer_staticbox->SetBorderColor(wxColour(0xCECECE));
 
-    m_printer_image = new wxStaticBitmap(printer_staticbox, wxID_ANY, create_scaled_bitmap("printer_preview_BL-P001", scroll_area, 52));
+    m_printer_image = new wxStaticBitmap(printer_staticbox, wxID_ANY, create_scaled_bitmap("printer_preview_BL-P001", m_scroll_area, 52));
     m_printer_image->SetMinSize(wxSize(FromDIP(52), FromDIP(52)));
     m_printer_image->SetMaxSize(wxSize(FromDIP(52), FromDIP(52)));
 
@@ -348,7 +346,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     bed_staticbox->SetMaxSize(wxSize(FromDIP(98), FromDIP(68)));
     bed_staticbox->SetBorderColor(wxColour(0xCECECE));
 
-    m_bed_image = new wxStaticBitmap(bed_staticbox, wxID_ANY, create_scaled_bitmap("bed_cool", scroll_area, 32));
+    m_bed_image = new wxStaticBitmap(bed_staticbox, wxID_ANY, create_scaled_bitmap("bed_cool", m_scroll_area, 32));
     m_bed_image->SetBackgroundColour(*wxWHITE);
     m_bed_image->SetMinSize(wxSize(FromDIP(32), FromDIP(32)));
     m_bed_image->SetMaxSize(wxSize(FromDIP(32), FromDIP(32)));
@@ -411,21 +409,21 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     /*filaments info*/
     wxBoxSizer* sizer_split_filament = new wxBoxSizer(wxHORIZONTAL);
 
-    auto m_stext_filament_title = new Label(scroll_area, _L("Filament"));
+    auto m_stext_filament_title = new Label(m_scroll_area, _L("Filament"));
     m_stext_filament_title->SetFont(::Label::Body_14);
     m_stext_filament_title->SetForegroundColour(0x909090);
 
-    auto m_split_line_filament = new wxPanel(scroll_area, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    auto m_split_line_filament = new wxPanel(m_scroll_area, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_split_line_filament->SetBackgroundColour(0xeeeeee);
     m_split_line_filament->SetMinSize(wxSize(-1, 1));
     m_split_line_filament->SetMaxSize(wxSize(-1, 1));
 
     m_sizer_autorefill = new wxBoxSizer(wxHORIZONTAL);
-    m_ams_backup_tip = new Label(scroll_area, _L("Auto Refill"));
+    m_ams_backup_tip = new Label(m_scroll_area, _L("Auto Refill"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
     m_ams_backup_tip->SetForegroundColour(wxColour(0x009688));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
-    img_ams_backup = new wxStaticBitmap(scroll_area, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_ams_backup = new wxStaticBitmap(m_scroll_area, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     img_ams_backup->SetBackgroundColour(*wxWHITE);
 
     m_sizer_autorefill->Add(0, 0, 1, wxEXPAND, 0);
@@ -450,7 +448,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_split_filament->Add(m_sizer_autorefill, 0, wxALIGN_CENTER, 0);
     /*filament area*/
     /*1 extruder*/
-    m_filament_panel = new StaticBox(scroll_area);
+    m_filament_panel = new StaticBox(m_scroll_area);
     m_filament_panel->SetBackgroundColour(wxColour(0xF8F8F8));
     m_filament_panel->SetBorderWidth(0);
     m_filament_panel->SetMinSize(wxSize(FromDIP(637), -1));
@@ -466,7 +464,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     /*left & right extruder*/
     m_sizer_filament_2extruder = new wxBoxSizer(wxHORIZONTAL);
 
-    m_filament_left_panel = new StaticBox(scroll_area);
+    m_filament_left_panel = new StaticBox(m_scroll_area);
     m_filament_left_panel->SetBackgroundColour(wxColour(0xF8F8F8));
     m_filament_left_panel->SetBorderWidth(0);
     m_filament_left_panel->SetMinSize(wxSize(FromDIP(315), -1));
@@ -485,7 +483,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_filament_left_panel->SetSizer(m_filament_panel_left_sizer);
     m_filament_left_panel->Layout();
 
-    m_filament_right_panel = new StaticBox(scroll_area);
+    m_filament_right_panel = new StaticBox(m_scroll_area);
     m_filament_right_panel->SetBorderWidth(0);
     m_filament_right_panel->SetBackgroundColour(wxColour(0xf8f8f8));
     m_filament_right_panel->SetMinSize(wxSize(FromDIP(315), -1));
@@ -511,14 +509,14 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel->Hide();
 
-    m_statictext_ams_msg = new Label(scroll_area, wxEmptyString);
+    m_statictext_ams_msg = new Label(m_scroll_area, wxEmptyString);
     m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(645), -1));
     m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(645), -1));
     m_statictext_ams_msg->SetFont(::Label::Body_13);
     m_statictext_ams_msg->Hide();
 
     /*ams mapping suggestions*/
-    m_link_edit_nozzle = new Label(scroll_area, wxEmptyString);
+    m_link_edit_nozzle = new Label(m_scroll_area, wxEmptyString);
     m_link_edit_nozzle->SetMinSize(wxSize(FromDIP(600), -1));
     m_link_edit_nozzle->SetMaxSize(wxSize(FromDIP(600), -1));
     m_link_edit_nozzle->SetFont(::Label::Body_13);
@@ -544,7 +542,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_mapping_sugs_sizer = new wxBoxSizer(wxHORIZONTAL);
     //auto m_img_mapping_sugs = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
-    auto m_txt_mapping_sugs = new Label(scroll_area, wxEmptyString);
+    auto m_txt_mapping_sugs = new Label(m_scroll_area, wxEmptyString);
     m_txt_mapping_sugs->SetFont(::Label::Body_13);
     m_txt_mapping_sugs->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
     m_txt_mapping_sugs->SetMinSize(wxSize(FromDIP(580), -1));
@@ -556,7 +554,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_change_filament_times_sizer = new wxBoxSizer(wxHORIZONTAL);
     //auto m_img_change_filament_times = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
-    m_txt_change_filament_times = new Label(scroll_area, wxEmptyString);
+    m_txt_change_filament_times = new Label(m_scroll_area, wxEmptyString);
     m_txt_change_filament_times->SetFont(::Label::Body_13);
     m_txt_change_filament_times->SetMinSize(wxSize(FromDIP(580), -1));
     m_txt_change_filament_times->SetMaxSize(wxSize(FromDIP(580), -1));
@@ -568,7 +566,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     /*Advanced Options*/
     wxBoxSizer* sizer_split_options = new wxBoxSizer(wxHORIZONTAL);
-    auto m_split_options_line = new wxPanel(scroll_area, wxID_ANY);
+    auto m_split_options_line = new wxPanel(m_scroll_area, wxID_ANY);
     m_split_options_line->SetBackgroundColour(0xEEEEEE);
     m_split_options_line->SetSize(wxSize(-1, FromDIP(1)));
     m_split_options_line->SetMinSize(wxSize(-1, FromDIP(1)));
@@ -578,46 +576,17 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     wxBoxSizer *sizer_advanced_options_title  = new wxBoxSizer(wxHORIZONTAL);
 
-    m_hyperlink          = new wxHyperlinkCtrl(scroll_area, wxID_ANY, _L("Click here if you can't connect to the printer"),
+    m_hyperlink          = new wxHyperlinkCtrl(m_scroll_area, wxID_ANY, _L("Click here if you can't connect to the printer"),
                                       wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     m_hyperlink->SetFont(::Label::Body_12);
 
-
-
-    m_advanced_options_title = new Label(scroll_area, _L("Advanced Options"));
-    m_advanced_options_title->SetFont(::Label::Body_13);
-    m_advanced_options_title->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
-    m_advanced_options_icon = new wxStaticBitmap(scroll_area, wxID_ANY, create_scaled_bitmap("advanced_option1", scroll_area, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)));
-
     sizer_advanced_options_title->Add(m_hyperlink, 0, wxALIGN_CENTER, 0);
     sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
-    sizer_advanced_options_title->Add(m_advanced_options_title, 0, wxALIGN_CENTER, 0);
-    sizer_advanced_options_title->Add(m_advanced_options_icon, 0, wxALIGN_CENTER, 0);
 
-    m_advanced_options_title->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
-    m_advanced_options_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
-    m_advanced_options_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        if (m_print_status == PrintStatusUnsupportedPrinter) {
-            m_options_other->Hide();
-        } else {
-            if (m_options_other->IsShown()) {
-                m_options_other->Hide();
-                m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
-            } else {
-                m_options_other->Show();
-                m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option2", this, 18));
-            }
-        }
-        Layout();
-        Fit();
-    });
-
-    m_options_other = new wxPanel(scroll_area);
-    m_sizer_options_timelapse = new wxBoxSizer(wxVERTICAL);
-    m_sizer_options_other = new wxBoxSizer(wxVERTICAL);
+    m_options_other = new wxPanel(m_scroll_area);
 
 
-    auto option_timelapse           = new PrintOption(scroll_area, _L("Timelapse"), wxEmptyString, ops_no_auto, "timelapse");
+    auto option_timelapse = new PrintOption(m_options_other, _L("Timelapse"), wxEmptyString, ops_no_auto, "timelapse");
 
         auto option_auto_bed_level = new PrintOption(
         m_options_other, _L("Auto Bed Leveling"),
@@ -645,13 +614,21 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     });
 
     option_use_ams->setValue("on");
-    m_sizer_options_timelapse->Add(option_timelapse, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options_other->Add(option_use_ams, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options_other->Add(option_auto_bed_level, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options_other->Add(option_flow_dynamics_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
-    m_sizer_options_other->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
 
-    m_options_other->SetSizer(m_sizer_options_other);
+    m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(40));
+    m_sizer_options->Add(option_timelapse, 0, wxEXPAND);
+    m_sizer_options->Add(option_use_ams, 0, wxEXPAND);
+    m_sizer_options->Add(option_auto_bed_level, 0, wxEXPAND);
+    m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND);
+    m_sizer_options->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND);
+
+    m_checkbox_list_order.push_back(option_timelapse);
+    m_checkbox_list_order.push_back(option_use_ams);
+    m_checkbox_list_order.push_back(option_auto_bed_level);
+    m_checkbox_list_order.push_back(option_flow_dynamics_cali);
+    m_checkbox_list_order.push_back(option_nozzle_offset_cali_cali);
+
+    m_options_other->SetSizer(m_sizer_options);
     m_options_other->Layout();
     m_options_other->Fit();
 
@@ -661,7 +638,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_checkbox_list["flow_cali"]     = option_flow_dynamics_cali;
     m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
 
-    option_timelapse->Hide();
     option_auto_bed_level->Hide();
     option_flow_dynamics_cali->Hide();
     option_nozzle_offset_cali_cali->Hide();
@@ -829,16 +805,16 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_scroll_sizer->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(18));
     m_scroll_sizer->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
-    m_scroll_sizer->Add(m_sizer_options_timelapse, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
+    m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_scroll_sizer->Add(m_options_other, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(30));
 
     show_print_failed_info(false);
 
-    scroll_area->SetSizer(m_scroll_sizer);
+    m_scroll_area->SetSizer(m_scroll_sizer);
 
     wxBoxSizer *sizer_main = new wxBoxSizer(wxVERTICAL);
-    sizer_main->Add(scroll_area, 1, wxEXPAND, 0);
+    sizer_main->Add(m_scroll_area, 1, wxEXPAND, 0);
     sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER, 0);
     sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
@@ -970,7 +946,6 @@ void SelectMachineDialog::popup_filament_backup()
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
     // reset checkbox
-    m_checkbox_list["timelapse"]->Hide();
     m_checkbox_list["bed_leveling"]->Hide();
     m_checkbox_list["flow_cali"]->Hide();
     m_checkbox_list["nozzle_offset_cali"]->Hide();
@@ -979,11 +954,12 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     AppConfig *config = wxGetApp().app_config;
 
     if (obj->is_enable_np) {
-        m_checkbox_list["bed_leveling"]->update_options(ops_auto);
+        m_checkbox_list["bed_leveling"]->update_options(ops_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform.\n*Automatic mode: Run a "
+                                                                     "leveling check(about 10 seconds). Skip if surface is fine."));
         m_checkbox_list["bed_leveling"]->setValue("auto");
     }
     else {
-        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto);
+        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform."));
 
         if (config && config->get("print", "bed_leveling") == "0") {
             m_checkbox_list["bed_leveling"]->setValue("off");
@@ -993,18 +969,18 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     }
 
     if (obj->is_support_nozzle_offset_cali) {
-        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto);
+        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto, _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing. Skip if unnecessary."));
         m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         m_checkbox_list["nozzle_offset_cali"]->Show();
     }
 
     if (obj->is_support_flow_calibration) {
         if (obj->is_support_auto_flow_calibration) {
-            m_checkbox_list["flow_cali"]->update_options(ops_auto);
+            m_checkbox_list["flow_cali"]->update_options(ops_auto, _L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
             m_checkbox_list["flow_cali"]->setValue("auto");
         } else {
             if (can_support_auto_cali()) {
-                m_checkbox_list["flow_cali"]->update_options(ops_no_auto);
+                m_checkbox_list["flow_cali"]->update_options(ops_no_auto, _L("This process determines the dynamic flow values to improve overall print quality."));
                 if (config && config->get("print", "flow_cali") == "0") {
                     m_checkbox_list["flow_cali"]->setValue("off");
                 } else {
@@ -1021,14 +997,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         m_checkbox_list["flow_cali"]->Show();
     }
 
-    update_timelapse_enable_status();
-
-    if (config && config->get("print", "timelapse") == "0") {
-        m_checkbox_list["timelapse"]->setValue("off");
-    } else {
-        m_checkbox_list["timelapse"]->setValue("on");
-    }
-
     if (obj && obj->is_support_auto_leveling) {
         m_checkbox_list["bed_leveling"]->Show();
     }
@@ -1036,17 +1004,23 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     /*STUDIO-9197*/
     if (obj && obj->canEnableTimelapse())
     {
-        m_checkbox_list["timelapse"]->Show();
+        m_checkbox_list["timelapse"]->Enable();
+        if (config->get("print", "timelapse") == "1" && !has_timelapse_warning()) {
+            m_checkbox_list["timelapse"]->setValue("on");
+            config->set_str("print", "timelapse", "1");
+        } else {
+            m_checkbox_list["timelapse"]->setValue("off");
+            config->set_str("print", "timelapse", "0");
+        }
     }
     else
     {
-        m_checkbox_list["timelapse"]->Hide();
+        m_checkbox_list["timelapse"]->Disable();
         m_checkbox_list["timelapse"]->setValue("off");
-        AppConfig *config = wxGetApp().app_config;
-        if (config)
-            config->set_str("print", "timelapse", "0");
+        config->set_str("print", "timelapse", "0");
     }
 
+    update_options_layout();
     Layout();
     Fit();
 }
@@ -1873,8 +1847,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         wxString msg_text = _L("Storage needs to be inserted before printing.");
         update_print_status_msg(msg_text, true, false, true);
     }else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
-        enable_advanced_option(false);
-
         wxString msg_text;
         try
         {
@@ -2436,6 +2408,49 @@ void SelectMachineDialog::EnableEditing(bool enable)
     for (auto iter : m_checkbox_list)
     {
         iter.second->enable(enable);
+    }
+}
+
+/*content height > FromDIP(650), make the area scrollable*/
+/*content height < FromDIP(650), make the area size as the content*/
+void SelectMachineDialog::update_scroll_area_size() {
+
+    wxSize new_size(FromDIP(700), -1);
+
+    int height = m_scroll_area->GetSizer()->CalcMin().GetHeight();
+    if (height < FromDIP(650)) {
+        new_size.SetHeight(height);
+    } else {
+        new_size.SetHeight(FromDIP(650));
+    }
+
+    if (m_scroll_area->GetSize() != new_size) {
+        m_scroll_area->SetMaxSize(new_size);
+        m_scroll_area->SetMinSize(new_size);
+        Layout();
+        Fit();
+    }
+}
+
+void SelectMachineDialog::update_options_layout()
+{
+    std::unordered_set<wxWindow*> shown_options;
+    const wxSizerItemList& children = m_sizer_options->GetChildren();
+    for (auto item : children) {
+        if (item && item->IsWindow()) { shown_options.insert(item->GetWindow()); }
+    }
+
+    std::unordered_set<wxWindow *> toshow_options;
+    for (auto option : m_checkbox_list_order) {
+        if (option->IsShown()) { toshow_options.insert(option); }
+    }
+
+    /*To show changed, update layout*/
+    if (shown_options != toshow_options) {
+        m_sizer_options->Clear();
+        for (auto option : m_checkbox_list_order) {
+            if (option->IsShown()) { m_sizer_options->Add(option, 0, wxEXPAND); }
+        }
     }
 }
 
@@ -3112,17 +3127,8 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             Fit();
         }
     }
-}
 
-void SelectMachineDialog::enable_advanced_option(bool en)
-{
-    if (en) {
-        m_advanced_options_title->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
-        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
-    } else {
-        m_advanced_options_title->SetForegroundColour(StateColor::darkModeColorFor(0x6B6B6B));
-        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1_disable", this, 18));
-    }
+    update_scroll_area_size();
 }
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
@@ -3138,8 +3144,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_mapping_sugs_sizer->Show(false);
     m_change_filament_times_sizer->Show(false);
     m_txt_change_filament_times->Show(false);
-
-    enable_advanced_option(true);
 
     auto selection = m_comboBox_printer->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -3651,22 +3655,6 @@ bool SelectMachineDialog::can_support_auto_cali()
         return iter == m_filaments.end();
     }
     return true;
-}
-
-void SelectMachineDialog::update_timelapse_enable_status()
-{
-    AppConfig *config = wxGetApp().app_config;
-    if (!has_timelapse_warning()) {
-        if (!config || config->get("print", "timelapse") == "0")
-            m_checkbox_list["timelapse"]->setValue("off");
-        else
-            m_checkbox_list["timelapse"]->setValue("on");
-        m_checkbox_list["timelapse"]->Enable(true);
-    } else {
-        m_checkbox_list["timelapse"]->setValue("off");
-        m_checkbox_list["timelapse"]->Enable(false);
-        if (config) { config->set_str("print", "timelapse", "0"); }
-    }
 }
 
 void SelectMachineDialog::reset_ams_material()
@@ -4581,8 +4569,7 @@ bool SelectMachineDialog::Show(bool show)
 {
     if (show) {
         EnableEditing(true);
-        m_options_other->Hide();
-        m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
+        m_options_other->Show();
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
     } else {
         m_refresh_timer->Stop();
@@ -4796,41 +4783,27 @@ std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
 #endif //__WINDOWS__
      Bind(wxEVT_PAINT, &PrintOption::OnPaint, this);
 
-     if (tips.IsEmpty()) {
-         SetMinSize(wxSize(-1, FromDIP(50)));
-         SetMaxSize(wxSize(-1, FromDIP(50)));
-     }
-     else {
-         SetMinSize(wxSize(-1, FromDIP(95)));
-         SetMaxSize(wxSize(-1, FromDIP(95)));
-     }
+     SetMinSize(wxSize(-1, FromDIP(60)));
+     SetMaxSize(wxSize(-1, FromDIP(60)));
 
      m_ops = ops;
      m_param = param;
 
-     SetBackgroundColour(PRINT_OPT_BG_GRAY);
+     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
      wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-     wxBoxSizer *top_sizer = new wxBoxSizer(wxHORIZONTAL);
-
 
      m_printoption_title = new Label(this, title);
-     m_printoption_title->SetFont(Label::Head_13);
+     m_printoption_title->SetFont(Label::Body_13);
      m_printoption_title->SetBackgroundColour(0xF8F8F8);
+     m_printoption_title->SetToolTip(tips);
 
      m_printoption_item = new PrintOptionItem(this, m_ops, param);
+     m_printoption_item->SetToolTip(tips);
 
-     top_sizer->Add(m_printoption_title, 0, wxALIGN_CENTER, 0);
-     top_sizer->Add(0, 0, 1, wxEXPAND, 0);
-     top_sizer->Add(m_printoption_item, 0, wxALIGN_CENTER, 0);
+     sizer->Add(m_printoption_title, 0, wxALIGN_LEFT, 0);
+     sizer->AddSpacer(FromDIP(5));
+     sizer->Add(m_printoption_item, 0, wxALIGN_LEFT, 0);
 
-     m_label  = new Label(this, tips);
-     m_label->SetFont(::Label::Body_13);
-     m_label->SetForegroundColour(0x6B6B6B);
-     m_label->SetBackgroundColour(0xF8F8F8);
-
-     sizer->Add(top_sizer, 1, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, FromDIP(12));
-     sizer->Add(0, 0, 1, wxTOP, FromDIP(4));
-     sizer->Add(m_label, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, FromDIP(12));
      SetSizer(sizer);
      Layout();
      Fit();
@@ -4873,7 +4846,15 @@ void PrintOption::doRender(wxDC &dc)
 
 void PrintOption::setValue(std::string value)
 {
-    m_printoption_item->setValue(value);
+    m_printoption_item->setValue(value); }
+
+void PrintOption::update_options(std::vector<POItem> ops, const wxString &tips)
+{
+    m_ops = ops;
+    m_printoption_item->update_options(ops);
+
+    if (m_printoption_title->GetToolTipText() != tips) { m_printoption_title->SetToolTip(tips); }
+    if (m_printoption_item->GetToolTipText() != tips) { m_printoption_item->SetToolTip(tips); }
 }
 
 std::string PrintOption::getValue()
