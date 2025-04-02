@@ -10,6 +10,7 @@
 #include <regex>
 #include <future>
 #include <boost/algorithm/string.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -9937,6 +9938,10 @@ void Plater::calib_flowrate(bool is_linear, int pass) {
 
     adjust_settings_for_flowrate_calib(model().objects, is_linear, pass);
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+
+    // Refresh object after scaling
+    const std::vector<size_t> object_idx(boost::counting_iterator<size_t>(0), boost::counting_iterator<size_t>(model().objects.size()));
+    changed_objects(object_idx);
 }
 
 
