@@ -2551,9 +2551,7 @@ msgid "Pull back current filament"
 msgstr "Wycofuje obecny filament"
 
 msgid "Push new filament into extruder"
-msgstr ""
-"Załaduj nowy\n"
-"filament do extrudera"
+msgstr "Załaduj nowy filament do extrudera"
 
 msgid "Purge old filament"
 msgstr "Oczyść dyszę"
@@ -4297,7 +4295,7 @@ msgid "travel"
 msgstr "przemieszczenie"
 
 msgid "Extruder"
-msgstr "Extruder"
+msgstr ""
 
 msgid "Filament change times"
 msgstr "Liczba zmian filamentu"
@@ -7324,22 +7322,22 @@ msgid "Busy"
 msgstr "Zajęty"
 
 msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
+msgstr ""
 
 msgid "PLA Plate"
 msgstr "Płyta PLA"
 
 msgid "Bambu Engineering Plate"
-msgstr "Bambu Engineering Plate"
+msgstr ""
 
 msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Smooth PEI Plate"
+msgstr ""
 
 msgid "High temperature Plate"
 msgstr "Płyta wysokotemperaturowa"
 
 msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Wyślij zadanie druku do"
@@ -18489,17 +18487,6 @@ msgstr ""
 #~ "ustawienia: co najmniej 2 warstwy łączące, co najmniej 0,1 mm odległości "
 #~ "od góry lub używanie materiałów podporowych na łączeniach."
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
-#~ "independent support layer height"
-#~ msgstr ""
-#~ "Przy użyciu materiału podporowego do warstw łączących podpory zalecamy "
-#~ "następujące ustawienia:\n"
-#~ "0 odległość osu Z od góry, 0 odstęp warstwy łączącej, wzór koncentryczny "
-#~ "i wyłączenie niezależnej wysokości warstwy podpory"
-
 #~ msgid "Branch Diameter with double walls"
 #~ msgstr "Średnica gałęzi z podwójnymi ścianami"
 
@@ -18774,12 +18761,6 @@ msgstr ""
 #~ msgctxt "Verb"
 #~ msgid "Scale"
 #~ msgstr "Skala"
-
-#~ msgid "Orca Slicer "
-#~ msgstr "Orca Slicer "
-
-#~ msgid "Cool plate"
-#~ msgstr "Cool plate / PLA Plate"
 
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Wymuszenie podniesienia osi Z"
@@ -19264,12 +19245,6 @@ msgstr ""
 #~ "jeden z wyników o tej samej nazwie zostanie zapisany. Czy na pewno chcesz "
 #~ "zastąpić ten wynik?"
 
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
 #~ msgid ""
 #~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
 #~ "PrusaSlicer links from Printable.com"
@@ -19297,9 +19272,6 @@ msgstr ""
 #~ "gdzie są do nich przymocowane. Skutkuje to gorszym wykończeniem "
 #~ "zewnętrznej powierzchni. Może to również spowodować prześwitywanie "
 #~ "wypełnienia przez zewnętrzne powierzchnie części."
-
-#~ msgid "V"
-#~ msgstr "V"
 
 #~ msgid "Maximum print speed when purging"
 #~ msgstr "Maksymalna prędkość druku podczas czyszczenia"
@@ -19428,23 +19400,8 @@ msgstr ""
 #~ msgid "MainBoard"
 #~ msgstr "MainBoard (Płyta główna)"
 
-#~ msgid "TH"
-#~ msgstr "TH"
-
-#~ msgid "XCam"
-#~ msgstr "XCam"
-
 #~ msgid "HMS"
 #~ msgstr "Stan drukarki (HMS)"
-
-#~ msgid "- ℃"
-#~ msgstr "- ℃"
-
-#~ msgid "0.5"
-#~ msgstr "0.5"
-
-#~ msgid "0.005"
-#~ msgstr "0.005"
 
 #~ msgid "active"
 #~ msgstr "aktywny"
@@ -19537,9 +19494,6 @@ msgstr ""
 
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "Nie udało się pobrać informacji o modelach z drukarki."
-
-#~ msgid "Failed to parse model informations."
-#~ msgstr "Nie udało się sparsować informacji o modelach."
 
 #~ msgid "Connection lost. Please retry."
 #~ msgstr "Utracono połączenie. Proszę spróbować ponownie."
@@ -20185,9 +20139,6 @@ msgstr ""
 #~ msgid "Choose SLA archive:"
 #~ msgstr "Wybierz archiwum SLA:"
 
-#~ msgid "Import file"
-#~ msgstr "Importuj plik"
-
 #~ msgid "Import model and profile"
 #~ msgstr "Importuj model i profil"
 
@@ -20517,9 +20468,6 @@ msgstr ""
 #~ "Wybrany plik 3MF zawiera model pomalowany do Multi Material przy pomocy "
 #~ "nowszej wersji OrcaSlicer i nie jest kompatybilny."
 
-#~ msgid " "
-#~ msgstr " "
-
 #~ msgid ""
 #~ "Number of mm the overhang need to be for the reversal to be considered "
 #~ "useful. Can be a (%) of the perimeter width.\n"
@@ -20835,13 +20783,6 @@ msgstr ""
 #~ msgstr "Podłącz drukarkę (LAN)"
 
 #~ msgid ""
-#~ "Please heat the nozzle to above 170 degrees before loading or unloading "
-#~ "filament."
-#~ msgstr ""
-#~ "Przed załadowaniem lub rozładowaniem filamentu podgrzej dyszę do "
-#~ "temperatury powyżej 170 stopni."
-
-#~ msgid ""
 #~ "Cannot read filament info: the filament is loaded to the tool head, "
 #~ "please unload the filament and try again."
 #~ msgstr ""
@@ -20900,12 +20841,6 @@ msgstr ""
 #~ "Plik 3MF jest generowany przez starą wersję Orca Slicer, wczytuj tylko "
 #~ "dane geometrii."
 
-#~ msgid ""
-#~ "The 3mf has the following modified G-codes in filament or printer presets:"
-#~ msgstr ""
-#~ "Plik 3MF ma następujące zmodyfikowane kody G w profilach filamentu lub "
-#~ "drukarki:"
-
 #~ msgid "The 3mf has the following customized filament or printer presets:"
 #~ msgstr "Plik 3MF ma następujące dostosowane profile filamentu lub drukarki:"
 
@@ -20921,34 +20856,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Zmiana języka aplikacji przy jednoczesnym istniejących zmodyfikowanych "
 #~ "ustawieniach"
-
-#~ msgid ""
-#~ "In the 3D Printing community, we learn from each other's successes and "
-#~ "failures to adjust our own slicing parameters and settings. %s follows "
-#~ "the same principle and uses machine learning to improve its performance "
-#~ "from the successes and failures of the vast number of prints by our "
-#~ "users. We are training %s to be smarter by feeding them the real-world "
-#~ "data. If you are willing, this service will access information from your "
-#~ "error logs and usage logs, which may include information described in "
-#~ "Privacy Policy. We will not collect any Personal Data by which an "
-#~ "individual can be identified directly or indirectly, including without "
-#~ "limitation names, addresses, payment information, or phone numbers. By "
-#~ "enabling this service, you agree to these terms and the statement about "
-#~ "Privacy Policy."
-#~ msgstr ""
-#~ "W społeczności druku 3D uczymy się od siebie nawzajem, korzystając z "
-#~ "sukcesów i porażek, aby dostosować nasze parametry i ustawienia cięcia. "
-#~ "%s stosuje tę samą zasadę i wykorzystuje uczenie maszynowe do poprawy "
-#~ "swojej wydajności na podstawie sukcesów i porażek ogromnej liczby "
-#~ "wydruków naszych użytkowników. Szkolimy %s, aby było mądrzejsze, "
-#~ "dostarczając mu danych z rzeczywistego świata. Jeśli wyrażasz zgodę, ta "
-#~ "usługa uzyska dostęp do informacji z Twoich logów błędów i dzienników "
-#~ "użycia, które mogą zawierać informacje opisane w Polityce Prywatności. "
-#~ "Nie będziemy zbierać żadnych danych osobowych, dzięki którym można by "
-#~ "bezpośrednio lub pośrednio zidentyfikować osobę, w tym między innymi "
-#~ "nanawisk, adresów, informacji o płatnościach czy numerów telefonów. "
-#~ "Włączając tę usługę, zgadzasz się na te warunki i oświadczenie o Polityce "
-#~ "Prywatności."
 
 #~ msgid ""
 #~ "Change these settings automatically? \n"
@@ -21000,13 +20907,6 @@ msgstr ""
 #~ "Wartość 0 umożliwia odwrócenie na każdej nieparzystej warstwie, "
 #~ "niezależnie od wszystkiego."
 
-#~ msgid ""
-#~ "Smooth Spiral smooths out X and Y moves as well resulting in no visible "
-#~ "seam at all, even in the XY directions on walls that are not vertical"
-#~ msgstr ""
-#~ "Smooth Spiral wygładza również ruchy w osiach X i Y, co skutkuje brakiem "
-#~ "widocznych szwów, nawet w kierunkach XY na ścianach, które nie są pionowe"
-
 #, c-format, boost-format
 #~ msgid ""
 #~ "Maximum defection of a point to the estimated radius of the circle.\n"
@@ -21023,18 +20923,6 @@ msgstr ""
 
 #~ msgid "Certificate files (.crt, .pem)|.crt;.pem|All files|."
 #~ msgstr "Pliki certyfikatów (.crt, .pem)|.crt;.pem|Wszystkie pliki|."
-
-#~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" "
-#~ "option.Some extruders work better with this option unchecked (absolute "
-#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
-#~ "always enabled on BambuLab printers. Default is checked"
-#~ msgstr ""
-#~ "Przy użyciu opcji \"label_objects\" zaleca się ekstruzję względną. "
-#~ "Niektóre ekstrudery działają lepiej, gdy ta opcja jest odznaczona (tryb "
-#~ "ekstruzji absolutnej). Wieża czyszcząca jest kompatybilna tylko z trybem "
-#~ "względnym. Jest zawsze włączona w drukarkach BambuLab. Domyślnie "
-#~ "zaznaczone"
 
 #~ msgid "Error! Unable to create thread!"
 #~ msgstr "Błąd! Nie można utworzyć wątku!"
@@ -21087,10 +20975,6 @@ msgstr ""
 #~ "Tak - przełącz automatycznie na wzór prostoliniowy\n"
 #~ "Nie - automatycznie zresetuj gęstość do domyślnej wartości nie 100%"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
-#~ msgstr ""
-#~ "Proszę podgrzać dyszę do ponad 170 stopni przed załadowaniem filamentu."
-
 #~ msgid "Show g-code window"
 #~ msgstr "Pokaż okno G-kodu"
 
@@ -21112,9 +20996,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid " doesn't work at 100%% density "
 #~ msgstr " nie działa przy 100% gęstości "
-
-#~ msgid "Ctrl + Shift + Enter"
-#~ msgstr "Ctrl + Shift + Enter"
 
 #~ msgid "Tool-Lay on Face"
 #~ msgstr "Narzędzie - Połóż na Powierzchni"
@@ -21218,15 +21099,6 @@ msgstr ""
 #~ "Czy wiesz, jak kontrolować widok i wybór obiektów/części za pomocą myszy "
 #~ "i panelu dotykowego w scenie 3D?"
 
-#~ msgid ""
-#~ "Fix Model\n"
-#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
-#~ "slicing problems?"
-#~ msgstr ""
-#~ "Napraw model\n"
-#~ "Czy wiesz, że możesz naprawić uszkodzony model 3D, aby uniknąć wielu "
-#~ "problemów z krojeniem?"
-
 #~ msgid "Embedded"
 #~ msgstr "Osadzone"
 
@@ -21321,9 +21193,6 @@ msgstr ""
 #~ msgid "Calibration of extrusion"
 #~ msgstr "Kalibracja ekstruzji"
 
-#~ msgid "Push new filament into the extruder"
-#~ msgstr "Wsuń nowy filament do ekstrudera"
-
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
@@ -21397,13 +21266,6 @@ msgstr ""
 #~ "powietrza i poprawić jakość górnej powierzchni, szczególnie gdy gęstość "
 #~ "wypełnienia jest niska. Ta wartość określa grubość pętli podpory. 0 "
 #~ "oznacza wyłączenie tej funkcji"
-
-#, fuzzy, c-format, boost-format
-#~ msgid ""
-#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
-#~ msgstr ""
-#~ "Maksymalne przyspieszenie Klippera max_accel_to_decel zostanie "
-#~ "dostosowane do tego % przyspieszenia"
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "
