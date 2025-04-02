@@ -798,19 +798,19 @@ void MachineObject::_parse_tray_now(std::string tray_now)
         try {
             int tray_now_int = atoi(tray_now.c_str());
 
-            if (tray_now_int == 255) {
+            if (tray_now_int == VIRTUAL_TRAY_MAIN_ID) {
                 m_ams_id = "0";
                 m_tray_id = "0";
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = "";
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "";
 
-                if (m_tray_now == std::to_string(255)) {
-                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(255);
+                if (m_tray_now == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(VIRTUAL_TRAY_MAIN_ID);
                     m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
                 }
             }
-            else if (tray_now_int == 254) {
-                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(254);
+            else if (tray_now_int == VIRTUAL_TRAY_DEPUTY_ID) {
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(VIRTUAL_TRAY_MAIN_ID);
                 m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
             }
             else {
@@ -3669,7 +3669,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
 
                         /*the param is invalid in np for Yeshu*/
-                        if (!check_enable_np(jj) && jj.contains("hw_switch_state")) {
+                        if (jj.contains("hw_switch_state")) {
                             hw_switch_state = jj["hw_switch_state"].get<int>();
                             m_extder_data.extders[MAIN_NOZZLE_ID].ext_has_filament = hw_switch_state;
                         }

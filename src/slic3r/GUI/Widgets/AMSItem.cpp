@@ -2328,6 +2328,10 @@ void AMSRoadDownPart::doRender(wxDC& dc)
             dc.DrawLine(left_nozzle_pos.x - FromDIP(218), 0, left_nozzle_pos.x - FromDIP(218), (size.y / 2));
             break;
         case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE:
+            dc.DrawLine(left_nozzle_pos.x - FromDIP(192), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
+            dc.DrawLine(left_nozzle_pos.x - FromDIP(192), 0, left_nozzle_pos.x - FromDIP(192), (size.y / 2));
+            break;
+        case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S:
             dc.DrawLine(left_nozzle_pos.x - FromDIP((129)), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
             dc.DrawLine(left_nozzle_pos.x - FromDIP((129)), 0, left_nozzle_pos.x - FromDIP((129)), (size.y / 2));
             break;
@@ -2352,6 +2356,10 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE:
             dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(68), (size.y / 2));
             dc.DrawLine(right_nozzle_pos.x + FromDIP(68), 0, right_nozzle_pos.x + FromDIP(68), (size.y / 2));
+            break;
+        case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S:
+            dc.DrawLine(left_nozzle_pos.x - FromDIP((129)), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
+            dc.DrawLine(left_nozzle_pos.x - FromDIP((129)), 0, left_nozzle_pos.x - FromDIP((129)), (size.y / 2));
             break;
         case AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE:
             dc.DrawLine(left_nozzle_pos.x, (size.y / 2), left_nozzle_pos.x + FromDIP(145), (size.y / 2));
