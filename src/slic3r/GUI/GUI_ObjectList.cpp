@@ -2978,6 +2978,13 @@ void ObjectList::merge(bool to_multipart_object)
             // merge layers
             for (const auto& range : object->layer_config_ranges)
                 new_object->layer_config_ranges.emplace(range);
+
+            // merge brim ears
+            BrimPoints temp_brim_points = object->brim_points;
+            for(auto& p : temp_brim_points) {
+                p.set_transform(transformation_matrix);
+                new_object->brim_points.push_back(p);
+            }
         }
 
         //BBS: ensure on bed, and no need to center around origin
@@ -2986,8 +2993,13 @@ void ObjectList::merge(bool to_multipart_object)
         new_object->translate_instances(-new_object->origin_translation);
         new_object->origin_translation = Vec3d::Zero();
         //BBS init asssmble transformation
-        Geometry::Transformation t = new_object->instances[0]->get_transformation();
-        new_object->instances[0]->set_assemble_transformation(t);
+        Geometry::Transformation new_object_trsf = new_object->instances[0]->get_transformation();
+        new_object->instances[0]->set_assemble_transformation(new_object_trsf);
+
+        const Transform3d& new_object_inverse_matrix = new_object_trsf.get_matrix().inverse();
+        for (auto& p : new_object->brim_points) {
+            p.set_transform(new_object_inverse_matrix);
+        }
         //BBS: notify it before remove
         notify_instance_updated(m_objects->size() - 1);
 
