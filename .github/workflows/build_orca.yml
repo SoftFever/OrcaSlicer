@@ -1,18 +1,18 @@
 on:
-    workflow_call:
-      inputs:
-        cache-key:
-          required: true
-          type: string
-        cache-path:
-          required: true
-          type: string
-        os:
-          required: true
-          type: string
-        arch:
-          required: false
-          type: string
+  workflow_call:
+    inputs:
+      cache-key:
+        required: true
+        type: string
+      cache-path:
+        required: true
+        type: string
+      os:
+        required: true
+        type: string
+      arch:
+        required: false
+        type: string
 
 jobs:
   build_orca:
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: 'true'
+          lfs: "true"
 
       - name: load cached deps
         uses: actions/cache@v4
@@ -38,8 +38,8 @@ jobs:
 
       - uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
-          
+          cmakeVersion: "~3.28.0" # use most recent 3.28.x version
+
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
@@ -77,7 +77,7 @@ jobs:
           echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
 
-#   Mac
+      #   Mac
       - name: Install tools mac
         if: inputs.os == 'macos-14'
         run: |
@@ -100,9 +100,9 @@ jobs:
         run: |
           ./build_release_macos.sh -s -n -x -a ${{inputs.arch}} -t 10.15 -1
 
- # Thanks to RaySajuuk, it's working now
+      # Thanks to RaySajuuk, it's working now
       - name: Sign app and notary
-        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.os == 'macos-14'
+        if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -128,11 +128,11 @@ jobs:
           xcrun stapler staple OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
       - name: Create DMG without notary
-        if: github.ref != 'refs/heads/main' && inputs.os == 'macos-14'
+        if: false && inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
           ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}_unsigned.dmg
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-14'
@@ -152,7 +152,7 @@ jobs:
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
-# Windows
+      # Windows
       - name: setup MSVC
         if: inputs.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v2
@@ -232,7 +232,7 @@ jobs:
           asset_content_type: application/x-msdownload
           max_releases: 1
 
-# Ubuntu
+      # Ubuntu
       - name: Install dependencies
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         env:
@@ -284,7 +284,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Linux_ubuntu_${{ env.ubuntu-ver }}_${{ env.ver }}
-          path: './build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
+          path: "./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage"
 
       - name: Deploy Ubuntu release
         if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
