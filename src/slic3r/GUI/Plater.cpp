@@ -9811,16 +9811,19 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
     double layer_height = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
     first_layer_height = std::max(first_layer_height, layer_height);
 
+    const auto canvas    = wxGetApp().plater()->canvas3D();
+    auto&      selection = canvas->get_selection();
+    selection.setup_cache();
+    TransformationType transformation_type;
+    transformation_type.set_relative();
     float zscale = (first_layer_height + 9 * layer_height) / 2;
     // only enlarge
     if (xyScale > 1.2) {
-        for (auto _obj : objects)
-            _obj->scale(xyScale, xyScale, zscale); 
+        selection.scale({xyScale, xyScale, zscale}, transformation_type);
+    } else {
+        selection.scale({1, 1, zscale}, transformation_type);
     }
-    else {
-        for (auto _obj : objects)
-            _obj->scale(1, 1, zscale);
-    }
+    canvas->do_scale("");
 
     auto cur_flowrate = filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
     Flow infill_flow = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
