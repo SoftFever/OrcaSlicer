@@ -1559,6 +1559,9 @@ Sidebar::Sidebar(Plater *parent)
         p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, wxDefaultSize, 0);
         p->image_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->image_printer_bed->Unbind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
+            if (p->big_bed_image_popup) {
+                p->big_bed_image_popup->on_hide();
+            }
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
 
@@ -1575,6 +1578,11 @@ Sidebar::Sidebar(Plater *parent)
                 p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
             }
             e.Skip(); // fix bug:Event spreads to sidebar
+        });
+        p->combo_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
+            if (p->big_bed_image_popup && p->big_bed_image_popup->IsShown()) {
+                p->big_bed_image_popup->on_hide();
+            }
         });
         p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, &Sidebar::on_enter_image_printer_bed, this);
 
@@ -1904,10 +1912,10 @@ Sidebar::Sidebar(Plater *parent)
 Sidebar::~Sidebar() {}
 
 void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
-    p->image_printer_bed->Unbind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
-    auto    pos  = p->image_printer_bed->GetScreenPosition();
-    auto    rect = p->image_printer_bed->GetRect();
-    wxPoint temp_pos(pos.x + rect.GetWidth(), pos.y);
+    p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
+    auto    pos  = p->panel_printer_bed->GetScreenPosition();
+    auto    rect = p->panel_printer_bed->GetRect();
+    wxPoint temp_pos(pos.x + rect.GetWidth() +  FromDIP(3), pos.y);
     if (p->big_bed_image_popup == nullptr) {
         p->big_bed_image_popup = new ImageDPIFrame();
         auto image_path        = get_cur_select_bed_image();
@@ -1919,7 +1927,12 @@ void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
 }
 
 void Sidebar::on_leave_image_printer_bed(wxMouseEvent &evt) {
-    p->big_bed_image_popup->on_hide();
+    auto pos_x = evt.GetX();
+    auto pos_y = evt.GetY();
+    auto rect  = p->image_printer_bed->GetRect();
+    if (pos_x < 0 || pos_y < 0 || pos_x >= rect.GetWidth() && p->big_bed_image_popup) {
+        p->big_bed_image_popup->on_hide();
+    }
 }
 void Sidebar::on_change_color_mode(bool is_dark) {
     const ModelObjectPtrs &mos = wxGetApp().model().objects;

@@ -20,9 +20,15 @@ public:
     int  get_image_px() { return m_image_px; }
 
 private:
+    void init_timer();
+    void on_timer(wxTimerEvent &event);
+
+private:
     wxStaticBitmap *m_bitmap = nullptr;
     wxBoxSizer *m_sizer_main{nullptr};
     int             m_image_px;
+    wxTimer *       m_refresh_timer{nullptr};
+    float           m_timer_count = 0;
 };
 }}     // namespace Slic3r::GUI
 #endif  // _STEP_MESH_DIALOG_H_
