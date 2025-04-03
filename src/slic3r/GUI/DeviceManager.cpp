@@ -6888,6 +6888,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 it->second->dev_connection_type != connect_type ||
                 it->second->bind_ssdp_version != ssdp_version)
             {
+                if (it->second->bind_state != bind_state) {
+                    OnMachineBindStateChanged(it->second, bind_state);
+                }
+
                 it->second->dev_ip              = dev_ip;
                 it->second->bind_state          = bind_state;
                 it->second->bind_sec_link       = sec_link;
@@ -7662,6 +7666,18 @@ std::string DeviceManager::get_filament_name_from_ams(int ams_id, int slot_id)
     auto          option        = preset_bundle->get_filament_by_filament_id(filament_id);
     name      = option ? option->filament_name : "";
     return name;
+}
+
+void DeviceManager::OnMachineBindStateChanged(MachineObject *obj, const std::string &new_state) {
+    if (!obj) { return; }
+    if (obj->dev_id == selected_machine) {
+        if (new_state == "free") { OnSelectedMachineLost();}
+    }
+}
+
+void DeviceManager::OnSelectedMachineLost() {
+    GUI::wxGetApp().sidebar().update_sync_status(nullptr);
+    GUI::wxGetApp().sidebar().load_ams_list(string(), nullptr);
 }
 
 bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
