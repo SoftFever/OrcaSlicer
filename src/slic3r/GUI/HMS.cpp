@@ -196,9 +196,9 @@ int HMSQuery::load_from_local(const std::string& hms_type, const std::string& de
         {
             const json &j = json::parse(json_file);
             if (hms_type.compare(QUERY_HMS_INFO) == 0) {
-                (*load_json)  = j["data"];
+                if (j.contains("data")) { (*load_json) = j["data"]; }
             } else if (hms_type.compare(QUERY_HMS_ACTION) == 0) {
-                (*load_json)["data"] = j["data"];
+                if (j.contains("data")) { (*load_json)["data"] = j["data"]; }
             }
 
             if (j.contains("version")) {
