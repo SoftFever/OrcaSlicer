@@ -151,8 +151,6 @@ void GLGizmoMove3D::on_render()
     m_grabbers[2].color = AXES_COLOR[2];
 #endif
 
-    glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-
     auto render_grabber_connection = [this, &center](unsigned int id) {
         if (m_grabbers[id].enabled) {
             //if (!m_grabber_connections[id].model.is_initialized() || !m_grabber_connections[id].old_center.isApprox(center)) {
@@ -175,10 +173,7 @@ void GLGizmoMove3D::on_render()
                 m_grabber_connections[id].model.init_from(std::move(init_data));
             //}
 
-            glLineStipple(1, 0x0FFF);
-            glEnable(GL_LINE_STIPPLE);
             m_grabber_connections[id].model.render();
-            glDisable(GL_LINE_STIPPLE);
         }
     };
 
