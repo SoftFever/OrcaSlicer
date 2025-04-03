@@ -19,6 +19,7 @@
         "2"
     ],
     "enable_pre_heating": "1",
+    "extruder_clearance_dist_to_rod": "50",
     "extruder_clearance_height_to_lid": "201",
     "extruder_clearance_height_to_rod": "47.4",
     "extruder_clearance_max_radius": "96",
@@ -28,7 +29,7 @@
         "25x0,350x0,350x320,25x320"
     ],
     "hotend_heating_rate": "3.6",
-    "machine_load_filament_time": "24",
+    "machine_load_filament_time": "30",
     "machine_max_acceleration_x": [
         "16000",
         "16000",
@@ -90,7 +91,7 @@
         "30"
     ],
     "machine_switch_extruder_time": "5.6",
-    "machine_unload_filament_time": "24",
+    "machine_unload_filament_time": "30",
     "master_extruder_id": "2",
     "nozzle_volume": [
         "130",
