@@ -17,7 +17,7 @@
 #include "BitmapComboBox.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/Label.hpp"
-
+#include "../Utils/WxFontUtils.hpp"
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
@@ -572,6 +572,7 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         wxMemoryDC dc(&cdc);
 #endif
         dc.SetFont(::Label::Body_12);
+        Slic3r::GUI::WxFontUtils::get_suitable_font_size(icon_height - 2, dc);
         dc.SelectObject(*bitmap);
         if (clr.Alpha() == 0) {
             int             size        = icon_height * 2;
