@@ -581,7 +581,6 @@ AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, ExtderData *data
     }
 
     m_ext_pos = ext_pos;
-    createImages();
     SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 
     Bind(wxEVT_PAINT, &AMSExtImage::paintEvent, this);
@@ -589,63 +588,24 @@ AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, ExtderData *data
 
 AMSExtImage::~AMSExtImage() {}
 
-void AMSExtImage::createImages()
+const wxBitmap &AMSExtImage::get_bmp(const std::string &printer_type, bool is_ams_ext, AMSPanelPos pos)
 {
-    m_ams_ext_o_left  = ScalableBitmap(this, "ams_ext_image_o_left", 25);
-    m_ams_ext_o_right = ScalableBitmap(this, "ams_ext_image_o_right", 25);
-    m_ams_ext_xp      = ScalableBitmap(this, "ams_ext_image_xp", 25);
-    m_ams_ext_n1      = ScalableBitmap(this, "ams_ext_image_n1", 25);
-    m_ams_ext_n2s     = ScalableBitmap(this, "ams_ext_image_n2s", 25);
-    m_ams_ext_default = ScalableBitmap(this, "ams_ext_image_default", 25);
+    int pos_id = 0;
+    if (pos == AMSPanelPos::LEFT_PANEL) { pos_id = 1;}
+    const std::string &image_name = DeviceManager::get_printer_ext_img(printer_type, pos_id);
+    if (image_name.empty()) { return wxNullBitmap; }
 
-    m_ext_o_left  = ScalableBitmap(this, "ext_image_o_left", 98);
-    m_ext_o_right = ScalableBitmap(this, "ext_image_o_right", 98);
-    m_ext_xp      = ScalableBitmap(this, "ext_image_xp", 98);
-    m_ext_n1      = ScalableBitmap(this, "ext_image_n1", 98);
-    m_ext_n2s     = ScalableBitmap(this, "ext_image_n2s", 98);
-    m_ext_default = ScalableBitmap(this, "ext_image_default", 98);
-}
-
-const wxBitmap &AMSExtImage::get_bmp(const std::string &series_name, const std::string &printer_type, bool is_ams_ext, AMSPanelPos pos) const
-{
-    if (MachineObject::is_series_o(series_name)) {
-        if (pos == AMSPanelPos::LEFT_PANEL) {
-            return is_ams_ext ? m_ams_ext_o_left.bmp() : m_ext_o_left.bmp();
-        } else if (pos == AMSPanelPos::RIGHT_PANEL) {
-            return is_ams_ext ? m_ams_ext_o_right.bmp() : m_ext_o_right.bmp();
-        }
-    } else if (MachineObject::is_series_x(series_name) || MachineObject::is_series_p(series_name)) {
-        return is_ams_ext ? m_ams_ext_xp.bmp() : m_ext_xp.bmp();
-    } else if (MachineObject::is_series_n(series_name)) {
-        if (printer_type == "N1") {
-            return is_ams_ext ? m_ams_ext_n1.bmp() : m_ext_n1.bmp();
-        } else if (printer_type == "N2S") {
-            return is_ams_ext ? m_ams_ext_n2s.bmp() : m_ext_n2s.bmp();
-        }
+    int image_size = is_ams_ext ? 25 : 98;
+    if ((m_ext_image.name() != image_name) || (m_ext_image.GetBmpWidth() != image_size)) {
+        m_ext_image = ScalableBitmap(this, image_name, image_size);
     }
 
-    return is_ams_ext ? m_ams_ext_default.bmp() : m_ext_default.bmp();
+    return m_ext_image.bmp();
 }
 
 void AMSExtImage::msw_rescale()
 {
-    //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
-    //auto image     = m_ams_extruder.ConvertToImage();
-    m_ams_ext_o_left.msw_rescale();
-    m_ams_ext_o_right.msw_rescale();
-    m_ams_ext_xp.msw_rescale();
-    m_ams_ext_n1.msw_rescale();
-    m_ams_ext_n2s.msw_rescale();
-    m_ams_ext_default.msw_rescale();
-
-    m_ext_o_left.msw_rescale();
-    m_ext_o_right.msw_rescale();
-    m_ext_xp.msw_rescale();
-    m_ext_n1.msw_rescale();
-    m_ext_n2s.msw_rescale();
-    m_ext_default.msw_rescale();
-
-    m_ext_default.bmp();
+    m_ext_image.msw_rescale();
 
     Layout();
     Fit();
@@ -706,7 +666,7 @@ void AMSExtImage::doRender(wxDC& dc)
 
     if (m_show_ams_ext)
     {
-        const wxBitmap &bmp = get_bmp(m_series_name, m_printer_type_name, true, m_ext_pos);
+        const wxBitmap &bmp = get_bmp(m_printer_type_name, true, m_ext_pos);
         dc.DrawBitmap(bmp, wxPoint((size.x - ScalableBitmap::GetBmpSize(bmp).x) / 2, 0));
 
         Layout();
@@ -715,7 +675,7 @@ void AMSExtImage::doRender(wxDC& dc)
 
     if (m_show_ext)
     {
-        const wxBitmap &bmp    = get_bmp(m_series_name, m_printer_type_name, false, m_ext_pos);
+        const wxBitmap &bmp    = get_bmp(m_printer_type_name, false, m_ext_pos);
         const wxSize& bmp_size = ScalableBitmap::GetBmpSize(bmp);
         dc.DrawBitmap(bmp, wxPoint((size.x - bmp_size.x) / 2, (size.y - bmp_size.GetHeight())));
 
