@@ -30,6 +30,14 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
     // SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_TRANSPARENT);
     SetTransparent(m_init_transparent);
     SetBackgroundColour(wxColour(23, 25, 22, 128));
+    //Adaptive Frame Width
+    wxClientDC dc(parent);
+    wxSize msg_sz = dc.GetMultiLineTextExtent(ok_text);
+    auto   ratio = msg_sz.GetX() / (float) win_width;
+    if (ratio > 0.75f) {
+        win_width += msg_sz.GetX() / 2.0f;
+    }
+
     SetMinSize(wxSize(FromDIP(win_width), -1));
     SetMaxSize(wxSize(FromDIP(win_width), -1));
     SetPosition(dialog_pos);
