@@ -345,27 +345,43 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
 
 std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) const
 {
-    std::ostringstream gcode;
-    if (FLAVOR_IS(gcfKlipper))
-    {
-        throw std::runtime_error("M593 - ZV Input Shaping is NOT supported by Klipper");
-    }
     if (freq < 0.0f || damp < 0.f || damp > 1.0f || (axis != 'X' && axis != 'Y' && axis != 'Z' && axis != 'A'))// A = all axis
     {
     throw std::runtime_error("Invalid input shaping parameters: freq=" + std::to_string(freq) + ", damp=" + std::to_string(damp));
     }
-    gcode << "M593";
-    if (axis != 'A')
-    {
-        gcode << " " << axis;
-    }
-    if (freq > 0.0f)
-    {
-        gcode << " F" << std::fixed << std::setprecision(2) << freq;
-    }
-    if (damp > 0.0f)
-    {
-        gcode << " D" << std::fixed << std::setprecision(2) << damp;
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfKlipper)) {
+        gcode << "SET_INPUT_SHAPER";
+        if (axis != 'A')
+        {
+            if (freq > 0.0f) {
+                gcode << " SHAPER_FREQ_" << axis << "=" << std::fixed << std::setprecision(2) << freq;
+            }
+            if (damp > 0.0f){
+                gcode  << " DAMPING_RATIO_" << axis << "=" << damp;
+            } 
+        } else {
+            if (freq > 0.0f) {
+                gcode << " SHAPER_FREQ_X=" << std::fixed << std::setprecision(2) << freq << " SHAPER_FREQ_Y=" << std::fixed << std::setprecision(2) << freq;
+            }
+            if (damp > 0.0f) {
+                gcode << " DAMPING_RATIO_X=" << damp << " DAMPING_RATIO_Y=" << damp;
+            }
+        }
+    } else {
+        gcode << "M593";
+        if (axis != 'A')
+        {
+            gcode << " " << axis;
+        }
+        if (freq > 0.0f)
+        {
+            gcode << " F" << std::fixed << std::setprecision(2) << freq;
+        }
+        if (damp > 0.0f)
+        {
+            gcode << " D" << std::fixed << std::setprecision(2) << damp;
+        }
     }
     gcode << "; Override input shaping value\n";
     return gcode.str();
