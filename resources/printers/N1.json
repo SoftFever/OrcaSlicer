@@ -46,6 +46,7 @@
 		"printer_thumbnail_image": "printer_thumbnail_n1",
 		"printer_connect_help_image": "input_access_code_n1",
 		"printer_use_ams_image": "extra_icon",
+		"printer_ext_image": ["ext_image_n1"],
 		"use_ams_type": "f1",
 		"printer_arch": "i3",
 		"printer_series": "series_n",

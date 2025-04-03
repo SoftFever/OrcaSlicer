@@ -7485,7 +7485,12 @@ std::string DeviceManager::get_printer_diagram_img(std::string type_str)
 }
 std::string DeviceManager::get_printer_ams_img(std::string type_str)
 {
-    return get_value_from_config<std::string>(type_str, "printer_use_ams_image");
+    return get_value_from_config<std::string>(type_str, "printer_use_ams_image"); }
+
+std::string DeviceManager::get_printer_ext_img(std::string type_str, int pos) {
+    const auto& vec = get_value_from_config<std::vector<std::string>>(type_str, "printer_ext_image");
+    if (vec.size() > pos) { return vec[pos];}
+    return std::string();
 }
 
 bool DeviceManager::get_printer_is_enclosed(std::string type_str) {

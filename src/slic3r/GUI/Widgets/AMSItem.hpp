@@ -377,19 +377,7 @@ private:
     AMSPanelPos m_ext_pos;
     int         total_ext_num = 1;
 
-    ScalableBitmap m_ams_ext_o_left;
-    ScalableBitmap m_ams_ext_o_right;
-    ScalableBitmap m_ams_ext_xp;
-    ScalableBitmap m_ams_ext_n1;
-    ScalableBitmap m_ams_ext_n2s;
-    ScalableBitmap m_ams_ext_default;
-
-    ScalableBitmap m_ext_o_left;
-    ScalableBitmap m_ext_o_right;
-    ScalableBitmap m_ext_xp;
-    ScalableBitmap m_ext_n1;
-    ScalableBitmap m_ext_n2s;
-    ScalableBitmap m_ext_default;
+    ScalableBitmap m_ext_image;
 
 public:
     AMSExtImage(wxWindow *parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, ExtderData *data = nullptr, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition);
@@ -404,8 +392,7 @@ private:
     void render(wxDC &dc);
     void doRender(wxDC &dc);
 
-    void createImages();
-    const wxBitmap &get_bmp(const std::string &series_name, const std::string &printer_type, bool is_ams_ext, AMSPanelPos pos) const;
+    const wxBitmap &get_bmp(const std::string &printer_type, bool is_ams_ext, AMSPanelPos pos);
 };
 
 

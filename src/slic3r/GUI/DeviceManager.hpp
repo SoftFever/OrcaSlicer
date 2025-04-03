@@ -1460,7 +1460,7 @@ public:
             }
         }
         catch (...) {}
-        return "";
+        return T();
     }
 
     static std::string parse_printer_type(std::string type_str);
@@ -1470,6 +1470,7 @@ public:
     static std::string get_printer_series(std::string type_str);
     static std::string get_printer_diagram_img(std::string type_str);
     static std::string get_printer_ams_img(std::string type_str);
+    static std::string get_printer_ext_img(std::string type_str, int pos);
     static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
     static bool get_printer_is_enclosed(std::string type_str);
