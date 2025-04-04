@@ -7805,7 +7805,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 if (!plate_list.get_plate(i)->can_slice())
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
                 else {
-                    if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f || plate_list.get_plate(i)->get_extruders().size() == 0) // count empty plate as unsliced. fixes empty plates rendered without background
+                    if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f || plate_list.get_plate(i)->get_extruders().size() == 0) // ORCA count empty plate as unsliced. Fixes empty plates rendered without dimmed background
                         m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
                     else
                         m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
@@ -7894,8 +7894,9 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     int item_count = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
     float window_height_calc = (item_count * (button_height + (margin_size + button_margin) * 2.0f) + (item_count - 1) * ImGui::GetStyle().ItemSpacing.y + ImGui::GetStyle().WindowPadding.y * 2.0f);
     bool  show_scroll   = m_sel_plate_toolbar.is_display_scrollbar && (window_height_calc > window_height_max);
+    float scrollbar_size = 10.0f * f_scale * em_unit ;
     float window_height = std::min(window_height_calc, window_height_max);
-    float window_width  = button_width + (margin_size + button_margin + ImGui::GetStyle().WindowPadding.x) * 2 + (show_scroll ? 10.0f * f_scale * em_unit : 0);
+    float window_width  = button_width + (margin_size + button_margin + ImGui::GetStyle().WindowPadding.x) * 2 + (show_scroll ? scrollbar_size : 0);
 
     ImVec4 window_bg     = m_is_dark ? ImVec4(.13f, .13f, .15f, .5f) : ImVec4(1.f, 1.f, 1.f, .7f);
     ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Use orca color for selected sliced plate border 
@@ -7915,7 +7916,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 10.0f * f_scale * em_unit); // use same value that used on window_width
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_size);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, show_scroll ? (4.0f * f_scale * em_unit) : (button_radius + margin_size + frame_padding + ImGui::GetStyle().WindowPadding.x));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_radius + margin_size);
