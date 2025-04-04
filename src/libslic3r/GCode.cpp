@@ -5140,15 +5140,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
     };
 
-    bool slop_need_z_travel = false;
+    bool slope_need_z_travel = false;
     if (sloped != nullptr && !sloped->is_flat()) {
         auto target_z = get_sloped_z(sloped->slope_begin.z_ratio);
-        slop_need_z_travel = m_writer.will_move_z(target_z);
+        slope_need_z_travel = m_writer.will_move_z(target_z);
     }
     // go to first point of extrusion path
     //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
     //Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
-    if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z || slop_need_z_travel) {
+    if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z || slope_need_z_travel) {
         gcode += this->travel_to(
             path.first_point(),
             path.role(),
