@@ -5325,7 +5325,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
             speed,
-            EXTRUDER_CONFIG(filament_max_volumetric_speed) / (_mm3_per_mm*EXTRUDER_CONFIG(filament_flow_ratio))
+            EXTRUDER_CONFIG(filament_max_volumetric_speed) / (_mm3_per_mm*EXTRUDER_CONFIG(filament_flow_ratio)) // ORCA: Multiply with filament flow ratio as _mm3_per_mm is not adjusted by the filament flow rate. The e_per_mm value is.
         );
     }
 
