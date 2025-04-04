@@ -5270,8 +5270,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         gcode += m_writer.set_jerk_xy(jerk);
     }
 
-    // calculate extrusion length per distance unit
-    auto _mm3_per_mm = path.mm3_per_mm * this->config().print_flow_ratio;
+    // calculate effective extrusion length per distance unit (e_per_mm)
+    auto _mm3_per_mm = path.mm3_per_mm * this->config().print_flow_ratio 
+    // We set _mm3_per_mm to effectove flow = Geometric volume * print flow ratio * filament flow ratio * role-based-flow-ratios
+    _m3_per_mm *= m_config.filament_flow_ratio;
     if (path.role() == erTopSolidInfill)
         _mm3_per_mm *= m_config.top_solid_infill_flow_ratio;
     else if (path.role() == erBottomSurface)
@@ -5280,9 +5282,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         _mm3_per_mm *= m_config.internal_bridge_flow;
     else if(sloped)
         _mm3_per_mm *= m_config.scarf_joint_flow_ratio;
+    // Effective extrusion length per distance unit = (filament_flow_ratio/cross_section) * mm3_per_mm / print flow ratio
+    // m_writer.extruder()->e_per_mm3() below is (filament flow ratio / cross-sectional area)
+    double e_per_mm = m_writer.extruder()->e_per_mm3() * min_mm3_per_mm
+    e_per_mm /= m_config.filament_flow_ratio;
 
 
-    double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
     // set speed
     if (speed == -1) {
