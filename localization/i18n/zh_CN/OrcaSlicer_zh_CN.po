@@ -4310,20 +4310,20 @@ msgstr ""
 "发现gcode路径在层%d，高为%.2lf mm处的冲突。请将有冲突的对象分离得更远(%s <-> "
 "%s)。"
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "检测到有对象放在盘的边界上。"
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "检测出超出打印高度的G-code路径。"
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "检测超出热床边界的G-code路径。"
 
 msgid "Only the object being edit is visible."
 msgstr "只有正在编辑的对象是可见的。"
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

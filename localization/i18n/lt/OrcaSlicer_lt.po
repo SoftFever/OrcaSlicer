@@ -4496,20 +4496,20 @@ msgstr ""
 "Rasta G-kode judėjimo kelių konfliktų %d sluoksnyje, z = %.2lf mm. Prašome "
 "labiau atskirti konfliktinius objektus (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Objektas yra už spausdinimo pagrindo ribų."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "G-kode judėjimo maršrutas viršija maksimalų spausdinimo aukštį."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "G-kode judėjimo maršrutas išeina už spausdinimo plokštės ribų."
 
 msgid "Only the object being edit is visible."
 msgstr "Matomas tik redaguojamas objektas."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

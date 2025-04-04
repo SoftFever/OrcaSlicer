@@ -4558,20 +4558,20 @@ msgstr ""
 "В G-коде на %d слое (z = %.2lf мм) обнаружен конфликт путей. Пожалуйста, "
 "разместите конфликтующие модели дальше друг от друга (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Модель выходить за границы печатного стола."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Траектория перемещения в G-коде превышает высоту области печати."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Траектория перемещения в G-коде выходит за границы печатного стола."
 
 msgid "Only the object being edit is visible."
 msgstr "При редактировании, те модели с которыми вы не работаете скрываются."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

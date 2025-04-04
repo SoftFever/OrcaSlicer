@@ -4502,20 +4502,20 @@ msgstr ""
 "Wykryto konflikty ścieżek G-code na warstwie %d, z = %.2lf mm. Proszę "
 "oddalić od siebie obiekty będące w konflikcie (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Obiekt jest położony poza granicą płyty."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Trasa G-code wychodzi poza maksymalną wysokość druku."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Trasa G-code wychodzi poza granicę płyty."
 
 msgid "Only the object being edit is visible."
 msgstr "Widoczny jest tylko edytowany obiekt."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
@@ -20864,12 +20864,6 @@ msgstr ""
 
 #~ msgid "Allow multiple materials on the same plate"
 #~ msgstr "Pozwól na kilka filamentów na tej samej płycie"
-
-#~ msgid "An object is laid over the boundary of plate."
-#~ msgstr "Obiekt jest położony poza granicą płyty."
-
-#~ msgid "Only the object being edited is visible."
-#~ msgstr "Widoczny jest tylko edytowany obiekt."
 
 #~ msgid "Connect Printer (LAN)"
 #~ msgstr "Podłącz drukarkę (LAN)"

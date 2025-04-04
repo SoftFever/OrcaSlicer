@@ -4500,20 +4500,20 @@ msgstr ""
 "Виявлено конфлікти шляхів gcode на рівні %d, z = %.2lf мм. Будь ласка \n"
 "розділити конфліктуючі об'єкти далі (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Об'єкт виходить за межі пластини."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Шлях G-коду виходить за максимально допустиму висоту друку."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Шлях G-коду виходить за межі пластини."
 
 msgid "Only the object being edit is visible."
 msgstr "Відображається лише редагований об'єкт."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

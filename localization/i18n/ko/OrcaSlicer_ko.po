@@ -4392,20 +4392,20 @@ msgstr ""
 "레이어 %d, z = %.2lf mm에서 Gcode 경로 충돌이 발견되었습니다. 충돌하는 객체"
 "를 더 멀리 분리하세요 (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "객체가 플레이트 경계 위에 놓여 있습니다."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Gcode 경로가 출력 최대 높이를 넘어갑니다."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Gcode 경로가 플레이트 경계를 넘어갑니다."
 
 msgid "Only the object being edit is visible."
 msgstr "편집 중인 객체만 표시됩니다."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

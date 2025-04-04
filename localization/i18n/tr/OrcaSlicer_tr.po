@@ -4461,20 +4461,20 @@ msgstr ""
 "%d katmanında gcode yollarında çakışmalar bulundu, z = %.2lf mm. Lütfen "
 "çakışan nesneleri daha uzağa ayırın (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Plakanın sınırına bir nesne serilir."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Bir G kodu yolu maksimum baskı yüksekliğinin ötesine geçer."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Bir G kodu yolu plakanın sınırlarının ötesine geçer."
 
 msgid "Only the object being edit is visible."
 msgstr "Yalnızca düzenlenen nesne görünür."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
