@@ -7859,22 +7859,22 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 #if ENABLE_RETINA_GL
     float f_scale  = m_retina_helper->get_scale_factor();
 #else
-    float f_scale  = 1.0;
+    float f_scale  = wxGetApp().em_unit() / 10; // ORCA add scaling support  
 #endif
-    int em_unit = wxGetApp().em_unit() / 10; // ORCA add scaling support  
+
     Size cnv_size = get_canvas_size();
     auto canvas_w = float(cnv_size.get_width());
     auto canvas_h = float(cnv_size.get_height());
 
     bool is_hovered = false;
 
-    m_sel_plate_toolbar.set_icon_size(100.0f * f_scale * em_unit, 100.0f * f_scale * em_unit);
+    m_sel_plate_toolbar.set_icon_size(100.0f * f_scale, 100.0f * f_scale);
 
     float button_width = m_sel_plate_toolbar.icon_width;
     float button_height = m_sel_plate_toolbar.icon_height;
 
-    float frame_padding = 1.0f * f_scale * em_unit;
-    float margin_size = 4.0f * f_scale * em_unit;
+    float frame_padding = 1.0f * f_scale;
+    float margin_size = 4.0f * f_scale;
     float button_margin = frame_padding;
 
     const float y_offset = is_collapse_toolbar_on_left() ? (get_collapse_toolbar_height() + 5) : 0;
@@ -7889,12 +7889,12 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         window_height_max -= (128 * sc + 5);
     }
 
-    // ORCA simplify and correct window dimensions. Get values from style
+    // ORCA simplify and correct window size and margin calculations. Get values from style
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     int item_count = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
     float window_height_calc = (item_count * (button_height + (margin_size + button_margin) * 2.0f) + (item_count - 1) * ImGui::GetStyle().ItemSpacing.y + ImGui::GetStyle().WindowPadding.y * 2.0f);
     bool  show_scroll   = m_sel_plate_toolbar.is_display_scrollbar && (window_height_calc > window_height_max);
-    float scrollbar_size = 10.0f * f_scale * em_unit ;
+    float scrollbar_size = 10.0f * f_scale ;
     float window_height = std::min(window_height_calc, window_height_max);
     float window_width  = button_width + (margin_size + button_margin + ImGui::GetStyle().WindowPadding.x) * 2 + (show_scroll ? scrollbar_size : 0);
 
@@ -7904,7 +7904,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImVec4 scroll_col    = ImVec4(0.77f, 0.77f, 0.77f, m_is_dark ? .6f : 1.0f);
     ImU32  plate_bg      = m_is_dark ? IM_COL32(255, 255, 255, 10) : IM_COL32(0, 0, 0, 10);
     ImU32  plate_dim     = m_is_dark ? IM_COL32(30, 30, 30, 100) : IM_COL32(0, 0, 0, 50);
-    float  button_radius = 1.0f * f_scale * em_unit;
+    float  button_radius = 1.0f * f_scale;
     //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));
     //use white text as the background switch to black
     ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1)); // ORCA Plate number text > Add support for dark mode
@@ -7918,10 +7918,10 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_size);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, show_scroll ? (4.0f * f_scale * em_unit) : (button_radius + margin_size + frame_padding + ImGui::GetStyle().WindowPadding.x));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, show_scroll ? (4.0f * f_scale) : (button_radius + margin_size + frame_padding + ImGui::GetStyle().WindowPadding.x));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_radius + margin_size);
 
-    imgui.set_next_window_pos(canvas_w * 0 + 4.0f * f_scale * em_unit, canvas_h * 0 + y_offset, ImGuiCond_Always, 0, 0); // Add slight gap on left edge so toolbar looks like floating and it creates separation with sidebar
+    imgui.set_next_window_pos(canvas_w * 0 + 4.0f * f_scale, canvas_h * 0 + y_offset, ImGuiCond_Always, 0, 0); // ORCA Add slight gap on left edge so toolbar looks like floating and it creates separation with sidebar
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 
     if (show_scroll)
@@ -7930,7 +7930,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         imgui.begin(_L("Select Plate"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
     ImGui::SetWindowFontScale(1.2f);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f * f_scale * em_unit);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f * f_scale);
 
     ImVec2 size = ImVec2(button_width, button_height); // Size of the image we want to make visible
     ImVec4 bg_col = ImVec4(128.0f, 128.0f, 128.0f, 0.0f);
@@ -7994,7 +7994,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         // ORCA use progress bar on stats button and add more information
         std::string text_top;
         std::string text_bottom;
-        ImVec2 bar_size         = ImVec2(size.x - margin.x * 2, 5.0f * f_scale * em_unit);
+        ImVec2 bar_size         = ImVec2(size.x - margin.x * 2, 5.0f * f_scale);
         ImVec2 bar_bg_bgn      = ImVec2(start_pos.x + margin.x, start_pos.y + size.y - bar_size.y - margin.y);
         ImVec2 bar_bg_end      = ImVec2(bar_bg_bgn.x + bar_size.x, bar_bg_bgn.y + bar_size.y);
         int    total_plates_cnt = plate_list.get_nonempty_plate_list().size();
@@ -8031,7 +8031,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         }
 
         // draw text
-        GImGui->FontSize = 15.0f * em_unit;
+        GImGui->FontSize = 15.0f * f_scale;
         ImGui::PushStyleColor(ImGuiCol_Text, text_clr);
         ImVec2 text_size = ImGui::CalcTextSize(text_top.c_str());
         ImVec2 text_start_pos = ImVec2(start_pos.x + (button_width - text_size.x) / 2, start_pos.y + 3.0f * button_height / 5.0f);
@@ -8061,7 +8061,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 
         // invisible button
         auto button_size = ImVec2(size.x + 2 * (frame_padding + margin.x), size.y + 2 * (frame_padding + margin.y));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f * f_scale * em_unit);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f * f_scale);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
@@ -8110,9 +8110,9 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             auto draw_list =ImGui::GetWindowDrawList();
             auto clr = m_is_dark ? IM_COL32(60, 44, 48, 255) : IM_COL32(202, 186, 186, 255);
             draw_list->AddRectFilled(start_pos, end_pos, IM_COL32(64, 1, 1, 64), button_radius);
-            draw_list->AddCircleFilled(center, 14.f * em_unit,IM_COL32(225, 74, 74, 255));
-            draw_list->AddRectFilled(center - ImVec2(2.f, 10.f) * em_unit, center + ImVec2(2.f, 4.f) * em_unit, clr, 2.f * em_unit);
-            draw_list->AddCircleFilled(center + ImVec2(0, 8.f * em_unit),2.f * em_unit, clr);
+            draw_list->AddCircleFilled(center, 14.f * f_scale,IM_COL32(225, 74, 74, 255));
+            draw_list->AddRectFilled(center - ImVec2(2.f, 10.f) * f_scale, center + ImVec2(2.f, 4.f) * f_scale, clr, 2.f * f_scale);
+            draw_list->AddCircleFilled(center + ImVec2(0, 8.f * f_scale),2.f * f_scale, clr);
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICED) {
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
@@ -8120,8 +8120,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         }
 
         // draw text
-        GImGui->FontSize = 18.0f * em_unit; // ORCA fix font scaling
-        ImVec2 text_start_pos = ImVec2(start_pos.x + 4.0f * em_unit, start_pos.y + 2.0f * em_unit); // ORCA move close to corner to prevent overlapping with preview
+        GImGui->FontSize = 18.0f * f_scale; // ORCA fix font scaling
+        ImVec2 text_start_pos = ImVec2(start_pos.x + 4.0f * f_scale, start_pos.y + 2.0f * f_scale); // ORCA move close to corner to prevent overlapping with preview
         ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
         ImGui::SetWindowFontScale(1.2f); // ORCA fix font scaling
 
