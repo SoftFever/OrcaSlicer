@@ -7965,7 +7965,6 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             text_clr       = m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1);
             btn_texture_id = (ImTextureID)(intptr_t)(m_process->running() ? all_plates_stats_item->image_slicing.get_id() : all_plates_stats_item->image_idle.get_id());
         } else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
-            //text_clr       = ImVec4(208 / 255.f, 27 / 255.f, 27 / 255.f, 1.f);
             text_clr       = m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1);
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_failed.get_id());
         } else {
@@ -8011,7 +8010,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                         bar_current_perc_pos  = m_sel_plate_toolbar.m_items[i]->percent * (bar_size.x / total_plates_cnt / 100.0f);
                     }
                 }
-                text_top = _u8L("Slicing") + ":" + std::to_string(current_slicing_plate + 1);
+                text_top = _u8L("Slicing") + ": " + std::to_string(current_slicing_plate + 1);
             } else {
                 text_top = _u8L("Slice all");
             }
@@ -8026,7 +8025,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImGui::GetWindowDrawList()->AddRectFilled(bar_bg_bgn, bar_bg_end, IM_COL32(225, 74, 74, 255),   bar_size.y);
         }
         else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICED) {
-            text_top    = _u8L("All plates");
+            text_top    = _u8L("All Plates");
             text_bottom = _u8L("Stats");
         }
 
