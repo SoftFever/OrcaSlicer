@@ -3657,11 +3657,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
 "De aanbevolen mondstuk temperatuur voor dit type filament is [%d, %d] graden "
-"Celsius"
+"Celsius."
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -18231,10 +18231,10 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
-#~ "De printbed temperatuur voor de overige lagen is %d graden celcius lager "
+#~ "De printbed temperatuur voor de overige lagen is %d graden Celcius lager "
 #~ "dan de temperatuur voor de eerste laag.\n"
 #~ "Hierdoor kan de print loskomen van het printbed gedurende de printtaak"
 
