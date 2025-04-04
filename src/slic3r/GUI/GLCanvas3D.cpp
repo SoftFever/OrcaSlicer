@@ -7995,10 +7995,10 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         std::string text_top;
         std::string text_bottom;
         ImVec2 bar_size         = ImVec2(size.x - margin.x * 2, 5.0f * f_scale);
-        ImVec2 bar_bg_bgn       = ImVec2(start_pos.x + margin.x, start_pos.y + size.y - bar_size.y - margin.y);
-        ImVec2 bar_bg_end       = ImVec2(bar_bg_bgn.x + bar_size.x, bar_bg_bgn.y + bar_size.y);
+        ImVec2 bar_bg_bgn       = start_pos + ImVec2(margin.x, size.y - bar_size.y - margin.y);
+        ImVec2 bar_bg_end       = bar_bg_bgn + bar_size;
         int    total_plates_cnt = plate_list.get_nonempty_plate_list().size();
-        ImGui::GetWindowDrawList()->AddRectFilled(start_pos, ImVec2(start_pos.x + size.x, start_pos.y + size.y), plate_bg, button_radius); // Button background
+        ImGui::GetWindowDrawList()->AddRectFilled(start_pos, start_pos + size, plate_bg, button_radius); // Button background
 
         if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED) {
             float bar_current_perc_pos  = 0;
@@ -8011,7 +8011,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                         bar_current_perc_pos  = m_sel_plate_toolbar.m_items[i]->percent * (bar_size.x / total_plates_cnt / 100.0f);
                     }
                 }
-                text_top = _u8L("Slicing:") + std::to_string(current_slicing_plate + 1);
+                text_top = _u8L("Slicing") + ":" + std::to_string(current_slicing_plate + 1);
             } else {
                 text_top = _u8L("Slice all");
             }
