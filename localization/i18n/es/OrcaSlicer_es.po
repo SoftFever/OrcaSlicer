@@ -4549,20 +4549,20 @@ msgstr ""
 "Se han encontrado conflictos de rutas G-Code en la capa %d, z = %.2lf mm. "
 "Por favor, separe más los objetos en conflicto (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Un objeto está sobre el límite de la bandeja."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Una ruta de G-Code supera la altura máxima de impresión."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Una ruta de G-Code supera el límite de la bandeja."
 
 msgid "Only the object being edit is visible."
 msgstr "Sólo es visible el objeto que se está editando."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
@@ -20826,7 +20826,7 @@ msgstr ""
 #~ msgstr "0%"
 
 #~ msgid ""
-#~ "An object is layed over the boundary of plate.\n"
+#~ "An object is laid over the plate boundaries.\n"
 #~ "Please solve the problem by moving it totally inside or outside plate."
 #~ msgstr ""
 #~ "Un objeto está colocado sobre el límite de la bandeja.\n"

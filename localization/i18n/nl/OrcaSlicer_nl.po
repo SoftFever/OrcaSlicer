@@ -4460,20 +4460,20 @@ msgid ""
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Er bevind zich een object buiten de grenzen van de printplaat."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Een G-codepad gaat verder dan de maximale printhoogte."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Een G-code pad treedt buiten de grenzen van de printplaat."
 
 msgid "Only the object being edit is visible."
 msgstr "Alleen het object waaraan gewerkt wordt is zichtbaar."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

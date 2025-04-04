@@ -4419,20 +4419,20 @@ msgstr ""
 "Byly zjištěny konflikty cest g-kódu na vrstvě %d, z = %.2lf mm. Prosím "
 "oddělte konfliktní objekty dále od sebe (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Objekt je položen přes hranici podložky."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Cesta G-kódu přesahuje maximální výšku tisku."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Cesta G-kódu přesahuje hranici podložky."
 
 msgid "Only the object being edit is visible."
 msgstr "Viditelný je pouze objekt, který se právě upravuje."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

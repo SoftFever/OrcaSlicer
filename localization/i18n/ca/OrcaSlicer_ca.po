@@ -4511,20 +4511,20 @@ msgstr ""
 "S'han trobat conflictes de rutes gcode a la capa %d, z = %.2lf mm. Si us "
 "plau, separeu els objectes conflictius més lluny ( %s <-> %s )."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Un objecte està col·locat sobre el límit de la placa."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Una trajectòria de Codi-G va més enllà de l'alçada màxima d'impressió."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Una trajectòria de Codi-G va més enllà del límit de placa."
 
 msgid "Only the object being edit is visible."
 msgstr "Només és visible l'objecte que s'està editant."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""

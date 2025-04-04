@@ -4546,20 +4546,20 @@ msgstr ""
 "Des conflits de chemins G-code ont été trouvés au niveau de la couche %d, z "
 "= %.2lf mm. Veuillez séparer davantage les objets en conflit (%s <-> %s)."
 
-msgid "An object is layed over the boundary of plate."
+msgid "An object is laid over the plate boundaries."
 msgstr "Un objet est posé sur la limite du plateau."
 
 msgid "A G-code path goes beyond the max print height."
 msgstr "Un chemin du G-code dépasse la hauteur d’impression maximale."
 
-msgid "A G-code path goes beyond the boundary of plate."
+msgid "A G-code path goes beyond the plate boundaries."
 msgstr "Un chemin du G-code va au-delà de la limite du plateau."
 
 msgid "Only the object being edit is visible."
 msgstr "Seul l'objet en cours d'édition est visible."
 
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"An object is laid over the plate boundaries or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
