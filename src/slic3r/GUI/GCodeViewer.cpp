@@ -4472,7 +4472,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
                 //ImGui::PopStyleVar(1);
                 // ORCA replace checkboxes with eye icon
-                ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 0.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
+                ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 6.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
                 ImGui::Text(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16 * m_scale, 16 * m_scale));
             }
         }
