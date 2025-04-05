@@ -410,8 +410,8 @@ public:
             return global_config.option<T>(config_option);
     }
 
-    ModelVolume*            add_volume(const TriangleMesh &mesh);
-    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART);
+    ModelVolume*            add_volume(const TriangleMesh &mesh, bool modify_to_center_geometry = true);
+    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART, bool modify_to_center_geometry = true);
     ModelVolume*            add_volume(const ModelVolume &volume, ModelVolumeType type = ModelVolumeType::INVALID);
     ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     ModelVolume*            add_volume_with_shared_mesh(const ModelVolume &other, ModelVolumeType type = ModelVolumeType::MODEL_PART);
@@ -1244,11 +1244,13 @@ public:
         m_assemble_initialized = true;
         m_assemble_transformation = transformation;
     }
-    void set_assemble_from_transform(Transform3d& transform) {
+    void set_assemble_from_transform(const Transform3d& transform) {
         m_assemble_initialized = true;
         m_assemble_transformation.set_matrix(transform);
     }
+    Vec3d get_assemble_offset() const {return m_assemble_transformation.get_offset(); }
     void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
+    void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
     }
@@ -1325,6 +1327,8 @@ public:
         this->object->invalidate_bounding_box();
     }
 
+    ModelInstanceEPrintVolumeState calc_print_volume_state(const BuildVolume& build_volume) const;
+
 protected:
     friend class Print;
     friend class SLAPrint;
@@ -1333,6 +1337,12 @@ protected:
 
     explicit ModelInstance(const ModelInstance &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
+
+    ModelInstanceEPrintVolumeState update_print_volume_state(const BuildVolume& build_volume)
+    {
+        print_volume_state = calc_print_volume_state(build_volume);
+        return print_volume_state;
+    }
 
 private:
     // Parent object, owning this instance.

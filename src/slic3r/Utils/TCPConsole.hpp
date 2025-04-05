@@ -31,6 +31,7 @@ public:
         m_connect_timeout = std::chrono::milliseconds(5000);
         m_write_timeout = std::chrono::milliseconds(10000);
         m_read_timeout = std::chrono::milliseconds(10000);
+        m_tcp_queue_delay = std::chrono::milliseconds(0);
     }
 
     void set_write_timeout(std::chrono::steady_clock::duration timeout) {
@@ -39,6 +40,10 @@ public:
 
     void set_read_timeout(std::chrono::steady_clock::duration timeout) {
         m_read_timeout = timeout;
+    }
+
+    void set_tcp_queue_delay(std::chrono::steady_clock::duration delay) { 
+        m_tcp_queue_delay = delay;
     }
 
     void set_line_delimiter(const std::string& newline) {
@@ -82,6 +87,7 @@ private:
     std::chrono::steady_clock::duration     m_connect_timeout;
     std::chrono::steady_clock::duration     m_write_timeout;
     std::chrono::steady_clock::duration     m_read_timeout;
+    std::chrono::steady_clock::duration     m_tcp_queue_delay;
 
     std::deque<SerialMessage>                 m_cmd_queue;
 
