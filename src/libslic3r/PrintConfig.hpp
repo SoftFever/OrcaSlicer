@@ -1070,6 +1070,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,               machine_max_jerk_y))
     ((ConfigOptionFloats,               machine_max_jerk_z))
     ((ConfigOptionFloats,               machine_max_jerk_e))
+    // M205 J... [mm]
+    ((ConfigOptionFloats,               machine_max_junction_deviation))
     // M205 T... [mm/sec]
     ((ConfigOptionFloats,               machine_min_travel_rate))
     // M205 S... [mm/sec]
