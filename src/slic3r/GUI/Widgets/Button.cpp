@@ -148,6 +148,80 @@ void Button::SetCenter(bool isCenter)
     this->isCenter = isCenter;
 }
 
+// Button Colors           bg-Disabled bg-Pressed bg-Hover   bg-Normal  bg-Enabled fg-Disabled fg-Normal fg-Hover  br-hover
+wxString btn_regular[9]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30", "#262E30", "#009688"};
+wxString btn_confirm[9]  = {"#DFDFDF", "#009688", "#26A69A", "#009688", "#009688", "#6B6A6A", "#FEFEFE", "#262E30", "#3EE0D8"};
+wxString btn_alert[9]    = {"#DFDFDF", "#DFDFDF", "#CD1F00", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#CD1F00", "#FFFFFD", "#F43200"};
+wxString btn_disabled[9] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#6B6A6A", "#262E30", "#DFDFDF"};
+
+void Button::SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type /* Choice/Window/Parameter/Compact */)
+{
+    // STYLES
+    //   Regular / Confirm / Alert / Disabled
+    // TYPES
+    //   Omited      FontSize:14   SemiRounded    Expanded / full size button. ex btn->SetStyle("Regular");
+    //   Compact     FontSize:10   FullyRounded   Use for less spaced areas
+    //   Window      FontSize:12   FullyRounded   Use for regular windows in windows
+    //   Choice      FontSize:14   SemiRounded    Use for dialog/window choice buttons
+    //   Parameter   FontSize:14   SemiRounded    Use for buttons that near parameter boxes
+    this->SetFont( type == "Compact" ? Label::Body_10 : 
+                   type == "Window"  ? Label::Body_12 : 
+                                       Label::Body_14
+    );
+    auto clr_arr = style == "Regular"  ? btn_regular :
+                   style == "Confirm"  ? btn_confirm :
+                   style == "Alert"    ? btn_alert :
+                   style == "Disabled" ? btn_disabled :
+                                         btn_regular;
+    StateColor clr_bg = StateColor(std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
+                                   std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
+                                   std::pair(wxColour(clr_arr[2]), (int)StateColor::Hovered),
+                                   std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal),
+                                   std::pair(wxColour(clr_arr[4]), (int)StateColor::Enabled)
+    );
+    this->SetBackgroundColor(clr_bg);
+    StateColor clr_br = StateColor(std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
+                                   std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
+                                   std::pair(wxColour(clr_arr[8]), (int)StateColor::Hovered), // brighter color on border to highlight focus
+                                   std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal)
+    );
+    this->SetBorderColor(clr_br);
+    this->SetTextColor( StateColor(std::pair(wxColour(clr_arr[5]), (int)StateColor::Disabled),
+                                   std::pair(wxColour(clr_arr[7]), (int)StateColor::Hovered),
+                                   std::pair(wxColour(clr_arr[6]), (int)StateColor::Normal)
+    ));
+    this->SetType(type);
+}
+
+void Button::SetType(const wxString type /* Choice/Window/Parameter/Compact */)
+{
+    // Function also rescales button
+    // Omited      FontSize:14   SemiRounded    Expanded / full size button. ex btn->SetStyle("Regular");
+    // Compact     FontSize:10   FullyRounded   Use for less spaced areas
+    // Window      FontSize:12   FullyRounded   Use for regular windows in windows
+    // Choice      FontSize:14   SemiRounded    Use for dialog/window choice buttons
+    // Parameter   FontSize:14   SemiRounded    Use for buttons that near parameter boxes
+    if        (type == "Compact") {
+        this->SetPaddingSize(FromDIP(wxSize(8,3)));
+        this->SetCornerRadius(this->FromDIP(8));
+    } else if (type == "Window") {
+        this->SetSize(FromDIP(wxSize(58,24)));
+        this->SetMinSize(FromDIP(wxSize(58,24)));
+        this->SetCornerRadius(this->FromDIP(12));
+    } else if (type == "Choice") {
+        this->SetMinSize(FromDIP(wxSize(100,32)));
+        this->SetPaddingSize(FromDIP(wxSize(12,8)));
+        this->SetCornerRadius(this->FromDIP(4));
+    } else if (type == "Parameter") {
+        this->SetMinSize(FromDIP(wxSize(120,26)));
+        this->SetSize(FromDIP(wxSize(120,26)));
+        this->SetCornerRadius(this->FromDIP(4));
+    } else {
+        this->SetCornerRadius(this->FromDIP(4));
+    }
+    this->SetBorderWidth(this->FromDIP(1));
+}
+
 void Button::Rescale()
 {
     if (this->active_icon.bmp().IsOk())
@@ -332,3 +406,5 @@ WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 #endif
 
 bool Button::AcceptsFocus() const { return canFocus; }
+
+int ButtonProps::ChoiceGap() { return 10; }
