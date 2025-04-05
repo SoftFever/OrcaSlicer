@@ -108,7 +108,7 @@ private:
     const Vec3d m_world_normal = {0, 0, 1};
     std::map<GLVolume*, std::shared_ptr<PickRaycaster>>   m_mesh_raycaster_map;
     GLVolume* m_last_hit_volume;
-    CacheEntry* render_hover_point = nullptr;
+    std::optional<CacheEntry> render_hover_point;
 
     bool m_link_text_hover = false;
     
