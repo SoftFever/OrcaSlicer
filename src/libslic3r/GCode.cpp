@@ -5231,7 +5231,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         _mm3_per_mm *= m_config.scarf_joint_flow_ratio;
     // Effective extrusion length per distance unit = (filament_flow_ratio/cross_section) * mm3_per_mm / print flow ratio
     // m_writer.extruder()->e_per_mm3() below is (filament flow ratio / cross-sectional area)
-    double e_per_mm = m_writer.extruder()->e_per_mm3() * min_mm3_per_mm
+    double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm
     e_per_mm /= m_config.filament_flow_ratio;
 
 
