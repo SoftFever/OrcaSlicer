@@ -2157,7 +2157,7 @@ msgstr ""
 
 msgid ""
 "This action will break a cut correspondence.\n"
-"After that model consistency can't be guaranteed .\n"
+"After that model consistency can't be guaranteed.\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
 "cut information first."
@@ -3009,8 +3009,8 @@ msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
-"represent accurately in following cases : when the lid is open or the "
-"desiccant pack is changed. it take hours to absorb the moisture, low "
+"represent accurately in following cases: when the lid is open or the "
+"desiccant pack is changed. It take hours to absorb the moisture, and low "
 "temperatures also slow down the process."
 msgstr ""
 
@@ -5752,7 +5752,7 @@ msgstr " Klikněte zde pro instalaci."
 msgid "WARNING:"
 msgstr "VAROVÁNÍ:"
 
-msgid "Your model needs support ! Please make support material enable."
+msgid "Your model needs support! Please enable support material."
 msgstr "Váš model potřebuje podpěry ! Povolte prosím podpůrný materiál."
 
 msgid "G-code path overlap"
@@ -6304,7 +6304,7 @@ msgstr "připravte soubor 3mf..."
 msgid "Download failed, unknown file format."
 msgstr ""
 
-msgid "downloading project ..."
+msgid "downloading project..."
 msgstr "stahuji projekt ..."
 
 msgid "Download failed, File size exception."
@@ -8851,7 +8851,7 @@ msgid "Release Note"
 msgstr "Poznámka k vydání"
 
 #, c-format, boost-format
-msgid "version %s update information :"
+msgid "version %s update information:"
 msgstr "informace o aktualizaci verze %s:"
 
 msgid "Network plug-in update"
@@ -16791,7 +16791,7 @@ msgstr ""
 
 msgid ""
 "Warning: The brim type is not set to \"painted\",the brim ears will not take "
-"effect !"
+"effect!"
 msgstr ""
 
 msgid "Set the brim type to \"painted\""

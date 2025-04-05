@@ -9291,7 +9291,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
 
-        msg = _L("downloading project ...");
+        msg = _L("downloading project...");
 
         //target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
 

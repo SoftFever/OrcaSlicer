@@ -2125,7 +2125,7 @@ msgstr "為保證切割關係，您可以將所有關聯物件的連接件一起
 
 msgid ""
 "This action will break a cut correspondence.\n"
-"After that model consistency can't be guaranteed .\n"
+"After that model consistency can't be guaranteed.\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
 "cut information first."
@@ -2947,8 +2947,8 @@ msgstr "目前 AMS 濕度"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
-"represent accurately in following cases : when the lid is open or the "
-"desiccant pack is changed. it take hours to absorb the moisture, low "
+"represent accurately in following cases: when the lid is open or the "
+"desiccant pack is changed. It take hours to absorb the moisture, and low "
 "temperatures also slow down the process."
 msgstr ""
 "當乾燥劑過濕時，請更換乾燥劑。在以下情況下，指示器可能無法準確顯示：當蓋子打"
@@ -5630,7 +5630,7 @@ msgstr "點擊此處安裝。"
 msgid "WARNING:"
 msgstr "警告："
 
-msgid "Your model needs support ! Please make support material enable."
+msgid "Your model needs support! Please enable support material."
 msgstr "您的模型需要支撐才能列印。請開啟支撐選項。"
 
 #, fuzzy
@@ -6152,7 +6152,7 @@ msgstr "正在準備 3mf 檔案..."
 msgid "Download failed, unknown file format."
 msgstr "下載失敗，未知的檔案格式。"
 
-msgid "downloading project ..."
+msgid "downloading project..."
 msgstr "專案項目下載中..."
 
 msgid "Download failed, File size exception."
@@ -8666,7 +8666,7 @@ msgid "Release Note"
 msgstr "更新說明"
 
 #, c-format, boost-format
-msgid "version %s update information :"
+msgid "version %s update information:"
 msgstr "版本 %s 更新資訊："
 
 msgid "Network plug-in update"
@@ -16703,7 +16703,7 @@ msgstr "調整截圖視角"
 
 msgid ""
 "Warning: The brim type is not set to \"painted\",the brim ears will not take "
-"effect !"
+"effect!"
 msgstr "警告：邊緣類型未設置「上色」，因此邊緣支撐 (Brim) 不會生效！"
 
 msgid "Set the brim type to \"painted\""

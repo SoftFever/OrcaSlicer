@@ -2123,7 +2123,7 @@ msgstr ""
 
 msgid ""
 "This action will break a cut correspondence.\n"
-"After that model consistency can't be guaranteed .\n"
+"After that model consistency can't be guaranteed.\n"
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
 "cut information first."
@@ -2945,8 +2945,8 @@ msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
-"represent accurately in following cases : when the lid is open or the "
-"desiccant pack is changed. it take hours to absorb the moisture, low "
+"represent accurately in following cases: when the lid is open or the "
+"desiccant pack is changed. It take hours to absorb the moisture, and low "
 "temperatures also slow down the process."
 msgstr ""
 
@@ -5582,7 +5582,7 @@ msgstr "こちらでインストールします。"
 msgid "WARNING:"
 msgstr "警告"
 
-msgid "Your model needs support ! Please make support material enable."
+msgid "Your model needs support! Please enable support material."
 msgstr ""
 "このモデルを造形するにはサポートが必要です、サポートを有効にしてください"
 
@@ -6105,7 +6105,7 @@ msgstr "3mfファイルを準備"
 msgid "Download failed, unknown file format."
 msgstr ""
 
-msgid "downloading project ..."
+msgid "downloading project..."
 msgstr "プロジェクトをダウンロード中"
 
 msgid "Download failed, File size exception."
@@ -8559,7 +8559,7 @@ msgid "Release Note"
 msgstr "リリースノート"
 
 #, c-format, boost-format
-msgid "version %s update information :"
+msgid "version %s update information:"
 msgstr "バージョン %s 更新内容"
 
 msgid "Network plug-in update"
@@ -16063,7 +16063,7 @@ msgstr "断面を調整"
 
 msgid ""
 "Warning: The brim type is not set to \"painted\",the brim ears will not take "
-"effect !"
+"effect!"
 msgstr ""
 "警告: ブリムタイプが「ペイント」に設定されていないため、効果を持ちません。"
 
