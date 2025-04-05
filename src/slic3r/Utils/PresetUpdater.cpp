@@ -1049,10 +1049,11 @@ bool PresetUpdater::priv::install_bundles_rsrc(const std::vector<std::string>& b
 	BOOST_LOG_TRIVIAL(info) << format("Installing %1% bundles from resources ...", bundles.size());
 
 	for (const auto &bundle : bundles) {
-		auto path_in_rsrc = (this->rsrc_path / bundle).replace_extension(".json");
+		auto path_in_rsrc = (this->rsrc_path / bundle).replace_extension(".bundle.json");
 		auto path_in_vendors = (this->vendor_path / bundle).replace_extension(".json");
 		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "", "");
 
+#if PRESET_BUNDLE_COMPATIBLE
         //BBS: add directory support
         auto print_in_rsrc = this->rsrc_path / bundle;
 		auto print_in_vendors = this->vendor_path / bundle;
@@ -1065,6 +1066,7 @@ bool PresetUpdater::priv::install_bundles_rsrc(const std::vector<std::string>& b
         return boost::iends_with(name, ".stl") || boost::iends_with(name, ".png") || boost::iends_with(name, ".svg") ||
                boost::iends_with(name, ".jpeg") || boost::iends_with(name, ".jpg") || boost::iends_with(name, ".3mf");
         }, false, true);
+#endif
 	}
 
 	return perform_updates(std::move(updates), snapshot);
@@ -1085,11 +1087,10 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
     for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_path)) {
         const auto &path = dir_entry.path();
         std::string file_path = path.string();
-        if (is_json_file(file_path)) {
-            const auto path_in_vendor = vendor_path / path.filename();
-            std::string vendor_name = path.filename().string();
-            // Remove the .json suffix.
-            vendor_name.erase(vendor_name.size() - 5);
+        if (is_preset_bundle_file(file_path)) {
+            // Remove the .bundle.json suffix.
+            std::string vendor_name = path.filename().stem().stem().string();
+            const auto  path_in_vendor = vendor_path / (vendor_name + ".json");
             if (bundles.find(vendor_name) != bundles.end())continue;
 
             const auto is_vendor_enabled = (vendor_name == PresetBundle::ORCA_DEFAULT_BUNDLE) // always update configs from resource to vendor for ORCA_DEFAULT_BUNDLE
