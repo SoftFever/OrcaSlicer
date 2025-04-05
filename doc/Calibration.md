@@ -1,14 +1,21 @@
-- [Flow rate](#Flow-rate)
-- [Pressure Advance](#Pressure-Advance)
-  1. [Line method](#Line-method)
-  2. [Pattern method](#Pattern-method)
-  3. [Tower method](#Tower-method)
-- [Temp tower](#Temp-tower)
-- [Retraction test](#Retraction-test)
-- [Orca Tolerance Test](#Orca-Tolerance-Test)
-- [Advanced calibration](#Advanced-Calibration)
-  1. [Max Volumetric speed](#Max-Volumetric-speed)
-  2. [VFA]  
+- [Flow rate](#flow-rate)
+- [Pressure Advance](#pressure-advance)
+    - [Line method](#line-method)
+    - [Pattern method](#pattern-method)
+    - [Tower method](#tower-method)
+- [Temp tower](#temp-tower)
+- [Retraction test](#retraction-test)
+- [Orca Tolerance Test](#orca-tolerance-test)
+- [Advanced Calibration](#advanced-calibration)
+  - [Max Volumetric speed](#max-volumetric-speed)
+  - [Input Shaping](#input-shaping)
+    - [Klipper](#klipper)
+    - [Resonance Compensation](#resonance-compensation)
+    - [Marlin](#marlin)
+      - [ZV Input Shaping](#zv-input-shaping)
+      - [Fixed-Time Motion](#fixed-time-motion)
+    - [Junction Deviation](#junction-deviation)
+  - [VFA](#vfa)
 
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
@@ -152,6 +159,124 @@ You can also return to OrcaSlicer in the "Preview" tab, make sure the color sche
 > [!NOTE]
 > You may also choose to conservatively reduce the flow by 5-10% to ensure print quality.
 
+## Input Shaping
+
+During high-speed movements, vibrations can cause a phenomenon called "ringing," where periodic ripples appear on the print surface. Input Shaping provides an effective solution by counteracting these vibrations, improving print quality and reducing wear on components without needing to significantly lower print speeds.
+
+### Klipper
+
+### Resonance Compensation
+
+The Klipper Resonance Compensation is a set of Input Shaping modes that can be used to reduce ringing and improve print quality.
+Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
+
+1. Pre-requisites:
+   1. In OrcaSlicer, set:
+      1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
+      2. Speed high enough to trigger ringing (e.g., 100 mm/s).
+      3. Jerk [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) to 5 or a high value (e.g., 20).
+   2. In printer settigs:
+      1. Set the Shaper Type to ``MZV`` or ``EI``.
+         ```
+         SET_INPUT_SHAPER SHAPER_TYPE=MZV
+         ```  
+      2. Disable [Minimun Cruise Ratio](https://www.klipper3d.org/Kinematics.html#minimum-cruise-ratio) with:
+            ```
+            SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
+            ```
+   3. Use a high gloss filament to make the ringing more visible.
+2. Print the Input Shaping Frequency test with a range of frequencies.
+   1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
+   
+   **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
+   1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
+   **Note**: Not all Resonance Compensation modes support damping
+1. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
+2. Save the settings
+   1. You need to go to the printer settings and set the X and Y frequency and damp to the value you found in the previous step.
+
+### Marlin
+
+#### ZV Input Shaping
+
+ZV Input Shaping introduces an anti-vibration signal into the stepper motion for the X and Y axes. It works by splitting the step count into two halves: the first at half the frequency and the second as an "echo," delayed by half the ringing interval. This simple approach effectively reduces vibrations, improving print quality and allowing for higher speeds.
+
+1. Pre-requisites:
+   1. In OrcaSlicer, set:
+      1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
+      2. Speed high enough to trigger ringing (e.g., 100 mm/s).
+      3. Jerk
+         1. If using [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
+         2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) (new Marlin default mode) this test will use 0.25 (high enough to most printers).
+   2. Use a high gloss filament to make the ringing more visible.
+2. Print the Input Shaping Frequency test with a range of frequencies.
+   1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
+   
+   **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
+   1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
+4. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
+   1. Reboot your printer.
+   2. Use the following G-code to restore your printer settings:
+   ```gcode
+   M501
+   ```
+5. Save the settings
+   1. You need to go to the printer settings and set the X and Y frequency and damp to the value you found in the previous step.
+   2. Use the following G-code to set the frequency:
+   ```gcode
+   M593 X F#Xfrequency D#XDamping
+   M593 Y F#Yfrequency D#YDamping
+   M500
+   ```
+   Example
+   ```gcode
+   M593 X F37.25 D0.16
+   M593 Y F37.5 D0.06
+   M500
+   ```
+
+#### Fixed-Time Motion
+
+TODO This calibration test is currently under development.
+
+### Junction Deviation
+
+Junction Deviation is the default method for controlling cornering speed in MarlinFW printers.
+Higher values result in more aggressive cornering speeds, while lower values produce smoother, more controlled cornering.
+The default value in Marlin is typically set to 0.08mm, which may be too high for some printers, potentially causing ringing. Consider lowering this value to reduce ringing, but avoid setting it too low, as this could lead to excessively slow cornering speeds.
+
+1. Pre-requisites:
+   1. Check if your printer has Junction Deviation enabled. You can do this by sending the command `M503` to your printer and looking for the line `Junction deviation: 0.25`.
+   2. In OrcaSlicer, set:
+      1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
+      2. Speed high enough to trigger ringing (e.g., 100 mm/s).
+   3. Use a high gloss filament to make the ringing more visible.
+2. You need to print the Junction Deviation test.
+   1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
+3. Save the settings
+   1. Use the following G-code to set the frequency:
+   ```gcode
+   M205 J#JunctionDeviationValue
+   M500
+   ```
+   Example
+   ```gcode
+   M205 J0.013
+   M500
+   ```
+   2. Set it in your Marlin Compilation.
+
+## VFA
+
+Vertical Fine Artifacts (VFA) are small artifacts that can occur on the surface of a 3D print, particularly in areas where there are sharp corners or changes in direction. These artifacts can be caused by a variety of factors, including mechanical vibrations, resonance, and other factors that can affect the quality of the print.
+Because of the nature of these artifacts the methods to reduce them can be mechanical such as changing motors, belts and pulleys or with advanced calibrations such as Jerk/[Juction Deviation](#junction-deviation) corrections or [Input Shaping](#input-shaping).
+
+
 ***
 *Credits:*  
 - *The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer)*  
@@ -159,4 +284,5 @@ You can also return to OrcaSlicer in the "Preview" tab, make sure the color sche
 - *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html)*
 - *The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076)
 - *The max flowrate test was inspired by Stefan(CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure).
+- *ZV Input Shaping is inspired by [Marlin Input Shaping](https://marlinfw.org/docs/features/input_shaping.html) and [Ringing Tower 3D STL](https://marlinfw.org/assets/stl/ringing_tower.stl)
 - *ChatGPT* ;)
