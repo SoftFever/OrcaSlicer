@@ -44,6 +44,10 @@
         {
             "name": "Sovol SV08",
             "sub_path": "machine/Sovol SV08.json"
+        },
+        {
+            "name": "Sovol ZERO",
+            "sub_path": "machine/Sovol ZERO.json"
         }
     ],
     "process_list": [
@@ -158,6 +162,10 @@
         {
             "name": "0.20mm High-Speed @Sovol SV06",
             "sub_path": "process/0.20mm High-Speed @Sovol SV06.json"
+        },
+        {
+            "name": "0.20mm Standard @Sovol ZERO 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Sovol ZERO 0.4 nozzle.json"
         }
     ],
     "filament_list": [
@@ -216,6 +224,26 @@
         {
             "name": "Sovol SV08 TPU",
             "sub_path": "filament/Sovol SV08 TPU.json"
+        },
+        {
+            "name": "Sovol ZERO PLA",
+            "sub_path": "filament/Sovol ZERO PLA.json"
+        },
+        {
+            "name": "Sovol ZERO ABS",
+            "sub_path": "filament/Sovol ZERO ABS.json"
+        },
+        {
+            "name": "Sovol ZERO PETG",
+            "sub_path": "filament/Sovol ZERO PETG.json"
+        },
+        {
+            "name": "Sovol ZERO TPU",
+            "sub_path": "filament/Sovol ZERO TPU.json"
+        },
+        {
+            "name": "Sovol ZERO PC",
+            "sub_path": "filament/Sovol ZERO PC.json"
         }
     ],
     "machine_list": [
@@ -290,6 +318,10 @@
         {
             "name": "Sovol SV08 0.8 nozzle",
             "sub_path": "machine/Sovol SV08 0.8 nozzle.json"
+        },
+		{
+            "name": "Sovol ZERO 0.4 nozzle",
+            "sub_path": "machine/Sovol ZERO 0.4 nozzle.json"
         }
     ]
 }
