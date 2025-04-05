@@ -475,6 +475,8 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     if (grid_counts.minCoeff() > 1) {
         step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
     }
+
+    if (0) {
     for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(step)) {
 		Polyline line;
 		line.append(Point(x, pp_bbox.min(1)));
@@ -499,6 +501,41 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 			axes_lines.push_back(line);
 		count ++;
 	}
+    }
+
+    // ORCA draw grid lines relative to origin
+    for (coord_t x = m_origin.x(); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(x, pp_bbox.min(1)),
+            Point(x, pp_bbox.max(1))
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t x = m_origin.x(); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(x, pp_bbox.min(1)),
+            Point(x, pp_bbox.max(1))
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = m_origin.y(); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(pp_bbox.min(0), y),
+            Point(pp_bbox.max(0), y)
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = m_origin.y(); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(pp_bbox.min(0), y),
+            Point(pp_bbox.max(0), y)
+        ));
+        count ++;
+    }
+    count = 0;
 
 	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
 	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
