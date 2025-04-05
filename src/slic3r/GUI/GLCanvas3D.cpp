@@ -1550,12 +1550,15 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool current_plate_only) const
     BoundingBoxf3 expand_part_plate_list_box;
     bool          is_limit = m_canvas_type != ECanvasType::CanvasAssembleView;
     if (is_limit) {
-        auto        plate_list_box = current_plate_only ? wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box() :
-                                                          wxGetApp().plater()->get_partplate_list().get_bounding_box();
-        auto        horizontal_radius = 0.5 * sqrt(std::pow(plate_list_box.min[0] - plate_list_box.max[0], 2) + std::pow(plate_list_box.min[1] - plate_list_box.max[1], 2));
-        const float scale             = 2;
-        expand_part_plate_list_box.merge(plate_list_box.min - scale * Vec3d(horizontal_radius, horizontal_radius, 0));
-        expand_part_plate_list_box.merge(plate_list_box.max + scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+        if (current_plate_only) {
+            expand_part_plate_list_box = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box();
+        } else {
+            auto        plate_list_box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
+            auto        horizontal_radius = 0.5 * sqrt(std::pow(plate_list_box.min[0] - plate_list_box.max[0], 2) + std::pow(plate_list_box.min[1] - plate_list_box.max[1], 2));
+            const float scale             = 2;
+            expand_part_plate_list_box.merge(plate_list_box.min - scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+            expand_part_plate_list_box.merge(plate_list_box.max + scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+        }
     }
     for (const GLVolume *volume : m_volumes.volumes) {
         if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
@@ -4358,8 +4361,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             else {
                                 if (!m_selection.is_empty())
                                     rotate_target = m_selection.get_bounding_box().center();
-                                else 
-                                    rotate_target = volumes_bounding_box(true).center();
+                                else {
+                                    // Rotate around the center of objects on current plate
+                                    auto bbox = volumes_bounding_box(true);
+                                    if (!bbox.defined) {
+                                        // Rotate around current plate center if current plate is empty
+                                        bbox = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box();
+                                    }
+                                    rotate_target = bbox.center();
+                                }
                             }
 
                             if (!rotate_target.isZero())
