@@ -7280,6 +7280,12 @@ void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
 
 void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
 {
+    // Ignore event raised by child controls
+    if (!(main_frame->m_tabpanel && e.GetId() == main_frame->m_tabpanel->GetId())) {
+        e.Skip();
+        return;
+    }
+
     const int new_sel = e.GetSelection();
     sidebar_layout.show = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
     update_sidebar();
