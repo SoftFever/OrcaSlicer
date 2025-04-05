@@ -2113,7 +2113,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_toolchange_delay", coFloats);
     def->label = L("Delay after unloading");
     def->tooltip = L("Time to wait after the filament is unloaded. "
-                   "May help to get reliable toolchanges with flexible materials "
+                   "May help to get reliable tool changes with flexible materials "
                    "that may need more time to shrink to original dimensions.");
     def->sidetext = L("s");
     def->min = 0;
@@ -2181,14 +2181,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_multitool_ramming", coBools);
     def->label = L("Enable ramming for multi-tool setups");
     def->tooltip = L("Perform ramming when using multi-tool printer (i.e. when the 'Single Extruder Multimaterial' in Printer Settings is unchecked). "
-                     "When checked, a small amount of filament is rapidly extruded on the wipe tower just before the toolchange. "
+                     "When checked, a small amount of filament is rapidly extruded on the wipe tower just before the tool change. "
                      "This option is only used when the wipe tower is enabled.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("filament_multitool_ramming_volume", coFloats);
     def->label = L("Multi-tool ramming volume");
-    def->tooltip = L("The volume to be rammed before the toolchange.");
+    def->tooltip = L("The volume to be rammed before the tool change.");
     def->sidetext = L("mm³");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2196,7 +2196,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_multitool_ramming_flow", coFloats);
     def->label = L("Multi-tool ramming flow");
-    def->tooltip = L("Flow used for ramming the filament before the toolchange.");
+    def->tooltip = L("Flow used for ramming the filament before the tool change.");
     def->sidetext = L("mm³/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -4573,8 +4573,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_tower_no_sparse_layers", coBool);
     def->label = L("No sparse layers (beta)");
-    def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no toolchanges. "
-                    "On layers with a toolchange, extruder will travel downward to print the wipe tower. "
+    def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no tool changes. "
+                    "On layers with a tool change, extruder will travel downward to print the wipe tower. "
                     "User is responsible for ensuring there is no collision with the print.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -7793,8 +7793,8 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
     def->tooltip = L("Total filament volume extruded per extruder during the entire print.");
 
     def = this->add("total_toolchanges", coInt);
-    def->label = L("Total toolchanges");
-    def->tooltip = L("Number of toolchanges during the print.");
+    def->label = L("Total tool changes");
+    def->tooltip = L("Number of tool changes during the print.");
 
     def = this->add("extruded_volume_total", coFloat);
     def->label = L("Total volume");

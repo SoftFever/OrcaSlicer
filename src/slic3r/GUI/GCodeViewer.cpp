@@ -5512,7 +5512,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         // Types of custom gcode
         std::string cgcode_pause_str = _u8L("Pause");
         std::string cgcode_template_str= _u8L("Template");
-        std::string cgcode_toolchange_str = _u8L("ToolChange");
+        std::string cgcode_toolchange_str = _u8L("Tool Change");
         std::string cgcode_custom_str = _u8L("Custom");
         std::string cgcode_unknown_str = _u8L("Unknown");
 

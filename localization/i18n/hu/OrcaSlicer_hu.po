@@ -4238,7 +4238,7 @@ msgstr "Nyomtató"
 msgid "Custom g-code"
 msgstr ""
 
-msgid "ToolChange"
+msgid "Tool Change"
 msgstr ""
 
 msgid "Time Estimation"
@@ -8034,14 +8034,14 @@ msgstr "Filament befejező G-kód"
 msgid "Wipe tower parameters"
 msgstr "Törlőtorony paraméterek"
 
-msgid "Toolchange parameters with single extruder MM printers"
+msgid "Tool change parameters with single extruder MM printers"
 msgstr ""
 "Szerszámváltási paraméterek egy extruderes Több Anyagos (MM) nyomtatónál"
 
 msgid "Ramming settings"
 msgstr "Tömörítési beállítások"
 
-msgid "Toolchange parameters with multi extruder MM printers"
+msgid "Tool change parameters with multi extruder MM printers"
 msgstr ""
 
 msgid "Dependencies"
@@ -11158,8 +11158,8 @@ msgid "Delay after unloading"
 msgstr "Várakozás a kiürítés után"
 
 msgid ""
-"Time to wait after the filament is unloaded. May help to get reliable "
-"toolchanges with flexible materials that may need more time to shrink to "
+"Time to wait after the filament is unloaded. May help to get reliable tool "
+"changes with flexible materials that may need more time to shrink to "
 "original dimensions."
 msgstr ""
 "A várakozási idő az filament kiürítése után. Segíthet megbízható "
@@ -11231,19 +11231,19 @@ msgid ""
 "Perform ramming when using multi-tool printer (i.e. when the 'Single "
 "Extruder Multimaterial' in Printer Settings is unchecked). When checked, a "
 "small amount of filament is rapidly extruded on the wipe tower just before "
-"the toolchange. This option is only used when the wipe tower is enabled."
+"the tool change. This option is only used when the wipe tower is enabled."
 msgstr ""
 
 msgid "Multi-tool ramming volume"
 msgstr ""
 
-msgid "The volume to be rammed before the toolchange."
+msgid "The volume to be rammed before the tool change."
 msgstr ""
 
 msgid "Multi-tool ramming flow"
 msgstr ""
 
-msgid "Flow used for ramming the filament before the toolchange."
+msgid "Flow used for ramming the filament before the tool change."
 msgstr ""
 
 msgid "Density"
@@ -13297,8 +13297,8 @@ msgid "No sparse layers (beta)"
 msgstr ""
 
 msgid ""
-"If enabled, the wipe tower will not be printed on layers with no "
-"toolchanges. On layers with a toolchange, extruder will travel downward to "
+"If enabled, the wipe tower will not be printed on layers with no tool "
+"changes. On layers with a tool change, extruder will travel downward to "
 "print the wipe tower. User is responsible for ensuring there is no collision "
 "with the print."
 msgstr ""
@@ -14636,10 +14636,10 @@ msgstr ""
 msgid "Total filament volume extruded per extruder during the entire print."
 msgstr ""
 
-msgid "Total toolchanges"
+msgid "Total tool changes"
 msgstr ""
 
-msgid "Number of toolchanges during the print."
+msgid "Number of tool changes during the print."
 msgstr ""
 
 msgid "Total volume"
