@@ -6,6 +6,7 @@
 		#define NOMINMAX
 	#endif
 	#include <Windows.h>
+	#include <CommCtrl.h>
 #endif
 
 #include <float.h>
