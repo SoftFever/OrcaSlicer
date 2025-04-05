@@ -37,32 +37,94 @@ LayerRegion* Layer::add_region(const PrintRegion *print_region)
 // merge all regions' slices to get islands
 void Layer::make_slices()
 {
-    ExPolygons slices;
-    if (m_regions.size() == 1) {
-        // optimization: if we only have one region, take its slices
-        slices = to_expolygons(m_regions.front()->slices.surfaces);
-    } else {
-        Polygons slices_p;
-        for (LayerRegion *layerm : m_regions)
-            polygons_append(slices_p, to_polygons(layerm->slices.surfaces));
-        slices = union_safety_offset_ex(slices_p);
+    {
+        ExPolygons slices;
+        if (m_regions.size() == 1) {
+            // optimization: if we only have one region, take its slices
+            slices = to_expolygons(m_regions.front()->slices.surfaces);
+        } else {
+            Polygons slices_p;
+            for (LayerRegion *layerm : m_regions)
+                polygons_append(slices_p, to_polygons(layerm->slices.surfaces));
+            slices = union_safety_offset_ex(slices_p);
+        }
+        
+        this->lslices.clear();
+        this->lslices.reserve(slices.size());
+        
+        // prepare ordering points
+        Points ordering_points;
+        ordering_points.reserve(slices.size());
+        for (const ExPolygon &ex : slices)
+            ordering_points.push_back(ex.contour.first_point());
+        
+        // sort slices
+        std::vector<Points::size_type> order = chain_points(ordering_points);
+        
+        // populate slices vector
+        for (size_t i : order)
+            this->lslices.emplace_back(std::move(slices[i]));
     }
     
-    this->lslices.clear();
-    this->lslices.reserve(slices.size());
+    // sub slices
+    {
+        std::vector<std::pair<float, ExPolygons>> sub_slices;
+        ExPolygons sub_slices_merged;
+        if (m_regions.size() == 1) {
+            // optimization: if we only have one region, take its slices
+            for (auto& [z, s] : m_regions.front()->sub_slices) {
+                sub_slices.emplace_back(z, s);
+                sub_slices_merged = union_ex(sub_slices_merged, s);
+            }
+        } else {
+            std::map<float, Polygons> slices_p;
+            for (LayerRegion* layerm : m_regions)
+                for (auto& [z, s] : layerm->sub_slices) {
+                    auto it = slices_p.find(z);
+                    if (it != slices_p.end()) {
+                        polygons_append(it->second, to_polygons(s));
+                    } else {
+                        slices_p.emplace(z, to_polygons(s));
+                    }
+                }
+            for (auto& [z, p] : slices_p) {
+                ExPolygons tmp = union_safety_offset_ex(p);
+                sub_slices.emplace_back(z, tmp);
+                sub_slices_merged = union_ex(sub_slices_merged, tmp);
+                
+            }
+        }
+        this->lsub_slices.clear();
+        for (auto& [z, s] : sub_slices) {
+            // prepare ordering points
+            Points ordering_points;
+            ordering_points.reserve(s.size());
+            for (const ExPolygon& ex : s)
+            ordering_points.push_back(ex.contour.first_point());
+            
+            // sort slices
+            std::vector<Points::size_type> order = chain_points(ordering_points);
+            
+            // populate slices vector
+            ExPolygons final_slices;
+            for (size_t i : order)
+            final_slices.emplace_back(std::move(s[i]));
+            this->lsub_slices.emplace_back(z, final_slices);
+        }
     
-    // prepare ordering points
-    Points ordering_points;
-    ordering_points.reserve(slices.size());
-    for (const ExPolygon &ex : slices)
-        ordering_points.push_back(ex.contour.first_point());
-    
-    // sort slices
-    std::vector<Points::size_type> order = chain_points(ordering_points);
-    
-    // populate slices vector
-    for (size_t i : order)
-        this->lslices.emplace_back(std::move(slices[i]));
+        this->lsub_slices_merged.clear();
+        Points ordering_points;
+        ordering_points.reserve(sub_slices_merged.size());
+        for (const ExPolygon &ex : sub_slices_merged)
+            ordering_points.push_back(ex.contour.first_point());
+        
+        // sort slices
+        std::vector<Points::size_type> order = chain_points(ordering_points);
+        
+        // populate slices vector
+        for (size_t i : order)
+            this->lsub_slices_merged.emplace_back(std::move(sub_slices_merged[i]));
+    }
 }
 
 static inline bool layer_needs_raw_backup(const Layer *layer)
@@ -206,31 +268,46 @@ void Layer::make_perimeters()
 	        
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
-                (*layerm)->make_perimeters((*layerm)->slices, {*layerm}, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
+                (*layerm)->make_perimeters((*layerm)->slices, (*layerm)->sub_slices, {*layerm}, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
 	            SurfaceCollection new_slices;
-	            // Use the region with highest infill rate, as the make_perimeters() function below decides on the gap fill based on the infill existence.
-	            LayerRegion *layerm_config = layerms.front();
-	            {
-	                // group slices (surfaces) according to number of extra perimeters
-	                std::map<unsigned short, Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
-	                for (LayerRegion *layerm : layerms) {
-	                    for (const Surface &surface : layerm->slices.surfaces)
-	                        slices[surface.extra_perimeters].emplace_back(surface);
-	                    if (layerm->region().config().sparse_infill_density > layerm_config->region().config().sparse_infill_density)
-	                    	layerm_config = layerm;
-	                }
-	                // merge the surfaces assigned to each group
-	                for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
-	                    new_slices.append(offset_ex(surfaces_with_extra_perimeters.second, ClipperSafetyOffset), surfaces_with_extra_perimeters.second.front());
-	            }
-	            
+                std::map<float, ExPolygons> new_sub_slices_map;
+                // Use the region with highest infill rate, as the make_perimeters() function below decides on the gap fill based on the
+                // infill existence.
+                LayerRegion* layerm_config = layerms.front();
+                {
+                    // group slices (surfaces) according to number of extra perimeters
+                    std::map<unsigned short, Surfaces> slices; // extra_perimeters => [ surface, surface... ]
+                    for (LayerRegion* layerm : layerms) {
+                        for (const Surface& surface : layerm->slices.surfaces)
+                            slices[surface.extra_perimeters].emplace_back(surface);
+                        for (const auto& [z, slice] : layerm->sub_slices) {
+                            auto it = new_sub_slices_map.find(z);
+                            if (it == new_sub_slices_map.end()) {
+                                new_sub_slices_map.emplace(z, slice);
+                            } else {
+                                it->second.insert(it->second.begin(), slice.begin(), slice.end());
+                            }
+                        }
+                        if (layerm->region().config().sparse_infill_density > layerm_config->region().config().sparse_infill_density)
+                            layerm_config = layerm;
+                    }
+                    // merge the surfaces assigned to each group
+                    for (std::pair<const unsigned short, Surfaces>& surfaces_with_extra_perimeters : slices)
+                        new_slices.append(offset_ex(surfaces_with_extra_perimeters.second, ClipperSafetyOffset),
+                                          surfaces_with_extra_perimeters.second.front());
+                }
+                SubSliceCollection new_sub_slices;
+                for (auto& [z, slice] : new_sub_slices_map) {
+                    new_sub_slices.emplace_back(z, std::move(slice));
+                }	          
+
 	            // make perimeters
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-	            layerm_config->make_perimeters(new_slices, layerms, &fill_surfaces, &fill_no_overlap);
+	            layerm_config->make_perimeters(new_slices, new_sub_slices, layerms, &fill_surfaces, &fill_no_overlap);
 
 	            // assign fill_surfaces to each layer
 	            if (!fill_surfaces.surfaces.empty()) { 
