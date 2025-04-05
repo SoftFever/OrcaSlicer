@@ -4759,6 +4759,9 @@ void ObjectList::select_all()
 
 void ObjectList::select_item_all_children()
 {
+    if (wxGetApp().plater()  && !wxGetApp().plater()->canvas3D()->get_gizmos_manager().is_allow_select_all()) {
+        return;
+    }
     wxDataViewItemArray sels;
 
     // There is no selection before OR some object is selected   =>  select all objects
