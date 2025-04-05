@@ -212,8 +212,9 @@ msgstr "Gizmo-Redimensionner"
 msgid "Error: Please close all toolbar menus first"
 msgstr "Erreur : Veuillez d'abord fermer tous les menus de la barre d'outils"
 
+#. inches
 msgid "in"
-msgstr "dans"
+msgstr ""
 
 msgid "mm"
 msgstr "mm"
