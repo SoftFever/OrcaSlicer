@@ -490,6 +490,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
     double y_pos = start_y;
 
     // prime line
+    gcode << writer.set_pressure_advance(0.0);
     auto prime_x = start_x;
     gcode << move_to(Vec2d(prime_x, y_pos + (num) * m_space_y), writer);
     gcode << writer.set_speed(slow);
@@ -505,6 +506,12 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         gcode << writer.set_speed(slow);
         gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y),
                                       e_per_mm * m_length_short);
+
+        if (i == 0) {
+            // Print extra anchor line
+            gcode << writer.set_pressure_advance(0.0);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + (num) * m_space_y), e_per_mm * m_space_y * num * 1.2);
+        }
     }
     gcode << writer.set_pressure_advance(0.0);
 
@@ -517,7 +524,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         // gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7), writer);
         // gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), thin_e_per_mm * 7);
 
-        const auto     box_start_x = start_x + m_length_short + m_length_long + m_length_short;
+        const auto     box_start_x = start_x + m_length_short + m_length_long + m_length_short + m_line_width;
         DrawBoxOptArgs default_box_opt_args(2, m_height_layer, m_line_width, fast);
         default_box_opt_args.is_filled = true;
         gcode << draw_box(writer, box_start_x, start_y - m_space_y,

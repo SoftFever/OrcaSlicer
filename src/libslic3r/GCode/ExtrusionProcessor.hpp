@@ -442,6 +442,10 @@ public:
             };
             
             float extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
+            // ORCA: Clamp resulting speed to lowest of calculated speed based on the overhang values and the current speed
+            // Fixes bug where resulting overhang speed is higher than the current speed due to (for example) volumetric flow limits.
+            extrusion_speed = std::min(extrusion_speed, original_speed);
+            
             if(slowdown_for_curled_edges) {
                 float curled_speed = calculate_speed(artificial_distance_to_curled_lines);
             	extrusion_speed       = std::min(curled_speed, extrusion_speed); // adjust extrusion speed based on what is smallest - the calculated overhang speed or the artificial curled speed

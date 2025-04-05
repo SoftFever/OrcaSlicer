@@ -36,10 +36,10 @@ using namespace nlohmann;
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/args.hpp>
-#include <boost/nowide/cenv.hpp>
+#include <boost/nowide/cstdlib.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <boost/nowide/integration/filesystem.hpp>
+#include <boost/nowide/filesystem.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/log/trivial.hpp>
 

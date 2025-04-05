@@ -3647,10 +3647,10 @@ msgstr ""
 "Lütfen yazdırmak için sıcaklığı kullanıp kullanmayacağınızdan emin olun.\n"
 "\n"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
 "Bu filament tipinin tavsiye edilen Nozul sıcaklığı [%d, %d] derece "
 "santigrattır"

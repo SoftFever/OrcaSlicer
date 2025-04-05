@@ -733,8 +733,6 @@ void PrintObject::simplify_extrusion_path()
     }
 
     if (this->set_started(posSimplifySupportPath)) {
-        //BBS: disable circle simplification for support as it causes separation of support walls
-        #if 0
         m_print->set_status(75, L("Optimizing toolpath"));
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - start";
         tbb::parallel_for(
@@ -748,7 +746,6 @@ void PrintObject::simplify_extrusion_path()
         );
         m_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - end";
-        #endif
         this->set_done(posSimplifySupportPath);
     }
 }
@@ -1312,7 +1309,8 @@ void PrintObject::detect_surfaces_type()
                     Layer       *upper_layer = (idx_layer + 1 < this->layer_count()) ? m_layers[idx_layer + 1] : nullptr;
                     Layer       *lower_layer = (idx_layer > 0) ? m_layers[idx_layer - 1] : nullptr;
                     // collapse very narrow parts (using the safety offset in the diff is not enough)
-                    float        offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
+                    const float offset_top = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
+                    const float offset_bottom = layerm->flow(frExternalPerimeter).scaled_width();
 
                     ExPolygons     layerm_slices_surfaces = to_expolygons(layerm->slices.surfaces);
                     // no_perimeter_full_bridge allow to put bridges where there are nothing, hence adding area to slice, that's why we need to start from the result of PerimeterGenerator.
@@ -1327,7 +1325,7 @@ void PrintObject::detect_surfaces_type()
                         ExPolygons upper_slices = interface_shells ?
                             diff_ex(layerm_slices_surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
                             diff_ex(layerm_slices_surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
-                        surfaces_append(top, opening_ex(upper_slices, offset), stTop);
+                        surfaces_append(top, opening_ex(upper_slices, offset_top), stTop);
                     } else {
                         // if no upper layer, all surfaces of this one are solid
                         // we clone surfaces because we're going to clear the slices collection
@@ -1353,7 +1351,7 @@ void PrintObject::detect_surfaces_type()
                             bottom,
                             opening_ex(
                                 diff_ex(layerm_slices_surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),
-                                offset),
+                                offset_bottom),
                             surface_type_bottom_other);
                         // if user requested internal shells, we need to identify surfaces
                         // lying on other slices not belonging to this region
@@ -1367,7 +1365,7 @@ void PrintObject::detect_surfaces_type()
                                         intersection(layerm_slices_surfaces, lower_layer->lslices), // supported
                                         lower_layer->m_regions[region_id]->slices.surfaces,
                                         ApplySafetyOffset::Yes),
-                                    offset),
+                                    offset_bottom),
                                 stBottom);
                         }
 #endif
@@ -1383,12 +1381,25 @@ void PrintObject::detect_surfaces_type()
                     // and top surfaces; let's do an intersection to discover them and consider them
                     // as bottom surfaces (to allow for bridge detection)
                     if (! top.empty() && ! bottom.empty()) {
-        //                Polygons overlapping = intersection(to_polygons(top), to_polygons(bottom));
-        //                Slic3r::debugf "  layer %d contains %d membrane(s)\n", $layerm->layer->id, scalar(@$overlapping)
-        //                    if $Slic3r::debug;
-                        Polygons top_polygons = to_polygons(std::move(top));
-                        top.clear();
-                        surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
+                        const auto cracks = intersection_ex(top, bottom);
+                        if (!cracks.empty()) {
+                            const float small_crack_threshold = -offset_bottom;
+                            
+                            for (const auto& crack : cracks) {
+                                if (offset_ex(crack, small_crack_threshold).empty()) {
+                                    // Crack too small, leave it as part of the top surface, remove it from bottom surfaces
+                                    Surfaces bot_tmp;
+                                    for (auto& b : bottom) {
+                                        surfaces_append(bot_tmp, diff_ex(b.expolygon, crack), b.surface_type);
+                                    }
+                                    bottom = std::move(bot_tmp);
+                                }
+                            }
+
+                            Polygons top_polygons = to_polygons(std::move(top));
+                            top.clear();
+                            surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
+                        }
                     }
 
         #ifdef SLIC3R_DEBUG_SLICE_PROCESSING

@@ -47,7 +47,7 @@ static char marker_by_type(Preset::Type type, PrinterTechnology pt)
     }
 }
 
-std::string Option::opt_key() const { return boost::nowide::narrow(key).substr(2); }
+std::string Option::opt_key() const { return into_u8(key).substr(2); }
 
 void FoundOption::get_marked_label_and_tooltip(const char **label_, const char **tooltip_) const
 {
@@ -210,9 +210,9 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
             std::string label = into_u8(get_label(opt));
             //all
             if (type == Preset::TYPE_INVALID) { 
-                found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
+                found.emplace_back(FoundOption{label, label, into_u8(get_tooltip(opt)), i, 0});
             } else if (type == opt.type){
-                found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
+                found.emplace_back(FoundOption{label, label, into_u8(get_tooltip(opt)), i, 0});
             }
             
             continue;
@@ -253,9 +253,9 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
 #endif
 
             if (type == Preset::TYPE_INVALID) {
-                found.emplace_back(FoundOption{label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score});
+                found.emplace_back(FoundOption{label_plain, label_u8, into_u8(get_tooltip(opt)), i, score});
             } else if (type == opt.type) {
-                found.emplace_back(FoundOption{label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score});
+                found.emplace_back(FoundOption{label_plain, label_u8, into_u8(get_tooltip(opt)), i, score});
             }
             
         }
