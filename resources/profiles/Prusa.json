@@ -271,6 +271,10 @@
             "sub_path": "process/process_common_MK3.5.json"
         },
         {
+            "name": "process_highflow_MK3.5",
+            "sub_path": "process/process_highflow_MK3.5.json"
+        },
+        {
             "name": "process_speed_MK3.5",
             "sub_path": "process/process_speed_MK3.5.json"
         },
