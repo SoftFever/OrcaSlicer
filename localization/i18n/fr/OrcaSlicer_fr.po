@@ -16952,7 +16952,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Paramètres d’impression"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Type de plaque"
 
 msgid "filament position"

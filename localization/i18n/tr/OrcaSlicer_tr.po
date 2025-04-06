@@ -16443,7 +16443,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Yazdırma Parametreleri"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Plaka Tipi"
 
 msgid "filament position"
