@@ -30,7 +30,7 @@
   "slow_down_layers": "2",
   "slowdown_for_curled_perimeters": "1",
   "sparse_infill_acceleration": "6000",
-  "sparse_infill_pattern": "grid",
+  "sparse_infill_pattern": "crosshatch",
   "sparse_infill_speed": "300",
   "support_type": "normal(manual)",
   "thick_bridges": "1",
