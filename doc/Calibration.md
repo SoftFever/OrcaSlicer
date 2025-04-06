@@ -187,17 +187,31 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
             ```
             SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
             ```
-   3. Use a high gloss filament to make the ringing more visible.
+   3. Use an opaque, high-gloss filament to make the ringing more visible.
 2. Print the Input Shaping Frequency test with a range of frequencies.
+
+   ![image](./images/InputShaping/IS_freq_menu.png)
+
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+
+   ![image](./images/InputShaping/IS_freq_print_measure.jpg)
+   ![image](./images/InputShaping/IS_freq_klipper_slicer_measure.png)
+
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
    
    **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
+
+   ![image](./images/InputShaping/IS_damp_menu.png)
+
    1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
+   
+   ![image](./images/InputShaping/IS_damp_print_measure.jpg)
+   ![image](./images/InputShaping/IS_damp_klipper_slicer_measure.png)
+
    **Note**: Not all Resonance Compensation modes support damping
-1. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
-2. Save the settings
+4. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
+5. Save the settings
    1. You need to go to the printer settings and set the X and Y frequency and damp to the value you found in the previous step.
 
 ### Marlin
@@ -213,14 +227,28 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
       3. Jerk
          1. If using [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
          2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) (new Marlin default mode) this test will use 0.25 (high enough to most printers).
-   2. Use a high gloss filament to make the ringing more visible.
-2. Print the Input Shaping Frequency test with a range of frequencies.
+   2. Use an opaque, high-gloss filament to make the ringing more visible.
+2. Print the Input Shaping Frequency test with a range of frequencies. 
+
+   ![image](./images/InputShaping/IS_freq_menu.png)
+
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+
+   ![image](./images/InputShaping/IS_freq_print_measure.jpg)
+   ![image](./images/InputShaping/IS_freq_marlin_slicer_measure.png)
+
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
    
    **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
+
+   ![image](./images/InputShaping/IS_damp_menu.png)
+
    1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
+
+   ![image](./images/InputShaping/IS_damp_print_measure.jpg)
+   ![image](./images/InputShaping/IS_damp_klipper_slicer_measure.png)
+
 4. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
    1. Reboot your printer.
    2. Use the following G-code to restore your printer settings:
@@ -257,9 +285,16 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    2. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
-   3. Use a high gloss filament to make the ringing more visible.
+   3. Use an opaque, high-gloss filament to make the ringing more visible.
 2. You need to print the Junction Deviation test.
+   
+   ![image](./images/JunctionDeviation/jd_menu.png)
+
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+      
+   ![image](./images/JunctionDeviation/jd_print_measure.jpg)
+   ![image](./images/JunctionDeviation/jd_slicer_measure.png)
+
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
 3. Save the settings
    1. Use the following G-code to set the frequency:
