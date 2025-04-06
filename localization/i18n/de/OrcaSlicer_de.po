@@ -209,8 +209,9 @@ msgstr "Gizmo-Skalieren"
 msgid "Error: Please close all toolbar menus first"
 msgstr "Fehler: Bitte schließen sie zuerst alle Werkzeugleistenmenüs"
 
+#. inches
 msgid "in"
-msgstr "in"
+msgstr ""
 
 msgid "mm"
 msgstr "mm"
@@ -3732,10 +3733,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
-"Die empfohlene Düsentemperatur für diesen Filamenttyp beträgt [%d, %d] °C"
+"Die empfohlene Düsentemperatur für diesen Filamenttyp beträgt [%d, %d] °C."
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -20600,7 +20601,7 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
 #~ "Die Betttemperatur der anderen Schicht ist um mehr als %d Grad Celsius "
