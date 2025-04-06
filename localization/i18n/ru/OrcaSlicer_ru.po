@@ -2839,7 +2839,7 @@ msgstr "Загрузка"
 msgid "Download failed"
 msgstr "Ошибка загрузки"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Отменено"
 
 msgid "Install successfully."
@@ -7334,7 +7334,7 @@ msgstr ""
 msgid "Publish"
 msgstr "Опубликовать"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Публикация была отменена"
 
 msgid "Slicing Plate 1"
@@ -16470,9 +16470,6 @@ msgstr ""
 "Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или *."
 "zip.amf."
 
-msgid "Canceled"
-msgstr "Отменено"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ошибка обработки"
 
@@ -18420,7 +18417,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "При попытке войти произошла какая-то ошибка, попробуйте ещё раз."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Отменено пользователем."
 
 msgid "Head diameter"

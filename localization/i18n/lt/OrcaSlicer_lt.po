@@ -2818,7 +2818,7 @@ msgstr "Atsisiunčiama"
 msgid "Download failed"
 msgstr "Atsisiuntimas nepavyko"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Atšaukta"
 
 msgid "Install successfully."
@@ -7212,7 +7212,7 @@ msgstr "Pastaba: paruošimas gali užtrukti kelias minutes. Būkite kantrūs."
 msgid "Publish"
 msgstr "Talpinti"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Talpinimas atšauktas"
 
 msgid "Slicing Plate 1"
@@ -16071,9 +16071,6 @@ msgstr ""
 "Nežinomas failo formatas. Įvesties failo plėtinys turi būti .3mf arba .zip."
 "amf."
 
-msgid "Canceled"
-msgstr "Atšaukta"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nepavyko apdoroti"
 
@@ -18016,7 +18013,7 @@ msgstr "Įgaliodami šią programą suteikite reikiamus leidimus."
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "Bandant prisijungti įvyko kažkas netikėto. Bandykite dar kartą."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Vartotojas atšauktas."
 
 msgid "Head diameter"

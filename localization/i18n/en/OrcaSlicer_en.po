@@ -2740,8 +2740,8 @@ msgstr "Downloading"
 msgid "Download failed"
 msgstr "Download failed"
 
-msgid "Cancelled"
-msgstr "Canceled"
+msgid "Canceled"
+msgstr ""
 
 msgid "Install successfully."
 msgstr "Installed successfully"
@@ -5675,13 +5675,13 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "ERROR"
-msgstr "ERROR"
+msgstr ""
 
 msgid "COMPLETED"
-msgstr "COMPLETED"
+msgstr ""
 
 msgid "CANCELED"
-msgstr "CANCELED"
+msgstr ""
 
 msgid "Cancel upload"
 msgstr "Cancel upload"
@@ -7018,8 +7018,8 @@ msgstr "Note: The preparation may take several minutes. Please be patient."
 msgid "Publish"
 msgstr "Publish"
 
-msgid "Publish was cancelled"
-msgstr "Publish was cancelled"
+msgid "Publish was canceled"
+msgstr ""
 
 msgid "Slicing Plate 1"
 msgstr "Slicing Plate 1"
@@ -14711,9 +14711,6 @@ msgstr "The supplied file couldn't be read because it's empty."
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
 
-msgid "Canceled"
-msgstr "Canceled"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: failed to parse"
 
@@ -16489,7 +16486,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr ""
 
 msgid "Head diameter"

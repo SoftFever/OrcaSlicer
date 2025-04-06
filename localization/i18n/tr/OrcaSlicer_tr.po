@@ -2792,7 +2792,7 @@ msgstr "İndiriliyor"
 msgid "Download failed"
 msgstr "Yükleme başarısız"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "İptal edildi"
 
 msgid "Install successfully."
@@ -7168,7 +7168,7 @@ msgstr "Not: Hazırlık birkaç dakika sürebilir. Lütfen sabırlı olun."
 msgid "Publish"
 msgstr "Yayınla"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Yayınlama iptal edildi"
 
 msgid "Slicing Plate 1"
@@ -15969,9 +15969,6 @@ msgstr ""
 "Bilinmeyen dosya formatı. Giriş dosyası .3mf veya .zip.amf uzantılı "
 "olmalıdır."
 
-msgid "Canceled"
-msgstr "İptal edildi"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ayrıştırılamadı"
 
@@ -17902,7 +17899,7 @@ msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 "Giriş yapmaya çalışırken beklenmeyen bir şey oldu, lütfen tekrar deneyin."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Kullanıcı iptal edildi."
 
 msgid "Head diameter"

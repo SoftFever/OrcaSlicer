@@ -2720,7 +2720,7 @@ msgstr "下載中"
 msgid "Download failed"
 msgstr "下載失敗"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "已取消"
 
 msgid "Install successfully."
@@ -6895,7 +6895,7 @@ msgstr "提示：發布前需要一些準備時間，請耐心等待。"
 msgid "Publish"
 msgstr "發布"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "發布已取消"
 
 msgid "Slicing Plate 1"
@@ -14860,9 +14860,6 @@ msgstr "無法讀取提供的檔案，因為該檔案為空"
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .3mf 或 .zip .amf。"
 
-msgid "Canceled"
-msgstr "已取消"
-
 msgid "load_obj: failed to parse"
 msgstr "載入物件：解析失敗"
 
@@ -16652,7 +16649,7 @@ msgstr "授權此應用程式時，請提供所需的權限。"
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "嘗試登入時發生了意外錯誤，請再試一次。"
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "使用者取消。"
 
 msgid "Head diameter"

@@ -2747,7 +2747,7 @@ msgstr "ダウンロード中"
 msgid "Download failed"
 msgstr "ダウンロード失敗"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "取消し済"
 
 msgid "Install successfully."
@@ -6979,7 +6979,7 @@ msgstr "注意: 準備するには数分かかる場合があります、暫く�
 msgid "Publish"
 msgstr "公開する"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "公開は取り消しました"
 
 msgid "Slicing Plate 1"
@@ -14645,9 +14645,6 @@ msgstr "The supplied file couldn't be read because it's empty."
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
 
-msgid "Canceled"
-msgstr "Canceled"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: failed to parse"
 
@@ -16452,7 +16449,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr ""
 
 msgid "Head diameter"

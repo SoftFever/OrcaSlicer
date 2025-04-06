@@ -2760,7 +2760,7 @@ msgstr "다운로드 중"
 msgid "Download failed"
 msgstr "다운로드 실패"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "취소됨"
 
 msgid "Install successfully."
@@ -7036,7 +7036,7 @@ msgstr "참고: 준비하는 데 몇 분 정도 걸릴 수 있습니다. 조금�
 msgid "Publish"
 msgstr "게시"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "게시가 취소되었습니다"
 
 msgid "Slicing Plate 1"
@@ -15456,9 +15456,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "알 수 없는 파일 형식: 입력 파일의 확장자는.3mf 또는.zip.amf여야 합니다."
 
-msgid "Canceled"
-msgstr "취소됨"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: 구문 분석에 실패"
 
@@ -17324,7 +17321,7 @@ msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 "로그인을 시도하는 동안 예기치 않은 문제가 발생했습니다. 다시 시도해 주세요."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "사용자가 취소했습니다."
 
 msgid "Head diameter"

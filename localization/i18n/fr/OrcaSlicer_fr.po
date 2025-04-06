@@ -2849,7 +2849,7 @@ msgstr "Téléchargement"
 msgid "Download failed"
 msgstr "Échec du téléchargement"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Annulé"
 
 msgid "Install successfully."
@@ -7320,7 +7320,7 @@ msgstr ""
 msgid "Publish"
 msgstr "Publier"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "La publication a été annulée"
 
 msgid "Slicing Plate 1"
@@ -16454,9 +16454,6 @@ msgstr ""
 "Format de fichier inconnu : le fichier d'entrée doit porter l'extension "
 ".3mf, .zip ou .amf."
 
-msgid "Canceled"
-msgstr "Annulé"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj : échec de l'analyse"
 
@@ -18470,7 +18467,7 @@ msgstr ""
 "Un événement inattendu s’est produit lors de la connexion, veuillez "
 "réessayer."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "L’utilisateur a annulé."
 
 msgid "Head diameter"
