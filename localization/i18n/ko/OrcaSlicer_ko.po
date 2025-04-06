@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2025-03-04 04:56+0900\n"
 "Last-Translator: ElectricalBoy "
 "<15651807+ElectricalBoy@users.noreply.github.com>\n"
@@ -3594,8 +3594,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr "이 필라멘트 유형의 권장 노즐 온도는 [%d, %d]°C입니다"
 
 msgid ""
@@ -18037,18 +18037,6 @@ msgstr ""
 #~ "일반(자동) 및 나무(자동)은 지지대를 자동으로 생성합니다. 일반(수동) 또는 "
 #~ "나무(수동) 선택시에는 강제된 지지대만 생성됩니다"
 
-#~ msgid "normal(auto)"
-#~ msgstr "일반(자동)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "나무(자동)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "일반(수동)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "나무(수동)"
-
 #~ msgid "ShiftLeft mouse button"
 #~ msgstr "Shift + 왼쪽 마우스 버튼"
 
@@ -19256,7 +19244,7 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
 #~ "다른 레이어의 베드 온도가 초기 레이어의 베드 온도보다 %d°C 이상 낮습니"

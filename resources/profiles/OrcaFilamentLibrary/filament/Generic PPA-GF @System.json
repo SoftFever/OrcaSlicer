@@ -2,7 +2,7 @@
     "type": "filament",
     "name": "Generic PPA-GF @System",
     "inherits": "fdm_filament_ppa",
-    "filament_id": "GFN96",
+    "filament_id": "OGFN96",
     "from": "system",
     "setting_id": "OGFSN96_00",
     "instantiation": "true",

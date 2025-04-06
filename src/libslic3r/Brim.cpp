@@ -1010,16 +1010,14 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                             }else {
                                 outerExpoly = offset_ex(ex_poly_holes_reversed, -brim_offset);
                             }
-                            append(brim_area_object, diff_ex(outerExpoly, innerExpoly));
+                            append(brim_area_object, intersection_ex(diff_ex(outerExpoly, innerExpoly), ex_poly_holes_reversed));
                         }
                         if (!has_inner_brim) {
                             // BBS: brim should be apart from holes
-                            append(no_brim_area_object, diff_ex(ex_poly_holes_reversed, offset_ex(ex_poly_holes_reversed, -scale_(5.))));
+                            append(no_brim_area_object, diff_ex(ex_poly_holes_reversed, offset_ex(ex_poly_holes_reversed, -no_brim_offset)));
                         }
                         if (!has_outer_brim)
                             append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly_holes_reversed));
-                        if (!has_inner_brim && !has_outer_brim)
-                            append(no_brim_area_object, offset_ex(ex_poly_holes_reversed, -no_brim_offset));
                         append(holes_object, ex_poly_holes_reversed);
                     }
                 }

@@ -498,7 +498,7 @@ static std::string generate_system_info_json()
         std::vector<std::wstring> blacklisted_libraries;
         BlacklistedLibraryCheck::get_instance().get_blacklisted(blacklisted_libraries);
         for (const std::wstring& wstr : blacklisted_libraries) {
-            std::string utf8 = boost::nowide::narrow(wstr);
+            std::string utf8 = into_u8(wstr);
             if (size_t last_bs_pos = utf8.find_last_of("\\"); last_bs_pos < utf8.size() - 1) {
                 // Remove anything before last backslash so we don't send the path to the DLL.
                 utf8.erase(0, last_bs_pos + 1);
