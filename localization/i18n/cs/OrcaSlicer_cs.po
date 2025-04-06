@@ -2779,7 +2779,7 @@ msgstr "Stahování"
 msgid "Download failed"
 msgstr "Stahování se nezdařilo"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Zrušeno"
 
 msgid "Install successfully."
@@ -7065,7 +7065,7 @@ msgstr "Poznámka: Příprava může trvat několik minut. Buďte prosím trpěl
 msgid "Publish"
 msgstr "Publikovat"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Publikování bylo zrušeno"
 
 msgid "Slicing Plate 1"
@@ -15020,9 +15020,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf nebo .zip.amf."
 
-msgid "Canceled"
-msgstr "Zrušeno"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nepodařilo se zpracovat"
 
@@ -16746,7 +16743,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr ""
 
 msgid "Head diameter"

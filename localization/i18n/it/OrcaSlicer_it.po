@@ -2846,7 +2846,7 @@ msgstr "Scaricamento"
 msgid "Download failed"
 msgstr "Scaricamento non riuscito"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Annullato"
 
 msgid "Install successfully."
@@ -7275,7 +7275,7 @@ msgstr ""
 msgid "Publish"
 msgstr "Pubblica"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "La pubblicazione è stata annullata"
 
 msgid "Slicing Plate 1"
@@ -16363,9 +16363,6 @@ msgstr ""
 "Formato file sconosciuto: il file di input deve avere un'estensione .3mf o ."
 "zip.amf."
 
-msgid "Canceled"
-msgstr "Annullato"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: impossibile analizzare"
 
@@ -18355,7 +18352,7 @@ msgstr ""
 "Si è verificato un problema imprevisto durante il tentativo di accesso. "
 "Riprova."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Utente rimosso."
 
 msgid "Head diameter"

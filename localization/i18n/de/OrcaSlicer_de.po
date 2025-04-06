@@ -2846,7 +2846,7 @@ msgstr "Herunterladen"
 msgid "Download failed"
 msgstr "Download fehlgeschlagen"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Abgebrochen"
 
 msgid "Install successfully."
@@ -7312,7 +7312,7 @@ msgstr ""
 msgid "Publish"
 msgstr "Veröffentlichen"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Veröffentlichung wurde abgebrochen"
 
 msgid "Slicing Plate 1"
@@ -16340,9 +16340,6 @@ msgstr ""
 "Unbekanntes Dateiformat: Die Eingabedatei muss die Endung .3mf oder .zip.amf "
 "haben."
 
-msgid "Canceled"
-msgstr "Abgebrochen"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: konnte nicht analysiert werden"
 
@@ -18318,7 +18315,7 @@ msgstr ""
 "Es ist etwas Unerwartetes passiert, als Sie versucht haben, sich anzumelden. "
 "Bitte versuchen Sie es erneut."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Benutzer abgebrochen."
 
 msgid "Head diameter"

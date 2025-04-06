@@ -2760,7 +2760,7 @@ msgstr "Letöltés"
 msgid "Download failed"
 msgstr "Letöltés sikertelen"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Megszakítva"
 
 msgid "Install successfully."
@@ -7075,7 +7075,7 @@ msgstr "Megjegyzés: Az előkészítés több percig is eltarthat. Kérjük vár
 msgid "Publish"
 msgstr "Közzététel"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "A közzététel törlésre került"
 
 msgid "Slicing Plate 1"
@@ -14883,9 +14883,6 @@ msgstr "The supplied file couldn't be read because it's empty."
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
 
-msgid "Canceled"
-msgstr "Canceled"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: failed to parse"
 
@@ -16667,7 +16664,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr ""
 
 msgid "Head diameter"

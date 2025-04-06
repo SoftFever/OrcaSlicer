@@ -2816,8 +2816,8 @@ msgstr "Pobieranie"
 msgid "Download failed"
 msgstr "Nie udało się pobrać"
 
-msgid "Cancelled"
-msgstr "Anulowane"
+msgid "Canceled"
+msgstr "Anulowano"
 
 msgid "Install successfully."
 msgstr "Instalacja zakończona pomyślnie."
@@ -7221,7 +7221,7 @@ msgstr "Uwaga: Przygotowanie może zająć kilka minut. Proszę o cierpliwość.
 msgid "Publish"
 msgstr "Opublikuj"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Publikacja została anulowana"
 
 msgid "Slicing Plate 1"
@@ -16134,9 +16134,6 @@ msgstr ""
 "Nieznany format pliku. Plik wejściowy musi mieć rozszerzenie .3mf lub .zip."
 "amf."
 
-msgid "Canceled"
-msgstr "Anulowano"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nie udało się przetworzyć"
 
@@ -18084,7 +18081,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "Wystąpił problem podczas próby logowania, proszę spróbować ponownie."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Anulowane przez użytkownika."
 
 msgid "Head diameter"

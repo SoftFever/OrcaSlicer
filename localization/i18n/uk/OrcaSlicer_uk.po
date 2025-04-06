@@ -2818,7 +2818,7 @@ msgstr "Завантаження"
 msgid "Download failed"
 msgstr "Помилка завантаження"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Скасовано"
 
 msgid "Install successfully."
@@ -7237,7 +7237,7 @@ msgstr ""
 msgid "Publish"
 msgstr "Публікувати"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Публікація скасована"
 
 msgid "Slicing Plate 1"
@@ -16066,9 +16066,6 @@ msgstr ""
 "Невідомий формат файлу: вхідний файл повинен мати розширення .3mf "
 "або .zip.amf."
 
-msgid "Canceled"
-msgstr "Скасовано"
-
 msgid "load_obj: failed to parse"
 msgstr "помилка завантаження файлу OBJ: не вдалося розпізнати формат"
 
@@ -18026,7 +18023,7 @@ msgstr "Надайте необхідні дозволи під час авто�
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "Під час спроби входу трапилося щось несподіване. Повторіть спробу."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Користувача скасовано."
 
 msgid "Head diameter"

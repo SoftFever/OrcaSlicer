@@ -2789,7 +2789,7 @@ msgstr "Downloaden"
 msgid "Download failed"
 msgstr "Downloaden mislukt"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Geannuleerd"
 
 msgid "Install successfully."
@@ -7169,7 +7169,7 @@ msgstr ""
 msgid "Publish"
 msgstr "Publiceren"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Het publiceren is geannuleerd"
 
 msgid "Slicing Plate 1"
@@ -15081,9 +15081,6 @@ msgstr "The supplied file couldn't be read because it's empty."
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
 
-msgid "Canceled"
-msgstr "Canceled"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: failed to parse"
 
@@ -16904,7 +16901,7 @@ msgstr "Geef de vereiste machtigingen wanneer u deze toepassing autoriseert."
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "Er is iets onverwachts gebeurd bij het inloggen. Probeer het opnieuw."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Gebruiker geannuleerd."
 
 msgid "Head diameter"

@@ -2748,7 +2748,7 @@ msgstr "Laddar ner"
 msgid "Download failed"
 msgstr "Nedladdningen misslyckades"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Avbruten"
 
 msgid "Install successfully."
@@ -7029,7 +7029,7 @@ msgstr "Notera: Förberedelserna kan ta flera minuter. Vänligen vänta."
 msgid "Publish"
 msgstr "Publicera"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "Publiceringen avbröts"
 
 msgid "Slicing Plate 1"
@@ -14714,9 +14714,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Okänt filformat: indata filen måste ha fil ändelsen .3mf eller .zip.amf."
 
-msgid "Canceled"
-msgstr "Avbruten"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: misslyckades med att analysera"
 
@@ -16500,7 +16497,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr ""
 
 msgid "Head diameter"
