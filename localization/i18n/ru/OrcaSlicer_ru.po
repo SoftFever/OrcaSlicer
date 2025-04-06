@@ -2912,9 +2912,6 @@ msgstr "Подтвердить"
 msgid "Close"
 msgstr "Закрыть"
 
-msgid "Colour"
-msgstr "Цвет"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -7233,10 +7230,10 @@ msgstr "Несовместимые профили"
 msgid "AMS filaments"
 msgstr "Прутки АСПП"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "Нажмите, чтобы выбрать цвет нити"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Пожалуйста, выберите цвет прутка"
 
 msgid "Add/Remove presets"
@@ -15420,8 +15417,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "Эта модель будет использоваться для очистки сопла после смены материала для "
 "его экономии и сокращения времени печати. В результате цвета будут "

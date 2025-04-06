@@ -2850,9 +2850,6 @@ msgstr "Potvrdit"
 msgid "Close"
 msgstr "Zavřít"
 
-msgid "Colour"
-msgstr "Barva"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -6969,10 +6966,10 @@ msgstr "Nekompatibilní předvolby"
 msgid "AMS filaments"
 msgstr "AMS Filament"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "Kliknutím vyberte barvu Filamentu"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Vyberte prosím barvu vlákna"
 
 msgid "Add/Remove presets"
@@ -14069,8 +14066,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "Tento objekt bude použit k očištění trysky po výměně filamentu, aby se "
 "ušetřil filament a zkrátila se doba tisku. V důsledku toho budou barvy "

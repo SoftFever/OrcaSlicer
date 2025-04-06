@@ -2317,7 +2317,7 @@ msgid "Open Documentation in web browser."
 msgstr "Open documentation in web browser"
 
 msgid "Color"
-msgstr "Color"
+msgstr ""
 
 msgid "Pause"
 msgstr "Pause"
@@ -2811,9 +2811,6 @@ msgstr "Confirm"
 
 msgid "Close"
 msgstr "Close"
-
-msgid "Colour"
-msgstr "Color"
 
 msgid ""
 "Nozzle\n"
@@ -6922,11 +6919,11 @@ msgstr "Incompatible presets"
 msgid "AMS filaments"
 msgstr "AMS filament"
 
-msgid "Click to pick filament color"
-msgstr "Click to select filament color"
+msgid "Click to select filament color"
+msgstr ""
 
-msgid "Please choose the filament colour"
-msgstr "Please choose the filament color"
+msgid "Please choose the filament color"
+msgstr ""
 
 msgid "Add/Remove presets"
 msgstr "Add/Remove presets"
@@ -13801,12 +13798,9 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
-msgstr ""
-"This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colors of the objects will be mixed as "
 "a result. It will not take effect unless the prime tower is enabled."
+msgstr ""
 
 msgid "Maximal bridging distance"
 msgstr ""

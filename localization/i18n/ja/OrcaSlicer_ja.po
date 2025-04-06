@@ -2820,9 +2820,6 @@ msgstr "確認"
 msgid "Close"
 msgstr "閉じる"
 
-msgid "Colour"
-msgstr "色"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -6883,10 +6880,10 @@ msgstr "互換性の無い プリセット"
 msgid "AMS filaments"
 msgstr "AMSフィラメント"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "フィラメントの色を選択"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Please choose the filament color"
 
 msgid "Add/Remove presets"
@@ -13713,8 +13710,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "このオブジェクトは廃料で造形されます。時間とフィラメントの節約として有効的で"
 "すが、色の指定ができなくなります。プライムタワーが有効になる場合、この設定が"

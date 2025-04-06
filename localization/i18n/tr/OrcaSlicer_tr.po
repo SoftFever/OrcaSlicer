@@ -2868,9 +2868,6 @@ msgstr "Onayla"
 msgid "Close"
 msgstr "Kapat"
 
-msgid "Colour"
-msgstr "Renk"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -7072,10 +7069,10 @@ msgstr "Uyumsuz ön ayarlar"
 msgid "AMS filaments"
 msgstr "AMS filamentler"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "Filament rengini seçmek için tıklayın"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Lütfen filament rengini seçin"
 
 msgid "Add/Remove presets"
@@ -14954,8 +14951,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "Bu nesne, filamentten tasarruf etmek ve baskı süresini azaltmak için "
 "filament değişiminden sonra nozulu temizlemek için kullanılacaktır. Sonuç "

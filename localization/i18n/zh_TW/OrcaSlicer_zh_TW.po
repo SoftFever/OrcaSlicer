@@ -2788,9 +2788,6 @@ msgstr "確定"
 msgid "Close"
 msgstr "關閉"
 
-msgid "Colour"
-msgstr "顏色"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -6799,10 +6796,10 @@ msgstr "不相容的預設"
 msgid "AMS filaments"
 msgstr "AMS 線材"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "點擊設定線材顏色"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "請選擇線材顏色"
 
 msgid "Add/Remove presets"
@@ -13945,8 +13942,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "此物件將用於更換線材後進行噴嘴清洗，從而節省線材並縮短列印時間。但物件的顏色"
 "會因此被混合。此功能需啟用換料塔後才會生效。"
