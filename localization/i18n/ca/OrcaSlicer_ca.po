@@ -2893,9 +2893,6 @@ msgstr "Confirmar"
 msgid "Close"
 msgstr "Tancar"
 
-msgid "Colour"
-msgstr "Color"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -7155,10 +7152,10 @@ msgstr "Perfils incompatibles"
 msgid "AMS filaments"
 msgstr "Filaments AMS"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "Feu clic per triar el color del filament"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Si us plau, tria el color del filament"
 
 msgid "Add/Remove presets"
@@ -15199,8 +15196,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "Aquest objecte s'utilitzarà per purgar el broquet després d'un canvi de "
 "filament per estalviar filament i disminuir el temps d'impressió. Com a "

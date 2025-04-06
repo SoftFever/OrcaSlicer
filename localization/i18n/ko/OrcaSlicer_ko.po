@@ -2833,9 +2833,6 @@ msgstr "확인"
 msgid "Close"
 msgstr "닫기"
 
-msgid "Colour"
-msgstr "색상"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -6940,10 +6937,10 @@ msgstr "호환되지 않는 사전 설정"
 msgid "AMS filaments"
 msgstr "AMS 필라멘트"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "필라멘트 색상 선택"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "필라멘트 색상을 선택해 주세요"
 
 msgid "Add/Remove presets"
@@ -14499,8 +14496,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "이 객체는 필라멘트를 절약하고 출력 시간을 줄이기 위해 필라멘트 변경 후 노즐"
 "에 남은 잔류물을 제거하는 데 사용됩니다. 결과적으로 객체의 색상이 혼합됩니"

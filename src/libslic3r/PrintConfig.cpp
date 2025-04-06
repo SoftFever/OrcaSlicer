@@ -5415,8 +5415,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Flush options");
     def->label = L("Flush into this object");
     def->tooltip = L("This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. "
-        "Colours of the objects will be mixed as a result. "
-        "It will not take effect, unless the prime tower is enabled.");
+        "Colors of the objects will be mixed as a result. "
+        "It will not take effect unless the prime tower is enabled.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("wipe_tower_bridging", coFloat);

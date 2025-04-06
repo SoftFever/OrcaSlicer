@@ -2783,9 +2783,6 @@ msgstr "确定"
 msgid "Close"
 msgstr "关闭"
 
-msgid "Colour"
-msgstr "颜色"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -6779,10 +6776,10 @@ msgstr "不兼容的预设"
 msgid "AMS filaments"
 msgstr "AMS 打印丝"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "点击设置材料颜色"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "请选择材料颜色"
 
 msgid "Add/Remove presets"
@@ -13668,8 +13665,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "换料后的过渡料会被用来打印这个对象。这样可以减少材料浪费和缩短打印时间，但是"
 "这个对象的外观会是混色的。该功能只有在启用料塔的时候才生效。"

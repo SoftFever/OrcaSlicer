@@ -2918,9 +2918,6 @@ msgstr "Conferma"
 msgid "Close"
 msgstr "Chiudi"
 
-msgid "Colour"
-msgstr "Colore"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -7177,10 +7174,10 @@ msgstr "Profili incompatibili"
 msgid "AMS filaments"
 msgstr "Filamento AMS"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "Fai click per selezionare il colore del filamento"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Si prega di scegliere il colore del filamento"
 
 msgid "Add/Remove presets"
@@ -15329,8 +15326,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "Questo oggetto viene utilizzato per spurgare l'ugello dopo un cambio di "
 "filamento, per risparmiare filamento e ridurre il tempo di stampa. I colori "

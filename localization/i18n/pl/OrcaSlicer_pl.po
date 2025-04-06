@@ -2890,9 +2890,6 @@ msgstr "Potwierdź"
 msgid "Close"
 msgstr "Zamknij"
 
-msgid "Colour"
-msgstr "Kolor"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -7125,10 +7122,10 @@ msgstr "Profile niekompatybilne"
 msgid "AMS filaments"
 msgstr "Filamenty AMS"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "Kliknij, aby wybrać kolor filamentu"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Proszę wybrać kolor filamentu"
 
 msgid "Add/Remove presets"
@@ -15121,8 +15118,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "To jest obiekt wykorzystywany do oczyszczenia dyszy po zmianie filamentu, co "
 "pozwala zaoszczędzić filament i skrócić czas druku. W wyniku tego procesu "

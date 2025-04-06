@@ -2863,9 +2863,6 @@ msgstr "Bevestigen"
 msgid "Close"
 msgstr "Sluiten"
 
-msgid "Colour"
-msgstr "Kleur"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -7070,10 +7067,10 @@ msgstr "Onbruikbare voorinstellingen"
 msgid "AMS filaments"
 msgstr "AMS-filament"
 
-msgid "Click to pick filament color"
+msgid "Click to select filament color"
 msgstr "Klik om de filament kleur te kiezen"
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr "Please choose the filament color"
 
 msgid "Add/Remove presets"
@@ -14153,8 +14150,8 @@ msgstr ""
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result. It will not take effect, unless the prime tower is enabled."
+"filament and decrease the print time. Colors of the objects will be mixed as "
+"a result. It will not take effect unless the prime tower is enabled."
 msgstr ""
 "Dit object wordt gebruikt om het mondstuk te reinigen nadat het filament is "
 "vervangen om filament te besparen en de printtijd te verkorten. Als "
