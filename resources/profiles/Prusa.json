@@ -323,6 +323,22 @@
             "sub_path": "process/0.15mm Speed @MK3.5 0.25.json"
         },
         {
+            "name": "0.15mm High Flow @MK3.5",
+            "sub_path": "process/0.15mm High Flow @MK3.5.json"
+        },
+        {
+            "name": "0.20mm High Flow @MK3.5 0.6",
+            "sub_path": "process/0.20mm High Flow @MK3.5 0.6.json"
+        },
+        {
+            "name": "0.20mm High Flow @MK3.5",
+            "sub_path": "process/0.20mm High Flow @MK3.5.json"
+        },
+        {
+            "name": "0.25mm High Flow @MK3.5",
+            "sub_path": "process/0.25mm High Flow @MK3.5.json"
+        },
+        {
             "name": "0.20mm Standard @MK3.5",
             "sub_path": "process/0.20mm Standard @MK3.5.json"
         },
@@ -337,6 +353,14 @@
         {
             "name": "0.20mm Speed @MK3.5 0.6",
             "sub_path": "process/0.20mm Speed @MK3.5 0.6.json"
+        },
+        {
+            "name": "0.32mm High Flow @MK3.5",
+            "sub_path": "process/0.32mm High Flow @MK3.5.json"
+        },
+        {
+            "name": "0.40mm High Flow @MK3.5",
+            "sub_path": "process/0.40mm High Flow @MK3.5.json"
         },
         {
             "name": "0.25mm Standard @MK3.5",
@@ -1340,6 +1364,82 @@
         {
             "name": "Prusa Generic PA-CF @MK3.5 0.8",
             "sub_path": "filament/Prusa Generic PA-CF @MK3.5 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA HF @MK3.5 0.6",
+            "sub_path": "filament/Prusa Generic PLA HF @MK3.5 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PLA HF @MK3.5 0.8",
+            "sub_path": "filament/Prusa Generic PLA HF @MK3.5 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA HF @MK3.5",
+            "sub_path": "filament/Prusa Generic PLA HF @MK3.5.json"
+        },
+        {
+            "name": "Prusa Generic PETG HF @MK3.5",
+            "sub_path": "filament/Prusa Generic PETG HF @MK3.5.json"
+        },
+        {
+            "name": "Prusa Generic PETG HF @MK3.5 0.6",
+            "sub_path": "filament/Prusa Generic PETG HF @MK3.5 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PETG HF @MK3.5 0.8",
+            "sub_path": "filament/Prusa Generic PETG HF @MK3.5 0.8.json"
+        },
+        {
+            "name": "Prusa Generic ABS HF @MK3.5",
+            "sub_path": "filament/Prusa Generic ABS HF @MK3.5.json"
+        },
+        {
+            "name": "Prusa Generic ABS HF @MK3.5 0.6",
+            "sub_path": "filament/Prusa Generic ABS HF @MK3.5 0.6.json"
+        },
+        {
+            "name": "Prusa Generic ABS HF @MK3.5 0.8",
+            "sub_path": "filament/Prusa Generic ABS HF @MK3.5 0.8.json"
+        },
+        {
+            "name": "Prusa Generic TPU HF @MK3.5",
+            "sub_path": "filament/Prusa Generic TPU HF @MK3.5.json"
+        },
+        {
+            "name": "Prusa Generic ASA HF @MK3.5",
+            "sub_path": "filament/Prusa Generic ASA HF @MK3.5.json"
+        },
+        {
+            "name": "Prusa Generic ASA HF @MK3.5 0.6",
+            "sub_path": "filament/Prusa Generic ASA HF @MK3.5 0.6.json"
+        },
+        {
+            "name": "Prusa Generic ASA HF @MK3.5 0.8",
+            "sub_path": "filament/Prusa Generic ASA HF @MK3.5 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PC HF @MK3.5",
+            "sub_path": "filament/Prusa Generic PC HF @MK3.5.json"
+        },
+        {
+            "name": "Prusa Generic PC HF @MK3.5 0.6",
+            "sub_path": "filament/Prusa Generic PC HF @MK3.5 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PC HF @MK3.5 0.8",
+            "sub_path": "filament/Prusa Generic PC HF @MK3.5 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PVA HF @MK3.5",
+            "sub_path": "filament/Prusa Generic PVA HF @MK3.5.json"
+        },
+        {
+            "name": "Prusa Generic PVA HF @MK3.5 0.6",
+            "sub_path": "filament/Prusa Generic PVA HF @MK3.5 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PVA HF @MK3.5 0.8",
+            "sub_path": "filament/Prusa Generic PVA HF @MK3.5 0.8.json"
         },
         {
             "name": "Prusa Generic ABS @MK4S",
