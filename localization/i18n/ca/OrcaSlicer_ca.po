@@ -2823,7 +2823,7 @@ msgstr "Descarregant"
 msgid "Download failed"
 msgstr "Descàrrega fallida"
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr "Cancel·lat"
 
 msgid "Install successfully."
@@ -7251,7 +7251,7 @@ msgstr ""
 msgid "Publish"
 msgstr "Publicar"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "La publicació ha estat cancel·lada"
 
 msgid "Slicing Plate 1"
@@ -16227,9 +16227,6 @@ msgstr ""
 "Format de fitxer desconegut. El fitxer d'entrada ha de tenir extensió .3mf "
 "o .zip.amf."
 
-msgid "Canceled"
-msgstr "Cancel·lat"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: no s'ha pogut analitzar"
 
@@ -18208,7 +18205,7 @@ msgstr ""
 "Alguna cosa inesperada ha passat en intentar iniciar sessió, torneu-ho a "
 "provar."
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "Usuari cancel·lat."
 
 msgid "Head diameter"
