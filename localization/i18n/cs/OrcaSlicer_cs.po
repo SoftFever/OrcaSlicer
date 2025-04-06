@@ -15462,7 +15462,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Parametry tisku"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Typ Podložky"
 
 msgid "filament position"

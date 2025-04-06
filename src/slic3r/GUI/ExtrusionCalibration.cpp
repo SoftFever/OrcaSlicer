@@ -86,7 +86,7 @@ void ExtrusionCalibration::create()
     select_sizer->Add(m_comboBox_filament, 0, wxEXPAND);
     select_sizer->Add(0, EXTRUSION_CALIBRATION_WIDGET_GAP, 0, 0);
 
-    auto bed_type_sel_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Bed Type"), wxDefaultPosition, wxDefaultSize, 0);
+    auto bed_type_sel_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Plate type"), wxDefaultPosition, wxDefaultSize, 0);
     select_sizer->Add(bed_type_sel_text, 0, wxALIGN_LEFT);
     select_sizer->AddSpacer(FromDIP(4));
 

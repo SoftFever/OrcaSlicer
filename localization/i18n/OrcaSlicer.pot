@@ -14218,7 +14218,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr ""
 
 msgid "filament position"

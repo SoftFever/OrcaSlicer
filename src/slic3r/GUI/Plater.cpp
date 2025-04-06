@@ -791,7 +791,7 @@ Sidebar::Sidebar(Plater *parent)
 
         // Bed type selection
         wxBoxSizer* bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
-        wxStaticText* bed_type_title = new wxStaticText(p->m_panel_printer_content, wxID_ANY, _L("Bed type"));
+        wxStaticText* bed_type_title = new wxStaticText(p->m_panel_printer_content, wxID_ANY, _L("Plate type"));
         //bed_type_title->SetBackgroundColour();
         bed_type_title->Wrap(-1);
         bed_type_title->SetFont(Label::Body_14);

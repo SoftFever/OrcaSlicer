@@ -5897,7 +5897,7 @@ msgid "Connection"
 msgstr "Connection"
 
 msgid "Bed type"
-msgstr "Bed type"
+msgstr ""
 
 msgid "Flushing volumes"
 msgstr "Flushing volumes"
@@ -9767,7 +9767,7 @@ msgstr ""
 "the Textured PEI Plate."
 
 msgid "Bed types supported by the printer"
-msgstr "Bed types supported by the printer"
+msgstr ""
 
 msgid "Smooth Cool Plate"
 msgstr ""
@@ -15177,8 +15177,8 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Printing Parameters"
 
-msgid "Plate Type"
-msgstr "Plate Type"
+msgid "Plate type"
+msgstr ""
 
 msgid "filament position"
 msgstr "filament position"

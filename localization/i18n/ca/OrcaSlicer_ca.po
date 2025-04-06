@@ -16708,7 +16708,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Paràmetres d'impressió"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Tipus de placa"
 
 msgid "filament position"
