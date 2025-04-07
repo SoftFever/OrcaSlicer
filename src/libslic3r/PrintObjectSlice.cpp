@@ -1037,6 +1037,10 @@ void PrintObject::slice_volumes()
     m_print->throw_if_canceled();
 
     this->apply_conical_overhang();
+    m_print->throw_if_canceled();
+
+    this->gridify();
+    m_print->throw_if_canceled();
 
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
@@ -1325,6 +1329,83 @@ void PrintObject::apply_conical_overhang() {
         }
         //layer->export_region_slices_to_svg_debug("layer_after_conical_overhang");
     }
+}
+
+// Offsets based on the eight queens puzzle
+static constexpr size_t GRIDIFY_PATTERN_OFFSET_COUNT = 8;
+static size_t           GRIDIFY_PATTERN_OFFSETS[GRIDIFY_PATTERN_OFFSET_COUNT][2] = {
+    {4, 4}, {7, 1}, {1, 5}, {5, 2}, {3, 6}, {0, 3}, {6, 7}, {2, 0},
+};
+
+void PrintObject::gridify()
+{
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()), [this](const tbb::blocked_range<size_t>& range) {
+        for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+            m_print->throw_if_canceled();
+            Layer* layer = m_layers[layer_id];
+            if (layer->empty()) continue;
+
+            auto current_poly = layer->merged(float(SCALED_EPSILON));
+            current_poly      = union_ex(current_poly);
+
+            // Apply pattern rotation
+            constexpr float rot = 0;
+            expolygons_rotate(current_poly, -rot);
+
+            // Generate pattern within boundary
+            BoundingBox bounding_box = get_extents(current_poly);
+            assert(bounding_box.defined);
+            // Expand boundary a little bit to make sure no overlapping edges
+            bounding_box.offset(scale_(1));
+
+            // Draw patterns
+            const auto              pattern_width  = 2.;
+            const auto              pattern_height = 0.2 * 5;
+            const Point::coord_type grid_width     = scale_(20.);
+
+            const int               pattern_rep_idx    = layer->bottom_z() / pattern_height;
+            const auto              pattern_rep_offset = layer->bottom_z() - (pattern_rep_idx * pattern_height);
+            const Point::coord_type gap_width          = scale_((pattern_height - pattern_rep_offset) / pattern_height * pattern_width);
+            const auto&             grid_offset        = GRIDIFY_PATTERN_OFFSETS[pattern_rep_idx % GRIDIFY_PATTERN_OFFSET_COUNT];
+
+            const Point::coord_type offset_x = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[0];
+            const Point::coord_type offset_y = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[1];
+
+            Polygons pattern;
+            Point    start_pt = align_to_grid(bounding_box.min, Point(grid_width, grid_width));
+            // Draw vertical stripes
+            for (auto x = start_pt.x(); x < bounding_box.max.x(); x += grid_width) {
+                const Point::coord_type x1 = x - gap_width / 2 + offset_x;
+
+                auto& p = pattern.emplace_back();
+                p.points.emplace_back(x1, bounding_box.min.y());
+                p.points.emplace_back(x1 + gap_width, bounding_box.min.y());
+                p.points.emplace_back(x1 + gap_width, bounding_box.max.y());
+                p.points.emplace_back(x1, bounding_box.max.y());
+            }
+            // Draw horizontal stripes
+            for (auto y = start_pt.y(); y < bounding_box.max.y(); y += grid_width) {
+                const Point::coord_type y1 = y - gap_width / 2 + offset_y;
+
+                auto& p = pattern.emplace_back();
+                p.points.emplace_back(bounding_box.min.x(), y1);
+                p.points.emplace_back(bounding_box.max.x(), y1);
+                p.points.emplace_back(bounding_box.max.x(), y1 + gap_width);
+                p.points.emplace_back(bounding_box.min.x(), y1 + gap_width);
+            }
+
+            ExPolygons ep = union_ex(pattern);
+
+            // Rotation it back
+            expolygons_rotate(ep, rot);
+
+            // Apply the pattern to original slices
+            for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+                ExPolygons layer_polygons = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
+                layer->m_regions[region_id]->slices.set(diff_ex(layer_polygons, ep), stInternal);
+            }
+        }
+    });
 }
 
 //BBS: this function is used to offset contour and holes of expolygons seperately by different value
