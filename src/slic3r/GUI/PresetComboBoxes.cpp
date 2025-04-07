@@ -1419,7 +1419,8 @@ void TabPresetComboBox::update()
         assert(bmp);
 
         const wxString name = get_preset_name(preset);
-        preset_descriptions.emplace(name, from_u8(preset.description));
+        if (preset.is_system)
+            preset_descriptions.emplace(name, from_u8(preset.description));
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
