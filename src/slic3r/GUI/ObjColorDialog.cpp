@@ -512,7 +512,7 @@ void ObjColorPanel::update_filament_ids()
    m_filament_ids.reserve(m_input_colors_size);
    for (size_t i = 0; i < m_input_colors_size; i++) {
        auto label = m_cluster_labels_from_algo[i];
-       if (m_cluster_map_filaments[label] > 0) { 
+       if (m_cluster_map_filaments[label] > 0) {
            m_filament_ids.emplace_back(m_cluster_map_filaments[label]);
        } else {
            m_filament_ids.emplace_back(1);//min filament_id is 1
@@ -677,6 +677,7 @@ void ObjColorPanel::deal_approximate_match_btn()
     if (m_result_icon_list.size() == 0) { return; }
     auto map_count = m_result_icon_list[0]->bitmap_combox->GetCount() -1;
     if (map_count < 1) { return; }
+    m_max_filament_index = 0;
     for (size_t i = 0; i < m_cluster_colours.size(); i++) {
         auto    c = m_cluster_colours[i];
         std::vector<ColorDistValue> color_dists;
