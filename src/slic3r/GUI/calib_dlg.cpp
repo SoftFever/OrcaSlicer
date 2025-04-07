@@ -432,8 +432,8 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
             end = 230;
             break;
 	case tPCTG:
-            start = 240;
-            end = 280;
+            start = 280;
+            end = 240;
             break;
         case tTPU:
             start = 240;
@@ -789,5 +789,391 @@ void Retraction_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
 
 }
 
+// Input_Shaping_Freq_Test_Dlg
+//
+
+Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Input shaping Frequency test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_plater(plater)
+{
+    wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
+    SetSizer(v_sizer);
+
+    // Model selection
+    wxString m_rbModelChoices[] = { _L("Ringing Tower"), _L("Fast Tower") };
+    int m_rbModelNChoices = sizeof(m_rbModelChoices) / sizeof(wxString);
+    m_rbModel = new wxRadioBox(this, wxID_ANY, _L("Test model"), wxDefaultPosition, wxDefaultSize, m_rbModelNChoices, m_rbModelChoices, 1, wxRA_SPECIFY_ROWS);
+    m_rbModel->SetSelection(0);
+    v_sizer->Add(m_rbModel, 0, wxALL | wxEXPAND, 5);
+
+    // Settings
+    //
+    wxString start_x_str = _L("Start X: ");
+    wxString end_x_str = _L("End X: ");
+    wxString start_y_str = _L("Start Y: ");
+    wxString end_y_str = _L("End Y: ");
+    auto text_size = wxWindow::GetTextExtent(start_x_str);
+    text_size.IncTo(wxWindow::GetTextExtent(end_x_str));
+    text_size.IncTo(wxWindow::GetTextExtent(start_y_str));
+    text_size.IncTo(wxWindow::GetTextExtent(end_y_str));
+    text_size.x = text_size.x * 1.5;
+    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Frequency settings"));
+
+    auto st_size = FromDIP(wxSize(text_size.x, -1));
+    auto ti_size = FromDIP(wxSize(90, -1));
+
+    // X axis frequencies
+    auto x_freq_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto start_x_text = new wxStaticText(this, wxID_ANY, start_x_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiFreqStartX = new TextInput(this, std::to_string(15), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqStartX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto end_x_text = new wxStaticText(this, wxID_ANY, end_x_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiFreqEndX = new TextInput(this, std::to_string(60), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqEndX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    
+    x_freq_sizer->Add(start_x_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    x_freq_sizer->Add(m_tiFreqStartX, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    x_freq_sizer->Add(end_x_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    x_freq_sizer->Add(m_tiFreqEndX, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(x_freq_sizer);
+
+    // Y axis frequencies
+    auto y_freq_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto start_y_text = new wxStaticText(this, wxID_ANY, start_y_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiFreqStartY = new TextInput(this, std::to_string(15), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqStartY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto end_y_text = new wxStaticText(this, wxID_ANY, end_y_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiFreqEndY = new TextInput(this, std::to_string(60), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqEndY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    
+    y_freq_sizer->Add(start_y_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    y_freq_sizer->Add(m_tiFreqStartY, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    y_freq_sizer->Add(end_y_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    y_freq_sizer->Add(m_tiFreqEndY, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(y_freq_sizer);
+
+    // Damping Factor
+    wxString damping_factor_str = _L("Damp: ");
+    auto damping_factor_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto damping_factor_text = new wxStaticText(this, wxID_ANY, damping_factor_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiDampingFactor = new TextInput(this, wxString::Format("%.2f", 0.35), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiDampingFactor->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    
+    damping_factor_sizer->Add(damping_factor_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    damping_factor_sizer->Add(m_tiDampingFactor, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(damping_factor_sizer);
+    
+    // Add a note explaining that 0 means use default value
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: 0 Damp = Printer default."), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    note_text->SetForegroundColour(wxColour(128, 128, 128));
+    settings_sizer->Add(note_text, 0, wxALL, 5);
+
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
+    m_btnStart = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+
+    m_btnStart->SetBackgroundColor(btn_bg_green);
+    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
+    m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetCornerRadius(FromDIP(3));
+    m_btnStart->Bind(wxEVT_BUTTON, &Input_Shaping_Freq_Test_Dlg::on_start, this);
+    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(5));
+
+    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
+
+    //wxGetApp().UpdateDlgDarkUI(this);//FIXME: dark mode background color
+
+    Layout();
+    Fit();
+}
+
+Input_Shaping_Freq_Test_Dlg::~Input_Shaping_Freq_Test_Dlg() {
+    // Disconnect Events
+    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
+}
+
+void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
+    bool read_double = false;
+    read_double = m_tiFreqStartX->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartX);
+    read_double = read_double && m_tiFreqEndX->GetTextCtrl()->GetValue().ToDouble(&m_params.freqEndX);
+    read_double = read_double && m_tiFreqStartY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartY);
+    read_double = read_double && m_tiFreqEndY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqEndY);
+    read_double = read_double && m_tiDampingFactor->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
+    
+    if (!read_double ||
+        m_params.freqStartX < 0 || m_params.freqEndX > 500 ||
+        m_params.freqStartY < 0 || m_params.freqEndX > 500 ||
+        m_params.freqStartX >= m_params.freqEndX ||
+        m_params.freqStartY >= m_params.freqEndY) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values\n(0 < FreqStart < FreqEnd < 500"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+    
+    if (m_params.start < 0 || m_params.start >= 1) {
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid damping factor (0 < Damping/zeta factor <= 1)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    m_params.mode = CalibMode::Calib_Input_shaping_freq;
+    
+    // Set model type based on selection
+    m_params.test_model = m_rbModel->GetSelection() == 0 ? 0 : 1; // 0 = Ringing Tower, 1 = Fast Tower
+    
+    m_plater->calib_input_shaping_freq(m_params);
+    EndModal(wxID_OK);
+}
+
+void Input_Shaping_Freq_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+    this->Refresh();
+    Fit();
+}
+
+// Input_Shaping_Damp_Test_Dlg
+//
+
+Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Input shaping Damp test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_plater(plater)
+{
+    wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
+    SetSizer(v_sizer);
+
+    // Model selection
+    wxString m_rbModelChoices[] = { _L("Ringing Tower"), _L("Fast Tower") };
+    int m_rbModelNChoices = sizeof(m_rbModelChoices) / sizeof(wxString);
+    m_rbModel = new wxRadioBox(this, wxID_ANY, _L("Test model"), wxDefaultPosition, wxDefaultSize, m_rbModelNChoices, m_rbModelChoices, 1, wxRA_SPECIFY_ROWS);
+    m_rbModel->SetSelection(0);
+    v_sizer->Add(m_rbModel, 0, wxALL | wxEXPAND, 5);
+
+   // Settings
+    //
+    wxString freq_x_str = _L("Freq X: ");
+    wxString freq_y_str = _L("Freq Y: ");
+    wxString damp_start_str = _L("Start damp: ");
+    wxString damp_end_str = _L("End damp: ");
+    auto text_size = wxWindow::GetTextExtent(freq_x_str);
+    text_size.IncTo(wxWindow::GetTextExtent(freq_y_str));
+    text_size.IncTo(wxWindow::GetTextExtent(damp_start_str));
+    text_size.IncTo(wxWindow::GetTextExtent(damp_end_str));
+    text_size.x = text_size.x * 1.5;
+    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Frequency settings"));
+
+    auto st_size = FromDIP(wxSize(text_size.x, -1));
+    auto ti_size = FromDIP(wxSize(90, -1));
+
+    auto freq_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto freq_x_text = new wxStaticText(this, wxID_ANY, freq_x_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiFreqX = new TextInput(this, std::to_string(30), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto freq_y_text = new wxStaticText(this, wxID_ANY, freq_y_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiFreqY = new TextInput(this, std::to_string(30), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    
+    freq_sizer->Add(freq_x_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    freq_sizer->Add(m_tiFreqX, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    freq_sizer->Add(freq_y_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    freq_sizer->Add(m_tiFreqY, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(freq_sizer);
+    
+    // Damping Factor Start and End
+    auto damp_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto damp_start_text = new wxStaticText(this, wxID_ANY, damp_start_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiDampingFactorStart = new TextInput(this, wxString::Format("%.2f", 0.00), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiDampingFactorStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    auto damp_end_text = new wxStaticText(this, wxID_ANY, damp_end_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiDampingFactorEnd = new TextInput(this, wxString::Format("%.2f", 0.40), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiDampingFactorEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    
+    damp_sizer->Add(damp_start_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    damp_sizer->Add(m_tiDampingFactorStart, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    damp_sizer->Add(damp_end_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    damp_sizer->Add(m_tiDampingFactorEnd, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(damp_sizer);
+   
+    // Add a note to explain users to use their previously calculated frequency
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Use previously calculated frequencies."), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    note_text->SetForegroundColour(wxColour(128, 128, 128));
+    settings_sizer->Add(note_text, 0, wxALL, 5);
+
+    note_text->SetForegroundColour(wxColour(128, 128, 128));
+    settings_sizer->Add(note_text, 0, wxALL, 5);
+
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
+    m_btnStart = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+
+    m_btnStart->SetBackgroundColor(btn_bg_green);
+    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
+    m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetCornerRadius(FromDIP(3));
+    m_btnStart->Bind(wxEVT_BUTTON, &Input_Shaping_Damp_Test_Dlg::on_start, this);
+    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(5));
+
+    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
+
+    //wxGetApp().UpdateDlgDarkUI(this);//FIXME: dark mode background color
+
+    Layout();
+    Fit();
+}
+
+Input_Shaping_Damp_Test_Dlg::~Input_Shaping_Damp_Test_Dlg() {
+    // Disconnect Events
+    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
+}
+
+void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
+    bool read_double = false;
+    read_double = m_tiFreqX->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartX);
+    read_double = read_double && m_tiFreqY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartY);
+    read_double = read_double && m_tiDampingFactorStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
+    read_double = read_double && m_tiDampingFactorEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
+
+        
+    if (!read_double ||
+        m_params.freqStartX < 0 || m_params.freqStartX > 500 ||
+        m_params.freqStartY < 0 || m_params.freqStartY > 500 ) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values\n(0 < Freq < 500"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    if (m_params.start < 0 || m_params.end > 1
+        || m_params.start >= m_params.end) {
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid damping factor (0 <= DampingStart < DampingEnd <= 1)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    m_params.mode = CalibMode::Calib_Input_shaping_damp;
+    
+    // Set model type based on selection
+    m_params.test_model = m_rbModel->GetSelection() == 0 ? 0 : 1; // 0 = Ringing Tower, 1 = Fast Tower
+    
+    m_plater->calib_input_shaping_damp(m_params);
+    EndModal(wxID_OK);
+}
+
+void Input_Shaping_Damp_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+    this->Refresh();
+    Fit();
+}
+
+// Junction_Deviation_Test_Dlg
+//
+
+Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Junction Deviation test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_plater(plater)
+{
+    wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
+    SetSizer(v_sizer);
+
+    // Model selection
+    wxString m_rbModelChoices[] = { _L("Ringing Tower"), _L("Fast Tower") };
+    int m_rbModelNChoices = sizeof(m_rbModelChoices) / sizeof(wxString);
+    m_rbModel = new wxRadioBox(this, wxID_ANY, _L("Test model"), wxDefaultPosition, wxDefaultSize, m_rbModelNChoices, m_rbModelChoices, 1, wxRA_SPECIFY_ROWS);
+    m_rbModel->SetSelection(1);
+    v_sizer->Add(m_rbModel, 0, wxALL | wxEXPAND, 5);
+
+    // Settings
+    wxString start_jd_str = _L("Start junction deviation: ");
+    wxString end_jd_str = _L("End junction deviation: ");
+    auto text_size = wxWindow::GetTextExtent(start_jd_str);
+    text_size.IncTo(wxWindow::GetTextExtent(end_jd_str));
+    text_size.x = text_size.x * 1.5;
+    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Junction Deviation settings"));
+
+    auto st_size = FromDIP(wxSize(text_size.x, -1));
+    auto ti_size = FromDIP(wxSize(90, -1));
+
+    // Start junction deviation
+    auto start_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto start_jd_text = new wxStaticText(this, wxID_ANY, start_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 0.000), _L("mm"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiJDStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    start_jd_sizer->Add(start_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    start_jd_sizer->Add(m_tiJDStart, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(start_jd_sizer);
+
+    // End junction deviation
+    auto end_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto end_jd_text = new wxStaticText(this, wxID_ANY, end_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 0.250), _L("mm"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiJDEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    end_jd_sizer->Add(end_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    end_jd_sizer->Add(m_tiJDEnd, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(end_jd_sizer);
+
+    // Add note about junction deviation
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Lower values = sharper corners but slower speeds"), 
+                                    wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    note_text->SetForegroundColour(wxColour(128, 128, 128));
+    settings_sizer->Add(note_text, 0, wxALL, 5);
+
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
+    m_btnStart = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+
+    m_btnStart->SetBackgroundColor(btn_bg_green);
+    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
+    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
+    m_btnStart->SetSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btnStart->SetCornerRadius(FromDIP(3));
+    m_btnStart->Bind(wxEVT_BUTTON, &Junction_Deviation_Test_Dlg::on_start, this);
+    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(5));
+
+    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Junction_Deviation_Test_Dlg::on_start), NULL, this);
+
+    Layout();
+    Fit();
+}
+
+Junction_Deviation_Test_Dlg::~Junction_Deviation_Test_Dlg() {
+    // Disconnect Events
+    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Junction_Deviation_Test_Dlg::on_start), NULL, this);
+}
+
+void Junction_Deviation_Test_Dlg::on_start(wxCommandEvent& event) {
+    bool read_double = false;
+    read_double = m_tiJDStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
+    read_double = read_double && m_tiJDEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
+
+    if (!read_double || m_params.start < 0 || m_params.end >= 1 || m_params.start >= m_params.end) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values\n(0 <= Junction Deviation < 1)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    } else if (m_params.end > 0.3) {
+        MessageDialog msg_dlg(nullptr, _L("NOTE: High values may cause Layer shift"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    m_params.mode = CalibMode::Calib_Junction_Deviation;
+    
+    // Set model type based on selection
+    m_params.test_model = m_rbModel->GetSelection() == 0 ? 0 : 1; // 0 = Ringing Tower, 1 = Fast Tower
+    
+    m_plater->calib_junction_deviation(m_params);
+    EndModal(wxID_OK);
+}
+
+void Junction_Deviation_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+    this->Refresh();
+    Fit();
+}
 
 }} // namespace Slic3r::GUI
