@@ -194,7 +194,7 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
 
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
 
-   ![image](./images/InputShaping/IS_freq_print_measure.jpg)
+   ![image](./images/InputShaping/IS_damp_klipper_print_measure.jpg)
    ![image](./images/InputShaping/IS_freq_klipper_slicer_measure.png)
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
@@ -206,7 +206,7 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
 
    1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
    
-   ![image](./images/InputShaping/IS_damp_print_measure.jpg)
+   ![image](./images/InputShaping/IS_damp_klipper_print_measure.jpg)
    ![image](./images/InputShaping/IS_damp_klipper_slicer_measure.png)
 
    **Note**: Not all Resonance Compensation modes support damping
@@ -234,7 +234,7 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
 
-   ![image](./images/InputShaping/IS_freq_print_measure.jpg)
+   ![image](./images/InputShaping/IS_freq_marlin_print_measure.jpg)
    ![image](./images/InputShaping/IS_freq_marlin_slicer_measure.png)
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
@@ -246,8 +246,8 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
    1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
 
-   ![image](./images/InputShaping/IS_damp_print_measure.jpg)
-   ![image](./images/InputShaping/IS_damp_klipper_slicer_measure.png)
+   ![image](./images/InputShaping/IS_damp_marlin_print_measure.jpg)
+   ![image](./images/InputShaping/IS_damp_marlin_slicer_measure.png)
 
 4. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
    1. Reboot your printer.
@@ -272,7 +272,7 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
 #### Fixed-Time Motion
 
-TODO This calibration test is currently under development.
+TODO This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
 
 ### Junction Deviation
 
@@ -288,14 +288,21 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    3. Use an opaque, high-gloss filament to make the ringing more visible.
 2. You need to print the Junction Deviation test.
    
-   ![image](./images/JunctionDeviation/jd_menu.png)
+   ![image](./images/JunctionDeviation/jd_first_menu.png)
 
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
       
-   ![image](./images/JunctionDeviation/jd_print_measure.jpg)
-   ![image](./images/JunctionDeviation/jd_slicer_measure.png)
+   ![image](./images/JunctionDeviation/jd_first_print_measure.jpg)
+   ![image](./images/JunctionDeviation/jd_first_slicer_measure.png)
 
-   2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
+   2. It’s very likely that you’ll need to set values lower than 0.08 mm, as shown in the previous example. To determine a more accurate maximum JD value, you can print a new calibration tower with a maximum value set at the point where the corners start losing sharpness.
+   3. 
+   ![image](./images/JunctionDeviation/jd_second_menu.png)
+
+   4. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+      
+   ![image](./images/JunctionDeviation/jd_second_print_measure.jpg)
+   ![image](./images/JunctionDeviation/jd_second_slicer_measure.png)
 3. Save the settings
    1. Use the following G-code to set the frequency:
    ```gcode
