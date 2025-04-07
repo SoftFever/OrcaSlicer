@@ -1396,6 +1396,12 @@ void PrintObject::gridify()
 
             ExPolygons ep = union_ex(pattern);
 
+            // Apply inset
+            const auto inset = scale_(0.8);
+            if (inset > 0) {
+                ep = intersection_ex(ep, offset_ex(current_poly, -inset));
+            }
+
             // Rotation it back
             expolygons_rotate(ep, rot);
 
