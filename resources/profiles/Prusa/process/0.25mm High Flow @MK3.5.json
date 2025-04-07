@@ -20,6 +20,8 @@
   "top_shell_layers": "4",
   "bottom_shell_thickness": "0.6",
   "bottom_shell_layers": "3",
+  "initial_layer_speed": "40",
+  "initial_layer_infill_speed": "70",
   "outer_wall_speed": "80",
   "inner_wall_speed": "90",
   "small_perimeter_speed": "80",
