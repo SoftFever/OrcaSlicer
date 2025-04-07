@@ -14,7 +14,6 @@
 #include "libslic3r/Technologies.hpp"
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include "3DBed.hpp"
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "GLShader.hpp"
@@ -1168,6 +1167,13 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     load_arrange_settings();
 
     m_selection.set_volumes(&m_volumes.volumes);
+
+    m_assembly_view_desc["object_selection_caption"] = _L("Left mouse button");
+    m_assembly_view_desc["object_selection"]         = _L("object selection");
+    m_assembly_view_desc["part_selection_caption"]   = "Alt +" + _L("Left mouse button");
+    m_assembly_view_desc["part_selection"]         = _L("part selectiont");
+    m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
+    m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -1544,12 +1550,15 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool current_plate_only) const
     BoundingBoxf3 expand_part_plate_list_box;
     bool          is_limit = m_canvas_type != ECanvasType::CanvasAssembleView;
     if (is_limit) {
-        auto        plate_list_box = current_plate_only ? wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box() :
-                                                          wxGetApp().plater()->get_partplate_list().get_bounding_box();
-        auto        horizontal_radius = 0.5 * sqrt(std::pow(plate_list_box.min[0] - plate_list_box.max[0], 2) + std::pow(plate_list_box.min[1] - plate_list_box.max[1], 2));
-        const float scale             = 2;
-        expand_part_plate_list_box.merge(plate_list_box.min - scale * Vec3d(horizontal_radius, horizontal_radius, 0));
-        expand_part_plate_list_box.merge(plate_list_box.max + scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+        if (current_plate_only) {
+            expand_part_plate_list_box = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box();
+        } else {
+            auto        plate_list_box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
+            auto        horizontal_radius = 0.5 * sqrt(std::pow(plate_list_box.min[0] - plate_list_box.max[0], 2) + std::pow(plate_list_box.min[1] - plate_list_box.max[1], 2));
+            const float scale             = 2;
+            expand_part_plate_list_box.merge(plate_list_box.min - scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+            expand_part_plate_list_box.merge(plate_list_box.max + scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+        }
     }
     for (const GLVolume *volume : m_volumes.volumes) {
         if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
@@ -1939,7 +1948,11 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
+        if (m_show_world_axes) {
+            m_axes.render();
+        }
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
+        _render_selection();
         //_render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
         _render_plane();
         //BBS: add outline logic insteadof selection under assemble view
@@ -2147,6 +2160,9 @@ void GLCanvas3D::update_plate_thumbnails()
 
 void GLCanvas3D::select_all()
 {
+    if (!m_gizmos.is_allow_select_all()) {
+        return;
+    }
     m_selection.add_all();
     m_dirty = true;
 }
@@ -2262,16 +2278,10 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 void GLCanvas3D::mirror_selection(Axis axis)
 {
     TransformationType transformation_type;
-    if (wxGetApp().obj_manipul()->is_local_coordinates())
-        transformation_type.set_local();
-    else if (wxGetApp().obj_manipul()->is_instance_coordinates())
-        transformation_type.set_instance();
-
+    //transformation_type.set_world();
     transformation_type.set_relative();
-
     m_selection.setup_cache();
     m_selection.mirror(axis, transformation_type);
-
     do_mirror(L("Mirror Object"));
     // BBS
     //wxGetApp().obj_manipul()->set_dirty();
@@ -4073,9 +4083,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             GLGizmosManager::EType c = m_gizmos.get_current_type();
             if (current_printer_technology() == ptFFF &&
                 (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
-                if (c == GLGizmosManager::EType::Move ||
-                    c == GLGizmosManager::EType::Scale ||
-                    c == GLGizmosManager::EType::Rotate )
+                if (can_sequential_clearance_show_in_gizmo())
                     update_sequential_clearance();
             } else {
                 if (c == GLGizmosManager::EType::Move ||
@@ -4178,11 +4186,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         int volume_idx = get_first_hover_volume_idx();
                         bool already_selected = m_selection.contains_volume(volume_idx);
                         bool ctrl_down = evt.CmdDown();
-
+                        bool alt_down  = evt.AltDown();
                         Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
 
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
+                        else if (alt_down) {
+                            Selection::EMode mode = Selection::Volume;
+                            if (already_selected) {
+                                std::vector<unsigned int> volume_idxs;
+                                for (auto idx : curr_idxs) { volume_idxs.emplace_back(idx); }
+                                m_selection.remove_volumes(mode, volume_idxs);
+                            }
+                            std::vector<unsigned int> add_volume_idxs;
+                            add_volume_idxs.emplace_back(volume_idx);
+                            m_selection.add_volumes(mode, add_volume_idxs, true);
+                        }
                         else {
                             m_selection.add(volume_idx, !ctrl_down, true);
                             m_mouse.drag.move_requires_threshold = !already_selected;
@@ -4342,8 +4361,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             else {
                                 if (!m_selection.is_empty())
                                     rotate_target = m_selection.get_bounding_box().center();
-                                else 
-                                    rotate_target = volumes_bounding_box(true).center();
+                                else {
+                                    // Rotate around the center of objects on current plate
+                                    auto bbox = volumes_bounding_box(true);
+                                    if (!bbox.defined) {
+                                        // Rotate around current plate center if current plate is empty
+                                        bbox = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_bounding_box();
+                                    }
+                                    rotate_target = bbox.center();
+                                }
                             }
 
                             if (!rotate_target.isZero())
@@ -4660,11 +4686,19 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr) {
-                if (selection_mode == Selection::Instance)
-                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                if (selection_mode == Selection::Instance) {
+                    if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+                        if ((model_object->instances[instance_idx]->get_assemble_offset() - v->get_instance_offset()).norm() > 1e-2) {
+                            model_object->instances[instance_idx]->set_assemble_transformation(v->get_instance_transformation());
+                        }
+                    } else {
+                        model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                    }
+                }
                 else if (selection_mode == Selection::Volume) {
-                    if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
-                        model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
+                    auto cur_mv = model_object->volumes[volume_idx];
+                    if (cur_mv->get_transformation() != v->get_volume_transformation()) {
+                        cur_mv->set_transformation(v->get_volume_transformation());
                         // BBS: backup
                         Slic3r::save_object_mesh(*model_object);
                     }
@@ -4771,11 +4805,17 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         // Rotate instances/volumes.
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance)
-                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+            if (selection_mode == Selection::Instance) {
+                if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+                    model_object->instances[instance_idx]->set_assemble_from_transform(v->get_instance_transformation().get_matrix());
+                } else {
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                }
+            }
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
-                	model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
+                auto cur_mv = model_object->volumes[volume_idx];
+                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
+                    cur_mv->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4786,23 +4826,24 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 
     //BBS: notify instance updates to part plater list
     m_selection.notify_instance_update(-1, -1);
+    if (m_canvas_type != CanvasAssembleView) {
+        // Fixes sinking/flying instances
+        for (const std::pair<int, int> &i : done) {
+            ModelObject *m = m_model->objects[i.first];
 
-    // Fixes sinking/flying instances
-    for (const std::pair<int, int>& i : done) {
-        ModelObject* m = m_model->objects[i.first];
+            // BBS: don't call translate if the z is zero
+            const double shift_z = m->get_instance_min_z(i.second);
+            // leave sinking instances as sinking
+            if ((min_zs.find({i.first, i.second})->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+                const Vec3d shift(0.0, 0.0, -shift_z);
+                m_selection.translate(i.first, i.second, shift);
+                m->translate_instance(i.second, shift);
+                // BBS: notify instance updates to part plater list
+                m_selection.notify_instance_update(i.first, i.second);
+            }
 
-        //BBS: don't call translate if the z is zero
-        const double shift_z = m->get_instance_min_z(i.second);
-        // leave sinking instances as sinking
-        if ((min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
-            const Vec3d shift(0.0, 0.0, -shift_z);
-            m_selection.translate(i.first, i.second, shift);
-            m->translate_instance(i.second, shift);
-            //BBS: notify instance updates to part plater list
-            m_selection.notify_instance_update(i.first, i.second);
+            wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
         }
-
-        wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
     //BBS: nofity object list to update
     wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
@@ -4852,12 +4893,14 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance)
+            if (selection_mode == Selection::Instance) {
                 model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+            }
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                auto cur_mv = model_object->volumes[volume_idx];
+                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
                     model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
-                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
+                    cur_mv->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -5211,6 +5254,17 @@ void GLCanvas3D::mouse_up_cleanup()
 
     if (m_canvas->HasCapture())
         m_canvas->ReleaseMouse();
+}
+
+bool GLCanvas3D::can_sequential_clearance_show_in_gizmo() {
+    switch (m_gizmos.get_current_type()) {
+    case GLGizmosManager::EType::Move:
+    case GLGizmosManager::EType::Scale:
+    case GLGizmosManager::EType::Rotate: {
+        return true;
+    }
+    }
+    return false;
 }
 
 void GLCanvas3D::update_sequential_clearance()
@@ -7269,6 +7323,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
+    bool                 partly_inside_enable = canvas_type == ECanvasType::CanvasAssembleView ? false : true;
     if (shader != nullptr) {
         shader->start_using();
 
@@ -7312,7 +7367,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                         else {
                             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                         }
-                        });
+                        },
+                        partly_inside_enable);
                 }
             }
             else {
@@ -7346,7 +7402,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 else {
                     return true;
                 }
-                });
+                },
+                partly_inside_enable);
             if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 shader->stop_using();
@@ -7414,19 +7471,11 @@ void GLCanvas3D::_render_sequential_clearance()
 {
     if (m_gizmos.is_dragging())
         return;
-
-    switch (m_gizmos.get_current_type())
-    {
-    case GLGizmosManager::EType::Flatten:
-    case GLGizmosManager::EType::Cut:
-    // case GLGizmosManager::EType::Hollow:
-    // case GLGizmosManager::EType::SlaSupports:
-    case GLGizmosManager::EType::FdmSupports:
-    case GLGizmosManager::EType::Seam: { return; }
-    default: { break; }
+    auto type = m_gizmos.get_current_type();
+    if (type == GLGizmosManager::EType::Undefined
+        || can_sequential_clearance_show_in_gizmo()) {
+        m_sequential_print_clearance.render();
     }
-
-    m_sequential_print_clearance.render();
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -8171,6 +8220,7 @@ void GLCanvas3D::_render_return_toolbar() const
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
         const_cast<GLGizmosManager*>(&m_gizmos)->reset_all_states();
         wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+        wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
@@ -8370,8 +8420,45 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::PopStyleColor();
 }
 
+float GLCanvas3D::_show_assembly_tooltip_information(float caption_max, float x, float y) const
+{
+    ImGuiWrapper *imgui     = wxGetApp().imgui();
+    ImTextureID normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
+    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
+
+    caption_max += imgui->calc_text_size(": "sv).x + 35.f;
+
+    float  scale       = get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, ImGui::GetStyle().FramePadding.y});
+    ImGui::ImageButton3(normal_id, hover_id, button_size);
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip2(ImVec2(x, y));
+        auto draw_text_with_caption = [this, &imgui, & caption_max](const wxString &caption, const wxString &text) {
+            imgui->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
+            ImGui::SameLine(caption_max);
+            imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
+        };
+
+        for (const auto &t : std::array<std::string, 3>{"object_selection", "part_selection", "number_key"}) {
+            draw_text_with_caption(m_assembly_view_desc.at(t + "_caption") + ": ", m_assembly_view_desc.at(t));
+        }
+        ImGui::EndTooltip();
+    }
+    ImGui::PopStyleVar(2);
+    auto same_line_size = button_size.x * 1.8;//with an space size
+    ImGui::SameLine(same_line_size);
+    same_line_size = imgui->calc_text_size("|"sv).x + same_line_size + imgui->calc_text_size("  "sv).x;
+    imgui->text_colored(ImGuiWrapper::COL_ACTIVE, "|");
+    ImGui::SameLine(same_line_size);
+    return same_line_size;
+}
+
 //BBS
-void GLCanvas3D::_render_assemble_control() const
+void GLCanvas3D::_render_assemble_control()
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         GLVolume::explosion_ratio = m_explosion_ratio = 1.0;
@@ -8392,8 +8479,8 @@ void GLCanvas3D::_render_assemble_control() const
     const float text_padding = 7.0f;
     const float text_size_x = std::max(imgui->calc_text_size(_L("Reset direction")).x + 2 * ImGui::GetStyle().FramePadding.x,
         std::max(imgui->calc_text_size(_L("Explosion Ratio")).x, imgui->calc_text_size(_L("Section View")).x));
-    const float slider_width = 75.0f;
-    const float value_size = imgui->calc_text_size(std::string_view{"3.00"}).x + text_padding * 2;
+    const float slider_width = 60.0f;
+    const float value_size = imgui->calc_text_size("3.00"sv).x + text_padding * 2;
     const float item_spacing = imgui->get_item_spacing().x;
     ImVec2 window_padding = ImGui::GetStyle().WindowPadding;
 
@@ -8401,7 +8488,19 @@ void GLCanvas3D::_render_assemble_control() const
     imgui->begin(_L("Assemble Control"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     ImGui::AlignTextToFramePadding();
-
+    float tip_icon_size;
+    {
+        float caption_max = 0.f;
+        for (const auto &t : std::array<std::string, 3>{"object_selection", "part_selection", "number_key"}) {
+            caption_max = std::max(caption_max, imgui->calc_text_size(m_assembly_view_desc.at(t + "_caption")).x);
+        }
+        const ImVec2 pos = ImGui::GetCursorScreenPos();
+        const float text_y =imgui->calc_text_size(_L("part selection")).y;
+        float get_cur_x = pos.x;
+        float get_cur_y = pos.y - ImGui::GetFrameHeight() - 4 * text_y;
+        tip_icon_size =_show_assembly_tooltip_information(caption_max, get_cur_x, get_cur_y);
+    }
+    float same_line_width = tip_icon_size;
     {
         float clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
         if (clp_dist == 0.f) {
@@ -8415,32 +8514,76 @@ void GLCanvas3D::_render_assemble_control() const
                     });
             }
         }
-
-        ImGui::SameLine(window_padding.x + text_size_x + item_spacing);
+        same_line_width += (text_size_x + item_spacing);
+        ImGui::SameLine(same_line_width);
         ImGui::PushItemWidth(slider_width);
         bool view_slider_changed = imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
-        ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 2);
+        same_line_width += (slider_width + item_spacing);
+        ImGui::SameLine(same_line_width);
         ImGui::PushItemWidth(value_size);
         bool view_input_changed = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
 
         if (view_slider_changed || view_input_changed)
             m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
-    }
 
+        same_line_width += (value_size + item_spacing * 2);
+    }
     {
-        ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 6 + value_size);
+        auto temp_x = imgui->calc_text_size(_L("Explosion Ratio")).x;
+        ImGui::SameLine(same_line_width);
+        ImGui::PushItemWidth(temp_x);
         imgui->text(_L("Explosion Ratio"));
 
-        ImGui::SameLine(window_padding.x + 2 * text_size_x + slider_width + item_spacing * 7 + value_size);
+        same_line_width +=   (temp_x + item_spacing);
+        ImGui::SameLine(same_line_width);
         ImGui::PushItemWidth(slider_width);
         bool explosion_slider_changed = imgui->bbl_slider_float_style("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
 
-        ImGui::SameLine(window_padding.x + 2 * text_size_x + 2 * slider_width + item_spacing * 8 + value_size);
+        same_line_width +=  (slider_width + item_spacing);
+        ImGui::SameLine(same_line_width);
         ImGui::PushItemWidth(value_size);
         bool explosion_input_changed = ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
+        same_line_width    +=   (value_size + item_spacing*2);
     }
+    {
+        ImGui::SameLine(same_line_width);
+        // input
+        std::vector<std::string> modes = {_u8L("Object"), _u8L("Part")};
+        int selection_idx = m_selection.get_volume_selection_mode() == Selection::Instance ? 0 : 1;
+        auto label         = _u8L("Selection Mode") + ":" ;
+        auto label_width   = imgui->calc_text_size(label).x ;
+        auto item_width    = imgui->calc_text_size(_u8L("Object")).x * 2.5 + imgui->calc_text_size("xx"sv).x+ item_spacing;
+        //render imgui
+        ImGui::AlignTextToFramePadding();
+        ImGui::PushItemWidth(label_width);
+        imgui->text(label);
+        same_line_width += (label_width + item_spacing);
+        ImGui::SameLine(same_line_width);
+        ImGui::PushItemWidth(item_width);
+        size_t selection_out = selection_idx;
+        const char *selected_str = (selection_idx >= 0 && selection_idx < int(modes.size())) ? modes[selection_idx].c_str() : "";
+        ImGuiWrapper::push_combo_style(get_scale());
+        if (ImGui::BBLBeginCombo(("##" + label).c_str(), selected_str, 0)) {
+            for (size_t line_idx = 0; line_idx < modes.size(); ++line_idx) {
+                ImGui::PushID(int(line_idx));
+                if (ImGui::Selectable("", line_idx == selection_idx))
+                    selection_out = line_idx;
 
+                ImGui::SameLine();
+                ImGui::Text("%s", modes[line_idx].c_str());
+                ImGui::PopID();
+            }
+            ImGui::EndCombo();
+        }
+        ImGuiWrapper::pop_combo_style();
+        if (selection_idx != selection_out) {//do
+            if (selection_out == 0) { m_selection.unlock_volume_selection_mode(); }
+            m_selection.set_volume_selection_mode(selection_out == 1 ? Selection::Volume : Selection::Instance);
+            if (selection_out == 1) { m_selection.lock_volume_selection_mode(); }
+        }
+        same_line_width += (label_width + item_width);
+    }
     imgui->end();
 
     ImGuiWrapper::pop_toolbar_style();
