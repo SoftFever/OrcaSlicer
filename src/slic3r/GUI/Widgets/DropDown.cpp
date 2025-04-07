@@ -298,6 +298,7 @@ void DropDown::render(wxDC &dc)
             if (item.group != group)
                 continue;
         }
+        bool is_hover = index == hover_item;
         ++index;
         if (rcContent.GetBottom() < 0) {
             rcContent.y += rowSize.y;
@@ -326,7 +327,7 @@ void DropDown::render(wxDC &dc)
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
-                if (index == hover_item && item.tip.IsEmpty())
+                if (is_hover && item.tip.IsEmpty())
                     SetToolTip(text);
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
