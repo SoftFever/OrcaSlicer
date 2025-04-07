@@ -238,6 +238,9 @@ private:
 #ifdef __linux__
     bool            m_opengl_initialized{ false };
 #endif
+#if defined(__WINDOWS__)
+    bool            m_is_arm64{false};
+#endif
 
    
 //#ifdef _WIN32
@@ -582,6 +585,10 @@ public:
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
     std::string     get_download_model_url() {return m_mall_model_download_url;}
     std::string     get_download_model_name() {return m_mall_model_download_name;}
+
+#if defined(__WINDOWS__)
+    bool            is_running_on_arm64() { return m_is_arm64; }
+#endif
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();

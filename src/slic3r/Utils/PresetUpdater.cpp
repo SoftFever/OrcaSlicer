@@ -943,6 +943,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         }
     }
 
+#if defined(__WINDOWS__)
+    if (GUI::wxGetApp().is_running_on_arm64()) {
+        //set to arm64 for plugins
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "win_arm64";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type to win_arm64");
+    }
+#endif
     try {
         std::map<std::string, Resource> resources
         {
@@ -953,6 +963,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater] sync_plugins: %1%", e.what());
     }
+#if defined(__WINDOWS__)
+    if (GUI::wxGetApp().is_running_on_arm64()) {
+        //set back
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type back to windows");
+    }
+#endif
 
     bool result = get_cached_plugins_version(cached_version, force_upgrade);
     if (result) {

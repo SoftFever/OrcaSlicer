@@ -1087,6 +1087,20 @@ GUI_App::GUI_App()
 #endif
 
     reset_to_active();
+
+#if defined(__WINDOWS__)
+    SYSTEM_INFO sysInfo;
+    GetNativeSystemInfo(&sysInfo);
+    switch (sysInfo.wProcessorArchitecture) {
+        case PROCESSOR_ARCHITECTURE_ARM64:
+            m_is_arm64 = true;
+            break;
+        case PROCESSOR_ARCHITECTURE_AMD64:
+        default:
+            m_is_arm64 = false;
+            break;
+    }
+#endif
 }
 
 void GUI_App::shutdown()
