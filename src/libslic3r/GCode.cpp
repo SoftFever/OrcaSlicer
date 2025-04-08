@@ -3789,9 +3789,6 @@ LayerResult GCode::process_layer(
         }
         case CalibMode::Calib_Input_shaping_freq: {
             if (m_layer_index == 1){
-                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
-                    gcode += writer().set_junction_deviation(0.25);//Set junction deviation at high value to maximize ringing.
-                }
                 gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
             } else {
                 if (print.calib_params().freqStartX == print.calib_params().freqStartY && print.calib_params().freqEndX == print.calib_params().freqEndY) {
@@ -3805,9 +3802,6 @@ LayerResult GCode::process_layer(
         }
         case CalibMode::Calib_Input_shaping_damp: {
             if (m_layer_index == 1){
-                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
-                    gcode += writer().set_junction_deviation(0.25); // Set junction deviation at high value to maximize ringing.
-                }
                 gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX);
             gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY);
             } else {
