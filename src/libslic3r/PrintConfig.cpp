@@ -2555,7 +2555,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("default_junction_deviation", coFloat);
     def->label = L("Junction Deviation");
-    def->tooltip = L("Default Junction Deviation");
+    def->tooltip = L("Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
