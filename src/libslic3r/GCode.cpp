@@ -5269,6 +5269,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
 
+    // adjust junction deviation
+   
+    if (this->on_first_layer() && m_writer.get_gcode_flavor() == gcfMarlinFirmware && m_config.default_junction_deviation.value > 0) {
+        gcode += m_writer.set_junction_deviation(m_config.default_junction_deviation.value);
+    }
+
     if (m_writer.get_gcode_flavor() == gcfKlipper) {
         gcode += m_writer.set_accel_and_jerk(acceleration_i, jerk);
 

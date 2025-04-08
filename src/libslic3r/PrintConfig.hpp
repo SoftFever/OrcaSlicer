@@ -899,6 +899,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              initial_layer_jerk))
     ((ConfigOptionFloat,              travel_jerk))
     ((ConfigOptionBool,               precise_z_height))
+    ((ConfigOptionFloat,              default_junction_deviation))
         
     ((ConfigOptionBool, interlocking_beam))
     ((ConfigOptionFloat,interlocking_beam_width))

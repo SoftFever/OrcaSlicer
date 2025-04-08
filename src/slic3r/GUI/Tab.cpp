@@ -2198,6 +2198,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_jerk");
         optgroup->append_single_option_line("initial_layer_jerk");
         optgroup->append_single_option_line("travel_jerk");
+        optgroup->append_single_option_line("default_junction_deviation");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
