@@ -3141,12 +3141,11 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
             print.config().machine_max_jerk_e.values.front() * factor);
 
         // New Marlin uses M205 J[mm] for junction deviation (only apply if it is > 0)
-
         if (flavor == gcfMarlinFirmware && config().machine_max_junction_deviation.values.front() > 0) {
             file.write_format("M205 J%.4lf ; set Junction Deviation, mm\n",
-                              print.config().machine_max_junction_deviation.values.front());
+            print.config().machine_max_junction_deviation.values.front());
         }
-    }       
+    }
 }
 
 // BBS
@@ -3831,6 +3830,10 @@ LayerResult GCode::process_layer(
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
             gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
+        }
+
+        if (m_writer.get_gcode_flavor() == gcfMarlinFirmware && m_config.default_junction_deviation.value > 0) {
+            gcode += m_writer.set_junction_deviation(m_config.default_junction_deviation.value);
         }
 
     }
@@ -5267,14 +5270,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         else {
             jerk = m_config.default_jerk.value;
         }
-    }
-
-    // adjust junction deviation
-    if (m_writer.get_gcode_flavor() == gcfMarlinFirmware && m_config.default_junction_deviation.value > 0) {
-        double junction_deviation = m_config.default_junction_deviation.value;
-        if (this->on_first_layer()) {
-            gcode += m_writer.set_junction_deviation(junction_deviation);
-    }
     }
 
     if (m_writer.get_gcode_flavor() == gcfKlipper) {
