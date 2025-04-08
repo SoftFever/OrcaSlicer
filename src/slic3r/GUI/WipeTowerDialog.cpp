@@ -247,18 +247,42 @@ wxString WipingDialog::BuildTableObjStr()
     return obj_str;
 }
 
-wxString WipingDialog::BuildTextObjStr()
+wxString WipingDialog::BuildTextObjStr(bool multi_language)
 {
-    wxString auto_flush_tip = _L("Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences");
-    wxString volume_desp_panel = _L("Flushing volume (mm³) for each filament pair.");
-    wxString volume_range_panel = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"), 0, 700);
-    wxString multiplier_range_panel = wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), 0, 3);
-    wxString calc_btn_panel = _L("Re-calculate");
-    wxString extruder_label_0 = _L("Left extruder");
-    wxString extruder_label_1 = _L("Right extruder");
-    wxString multiplier_label = _L("Multiplier");
-    wxString ok_btn_label = _L("OK");
-    wxString cancel_btn_label = _L("Cancel");
+    wxString auto_flush_tip;
+    wxString volume_desp_panel;
+    wxString volume_range_panel;
+    wxString multiplier_range_panel;
+    wxString calc_btn_panel;
+    wxString extruder_label_0;
+    wxString extruder_label_1;
+    wxString multiplier_label;
+    wxString ok_btn_label;
+    wxString cancel_btn_label;
+
+    if (multi_language) {
+        auto_flush_tip = _L("Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences");
+        volume_desp_panel = _L("Flushing volume (mm³) for each filament pair.");
+        volume_range_panel = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"), 0, 700);
+        multiplier_range_panel = wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), 0, 3);
+        calc_btn_panel = _L("Re-calculate");
+        extruder_label_0 = _L("Left extruder");
+        extruder_label_1 = _L("Right extruder");
+        multiplier_label = _L("Multiplier");
+        ok_btn_label = _L("OK");
+        cancel_btn_label = _L("Cancel");
+    } else {
+        auto_flush_tip = "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences";
+        volume_desp_panel = "Flushing volume (mm³) for each filament pair.";
+        volume_range_panel = wxString::Format("Suggestion: Flushing Volume in range [%d, %d]", 0, 700);
+        multiplier_range_panel = wxString::Format("The multiplier should be in range [%.2f, %.2f].", 0, 3);
+        calc_btn_panel = "Re-calculate";
+        extruder_label_0 = "Left extruder";
+        extruder_label_1 = "Right extruder";
+        multiplier_label = "Multiplier";
+        ok_btn_label = "OK";
+        cancel_btn_label = "Cancel";
+    }
 
     wxString text_obj = "{";
     text_obj += wxString::Format("\"volume_desp_panel\":\"%s\",", volume_desp_panel);
@@ -346,10 +370,17 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
             json j = json::parse(message);
             if (j["msg"].get<std::string>() == "init") {
                 auto table_obj_str = BuildTableObjStr();
-                auto text_obj_str = BuildTextObjStr();
+                auto text_obj_str = BuildTextObjStr(true);
                 CallAfter([table_obj_str, text_obj_str, this] {
-                    wxString script = wxString::Format("buildTable(%s);buildText(%s)", table_obj_str, text_obj_str);
-                    m_webview->RunScript(script);
+                    wxString script1 = wxString::Format("buildTable(%s)", table_obj_str);
+                    m_webview->RunScript(script1);
+                    wxString script2 = wxString::Format("buildText(%s)", text_obj_str);
+                    bool result = m_webview->RunScript(script2);
+                    if (!result) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "Failed to run buildText, retry without multi language";
+                        wxString script3 = wxString::Format("buildText(%s)", BuildTextObjStr(false));
+                        m_webview->RunScript(script3);
+                    }
                     });
             }
             else if (j["msg"].get<std::string>() == "updateMatrix") {
