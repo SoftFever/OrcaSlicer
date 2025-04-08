@@ -52,7 +52,7 @@ public:
 private:
 	int CalcFlushingVolume(const wxColour& from_, const wxColour& to_, int min_flush_volume, bool is_multi_extruder, Slic3r::NozzleVolumeType volume_type);
 	wxString BuildTableObjStr();
-	wxString BuildTextObjStr();
+	wxString BuildTextObjStr(bool multi_language = true);
 	void StoreFlushData(int extruder_num, const std::vector<std::vector<double>>& flush_volume_vecs, const std::vector<double>& flush_multipliers);
 
 	wxWebView* m_webview;
