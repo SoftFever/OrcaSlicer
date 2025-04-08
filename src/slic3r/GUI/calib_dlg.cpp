@@ -1159,7 +1159,6 @@ void Junction_Deviation_Test_Dlg::on_start(wxCommandEvent& event) {
     } else if (m_params.end > 0.3) {
         MessageDialog msg_dlg(nullptr, _L("NOTE: High values may cause Layer shift"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
-        return;
     }
 
     m_params.mode = CalibMode::Calib_Junction_Deviation;
