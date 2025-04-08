@@ -3829,7 +3829,6 @@ LayerResult GCode::process_layer(
         if (m_writer.get_gcode_flavor() == gcfMarlinFirmware && m_config.default_junction_deviation.value > 0) {
             gcode += m_writer.set_junction_deviation(m_config.default_junction_deviation.value);
         }
-
     }
 
     if (! first_layer && ! m_second_layer_things_done) {

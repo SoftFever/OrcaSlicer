@@ -4124,7 +4124,6 @@ PageShp TabPrinter::build_kinematics_page()
         }
 
         // machine max junction deviation
-      // optgroup = page->new_optgroup(L("Junction Deviation"));
          append_option_line(optgroup, "machine_max_junction_deviation");
     //optgroup = page->new_optgroup(L("Minimum feedrates"));
     //    append_option_line(optgroup, "machine_min_extruding_rate");
@@ -4638,6 +4637,9 @@ void TabPrinter::toggle_options()
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper, i);
         toggle_line("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper);
+        for (int i = 0; i < max_field; ++i)
+            toggle_option("machine_max_junction_deviation", gcf == gcfMarlinFirmware, i);
+        toggle_line("machine_max_junction_deviation", gcf == gcfMarlinFirmware);
     }
 }
 

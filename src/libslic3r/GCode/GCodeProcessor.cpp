@@ -3809,7 +3809,6 @@ void GCodeProcessor::process_M205(const GCodeReader::GCodeLine& line)
 
             if (line.has_value('T', value))
                 set_option_value(m_time_processor.machine_limits.machine_min_travel_rate, i, value);
-
         }
     }
 }
