@@ -162,8 +162,9 @@ void Layer::gridify()
     // Draw patterns
     const Point::coord_type grid_width = scale_(20.);
     const Point::coord_type gap_width  = scale_(0.2);
+    const size_t            gap_layers = 3;
 
-    const auto&             grid_offset = GRIDIFY_PATTERN_OFFSETS[id() % GRIDIFY_PATTERN_OFFSET_COUNT];
+    const auto&             grid_offset = GRIDIFY_PATTERN_OFFSETS[(id() / gap_layers) % GRIDIFY_PATTERN_OFFSET_COUNT];
     const Point::coord_type offset_x    = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[0];
     const Point::coord_type offset_y    = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[1];
 
