@@ -1353,11 +1353,11 @@ void SendToPrinterDialog::update_show_status()
                     wxCommandEvent *evt = new wxCommandEvent(m_plater->get_send_finished_event());
                     evt->SetString(from_u8(m_current_project_name.utf8_string()));
                     wxQueueEvent(m_plater, evt);
-                } else if (PrinterFileSystem::FF_UPLOADCANCEL) {
+                } else if (e.GetInt() == PrinterFileSystem::FF_UPLOADCANCEL) {
                     show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
                     wxString err_msg = e.GetString();
                     if (err_msg.IsEmpty())
-                        err_msg = _u8L("Sending failed, please try again!");
+                        err_msg = _L("Sending failed, please try again!");
                     update_print_status_msg(err_msg, false, true);
                 }
             });
