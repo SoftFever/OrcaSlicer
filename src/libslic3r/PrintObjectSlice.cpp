@@ -1359,17 +1359,12 @@ void PrintObject::gridify()
             bounding_box.offset(scale_(1));
 
             // Draw patterns
-            const auto              pattern_width  = 2.;
-            const auto              pattern_height = 0.2 * 5;
             const Point::coord_type grid_width     = scale_(20.);
+            const Point::coord_type gap_width          = scale_(0.2);
 
-            const int               pattern_rep_idx    = layer->bottom_z() / pattern_height;
-            const auto              pattern_rep_offset = layer->bottom_z() - (pattern_rep_idx * pattern_height);
-            const Point::coord_type gap_width          = scale_((pattern_height - pattern_rep_offset) / pattern_height * pattern_width);
-            const auto&             grid_offset        = GRIDIFY_PATTERN_OFFSETS[pattern_rep_idx % GRIDIFY_PATTERN_OFFSET_COUNT];
-
-            const Point::coord_type offset_x = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[0];
-            const Point::coord_type offset_y = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[1];
+            const auto&             grid_offset = GRIDIFY_PATTERN_OFFSETS[layer_id % GRIDIFY_PATTERN_OFFSET_COUNT];
+            const Point::coord_type offset_x    = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[0];
+            const Point::coord_type offset_y    = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[1];
 
             Polygons pattern;
             Point    start_pt = align_to_grid(bounding_box.min, Point(grid_width, grid_width));
