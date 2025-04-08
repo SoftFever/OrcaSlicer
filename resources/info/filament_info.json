@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0.3",
+    "version": "1.0.0.4",
     "high_temp_filament": [
         "ABS",
         "ASA",
@@ -26,12 +26,12 @@
         "PVA",
         "BVOH",
         "PCTG",
+        "PETG",
+        "PETG-CF",
         "SBS"
     ],
     "high_low_compatible_filament":[
         "HIPS",
-        "PETG",
-        "PETG-CF",
         "PE",
         "PP",
         "EVA",
