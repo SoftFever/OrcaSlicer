@@ -33,6 +33,7 @@ struct StringObjectException
     ObjectBase const *object = nullptr;
     std::string opt_key;
     StringExceptionType         type;   // warning type for tips
+    bool is_warning = false;
     std::vector<std::string>    params; // warning params for tips
 };
 

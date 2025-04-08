@@ -1525,7 +1525,7 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::map<int, Preset*
             return false;
     }
 
-    if (!Print::check_multi_filaments_compatibility(filament_types)) {
+    if (Print::check_multi_filaments_compatibility(filament_types) == FilamentCompatibilityType::HighLowMixed) {
         error_tips = _u8L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing");
         return false;
     }

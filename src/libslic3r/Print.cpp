@@ -1006,22 +1006,29 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     return {};
 }
 
-bool Print::check_multi_filaments_compatibility(const std::vector<std::string>& filament_types)
+FilamentCompatibilityType Print::check_multi_filaments_compatibility(const std::vector<std::string>& filament_types)
 {
     bool has_high_temperature_filament = false;
     bool has_low_temperature_filament = false;
+    bool has_mid_temperature_filament = false;
 
     for (const auto& type : filament_types) {
         if (get_filament_temp_type(type) ==FilamentTempType::HighTemp)
             has_high_temperature_filament = true;
         else if (get_filament_temp_type(type) == FilamentTempType::LowTemp)
             has_low_temperature_filament = true;
+        else if (get_filament_temp_type(type) == FilamentTempType::HighLowCompatible)
+            has_mid_temperature_filament = true;
     }
 
     if (has_high_temperature_filament && has_low_temperature_filament)
-        return false;
-
-    return true;
+        return FilamentCompatibilityType::HighLowMixed;
+    else if (has_high_temperature_filament && has_mid_temperature_filament)
+        return FilamentCompatibilityType::HighMidMixed;
+    else if (has_low_temperature_filament && has_mid_temperature_filament)
+        return FilamentCompatibilityType::LowMidMixed;
+    else
+        return FilamentCompatibilityType::Compatible;
 }
 
 bool Print::is_filaments_compatible(const std::vector<int>& filament_types)
@@ -1065,21 +1072,38 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
 //BBS: this function is used to check whether multi filament can be printed
 StringObjectException Print::check_multi_filament_valid(const Print& print)
 {
-    if (!print.need_check_multi_filaments_compatibility())
-        return {std::string()};
-
     auto print_config = print.config();
     std::vector<unsigned int> extruders = print.extruders();
     std::vector<std::string> filament_types;
     filament_types.reserve(extruders.size());
-
     for (const auto& extruder_idx : extruders)
         filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
 
-    if (!check_multi_filaments_compatibility(filament_types))
-        return {L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing.")};
+    auto compatibility = check_multi_filaments_compatibility(filament_types);
+    bool enable_mix_printing = !print.need_check_multi_filaments_compatibility();
 
-    return {std::string()};
+    StringObjectException ret;
+
+    if(compatibility == FilamentCompatibilityType::HighLowMixed){
+        if(enable_mix_printing){
+            ret.string =L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
+            ret.is_warning = true;
+        }
+        else{
+            ret.string =L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences.");
+        }
+    }
+    else if (compatibility == FilamentCompatibilityType::HighMidMixed) {
+        ret.is_warning = true;
+        ret.string =L("Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage.");
+
+    }
+    else if (compatibility == FilamentCompatibilityType::LowMidMixed) {
+        ret.is_warning = true;
+        ret.string = L("Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
+    }
+
+    return ret;
 }
 
 // Orca: this g92e0 regex is used copied from PrusaSlicer
@@ -1104,6 +1128,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (!ret.string.empty())
         {
             ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
+            if (ret.is_warning && warning != nullptr) {
+                *warning = ret;
+                return {};
+            }
             return ret;
         }
     }
