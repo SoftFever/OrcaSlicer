@@ -2534,6 +2534,14 @@ static bool _HasExt(const std::vector<FilamentInfo> &ams_mapping_result) {
     return false;
 }
 
+static bool _HasAms(const std::vector<FilamentInfo> &ams_mapping_result) {
+    for (const auto &info : ams_mapping_result) {
+        if (info.ams_id != VIRTUAL_AMS_MAIN_ID_STR && info.ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) { return true; }
+    }
+
+    return false;
+}
+
 void SelectMachineDialog::on_send_print()
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
@@ -3146,7 +3154,8 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         || !obj_->is_support_filament_backup
         || !obj_->is_support_show_filament_backup
         || !obj_->ams_auto_switch_filament_flag
-        || m_checkbox_list["use_ams"]->getValue() != "on") {
+        || m_checkbox_list["use_ams"]->getValue() != "on"
+        || !_HasAms(m_ams_mapping_result)) {
         if (m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
             img_ams_backup->Hide();
