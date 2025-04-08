@@ -387,6 +387,7 @@ void PrintObject::make_perimeters()
         [this](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
+                m_layers[layer_idx]->gridify();
                 m_layers[layer_idx]->make_perimeters();
             }
         }

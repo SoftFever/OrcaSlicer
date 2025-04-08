@@ -136,6 +136,78 @@ ExPolygons Layer::merged(float offset_scaled) const
     return out;
 }
 
+// Offsets based on the eight queens puzzle
+static constexpr size_t GRIDIFY_PATTERN_OFFSET_COUNT = 8;
+static size_t           GRIDIFY_PATTERN_OFFSETS[GRIDIFY_PATTERN_OFFSET_COUNT][2] = {
+    {4, 4}, {7, 1}, {1, 5}, {5, 2}, {3, 6}, {0, 3}, {6, 7}, {2, 0},
+};
+
+void Layer::gridify()
+{
+    if (empty()) return;
+
+    auto current_poly = merged(float(SCALED_EPSILON));
+    current_poly      = union_ex(current_poly);
+
+    // Apply pattern rotation
+    constexpr float rot = 0;
+    expolygons_rotate(current_poly, -rot);
+
+    // Generate pattern within boundary
+    BoundingBox bounding_box = get_extents(current_poly);
+    assert(bounding_box.defined);
+    // Expand boundary a little bit to make sure no overlapping edges
+    bounding_box.offset(scale_(1));
+
+    // Draw patterns
+    const Point::coord_type grid_width = scale_(20.);
+    const Point::coord_type gap_width  = scale_(0.2);
+
+    const auto&             grid_offset = GRIDIFY_PATTERN_OFFSETS[id() % GRIDIFY_PATTERN_OFFSET_COUNT];
+    const Point::coord_type offset_x    = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[0];
+    const Point::coord_type offset_y    = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[1];
+
+    Polygons pattern;
+    Point    start_pt = align_to_grid(bounding_box.min, Point(grid_width, grid_width));
+    // Draw vertical stripes
+    for (auto x = start_pt.x(); x < bounding_box.max.x(); x += grid_width) {
+        const Point::coord_type x1 = x - gap_width / 2 + offset_x;
+
+        auto& p = pattern.emplace_back();
+        p.points.emplace_back(x1, bounding_box.min.y());
+        p.points.emplace_back(x1 + gap_width, bounding_box.min.y());
+        p.points.emplace_back(x1 + gap_width, bounding_box.max.y());
+        p.points.emplace_back(x1, bounding_box.max.y());
+    }
+    // Draw horizontal stripes
+    for (auto y = start_pt.y(); y < bounding_box.max.y(); y += grid_width) {
+        const Point::coord_type y1 = y - gap_width / 2 + offset_y;
+
+        auto& p = pattern.emplace_back();
+        p.points.emplace_back(bounding_box.min.x(), y1);
+        p.points.emplace_back(bounding_box.max.x(), y1);
+        p.points.emplace_back(bounding_box.max.x(), y1 + gap_width);
+        p.points.emplace_back(bounding_box.min.x(), y1 + gap_width);
+    }
+
+    ExPolygons ep = union_ex(pattern);
+
+    // Apply inset
+    const auto inset = scale_(0.8);
+    if (inset > 0) {
+        ep = intersection_ex(ep, offset_ex(current_poly, -inset));
+    }
+
+    // Rotation it back
+    expolygons_rotate(ep, rot);
+
+    // Apply the pattern to original slices
+    for (size_t region_id = 0; region_id < m_object->num_printing_regions(); ++region_id) {
+        ExPolygons layer_polygons = to_expolygons(m_regions[region_id]->slices.surfaces);
+        m_regions[region_id]->slices.set(diff_ex(layer_polygons, ep), stInternal);
+    }
+}
+
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
 // The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
 // The resulting fill surface is split back among the originating regions.
