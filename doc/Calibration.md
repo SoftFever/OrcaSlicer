@@ -304,17 +304,26 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    ![image](./images/JunctionDeviation/jd_second_print_measure.jpg)
    ![image](./images/JunctionDeviation/jd_second_slicer_measure.png)
 3. Save the settings
-   1. Use the following G-code to set the frequency:
+   1. Set your Maximun Junction Deviation value in [Printer settings/Motion ability/Jerk limitation].
+   2. Use the following G-code to set the mm:
    ```gcode
    M205 J#JunctionDeviationValue
    M500
    ```
    Example
    ```gcode
-   M205 J0.013
+   M205 J0.012
    M500
    ```
-   2. Set it in your Marlin Compilation.
+   3. Recompile four MarlinFW
+      1. In Configuration.h set:
+      ```cpp
+            #define JUNCTION_DEVIATION_MM 0.012  // (mm) Distance from real junction edge
+      ```
+      2. Check Classic Jerk is disabled (commented).
+      ```cpp
+         //#define CLASSIC_JERK
+      ```
 
 ## VFA
 
