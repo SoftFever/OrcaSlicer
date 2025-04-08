@@ -394,7 +394,7 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
             set_state(STATE_CANCELED);
 
             Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "", false,
-                                                                                 "Helio: Failed to create simulation");
+                                                                                 (boost::format("Helio: Failed to create Simulation\n%1%") % create_simulation_res.error).str());
             wxQueueEvent(GUI::wxGetApp().plater(), evt);
         }
 
@@ -402,7 +402,7 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
         set_state(STATE_CANCELED);
 
         Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "", false,
-                                                                             "Helio: Failed to create GCode");
+                                                                             (boost::format("Helio: Failed to create GCode\n%1%") % create_gcode_res.error).str());
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
     }
 }
