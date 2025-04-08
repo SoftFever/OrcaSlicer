@@ -170,7 +170,7 @@ public:
     void AddAms(std::vector<AMSinfo> single_info, const std::string &series_name, const std::string &printer_type, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
     void AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos);
     //void AddExtraAms(std::vector<AMSinfo>single_info);
-    void SetExtruder(bool on_off, std::string ams_id, std::string slot_id);
+    void SetExtruder(bool on_off, int nozzle_id, std::string ams_id, std::string slot_id);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);
 
