@@ -3310,7 +3310,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, MAIN_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
 
         /*left*/
@@ -3325,7 +3325,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, DEPUTY_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
     //}
 
@@ -4271,6 +4271,8 @@ void StatusPanel::on_ams_load_vams(wxCommandEvent& event) {
 void StatusPanel::on_ams_switch(SimpleEvent &event)
 {
     if(obj){
+
+        /*right*/
         if (obj->m_extder_data.extders.size() > 0) {
             auto ext = obj->m_extder_data.extders[MAIN_NOZZLE_ID];
             if (ext.ext_has_filament) {
@@ -4282,7 +4284,7 @@ void StatusPanel::on_ams_switch(SimpleEvent &event)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, MAIN_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
 
         /*left*/
@@ -4297,7 +4299,7 @@ void StatusPanel::on_ams_switch(SimpleEvent &event)
             } else {
                 m_ams_control->SetAmsStep(ext.snow.ams_id, ext.snow.slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.ext_has_filament, ext.snow.ams_id, ext.snow.slot_id);
+            m_ams_control->SetExtruder(ext.ext_has_filament, DEPUTY_NOZZLE_ID, ext.snow.ams_id, ext.snow.slot_id);
         }
     }
 }
@@ -4565,20 +4567,13 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
         auto has_filament_at_extruder = false;
         auto use_new_command = false;
 
-        if (obj->m_extder_data.total_extder_count <= 1 && !obj->is_enable_np) {
-            has_filament_at_extruder = obj->is_filament_at_extruder();
-
-            /*for xp support n3s/n3f*/
-            if (!ams_it->second->info.empty()) {
-                use_new_command = true;
-            }
-
-        } else {
+        if (obj->is_enable_np || obj->is_enable_ams_np) {
             use_new_command = true;
-
             if (ams_it->second->nozzle < obj->m_extder_data.extders.size()) {
                 has_filament_at_extruder = obj->m_extder_data.extders[ams_it->second->nozzle].ext_has_filament;
             }
+        } else {
+            has_filament_at_extruder = obj->is_filament_at_extruder();
         }
 
         if (has_filament_at_extruder) {

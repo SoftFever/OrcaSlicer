@@ -4390,11 +4390,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if (jj["ams"]["version"].is_number())
                                         ams_version = jj["ams"]["version"].get<int>();
                                 }
-                                if (jj["ams"].contains("tray_now")) {
-                                    this->_parse_tray_now(jj["ams"]["tray_now"].get<std::string>());
-                                }
                                 if (jj["ams"].contains("tray_tar")) {
                                     m_tray_tar = jj["ams"]["tray_tar"].get<std::string>();
+                                }
+                                if (jj["ams"].contains("tray_now")) {
+                                    _parse_tray_now(jj["ams"]["tray_now"].get<std::string>());
                                 }
                                 if (jj["ams"].contains("ams_rfid_status"))
                                     ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();

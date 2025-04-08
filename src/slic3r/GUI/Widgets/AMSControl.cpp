@@ -1465,19 +1465,17 @@ bool AMSControl::Enable(bool enable)
     return wxWindow::Enable(enable);
 }
 
-void AMSControl::SetExtruder(bool on_off, std::string ams_id, std::string slot_id)
+void AMSControl::SetExtruder(bool on_off, int nozzle_id, std::string ams_id, std::string slot_id)
 {
     AmsItem *item = nullptr;
     if (m_ams_item_list.find(ams_id) != m_ams_item_list.end()) { item = m_ams_item_list[ams_id]; }
 
-    if (!item) {
-        return;
-    }
-    if (!on_off) {
-        m_extruder->OnAmsLoading(false, item->get_nozzle_id());
-    } else {
+    if (on_off && item) {
         auto col = item->GetTagColr(slot_id);
-        m_extruder->OnAmsLoading(true, item->get_nozzle_id(), col);
+        m_extruder->OnAmsLoading(true, nozzle_id, col);
+    }
+    else {
+        m_extruder->OnAmsLoading(false, nozzle_id);
     }
 }
 
