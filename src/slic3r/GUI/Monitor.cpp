@@ -216,6 +216,7 @@ void MonitorPanel::set_default()
     //m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
 
     wxGetApp().sidebar().load_ams_list({}, {});
+    wxGetApp().sidebar().update_sync_status(nullptr);
 }
 
 wxWindow* MonitorPanel::create_side_tools()
@@ -302,6 +303,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
         obj_->reset_pa_cali_result();
         Sidebar &sidebar = GUI::wxGetApp().sidebar();
         sidebar.load_ams_list(obj_->dev_id, obj_);
+        sidebar.update_sync_status(obj_);
         sidebar.set_need_auto_sync_after_connect_printer(sidebar.need_auto_sync_extruder_list_after_connect_priner(obj_));
     }
 
