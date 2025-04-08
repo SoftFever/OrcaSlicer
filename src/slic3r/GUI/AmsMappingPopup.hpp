@@ -253,6 +253,7 @@ public:
     wxString     m_right_tip_text;
     wxBoxSizer* m_sizer_split_ams_left;
     wxBoxSizer* m_sizer_split_ams_right;
+    bool        m_mapping_from_multi_machines {false};
 
     void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);

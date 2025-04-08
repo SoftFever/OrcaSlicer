@@ -31,6 +31,27 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 const int LEFT_OFFSET = 2;
+
+static void _add_containers(const AmsMapingPopup *                 win,
+                            std::list<MappingContainer *> &        one_slot_containers,
+                            const std::vector<MappingContainer *> &four_slots_containers,
+                            wxBoxSizer *                           target_sizer)
+{
+    for (auto container : four_slots_containers) { target_sizer->Add(container, 0, wxTOP, win->FromDIP(5)); }
+
+    while (!one_slot_containers.empty()) {
+        wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+        for (int i = 0; i < 3; i++) {
+            if (one_slot_containers.empty()) { break; }
+
+            sizer->Add(one_slot_containers.front(), 0, wxLEFT, (i == 0) ? 0 : win->FromDIP(5));
+            one_slot_containers.pop_front();
+        }
+
+        target_sizer->Add(sizer, 0, wxTOP, win->FromDIP(5));
+    }
+}
+
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
@@ -827,26 +848,9 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
 
 void AmsMapingPopup::update_ams_data_multi_machines()
 {
-    m_has_unmatch_filament = false;
-    for (auto& ams_container : m_amsmapping_container_list) {
-        ams_container->Hide();
-    }
+    m_mapping_from_multi_machines = true;
 
-    for (wxWindow* mitem : m_mapping_item_list) {
-        mitem->Destroy();
-        mitem = nullptr;
-    }
-    m_mapping_item_list.clear();
-
-    if (m_amsmapping_container_sizer_list.size() > 0) {
-        for (wxBoxSizer* siz : m_amsmapping_container_sizer_list) {
-            siz->Clear(true);
-        }
-    }
-
-    int m_amsmapping_container_list_index = 0;
     std::vector<TrayData> tray_datas;
-
     for (int i = 0; i < 4; ++i) {
         TrayData td;
         td.id = i;
@@ -858,12 +862,91 @@ void AmsMapingPopup::update_ams_data_multi_machines()
         tray_datas.push_back(td);
     }
 
+    m_ams_remain_detect_flag = false;
 
-    if (m_amsmapping_container_list.size() > m_amsmapping_container_list_index ) {
-        m_amsmapping_container_list[m_amsmapping_container_list_index]->Show();
-        add_ams_mapping(tray_datas, m_ams_remain_detect_flag, m_amsmapping_container_list[m_amsmapping_container_list_index], m_amsmapping_container_sizer_list[m_amsmapping_container_list_index]);
+    for (auto& ams_container : m_amsmapping_container_list) {
+        ams_container->Destroy();
     }
 
+    m_amsmapping_container_list.clear();
+    m_amsmapping_container_sizer_list.clear();
+    m_mapping_item_list.clear();
+
+    if (wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase_dark") {
+        m_reset_btn->SetName("erase_dark");
+        m_reset_btn->SetBitmap(ScalableBitmap(m_right_first_text_panel, "erase_dark", 14).bmp());
+    }
+    else if (!wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase") {
+        m_reset_btn->SetName("erase");
+        m_reset_btn->SetBitmap(ScalableBitmap(m_right_first_text_panel, "erase", 14).bmp());
+    }
+
+    size_t nozzle_nums = 1;
+    m_show_type = ShowType::RIGHT;
+
+    m_left_marea_panel->Hide();
+    m_left_extra_slot->Hide();
+    // m_left_marea_panel->Show();
+    m_right_marea_panel->Show();
+    set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
+    m_right_tips->SetLabel(m_single_tip_text);
+    m_right_extra_slot->Hide();
+    m_left_extra_slot->Hide();
+
+
+    if (!m_only_show_ext_spool) {
+        /*ams*/
+        bool                            has_left_ams = false, has_right_ams = false;
+        std::list<MappingContainer *>   left_one_slot_containers;
+        std::list<MappingContainer *>   right_one_slot_containers;
+        std::vector<MappingContainer *> left_four_slots_containers;
+        std::vector<MappingContainer *> right_four_slot_containers;
+        for (int i = 0; i < 1; i++) {
+            int ams_indx  = 0;
+            int ams_type  = 1;
+            int nozzle_id = 0;
+
+            if (ams_type >= 1 || ams_type <= 3) { // 1:ams 2:ams-lite 3:n3f
+
+                auto sizer_mapping_list         = new wxBoxSizer(wxHORIZONTAL);
+                auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel, "AMS-1", 4);
+                ams_mapping_item_container->SetName(nozzle_id == 0 ? m_right_marea_panel->GetName() : m_left_marea_panel->GetName());
+                ams_mapping_item_container->SetSizer(sizer_mapping_list);
+                ams_mapping_item_container->Layout();
+
+                m_has_unmatch_filament = false;
+                ams_mapping_item_container->Show();
+                add_ams_mapping(tray_datas, false, ams_mapping_item_container, sizer_mapping_list);
+                m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
+                m_amsmapping_container_list.push_back(ams_mapping_item_container);
+
+                if (nozzle_id == 0) {
+                    has_right_ams = true;
+                    if (ams_mapping_item_container->get_slots_num() == 1) {
+                        right_one_slot_containers.push_back(ams_mapping_item_container);
+                    } else {
+                        right_four_slot_containers.push_back(ams_mapping_item_container);
+                    }
+                } else if (nozzle_id == 1) {
+                    has_left_ams = true;
+                    if (ams_mapping_item_container->get_slots_num() == 1) {
+                        left_one_slot_containers.push_back(ams_mapping_item_container);
+                    } else {
+                        left_four_slots_containers.push_back(ams_mapping_item_container);
+                    }
+                }
+            } else if (ams_type == 4) { // 4:n3s
+            }
+        }
+
+        _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
+        _add_containers(this, right_one_slot_containers, right_four_slot_containers, m_sizer_ams_basket_right);
+        m_left_split_ams_sizer->Show(has_left_ams);
+        m_right_split_ams_sizer->Show(has_right_ams);
+        //update_items_check_state(ams_mapping_result);
+    } else {
+        m_right_split_ams_sizer->Show(false);
+    }
     Layout();
     Fit();
 }
@@ -926,35 +1009,6 @@ void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& a
         {
             update_item_check_state(mapping_item);
         }
-    }
-}
-
-static void
-_add_containers(const AmsMapingPopup* win,
-                std::list<MappingContainer*>& one_slot_containers,
-                const std::vector<MappingContainer*>& four_slots_containers,
-                wxBoxSizer* target_sizer)
-{
-    for (auto container : four_slots_containers)
-    {
-        target_sizer->Add(container, 0, wxTOP, win->FromDIP(5));
-    }
-
-    while (!one_slot_containers.empty())
-    {
-        wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-        for (int i = 0; i < 3; i++)
-        {
-            if (one_slot_containers.empty())
-            {
-                break;
-            }
-
-            sizer->Add(one_slot_containers.front(), 0, wxLEFT, (i == 0) ? 0 : win->FromDIP(5));
-            one_slot_containers.pop_front();
-        }
-
-        target_sizer->Add(sizer, 0, wxTOP, win->FromDIP(5));
     }
 }
 
@@ -1257,7 +1311,12 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remai
         if (tray_data[i].type == EMPTY) {
             m_mapping_item->set_data(wxColour(0xCE, 0xCE, 0xCE), "-", remain_detect_flag, tray_data[i]);
             m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, i, m_mapping_item](wxMouseEvent &e) {
-                return; //not allowed to map to empty slots
+
+                if (!m_mapping_from_multi_machines) {
+                    return;
+                }
+
+                //not allowed to map to empty slots
                 m_mapping_item->send_event(m_current_filament_id);
                 Dismiss();
             });
