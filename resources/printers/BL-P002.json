@@ -23,7 +23,7 @@
 			"support_prompt_sound": false,
 			"support_ams_humidity": false,
 			"support_auto_recovery_step_loss": false,
-			"support_auto_leveling": true,
+			"support_bed_leveling": 1,
 			"support_update_remain": false,
 			"support_timelapse": true,
 			"support_filament_backup": false,
