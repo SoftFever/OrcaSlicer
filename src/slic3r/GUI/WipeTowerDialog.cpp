@@ -34,7 +34,7 @@ static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 #define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
 #define BTN_GAP                 FromDIP(20)
 #define TEXT_BEG_PADDING        FromDIP(30)
-#define MAX_FLUSH_VALUE         999
+#define MAX_FLUSH_VALUE         9999
 #define MIN_WIPING_DIALOG_WIDTH FromDIP(300)
 #define TIP_MESSAGES_PADDING    FromDIP(8)
 
