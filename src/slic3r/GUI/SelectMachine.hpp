@@ -269,7 +269,11 @@ public:
     std::string getValue();
     int         getValueInt();
 
-    void update_options(std::vector<POItem> ops, const wxString &tips);
+    std::string getParam() const { return m_param; }
+
+    bool        contain_opt(const std::string& opt_str) const;
+    void        update_options(std::vector<POItem> ops, const wxString &tips);
+
     void update_tooltip(const wxString &tips);
 
     void msw_rescale() { m_printoption_item->msw_rescale(); };
@@ -539,7 +543,8 @@ public:
     void update_print_status_msg(wxString msg, bool is_printer, bool can_send_print, bool can_refresh, const wxString& printer_msg_tips = wxEmptyString);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state, bool show_tips = true);
-    bool has_timelapse_warning();
+    bool has_timelapse_warning(wxString& msg);
+    bool has_timelapse_warning() { wxString msg; return has_timelapse_warning(msg);};
     bool can_support_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
@@ -574,7 +579,13 @@ private:
     void update_scroll_area_size();
 
     /* update option area*/
+    void update_option_opts(MachineObject *obj);
     void update_options_layout();
+
+    // save and restore from config
+    void load_option_vals(MachineObject* obj);
+    void save_option_vals();
+    void save_option_vals(MachineObject *obj);
 
     /*go check*/
     bool is_error(PrintDialogStatus status)            { return (PrintStatusErrorBegin < status)           && (PrintStatusErrorEnd > status); };
