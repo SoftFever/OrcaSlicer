@@ -1645,9 +1645,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     }
 
     m_input_sn_area->Add(m_tips_sn, 0, wxALIGN_CENTER, 0);
+    m_input_sn_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_sn_area->Add(m_tips_modelID, 0, wxALIGN_CENTER, 0);
 
     m_input_modelID_area->Add(m_input_sn, 0, wxALIGN_CENTER, 0);
+    m_input_modelID_area->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_input_modelID_area->Add(m_input_modelID, 0, wxALIGN_CENTER, 0);
 
     auto* tips_printer_name = new Label(ip_input_bot_panel, _L("Printer name"));
