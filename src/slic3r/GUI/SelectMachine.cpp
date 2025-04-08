@@ -601,15 +601,19 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
                         _L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."),
                         ops_auto, "flow_cali");
 
-    auto option_nozzle_offset_cali_cali =
-        new PrintOption(m_options_other, _L("Nozzle Offset Calibration"),
-                        _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing. Skip if unnecessary."), ops_auto);
+    auto option_nozzle_offset_cali_cali  = new PrintOption(
+        m_options_other,
+        _L("Nozzle Offset Calibration"),
+        _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing. Skip if unnecessary."),
+        ops_auto, "nozzle_offset_cali"
+    );
 
     auto option_use_ams             = new PrintOption(
         m_options_other,
         _L("Use AMS"),
         wxEmptyString,
-        ops_no_auto
+        ops_no_auto,
+        "use_ams"
     );
 
     option_use_ams->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto& e) {
@@ -640,6 +644,17 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_checkbox_list["use_ams"]       = option_use_ams;
     m_checkbox_list["flow_cali"]     = option_flow_dynamics_cali;
     m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
+
+    for (auto print_opt : m_checkbox_list_order) {
+        if (print_opt != option_use_ams) {
+            print_opt->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) { save_option_vals();});
+        } else{
+            option_use_ams->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) {
+                m_ams_mapping_result.clear(); // clear and Scheduled call update_show_status
+                save_option_vals();
+            });
+        }
+    }
 
     option_auto_bed_level->Hide();
     option_flow_dynamics_cali->Hide();
@@ -948,84 +963,11 @@ void SelectMachineDialog::popup_filament_backup()
 
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
-    // reset checkbox
-    m_checkbox_list["bed_leveling"]->Hide();
-    m_checkbox_list["flow_cali"]->Hide();
-    m_checkbox_list["nozzle_offset_cali"]->Hide();
-
-    if (!obj) {return;}
-    AppConfig *config = wxGetApp().app_config;
-
-    if (obj->is_enable_np) {
-        m_checkbox_list["bed_leveling"]->update_options(ops_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform.\n*Automatic mode: Run a "
-                                                                     "leveling check(about 10 seconds). Skip if surface is fine."));
-        m_checkbox_list["bed_leveling"]->setValue("auto");
-    }
-    else {
-        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform."));
-
-        if (config && config->get("print", "bed_leveling") == "0") {
-            m_checkbox_list["bed_leveling"]->setValue("off");
-        } else {
-            m_checkbox_list["bed_leveling"]->setValue("on");
-        }
-    }
-
-    if (obj->is_support_nozzle_offset_cali) {
-        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto, _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing. Skip if unnecessary."));
-        m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
-        m_checkbox_list["nozzle_offset_cali"]->Show();
-    }
-
-    if (obj->is_support_flow_calibration) {
-        if (obj->is_support_auto_flow_calibration) {
-            m_checkbox_list["flow_cali"]->update_options(ops_auto, _L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
-            m_checkbox_list["flow_cali"]->setValue("auto");
-        } else {
-            if (can_support_auto_cali()) {
-                m_checkbox_list["flow_cali"]->update_options(ops_no_auto, _L("This process determines the dynamic flow values to improve overall print quality."));
-                if (config && config->get("print", "flow_cali") == "0") {
-                    m_checkbox_list["flow_cali"]->setValue("off");
-                } else {
-                    m_checkbox_list["flow_cali"]->setValue("on");
-                }
-            }
-            else {
-                m_checkbox_list["flow_cali"]->setValue("off");
-                if (config)
-                    config->set_str("print", "flow_cali", "0");
-            }
-        }
-
-        m_checkbox_list["flow_cali"]->Show();
-    }
-
-    if (obj && obj->is_support_auto_leveling) {
-        m_checkbox_list["bed_leveling"]->Show();
-    }
-
-    /*STUDIO-9197*/
-    wxString error_messgae;
-    if (obj && obj->canEnableTimelapse(error_messgae))
-    {
-        m_checkbox_list["timelapse"]->enable(true);
-        if (config->get("print", "timelapse") == "1" && !has_timelapse_warning()) {
-            m_checkbox_list["timelapse"]->setValue("on");
-            config->set_str("print", "timelapse", "1");
-        } else {
-            m_checkbox_list["timelapse"]->setValue("off");
-            config->set_str("print", "timelapse", "0");
-        }
-    }
-    else
-    {
-        m_checkbox_list["timelapse"]->enable(false);
-        m_checkbox_list["timelapse"]->setValue("off");
-        config->set_str("print", "timelapse", "0");
-    }
-    m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
-
+    update_option_opts(obj);
     update_options_layout();
+
+    load_option_vals(obj);
+    save_option_vals(obj);
     Layout();
     Fit();
 }
@@ -2459,6 +2401,90 @@ void SelectMachineDialog::update_options_layout()
     }
 }
 
+void SelectMachineDialog::update_option_opts(MachineObject *obj)
+{
+    if (!obj)
+    {
+        for (auto opt : m_checkbox_list) { opt.second->Hide(); }
+        return;
+    }
+
+    /*timelapse*/
+    m_checkbox_list["timelapse"]->Show();
+
+    /*bed_leveling*/
+    if (obj->is_enable_np) {
+        m_checkbox_list["bed_leveling"]->update_options(ops_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform.\n*Automatic mode: Run a "
+                                                                     "leveling check(about 10 seconds). Skip if surface is fine."));
+    } else {
+        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform."));
+    }
+    m_checkbox_list["bed_leveling"]->Show(obj->is_support_auto_leveling);
+
+    /*nozzle_offset_cali*/
+    if (obj->is_support_nozzle_offset_cali) {
+        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto, _L("Calibrate nozzle offsets to enhance print quality.\n*Automatic mode: Check for calibration before printing. Skip if unnecessary."));
+    }
+    m_checkbox_list["nozzle_offset_cali"]->Show(obj->is_support_nozzle_offset_cali);
+
+    /*flow_cali*/
+    if (obj->is_support_flow_calibration) {
+        if (obj->is_support_auto_flow_calibration && can_support_auto_cali()) {
+            m_checkbox_list["flow_cali"]->update_options(ops_auto, _L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
+        } else {
+            m_checkbox_list["flow_cali"]->update_options(ops_no_auto, _L("This process determines the dynamic flow values to improve overall print quality."));
+        }
+    }
+    m_checkbox_list["flow_cali"]->Show(obj->is_support_flow_calibration);
+}
+
+void SelectMachineDialog::load_option_vals(MachineObject *obj)
+{
+    AppConfig* config = wxGetApp().app_config;
+    if (!config) return;
+    if (!obj) return;
+
+    for (auto item : m_checkbox_list) {
+        PrintOption       *opt = item.second;
+        const std::string &val = config->get(obj->printer_type, item.first);
+        if (opt->contain_opt(val)) {
+            opt->setValue(val);
+        } else if (opt->contain_opt("auto")) {
+            opt->setValue("auto");
+        } else if (opt->contain_opt("on")) {
+            opt->setValue("on");
+        }
+    }
+
+    /*STUDIO-9197*/
+    wxString error_messgae;
+    if (obj->canEnableTimelapse(error_messgae) && !has_timelapse_warning(error_messgae)) {
+        m_checkbox_list["timelapse"]->enable(true);
+    } else {
+        m_checkbox_list["timelapse"]->enable(false);
+        m_checkbox_list["timelapse"]->setValue("off");
+        m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
+    }
+
+    if (obj->get_printer_arch() == PrinterArch::ARCH_I3) { m_checkbox_list["timelapse"]->setValue("off");}/*by zhimin.zeng*/
+}
+
+void SelectMachineDialog::save_option_vals()
+{
+    DeviceManager* dev_manager = wxGetApp().getDeviceManager();
+    if (!dev_manager) { return; }
+
+    MachineObject* obj = dev_manager->get_my_machine(m_printer_last_select);
+    if (obj) save_option_vals(obj);
+}
+
+void SelectMachineDialog::save_option_vals(MachineObject *obj) {
+    AppConfig *config = wxGetApp().app_config;
+    if (!config) return;
+    if (!obj) return;
+    for (auto item : m_checkbox_list) { config->set(obj->printer_type, item.first, item.second->getValue());}
+}
+
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
 {
     if (enable) {
@@ -3196,13 +3222,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
             dev->set_selected_machine(m_printer_last_select, true);
         }
 
-        // reset the timelapse check status for I3 structure
-        if (obj->get_printer_arch() == PrinterArch::ARCH_I3) {
-            m_checkbox_list["timelapse"]->setValue("off");
-            AppConfig *config = wxGetApp().app_config;
-            if (config) config->set_str("print", "timelapse", "0");
-        }
-
         // Has changed machine unrecoverably
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
         m_check_flag = false;
@@ -3628,11 +3647,17 @@ void SelectMachineDialog::update_show_status()
     update_print_status_msg(wxEmptyString, false, true, true);
 }
 
-bool SelectMachineDialog::has_timelapse_warning()
+bool SelectMachineDialog::has_timelapse_warning(wxString &msg_text)
 {
     PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == NOT_GENERATE_TIMELAPSE) {
+            if (warning.error_code == "10014001") {
+                msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
+            } else if (warning.error_code == "10014002") {
+                msg_text = _L("The current printer does not support timelapse in Traditional Mode when printing By-Object.");
+            }
+
             return true;
         }
     }
@@ -4853,6 +4878,19 @@ void PrintOption::setValue(std::string value)
 {
     m_printoption_item->setValue(value); }
 
+bool PrintOption::contain_opt(const std::string &opt) const
+{
+    for (const auto &op : m_ops)
+    {
+        if (op.key == opt)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void PrintOption::update_options(std::vector<POItem> ops, const wxString &tips)
 {
     m_ops = ops;
@@ -5026,8 +5064,14 @@ void PrintOptionItem::doRender(wxDC &dc)
 
 void PrintOptionItem::setValue(std::string value)
 {
-    selected_key = value;
-    Refresh();
+    if (selected_key != value) {
+        selected_key = value;
+        wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
+        event.SetString(selected_key);
+        event.SetEventObject(GetParent());
+        wxPostEvent(GetParent(), event);
+        Refresh();
+    }
 }
 
 std::string PrintOptionItem::getValue()
