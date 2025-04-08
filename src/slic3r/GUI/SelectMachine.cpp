@@ -2413,13 +2413,16 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
     m_checkbox_list["timelapse"]->Show();
 
     /*bed_leveling*/
-    if (obj->is_enable_np) {
+    if (obj->is_support_bed_leveling == 2) {
+        m_checkbox_list["bed_leveling"]->Show();
         m_checkbox_list["bed_leveling"]->update_options(ops_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform.\n*Automatic mode: Run a "
                                                                      "leveling check(about 10 seconds). Skip if surface is fine."));
-    } else {
+    } else if (obj->is_support_bed_leveling == 1) {
+        m_checkbox_list["bed_leveling"]->Show();
         m_checkbox_list["bed_leveling"]->update_options(ops_no_auto, _L("This checks the flatness of heatbed. Leveling makes extruded height uniform."));
+    } else {
+        m_checkbox_list["bed_leveling"]->Hide();
     }
-    m_checkbox_list["bed_leveling"]->Show(obj->is_support_auto_leveling);
 
     /*nozzle_offset_cali*/
     if (obj->is_support_nozzle_offset_cali) {

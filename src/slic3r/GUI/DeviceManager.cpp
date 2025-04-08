@@ -3517,9 +3517,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
 
-                if (jj.contains("support_auto_leveling")) {
-                    if (jj["support_auto_leveling"].is_boolean()) {
-                        is_support_auto_leveling = jj["support_auto_leveling"].get<bool>();
+                if (jj.contains("support_bed_leveling")) {
+                    if (jj["support_bed_leveling"].is_number_integer()) {
+                        is_support_bed_leveling = jj["support_bed_leveling"].get<int>();
                     }
                 }
 

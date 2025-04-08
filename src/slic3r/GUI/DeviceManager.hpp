@@ -1056,7 +1056,7 @@ public:
     bool is_support_show_filament_backup{false};/*the filament is not supported shown in some previous hardware*/
     bool is_support_timelapse{false};
     bool is_support_update_remain{false};
-    bool is_support_auto_leveling{false};
+    int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
     bool is_support_auto_recovery_step_loss{false};
     bool is_support_ams_humidity {false};
     bool is_support_prompt_sound{false};

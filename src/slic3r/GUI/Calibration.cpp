@@ -221,7 +221,7 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         m_checkbox_list["xcam_cali"]->SetValue(false);
     }
 
-    if(obj->is_support_auto_leveling){
+    if(obj->is_support_bed_leveling != 0){
         select_bed_leveling->Show();
     }else{
         select_bed_leveling->Hide();
