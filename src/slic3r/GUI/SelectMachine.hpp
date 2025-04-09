@@ -363,7 +363,6 @@ private:
 
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     wxString                             m_ams_tooltip;
-    wxString                             m_ams_tooltip_ext;
     std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
