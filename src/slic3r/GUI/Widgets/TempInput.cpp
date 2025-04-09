@@ -79,18 +79,6 @@ bool TempInput::CheckIsValidVal(bool show_warning)
     return true;
 }
 
-void TempInput::OnEdit()
-{
-    /*clear previous status*/
-    ResetWaringDlg();
-
-    /*check the value is valid or not*/
-    if (CheckIsValidVal(true))
-    {
-        SetFinish();
-    }
-}
-
 void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString normal_icon, wxString actice_icon, const wxPoint &pos, const wxSize &size, long style)
 {
     StaticBox::Create(parent, wxID_ANY, pos, size, style);
@@ -132,7 +120,18 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     {
         if (!m_on_changing) /*the wxCUSTOMEVT_SET_TEMP_FINISH event may popup a dialog, which may generate dead loop*/
         {
-            OnEdit();
+            /*clear previous status*/
+            ResetWaringDlg();
+
+            /*check the value is valid or not*/
+            if (CheckIsValidVal(true))
+            {
+                SetFinish();
+
+                SetOnChanging();// filter in wxEVT_KILL_FOCUS while navigating
+                text_ctrl->Navigate(); // quit edit mode
+                ReSetOnChanging();
+            }
         }
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu

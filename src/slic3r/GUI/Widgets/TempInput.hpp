@@ -127,8 +127,6 @@ public:
     void  ReSetOnChanging() { m_on_changing = false; }
 
 protected:
-    virtual void OnEdit();
-
     virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 
     void DoSetToolTipText(wxString const &tip) override;
