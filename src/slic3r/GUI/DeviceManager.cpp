@@ -6134,8 +6134,8 @@ void MachineObject::parse_new_info(json print)
                 auto list = airduct["modeList"].get<std::vector<json>>();
 
                 for (int i = 0; i < list.size(); ++i) {
-                    // only show 2 mode
-                    if (i >= 2) { break; }
+                    // only show 2 mode for o
+                    if (is_series_o() && i >= 2) { break; }
 
                     json    mode_json = list[i];
                     AirMode mode;
@@ -6153,7 +6153,7 @@ void MachineObject::parse_new_info(json print)
                         }
                     }
 
-                    m_air_duct_data.modes.push_back(mode);
+                    m_air_duct_data.modes[mode.id] = mode;
                 }
             }
 

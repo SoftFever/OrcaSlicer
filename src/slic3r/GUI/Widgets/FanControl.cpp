@@ -683,17 +683,18 @@ void FanControlPopupNew::CreateDuct()
     //fan or door
     UpdateParts(m_data.curren_mode);
 
-    if (m_data.modes.empty()) {
-        //m_button_refresh->Hide();
-        return;
-    }
-    size_t mode_size = m_data.modes.size();
-    for (auto i = 0; i < mode_size; i++) {
-        wxString text = wxString::Format("%s", radio_btn_name[AIR_DUCT(m_data.modes[i].id)]);
-        SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == m_data.modes[i].id);
+    auto iter = m_data.modes.begin();
+    while (iter != m_data.modes.end()) {
+
+        int mode_id = iter->second.id;
+        const wxString& text = wxString::Format("%s", radio_btn_name[AIR_DUCT(mode_id)]);
+        if (text.empty()) { BOOST_LOG_TRIVIAL(error) << "FanControlPopupNew::CreateDuct: radio_btn_name is empty";}
+
+        SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == mode_id);
         radio_btn->Bind(wxEVT_LEFT_DOWN, &FanControlPopupNew::on_mode_changed, this);
         m_mode_switch_btn_list.emplace_back(radio_btn);
         m_radio_btn_sizer->Add(radio_btn, wxALL, FromDIP(5));
+        iter++;
     }
 }
 
