@@ -383,7 +383,10 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) co
             gcode << " D" << std::fixed << std::setprecision(3) << damp;
         }
     }
-    gcode << "; Override input shaping value\n";
+    if (GCodeWriter::full_gcode_comment){
+        gcode << " ; Override input shaping";
+    }
+    gcode << "\n";
     return gcode.str();
 }
 
