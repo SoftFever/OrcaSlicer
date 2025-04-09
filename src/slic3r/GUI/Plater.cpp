@@ -1580,7 +1580,7 @@ Sidebar::Sidebar(Plater *parent)
             e.Skip(); // fix bug:Event spreads to sidebar
         });
         p->combo_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
-            if (p->big_bed_image_popup && p->big_bed_image_popup->IsShown()) {
+            if (p->big_bed_image_popup) {
                 p->big_bed_image_popup->on_hide();
             }
         });
