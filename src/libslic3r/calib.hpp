@@ -21,7 +21,10 @@ enum class CalibMode : int {
     Calib_Temp_Tower,
     Calib_Vol_speed_Tower,
     Calib_VFA_Tower,
-    Calib_Retraction_tower
+    Calib_Retraction_tower,
+    Calib_Input_shaping_freq,
+    Calib_Input_shaping_damp,
+    Calib_Junction_Deviation
 };
 
 enum class CalibState { Start = 0, Preset, Calibration, CoarseSave, FineCalibration, Save, Finish };
@@ -31,7 +34,8 @@ struct Calib_Params
     Calib_Params() : mode(CalibMode::Calib_None){};
     double    start, end, step;
     bool      print_numbers;
-
+    double freqStartX, freqEndX, freqStartY, freqEndY;
+    int test_model;
     std::vector<double> accelerations;
     std::vector<double> speeds;
 
@@ -335,4 +339,5 @@ private:
     const double m_glyph_padding_horizontal{1};
     const double m_glyph_padding_vertical{1};
 };
+
 } // namespace Slic3r

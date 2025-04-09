@@ -3749,25 +3749,68 @@ LayerResult GCode::process_layer(
     //BBS: set layer time fan speed after layer change gcode
     gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
 
-    if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
-        gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
-    } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
-        auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
-        gcode += writer().set_temperature(print.calib_params().start - offset);
-    } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
-        auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-    } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
-        auto _speed = print.calib_params().start + print_z * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-    }
-    else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
-        auto _length = print.calib_params().start + std::floor(std::max(0.0,print_z-0.4)) * print.calib_params().step;
-        DynamicConfig _cfg;
-        _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
-        writer().config.apply(_cfg);
-        sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
-        gcode += buf;
+    //Calibration Layer-specific GCode
+    switch (print.calib_mode()) {
+        case CalibMode::Calib_PA_Tower: {
+            gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
+            break;
+        }
+        case CalibMode::Calib_Temp_Tower: {
+            auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
+            gcode += writer().set_temperature(print.calib_params().start - offset);
+            break;
+        }
+        case CalibMode::Calib_VFA_Tower: {
+            auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
+            m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+            break;
+        }
+        case CalibMode::Calib_Vol_speed_Tower: {
+            auto _speed = print.calib_params().start + print_z * print.calib_params().step;
+            m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+            break;
+        }
+        case CalibMode::Calib_Retraction_tower: {
+            auto _length = print.calib_params().start + std::floor(std::max(0.0,print_z-0.4)) * print.calib_params().step;
+            DynamicConfig _cfg;
+            _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
+            writer().config.apply(_cfg);
+            sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
+            gcode += buf;
+            break;
+        }
+        case CalibMode::Calib_Input_shaping_freq: {
+            if (m_layer_index == 1){
+                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
+                    gcode += writer().set_junction_deviation(0.25);//Set junction deviation at high value to maximize ringing.
+                }
+                gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
+            } else {
+                if (print.calib_params().freqStartX == print.calib_params().freqStartY && print.calib_params().freqEndX == print.calib_params().freqEndY) {
+                    gcode += writer().set_input_shaping('A', 0.f, (print.calib_params().freqStartX) + ((print.calib_params().freqEndX)-(print.calib_params().freqStartX)) * (m_layer_index - 2) / (m_layer_count - 3));
+                } else {
+                    gcode += writer().set_input_shaping('X', 0.f, (print.calib_params().freqStartX) + ((print.calib_params().freqEndX)-(print.calib_params().freqStartX)) * (m_layer_index - 2) / (m_layer_count - 3));
+                    gcode += writer().set_input_shaping('Y', 0.f, (print.calib_params().freqStartY) + ((print.calib_params().freqEndY)-(print.calib_params().freqStartY)) * (m_layer_index - 2) / (m_layer_count - 3));
+                }
+            }
+            break;
+        }
+        case CalibMode::Calib_Input_shaping_damp: {
+            if (m_layer_index == 1){
+                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
+                    gcode += writer().set_junction_deviation(0.25); // Set junction deviation at high value to maximize ringing.
+                }
+                gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX);
+            gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY);
+            } else {
+            gcode += writer().set_input_shaping('A', print.calib_params().start + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index) / (m_layer_count), 0.f);
+            }
+            break;
+        }
+        case CalibMode::Calib_Junction_Deviation: {
+            gcode += writer().set_junction_deviation(print.calib_params().start + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index) / (m_layer_count));
+            break;
+        }
     }
 
     //BBS
@@ -4077,6 +4120,7 @@ LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
+        std::string gcode_toolchange;
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
@@ -4095,11 +4139,16 @@ LayerResult GCode::process_layer(
                     }
                     has_insert_timelapse_gcode = true;
                 }
-                gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
+                gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
         } else {
-            gcode += this->set_extruder(extruder_id, print_z);
+            gcode_toolchange = this->set_extruder(extruder_id, print_z);
         }
+        if (!gcode_toolchange.empty()) {
+            // Disable vase mode for layers that has toolchange
+            result.spiral_vase_enable = false;
+        }
+        gcode += std::move(gcode_toolchange);
 
         // let analyzer tag generator aware of a role type change
         if (layer_tools.has_wipe_tower && m_wipe_tower)
@@ -5335,7 +5384,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
 
             if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
-                ref_speed = std::min(ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm);
+                ref_speed = std::min(ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm);
             }
             if (sloped) {
                 ref_speed = std::min(ref_speed, m_config.scarf_joint_speed.get_abs_value(ref_speed));
@@ -6064,7 +6113,8 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
-        if (m_spiral_vase) {
+        // Orca: use `travel_to_xyz` to ensure we start at the correct z, in case we moved z in custom/filament change gcode
+        if (false/*m_spiral_vase*/) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i) {
                 gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
@@ -6292,8 +6342,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     }
 
     if (needs_lift && can_lift) {
-        size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
+        gcode += m_writer.lift(lift_type, m_spiral_vase != nullptr);
     }
 
     return gcode;

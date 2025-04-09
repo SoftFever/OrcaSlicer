@@ -3579,8 +3579,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr "このフィラメントで推奨ノズル温度は %d ~ %d ℃です。"
 
 msgid ""
@@ -17653,7 +17653,7 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
 #~ "ベッド温度が1層目温度より %d ℃以上低いです。造形中プレートより離脱する可能"
