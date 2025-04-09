@@ -5118,12 +5118,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (type_3mf) {
                 DynamicPrintConfig config;
                 Semver             file_version;
+                En3mfType          en_3mf_file_type = En3mfType::From_BBS;
                 {
                     DynamicPrintConfig config_loaded;
 
                     // BBS: add part plate related logic
                     PlateDataPtrs             plate_data;
-                    En3mfType                 en_3mf_file_type = En3mfType::From_BBS;
                     ConfigSubstitutionContext config_substitutions{ForwardCompatibilitySubstitutionRule::Enable};
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
@@ -5390,6 +5390,70 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config.empty()) {
                         Preset::normalize(config);
                         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+
+                        {
+                            // BBS: modify the prime tower params for old version file
+                            Semver old_version3(2, 0, 0);
+                            if (en_3mf_file_type == En3mfType::From_BBS && file_version < old_version3) {
+                                double old_filament_prime_volume = 0.;
+                                int    filament_count            = 0;
+                                {
+                                    ConfigOptionFloats  *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume");
+                                    ConfigOptionStrings *filament_colors_option       = config.option<ConfigOptionStrings>("filament_colour", true);
+                                    filament_count                                    = filament_colors_option->values.size();
+                                    if (filament_prime_volume_option) {
+                                        std::vector<double> &filament_prime_volume_values = filament_prime_volume_option->values;
+                                        if (!filament_prime_volume_values.empty()) {
+                                            old_filament_prime_volume = filament_prime_volume_values[0];
+                                            if (filament_count > 1) filament_prime_volume_values.resize(filament_count, old_filament_prime_volume);
+                                        }
+                                    }
+                                }
+                                ConfigOptionBool *prime_tower_rib_wall_option = config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
+                                prime_tower_rib_wall_option->value            = false;
+
+                                ConfigOptionPercent *prime_tower_infill_gap_option = config.option<ConfigOptionPercent>("prime_tower_infill_gap", true);
+                                prime_tower_infill_gap_option->value               = 100;
+
+                                ConfigOptionInts *filament_adhesiveness_category_option = config.option<ConfigOptionInts>("filament_adhesiveness_category", true);
+                                std::vector<int> &filament_adhesiveness_category_values = filament_adhesiveness_category_option->values;
+                                filament_adhesiveness_category_values.resize(filament_count);
+                                for (int index = 0; index < filament_count; index++)
+                                    filament_adhesiveness_category_values[index] = 100;
+
+                                ConfigOptionFloats *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume", true);
+
+                                std::vector<double> &filament_prime_volume_values = filament_prime_volume_option->values;
+                                filament_prime_volume_values.resize(filament_count);
+                                for (int index = 0; index < filament_count; index++) {
+                                    if (old_filament_prime_volume != 0.)
+                                        filament_prime_volume_values[index] = old_filament_prime_volume;
+                                    else
+                                        filament_prime_volume_values[index] = filament_prime_volume_values[0];
+                                }
+
+                                std::vector<std::string> &diff_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
+                                diff_settings.resize(filament_count + 2);
+
+                                std::vector<std::string> diff_process_keys;
+                                std::string              diff_process_settings = diff_settings[0];
+                                Slic3r::unescape_strings_cstyle(diff_process_settings, diff_process_keys);
+                                diff_process_keys.emplace_back("prime_tower_rib_wall");
+                                diff_process_keys.emplace_back("prime_tower_infill_gap");
+                                diff_process_settings = Slic3r::escape_strings_cstyle(diff_process_keys);
+                                diff_settings[0] = diff_process_settings;
+
+                                for (int index = 0; index < filament_count; index++) {
+                                    std::vector<std::string> diff_filament_keys;
+                                    std::string              diff_filament_settings = diff_settings[index + 1];
+                                    Slic3r::unescape_strings_cstyle(diff_filament_settings, diff_filament_keys);
+                                    diff_filament_keys.emplace_back("filament_prime_volume");
+                                    diff_filament_keys.emplace_back("filament_adhesiveness_category");
+                                    diff_filament_settings   = Slic3r::escape_strings_cstyle(diff_filament_keys);
+                                    diff_settings[index + 1] = diff_filament_settings;
+                                }
+                            }
+                        }
 
                         auto choise = wxGetApp().app_config->get("no_warn_when_modified_gcodes");
                         if (choise.empty() || choise != "true") {
