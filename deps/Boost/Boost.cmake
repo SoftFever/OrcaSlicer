@@ -23,3 +23,7 @@ orcaslicer_add_cmake_project(Boost
 )
 
 set(DEP_Boost_DEPENDS ZLIB)
+
+if (MSVC)
+    add_debug_dep(dep_Boost)
+endif()

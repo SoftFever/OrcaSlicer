@@ -75,3 +75,6 @@ orcaslicer_add_cmake_project(OpenCV
        -DHAVE_WIN32UI=FALSE
 )
 
+if (MSVC)
+    add_debug_dep(dep_OpenCV)
+endif()

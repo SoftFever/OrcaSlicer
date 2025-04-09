@@ -30,4 +30,6 @@ else()
 endif()
 
 
-
+if (MSVC)
+    add_debug_dep(dep_TIFF)
+endif()

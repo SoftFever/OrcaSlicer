@@ -20,3 +20,7 @@ orcaslicer_add_cmake_project(JPEG
         -DENABLE_STATIC=ON
         ${jpeg_flag}
 )
+
+if (MSVC)
+    add_debug_dep(dep_JPEG)
+endif()
