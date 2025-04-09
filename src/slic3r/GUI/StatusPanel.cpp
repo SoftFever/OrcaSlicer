@@ -948,7 +948,9 @@ void PrintingTaskPanel::paint(wxPaintEvent&)
     }
     else
         dc.SetTextForeground(*wxBLACK);
-    dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
+    if (m_thumbnail_bmp_display.IsOk()) {
+        dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
+    }
     dc.SetFont(Label::Body_12);
     
     if (m_plate_index >= 0) {
