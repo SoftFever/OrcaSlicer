@@ -520,8 +520,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     /*ams mapping suggestions*/
     m_link_edit_nozzle = new Label(m_scroll_area, wxEmptyString);
-    m_link_edit_nozzle->SetMinSize(wxSize(FromDIP(600), -1));
-    m_link_edit_nozzle->SetMaxSize(wxSize(FromDIP(600), -1));
     m_link_edit_nozzle->SetFont(::Label::Body_13);
     m_link_edit_nozzle->SetForegroundColour(0x00ae42);
     m_link_edit_nozzle->SetBackgroundColour(*wxWHITE);
