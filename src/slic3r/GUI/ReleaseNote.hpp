@@ -292,6 +292,7 @@ public:
     wxString comfirm_after_enter_text;
     wxString comfirm_last_enter_text;
 
+    std::shared_ptr<InputIpAddressDialog> token_;
     boost::thread* m_thread{nullptr};
 
     std::string m_ip;
@@ -346,7 +347,7 @@ public:
     void on_ok(wxMouseEvent& evt);
     void on_send_retry();
     void update_test_msg_event(wxCommandEvent &evt);
-    void post_update_test_msg(wxString text, bool beconnect);
+    void post_update_test_msg(std::weak_ptr<InputIpAddressDialog> w, wxString text, bool beconnect);
     void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id, std::string name);
     void OnTimer(wxTimerEvent& event);
     void on_text(wxCommandEvent& evt);
