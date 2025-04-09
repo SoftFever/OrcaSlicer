@@ -6,6 +6,8 @@
 #include <wx/stattext.h>
 #include "StaticBox.hpp"
 
+#include <unordered_set>
+
 wxDECLARE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
 
 enum TempInputType {
@@ -34,6 +36,7 @@ class TempInput : public wxNavigationEnabled<StaticBox>
 
     int  max_temp     = 0;
     int  min_temp     = 0;
+    std::unordered_set<int> additional_temps;
     bool warning_mode = false;
     TempInputType m_input_type;
 
@@ -96,6 +99,7 @@ public:
 
     void SetMaxTemp(int temp);
     void SetMinTemp(int temp);
+    void AddTemp(int temp) { additional_temps.insert(temp); };
 
     int GetType() { return temp_type; }
 
