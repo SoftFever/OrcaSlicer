@@ -605,7 +605,9 @@ const wxBitmap &AMSExtImage::get_bmp(const std::string &printer_type, bool is_am
 
 void AMSExtImage::msw_rescale()
 {
-    m_ext_image.msw_rescale();
+    if (m_ext_image.bmp().IsOk()) {
+        m_ext_image.msw_rescale();
+    }
 
     Layout();
     Fit();
