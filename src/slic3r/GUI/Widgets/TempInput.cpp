@@ -61,24 +61,20 @@ bool TempInput::CheckIsValidVal(bool show_warning)
 
     /*show temperature range warnings*/
     auto tempint = std::stoi(temp.ToStdString());
-    if (tempint > max_temp)
+    if (additional_temps.count(tempint) == 0)
     {
-        if (show_warning)
+        if (tempint > max_temp)
         {
-            Warning(true, WARNING_TOO_HIGH);
+            if (show_warning) { Warning(true, WARNING_TOO_HIGH); }
+            return false;
         }
-
-        return false;
-    }
-    else if (tempint < min_temp)
-    {
-        if (show_warning)
+        else if (tempint < min_temp)
         {
-            Warning(true, WARNING_TOO_LOW);
+            if (show_warning) { Warning(true, WARNING_TOO_LOW); }
+            return false;
         }
-
-        return false;
     }
+
 
     return true;
 }
