@@ -5933,14 +5933,54 @@ void PartPlateList::init_bed_type_info()
 	BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
 	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
 	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
+    auto bed_texture_maps        = wxGetApp().plater()->get_bed_texture_maps();
+    std::string bottom_texture_end_name = bed_texture_maps.find("bottom_texture_end_name") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_end_name"] : "";
+    std::string bottom_texture_rect_str = bed_texture_maps.find("bottom_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect"] : "";
+    std::string middle_texture_rect_str = bed_texture_maps.find("middle_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["middle_texture_rect"] : "";
+    std::array<float, 4>        bottom_texture_rect = {0, 0, 0, 0}, middle_texture_rect = {0, 0, 0, 0};
+    if (bottom_texture_rect_str.size() > 0) {
+        std::vector<std::string> items;
+        boost::algorithm::erase_all(bottom_texture_rect_str, " ");
+        boost::split(items, bottom_texture_rect_str, boost::is_any_of(","));
+        if (items.size() == 4) {
+            for (int i = 0; i < items.size(); i++) {
+                bottom_texture_rect[i] = std::atof(items[i].c_str());
+            }
+        }
+    }
+    if (middle_texture_rect_str.size() > 0) {
+        std::vector<std::string> items;
+        boost::algorithm::erase_all(middle_texture_rect_str, " ");
+        boost::split(items, middle_texture_rect_str, boost::is_any_of(","));
+        if (items.size() == 4) {
+            for (int i = 0; i < items.size(); i++) {
+                middle_texture_rect[i] = std::atof(items[i].c_str());
+            }
+        }
+    }
     auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
     if (!is_single_extruder) {
         m_allow_bed_type_in_double_nozzle.clear();
         pte_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pte_middle.svg");
+        auto &middle_rect = middle_texture_rect;
+        if (middle_rect[2] > 0.f) {
+            pte_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pte_middle.svg");
+        }
         pte_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pte_left_bottom.svg");
-
+        auto &bottom_rect = bottom_texture_rect;
+        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
+            std::string pte_part2_name = "bbl_bed_pte_bottom_" + bottom_texture_end_name + ".svg";
+            pte_part2 = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pte_part2_name);
+        }
         pei_part1  = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pei_middle.svg");
+        if (middle_rect[2] > 0.f) {
+            pei_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pte_middle.svg");
+        }
         pei_part2  = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pei_left_bottom.svg");
+        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
+            std::string pei_part2_name = "bbl_bed_pei_bottom_" + bottom_texture_end_name + ".svg";
+            pei_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pei_part2_name);
+        }
         m_allow_bed_type_in_double_nozzle[(int) btPEI] = true;
         m_allow_bed_type_in_double_nozzle[(int) btPTE] = true;
     }
@@ -5968,8 +6008,8 @@ void PartPlateList::init_bed_type_info()
     float base_width  = 256;//standard 256*256 for single_extruder
     float base_height = 256;
     if (!is_single_extruder) {//standard 350*325 for double_extruder
-        base_width  = 350;
-        base_height = 320;
+        base_width  = bed_width;
+        base_height = bed_height;
     }
     float x_rate      = bed_width / base_width;
     float y_rate      = bed_height / base_height;

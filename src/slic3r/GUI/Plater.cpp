@@ -4916,6 +4916,25 @@ const VendorProfile::PrinterModel *Plater::get_curr_printer_model()
     return nullptr;
 }
 
+std::map<std::string, std::string> Plater::get_bed_texture_maps()
+{
+    auto pm = get_curr_printer_model();
+    if (pm) {
+        std::map<std::string, std::string> maps;
+        if (pm->bottom_texture_end_name.size() > 0) {
+            maps["bottom_texture_end_name"] = pm->bottom_texture_end_name;
+        }
+        if (pm->bottom_texture_rect.size() > 0) {
+            maps["bottom_texture_rect"] = pm->bottom_texture_rect;
+        }
+        if (pm->middle_texture_rect.size() > 0) {
+            maps["middle_texture_rect"] = pm->middle_texture_rect;
+        }
+        return maps;
+    }
+    return {};
+}
+
 wxColour Plater::get_next_color_for_filament()
 {
     static int curr_color_filamenet = 0;

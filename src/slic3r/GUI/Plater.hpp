@@ -355,7 +355,8 @@ public:
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
 
-    const VendorProfile::PrinterModel *get_curr_printer_model();
+    const VendorProfile::PrinterModel * get_curr_printer_model();
+    std::map<std::string, std::string> get_bed_texture_maps();
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
