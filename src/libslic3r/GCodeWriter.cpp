@@ -320,9 +320,16 @@ std::string GCodeWriter::set_junction_deviation(double junction_deviation){
         throw std::runtime_error("Junction deviation is only supported by Marlin firmware");
     }
     // Clamp the junction deviation to the allowed maximum.
-    if (junction_deviation < m_max_junction_deviation) {
-        gcode << "M205 J" << junction_deviation << "; Junction Deviation\n";
+    gcode << "M205 J";
+    if (junction_deviation <= m_max_junction_deviation) {
+        gcode << junction_deviation;
+    } else {
+        gcode << m_max_junction_deviation;
     }
+    if (GCodeWriter::full_gcode_comment) {
+        gcode << " ; Junction Deviation";
+    }
+    gcode << "\n";
     return gcode.str();
 }
 
