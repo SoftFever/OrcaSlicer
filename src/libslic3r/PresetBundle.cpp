@@ -2179,6 +2179,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
                     exist_colors[i]           = ams_filament_colors[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];
+                    ams_multi_color_filment[i] = { ams_filament_colors[valid_index] };
                 } else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "check error: array bound (mapping exist)";
                 }
@@ -2197,6 +2198,11 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     ams_filament_presets[i]    = "";
                     ams_multi_color_filment[i] = std::vector<std::string>();
                 }
+            }
+            else {
+                ams_filament_colors[i]     = "";
+                ams_filament_presets[i]    = "";
+                ams_multi_color_filment[i] = std::vector<std::string>();
             }
         }
         //delete redundant color
