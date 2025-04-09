@@ -34,6 +34,7 @@ static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 #define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
 #define BTN_GAP                 FromDIP(20)
 #define TEXT_BEG_PADDING        FromDIP(30)
+#define MAX_FLUSH_VALUE         2147483520
 #define MIN_WIPING_DIALOG_WIDTH FromDIP(300)
 #define TIP_MESSAGES_PADDING    FromDIP(8)
 
@@ -497,7 +498,12 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                 edit_boxes[i][j]->Bind(wxEVT_TEXT, [this, i, j](wxCommandEvent& e) {
                     wxString str = edit_boxes[i][j]->GetValue();
                     int value = wxAtoi(str);
-		    if (value < 0) {
+
+                     if (value > MAX_FLUSH_VALUE) {
+                         str = wxString::Format(("%d"), MAX_FLUSH_VALUE);
+                         edit_boxes[i][j]->SetValue(str);
+                     }
+                     else if (value < 0) {
                         edit_boxes[i][j]->SetValue(wxString("0"));
                     }
                     });
