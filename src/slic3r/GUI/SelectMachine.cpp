@@ -2463,6 +2463,7 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     wxString error_messgae;
     if (obj->canEnableTimelapse(error_messgae) && !has_timelapse_warning(error_messgae)) {
         m_checkbox_list["timelapse"]->enable(true);
+        m_checkbox_list["timelapse"]->update_tooltip(wxEmptyString);
     } else {
         m_checkbox_list["timelapse"]->enable(false);
         m_checkbox_list["timelapse"]->setValue("off");
