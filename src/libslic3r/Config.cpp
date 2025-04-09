@@ -456,7 +456,7 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
                 auto my_opt2 = dynamic_cast<ConfigOptionVectorBase*>(this->option(opt_key2));
                 auto other_opt = other.option(opt_key2);
                 if (my_opt2 == nullptr && other_opt)
-                    my_opt2 = dynamic_cast<ConfigOptionVectorBase*>(other_opt->clone());
+                    my_opt2 = dynamic_cast<ConfigOptionVectorBase *>(this->option(opt_key2, true));
                 if (my_opt2) {
                     int index = std::atoi(opt_key.c_str() + n + 1);
                     if (other_opt)
