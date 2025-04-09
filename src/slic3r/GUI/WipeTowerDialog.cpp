@@ -498,7 +498,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                 edit_boxes[i][j]->Bind(wxEVT_TEXT, [this, i, j](wxCommandEvent& e) {
                     wxString str = edit_boxes[i][j]->GetValue();
                     int value = wxAtoi(str);
-
                      if (value > MAX_FLUSH_VALUE) {
                          str = wxString::Format(("%d"), MAX_FLUSH_VALUE);
                          edit_boxes[i][j]->SetValue(str);
