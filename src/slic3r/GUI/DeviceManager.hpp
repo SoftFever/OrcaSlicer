@@ -265,7 +265,7 @@ struct AirParts
 struct AirDuctData
 {
     int curren_mode{ 0 };
-    std::vector<AirMode> modes;
+    std::unordered_map<int, AirMode> modes;
     std::vector<AirParts> parts;
 };
 
