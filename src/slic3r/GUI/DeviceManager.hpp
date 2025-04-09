@@ -338,7 +338,7 @@ public:
     int             ctype = 0;
     float           k = 0.0f;       // k range: 0 ~ 0.5
     float           n = 0.0f;       // k range: 0.6 ~ 2.0
-    int             cali_idx = 0;
+    int             cali_idx = -1;  // - 1 means default
 
     wxColour        wx_color;
     bool            is_bbl;

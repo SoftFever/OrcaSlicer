@@ -135,7 +135,7 @@ struct PACalibIndexInfo
     int         tray_id = 0;
     int         ams_id = 0;
     int         slot_id = 0;
-    int         cali_idx;
+    int         cali_idx = -1; // -1 means default
     float       nozzle_diameter;
     std::string filament_id;
 };
