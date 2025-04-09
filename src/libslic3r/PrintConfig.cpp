@@ -5905,7 +5905,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("prime_tower_enable_framework", coBool);
     def->label = L("Internal ribs");
     def->tooltip = L("Enable internal ribs to increase the stability of the prime tower.");
-    def->mode = comSimple;
+    def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("flush_volumes_vector", coFloats);
@@ -6090,8 +6090,9 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("prime_tower_rib_wall", coBool);
     def->label   = L("Rib wall");
-    def->tooltip = L("The wall of prime tower will add four ribs");
-    def->mode    = comAdvanced;
+    def->tooltip = L("The wall of prime tower will add four ribs and make its "
+                     "cross-section as close to a square as possible, so the width will be fixed.");
+    def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("prime_tower_fillet_wall", coBool);
