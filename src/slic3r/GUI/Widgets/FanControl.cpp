@@ -223,11 +223,8 @@ bool FanOperate::check_printing_state()
     if (m_obj && !not_show_fan_speed_warning_dlg && m_obj->is_in_printing()) {
         MessageDialog msg_wingow(nullptr, _L("Changing fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
         msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
-        msg_wingow.show_dsa_button();
-
-        bool ok = msg_wingow.ShowModal();
-        if (ok && msg_wingow.get_checkbox_state()) { not_show_fan_speed_warning_dlg = true; }
-        return ok;
+        not_show_fan_speed_warning_dlg = true;
+        return msg_wingow.ShowModal();
     }
     return true;
 }
@@ -474,11 +471,8 @@ bool FanControlNew::check_printing_state()
     if (m_obj && !not_show_fan_speed_warning_dlg && m_obj->is_in_printing()) {
         MessageDialog msg_wingow(nullptr, _L("Changed fan speed during pringing may affect print quality, please choose carefully."), "", wxICON_WARNING | wxCANCEL | wxOK);
         msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
-        msg_wingow.show_dsa_button();
-
-        bool ok = msg_wingow.ShowModal();
-        if (ok && msg_wingow.get_checkbox_state()) { not_show_fan_speed_warning_dlg = true; }
-        return ok;
+        not_show_fan_speed_warning_dlg = true;
+        return msg_wingow.ShowModal();
     }
     return true;
 }
