@@ -16,7 +16,6 @@
 #include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/range/adaptor/transformed.hpp>
-#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -365,6 +364,29 @@ bool PresetBundle::use_bbl_device_tab() {
     const auto cfg = printers.get_edited_preset().config;
     // Use bbl device tab if printhost webui url is not set 
     return cfg.opt_string("print_host_webui").empty();
+}
+
+bool PresetBundle::backup_user_folder() const
+{
+    const std::string backup_folderpath = data_dir() + "/" + (boost::format("user_backup-v%1%") % SoftFever_VERSION).str();
+
+    // Check if backup file already exists
+    if (boost::filesystem::exists(boost::filesystem::path(backup_folderpath)))
+        return false;
+
+    BOOST_LOG_TRIVIAL(info) << "Backing up user folder to: " << backup_folderpath;
+    try {
+        // Copy the user folder to the backup folder
+        boost::filesystem::copy(data_dir() + "/" + PRESET_USER_DIR, backup_folderpath, boost::filesystem::copy_options::recursive);
+        BOOST_LOG_TRIVIAL(info) << "User folder backup completed successfully";
+        return true;
+    } catch (const std::exception& ex) {
+        BOOST_LOG_TRIVIAL(error) << "Exception during user folder backup: " << ex.what();
+        // Try to clean up partially copied backup folder
+        if (boost::filesystem::exists(boost::filesystem::path(backup_folderpath)))
+            boost::filesystem::remove_all(boost::filesystem::path(backup_folderpath));
+        return false;
+    }
 }
 
 //BBS: load project embedded presets
@@ -2504,7 +2526,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         old_filament_profile_names->values.resize(num_filaments, std::string());
 
         if (num_filaments <= 1) {
-            // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
+            // Split the "compatible_printers_condition" and "inherits" values from the cummulative vectors to separate filament presets.
             inherits                      = inherits_values[1];
             compatible_printers_condition = compatible_printers_condition_values[1];
 			compatible_prints_condition   = compatible_prints_condition_values.front();
