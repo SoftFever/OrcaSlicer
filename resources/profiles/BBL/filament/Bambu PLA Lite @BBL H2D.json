@@ -14,11 +14,11 @@
     "counter_coef_3": [
         "-0.32"
     ],
-    "counter_limit_max": [
-        "0.05"
-    ],
     "counter_limit_min": [
         "-0.4"
+    ],
+    "counter_limit_max": [
+        "0.05"
     ],
     "fan_max_speed": [
         "80"
@@ -36,10 +36,6 @@
         "nil",
         "nil"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -51,14 +47,6 @@
     "filament_max_volumetric_speed": [
         "20",
         "30"
-    ],
-    "filament_pre_cooling_temperature": [
-        "0",
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -92,9 +80,6 @@
         "nil",
         "nil"
     ],
-    "filament_scarf_seam_type": [
-        "all"
-    ],
     "filament_wipe": [
         "nil",
         "nil"
@@ -111,6 +96,21 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_scarf_seam_type": [
+        "all"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "hole_coef_2": [
         "-0.0081"
     ],
@@ -121,6 +121,9 @@
     "nozzle_temperature_initial_layer": [
         "210",
         "210"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",
