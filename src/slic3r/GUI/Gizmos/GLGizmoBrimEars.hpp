@@ -144,6 +144,10 @@ private:
     void get_detection_radius_max();
     void update_raycasters();
 
+    void begin_radius_change(float initial_value);
+    void update_cache_radius();
+    void apply_radius_change();
+
 protected:
     void on_set_state() override;
     void on_set_hover_id() override
