@@ -11,7 +11,9 @@ float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &conf
 {
     const double general_suggested_min_speed   = 100.0;
     double       filament_max_volumetric_speed = config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
-    Flow         pattern_line = Flow(line_width, layer_height, config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
+    const float  nozzle_diameter               = config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    if (line_width <= 0.) line_width = Flow::auto_extrusion_width(frPerimeter, nozzle_diameter);
+    Flow         pattern_line = Flow(line_width, layer_height, nozzle_diameter);
     auto         pa_speed     = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloat>("outer_wall_speed")->value),
                                          filament_max_volumetric_speed / pattern_line.mm3_per_mm());
 
@@ -565,9 +567,10 @@ double CalibPressureAdvancePattern::flow_val() const
     double flow_mult = m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
     double nozzle_diameter = m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
     double line_width = m_config.get_abs_value("line_width", nozzle_diameter);
+    if (line_width <= 0.) line_width = Flow::auto_extrusion_width(frPerimeter, nozzle_diameter);
     double layer_height = m_config.get_abs_value("layer_height");
     double speed = speed_perimeter();
-    Flow pattern_line = Flow(line_width, layer_height, m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
+    Flow pattern_line = Flow(line_width, layer_height, nozzle_diameter);
 
     return speed * pattern_line.mm3_per_mm() * flow_mult;
 };
