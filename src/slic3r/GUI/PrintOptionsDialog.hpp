@@ -39,6 +39,7 @@ protected:
 
     ComboBox* nozzle_type_checkbox;
     ComboBox* nozzle_diameter_checkbox;
+    Label    *change_nozzle_tips;
 
     ComboBox* multiple_left_nozzle_type_checkbox;
     ComboBox *multiple_left_nozzle_diameter_checkbox;
@@ -47,6 +48,8 @@ protected:
     ComboBox *multiple_right_nozzle_type_checkbox;
     ComboBox *multiple_right_nozzle_diameter_checkbox;
     ComboBox *multiple_right_nozzle_flow_checkbox;
+
+    Label *multiple_change_nozzle_tips;
 
     wxPanel *single_panel;
     wxPanel *multiple_panel;
@@ -67,6 +70,10 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_machine_obj(MachineObject* obj_);
     bool Show(bool show) override;
+
+private:
+    void  EnableEditing(bool enable);
+
 };
 
 

@@ -7500,7 +7500,11 @@ std::string DeviceManager::get_printer_ext_img(std::string type_str, int pos) {
 }
 
 bool DeviceManager::get_printer_is_enclosed(std::string type_str) {
-    return get_value_from_config<bool>(type_str, "printer_is_enclosed");
+    return get_value_from_config<bool>(type_str, "printer_is_enclosed"); }
+
+bool DeviceManager::get_printer_can_set_nozzle(std::string type_str)
+{
+    return get_value_from_config<bool>(type_str, "enable_set_nozzle_info");
 }
 
 std::vector<std::string> DeviceManager::get_resolution_supported(std::string type_str)

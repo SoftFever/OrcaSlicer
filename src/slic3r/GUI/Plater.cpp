@@ -13583,8 +13583,14 @@ bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning)
 
     if (!has_been_initialized) {
         if (!only_warning) {
-            MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
-            dlg.ShowModal();
+
+            if (DeviceManager::get_printer_can_set_nozzle(obj->printer_type)) {
+                MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
+                dlg.ShowModal();
+            } else {
+                MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please check."), _L("Warning"), wxOK | wxICON_WARNING);
+                dlg.ShowModal();
+            }
 
             PrinterPartsDialog *print_parts_dlg = new PrinterPartsDialog(nullptr);
             print_parts_dlg->update_machine_obj(obj);

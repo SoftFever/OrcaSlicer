@@ -51,7 +51,8 @@
 		"printer_arch": "i3",
 		"printer_series": "series_n",
 		"has_cali_line": false,
-		"printer_is_enclosed": false
+		"printer_is_enclosed": false,
+		"enable_set_nozzle_info": true
 	},
 	"01.01.50.01": {
 		"print": {
