@@ -384,18 +384,13 @@ void SyncAmsInfoDialog::update_map_when_change_map_mode()
         if (m_ams_combo_info.empty()) {
             wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info);
         }
-        for (size_t i = 0; i < m_preview_colors_in_thumbnail.size(); i++) {
-            if (i < m_ams_combo_info.ams_filament_colors.size()) {
-                auto result                  = decode_ams_color(m_ams_combo_info.ams_filament_colors[i]);
-                if (i < m_cur_colors_in_thumbnail.size()) {
-                    m_cur_colors_in_thumbnail[i] = result;
-                }
-            }
-            else {
-                if (!m_cur_colors_in_thumbnail.empty()) {
-                    // todo:give warning
-                    m_cur_colors_in_thumbnail[i] = m_cur_colors_in_thumbnail[0];
-                }
+        for (size_t i = 0; i < m_ams_combo_info.ams_filament_colors.size(); i++) {
+            auto result = decode_ams_color(m_ams_combo_info.ams_filament_colors[i]);
+            if (i < m_cur_colors_in_thumbnail.size()) {
+                m_cur_colors_in_thumbnail[i] = result;
+            } else {
+                m_cur_colors_in_thumbnail.resize(i + 1);
+                m_cur_colors_in_thumbnail[i] = result;
             }
         }
     }
@@ -1126,6 +1121,7 @@ void SyncAmsInfoDialog::reinit_dialog()
     m_ams_mapping_res   = false;
     m_ams_mapping_valid = false;
     m_ams_mapping_result.clear();
+    m_preview_colors_in_thumbnail.clear();
 
     show_status(PrintDialogStatus::PrintStatusInit);
     update_show_status();
@@ -1298,11 +1294,11 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
         std::string ams_array2;
         std::string mapping_info;
         get_ams_mapping_result(ams_array, ams_array2, mapping_info);
+        sync_ams_mapping_result(m_ams_mapping_result);
         if (ams_array.empty()) {
             reset_ams_material();
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=[]";
         } else {
-            sync_ams_mapping_result(m_ams_mapping_result);
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=" << ams_array;
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array2=" << ams_array2;
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_info=" << mapping_info;
@@ -3110,11 +3106,11 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
 void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
 {
     // record preview_colors
-    MaterialHash::iterator iter = m_materialList.begin();
-    if (m_preview_colors_in_thumbnail.size() != m_materialList.size()) {
-        m_preview_colors_in_thumbnail.resize(m_materialList.size());
-    }
-    if (allow_clone_ams_color) {
+    if (m_preview_colors_in_thumbnail.empty()) {
+        MaterialHash::iterator iter = m_materialList.begin();
+        if (m_preview_colors_in_thumbnail.size() != m_materialList.size()) {
+            m_preview_colors_in_thumbnail.resize(m_materialList.size());
+        }
         while (iter != m_materialList.end()) {
             int       id                      = iter->first;
             Material *item                    = iter->second;
