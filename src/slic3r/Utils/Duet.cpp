@@ -44,7 +44,7 @@ bool Duet::test(wxString &msg) const
 
 wxString Duet::get_test_ok_msg () const
 {
-	return _(L("Connection to Duet works correctly."));
+	return _(L("Connection to Duet is working correctly."));
 }
 
 wxString Duet::get_test_failed_msg (wxString &msg) const
