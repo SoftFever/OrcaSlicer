@@ -535,7 +535,7 @@ void PrinterPartsDialog::set_nozzle_type(wxCommandEvent& evt)
     nozzle_diameter_checkbox->Clear();
     for (int i = 0; i < diameter_list.size(); i++)
     {
-        nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
+        nozzle_diameter_checkbox->Append(wxString::Format("%.1f", diameter_list[i]));
     }
     nozzle_diameter_checkbox->SetSelection(0);
 
@@ -621,7 +621,7 @@ bool PrinterPartsDialog::Show(bool show)
 
         for (int i = 0; i < diameter_list.size(); i++)
         {
-            nozzle_diameter_checkbox->Append( wxString::Format(_L("%.1f"), diameter_list[i]));
+            nozzle_diameter_checkbox->Append( wxString::Format("%.1f", diameter_list[i]));
             if (diameter_list[i] == diameter) {
                 nozzle_diameter_checkbox->SetSelection(i);
             }
