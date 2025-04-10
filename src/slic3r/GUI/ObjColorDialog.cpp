@@ -375,6 +375,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
             //{//choose camera view angle type
             //    //m_sizer_simple->Add(combox_sizer, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(2));
             //}
+            cur_combox->Raise();
         }
         wxBoxSizer *  current_filaments_title_sizer  = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText *current_filaments_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Current filament colors"));
