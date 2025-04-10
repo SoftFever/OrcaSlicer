@@ -614,10 +614,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         "use_ams"
     );
 
-    option_use_ams->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto& e) {
-        m_ams_mapping_result.clear();//clear and Scheduled call update_show_status
-    });
-
     option_use_ams->setValue("on");
 
     m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(40));
@@ -646,11 +642,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     for (auto print_opt : m_checkbox_list_order) {
         if (print_opt != option_use_ams) {
             print_opt->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) { save_option_vals();});
-        } else{
-            option_use_ams->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) {
-                m_ams_mapping_result.clear(); // clear and Scheduled call update_show_status
-                save_option_vals();
-            });
         }
     }
 
