@@ -1159,7 +1159,7 @@ wxPanel* SendMultiMachinePage::create_page()
 
     // add ams item
     m_ams_list_sizer = new wxGridSizer(0, 4, 0, FromDIP(5));
-    sync_ams_list();
+
     sizer->Add(m_ams_list_sizer, 0, wxLEFT, FromDIP(25));
     sizer->AddSpacer(FromDIP(10));
 
