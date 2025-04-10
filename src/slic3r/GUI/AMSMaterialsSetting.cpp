@@ -992,10 +992,11 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
                 std::string filament_id   = filament_item.filament_id;
                 if (it->filament_id.compare(filament_id) == 0) {
+                    ConfigOption *       printer_opt  = it->config.option("compatible_printers");
+                    ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
                     bool has_compatible_printer = false;
-                    std::string preset_name            = it->name;
-                    for (std::string printer_name : printer_names) {
-                        if (preset_name.find(printer_name) != std::string::npos) {
+                    for (auto printer_str : printer_strs->values) {
+                        if (printer_names.find(printer_str) != printer_names.end()) {
                             has_compatible_printer = true;
                             break;
                         }
