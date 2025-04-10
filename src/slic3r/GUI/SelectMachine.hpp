@@ -210,44 +210,38 @@ static int get_brightness_value(wxImage image) {
 struct POItem
 {
     std::string key;
-    wxString value;
+    wxString    value; // the display value
+
+ public:
+    bool operator==(const POItem &other) const { return key == other.key && value == other.value; }
 };
 
-class PrintOptionItem : public wxPanel
+class PrintOptionItem : public ComboBox
 {
-    ScalableBitmap      m_selected_bk;
     std::vector<POItem> m_ops;
     std::string         selected_key;
     std::string         m_param;
 
-    bool                m_enabled = true;
-
 public:
     PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param = "");
-    ~PrintOptionItem(){};
+    ~PrintOptionItem() {};
 
 public:
-    bool        Enable(bool enable) override { m_enabled = enable; return m_enabled;}
+    bool        Enable(bool enable) override {  return ComboBox::Enable(enable); }
 
     void        setValue(std::string value);
-    std::string getValue();
+    std::string getValue() const { return selected_key; }
 
-    void  msw_rescale() { m_selected_bk.msw_rescale(); Refresh();};
-    void  update_options(std::vector<POItem> ops){
-        m_ops = ops;
-        selected_key = "";
-        auto width  = ops.size() * FromDIP(56) + FromDIP(8);
-        auto height = FromDIP(22) + FromDIP(8);
-        SetMinSize(wxSize(width, height));
-        SetMaxSize(wxSize(width, height));
-        Refresh();
-    };
+    void        msw_rescale() { ComboBox::Rescale();};
+    void        update_options(std::vector<POItem> ops);
+
+    bool        CanBeFocused() const override { return false; }
 
 private:
-    void OnPaint(wxPaintEvent &event);
-    void render(wxDC &dc);
-    void on_left_down(wxMouseEvent &evt);
-    void doRender(wxDC &dc);
+    void on_combobox_changed(wxCommandEvent &evt);
+
+    wxString    get_display_str(const std::string& key) const;
+    std::string get_key(const wxString &display_val) const;
 };
 
 class PrintOption : public wxPanel
@@ -273,10 +267,12 @@ public:
 
     bool        contain_opt(const std::string& opt_str) const;
     void        update_options(std::vector<POItem> ops, const wxString &tips);
+    void        update_tooltip(const wxString &tips);
 
-    void update_tooltip(const wxString &tips);
+    void  msw_rescale() { m_printoption_item->msw_rescale(); };
 
-    void msw_rescale() { m_printoption_item->msw_rescale(); };
+    // override funcs
+    bool  CanBeFocused() const override { return false; }
 
 private:
     void OnPaint(wxPaintEvent &event);
