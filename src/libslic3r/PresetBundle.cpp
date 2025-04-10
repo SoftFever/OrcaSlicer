@@ -2052,6 +2052,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         bool is_map{false};
         std::string filament_color  = "";
         std::string filament_preset = "";
+        std::vector<std::string> mutli_filament_color;
     };
     auto is_double_extruder = get_printer_extruder_count() == 2;
     std::vector<AmsInfo> ams_infos;
@@ -2173,13 +2174,18 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         std::vector<AmsInfo> need_append_colors;
         auto exist_colors = filament_color->values;
         auto exist_filament_presets = this->filament_presets;
+        std::vector<std::vector<std::string>> exist_multi_color_filment;
+        exist_multi_color_filment.resize(exist_colors.size());
+        for (int i = 0; i < exist_colors.size(); i++) {
+            exist_multi_color_filment[i] = {exist_colors[i]};
+        }
         for (size_t i = 0; i < exist_colors.size(); i++) {
             if (maps.find(i) != maps.end()) {//mapping exist
                 auto valid_index = get_map_index(ams_array_maps, maps[i]);
                 if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
                     exist_colors[i]           = ams_filament_colors[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];
-                    ams_multi_color_filment[i] = { ams_filament_colors[valid_index] };
+                    exist_multi_color_filment[i] = ams_multi_color_filment[valid_index];
                 } else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "check error: array bound (mapping exist)";
                 }
@@ -2192,6 +2198,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     continue;
                 }
                 ams_infos[i].filament_preset = ams_filament_presets[i];
+                ams_infos[i].mutli_filament_color = ams_multi_color_filment[i];
                 if (!ams_infos[i].is_map) {
                     need_append_colors.emplace_back(ams_infos[i]);
                     ams_filament_colors[i]     = "";
@@ -2233,12 +2240,12 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 }
                 exist_filament_presets.push_back(need_append_colors[i].filament_preset);
                 exist_colors.push_back(need_append_colors[i].filament_color);
-                std::vector<std::string> value = {need_append_colors[i].filament_color};
-                ams_multi_color_filment.push_back(value);
+                exist_multi_color_filment.push_back(need_append_colors[i].mutli_filament_color);
             }
         }
         filament_color->resize(exist_colors.size());
         filament_color->values = exist_colors;
+        ams_multi_color_filment = exist_multi_color_filment;
         this->filament_presets = exist_filament_presets;
         filament_map->values.resize(exist_filament_presets.size(), 1);
     }
