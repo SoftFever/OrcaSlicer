@@ -29,6 +29,11 @@
 #include <mutex>
 #include <stack>
 
+#ifdef __APPLE__
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#include <IOKit/IOMessage.h>
+#endif
+
 //#define BBL_HAS_FIRST_PAGE          1
 #define STUDIO_INACTIVE_TIMEOUT     15*60*1000
 #define LOG_FILES_MAX_NUM           30
@@ -711,6 +716,18 @@ private:
     boost::optional<Semver> m_last_config_version;
     bool                    m_config_corrupted { false };
     std::string             m_open_method;
+
+#ifdef __APPLE__
+    void        RegisterMacPowerCallBack();
+    void        UnRegisterMacPowerCallBack();
+    static void MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument);
+
+    bool                   m_mac_powercallback_registered = false;
+    void*                  m_mac_refcon;
+    IONotificationPortRef  m_mac_io_notify_port;
+    io_object_t            m_mac_io_obj;
+    io_service_t           m_mac_io_service;
+#endif
 };
 
 DECLARE_APP(GUI_App)
