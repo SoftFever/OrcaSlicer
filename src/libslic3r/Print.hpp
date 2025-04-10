@@ -433,7 +433,7 @@ public:
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
     void         get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects);
-    std::vector<Point> get_instances_shift_without_plate_offset();
+    Points       get_instances_shift_without_plate_offset();
     PrintObject* get_shared_object() const { return m_shared_object; }
     void         set_shared_object(PrintObject *object);
     void         clear_shared_object();
@@ -900,7 +900,7 @@ public:
     // For Perl bindings.
     PrintObjectPtrs&            objects_mutable() { return m_objects; }
     PrintRegionPtrs&            print_regions_mutable() { return m_print_regions; }
-    std::vector<size_t>         layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points>& objects_instances_shift);
+    std::vector<size_t>         layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, VecOfPoints& objects_instances_shift);
     const ExtrusionEntityCollection& skirt() const { return m_skirt; }
     // Convex hull of the 1st layer extrusions, for bed leveling and placing the initial purge line.
     // It encompasses the object extrusions, support extrusions, skirt, brim, wipe tower.
@@ -954,7 +954,7 @@ public:
     ConflictResultOpt            get_conflict_result() const { return m_conflict_result; }
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
-    std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
+    Points first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
 
     //SoftFever
     bool &is_BBL_printer() { return m_isBBLPrinter; }
