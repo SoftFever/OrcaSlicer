@@ -1516,6 +1516,17 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                }
             }
 
+            // check  junction deviation
+            const auto max_junction_deviation = m_config.machine_max_junction_deviation.values[0];
+            if (warning_key.empty() && m_default_object_config.default_junction_deviation.value > max_junction_deviation) {
+                warning->string  = L( "Junction deviation setting exceeds the printer's maximum value "
+                                      "(machine_max_junction_deviation).\nOrca will "
+                                      "automatically cap the junction deviation to ensure it doesn't surpass the printer's "
+                                      "capabilities.\nYou can adjust the "
+                                      "machine_max_junction_deviation value in your printer's configuration to get higher limits.");
+                warning->opt_key = warning_key;
+            }
+            
             // check acceleration
             const auto max_accel = m_config.machine_max_acceleration_extruding.values[0];
             if (warning_key.empty() && m_default_object_config.default_acceleration > 0 && max_accel > 0) {
