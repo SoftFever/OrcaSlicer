@@ -947,10 +947,10 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     if (GUI::wxGetApp().is_running_on_arm64()) {
         //set to arm64 for plugins
         std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
-        current_headers["X-BBL-OS-Type"] = "win_arm64";
+        current_headers["X-BBL-OS-Type"] = "windows_arm";
 
         Slic3r::Http::set_extra_headers(current_headers);
-        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type to win_arm64");
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type to windows_arm");
     }
 #endif
     try {
