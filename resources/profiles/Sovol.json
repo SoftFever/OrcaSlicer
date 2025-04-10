@@ -44,6 +44,10 @@
         {
             "name": "Sovol SV08",
             "sub_path": "machine/Sovol SV08.json"
+        },
+		{
+            "name": "Sovol Zero",
+            "sub_path": "machine/Sovol Zero.json"
         }
     ],
     "process_list": [
@@ -158,7 +162,12 @@
         {
             "name": "0.20mm High-Speed @Sovol SV06",
             "sub_path": "process/0.20mm High-Speed @Sovol SV06.json"
+        },
+        {
+            "name": "0.20mm Standard @Sovol Zero 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Sovol Zero 0.4 nozzle.json"
         }
+
     ],
     "filament_list": [
         {
@@ -216,6 +225,42 @@
         {
             "name": "Sovol SV08 TPU",
             "sub_path": "filament/Sovol SV08 TPU.json"
+        },
+        {
+            "name": "Sovol Zero ABS",
+            "sub_path": "filament/Sovol Zero ABS.json"
+        },
+        {
+            "name": "Sovol Zero PC",
+            "sub_path": "filament/Sovol Zero PC.json"
+        },
+        {
+            "name": "Sovol Zero PETG",
+            "sub_path": "filament/Sovol Zero PETG.json"
+        },
+        {
+            "name": "Sovol Zero PETG HS Nozzle",
+            "sub_path": "filament/Sovol Zero PETG HS Nozzle.json"
+        },
+        {
+            "name": "Sovol Zero PLA Basic",
+            "sub_path": "filament/Sovol Zero PLA Basic.json"
+        },
+        {
+            "name": "Sovol Zero PLA Basic HS Nozzle",
+            "sub_path": "filament/Sovol Zero PLA Basic HS Nozzle.json"
+        },
+        {
+            "name": "Sovol Zero PLA Silk",
+            "sub_path": "filament/Sovol Zero PLA Silk.json"
+        },
+        {
+            "name": "Sovol Zero PLA Silk HS Nozzle",
+            "sub_path": "filament/Sovol Zero PLA Silk HS Nozzle.json"
+        },
+        {
+            "name": "Sovol Zero TPU",
+            "sub_path": "filament/Sovol Zero TPU.json"
         }
     ],
     "machine_list": [
@@ -290,6 +335,10 @@
         {
             "name": "Sovol SV08 0.8 nozzle",
             "sub_path": "machine/Sovol SV08 0.8 nozzle.json"
+        },
+        {
+            "name": "Sovol Zero 0.4 nozzle",
+            "sub_path": "machine/Sovol Zero 0.4 nozzle.json"
         }
     ]
 }
