@@ -320,10 +320,10 @@ private:
     wxStaticBitmap * m_advanced_options_icon{nullptr};
     wxBoxSizer *     m_append_color_sizer = nullptr;
     ::CheckBox*      m_append_color_checkbox = nullptr;
-    wxStaticText *   m_append_color_text = nullptr;
+    Label *          m_append_color_text = nullptr;
     wxBoxSizer *     m_merge_color_sizer     = nullptr;
     ::CheckBox*      m_merge_color_checkbox = nullptr;
-    wxStaticText *   m_merge_color_text  = nullptr;
+    Label *          m_merge_color_text     = nullptr;
     bool m_is_empty_project = true;
 
     bool m_check_dirty_fialment  = true;
