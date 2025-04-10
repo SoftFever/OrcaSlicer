@@ -59,7 +59,8 @@
 		"printer_arch": "core_xy",
 		"printer_series": "series_x1",
 		"has_cali_line": true,
-		"printer_is_enclosed": true
+		"printer_is_enclosed": true,
+		"enable_set_nozzle_info": true
 	},
 	"01.05.06.06": {
 		"rv2166": "00.00.21.20"
