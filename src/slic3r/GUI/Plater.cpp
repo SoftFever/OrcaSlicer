@@ -1930,7 +1930,7 @@ void Sidebar::on_leave_image_printer_bed(wxMouseEvent &evt) {
     auto pos_x = evt.GetX();
     auto pos_y = evt.GetY();
     auto rect  = p->image_printer_bed->GetRect();
-    if (pos_x < 0 || pos_y < 0 || pos_x >= rect.GetWidth() && p->big_bed_image_popup) {
+    if ((pos_x <= 0 || pos_y <= 0 || pos_x >= rect.GetWidth()) && p->big_bed_image_popup) {
         p->big_bed_image_popup->on_hide();
     }
 }
