@@ -15174,7 +15174,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Parametrar för utskrift"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Typ av byggplatta"
 
 msgid "filament position"

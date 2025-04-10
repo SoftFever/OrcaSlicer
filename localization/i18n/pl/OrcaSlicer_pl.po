@@ -16613,7 +16613,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Parametry drukowania"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Typ Płyty"
 
 msgid "filament position"

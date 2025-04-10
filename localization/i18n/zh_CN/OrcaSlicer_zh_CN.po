@@ -14996,7 +14996,7 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 msgid "Printing Parameters"
 msgstr "打印参数"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "热床类型"
 
 msgid "filament position"

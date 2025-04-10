@@ -16580,8 +16580,8 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Parámetros de Impresión"
 
-msgid "Plate Type"
-msgstr "Tipo de Bandeja"
+msgid "Plate type"
+msgstr "Tipo de bandeja"
 
 msgid "filament position"
 msgstr "Posición de filamento"
@@ -21683,12 +21683,6 @@ msgstr ""
 
 #~ msgid "Plate %d: %s does not support filament %s (%s)."
 #~ msgstr "Placa %d: %s no admite el filamento %s (%s)."
-
-#~ msgid "Plate type"
-#~ msgstr "Plate type"
-
-#~ msgid "Plate types supported by the printer"
-#~ msgstr "Plate types supported by the printer"
 
 #~ msgid "Please Fill Task Report."
 #~ msgstr "Por favor rellene el informe de tareas."

@@ -16553,7 +16553,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Параметри друку"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Тип Пластини"
 
 msgid "filament position"
