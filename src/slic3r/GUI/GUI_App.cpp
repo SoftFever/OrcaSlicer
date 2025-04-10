@@ -2222,8 +2222,75 @@ void GUI_App::init_single_instance_checker(const std::string &name, const std::s
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
 }
 
+
+#ifdef __APPLE__
+void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument)
+{
+    BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack messageType:" << messageType;
+
+    DeviceManager* dev_manager = wxGetApp().getDeviceManager();
+
+    static std::string last_selected_machine;
+    if (messageType == kIOMessageSystemWillSleep)
+    {
+        if (dev_manager)
+        {
+            MachineObject* obj = dev_manager->get_selected_machine();
+            last_selected_machine = obj ? obj->dev_id : "";
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack save selected machine:" << last_selected_machine;
+        }
+
+        IOAllowPowerChange(service, (long) messageArgument);
+    }
+    else if(messageType == kIOMessageSystemHasPoweredOn)
+    {
+        if (dev_manager)
+        {
+            MachineObject* obj = dev_manager->get_selected_machine();
+            if (!obj && !last_selected_machine.empty())
+            {
+                dev_manager->set_selected_machine(last_selected_machine);
+                BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << last_selected_machine;
+            }
+        }
+    };
+}
+
+
+void GUI_App::RegisterMacPowerCallBack()
+{
+    m_mac_io_service = IORegisterForSystemPower(m_mac_refcon, &m_mac_io_notify_port, MacPowerCallBack, &m_mac_io_obj);
+    if (m_mac_io_service == 0)
+    {
+        BOOST_LOG_TRIVIAL(error) << "RegisterMacPowerCallBack failed";
+        return;
+    }
+
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(m_mac_io_notify_port), kCFRunLoopCommonModes);
+    m_mac_powercallback_registered = true;
+    BOOST_LOG_TRIVIAL(error) << "RegisterMacPowerCallBack success";
+}
+
+void GUI_App::UnRegisterMacPowerCallBack()
+{
+    if (m_mac_powercallback_registered)
+    {
+        CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(m_mac_io_notify_port), kCFRunLoopCommonModes);
+        IODeregisterForSystemPower(&m_mac_io_obj);
+        IOServiceClose(m_mac_io_service);
+        IONotificationPortDestroy(m_mac_io_notify_port);
+        m_mac_powercallback_registered = false;
+        BOOST_LOG_TRIVIAL(info) << "UnRegisterMacPowerCallBack";
+    }
+}
+#endif
+
 bool GUI_App::OnInit()
 {
+#ifdef __APPLE__
+    RegisterMacPowerCallBack();
+#endif
+
     try {
         return on_init_inner();
     } catch (const std::exception& e) {
@@ -2235,6 +2302,10 @@ bool GUI_App::OnInit()
 
 int GUI_App::OnExit()
 {
+#ifdef __APPLE__
+    UnRegisterMacPowerCallBack();
+#endif
+
     stop_sync_user_preset();
 
     if (m_device_manager) {
