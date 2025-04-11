@@ -35,6 +35,9 @@ public:
     typedef std::function<void()> LayoutChanggeCallback;
     void set_layout_callback(LayoutChanggeCallback);
     void do_layout_callback();
+    bool do_show(bool show);
+    void clear_instance();
+
 private:
     wxBoxSizer *create_approximate_match_btn_sizer(wxWindow *parent);
     wxBoxSizer *create_add_btn_sizer(wxWindow *parent);
@@ -47,7 +50,7 @@ private:
     void update_new_add_final_colors();
     void show_sizer(wxSizer *sizer, bool show);
     void deal_approximate_match_btn();
-    void deal_add_btn();
+    bool deal_add_btn();
     void deal_reset_btn();
     void deal_algo(char cluster_number,bool redraw_ui =false);
     void deal_default_strategy();
@@ -111,6 +114,8 @@ public:
     wxBoxSizer *create_btn_sizer(long flags, bool exist_error);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_layout();
+    bool Show(bool show) override;
+
 private:
     ObjColorPanel*  m_panel_ObjColor  = nullptr;
     wxBoxSizer *                      m_main_sizer     = nullptr;
