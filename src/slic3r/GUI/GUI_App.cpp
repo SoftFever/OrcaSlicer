@@ -1225,6 +1225,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     fs::path tmp_path = target_file_path;
     tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
 
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64()) {
+        //set to arm64 for plugins
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows_arm";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type to windows_arm");
+    }
+#endif
+
     // get_url
     std::string  url = get_plugin_url(name, app_config->get_country_code());
     std::string download_url;
@@ -1281,6 +1292,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
                 err_msg += "[download_plugin 1] on_error: " + error + ", body = " + body;
                 result = -1;
         }).perform_sync();
+
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64()) {
+        //set back
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type back to windows");
+    }
+#endif
 
     bool cancel = false;
     if (result < 0) {
