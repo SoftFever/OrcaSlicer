@@ -2287,18 +2287,23 @@ bool GUI_App::on_init_inner()
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
 #if defined(__WINDOWS__)
-    SYSTEM_INFO sysInfo;
-    GetNativeSystemInfo(&sysInfo);
-    switch (sysInfo.wProcessorArchitecture) {
-        case PROCESSOR_ARCHITECTURE_ARM64:
-            m_is_arm64 = true;
-            break;
-        case PROCESSOR_ARCHITECTURE_AMD64:
-        default:
-            m_is_arm64 = false;
-            break;
+    USHORT processMachine = 0;
+    USHORT nativeMachine = 0;
+    if (IsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
+        switch (nativeMachine) {
+            case IMAGE_FILE_MACHINE_ARM64:
+                m_is_arm64 = true;
+                break;
+            case IMAGE_FILE_MACHINE_AMD64:
+            default:
+                m_is_arm64 = false;
+                break;
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("processMachine architecture %1%, nativeMachine %2% m_is_arm64 %3%")%(int)(processMachine) %(int) nativeMachine %m_is_arm64;
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("process architecture %1%, m_is_arm64 %2%")%(int)(sysInfo.wProcessorArchitecture) %m_is_arm64;
+    else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("IsWow64Process2 failed, m_is_arm64 %1%") %m_is_arm64;
+    }
 #endif
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
