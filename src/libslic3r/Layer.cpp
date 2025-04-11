@@ -145,12 +145,14 @@ static size_t           GRIDIFY_PATTERN_OFFSETS[GRIDIFY_PATTERN_OFFSET_COUNT][2]
 void Layer::gridify()
 {
     if (empty()) return;
+    const auto& config = this->object()->config();
+    if (!config.gridify_enabled) return;
 
     auto current_poly = merged(float(SCALED_EPSILON));
     current_poly      = union_ex(current_poly);
 
     // Apply pattern rotation
-    constexpr float rot = 0;
+    const float rot = config.gridify_angle;
     expolygons_rotate(current_poly, -rot);
 
     // Generate pattern within boundary
@@ -160,9 +162,9 @@ void Layer::gridify()
     bounding_box.offset(scale_(1));
 
     // Draw patterns
-    const Point::coord_type grid_width = scale_(20.);
-    const Point::coord_type gap_width  = scale_(0.2);
-    const size_t            gap_layers = 3;
+    const Point::coord_type grid_width = scale_(config.gridify_grid_width);
+    const Point::coord_type gap_width  = scale_(config.gridify_gap_width);
+    const size_t            gap_layers = config.gridify_gap_layers;
 
     const auto&             grid_offset = GRIDIFY_PATTERN_OFFSETS[(id() / gap_layers) % GRIDIFY_PATTERN_OFFSET_COUNT];
     const Point::coord_type offset_x    = grid_width / GRIDIFY_PATTERN_OFFSET_COUNT * grid_offset[0];
@@ -194,7 +196,7 @@ void Layer::gridify()
     ExPolygons ep = union_ex(pattern);
 
     // Apply inset
-    const auto inset = scale_(0.8);
+    const auto inset = scale_(config.gridify_inset);
     if (inset > 0) {
         ep = intersection_ex(ep, offset_ex(current_poly, -inset));
     }
