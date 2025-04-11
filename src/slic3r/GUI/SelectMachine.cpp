@@ -953,10 +953,11 @@ void SelectMachineDialog::popup_filament_backup()
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
     update_option_opts(obj);
-    update_options_layout();
 
     load_option_vals(obj);
+    if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3) { m_checkbox_list["timelapse"]->setValue("off"); } /*off timelapse on selected for n series by zhimin.zeng*/
     save_option_vals(obj);
+
     Layout();
     Fit();
 }
@@ -2395,6 +2396,7 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
     if (!obj)
     {
         for (auto opt : m_checkbox_list) { opt.second->Hide(); }
+        update_options_layout();
         return;
     }
 
@@ -2428,6 +2430,8 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
         }
     }
     m_checkbox_list["flow_cali"]->Show(obj->is_support_flow_calibration);
+
+    update_options_layout();
 }
 
 void SelectMachineDialog::load_option_vals(MachineObject *obj)
@@ -2458,8 +2462,6 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         m_checkbox_list["timelapse"]->setValue("off");
         m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
     }
-
-    if (obj->get_printer_arch() == PrinterArch::ARCH_I3) { m_checkbox_list["timelapse"]->setValue("off");}/*by zhimin.zeng*/
 }
 
 void SelectMachineDialog::save_option_vals()
@@ -3149,18 +3151,17 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         if (m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
             img_ams_backup->Hide();
-            Layout();
-            Fit();
         }
     }
     else {
         if (!m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Show();
             img_ams_backup->Show();
-            Layout();
-            Fit();
         }
     }
+
+    update_option_opts(obj_);
+    load_option_vals(obj_);
 
     update_scroll_area_size();
 }
