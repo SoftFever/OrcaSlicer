@@ -182,7 +182,7 @@ public:
     void     on_print_job_cancel(wxCommandEvent &evt);
     void     reset_and_sync_ams_list();
     void     generate_override_fix_ams_list();
-    void     clone_thumbnail_data(bool allow_clone_ams_color);
+    void     clone_thumbnail_data();
     void     record_edge_pixels_data();
     wxColour adjust_color_for_render(const wxColour &color);
     void     final_deal_edge_pixels_data(ThumbnailData &data);
@@ -190,6 +190,7 @@ public:
     void     show_ams_controls(bool flag);
     void     show_advanced_settings(bool flag, bool update_layout = true);
     void     update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color);
+    void     update_final_thumbnail_data();
     void     unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data,bool allow_clone_ams_color);
     void     change_default_normal(int old_filament_id, wxColour temp_ams_color);
     void     on_timer(wxTimerEvent &event);
