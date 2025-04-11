@@ -3539,13 +3539,11 @@ std::string GCode::generate_skirt(const Print &print,
         Flow layer_skirt_flow = print.skirt_flow().with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
         double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
         // Decide where to start looping:
-        // - If it’s the first layer or if we do NOT want a single-wall draft shield,
+        // - If it’s the first layer or if we do NOT want a single-wall skirt/draft shield,
         //   start from loops.first (all loops).
-        // - Otherwise, if single_loop_draft_shield == true and draft_shield == true (and not the first layer),
+        // - Otherwise, if single_loop_draft_shield == true (and not the first layer),
         //   start from loops.second - 1 (just one loop).
-        bool single_loop_draft_shield = print.m_config.single_loop_draft_shield &&
-                                    (print.m_config.draft_shield == dsEnabled);
-        const size_t start_idx = (first_layer || !single_loop_draft_shield)
+        const size_t start_idx = (first_layer || !print.m_config.single_loop_draft_shield)
                                  ? loops.first
                                  : (loops.second - 1);
 
@@ -3565,7 +3563,7 @@ std::string GCode::generate_skirt(const Print &print,
             //FIXME using the support_speed of the 1st object printed.
             gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
             // If we only want a single wall on non-first layers, break now
-            if (!first_layer && single_loop_draft_shield) {
+            if (!first_layer && print.m_config.single_loop_draft_shield) {
                 break;
             }
         }
