@@ -1087,20 +1087,6 @@ GUI_App::GUI_App()
 #endif
 
     reset_to_active();
-
-#if defined(__WINDOWS__)
-    SYSTEM_INFO sysInfo;
-    GetNativeSystemInfo(&sysInfo);
-    switch (sysInfo.wProcessorArchitecture) {
-        case PROCESSOR_ARCHITECTURE_ARM64:
-            m_is_arm64 = true;
-            break;
-        case PROCESSOR_ARCHITECTURE_AMD64:
-        default:
-            m_is_arm64 = false;
-            break;
-    }
-#endif
 }
 
 void GUI_App::shutdown()
@@ -2300,6 +2286,20 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
+#if defined(__WINDOWS__)
+    SYSTEM_INFO sysInfo;
+    GetNativeSystemInfo(&sysInfo);
+    switch (sysInfo.wProcessorArchitecture) {
+        case PROCESSOR_ARCHITECTURE_ARM64:
+            m_is_arm64 = true;
+            break;
+        case PROCESSOR_ARCHITECTURE_AMD64:
+        default:
+            m_is_arm64 = false;
+            break;
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("process architecture %1%, m_is_arm64 %2%")%(int)(sysInfo.wProcessorArchitecture) %m_is_arm64;
+#endif
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
     // Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
