@@ -2244,14 +2244,10 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
     }
     else if(messageType == kIOMessageSystemHasPoweredOn)
     {
-        if (dev_manager)
+        if (dev_manager && !last_selected_machine.empty())
         {
-            MachineObject* obj = dev_manager->get_selected_machine();
-            if (!obj && !last_selected_machine.empty())
-            {
-                dev_manager->set_selected_machine(last_selected_machine);
-                BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << last_selected_machine;
-            }
+            dev_manager->set_selected_machine(last_selected_machine, true);
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << last_selected_machine;
         }
     };
 }
