@@ -278,6 +278,8 @@ void ComboBox::DoSetItemClientData(unsigned int n, void *data)
 
 void ComboBox::mouseDown(wxMouseEvent &event)
 {
+    if (!IsEnabled()) { return; } /*on mac, the event may triggered even disabled*/
+
     SetFocus();
     if (drop_down) {
         drop.Hide();
