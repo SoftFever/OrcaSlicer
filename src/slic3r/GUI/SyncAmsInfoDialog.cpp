@@ -2616,6 +2616,8 @@ void SyncAmsInfoDialog::reset_all_ams_info()
     for (int i = 0; i < m_ams_mapping_result.size(); i++) {
         reset_one_ams_material(std::to_string(i+1),true);
     }
+    sync_ams_mapping_result(m_ams_mapping_result);
+    update_final_thumbnail_data();
     m_reset_all_btn->Hide();
     Refresh();
 }
@@ -2891,6 +2893,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                     m_mapping_popup.show_reset_button();
                     auto reset_call_back = [this](const std::string &item_index_str) {
                         reset_one_ams_material(item_index_str);
+                        update_final_thumbnail_data();
                         m_mapping_popup.update_items_check_state(m_ams_mapping_result);
                         m_mapping_popup.Refresh();
                         if (!m_reset_all_btn->IsShown()) {
@@ -3103,7 +3106,7 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
     m_fix_filament_panel_sizer->Layout();
 }
 
-void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
+void SyncAmsInfoDialog::clone_thumbnail_data()
 {
     // record preview_colors
     if (m_preview_colors_in_thumbnail.empty()) {
@@ -3126,7 +3129,11 @@ void SyncAmsInfoDialog::clone_thumbnail_data(bool allow_clone_ams_color)
                         }
                     } else { // exist empty or unrecognized type ams in machine
                         m_cur_colors_in_thumbnail.resize(item->id + 1);
-                        m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+                        if (m->m_ams_name == "-") {
+                            m_cur_colors_in_thumbnail[item->id] = m->m_material_coloul;
+                        } else {
+                            m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+                        }
                         m_preview_colors_in_thumbnail.resize(item->id + 1);
                         m_preview_colors_in_thumbnail[item->id] = m->m_material_coloul;
                     }
@@ -3288,6 +3295,11 @@ void SyncAmsInfoDialog::update_thumbnail_data_accord_plate_index(bool allow_clon
     unify_deal_thumbnail_data(input_data, no_light_data, allow_clone_ams_color);
 }
 
+void SyncAmsInfoDialog::update_final_thumbnail_data() {
+    m_preview_colors_in_thumbnail.clear();//to update m_cur_colors_in_thumbnail
+    unify_deal_thumbnail_data(m_cur_input_thumbnail_data, m_cur_no_light_thumbnail_data,false);
+}
+
 void SyncAmsInfoDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data, bool allow_clone_ams_color)
 {
     if (input_data.width == 0 || input_data.height == 0 || no_light_data.width == 0 || no_light_data.height == 0) {
@@ -3296,8 +3308,7 @@ void SyncAmsInfoDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, Thu
     }
     m_cur_input_thumbnail_data    = input_data;
     m_cur_no_light_thumbnail_data = no_light_data;
-    clone_thumbnail_data(allow_clone_ams_color);
-    MaterialHash::iterator iter               = m_materialList.begin();
+    clone_thumbnail_data();
     if (m_cur_colors_in_thumbnail.size() > 0) {
         change_default_normal(-1, wxColour());
         final_deal_edge_pixels_data(m_preview_thumbnail_data);
