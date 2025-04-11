@@ -638,7 +638,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     line_sizer_nozzle_diameter->Add(0, 0, 1, wxEXPAND, 5);
     line_sizer_nozzle_diameter->Add(nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 5);
 
-    change_nozzle_tips = new Label(single_panel, _L("*Tips: If you changed your nozzle lately, please change settings on printer screen."));
+    change_nozzle_tips = new Label(single_panel, _L("Please change the nozzle settings on the printer."));
     change_nozzle_tips->SetFont(Label::Body_13);
     change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
@@ -734,7 +734,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_right_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
     multiple_right_line_sizer->Add(multiple_right_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
 
-    multiple_change_nozzle_tips = new Label(multiple_panel, _L("*Tips: If you changed your nozzle lately, please change settings on printer screen."));
+    multiple_change_nozzle_tips = new Label(multiple_panel, _L("Please change the nozzle settings on the printer."));
     multiple_change_nozzle_tips->SetFont(Label::Body_13);
     multiple_change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
