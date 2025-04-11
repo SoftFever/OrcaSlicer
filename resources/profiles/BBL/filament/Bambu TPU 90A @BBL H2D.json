@@ -13,10 +13,6 @@
         "10",
         "10"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -84,6 +80,13 @@
     "filament_z_hop_types": [
         "nil",
         "nil"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_printable": [
+        "2"
     ],
     "impact_strength_z": [
         "88.7"

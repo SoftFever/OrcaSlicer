@@ -69,6 +69,9 @@
     "filament_minimal_purge_on_wipe_tower": [
         "15"
     ],
+    "filament_printable": [
+        "3"
+    ],
     "filament_retract_before_wipe": [
         "nil"
     ],

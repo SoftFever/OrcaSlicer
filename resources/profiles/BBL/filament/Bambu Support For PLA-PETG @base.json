@@ -45,6 +45,9 @@
     "nozzle_temperature_initial_layer": [
         "210"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

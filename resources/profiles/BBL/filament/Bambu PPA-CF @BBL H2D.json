@@ -77,6 +77,9 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "nozzle_temperature": [
         "290",
         "290"
