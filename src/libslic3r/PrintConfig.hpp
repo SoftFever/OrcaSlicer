@@ -1042,6 +1042,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,              scarf_overhang_threshold))
 
 
+    ((ConfigOptionBool, gridify_enabled))
+    ((ConfigOptionFloat,gridify_angle))
+    ((ConfigOptionFloat,gridify_gap_width))
+    ((ConfigOptionInt,  gridify_gap_layers))
+    ((ConfigOptionFloat,gridify_grid_width))
+    ((ConfigOptionFloat,gridify_inset))
+
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

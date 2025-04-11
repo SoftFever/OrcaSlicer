@@ -791,6 +791,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DLattice;
     for (auto el : { "lattice_angle_1", "lattice_angle_2"})
         toggle_line(el, lattice_options);
+
+    bool gridify_enabled = config->opt_bool("gridify_enabled");
+    for (auto el : { "gridify_angle", "gridify_gap_width", "gridify_gap_layers", "gridify_grid_width", "gridify_inset", })
+        toggle_line(el, gridify_enabled);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
