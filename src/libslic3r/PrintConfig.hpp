@@ -907,13 +907,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,  interlocking_depth))
     ((ConfigOptionInt,  interlocking_boundary_avoidance))
 
-    ((ConfigOptionBool, gridify_enabled))
-    ((ConfigOptionFloat,gridify_angle))
-    ((ConfigOptionFloat,gridify_gap_width))
-    ((ConfigOptionInt,  gridify_gap_layers))
-    ((ConfigOptionFloat,gridify_grid_width))
-    ((ConfigOptionFloat,gridify_inset))
-
     // Orca: internal use only
     ((ConfigOptionBool,  calib_flowrate_topinfill_special_order)) // ORCA: special flag for flow rate calibration
 
@@ -1048,6 +1041,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                scarf_joint_flow_ratio))
     ((ConfigOptionPercent,              scarf_overhang_threshold))
 
+
+    ((ConfigOptionBool, gridify_enabled))
+    ((ConfigOptionFloat,gridify_angle))
+    ((ConfigOptionFloat,gridify_gap_width))
+    ((ConfigOptionInt,  gridify_gap_layers))
+    ((ConfigOptionFloat,gridify_grid_width))
+    ((ConfigOptionFloat,gridify_inset))
 
 )
 
