@@ -87,6 +87,7 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/filesystem.hpp>
 #include <boost/nowide/iostream.hpp>
+#include <boost/regex.hpp>
 
 // boost/property_tree/json_parser/detail/parser.hpp includes boost/bind.hpp, which is deprecated.
 // Suppress the following boost message:
