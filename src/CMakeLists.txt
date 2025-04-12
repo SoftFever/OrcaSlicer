@@ -284,3 +284,18 @@ if (WIN32)
 else ()
     install(TARGETS OrcaSlicer RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
+
+
+# Profile bundle
+include(FindPythonInterpreter)
+find_python_interpreter(
+	VERSION 3
+	INTERPRETER_OUT_VAR PYTHON_INTERPRETER
+	REQUIRED
+)
+add_custom_command(TARGET OrcaSlicer PRE_BUILD
+    COMMAND "${PYTHON_INTERPRETER}" "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/bundle_profiles.py"
+        -s "${SLIC3R_RESOURCES_DIR}/profiles"
+        -d "${SLIC3R_RESOURCES_DIR}/profiles"
+    VERBATIM
+)

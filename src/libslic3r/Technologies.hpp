@@ -62,5 +62,8 @@
 // Enable picking using raytracing
 #define ENABLE_RAYCAST_PICKING_DEBUG 0
 
+// Whether to create the same file structure in vendor profile folders,
+// so old Orca can still read them.
+#define PRESET_BUNDLE_COMPATIBLE 1
 
 #endif // _prusaslicer_technologies_h_
