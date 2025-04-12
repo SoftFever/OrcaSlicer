@@ -39,7 +39,10 @@ std::set<std::string> SplitStringAndRemoveDuplicateElement(const std::string &st
 void ReplaceString(std::string &resource_str, const std::string &old_str, const std::string &new_str)
 {
     std::string::size_type pos = 0;
-    while ((pos = resource_str.find(old_str)) != std::string::npos) { resource_str.replace(pos, old_str.length(), new_str); }
+    while ((pos = resource_str.find(old_str, pos)) != std::string::npos) {
+        resource_str.replace(pos, old_str.length(), new_str);
+        pos += new_str.length(); //advance position to continue after replacement
+    }
 }
 }
 
@@ -2235,6 +2238,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PETG");
     def->enum_values.push_back("PETG-CF");
     def->enum_values.push_back("PETG-CF10");
+    def->enum_values.push_back("PETG-GF");
     def->enum_values.push_back("PHA");
     def->enum_values.push_back("PLA");
     def->enum_values.push_back("PLA-AERO");
@@ -3201,6 +3205,11 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Advanced");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionInt(2));
+
+    // ORCA: special flag for flow rate calibration
+    def           = this->add("calib_flowrate_topinfill_special_order", coBool);
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("ironing_type", coEnum);
     def->label = L("Ironing Type");
@@ -4290,8 +4299,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(1));
     
     def = this->add("single_loop_draft_shield", coBool);
-    def->label = L("Single loop draft shield");
-    def->tooltip = L("Limits the draft shield loops to one wall after the first layer. This is useful, on occasion, to conserve filament but may cause the draft shield to warp / crack.");
+    def->label = L("Single loop after first layer");
+    def->tooltip = L("Limits the skirt/draft shield loops to one wall after the first layer. This is useful, on occasion, to conserve filament but may cause the draft shield/skirt to warp / crack.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 

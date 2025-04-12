@@ -1,13 +1,25 @@
 {
     "name": "Lulzbot",
     "url": "https://ohai.lulzbot.com/group/taz-6/",
-    "version": "02.03.00.02",
+    "version":  "02.03.00.03",
     "force_update": "0",
     "description": "Lulzbot configurations",
     "machine_model_list": [
         {
             "name": "Lulzbot Taz 6",
             "sub_path": "machine/Lulzbot Taz 6.json"
+        },
+        {
+            "name": "Lulzbot Taz 4 or 5",
+            "sub_path": "machine/Lulzbot Taz 4 or 5.json"
+        },
+        {
+            "name": "Lulzbot Taz Pro Dual",
+            "sub_path": "machine/Lulzbot Taz Pro Dual.json"
+        },
+        {
+            "name": "Lulzbot Taz Pro S",
+            "sub_path": "machine/Lulzbot Taz Pro S.json"
         }
     ],
     "process_list": [
@@ -22,6 +34,30 @@
         {
             "name": "0.18mm High Detail @Lulzbot Taz 6",
             "sub_path": "process/0.18mm High Detail @Lulzbot Taz 6.json"
+        },
+        {
+            "name": "0.25mm Standard @Lulzbot Taz Pro Dual",
+            "sub_path": "process/0.25mm Standard @Lulzbot Taz Pro Dual.json"
+        },
+        {
+            "name": "0.18mm High Detail @Lulzbot Taz Pro Dual",
+            "sub_path": "process/0.18mm High Detail @Lulzbot Taz Pro Dual.json"
+        },
+		{
+			"name": "0.25mm Standard @Lulzbot Taz Pro S",
+            "sub_path": "process/0.25mm Standard @Lulzbot Taz Pro S.json"
+        },
+        {
+            "name": "0.18mm High Detail @Lulzbot Taz Pro S",
+            "sub_path": "process/0.18mm High Detail @Lulzbot Taz Pro S.json"
+        },
+        {
+            "name": "0.25mm Standard @Lulzbot Taz 4 or 5",
+            "sub_path": "process/0.25mm Standard @Lulzbot Taz 4 or 5.json"
+        },
+        {
+            "name": "0.18mm High Detail @Lulzbot Taz 4 or 5",
+            "sub_path": "process/0.18mm High Detail @Lulzbot Taz 4 or 5.json"
         }
     ],
     "filament_list": [
@@ -46,6 +82,22 @@
         {
             "name": "Lulzbot Taz 6 0.5 nozzle",
             "sub_path": "machine/Lulzbot Taz 6 0.5 nozzle.json"
+        },
+        {
+            "name": "Lulzbot Taz Pro Common",
+            "sub_path": "machine/Lulzbot Taz Pro Common.json"
+        },
+        {
+            "name": "Lulzbot Taz Pro Dual 0.5 nozzle",
+            "sub_path": "machine/Lulzbot Taz Pro Dual 0.5 nozzle.json"
+        },
+        {
+            "name": "Lulzbot Taz Pro S 0.5 nozzle",
+            "sub_path": "machine/Lulzbot Taz Pro S 0.5 nozzle.json"
+        },
+        {
+            "name": "Lulzbot Taz 4 or 5 0.5 nozzle",
+            "sub_path": "machine/Lulzbot Taz 4 or 5 0.5 nozzle.json"
         }
     ]
 }

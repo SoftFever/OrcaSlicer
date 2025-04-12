@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3594,8 +3594,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
 "Rekommenderad nozzel temperatur med denna filament typ är [%d, %d] grader "
 "celius"
@@ -13227,16 +13227,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "normal (auto)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "träd(auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "normal (manuell)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "tree (manuell)"
 
 msgid "Support/object xy distance"
 msgstr "Support/objekt xy distans"
@@ -17135,18 +17135,6 @@ msgstr ""
 #~ "Om normal(manual) eller tree(manual) väljs, genereras endast support "
 #~ "förstärkare."
 
-#~ msgid "normal(auto)"
-#~ msgstr "normal (auto)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "träd(auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "normal (manuell)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "tree (manuell)"
-
 #~ msgctxt "Verb"
 #~ msgid "Scale"
 #~ msgstr "Skala"
@@ -17724,7 +17712,7 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
 #~ "Byggplattans temperatur för andra lager är mindre än temperaturen för "

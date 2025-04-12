@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3657,11 +3657,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
 "De aanbevolen mondstuk temperatuur voor dit type filament is [%d, %d] graden "
-"Celsius"
+"Celsius."
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -13559,16 +13559,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "Normaal (automatisch)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "Tree (auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "normaal (handmatig)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "tree (handmatig)"
 
 msgid "Support/object xy distance"
 msgstr "Support/object XY afstand"
@@ -17584,18 +17584,6 @@ msgstr ""
 #~ "genereren. Als normaal(handmatig) of tree(handmatig) is geselecteerd, "
 #~ "worden alleen ondersteuningen handhavers gegenereerd."
 
-#~ msgid "normal(auto)"
-#~ msgstr "Normaal (automatisch)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "tree(auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "normaal (handmatig)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "tree (handmatig)"
-
 #~ msgctxt "Verb"
 #~ msgid "Scale"
 #~ msgstr "Schalen"
@@ -18243,10 +18231,10 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
-#~ "De printbed temperatuur voor de overige lagen is %d graden celcius lager "
+#~ "De printbed temperatuur voor de overige lagen is %d graden Celcius lager "
 #~ "dan de temperatuur voor de eerste laag.\n"
 #~ "Hierdoor kan de print loskomen van het printbed gedurende de printtaak"
 
