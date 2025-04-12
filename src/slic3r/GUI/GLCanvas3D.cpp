@@ -7969,7 +7969,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, show_scroll ? (4.0f * f_scale) : (button_radius + margin_size + frame_padding + ImGui::GetStyle().WindowPadding.x));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_radius + margin_size);
 
-    imgui.set_next_window_pos(canvas_w * 0 + 4.0f * f_scale, canvas_h * 0 + y_offset, ImGuiCond_Always, 0, 0); // ORCA Add slight gap on left edge so toolbar looks like floating and it creates separation with sidebar
+    imgui.set_next_window_pos(canvas_w * 0 + 5.0f * f_scale, canvas_h * 0 + y_offset, ImGuiCond_Always, 0, 0); // ORCA Add slight gap on left edge so toolbar looks like floating and it creates separation with sidebar
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 
     if (show_scroll)
