@@ -7844,7 +7844,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 if (!plate_list.get_plate(i)->can_slice())
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
                 else {
-                    if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f || plate_list.get_plate(i)->get_extruders().size() == 0) // ORCA count empty plate as unsliced. Fixes empty plates rendered without dimmed background
+                    //if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f || plate_list.get_plate(i)->get_extruders().size() == 0) // ORCA count empty plate as unsliced. Fixes empty plates rendered without dimmed background
+                    if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
                         m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
                     else
                         m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
