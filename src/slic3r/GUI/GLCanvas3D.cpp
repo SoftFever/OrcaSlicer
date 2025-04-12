@@ -7854,7 +7854,6 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 if (!plate_list.get_plate(i)->can_slice())
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
                 else {
-                    //if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f || plate_list.get_plate(i)->get_extruders().size() == 0) // ORCA count empty plate as unsliced. Fixes empty plates rendered without dimmed background
                     if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
                         m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
                     else
@@ -7911,7 +7910,6 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 #else
     float f_scale  = wxGetApp().em_unit() / 10; // ORCA add scaling support  
 #endif
-
     Size cnv_size = get_canvas_size();
     auto canvas_w = float(cnv_size.get_width());
     auto canvas_h = float(cnv_size.get_height());
@@ -7941,12 +7939,12 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 
     // ORCA simplify and correct window size and margin calculations and get values from style
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    int item_count = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
+    int item_count           = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
     float window_height_calc = (item_count * (button_height + (margin_size + button_margin) * 2.0f) + (item_count - 1) * ImGui::GetStyle().ItemSpacing.y + ImGui::GetStyle().WindowPadding.y * 2.0f);
-    bool  show_scroll   = m_sel_plate_toolbar.is_display_scrollbar && (window_height_calc > window_height_max);
-    float scrollbar_size = 10.0f * f_scale ;
-    float window_height = std::min(window_height_calc, window_height_max);
-    float window_width  = button_width + (margin_size + button_margin + ImGui::GetStyle().WindowPadding.x) * 2 + (show_scroll ? scrollbar_size : 0);
+    bool  show_scroll        = m_sel_plate_toolbar.is_display_scrollbar && (window_height_calc > window_height_max);
+    float scrollbar_size     = 10.0f * f_scale ;
+    float window_height      = std::min(window_height_calc, window_height_max);
+    float window_width       = button_width + (margin_size + button_margin + ImGui::GetStyle().WindowPadding.x) * 2 + (show_scroll ? scrollbar_size : 0);
 
     ImVec4 window_bg     = m_is_dark ? ImVec4(.13f, .13f, .15f, .5f) : ImVec4(1.f, 1.f, 1.f, .7f);
     ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Use orca color for selected sliced plate border 
@@ -8009,16 +8007,13 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             }
         }
 
-        ImVec4 text_clr;
+        ImVec4 text_clr = m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1);;
         ImTextureID btn_texture_id;
         if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING){
-            text_clr       = m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1);
             btn_texture_id = (ImTextureID)(intptr_t)(m_process->running() ? all_plates_stats_item->image_slicing.get_id() : all_plates_stats_item->image_idle.get_id());
         } else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
-            text_clr       = m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1);
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_failed.get_id());
         } else {
-            text_clr       = m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1);
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_stats.get_id());
         }
 
@@ -8049,7 +8044,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         int    total_plates_cnt = plate_list.get_nonempty_plate_list().size();
         ImGui::GetWindowDrawList()->AddRectFilled(start_pos, start_pos + size, plate_bg, button_radius); // Button background
 
-        if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED) {
+        if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING) {
             float bar_current_perc_pos  = 0;
             float bar_total_perc_pos    = all_plates_stats_item->percent * (bar_size.x / 100.0f);
             int   current_slicing_plate = 0;
@@ -8066,8 +8061,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             }
             text_bottom = std::to_string(sliced_plates_cnt) + " / " + std::to_string(total_plates_cnt);
             ImVec2 bar_fg_end = ImVec2(bar_bg_bgn.x + bar_total_perc_pos + bar_current_perc_pos, bar_bg_end.y);
-            ImGui::GetWindowDrawList()->AddRectFilled(bar_bg_bgn, bar_bg_end, IM_COL32(128, 128, 128, 255), bar_size.y); // BG
-            ImGui::GetWindowDrawList()->AddRectFilled(bar_bg_bgn, bar_fg_end, IM_COL32(0, 150, 136, 255),   bar_size.y); // PROGRESS
+            ImGui::GetWindowDrawList()->AddRectFilled(bar_bg_bgn, bar_bg_end, IM_COL32(128, 128, 128, 255), bar_size.y); // BAR BACKGROUND
+            ImGui::GetWindowDrawList()->AddRectFilled(bar_bg_bgn, bar_fg_end, IM_COL32(0, 150, 136, 255),   bar_size.y); // BAR PROGRESS
         }
         else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
             text_top    = _u8L("Failed");
@@ -8109,7 +8104,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         ImGui::SetCursorPos(button_pos);
 
         // invisible button
-        auto button_size = size + (margin + ImVec2(frame_padding, frame_padding)) * 2; // Simplify size calculation
+        auto button_size = size + margin + margin + ImVec2(2 * frame_padding, 2 * frame_padding);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f * f_scale);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
@@ -8154,6 +8149,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImGui::GetWindowDrawList()->AddRectFilled(start_pos, rect_end_pos, plate_bg, button_radius);
             ImGui::GetWindowDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, plate_dim, button_radius);
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
+            // Draw exclamation mark that matches with icon
             ImVec2 end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
             ImVec2 center  = ImVec2(start_pos.x + button_width/2, start_pos.y + button_height/2);
             auto draw_list =ImGui::GetWindowDrawList();
