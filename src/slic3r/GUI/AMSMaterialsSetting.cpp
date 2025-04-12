@@ -562,7 +562,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
                     if (vendor && (vendor->values.size() > 0)) {
                         std::string vendor_name = vendor->values[0];
-                        DeviceManager::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, ams_id, slot_id, it->name, in_blacklist, action, info);
+                        DeviceManager::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, it->filament_id, ams_id, slot_id, it->name, in_blacklist, action, info);
                     }
 
                     if (in_blacklist) {

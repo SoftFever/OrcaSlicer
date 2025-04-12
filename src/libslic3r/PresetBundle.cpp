@@ -395,7 +395,7 @@ bool PresetBundle::backup_user_folder() const
     }
 }
 
-std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id) const
+std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name) const
 {
     if (filament_id.empty())
         return std::nullopt;
@@ -421,7 +421,18 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
                 info.nozzle_temp_range_high = config.option<ConfigOptionInts>("nozzle_temperature_range_high")->values[0];
             if (config.has("nozzle_temperature_range_low"))
                 info.nozzle_temp_range_low = config.option<ConfigOptionInts>("nozzle_temperature_range_low")->values[0];
-            return info;
+
+            if (!printer_name.empty()) {
+                std::vector<std::string> compatible_printers = config.option<ConfigOptionStrings>("compatible_printers")->values;
+                auto iter = std::find(compatible_printers.begin(), compatible_printers.end(), printer_name);
+                if (iter != compatible_printers.end() && config.has("filament_printable")) {
+                    info.filament_printable = config.option<ConfigOptionInts>("filament_printable")->values[0];
+                    return info;
+                }
+            }
+            else {
+                return info;
+            }
         }
     }
     return std::nullopt;

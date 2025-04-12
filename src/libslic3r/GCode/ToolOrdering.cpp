@@ -68,16 +68,12 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
 {
     for (unsigned int filament_id : used_filaments) {
         std::string filament_type = print_config->filament_type.get_at(filament_id);
-        for (size_t idx = 0; idx < print_config->unprintable_filament_types.values.size(); ++idx) {
-            if (filament_maps[filament_id] == idx) {
-                std::vector<std::string> limit_types = split_string(print_config->unprintable_filament_types.get_at(idx), ',');
-                auto                     iter        = std::find(limit_types.begin(), limit_types.end(), filament_type);
-                if (iter != limit_types.end()) {
-                    std::string extruder_name = idx == 0 ? _L("left") : _L("right");
-                    std::string error_msg = _L("Grouping error: ") + filament_type + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
-                    throw Slic3r::RuntimeError(error_msg);
-                }
-            }
+        int printable_status = print_config->filament_printable.get_at(filament_id);
+        int extruder_idx = filament_maps[filament_id];
+        if (!(printable_status >> extruder_idx & 1)) {
+            std::string extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+            std::string error_msg     = _L("Grouping error: ") + filament_type + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
+            throw Slic3r::RuntimeError(error_msg);
         }
     }
     return true;

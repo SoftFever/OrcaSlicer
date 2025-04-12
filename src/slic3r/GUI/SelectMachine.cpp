@@ -1989,7 +1989,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         std::string action;
         std::string info;
 
-        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, ams_id, slot_id, "", in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
+                                                    action, info);
 
         if (in_blacklist && action == "warning") {
             wxString prohibited_error = wxString::FromUTF8(info);
@@ -2067,7 +2068,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         bool in_blacklist = false;
         std::string action;
         std::string info;
-        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, ams_id, slot_id, "", in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, filament_id, ams_id, slot_id, "", in_blacklist, action, info);
 
         if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;

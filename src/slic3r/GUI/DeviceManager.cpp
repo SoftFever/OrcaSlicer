@@ -306,6 +306,46 @@ void check_filaments_for_vt_slot(const std::string &tag_vendor, const std::strin
     }
 }
 
+bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, const std::string& filament_id, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
+{
+   DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+   if (!dev) {
+       return true;
+   }
+
+   MachineObject *obj = dev->get_selected_machine();
+   if (obj == nullptr || !obj->is_multi_extruders()) {
+       return true;
+   }
+
+   Preset *printer_preset = GUI::get_printer_preset(obj);
+   if (!printer_preset)
+       return true;
+
+   ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
+   if (!physical_extruder_map_op)
+       return true;
+   std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
+   int extruder_idx = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+   for (int index = 0; index < physical_extruder_maps.size(); ++index) {
+       if (physical_extruder_maps[index] == extruder_idx) {
+           extruder_idx = index;
+       }
+   }
+
+   PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
+   std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
+   if (filament_info.has_value() && !(filament_info->filament_printable >> extruder_idx & 1)) {
+       wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+       ac                     = "prohibition";
+       info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
+       in_blacklist           = true;
+       return false;
+   }
+
+    return true;
+}
+
 void AmsTray::update_color_from_str(std::string color)
 {
     if (color.empty()) return;
@@ -7737,73 +7777,24 @@ void DeviceManager::OnSelectedMachineLost() {
     GUI::wxGetApp().sidebar().load_ams_list(string(), nullptr);
 }
 
-bool DeviceManager::check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
-{
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) {
-        return true;
-    }
 
-    MachineObject *obj = dev->get_selected_machine();
-    if (obj == nullptr || !obj->is_multi_extruders()) {
-        return true;
-    }
 
-    Preset *printer_preset = GUI::get_printer_preset(obj);
-    if (!printer_preset)
-        return true;
-
-    ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
-    if (!physical_extruder_map_op)
-        return true;
-    std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
-
-    ConfigOptionStrings *unprintable_filament_types_op = dynamic_cast<ConfigOptionStrings *>(printer_preset->config.option("unprintable_filament_types"));
-    if (unprintable_filament_types_op) {
-        for (size_t idx = 0; idx < unprintable_filament_types_op->values.size(); ++idx) {
-            if (physical_extruder_maps[idx] == obj->get_extruder_id_by_ams_id(std::to_string(ams_id))) {
-                std::vector<std::string> filament_types = split_string(unprintable_filament_types_op->values.at(idx), ',');
-                auto                     iter           = std::find(filament_types.begin(), filament_types.end(), tag_type);
-                if (iter != filament_types.end()) {
-                    wxString extruder_name = idx == 0 ? _L("left") : _L("right");
-                    ac                     = "prohibition";
-                    info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
-                    in_blacklist           = true;
-                    return false;
-                }
-            }
-        }
-    }
-
-    ConfigOptionStrings *printable_filament_types_op = dynamic_cast<ConfigOptionStrings *>(printer_preset->config.option("printable_filament_types"));
-    if (printable_filament_types_op) {
-        for (size_t idx = 0; idx < printable_filament_types_op->values.size(); ++idx) {
-            if (physical_extruder_maps[idx] == obj->get_extruder_id_by_ams_id(std::to_string(ams_id))) {
-                std::vector<std::string> filament_types = split_string(printable_filament_types_op->values.at(idx), ',');
-                if (!filament_types.empty()) {
-                    auto iter = std::find(filament_types.begin(), filament_types.end(), tag_type);
-                    if (iter == filament_types.end()) {
-                        wxString extruder_name = idx == 0 ? _L("left") : _L("right");
-                        ac                     = "prohibition";
-                        info                   = (wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name)).ToUTF8().data();
-                        in_blacklist           = true;
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-void DeviceManager::check_filaments_in_blacklist(std::string model_id, std::string tag_vendor, std::string tag_type, int ams_id, int slot_id, std::string tag_name, bool& in_blacklist, std::string& ac, std::string& info)
+void DeviceManager::check_filaments_in_blacklist(std::string model_id,
+                                                 std::string tag_vendor,
+                                                 std::string tag_type,
+                                                 const std::string &filament_id,
+                                                 int                ams_id,
+                                                 int                slot_id,
+                                                 std::string        tag_name,
+                                                 bool              &in_blacklist,
+                                                 std::string       &ac,
+                                                 std::string       &info)
 {
     if (ams_id < 0 || slot_id < 0) {
         return;
     }
 
-    if (!check_filaments_printable(tag_vendor, tag_type, ams_id, in_blacklist, ac, info)) {
+    if (!check_filaments_printable(tag_vendor, tag_type, filament_id, ams_id, in_blacklist, ac, info)) {
         return;
     }
 

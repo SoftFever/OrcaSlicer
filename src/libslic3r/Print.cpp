@@ -344,6 +344,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             steps.emplace_back(psSkirtBrim);
         } else if (opt_key == "filament_soluble"
                 || opt_key == "filament_is_support"
+                || opt_key == "filament_printable"
                 || opt_key == "filament_change_length"
                 || opt_key == "independent_support_layer_height") {
             steps.emplace_back(psWipeTower);
@@ -2777,14 +2778,12 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
     if (extruder_num < 2)
         return physical_unprintables;
 
-    auto get_unprintable_extruder_id = [&](unsigned int filament_idx)->int {
-        if (m_config.unprintable_filament_types.empty())
-            return -1;
-        for (int eid = 0; eid < m_config.unprintable_filament_types.values.size(); ++eid) {
-            std::vector<std::string> extruder_unprintables = split_string(m_config.unprintable_filament_types.values[eid], ',');
-            auto iter = std::find(extruder_unprintables.begin(), extruder_unprintables.end(), m_config.filament_type.values[filament_idx]);
-            if (iter != extruder_unprintables.end())
-                return eid;
+    auto get_unprintable_extruder_id = [&](unsigned int filament_idx) -> int {
+        int status = m_config.filament_printable.values[filament_idx];
+        for (int i = 0; i < extruder_num; ++i) {
+            if (!(status >> i & 1)) {
+                return i;
+            }
         }
         return -1;
     };

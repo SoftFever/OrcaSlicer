@@ -679,18 +679,6 @@ void PrintConfigDef::init_common_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
-    def           = this->add("unprintable_filament_types", coStrings);
-    def->label    = L("Unprintable filament type");
-    def->tooltip  = L("Unprintable filament type");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionStrings{""});
-
-    def          = this->add("printable_filament_types", coStrings);
-    def->label   = L("Printable filament type");
-    def->tooltip = L("Printable filament type");
-    def->mode    = comDevelop;
-    def->set_default_value(new ConfigOptionStrings{""});
-
     def = this->add("preferred_orientation", coFloat);
     def->label = L("Preferred orientation");
     def->tooltip = L("Automatically orient stls on the Z axis upon initial import.");
@@ -2508,6 +2496,16 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Support material is commonly used to print supports and support interfaces.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
+
+    // defined in bits
+    // 0 means cannot support, 1 means support
+    // 0 bit: can support in left extruder
+    // 1 bit: can support in right extruder
+    def          = this->add("filament_printable", coInts);
+    def->label   = L("Filament printable");
+    def->tooltip = L("The filament is printable in extruder");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionInts{3});
 
     // BBS
     def = this->add("filament_prime_volume", coFloats);
