@@ -635,10 +635,8 @@ void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
     float gap_top  = PARTPLATE_ICON_GAP_TOP  * factor;
     p += Vec2d(gap_left,-1 * (index * (size + gap_y) + gap_top));
 
-    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle){
-        int bed_icon_count = 6;
-        p[1] -= std::max(0.0, (bed_ext.size()(1) - bed_icon_count * size - (bed_icon_count) * gap_y) / 2);
-    }
+    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
+        p[1] -= std::max(0.0, (bed_ext.size()(1) - (size + gap_y) * 6 /* bed_icon_count */) / 2);
 
     poly.contour.append({ scale_(p(0))       , scale_(p(1) - size) });
     poly.contour.append({ scale_(p(0) + size), scale_(p(1) - size) });
