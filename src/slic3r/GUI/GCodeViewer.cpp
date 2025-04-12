@@ -412,6 +412,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         //     break;
         // }
         case EViewType::VolumetricRate: {
+            if (m_curr_move.type != EMoveType::Extrude) break;
             ImGui::SameLine(startx2);
             sprintf(buf, "%s%.2f", flow.c_str(), m_curr_move.volumetric_rate());
             ImGui::PushItemWidth(item_size);
