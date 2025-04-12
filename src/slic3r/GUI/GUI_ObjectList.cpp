@@ -1192,6 +1192,8 @@ void ObjectList::OnContextMenu(wxDataViewEvent& evt)
 
 void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu/* = false*/)
 {
+    if (m_prevent_list_manipulation) return;
+
     // Interesting fact: when mouse_pos.x < 0, HitTest(mouse_pos, item, col) returns item = null, but column = last column.
     // So, when mouse was moved to scene immediately after clicking in ObjectList, in the scene will be shown context menu for the Editing column.
     if (mouse_pos.x < 0)
@@ -1289,7 +1291,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 dynamic_cast<TabPrintPlate*>(wxGetApp().get_plate_tab())->reset_model_config();
             else if (m_objects_model->GetItemType(item) & itLayer)
                 dynamic_cast<TabPrintLayer*>(wxGetApp().get_layer_tab())->reset_model_config();
-            else
+            else if (item.IsOk())
                 dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
         }
         else if (col_num == colName)
@@ -4668,6 +4670,7 @@ void ObjectList::select_item(std::function<wxDataViewItem()> get_item)
         return;
 
     m_prevent_list_events = true;
+    m_prevent_list_manipulation = true;
 
     wxDataViewItem item = get_item();
     if (item.IsOk()) {
@@ -4676,6 +4679,7 @@ void ObjectList::select_item(std::function<wxDataViewItem()> get_item)
         part_selection_changed();
     }
 
+    m_prevent_list_manipulation = false;
     m_prevent_list_events = false;
 }
 
@@ -4728,6 +4732,7 @@ void ObjectList::select_items(const std::vector<ObjectVolumeID>& ov_ids)
 void ObjectList::select_items(const wxDataViewItemArray& sels)
 {
     m_prevent_list_events = true;
+    m_prevent_list_manipulation = true;
     m_last_selected_item = sels.empty() ? wxDataViewItem(nullptr) : sels.back();
 
     UnselectAll();
@@ -4742,6 +4747,7 @@ void ObjectList::select_items(const wxDataViewItemArray& sels)
 
     part_selection_changed();
 
+    m_prevent_list_manipulation = false;
     m_prevent_list_events = false;
 }
 
@@ -4753,6 +4759,9 @@ void ObjectList::select_all()
 
 void ObjectList::select_item_all_children()
 {
+    if (wxGetApp().plater()  && !wxGetApp().plater()->canvas3D()->get_gizmos_manager().is_allow_select_all()) {
+        return;
+    }
     wxDataViewItemArray sels;
 
     // There is no selection before OR some object is selected   =>  select all objects

@@ -1785,7 +1785,7 @@ msgid "Delete the selected object"
 msgstr "Apagar o objeto selecionado"
 
 msgid "Load..."
-msgstr "Carregar..."
+msgstr "Carregar…"
 
 msgid "Cube"
 msgstr "Cubo"
@@ -2458,7 +2458,7 @@ msgid "No printer"
 msgstr "Sem impressora"
 
 msgid "..."
-msgstr "..."
+msgstr "…"
 
 msgid "Failed to connect to the server"
 msgstr "Falha ao conectar ao servidor"
@@ -2486,7 +2486,7 @@ msgid "Please check the network connection of the printer and Orca."
 msgstr "Por favor, verifique a conexão de rede da impressora e do Orca."
 
 msgid "Connecting..."
-msgstr "Conectando..."
+msgstr "Conectando…"
 
 msgid "?"
 msgstr "?"
@@ -2525,7 +2525,7 @@ msgid "Retry"
 msgstr "Tentar Novamente"
 
 msgid "Calibrating AMS..."
-msgstr "Calibrando AMS..."
+msgstr "Calibrando AMS…"
 
 msgid "A problem occurred during calibration. Click to view the solution."
 msgstr "Ocorreu um problema durante a calibração. Clique para ver a solução."
@@ -2537,7 +2537,7 @@ msgid "Cancel calibration"
 msgstr "Cancelar calibração"
 
 msgid "Idling..."
-msgstr "Em espera..."
+msgstr "Em espera…"
 
 msgid "Heat the nozzle"
 msgstr "Aquecer o bico"
@@ -2594,7 +2594,7 @@ msgstr ""
 "Não é possível auto-arranjar nessa placa."
 
 msgid "Arranging..."
-msgstr "Organizando..."
+msgstr "Organizando…"
 
 msgid "Arranging"
 msgstr "Organizando"
@@ -2642,7 +2642,7 @@ msgstr ""
 "Não é possível auto-orientar nessa placa."
 
 msgid "Orienting..."
-msgstr "Orientando..."
+msgstr "Orientando…"
 
 msgid "Orienting"
 msgstr "Orientando"
@@ -3260,7 +3260,7 @@ msgid "Please save project and restart the program."
 msgstr "Por favor, salve o projeto e reinicie o programa."
 
 msgid "Processing G-Code from Previous file..."
-msgstr "Processando G-code do arquivo anterior..."
+msgstr "Processando G-code do arquivo anterior…"
 
 msgid "Slicing complete"
 msgstr "Fatiamento concluído"
@@ -3498,7 +3498,7 @@ msgid "No historical tasks!"
 msgstr "Nenhuma tarefa no histórico!"
 
 msgid "Loading..."
-msgstr "Carregando..."
+msgstr "Carregando…"
 
 msgid "No AMS"
 msgstr "Nenhum AMS"
@@ -3614,7 +3614,7 @@ msgid "Circular"
 msgstr "Circular"
 
 msgid "Load shape from STL..."
-msgstr "Carregar forma de STL..."
+msgstr "Carregar forma de STL…"
 
 msgid "Settings"
 msgstr "Configurações"
@@ -3686,11 +3686,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
 "A temperatura do bico recomendada para este tipo de filamento é [%d, %d] "
-"graus centígrados"
+"graus Celsius."
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -4991,7 +4991,7 @@ msgid "VFA"
 msgstr "VFA"
 
 msgid "More..."
-msgstr "Mais..."
+msgstr "Mais…"
 
 msgid "Tutorial"
 msgstr "Tutorial"
@@ -5169,7 +5169,7 @@ msgid "Please enter the IP of printer to connect."
 msgstr "Por favor, digite o IP da impressora para conectar."
 
 msgid "Initializing..."
-msgstr "Inicializando..."
+msgstr "Inicializando…"
 
 msgid "Connection Failed. Please check the network and try again"
 msgstr "Falha na conexão. Por favor, verifique a rede e tente novamente"
@@ -5220,7 +5220,7 @@ msgid "Information"
 msgstr "Informação"
 
 msgid "Playing..."
-msgstr "Reproduzindo..."
+msgstr "Reproduzindo…"
 
 msgid "Year"
 msgstr "Ano"
@@ -5277,7 +5277,7 @@ msgid "No printers."
 msgstr "Nenhuma impressora."
 
 msgid "Loading file list..."
-msgstr "Carregando lista de arquivos..."
+msgstr "Carregando lista de arquivos…"
 
 msgid "No files"
 msgstr "Sem arquivos"
@@ -5327,7 +5327,7 @@ msgid "Delete file"
 msgstr "Excluir arquivo"
 
 msgid "Fetching model information..."
-msgstr "Obtendo informações do modelo ..."
+msgstr "Obtendo informações do modelo…"
 
 msgid "Failed to fetch model information from printer."
 msgstr "Falha ao obter informação do modelo da impressora."
@@ -5355,7 +5355,7 @@ msgstr ""
 "Título: %s\n"
 
 msgid "Download waiting..."
-msgstr "Aguardando download..."
+msgstr "Aguardando download…"
 
 msgid "Play"
 msgstr "Reproduzir"
@@ -5368,7 +5368,7 @@ msgstr "Download concluído"
 
 #, c-format, boost-format
 msgid "Downloading %d%%..."
-msgstr "Baixando %d%%..."
+msgstr "Baixando %d%%…"
 
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
@@ -5515,10 +5515,10 @@ msgid "Are you sure you want to cancel this print?"
 msgstr "Tem certeza de que deseja cancelar esta impressão?"
 
 msgid "Downloading..."
-msgstr "Baixando..."
+msgstr "Baixando…"
 
 msgid "Cloud Slicing..."
-msgstr "Fatiando na Nuvem..."
+msgstr "Fatiando na Nuvem…"
 
 #, c-format, boost-format
 msgid "In Cloud Slicing Queue, there are %s tasks ahead."
@@ -6438,13 +6438,13 @@ msgid "Importing Model"
 msgstr "Importando Modelo"
 
 msgid "prepare 3mf file..."
-msgstr "preparar o arquivo 3mf..."
+msgstr "preparar o arquivo 3mf…"
 
 msgid "Download failed, unknown file format."
 msgstr "Baixar falhou, formato de arquivo desconhecido."
 
 msgid "downloading project ..."
-msgstr "baixando projeto..."
+msgstr "baixando projeto…"
 
 msgid "Download failed, File size exception."
 msgstr "Baixar falhou, erro no tamanho do arquivo."
@@ -7641,7 +7641,7 @@ msgid "Pin Code"
 msgstr "Código PIN"
 
 msgid "Binding..."
-msgstr "Vinculando..."
+msgstr "Vinculando…"
 
 msgid "Please confirm on the printer screen"
 msgstr "Confirme na tela da impressora"
@@ -9220,7 +9220,7 @@ msgid "Manual Setup"
 msgstr "Configuração Manual"
 
 msgid "connecting..."
-msgstr "conectando..."
+msgstr "conectando…"
 
 msgid "Failed to connect to printer."
 msgstr "Falha ao conectar à impressora."
@@ -16329,7 +16329,7 @@ msgstr ""
 "Você ainda quer continuar com a calibração?"
 
 msgid "Connecting to printer..."
-msgstr "Conectando à impressora..."
+msgstr "Conectando à impressora…"
 
 msgid "The failed test result has been dropped."
 msgstr "O resultado do teste falhado foi descartado."
@@ -16531,7 +16531,7 @@ msgstr ""
 "imprime com:"
 
 msgid "material with significant thermal shrinkage/expansion, such as..."
-msgstr "material com significativa contração/expansão térmica, como..."
+msgstr "material com significativa contração/expansão térmica, como…"
 
 msgid "materials with inaccurate filament diameter"
 msgstr "materiais com diâmetro de filamento impreciso"

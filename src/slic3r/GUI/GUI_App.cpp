@@ -1575,30 +1575,30 @@ void GUI_App::init_networking_callbacks()
         //    GUI::wxGetApp().request_user_handle(online_login);
         //    });
 
-        m_agent->set_server_callback([this](std::string url, int status) {
-
-            CallAfter([this]() {
-                if (!m_server_error_dialog) {
-                    /*m_server_error_dialog->EndModal(wxCLOSE);
-                    m_server_error_dialog->Destroy();
-                    m_server_error_dialog = nullptr;*/
-                    m_server_error_dialog = new NetworkErrorDialog(mainframe);
-                }
-
-                if(plater()->get_select_machine_dialog() && plater()->get_select_machine_dialog()->IsShown()){
-                    return;
-                }
-
-                if (m_server_error_dialog->m_show_again) {
-                    return;
-                }
-
-                if (m_server_error_dialog->IsShown()) {
-                    return;
-                }
-
-                m_server_error_dialog->ShowModal();
-            });
+        m_agent->set_server_callback([](std::string url, int status) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": server_callback, url=%1%, status=%2%") % url % status;
+            //CallAfter([this]() {
+            //    if (!m_server_error_dialog) {
+            //        /*m_server_error_dialog->EndModal(wxCLOSE);
+            //        m_server_error_dialog->Destroy();
+            //        m_server_error_dialog = nullptr;*/
+            //        m_server_error_dialog = new NetworkErrorDialog(mainframe);
+            //    }
+            //
+            //    if(plater()->get_select_machine_dialog() && plater()->get_select_machine_dialog()->IsShown()){
+            //        return;
+            //    }
+            //
+            //    if (m_server_error_dialog->m_show_again) {
+            //        return;
+            //    }
+            //
+            //    if (m_server_error_dialog->IsShown()) {
+            //        return;
+            //    }
+            //
+            //    m_server_error_dialog->ShowModal();
+            //});
         });
 
 
@@ -6246,6 +6246,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "ru", 	"ru_RU", },
         { "tr", 	"tr_TR", },
         { "pt", 	"pt_BR", },
+        { "lt", 	"lt_LT", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);

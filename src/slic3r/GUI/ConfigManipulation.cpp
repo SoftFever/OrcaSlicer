@@ -90,7 +90,7 @@ void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *conf
         if (config->opt_int("nozzle_temperature", 0) < temperature_range_low || config->opt_int("nozzle_temperature", 0) > temperature_range_high) {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
                 "Please make sure whether to use the temperature to print.\n\n"));
-            msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
+            msg_text += wxString::Format(_L("The recommended nozzle temperature for this filament type is [%d, %d] degrees Celsius."), temperature_range_low, temperature_range_high);
             MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
             is_msg_dlg_already_exist = true;
             dialog.ShowModal();
@@ -113,7 +113,7 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
         {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
                 "Please make sure whether to use the temperature to print.\n\n"));
-            msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
+            msg_text += wxString::Format(_L("The recommended nozzle temperature for this filament type is [%d, %d] degrees Celsius."), temperature_range_low, temperature_range_high);
             MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
             is_msg_dlg_already_exist = true;
             dialog.ShowModal();

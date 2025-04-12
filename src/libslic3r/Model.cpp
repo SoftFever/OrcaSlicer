@@ -27,6 +27,7 @@
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
+#include <functional>
 #include "GCodeWriter.hpp"
 
 // BBS: for segment
@@ -176,17 +177,68 @@ Model::~Model()
         Slic3r::remove_backup(*this, true);
 }
 
+Model Model::read_from_step(const std::string&                                      input_file,
+                            LoadStrategy                                            options,
+                            ImportStepProgressFn                                    stepFn,
+                            StepIsUtf8Fn                                            stepIsUtf8Fn,
+                            std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
+                            double                                                  linear_defletion,
+                            double                                                  angle_defletion,
+                            bool                                                   is_split_compound)
+{
+    Model model;
+    bool result = false;
+    bool is_cb_cancel = false;
+    std::string message;
+    Step step_file(input_file);
+    step_file.load();
+    if (step_mesh_fn) {
+        if (step_mesh_fn(step_file, linear_defletion, angle_defletion, is_split_compound) == -1) {
+            Model empty_model;
+            return empty_model;
+        }
+    }
+    result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, is_split_compound, stepFn, stepIsUtf8Fn);
+    if (is_cb_cancel) {
+        Model empty_model;
+        return empty_model;
+    }
+
+    if (!result) {
+        if (message.empty())
+            throw Slic3r::RuntimeError(_L("Loading of a model file failed."));
+        else
+            throw Slic3r::RuntimeError(message);
+    }
+
+    if (model.objects.empty())
+        throw Slic3r::RuntimeError(_L("The supplied file couldn't be read because it's empty"));
+
+    for (ModelObject *o : model.objects)
+        o->input_file = input_file;
+
+    if (options & LoadStrategy::AddDefaultInstances)
+        model.add_default_instances();
+
+    return model;
+}
+
 // BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-                            LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_xxx, Semver* file_version, Import3mfProgressFn proFn,
-                            ImportstlProgressFn        stlFn,
-                            ImportStepProgressFn       stepFn,
-                            StepIsUtf8Fn               stepIsUtf8Fn,
-                            BBLProject *               project,
-                            int                        plate_id,
-                            ObjImportColorFn           objFn)
+Model Model::read_from_file(const std::string&                                  input_file,
+                            DynamicPrintConfig*                                 config,
+                            ConfigSubstitutionContext*                          config_substitutions,
+                            LoadStrategy                                        options,
+                            PlateDataPtrs*                                      plate_data,
+                            std::vector<Preset*>*                               project_presets,
+                            bool                                                *is_xxx,
+                            Semver*                                             file_version,
+                            Import3mfProgressFn                                 proFn,
+                            ImportstlProgressFn                                 stlFn,
+                            BBLProject *                                        project,
+                            int                                                 plate_id,
+                            ObjImportColorFn                                    objFn)
 {
     Model model;
 
@@ -210,10 +262,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     bool result = false;
     bool is_cb_cancel = false;
     std::string message;
-    if (boost::algorithm::iends_with(input_file, ".stp") ||
-        boost::algorithm::iends_with(input_file, ".step"))
-        result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
-    else if (boost::algorithm::iends_with(input_file, ".stl"))
+    if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".oltp"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
@@ -1167,23 +1216,27 @@ bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boole
     return true;
 }
 
-ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
+ModelVolume *ModelObject::add_volume(const TriangleMesh &mesh, bool modify_to_center_geometry)
 {
     ModelVolume* v = new ModelVolume(this, mesh);
     this->volumes.push_back(v);
-    v->center_geometry_after_creation();
-    this->invalidate_bounding_box();
+    if (modify_to_center_geometry) {
+        v->center_geometry_after_creation();
+        this->invalidate_bounding_box();
+    }
     // BBS: backup
     Slic3r::save_object_mesh(*this);
     return v;
 }
 
-ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/)
+ModelVolume *ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/, bool modify_to_center_geometry)
 {
     ModelVolume* v = new ModelVolume(this, std::move(mesh), type);
     this->volumes.push_back(v);
-    v->center_geometry_after_creation();
-    this->invalidate_bounding_box();
+    if (modify_to_center_geometry) {
+        v->center_geometry_after_creation();
+        this->invalidate_bounding_box();
+    }
     // BBS: backup
     Slic3r::save_object_mesh(*this);
     return v;

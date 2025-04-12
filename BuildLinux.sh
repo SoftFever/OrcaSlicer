@@ -49,7 +49,7 @@ while getopts ":1j:bcdghirsu" opt; do
         export CMAKE_BUILD_PARALLEL_LEVEL=1
         ;;
     j )
-        CMAKE_BUILD_PARALLEL_LEVEL=$OPTARG
+        export CMAKE_BUILD_PARALLEL_LEVEL=$OPTARG
         ;;
     b )
         BUILD_DEBUG="1"
