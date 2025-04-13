@@ -1100,9 +1100,13 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
     // When all values are rolled, then we have to update whole tab in respect to the reverted values
     update();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
 
     // BBS: restore all pages in preset, update_dirty also update combobox
     update_dirty();
+
+    m_page_view->GetParent()->Layout();
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -2311,11 +2315,11 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_start_angle");
-        optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
+        optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("single_loop_draft_shield");
-        
+
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
