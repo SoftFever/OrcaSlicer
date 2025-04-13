@@ -100,7 +100,7 @@ void GLGizmoBrimEars::on_render()
 void GLGizmoBrimEars::render_points(const Selection &selection)
 {
     auto editing_cache = m_editing_cache;
-    if (render_hover_point != nullptr) { editing_cache.push_back(*render_hover_point); }
+    if (render_hover_point) { editing_cache.push_back(*render_hover_point); }
 
     size_t cache_size = editing_cache.size();
 
@@ -265,16 +265,12 @@ void GLGizmoBrimEars::data_changed(bool is_serializing)
 
 bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
 {
-    if (use_grabbers(mouse_event)) {
-        return true;
-    }
-
     // wxCoord == int --> wx/types.h
     Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d   mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.Moving()) {
-        return gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
+        gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
     }
     
     // when control is down we allow scene pan and rotation even when clicking
@@ -317,15 +313,15 @@ bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
             return false;
         }
     } else if (mouse_event.LeftUp()) {
-        if (!m_parent.is_mouse_dragging()) {
+        if (gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), control_down)
+            && !m_parent.is_mouse_dragging()) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp
             // event and stop processing - neither object moving or selecting
             // is suppressed in that case
-            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), control_down);
             return true;
         }
     }
-    return false;
+    return use_grabbers(mouse_event);
 }
 
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
@@ -348,10 +344,9 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
         Transform3d             inverse_trsf = volume->get_instance_transformation().get_matrix_no_offset().inverse();
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
-            render_hover_point = new CacheEntry(BrimPoint(pos_and_normal.first, m_new_point_head_diameter / 2.f), false, (inverse_trsf * m_world_normal).cast<float>(), true);
+            render_hover_point = CacheEntry(BrimPoint(pos_and_normal.first, m_new_point_head_diameter / 2.f), false, (inverse_trsf * m_world_normal).cast<float>(), true);
         } else {
-            delete render_hover_point;
-            render_hover_point = nullptr;
+            render_hover_point.reset();
         }
     } else if (action == SLAGizmoEventType::LeftDown && (shift_down || alt_down || control_down)) {
         // left down with shift - show the selection rectangle:
