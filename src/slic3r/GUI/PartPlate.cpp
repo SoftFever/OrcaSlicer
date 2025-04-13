@@ -636,7 +636,7 @@ void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
     p += Vec2d(gap_left,-1 * (index * (size + gap_y) + gap_top));
 
     if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
-        p[1] -= std::max(0.0, (bed_ext.size()(1) - 5 * size - 4 * gap_y - gap_top) / 2);
+        p[1] -= std::max(0.0, (bed_ext.size()(1) - (size + gap_y) * 6 /* bed_icon_count */) / 2);
 
     poly.contour.append({ scale_(p(0))       , scale_(p(1) - size) });
     poly.contour.append({ scale_(p(0) + size), scale_(p(1) - size) });
@@ -2684,6 +2684,8 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
         calc_vertex_for_icons(5, m_move_front_icon);
+        // ORCA also change bed_icon_count number in calc_vertex_for_icons() after adding or removing icons for circular shaped beds that uses vertical alingment for icons
+
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
