@@ -827,7 +827,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     m_tiFreqStartX = new TextInput(this, std::to_string(15), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiFreqStartX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     auto end_x_text = new wxStaticText(this, wxID_ANY, end_x_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqEndX = new TextInput(this, std::to_string(60), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqEndX = new TextInput(this, std::to_string(110), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiFreqEndX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     x_freq_sizer->Add(start_x_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -842,7 +842,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     m_tiFreqStartY = new TextInput(this, std::to_string(15), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiFreqStartY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     auto end_y_text = new wxStaticText(this, wxID_ANY, end_y_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqEndY = new TextInput(this, std::to_string(60), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiFreqEndY = new TextInput(this, std::to_string(110), _L("HZ"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiFreqEndY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     y_freq_sizer->Add(start_y_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -855,7 +855,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     wxString damping_factor_str = _L("Damp: ");
     auto damping_factor_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto damping_factor_text = new wxStaticText(this, wxID_ANY, damping_factor_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiDampingFactor = new TextInput(this, wxString::Format("%.2f", 0.35), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiDampingFactor = new TextInput(this, wxString::Format("%.3f", 0.15), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiDampingFactor->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     damping_factor_sizer->Add(damping_factor_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -863,7 +863,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     settings_sizer->Add(damping_factor_sizer);
     
     // Add a note explaining that 0 means use default value
-    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: 0 Damp = Printer default."), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Recommended: Set Damp to 0.\nThis will use the printer's default or the last saved value."), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     note_text->SetForegroundColour(wxColour(128, 128, 128));
     settings_sizer->Add(note_text, 0, wxALL, 5);
 
@@ -983,10 +983,10 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     // Damping Factor Start and End
     auto damp_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto damp_start_text = new wxStaticText(this, wxID_ANY, damp_start_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiDampingFactorStart = new TextInput(this, wxString::Format("%.2f", 0.00), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiDampingFactorStart = new TextInput(this, wxString::Format("%.3f", 0.00), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiDampingFactorStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     auto damp_end_text = new wxStaticText(this, wxID_ANY, damp_end_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiDampingFactorEnd = new TextInput(this, wxString::Format("%.2f", 0.40), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiDampingFactorEnd = new TextInput(this, wxString::Format("%.3f", 0.40), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiDampingFactorEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     damp_sizer->Add(damp_start_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
