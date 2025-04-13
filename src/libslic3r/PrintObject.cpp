@@ -1387,6 +1387,12 @@ void PrintObject::detect_surfaces_type()
                             
                             for (const auto& crack : cracks) {
                                 if (offset_ex(crack, small_crack_threshold).empty()) {
+                                    // For small cracks, if it's part of a large bottom surface, then it should be added to bottom as well
+                                    if (std::any_of(bottom.begin(), bottom.end(), [&crack](const Surface& s) {
+                                            const auto& se = s.expolygon;
+                                            return diff_ex(crack, se, ApplySafetyOffset::Yes).empty() && se.area() > crack.area() * 2;
+                                    })) continue;
+
                                     // Crack too small, leave it as part of the top surface, remove it from bottom surfaces
                                     Surfaces bot_tmp;
                                     for (auto& b : bottom) {
