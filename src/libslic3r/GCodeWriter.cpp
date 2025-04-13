@@ -318,7 +318,7 @@ std::string GCodeWriter::set_junction_deviation(double junction_deviation){
     if (FLAVOR_IS_NOT(gcfMarlinFirmware)) {
         throw std::runtime_error("Junction deviation is only supported by Marlin firmware");
     }
-        gcode << "M205 J" << junction_deviation << " ; Junction Deviation\n";
+    gcode << "M205 J" << std::fixed << std::setprecision(3) << junction_deviation << " ; Junction Deviation\n";
     return gcode.str();
 }
 
@@ -365,7 +365,7 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) co
                 gcode << " SHAPER_FREQ_X=" << std::fixed << std::setprecision(2) << freq << " SHAPER_FREQ_Y=" << std::fixed << std::setprecision(2) << freq;
             }
             if (damp > 0.0f) {
-                gcode << " DAMPING_RATIO_X=" << damp << " DAMPING_RATIO_Y=" << damp;
+                gcode << " DAMPING_RATIO_X=" << std::fixed << std::setprecision(3) << damp << " DAMPING_RATIO_Y=" << std::fixed << std::setprecision(3) << damp;
             }
         }
     } else {
@@ -380,10 +380,13 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) co
         }
         if (damp > 0.0f)
         {
-            gcode << " D" << std::fixed << std::setprecision(2) << damp;
+            gcode << " D" << std::fixed << std::setprecision(3) << damp;
         }
     }
-    gcode << "; Override input shaping value\n";
+    if (GCodeWriter::full_gcode_comment){
+        gcode << " ; Override input shaping";
+    }
+    gcode << "\n";
     return gcode.str();
 }
 
