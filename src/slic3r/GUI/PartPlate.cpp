@@ -475,6 +475,8 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     if (grid_counts.minCoeff() > 1) {
         step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
     }
+
+    if (0) {
     for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(step)) {
 		Polyline line;
 		line.append(Point(x, pp_bbox.min(1)));
@@ -499,6 +501,41 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 			axes_lines.push_back(line);
 		count ++;
 	}
+    }
+
+    // ORCA draw grid lines relative to origin
+    for (coord_t x = m_origin.x(); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(x, pp_bbox.min(1)),
+            Point(x, pp_bbox.max(1))
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t x = m_origin.x(); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(x, pp_bbox.min(1)),
+            Point(x, pp_bbox.max(1))
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = m_origin.y(); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(pp_bbox.min(0), y),
+            Point(pp_bbox.max(0), y)
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = m_origin.y(); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(pp_bbox.min(0), y),
+            Point(pp_bbox.max(0), y)
+        ));
+        count ++;
+    }
+    count = 0;
 
 	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
 	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
@@ -636,7 +673,7 @@ void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
     p += Vec2d(gap_left,-1 * (index * (size + gap_y) + gap_top));
 
     if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
-        p[1] -= std::max(0.0, (bed_ext.size()(1) - 5 * size - 4 * gap_y - gap_top) / 2);
+        p[1] -= std::max(0.0, (bed_ext.size()(1) - (size + gap_y) * 6 /* bed_icon_count */) / 2);
 
     poly.contour.append({ scale_(p(0))       , scale_(p(1) - size) });
     poly.contour.append({ scale_(p(0) + size), scale_(p(1) - size) });
@@ -2684,6 +2721,8 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
         calc_vertex_for_icons(5, m_move_front_icon);
+        // ORCA also change bed_icon_count number in calc_vertex_for_icons() after adding or removing icons for circular shaped beds that uses vertical alingment for icons
+
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
@@ -3874,7 +3913,8 @@ std::vector<PartPlate*> PartPlateList::get_nonempty_plate_list()
 {
 	std::vector<PartPlate*> nonempty_plate_list;
 	for (auto plate : m_plate_list){
-		if (plate->get_extruders().size() != 0) {
+        //if (plate->get_extruders().size() != 0) {
+		if (!plate->empty()) { // ORCA counts failed slices as non empty because they have model and should be calculated on total count
 			nonempty_plate_list.push_back(plate);
 		}
 	}

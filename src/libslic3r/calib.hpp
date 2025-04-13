@@ -286,7 +286,9 @@ protected:
     {
         // TODO: FIXME: find out current filament/extruder?
         const double nozzle_diameter = m_config.opt_float("nozzle_diameter", 0);
-        return m_config.get_abs_value("line_width", nozzle_diameter);
+        const double width = m_config.get_abs_value("line_width", nozzle_diameter);
+        if (width <= 0.) return Flow::auto_extrusion_width(frExternalPerimeter, nozzle_diameter);
+        return width;
     };
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
