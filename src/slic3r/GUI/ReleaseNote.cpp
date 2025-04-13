@@ -239,7 +239,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
     version = from_u8(version_str);
     description = from_u8(description_str);
 
-    m_text_up_info->SetLabel(wxString::Format(_L("A new Network plug-in(%s) available, Do you want to install it?"), version));
+    m_text_up_info->SetLabel(wxString::Format(_L("A new Network plug-in (%s) available, Do you want to install it?"), version));
     m_text_up_info->SetMinSize(wxSize(FromDIP(260), -1));
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
@@ -1090,14 +1090,14 @@ void PrintErrorDialog::init_button_list()
         e.Skip();
     });
 
-    init_button(RESUME_PRINTING_DEFECTS, _L("Resume Printing(defects acceptable)"));
+    init_button(RESUME_PRINTING_DEFECTS, _L("Resume Printing (defects acceptable)"));
     m_button_list[RESUME_PRINTING_DEFECTS]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
         e.Skip();
     });
 
 
-    init_button(RESUME_PRINTING_PROBELM_SOLVED, _L("Resume Printing(problem solved)"));
+    init_button(RESUME_PRINTING_PROBELM_SOLVED, _L("Resume Printing (problem solved)"));
     m_button_list[RESUME_PRINTING_PROBELM_SOLVED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
         e.Skip();
