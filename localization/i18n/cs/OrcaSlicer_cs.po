@@ -794,7 +794,7 @@ msgid "Change Text Type"
 msgstr "Změnit typ operace s textem"
 
 #, boost-format
-msgid "Rename style(%1%) for embossing text"
+msgid "Rename style (%1%) for embossing text"
 msgstr "Přejmenování stylu(%1%) pro reliéfní text"
 
 msgid "Name can't be empty."
@@ -1012,8 +1012,8 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Application selected a similar "
-"one(\"%2%\"). You have to specify font for enable edit text."
+"Can't load exactly same font (\"%1%\"). Application selected a similar "
+"one (\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "Nelze načíst přesně stejné písmo(\"%1%\"). Aplikace vybrala podobné "
 "písmo(\"%2%\"). Musíte zadat písmo pro povolení editace textu."
@@ -1798,7 +1798,7 @@ msgstr ""
 
 msgid ""
 "This model features text embossment on the top surface. For optimal results, "
-"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"it is advisable to set the 'One Wall Threshold (min_width_top_surface)' to 0 "
 "for the 'Only One Wall on Top Surfaces' to work best.\n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -3892,7 +3892,7 @@ msgstr "Aktualizace se nezdařila."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃. In order to avoid extruder clogging, low temperature filament(PLA/PETG/"
+"45℃. In order to avoid extruder clogging, low temperature filament (PLA/PETG/"
 "TPU) is not allowed to be loaded."
 msgstr ""
 "Aktuální teplota komory nebo cílová teplota komory přesahuje 45℃. Aby se "
@@ -3900,7 +3900,7 @@ msgstr ""
 "(PLA/PETG/TPU)."
 
 msgid ""
-"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder. In order "
+"Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order "
 "to avoid extruder clogging, it is not allowed to set the chamber temperature "
 "above 45℃."
 msgstr ""
@@ -4509,7 +4509,7 @@ msgstr "720p"
 msgid "1080p"
 msgstr "1080p"
 
-msgid "ConnectPrinter(LAN)"
+msgid "Connect Printer (LAN)"
 msgstr "Připojit tiskárnu (LAN)"
 
 msgid "Please input the printer access code:"
@@ -5555,7 +5555,7 @@ msgstr "Můžete vybrat až 16 obrázků."
 
 msgid ""
 "At least one successful print record of this print profile is required \n"
-"to give a positive rating(4 or 5stars)."
+"to give a positive rating (4 or 5 stars)."
 msgstr ""
 "Je vyžadován alespoň jeden úspěšný tiskový záznam tohoto tiskového profilu \n"
 "pro udělení pozitivního hodnocení (4 nebo 5 hvězdiček)."
@@ -5999,7 +5999,7 @@ msgstr "Chcete uložit změny do \"%1%\"?"
 
 #, c-format, boost-format
 msgid ""
-"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"Successfully unmounted. The device %s (%s) can now be safely removed from the "
 "computer."
 msgstr ""
 "Odpojení proběhlo úspěšné. Zařízení %s(%s) lze nyní bezpečně odebrat z "
@@ -6547,7 +6547,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s (%s). If you "
 "still want to do this print job, please set this filament's bed temperature "
 "to non-zero."
 msgstr ""
@@ -6738,7 +6738,7 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Orca)."
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
 msgstr ""
 
 msgid ""
@@ -6755,7 +6755,7 @@ msgstr ""
 msgid "Network"
 msgstr "Síť"
 
-msgid "Auto sync user presets(Printer/Filament/Process)"
+msgid "Auto sync user presets (Printer/Filament/Process)"
 msgstr ""
 "Automatická synchronizace uživatelských předvoleb (Tiskárna/Filament/Proces)"
 
@@ -6986,7 +6986,7 @@ msgstr "Přidání/Odebrání filamentů"
 msgid "Add/Remove materials"
 msgstr "Přidání/Odebrání materiálů"
 
-msgid "Select/Remove printers(system presets)"
+msgid "Select/Remove printers (system presets)"
 msgstr ""
 
 msgid "Create printer"
@@ -7344,7 +7344,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material (%s material) with %s may cause nozzle "
 "damage"
 msgstr ""
 
@@ -8864,7 +8864,7 @@ msgstr ""
 "Sliceru."
 
 #, c-format, boost-format
-msgid "A new Network plug-in(%s) available, Do you want to install it?"
+msgid "A new Network plug-in (%s) available, Do you want to install it?"
 msgstr "Nový síťový plug-in (%s) k dispozici, chcete jej nainstalovat?"
 
 msgid "New version of Orca Slicer"
@@ -8882,10 +8882,10 @@ msgstr ""
 msgid "Resume Printing"
 msgstr ""
 
-msgid "Resume Printing(defects acceptable)"
+msgid "Resume Printing (defects acceptable)"
 msgstr ""
 
-msgid "Resume Printing(problem solved)"
+msgid "Resume Printing (problem solved)"
 msgstr ""
 
 msgid "Stop Printing"
@@ -10021,7 +10021,7 @@ msgid "Bridge flow ratio"
 msgstr "Průtok mostu"
 
 msgid ""
-"Decrease this value slightly(for example 0.9) to reduce the amount of "
+"Decrease this value slightly (for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag. \n"
 "\n"
 "The actual bridge flow used is calculated by multiplying this value with the "
@@ -10871,7 +10871,7 @@ msgstr ""
 "Povolte předstih tlaku, po povolení bude výsledek automatické kalibrace "
 "přepsán."
 
-msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
+msgid "Pressure advance (Klipper) AKA Linear advance factor (Marlin)."
 msgstr "Předstih tlaku (Klipper) AKA Lineární faktor předstihu (Marlin)"
 
 msgid "Enable adaptive pressure advance (beta)"
@@ -12784,7 +12784,7 @@ msgstr ""
 "Některé množství materiálu v extruderu je staženo zpět, aby se zabránilo "
 "slizu při dlouhém pohybu. Nastavte nulu, abyste zablokovali retrakce"
 
-msgid "Long retraction when cut(beta)"
+msgid "Long retraction when cut (beta)"
 msgstr ""
 
 msgid ""
@@ -13348,7 +13348,7 @@ msgid "Preheat steps"
 msgstr ""
 
 msgid ""
-"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"Insert multiple preheat commands (e.g. M104.1). Only useful for Prusa XL. For "
 "other printers, please set it to 1."
 msgstr ""
 
@@ -15479,7 +15479,7 @@ msgstr "Filament pro kalibraci"
 msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
-"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
+"- Different filament brand and family (Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
 "Tipy na kalibrační materiál: \n"
 "- Materiály, které mohou sdílet stejnou teplotu podložky\n"
@@ -15877,13 +15877,13 @@ msgstr ""
 msgid "DNS Server:"
 msgstr ""
 
-msgid "Test OrcaSlicer(GitHub)"
+msgid "Test OrcaSlicer (GitHub)"
 msgstr ""
 
-msgid "Test OrcaSlicer(GitHub):"
+msgid "Test OrcaSlicer (GitHub):"
 msgstr ""
 
-msgid "Test Bing.com"
+msgid "Test bing.com"
 msgstr ""
 
 msgid "Test bing.com:"
@@ -17383,7 +17383,7 @@ msgstr ""
 #~ msgstr "Smrštění"
 
 #~ msgid ""
-#~ "Decrease this value slightly(for example 0.9) to reduce the amount of "
+#~ "Decrease this value slightly (for example 0.9) to reduce the amount of "
 #~ "material for bridge, to improve sag"
 #~ msgstr ""
 #~ "Snižte tuto hodnotu mírně (například 0,9), abyste snížili množství "

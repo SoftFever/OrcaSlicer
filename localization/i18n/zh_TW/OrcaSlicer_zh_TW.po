@@ -783,7 +783,7 @@ msgid "Change Text Type"
 msgstr "更改文字類型"
 
 #, boost-format
-msgid "Rename style(%1%) for embossing text"
+msgid "Rename style (%1%) for embossing text"
 msgstr "重新命名浮雕文字樣式 (%1%)"
 
 msgid "Name can't be empty."
@@ -1001,8 +1001,8 @@ msgstr "字型 「%1%」 無法使用，請選擇其他字型。"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Application selected a similar "
-"one(\"%2%\"). You have to specify font for enable edit text."
+"Can't load exactly same font (\"%1%\"). Application selected a similar "
+"one (\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "無法加載完全相同的字體「%1%」。已自動選擇相似的字體「%2%」。若要啟用文字編"
 "輯，請指定字體。"
@@ -1774,7 +1774,7 @@ msgstr "Orca 拉絲測試"
 
 msgid ""
 "This model features text embossment on the top surface. For optimal results, "
-"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"it is advisable to set the 'One Wall Threshold (min_width_top_surface)' to 0 "
 "for the 'Only One Wall on Top Surfaces' to work best.\n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -3801,14 +3801,14 @@ msgstr "更新失敗。"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃. In order to avoid extruder clogging, low temperature filament(PLA/PETG/"
+"45℃. In order to avoid extruder clogging, low temperature filament (PLA/PETG/"
 "TPU) is not allowed to be loaded."
 msgstr ""
 "目前或目標機箱溫度超過 45℃。為避免擠出機堵塞，不允許裝載低溫耗材（PLA/PETG/"
 "TPU）。"
 
 msgid ""
-"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder. In order "
+"Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order "
 "to avoid extruder clogging, it is not allowed to set the chamber temperature "
 "above 45℃."
 msgstr ""
@@ -4409,7 +4409,7 @@ msgstr "720p"
 msgid "1080p"
 msgstr "1080p"
 
-msgid "ConnectPrinter(LAN)"
+msgid "Connect Printer (LAN)"
 msgstr "連接列印設備（區域網路）"
 
 msgid "Please input the printer access code:"
@@ -5439,7 +5439,7 @@ msgstr "您最多可以選擇 16 張圖片。"
 
 msgid ""
 "At least one successful print record of this print profile is required \n"
-"to give a positive rating(4 or 5stars)."
+"to give a positive rating (4 or 5 stars)."
 msgstr ""
 "若要給予正面評價（4 或 5 星），\n"
 "必須至少有一個此列印設定檔的成功列印記錄。"
@@ -5868,7 +5868,7 @@ msgstr "是否儲存變更到「%1%」？"
 
 #, c-format, boost-format
 msgid ""
-"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"Successfully unmounted. The device %s (%s) can now be safely removed from the "
 "computer."
 msgstr "卸載成功。設備 %s(%s) 現在可以安全移除。"
 
@@ -6387,7 +6387,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s (%s). If you "
 "still want to do this print job, please set this filament's bed temperature "
 "to non-zero."
 msgstr ""
@@ -6581,7 +6581,7 @@ msgid ""
 "each printer automatically."
 msgstr "啟用後，Orca 會記住且自動切換各機臺線材與列印設定。"
 
-msgid "Multi-device Management(Take effect after restarting Orca)."
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
 msgstr "多臺設備管理 (需重開 Orca)"
 
 msgid ""
@@ -6598,7 +6598,7 @@ msgstr "物件複製後自動排列列印板"
 msgid "Network"
 msgstr "網路"
 
-msgid "Auto sync user presets(Printer/Filament/Process)"
+msgid "Auto sync user presets (Printer/Filament/Process)"
 msgstr "自動同步使用者預設（列印設備/線材/列印品質參數）"
 
 msgid "User Sync"
@@ -6821,7 +6821,7 @@ msgstr "新增/刪除線材"
 msgid "Add/Remove materials"
 msgstr "新增/刪除材料"
 
-msgid "Select/Remove printers(system presets)"
+msgid "Select/Remove printers (system presets)"
 msgstr "選擇/移除機台(系統預設)"
 
 msgid "Create printer"
@@ -7171,7 +7171,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material (%s material) with %s may cause nozzle "
 "damage"
 msgstr "使用 %s 列印高溫材料（%s 材料）可能會導致噴嘴損壞"
 
@@ -8677,7 +8677,7 @@ msgid ""
 msgstr "按下『確定』後，下次啟動 Orca Slicer 時會更新網路外掛程式。"
 
 #, c-format, boost-format
-msgid "A new Network plug-in(%s) available, Do you want to install it?"
+msgid "A new Network plug-in (%s) available, Do you want to install it?"
 msgstr "新版的網路外掛程式（%s）可用，是否要安裝？"
 
 msgid "New version of Orca Slicer"
@@ -8695,10 +8695,10 @@ msgstr "繼續"
 msgid "Resume Printing"
 msgstr "繼續列印"
 
-msgid "Resume Printing(defects acceptable)"
+msgid "Resume Printing (defects acceptable)"
 msgstr "繼續列印 (瑕疵可接受)"
 
-msgid "Resume Printing(problem solved)"
+msgid "Resume Printing (problem solved)"
 msgstr "繼續列印 (問題排除了)"
 
 msgid "Stop Printing"
@@ -9817,7 +9817,7 @@ msgid "Bridge flow ratio"
 msgstr "橋接流量"
 
 msgid ""
-"Decrease this value slightly(for example 0.9) to reduce the amount of "
+"Decrease this value slightly (for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag. \n"
 "\n"
 "The actual bridge flow used is calculated by multiplying this value with the "
@@ -10763,7 +10763,7 @@ msgid ""
 "enabled."
 msgstr "啟用壓力補償功能，啟用後將覆蓋自動校正結果。"
 
-msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
+msgid "Pressure advance (Klipper) AKA Linear advance factor (Marlin)."
 msgstr "壓力補償（Klipper），也稱為線性前進係數（Marlin）"
 
 msgid "Enable adaptive pressure advance (beta)"
@@ -12665,7 +12665,7 @@ msgid ""
 msgstr ""
 "擠出機將材料拉回指定長度，避免空駛較長時軟化的線材滲出。設定為 0 表示關閉回抽"
 
-msgid "Long retraction when cut(beta)"
+msgid "Long retraction when cut (beta)"
 msgstr "切斷時的長回抽（實驗性功能）"
 
 msgid ""
@@ -13238,7 +13238,7 @@ msgid "Preheat steps"
 msgstr "預熱階段"
 
 msgid ""
-"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"Insert multiple preheat commands (e.g. M104.1). Only useful for Prusa XL. For "
 "other printers, please set it to 1."
 msgstr ""
 "插入多條預熱指令（例如：M104.1）。此功能僅適用於 Prusa XL。其他列印設備請將其"
@@ -15319,7 +15319,7 @@ msgstr "校正用線材"
 msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
-"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
+"- Different filament brand and family (Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
 "校正線材提示：\n"
 "-可以共享相同熱床溫度的線材\n"
@@ -15716,13 +15716,13 @@ msgstr "系統版本："
 msgid "DNS Server:"
 msgstr "DNS 伺服器："
 
-msgid "Test OrcaSlicer(GitHub)"
+msgid "Test OrcaSlicer (GitHub)"
 msgstr "測試 OrcaSlicer(GitHub)"
 
-msgid "Test OrcaSlicer(GitHub):"
+msgid "Test OrcaSlicer (GitHub):"
 msgstr "測試 OrcaSlicer(GitHub):"
 
-msgid "Test Bing.com"
+msgid "Test bing.com"
 msgstr "測試 Bing.com"
 
 msgid "Test bing.com:"

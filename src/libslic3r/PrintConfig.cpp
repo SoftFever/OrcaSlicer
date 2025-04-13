@@ -1016,7 +1016,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bridge_flow", coFloat);
     def->label = L("Bridge flow ratio");
     def->category = L("Quality");
-    def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
+    def->tooltip = L("Decrease this value slightly (for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag. \n\nThe actual bridge flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.");
     def->min = 0;
     def->max = 2.0;
@@ -1847,7 +1847,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("pressure_advance", coFloats);
     def->label = L("Pressure advance");
-    def->tooltip = L("Pressure advance(Klipper) AKA Linear advance factor(Marlin)");
+    def->tooltip = L("Pressure advance (Klipper) AKA Linear advance factor (Marlin).");
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
@@ -3968,7 +3968,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt {0});
 
     def = this->add("long_retractions_when_cut", coBools);
-    def->label = L("Long retraction when cut(beta)");
+    def->label = L("Long retraction when cut (beta)");
     def->tooltip = L("Experimental feature: Retracting and cutting off the filament at a longer distance during changes to minimize purge. "
                      "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
     def->mode = comDevelop;
@@ -4518,7 +4518,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("preheat_steps", coInt);
     def->label = L("Preheat steps");
-    def->tooltip = L("Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For other printers, please set it to 1.");
+    def->tooltip = L("Insert multiple preheat commands (e.g. M104.1). Only useful for Prusa XL. For other printers, please set it to 1.");
     //def->sidetext = "";
     def->min = 1;
     def->max = 10;
