@@ -5063,7 +5063,7 @@ wxBoxSizer *ScoreDialog::get_main_sizer(const std::vector<std::pair<wxString, st
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(32));
 
-    warning_text = new wxStaticText(this, wxID_ANY, _L("At least one successful print record of this print profile is required \nto give a positive rating(4 or 5stars)."));
+    warning_text = new wxStaticText(this, wxID_ANY, _L("At least one successful print record of this print profile is required \nto give a positive rating (4 or 5 stars)."));
     warning_text->SetForegroundColour(*wxRED);
     warning_text->SetFont(::Label::Body_13);
 

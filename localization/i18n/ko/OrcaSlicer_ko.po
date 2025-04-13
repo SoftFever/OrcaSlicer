@@ -790,7 +790,7 @@ msgid "Change Text Type"
 msgstr "텍스트 유형 변경"
 
 #, boost-format
-msgid "Rename style(%1%) for embossing text"
+msgid "Rename style (%1%) for embossing text"
 msgstr "양각 텍스트의 스타일 이름 바꾸기(%1%)"
 
 msgid "Name can't be empty."
@@ -1008,8 +1008,8 @@ msgstr ""
 
 #, boost-format
 msgid ""
-"Can't load exactly same font(\"%1%\"). Application selected a similar "
-"one(\"%2%\"). You have to specify font for enable edit text."
+"Can't load exactly same font (\"%1%\"). Application selected a similar "
+"one (\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "정확히 동일한 글꼴(\"%1%\")을 로드할 수 없습니다. 응용 프로그램이 유사한 항목"
 "(\"%2%\")을 선택했습니다. 텍스트 편집을 활성화하려면 글꼴을 지정해야 합니다."
@@ -1796,7 +1796,7 @@ msgstr "Orca 스트링 지옥"
 
 msgid ""
 "This model features text embossment on the top surface. For optimal results, "
-"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"it is advisable to set the 'One Wall Threshold (min_width_top_surface)' to 0 "
 "for the 'Only One Wall on Top Surfaces' to work best.\n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -3872,14 +3872,14 @@ msgstr "업데이트에 실패했습니다."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃. In order to avoid extruder clogging, low temperature filament(PLA/PETG/"
+"45℃. In order to avoid extruder clogging, low temperature filament (PLA/PETG/"
 "TPU) is not allowed to be loaded."
 msgstr ""
 "현재 챔버 온도 또는 목표 챔버 온도가 45℃를 초과합니다. 압출기 막힘을 방지하"
 "기 위해 저온 필라멘트(PLA/PETG/TPU)를 로드할 수 없습니다."
 
 msgid ""
-"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder. In order "
+"Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order "
 "to avoid extruder clogging, it is not allowed to set the chamber temperature "
 "above 45℃."
 msgstr ""
@@ -4484,7 +4484,7 @@ msgstr "720p"
 msgid "1080p"
 msgstr "1080p"
 
-msgid "ConnectPrinter(LAN)"
+msgid "Connect Printer (LAN)"
 msgstr "프린터 연결(LAN)"
 
 msgid "Please input the printer access code:"
@@ -5531,7 +5531,7 @@ msgstr "최대 16개의 이미지를 선택할 수 있습니다."
 
 msgid ""
 "At least one successful print record of this print profile is required \n"
-"to give a positive rating(4 or 5stars)."
+"to give a positive rating (4 or 5 stars)."
 msgstr ""
 "긍정적인 평가(별4개 또는 5개)를 제공하려면\n"
 "이 출력 사전 설정의 성공적인 출력 기록이 하나 이상 필요합니다."
@@ -5974,7 +5974,7 @@ msgstr "변경 사항을 \"%1%\"에 저장하시겠습니까?"
 
 #, c-format, boost-format
 msgid ""
-"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"Successfully unmounted. The device %s (%s) can now be safely removed from the "
 "computer."
 msgstr ""
 "성공적으로 마운트 해제되었습니다. 이제 %s(%s) 장치를 컴퓨터에서 안전하게 제거"
@@ -6517,7 +6517,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s (%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
 "to non-zero."
 msgstr ""
@@ -6716,7 +6716,7 @@ msgstr ""
 "활성화하면 Orca는 각 프린터의 필라멘트/프로세스 구성을 자동으로 기억하고 전환"
 "합니다."
 
-msgid "Multi-device Management(Take effect after restarting Orca)."
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
 msgstr "다중 장치 관리 (Orca를 다시 시작한 후 적용됨)."
 
 msgid ""
@@ -6734,7 +6734,7 @@ msgstr "객체를 복제한 후 플레이트를 자동으로 정렬합니다"
 msgid "Network"
 msgstr "네트워크"
 
-msgid "Auto sync user presets(Printer/Filament/Process)"
+msgid "Auto sync user presets (Printer/Filament/Process)"
 msgstr "사용자 사전 설정 자동 동기화(프린터/필라멘트/프로세스)"
 
 msgid "User Sync"
@@ -6961,7 +6961,7 @@ msgstr "필라멘트 추가/제거"
 msgid "Add/Remove materials"
 msgstr "재료 추가/제거"
 
-msgid "Select/Remove printers(system presets)"
+msgid "Select/Remove printers (system presets)"
 msgstr "프린터 선택/제거(시스템 사전 설정)"
 
 msgid "Create printer"
@@ -7319,7 +7319,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material (%s material) with %s may cause nozzle "
 "damage"
 msgstr "고온 재료(%s 재료)를 %s로 출력하면 노즐이 손상될 수 있습니다"
 
@@ -8852,7 +8852,7 @@ msgstr ""
 "니다."
 
 #, c-format, boost-format
-msgid "A new Network plug-in(%s) available, Do you want to install it?"
+msgid "A new Network plug-in (%s) available, Do you want to install it?"
 msgstr "새 네트워크 플러그인(%s)을 사용할 수 있습니다. 설치하시겠습니까?"
 
 msgid "New version of Orca Slicer"
@@ -8870,10 +8870,10 @@ msgstr "재개"
 msgid "Resume Printing"
 msgstr "출력 재개"
 
-msgid "Resume Printing(defects acceptable)"
+msgid "Resume Printing (defects acceptable)"
 msgstr "출력 재개(결함 허용)"
 
-msgid "Resume Printing(problem solved)"
+msgid "Resume Printing (problem solved)"
 msgstr "출력 재개(문제 해결)"
 
 msgid "Stop Printing"
@@ -10081,7 +10081,7 @@ msgid "Bridge flow ratio"
 msgstr "브릿지 압출량 비율"
 
 msgid ""
-"Decrease this value slightly(for example 0.9) to reduce the amount of "
+"Decrease this value slightly (for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag. \n"
 "\n"
 "The actual bridge flow used is calculated by multiplying this value with the "
@@ -11095,7 +11095,7 @@ msgid ""
 msgstr ""
 "프레셔 어드밴스를 활성화합니다. 활성화되면 자동 보정 결과를 덮어씁니다."
 
-msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
+msgid "Pressure advance (Klipper) AKA Linear advance factor (Marlin)."
 msgstr "프레셔 어드밴스(Klipper)/리니어 어드밴스(Marlin)"
 
 msgid "Enable adaptive pressure advance (beta)"
@@ -13117,7 +13117,7 @@ msgstr ""
 "긴 이동 중에 필라멘트가 흘러나오는 것을 방지하기 위해 압출기의 일정량의 재료"
 "를 뒤로 당깁니다. 후퇴를 비활성화하려면 0을 설정하세요"
 
-msgid "Long retraction when cut(beta)"
+msgid "Long retraction when cut (beta)"
 msgstr "절단 시 긴 후퇴(실험적)"
 
 msgid ""
@@ -13741,7 +13741,7 @@ msgid "Preheat steps"
 msgstr "예열 단계"
 
 msgid ""
-"Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For "
+"Insert multiple preheat commands (e.g. M104.1). Only useful for Prusa XL. For "
 "other printers, please set it to 1."
 msgstr ""
 "여러 예열 명령(예: M104.1)을 삽입하세요. Prusa XL에만 유용합니다. 다른 프린터"
@@ -15928,7 +15928,7 @@ msgstr "교정할 필라멘트"
 msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
-"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
+"- Different filament brand and family (Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
 "교정 재료에 대한 팁:\n"
 "- 동일한 히트베드 온도를 공유할 수 있는 소재\n"
@@ -16327,13 +16327,13 @@ msgstr "시스템 버전:"
 msgid "DNS Server:"
 msgstr "DNS 서버:"
 
-msgid "Test OrcaSlicer(GitHub)"
+msgid "Test OrcaSlicer (GitHub)"
 msgstr "OrcaSlicer 테스트(깃허브)"
 
-msgid "Test OrcaSlicer(GitHub):"
+msgid "Test OrcaSlicer (GitHub):"
 msgstr "OrcaSlicer 테스트(깃허브):"
 
-msgid "Test Bing.com"
+msgid "Test bing.com"
 msgstr "테스트 Bing.com"
 
 msgid "Test bing.com:"
@@ -18320,7 +18320,7 @@ msgstr ""
 #~ "3. 아무데도: 간격 채우기를 비활성화합니다.\n"
 
 #~ msgid ""
-#~ "Decrease this value slightly(for example 0.9) to reduce the amount of "
+#~ "Decrease this value slightly (for example 0.9) to reduce the amount of "
 #~ "material for bridge, to improve sag"
 #~ msgstr "이 값을 약간(예: 0.9) 줄여 브릿지의 압출량을 줄여 처짐을 개선합니다"
 
