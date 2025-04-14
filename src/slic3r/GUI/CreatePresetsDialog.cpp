@@ -1653,6 +1653,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_select_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     wxArrayString printer_vendor;
     for (const std::string &vendor : printer_vendors) { 
+        assert(printer_model_map.find(vendor) != printer_model_map.end());
         printer_vendor.Add(vendor); 
     }
     m_select_vendor->Set(printer_vendor);
