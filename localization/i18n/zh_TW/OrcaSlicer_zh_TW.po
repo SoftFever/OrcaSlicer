@@ -116,7 +116,7 @@ msgstr "選擇底面"
 
 #, boost-format
 msgid ""
-"Filament count exceeds the maximum number that painting tool supports. only "
+"Filament count exceeds the maximum number that painting tool supports. Only "
 "the first %1% filaments will be available in painting tool."
 msgstr "線材數量超過上色工具支援的最大值，僅前 %1% 個線材可在上色工具中使用。"
 
@@ -2611,7 +2611,7 @@ msgstr "上傳任務逾時，請排查網路狀態後重試。"
 msgid "Cloud service connection failed. Please try again."
 msgstr "雲端服務連接失敗，請重試。"
 
-msgid "Print file not found. please slice again."
+msgid "Print file not found. Please slice again."
 msgstr "未找到列印檔案，請重新切片。"
 
 msgid ""
@@ -15066,7 +15066,7 @@ msgid ""
 "use. You only need to do the calibration in the following limited cases:\n"
 "1. If you introduce a new filament of different brands/models or the "
 "filament is damp;\n"
-"2. if the nozzle is worn out or replaced with a new one;\n"
+"2. If the nozzle is worn out or replaced with a new one;\n"
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
