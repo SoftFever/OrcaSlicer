@@ -28,6 +28,10 @@
         "6.5",
         "6.5"
     ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
@@ -93,7 +97,7 @@
         "Bambu Lab H2D 0.8 nozzle"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\nM145 P1 ; set airduct mode to heating mode\n"
+        "; filament start gcode\n"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
