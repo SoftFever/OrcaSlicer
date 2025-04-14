@@ -18,7 +18,7 @@ for entry in profiles_dir.glob('*.json'):
     if entry.is_file():
         entry_info = json.loads(entry.read_text())
         vendor_name = entry_info.get('name', None)
-        if vendor_name:
+        if vendor_name and vendor_name != 'Custom Printer':
             models = [machine.get('name', None) for machine in entry_info.get('machine_model_list', []) if machine.get('name', None)]
             if not models:
                 continue
