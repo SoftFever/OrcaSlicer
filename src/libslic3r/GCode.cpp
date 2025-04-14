@@ -3141,10 +3141,7 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
             print.config().machine_max_jerk_e.values.front() * factor);
 
         // New Marlin uses M205 J[mm] for junction deviation (only apply if it is > 0)
-        if (flavor == gcfMarlinFirmware && config().machine_max_junction_deviation.values.front() > 0) {
-            file.write_format("M205 J%.4lf ; set Junction Deviation, mm\n",
-            print.config().machine_max_junction_deviation.values.front());
-        }
+        file.write_format(writer().set_junction_deviation(config().machine_max_junction_deviation.values.front()).c_str());
     }
 }
 
