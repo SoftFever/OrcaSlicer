@@ -3515,6 +3515,7 @@ inline std::string get_instance_name(const PrintObject *object, const PrintInsta
 std::string GCode::generate_skirt(const Print &print,
         const ExtrusionEntityCollection &skirt,
         const Point& offset,
+        const float skirt_start_angle,
         const LayerTools &layer_tools,
         const Layer& layer,
         unsigned int extruder_id)
@@ -3559,7 +3560,7 @@ std::string GCode::generate_skirt(const Print &print,
             //FIXME using the support_speed of the 1st object printed.
             if (first_layer && i==loops.first) {
                 //set skirt start point location
-                const Point desired_start_point = Skirt::find_start_point(loop, layer.object()->config().skirt_start_angle);
+                const Point desired_start_point = Skirt::find_start_point(loop, skirt_start_angle);
                 gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value, {}, &desired_start_point);
             }
             else
@@ -4156,7 +4157,8 @@ LayerResult GCode::process_layer(
             m_last_processor_extrusion_role = erWipeTower;
         
         if (print.config().skirt_type == stCombined && !print.skirt().empty())
-            gcode += generate_skirt(print, print.skirt(), Point(0,0), layer_tools, layer, extruder_id);
+            gcode += generate_skirt(print, print.skirt(), Point(0, 0), layer.object()->config().skirt_start_angle, layer_tools, layer,
+                                    extruder_id);
 
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
         if (objects_by_extruder_it == by_extruder.end())
@@ -4216,7 +4218,7 @@ LayerResult GCode::process_layer(
                     m_skirt_done.erase(m_skirt_done.begin()+1,m_skirt_done.end());
 
                 const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
-                gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, layer_tools, layer, extruder_id);
+                gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, instance_to_print.print_object.config().skirt_start_angle, layer_tools, layer, extruder_id);
             }
         }
 
@@ -4236,7 +4238,7 @@ LayerResult GCode::process_layer(
                     if (first_layer)
                         m_skirt_done.clear();
                     const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
-                    gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, layer_tools, layer, extruder_id);
+                    gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, instance_to_print.print_object.config().skirt_start_angle, layer_tools, layer, extruder_id);
                     if (instances_to_print.size() > 1 && &instance_to_print != &*(instances_to_print.end() - 1))
                         m_skirt_done.pop_back();
                 }
