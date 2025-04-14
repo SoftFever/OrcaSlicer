@@ -511,12 +511,19 @@ void MaterialSyncItem::doRender(wxDC &dc)
             int gwidth = std::round(MATERIAL_REC_WHEEL_SIZE.x / (m_ams_cols.size() - 1));
             // gradient
             if (m_ams_ctype == 0) {
+                if (!m_dropdown_allow_painted) {
+                    left +=  FromDIP(5);
+                    right += FromDIP(5);
+                }
                 for (int i = 0; i < m_ams_cols.size() - 1; i++) {
                     auto rect = wxRect(left, up, right - left, MATERIAL_REC_WHEEL_SIZE.y);
                     dc.GradientFillLinear(rect, m_ams_cols[i], m_ams_cols[i + 1], wxEAST);
                     left += gwidth;
                 }
             } else {
+                if (!m_dropdown_allow_painted) {
+                    left +=  FromDIP(5);
+                }
                 int cols_size = m_ams_cols.size();
                 for (int i = 0; i < cols_size; i++) {
                     dc.SetBrush(wxBrush(m_ams_cols[i]));
