@@ -2436,6 +2436,8 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
 
 void SelectMachineDialog::load_option_vals(MachineObject *obj)
 {
+    if (m_is_in_sending_mode) { return;}
+
     AppConfig* config = wxGetApp().app_config;
     if (!config) return;
     if (!obj) return;
