@@ -980,6 +980,31 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
         show_ext(true);
     }
 
+    // STUDIO-11572 Update image
+    bool contain_one_slot = false;
+    bool contain_four_slot = false;
+    auto ams_iter = obj->amsList.begin();
+    while (ams_iter != obj->amsList.end()) {
+        if (ams_iter->second->type == 4) {
+            contain_one_slot = true;
+        } else {
+            contain_four_slot = true;
+        }
+        ams_iter++;
+    }
+
+    if (contain_four_slot) {
+        if (m_img_monitor_ams.name() != "monitor_upgrade_ams") {
+            m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams", 160);
+            m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
+        }
+    } else if (contain_one_slot) {
+        if (m_img_monitor_ams.name() != "monitor_upgrade_n3s") {
+            m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_n3s", 160);
+            m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
+        }
+    }
+
     this->Layout();
     this->Fit();
 }
