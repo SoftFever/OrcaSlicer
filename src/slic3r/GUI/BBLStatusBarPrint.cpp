@@ -177,7 +177,9 @@ void BBLStatusBarPrint::set_range(int val)
 void BBLStatusBarPrint::clear_percent()
 {
     //set_percent_text(wxEmptyString);
-    m_cancelbutton->Hide();
+    if (!m_link_show_error->IsShown()) /*do not hide cancel if there are errors*/ {
+        m_cancelbutton->Hide();
+    }
 }
 
 void BBLStatusBarPrint::show_error_info(wxString msg, int code, wxString description, wxString extra)
