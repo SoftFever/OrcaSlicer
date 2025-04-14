@@ -1932,6 +1932,8 @@ static void reorient_walls(ExtrusionEntitiesPtr &entities, bool steep_overhang_c
 static void reorient_perimeters(ExtrusionEntityCollection& entities, bool steep_overhang_contour, bool steep_overhang_hole,
                             bool reverse_internal_walls)
 {
+    reverse_internal_walls = reverse_internal_walls && entities.size() > 1;
+
     if (steep_overhang_contour || steep_overhang_hole || reverse_internal_walls) {
     
         if (reverse_internal_walls) {
