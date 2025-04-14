@@ -11481,7 +11481,7 @@ msgstr ""
 "kabul edilebilir PA değerleri aralığı o kadar geniş olur. Hiçbir fark "
 "görünmüyorsa, daha hızlı olan testteki PA değerini kullanın.3. Buradaki "
 "metin kutusuna PA değerleri, Akış ve Hızlanma üçlüsünü girin ve filament "
-"profilinizi kaydedin\n"
+"profilinizi kaydedin"
 
 msgid "Enable adaptive pressure advance for overhangs (beta)"
 msgstr "Çıkıntılar için uyarlanabilir basınç ilerlemesini etkinleştirin (beta)"

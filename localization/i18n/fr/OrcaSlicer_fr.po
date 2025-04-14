@@ -11814,7 +11814,7 @@ msgstr ""
 "avec peu d’accélération, plus la plage des valeurs PA acceptables est "
 "grande. Si aucune différence n’est visible, utilisez la valeur PA du test le "
 "plus rapide.3 Entrez les triplets de valeurs PA, de débit et d’accélérations "
-"dans la zone de texte ici et sauvegardez votre profil de filament.\n"
+"dans la zone de texte ici et sauvegardez votre profil de filament."
 
 msgid "Enable adaptive pressure advance for overhangs (beta)"
 msgstr ""
