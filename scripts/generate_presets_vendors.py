@@ -45,7 +45,7 @@ for vendor_name in sorted(printers.keys(), key=str.casefold):
     
     models_formatted += '},\n     '
 
-models_formatted = models_formatted.rstrip()[:-1]
+models_formatted = models_formatted.rstrip()[:-1] + '}'
 print(models_formatted)
 
 
