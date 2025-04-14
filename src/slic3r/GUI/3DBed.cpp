@@ -648,8 +648,8 @@ void Bed3D::update_bed_triangles()
     (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y() - bed_ext.min.y();
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
-    bool is_circular = wxGetApp().plater() && wxGetApp().plater()->get_build_volume_type() == BuildVolume_Type::Circle;
-    auto point_shift =  is_circular ? Vec2d(0,0) : m_bed_shape[0]; // ORCA fix for circular bed (without 3D model) beds rendered with shifted position
+    // ORCA fix for circular bed (without 3D model) beds rendered with shifted position
+    Vec2d point_shift = m_build_volume.type() == BuildVolume_Type::Circle ? Vec2d(0,0) : m_bed_shape[0];
     std::vector<Vec2d> origin_bed_shape;
     for (size_t i = 0; i < m_bed_shape.size(); i++) {
         origin_bed_shape.push_back(m_bed_shape[i] - point_shift);
