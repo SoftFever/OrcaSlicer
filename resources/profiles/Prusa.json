@@ -39,6 +39,10 @@
         {
             "name": "MK4S HF",
             "sub_path": "machine/Prusa MK4S HF.json"
+        },
+        {
+            "name": "COREONE",
+            "sub_path": "machine/Prusa COREONE.json"
         }
     ],
     "process_list": [
@@ -775,6 +779,14 @@
             "sub_path": "process/0.28mm DRAFT @MK4S HF0.4.json"
         },
         {
+            "name": "0.20mm SOLUBLE FULL @MK4S 0.4",
+            "sub_path": "process/0.20mm SOLUBLE FULL @MK4S 0.4.json"
+        },
+        {
+            "name": "0.20mm SOLUBLE INTERFACE @MK4S 0.4",
+            "sub_path": "process/0.20mm SOLUBLE INTERFACE @MK4S 0.4.json"
+        },
+        {
             "name": "0.30mm DETAIL @MK4S 0.8",
             "sub_path": "process/0.30mm DETAIL @MK4S 0.8.json"
         },
@@ -841,8 +853,223 @@
         {
             "name": "0.55mm STRUCTURAL @MK4S HF0.8",
             "sub_path": "process/0.55mm STRUCTURAL @MK4S HF0.8.json"
+        },
+        {
+            "name": "0.28mm DRAFT @COREONE HF0.4",
+            "sub_path": "process/0.28mm DRAFT @COREONE HF0.4.json"
+        },
+        {
+            "name": "0.20mm SOLUBLE FULL @COREONE 0.4",
+            "sub_path": "process/0.20mm SOLUBLE FULL @COREONE 0.4.json"
+        },
+        {
+            "name": "0.20mm SOLUBLE INTERFACE @COREONE 0.4",
+            "sub_path": "process/0.20mm SOLUBLE INTERFACE @COREONE 0.4.json"
+        },
+        {
+            "name": "0.25mm SPEED @COREONE HF0.4",
+            "sub_path": "process/0.25mm SPEED @COREONE HF0.4.json"
+        },
+        {
+            "name": "0.25mm STRUCTURAL @COREONE HF0.4",
+            "sub_path": "process/0.25mm STRUCTURAL @COREONE HF0.4.json"
+        },
+        {
+            "name": "0.20mm SPEED @COREONE 0.4",
+            "sub_path": "process/0.20mm SPEED @COREONE 0.4.json"
+        },
+        {
+            "name": "0.20mm SPEED @COREONE HF0.4",
+            "sub_path": "process/0.20mm SPEED @COREONE HF0.4.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @COREONE 0.4",
+            "sub_path": "process/0.20mm STRUCTURAL @COREONE 0.4.json"
+        },
+        {
+            "name": "0.15mm SPEED @COREONE 0.4",
+            "sub_path": "process/0.15mm SPEED @COREONE 0.4.json"
+        },
+        {
+            "name": "0.15mm SPEED @COREONE HF0.4",
+            "sub_path": "process/0.15mm SPEED @COREONE HF0.4.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @COREONE 0.4",
+            "sub_path": "process/0.15mm STRUCTURAL @COREONE 0.4.json"
+        },
+        {
+            "name": "0.10mm FAST DETAIL @COREONE 0.4",
+            "sub_path": "process/0.10mm FAST DETAIL @COREONE 0.4.json"
+        },
+        {
+            "name": "0.05mm DETAIL @COREONE 0.25",
+            "sub_path": "process/0.05mm DETAIL @COREONE 0.25.json"
+        },
+        {
+            "name": "0.07mm DETAIL @COREONE 0.25",
+            "sub_path": "process/0.07mm DETAIL @COREONE 0.25.json"
+        },
+        {
+            "name": "0.12mm SPEED @COREONE 0.25",
+            "sub_path": "process/0.12mm SPEED @COREONE 0.25.json"
+        },
+        {
+            "name": "0.12mm STRUCTURAL @COREONE 0.25",
+            "sub_path": "process/0.12mm STRUCTURAL @COREONE 0.25.json"
+        },
+        {
+            "name": "0.15mm SPEED @COREONE 0.25",
+            "sub_path": "process/0.15mm SPEED @COREONE 0.25.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @COREONE 0.25",
+            "sub_path": "process/0.15mm STRUCTURAL @COREONE 0.25.json"
+        },
+        {
+            "name": "0.12mm STRUCTURAL @COREONE 0.3",
+            "sub_path": "process/0.12mm STRUCTURAL @COREONE 0.3.json"
+        },
+        {
+            "name": "0.16mm STRUCTURAL @COREONE 0.3",
+            "sub_path": "process/0.16mm STRUCTURAL @COREONE 0.3.json"
+        },
+        {
+            "name": "0.16mm SPEED @COREONE 0.3",
+            "sub_path": "process/0.16mm SPEED @COREONE 0.3.json"
+        },
+        {
+            "name": "0.20mm SPEED @COREONE 0.3",
+            "sub_path": "process/0.20mm SPEED @COREONE 0.3.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @COREONE 0.3",
+            "sub_path": "process/0.20mm STRUCTURAL @COREONE 0.3.json"
+        },
+        {
+            "name": "0.10mm STRUCTURAL @COREONE 0.5",
+            "sub_path": "process/0.10mm STRUCTURAL @COREONE 0.5.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @COREONE 0.5",
+            "sub_path": "process/0.15mm STRUCTURAL @COREONE 0.5.json"
+        },
+        {
+            "name": "0.20mm SPEED @COREONE 0.5",
+            "sub_path": "process/0.20mm SPEED @COREONE 0.5.json"
+        },
+        {
+            "name": "0.20mm SPEED @COREONE HF0.5",
+            "sub_path": "process/0.20mm SPEED @COREONE HF0.5.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @COREONE 0.5",
+            "sub_path": "process/0.20mm STRUCTURAL @COREONE 0.5.json"
+        },
+        {
+            "name": "0.25mm SPEED @COREONE 0.5",
+            "sub_path": "process/0.25mm SPEED @COREONE 0.5.json"
+        },
+        {
+            "name": "0.25mm SPEED @COREONE HF0.5",
+            "sub_path": "process/0.25mm SPEED @COREONE HF0.5.json"
+        },
+        {
+            "name": "0.25mm STRUCTURAL @COREONE 0.5",
+            "sub_path": "process/0.25mm STRUCTURAL @COREONE 0.5.json"
+        },
+        {
+            "name": "0.32mm SPEED @COREONE HF0.5",
+            "sub_path": "process/0.32mm SPEED @COREONE HF0.5.json"
+        },
+        {
+            "name": "0.32mm STRUCTURAL @COREONE HF0.5",
+            "sub_path": "process/0.32mm STRUCTURAL @COREONE HF0.5.json"
+        },
+        {
+            "name": "0.15mm STRUCTURAL @COREONE 0.6",
+            "sub_path": "process/0.15mm STRUCTURAL @COREONE 0.6.json"
+        },
+        {
+            "name": "0.20mm SPEED @COREONE 0.6",
+            "sub_path": "process/0.20mm SPEED @COREONE 0.6.json"
+        },
+        {
+            "name": "0.20mm SPEED @COREONE HF0.6",
+            "sub_path": "process/0.20mm SPEED @COREONE HF0.6.json"
+        },
+        {
+            "name": "0.20mm STRUCTURAL @COREONE 0.6",
+            "sub_path": "process/0.20mm STRUCTURAL @COREONE 0.6.json"
+        },
+        {
+            "name": "0.25mm SPEED @COREONE 0.6",
+            "sub_path": "process/0.25mm SPEED @COREONE 0.6.json"
+        },
+        {
+            "name": "0.25mm SPEED @COREONE HF0.6",
+            "sub_path": "process/0.25mm SPEED @COREONE HF0.6.json"
+        },
+        {
+            "name": "0.25mm STRUCTURAL @COREONE 0.6",
+            "sub_path": "process/0.25mm STRUCTURAL @COREONE 0.6.json"
+        },
+        {
+            "name": "0.32mm SPEED @COREONE 0.6",
+            "sub_path": "process/0.32mm SPEED @COREONE 0.6.json"
+        },
+        {
+            "name": "0.32mm STRUCTURAL @COREONE 0.6",
+            "sub_path": "process/0.32mm STRUCTURAL @COREONE 0.6.json"
+        },
+        {
+            "name": "0.32mm SPEED @COREONE HF0.6",
+            "sub_path": "process/0.32mm SPEED @COREONE HF0.6.json"
+        },
+        {
+            "name": "0.32mm STRUCTURAL @COREONE HF0.6",
+            "sub_path": "process/0.32mm STRUCTURAL @COREONE HF0.6.json"
+        },
+        {
+            "name": "0.40mm SPEED @COREONE HF0.6",
+            "sub_path": "process/0.40mm SPEED @COREONE HF0.6.json"
+        },
+        {
+            "name": "0.40mm STRUCTURAL @COREONE HF0.6",
+            "sub_path": "process/0.40mm STRUCTURAL @COREONE HF0.6.json"
+        },
+        {
+            "name": "0.30mm DETAIL @COREONE 0.8",
+            "sub_path": "process/0.30mm DETAIL @COREONE 0.8.json"
+        },
+        {
+            "name": "0.30mm SPEED @COREONE HF0.8",
+            "sub_path": "process/0.30mm SPEED @COREONE HF0.8.json"
+        },
+        {
+            "name": "0.30mm STRUCTURAL @COREONE HF0.8",
+            "sub_path": "process/0.30mm STRUCTURAL @COREONE HF0.8.json"
+        },
+        {
+            "name": "0.40mm QUALITY @COREONE 0.8",
+            "sub_path": "process/0.40mm QUALITY @COREONE 0.8.json"
+        },
+        {
+            "name": "0.40mm SPEED @COREONE HF0.8",
+            "sub_path": "process/0.40mm SPEED @COREONE HF0.8.json"
+        },
+        {
+            "name": "0.40mm STRUCTURAL @COREONE HF0.8",
+            "sub_path": "process/0.40mm STRUCTURAL @COREONE HF0.8.json"
+        },
+        {
+            "name": "0.55mm DRAFT @COREONE 0.8",
+            "sub_path": "process/0.55mm DRAFT @COREONE 0.8.json"
+        },
+        {
+            "name": "0.55mm SPEED @COREONE HF0.8",
+            "sub_path": "process/0.55mm SPEED @COREONE HF0.8.json"
         }
-
     ],
     "filament_list": [
         {
@@ -1484,6 +1711,302 @@
         {
             "name": "Prusa Generic PLA Silk @MK4S 0.8",
             "sub_path": "filament/Prusa Generic PLA Silk @MK4S 0.8.json"
+        },
+        {
+            "name": "Prusa Generic ABS @COREONE",
+            "sub_path": "filament/Prusa Generic ABS @COREONE.json"
+        },
+        {
+            "name": "Prusa Generic ABS @COREONE 0.6",
+            "sub_path": "filament/Prusa Generic ABS @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusa Generic ABS @COREONE 0.8",
+            "sub_path": "filament/Prusa Generic ABS @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusa Generic ABS @COREONE HF0.4",
+            "sub_path": "filament/Prusa Generic ABS @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic ABS @COREONE HF0.5",
+            "sub_path": "filament/Prusa Generic ABS @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic ABS @COREONE HF0.6",
+            "sub_path": "filament/Prusa Generic ABS @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic ABS @COREONE HF0.8",
+            "sub_path": "filament/Prusa Generic ABS @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic ASA @COREONE",
+            "sub_path": "filament/Prusa Generic ASA @COREONE.json"
+        },
+        {
+            "name": "Prusa Generic ASA @COREONE 0.6",
+            "sub_path": "filament/Prusa Generic ASA @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusa Generic ASA @COREONE 0.8",
+            "sub_path": "filament/Prusa Generic ASA @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusa Generic ASA @COREONE HF0.4",
+            "sub_path": "filament/Prusa Generic ASA @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic ASA @COREONE HF0.5",
+            "sub_path": "filament/Prusa Generic ASA @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic ASA @COREONE HF0.6",
+            "sub_path": "filament/Prusa Generic ASA @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic ASA @COREONE HF0.8",
+            "sub_path": "filament/Prusa Generic ASA @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic PETG @COREONE",
+            "sub_path": "filament/Prusa Generic PETG @COREONE.json"
+        },
+        {
+            "name": "Prusa Generic PETG @COREONE 0.6",
+            "sub_path": "filament/Prusa Generic PETG @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PETG @COREONE 0.8",
+            "sub_path": "filament/Prusa Generic PETG @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PETG @COREONE HF0.4",
+            "sub_path": "filament/Prusa Generic PETG @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic PETG @COREONE HF0.5",
+            "sub_path": "filament/Prusa Generic PETG @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic PETG @COREONE HF0.6",
+            "sub_path": "filament/Prusa Generic PETG @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic PETG @COREONE HF0.8",
+            "sub_path": "filament/Prusa Generic PETG @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA @COREONE",
+            "sub_path": "filament/Prusa Generic PLA @COREONE.json"
+        },
+        {
+            "name": "Prusa Generic PLA @COREONE 0.6",
+            "sub_path": "filament/Prusa Generic PLA @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PLA @COREONE 0.8",
+            "sub_path": "filament/Prusa Generic PLA @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA @COREONE HF0.4",
+            "sub_path": "filament/Prusa Generic PLA @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusa Generic PLA @COREONE HF0.5",
+            "sub_path": "filament/Prusa Generic PLA @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusa Generic PLA @COREONE HF0.6",
+            "sub_path": "filament/Prusa Generic PLA @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusa Generic PLA @COREONE HF0.8",
+            "sub_path": "filament/Prusa Generic PLA @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusa Generic PLA Silk @COREONE",
+            "sub_path": "filament/Prusa Generic PLA Silk @COREONE.json"
+        },
+        {
+            "name": "Prusa Generic PLA Silk @COREONE 0.6",
+            "sub_path": "filament/Prusa Generic PLA Silk @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusa Generic PLA Silk @COREONE 0.8",
+            "sub_path": "filament/Prusa Generic PLA Silk @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusa Generic TPU @COREONE",
+            "sub_path": "filament/Prusa Generic TPU @COREONE.json"
+        },
+        {
+            "name": "Prusa Generic TPU @COREONE 0.6",
+            "sub_path": "filament/Prusa Generic TPU @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusa Generic TPU @COREONE 0.8",
+            "sub_path": "filament/Prusa Generic TPU @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament ASA @COREONE",
+            "sub_path": "filament/Prusament ASA @COREONE.json"
+        },
+        {
+            "name": "Prusament ASA @COREONE 0.6",
+            "sub_path": "filament/Prusament ASA @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament ASA @COREONE 0.8",
+            "sub_path": "filament/Prusament ASA @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament ASA @COREONE HF0.4",
+            "sub_path": "filament/Prusament ASA @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusament ASA @COREONE HF0.5",
+            "sub_path": "filament/Prusament ASA @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusament ASA @COREONE HF0.6",
+            "sub_path": "filament/Prusament ASA @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusament ASA @COREONE HF0.8",
+            "sub_path": "filament/Prusament ASA @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusament PA-CF @COREONE",
+            "sub_path": "filament/Prusament PA-CF @COREONE.json"
+        },
+        {
+            "name": "Prusament PA-CF @COREONE 0.6",
+            "sub_path": "filament/Prusament PA-CF @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament PA-CF @COREONE 0.8",
+            "sub_path": "filament/Prusament PA-CF @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament PC Blend @COREONE",
+            "sub_path": "filament/Prusament PC Blend @COREONE.json"
+        },
+        {
+            "name": "Prusament PC Blend @COREONE 0.6",
+            "sub_path": "filament/Prusament PC Blend @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament PC Blend @COREONE 0.8",
+            "sub_path": "filament/Prusament PC Blend @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament PC Blend @COREONE HF0.4",
+            "sub_path": "filament/Prusament PC Blend @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusament PC Blend @COREONE HF0.5",
+            "sub_path": "filament/Prusament PC Blend @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusament PC Blend @COREONE HF0.6",
+            "sub_path": "filament/Prusament PC Blend @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusament PC Blend @COREONE HF0.8",
+            "sub_path": "filament/Prusament PC Blend @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusament PC-CF @COREONE",
+            "sub_path": "filament/Prusament PC-CF @COREONE.json"
+        },
+        {
+            "name": "Prusament PC-CF @COREONE 0.6",
+            "sub_path": "filament/Prusament PC-CF @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament PC-CF @COREONE 0.8",
+            "sub_path": "filament/Prusament PC-CF @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament PETG @COREONE",
+            "sub_path": "filament/Prusament PETG @COREONE.json"
+        },
+        {
+            "name": "Prusament PETG @COREONE 0.6",
+            "sub_path": "filament/Prusament PETG @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament PETG @COREONE 0.8",
+            "sub_path": "filament/Prusament PETG @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament PETG @COREONE HF0.4",
+            "sub_path": "filament/Prusament PETG @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusament PETG @COREONE HF0.5",
+            "sub_path": "filament/Prusament PETG @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusament PETG @COREONE HF0.6",
+            "sub_path": "filament/Prusament PETG @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusament PETG @COREONE HF0.8",
+            "sub_path": "filament/Prusament PETG @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusament PLA @COREONE",
+            "sub_path": "filament/Prusament PLA @COREONE.json"
+        },
+        {
+            "name": "Prusament PLA @COREONE 0.6",
+            "sub_path": "filament/Prusament PLA @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament PLA @COREONE 0.8",
+            "sub_path": "filament/Prusament PLA @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament PLA @COREONE HF0.4",
+            "sub_path": "filament/Prusament PLA @COREONE HF0.4.json"
+        },
+        {
+            "name": "Prusament PLA @COREONE HF0.5",
+            "sub_path": "filament/Prusament PLA @COREONE HF0.5.json"
+        },
+        {
+            "name": "Prusament PLA @COREONE HF0.6",
+            "sub_path": "filament/Prusament PLA @COREONE HF0.6.json"
+        },
+        {
+            "name": "Prusament PLA @COREONE HF0.8",
+            "sub_path": "filament/Prusament PLA @COREONE HF0.8.json"
+        },
+        {
+            "name": "Prusament PVB @COREONE",
+            "sub_path": "filament/Prusament PVB @COREONE.json"
+        },
+        {
+            "name": "Prusament PVB @COREONE 0.6",
+            "sub_path": "filament/Prusament PVB @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament PVB @COREONE 0.8",
+            "sub_path": "filament/Prusament PVB @COREONE 0.8.json"
+        },
+        {
+            "name": "Prusament rPLA @COREONE",
+            "sub_path": "filament/Prusament rPLA @COREONE.json"
+        },
+        {
+            "name": "Prusament rPLA @COREONE 0.6",
+            "sub_path": "filament/Prusament rPLA @COREONE 0.6.json"
+        },
+        {
+            "name": "Prusament rPLA @COREONE 0.8",
+            "sub_path": "filament/Prusament rPLA @COREONE 0.8.json"
         }
     ],
     "machine_list": [
@@ -1670,6 +2193,46 @@
         {
             "name": "Prusa MK4S HF0.8 nozzle",
             "sub_path": "machine/Prusa MK4S HF0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE HF0.4 nozzle",
+            "sub_path": "machine/Prusa COREONE HF0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE HF0.5 nozzle",
+            "sub_path": "machine/Prusa COREONE HF0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE HF0.6 nozzle",
+            "sub_path": "machine/Prusa COREONE HF0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE HF0.8 nozzle",
+            "sub_path": "machine/Prusa COREONE HF0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.25 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.25 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.3 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.3 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.4 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.5 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.6 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa COREONE 0.8 nozzle",
+            "sub_path": "machine/Prusa COREONE 0.8 nozzle.json"
         }
     ]
 }
