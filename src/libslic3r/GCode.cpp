@@ -3955,7 +3955,7 @@ LayerResult GCode::process_layer(
         } else {
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // nozzle_temperature_initial_layer vs. temperature settings.
-        for (const Extruder& extruder : m_writer.extruders()) {
+        for (const Extruder &extruder : m_writer.extruders()) {
             if ((print.config().single_extruder_multi_material.value || m_ooze_prevention.enable) &&
                 extruder.id() != m_writer.extruder()->id())
                 // In single extruder multi material mode, set the temperature for the current extruder only.
@@ -3964,13 +3964,6 @@ LayerResult GCode::process_layer(
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
                 gcode += m_writer.set_temperature(temperature, false, extruder.id());
         }
-
-        // BBS
-        int bed_temp = get_bed_temperature(first_extruder_id, false, print.config().curr_bed_type);
-        gcode += m_writer.set_bed_temperature(bed_temp);
-        // Mark the temperature transition from 1st to 2nd layer to be finished.
-        m_second_layer_things_done = true;
-    }
 
         // BBS
         int bed_temp = get_bed_temperature(first_extruder_id, false, print.config().curr_bed_type);
