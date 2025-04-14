@@ -835,7 +835,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string gcode_out;
         std::string line;
         Vec2f pos = tcr.start_pos;
-        Vec2f transformed_pos = pos;
+        auto  trans_pos = [wt_rot = Eigen::Rotation2Df(angle), &translation](const Vec2f& p) -> Vec2f { return wt_rot * p + translation; };
+        Vec2f transformed_pos = trans_pos(pos);
         Vec2f old_pos(-1000.1f, -1000.1f);
 
         while (gcode_str) {
@@ -863,7 +864,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                         line_out << ch;
                 }
 
-                transformed_pos = Eigen::Rotation2Df(angle) * pos + translation;
+                transformed_pos = trans_pos(pos);
 
                 if (transformed_pos != old_pos || never_skip) {
                     line = line_out.str();
@@ -1926,7 +1927,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
         //BBS: total layer number
         file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
-        m_enable_exclude_object = config().exclude_object;
         //Orca: extra check for bbl printer
         if (is_bbl_printers) {
             if (print.calib_params().mode == CalibMode::Calib_None) { // Don't support skipping in cali mode
@@ -3539,13 +3539,11 @@ std::string GCode::generate_skirt(const Print &print,
         Flow layer_skirt_flow = print.skirt_flow().with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
         double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
         // Decide where to start looping:
-        // - If it’s the first layer or if we do NOT want a single-wall draft shield,
+        // - If it’s the first layer or if we do NOT want a single-wall skirt/draft shield,
         //   start from loops.first (all loops).
-        // - Otherwise, if single_loop_draft_shield == true and draft_shield == true (and not the first layer),
+        // - Otherwise, if single_loop_draft_shield == true (and not the first layer),
         //   start from loops.second - 1 (just one loop).
-        bool single_loop_draft_shield = print.m_config.single_loop_draft_shield &&
-                                    (print.m_config.draft_shield == dsEnabled);
-        const size_t start_idx = (first_layer || !single_loop_draft_shield)
+        const size_t start_idx = (first_layer || !print.m_config.single_loop_draft_shield)
                                  ? loops.first
                                  : (loops.second - 1);
 
@@ -3558,14 +3556,17 @@ std::string GCode::generate_skirt(const Print &print,
                 path.mm3_per_mm = mm3_per_mm;
             }
 
-            //set skirt start point location
-            if (first_layer && i==loops.first)
-                this->set_last_pos(Skirt::find_start_point(loop, layer.object()->config().skirt_start_angle));
-
             //FIXME using the support_speed of the 1st object printed.
-            gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
+            if (first_layer && i==loops.first) {
+                //set skirt start point location
+                const Point desired_start_point = Skirt::find_start_point(loop, layer.object()->config().skirt_start_angle);
+                gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value, {}, &desired_start_point);
+            }
+            else
+                gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value);
+
             // If we only want a single wall on non-first layers, break now
-            if (!first_layer && single_loop_draft_shield) {
+            if (!first_layer && print.m_config.single_loop_draft_shield) {
                 break;
             }
         }
@@ -4474,6 +4475,7 @@ void GCode::apply_print_config(const PrintConfig &print_config)
     m_writer.apply_print_config(print_config);
     m_config.apply(print_config);
     m_scaled_resolution = scaled<double>(print_config.resolution.value);
+    m_enable_exclude_object = m_config.exclude_object;
 
 #if ORCA_CHECK_GCODE_PLACEHOLDERS
     // If the gcode value is empty, set a value so that the check code within the parser is run
@@ -4634,7 +4636,7 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
     return out;
 }
 
-std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
+std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters, const Point* start_point)
 {
     
     // get a copy; don't modify the orientation of the original loop object otherwise
@@ -4650,12 +4652,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     //    loop.reverse();
 
     // find the point of the loop that is closest to the current extruder position
-    // or randomize if requested
-    Point last_pos = this->last_pos();
+    // or randomize if requested;
+    // or, if `start_point` is specified, start the loop at point closest to it
+    Point last_pos = start_point ? *start_point : this->last_pos();
     float seam_overhang = std::numeric_limits<float>::lowest();
     if (!m_config.spiral_mode && description == "perimeter") {
         assert(m_layer != nullptr);
-        m_seam_placer.place_seam(m_layer, loop, this->last_pos(), seam_overhang);
+        m_seam_placer.place_seam(m_layer, loop, last_pos, seam_overhang);
     } else
         loop.split_at(last_pos, false);
 
@@ -5183,10 +5186,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
     };
 
+    bool slope_need_z_travel = false;
+    if (sloped != nullptr && !sloped->is_flat()) {
+        auto target_z = get_sloped_z(sloped->slope_begin.z_ratio);
+        slope_need_z_travel = m_writer.will_move_z(target_z);
+    }
     // go to first point of extrusion path
     //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
     //Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
-    if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z || (sloped != nullptr && !sloped->is_flat())) {
+    if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z || slope_need_z_travel) {
         gcode += this->travel_to(
             path.first_point(),
             path.role(),
@@ -5441,9 +5449,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     
     // Orca: Dynamic PA
     // If adaptive PA is enabled, by default evaluate PA on all extrusion moves
+    bool is_pa_calib = m_curr_print->calib_mode() == CalibMode::Calib_PA_Line ||
+                       m_curr_print->calib_mode() == CalibMode::Calib_PA_Pattern ||
+                       m_curr_print->calib_mode() == CalibMode::Calib_PA_Tower; 
     bool evaluate_adaptive_pa = false;
     bool role_change = (m_last_extrusion_role != path.role());
-    if(EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance)){
+    if (!is_pa_calib && EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance)) {
         evaluate_adaptive_pa = true;
         // If we have already emmited a PA change because the m_multi_flow_segment_path_pa_set is set
         // skip re-issuing the PA change tag.

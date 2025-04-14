@@ -10,7 +10,7 @@ Join our Discord community here:<br>
  
  <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
 
-The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://www.orcaslicer.com/">**orcaslicer.com**</a>, and the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>.
+The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://orcaslicer.com/">**orcaslicer.com**</a>, and the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>.
 
 Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised. 
 
@@ -167,10 +167,10 @@ Thank you! :)
 
 
 ## Some background
-OrcaSlicer is originally forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
+OrcaSlicer was originally forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
 
-Bambu Studio is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
-Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill
+[Bambu Studio](https://github.com/bambulab/BambuStudio) is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
+Orca Slicer incorporates a lot of features from [SuperSlicer](https://github.com/supermerill/SuperSlicer) by @supermerill
 Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr)  
 
 
