@@ -1770,11 +1770,11 @@ bool MachineObject::canEnableTimelapse(wxString &error_message) const
 
     if (sdcard_state != MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
         if (sdcard_state == MachineObject::SdcardState::NO_SDCARD) {
-            error_message = _L("Timelapse is not supported while the SD card does not exist.");
+            error_message = _L("Timelapse is not supported while the storage does not exist.");
         } else if (sdcard_state == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL) {
-            error_message = _L("Timelapse is not supported while the SD card is unavailable.");
+            error_message = _L("Timelapse is not supported while the storage is unavailable.");
         } else if (sdcard_state == MachineObject::SdcardState::HAS_SDCARD_READONLY) {
-            error_message = _L("Timelapse is not supported while the SD card is readonly.");
+            error_message = _L("Timelapse is not supported while the storage is readonly.");
         }
 
         return false;
