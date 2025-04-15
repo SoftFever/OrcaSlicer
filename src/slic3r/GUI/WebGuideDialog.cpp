@@ -904,16 +904,13 @@ bool GuideFrame::run()
         return false;
 }
 
-int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType)
+int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, const std::string& filepath, const json& content, std::string &sVendor, std::string &sType)
 {
     //GetStardardFilePath(filepath);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " GetFilamentInfo:VendorDirectory - " << VendorDirectory << ", Filepath - "<<filepath;
 
     try {
-        std::string contents;
-        LoadFile(filepath, contents);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Json Contents: " << contents;
-        json jLocal = json::parse(contents);
+        const json& jLocal = content;
 
         if (sVendor == "") {
             if (jLocal.contains("filament_vendor"))
@@ -949,8 +946,14 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
                     inherits_path = (boost::filesystem::path(m_OrcaFilaLibPath) / boost::filesystem::path(FPath)).make_preferred();
 
                 //boost::filesystem::path nf(strNewFile.c_str());
-                if (boost::filesystem::exists(inherits_path))
-                    return GetFilamentInfo(VendorDirectory,pFilaList, inherits_path.string(), sVendor, sType);
+                if (boost::filesystem::exists(inherits_path)) {
+                    std::string contents;
+                    LoadFile(inherits_path.string(), contents);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Json Contents: " << contents;
+                    json j_inherits = json::parse(contents);
+
+                    return GetFilamentInfo(VendorDirectory,pFilaList, inherits_path.string(), j_inherits, sVendor, sType);
+                }
                 else {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inherits File Not Exist: " << inherits_path;
                     return -1;
@@ -1302,7 +1305,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                     std::string sV;
                     std::string sT;
 
-                    int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, sV, sT);
+                    int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, pm, sV, sT);
                     if (nRet != 0) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",GetFilamentInfo Failed, Vendor:" << sV << ",Type:"<< sT;
                         continue;
