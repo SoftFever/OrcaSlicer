@@ -4141,7 +4141,7 @@ void StatusPanel::on_set_chamber_temp()
                 m_tempCtrl_chamber->Warning(false);
             }
 
-            if (chamber_temp >= obj->chamber_temp_switch_heat)
+            if (!obj->is_at_heating_mode() && chamber_temp >= obj->chamber_temp_switch_heat)
             {
 #ifndef __APPLE__
                 MessageDialog champer_switch_head_dlg(this, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. "

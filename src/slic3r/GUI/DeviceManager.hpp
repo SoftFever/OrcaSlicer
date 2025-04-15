@@ -812,6 +812,7 @@ public:
 
     //new fan data
     AirDuctData m_air_duct_data;
+    bool        is_at_heating_mode() const { return m_air_duct_data.curren_mode == AIR_DUCT_HEATING_INTERNAL_FILT; };
     void converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_fun, bool is_suppt_cham_fun); // Convert the data to duct type to make the newand old protocols consistent
 
     /* signals */
