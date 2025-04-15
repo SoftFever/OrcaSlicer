@@ -118,40 +118,7 @@ void SyncAmsInfoDialog::updata_ui_data_after_connected_printer() {
 
 void SyncAmsInfoDialog::update_select_layout(MachineObject *obj)
 {
-    m_checkbox_list["timelapse"]->Hide();
-    m_checkbox_list["bed_leveling"]->Hide();
     m_checkbox_list["use_ams"]->Hide();
-    m_checkbox_list["nozzle_offset_cali"]->Hide();
-
-    if (!obj) { return; }
-    AppConfig *config = wxGetApp().app_config;
-
-    if (obj->is_enable_np) {
-        m_checkbox_list["nozzle_offset_cali"]->Show();
-        m_checkbox_list["nozzle_offset_cali"]->update_options(ops_auto, wxEmptyString);
-        m_checkbox_list["bed_leveling"]->update_options(ops_auto, wxEmptyString);
-
-        m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
-        m_checkbox_list["bed_leveling"]->setValue("auto");
-    } else {
-        m_checkbox_list["bed_leveling"]->update_options(ops_no_auto, wxEmptyString);
-
-        if (config && config->get("print", "bed_leveling") == "0") {
-            m_checkbox_list["bed_leveling"]->setValue("off");
-        } else {
-            m_checkbox_list["bed_leveling"]->setValue("on");
-        }
-    }
-
-    update_timelapse_enable_status();
-
-    if (config && config->get("print", "timelapse") == "0") {
-        m_checkbox_list["timelapse"]->setValue("off");
-    } else {
-        m_checkbox_list["timelapse"]->setValue("on");
-    }
-    Layout();
-    Fit();
 }
 
 void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
