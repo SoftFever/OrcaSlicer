@@ -139,9 +139,11 @@ def check_machine_default_materials(profiles_dir, vendor_name):
             
     return error_count
 
-def check_name_consistency(profiles_dir, vendor_name):
+def check_filament_name_consistency(profiles_dir, vendor_name):
     """
-    Make sure profile names match in both vendor json and subpath files
+    Make sure filament profile names match in both vendor json and subpath files.
+    Filament profiles work only if the name in <vendor>.json matches the name in sub_path file,
+    or if it's one of the sub_path file's `renamed_from`.
     """
     error_count = 0
     vendor_dir = profiles_dir / vendor_name
@@ -158,37 +160,39 @@ def check_name_consistency(profiles_dir, vendor_name):
         print(f"Error loading vendor profile {vendor_file}: {e}")
         return 1
 
-    for sect in [
-        'machine_model_list',
-        'process_list',
-        'filament_list',
-        'machine_list',
-        ]:
-        if sect not in data:
+    if 'filament_list' not in data:
+        return 0
+    
+    for child in data['filament_list']:
+        name_in_vendor = child['name']
+        sub_path = child['sub_path']
+        sub_file = vendor_dir / sub_path
+
+        if not sub_file.exists():
+            print(f"Missing sub profile: '{sub_path}' declared in {vendor_file.relative_to(profiles_dir)}")
+            error_count += 1
             continue
-        for child in data[sect]:
-            name_in_vendor = child['name']
-            sub_path = child['sub_path']
-            sub_file = vendor_dir / sub_path
 
-            if not sub_file.exists():
-                print(f"Missing sub profile: '{sub_path}' declared in {vendor_file.relative_to(profiles_dir)}")
-                error_count += 1
+        try:
+            with open(sub_file, 'r', encoding='UTF-8') as fp:
+                sub_data = json.load(fp)
+        except Exception as e:
+            print(f"Error loading profile {sub_file}: {e}")
+            error_count += 1
+            continue
+
+        name_in_sub = sub_data['name']
+
+        if name_in_sub == name_in_vendor:
+            continue
+
+        if 'renamed_from' in sub_data:
+            renamed_from = [n.strip() for n in sub_data['renamed_from'].split(';')]
+            if name_in_vendor in renamed_from:
                 continue
 
-            try:
-                with open(sub_file, 'r', encoding='UTF-8') as fp:
-                    sub_data = json.load(fp)
-            except Exception as e:
-                print(f"Error loading profile {sub_file}: {e}")
-                error_count += 1
-                continue
-
-            name_in_sub = sub_data['name']
-
-            if not name_in_vendor == name_in_sub:
-                print(f"Profile name mismatch: '{name_in_vendor}' in {vendor_file.relative_to(profiles_dir)} but '{name_in_sub}' in {sub_file.relative_to(profiles_dir)}")
-                error_count += 1
+        print(f"Filament name mismatch: required '{name_in_vendor}' in {vendor_file.relative_to(profiles_dir)} but found '{name_in_sub}' in {sub_file.relative_to(profiles_dir)}, and none of its `renamed_from` matches the required name either")
+        error_count += 1
     
     return error_count
 
@@ -210,13 +214,13 @@ def main():
             errors_found += check_filament_compatible_printers(profiles_dir / args.vendor / "filament")
         if args.check_materials:
             errors_found += check_machine_default_materials(profiles_dir, args.vendor)
-        errors_found += check_name_consistency(profiles_dir, args.vendor)
+        errors_found += check_filament_name_consistency(profiles_dir, args.vendor)
         checked_vendor_count += 1
     else:
         for vendor_dir in profiles_dir.iterdir():
             if not vendor_dir.is_dir():
                 continue
-            errors_found += check_name_consistency(profiles_dir, vendor_dir.name)
+            errors_found += check_filament_name_consistency(profiles_dir, vendor_dir.name)
             # skip "OrcaFilamentLibrary" folder
             if vendor_dir.name == "OrcaFilamentLibrary":
                 continue
