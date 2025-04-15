@@ -2223,6 +2223,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("BVOH");
     def->enum_values.push_back("PCTG");
     def->enum_values.push_back("EVA");
+    def->enum_values.push_back("FLEX");
     def->enum_values.push_back("HIPS");
     def->enum_values.push_back("PA");
     def->enum_values.push_back("PA-CF");
@@ -2548,6 +2549,14 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Default");
     def->tooltip = L("Default");
     def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("default_junction_deviation", coFloat);
+    def->label = L("Junction Deviation");
+    def->tooltip = L("Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)");
+    def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -3351,8 +3360,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L(
         "Flow Compensation Model, used to adjust the flow for small infill "
         "areas. The model is expressed as a comma separated pair of values for "
-        "extrusion length and flow correction factors, one per line, in the "
-        "following format: \"1.234,5.678\"");
+        "extrusion length and flow correction factor. Each pair is on a "
+        "separate line, followed by a semicolon, in the following format: \"1.234, 5.678;\"");
     def->mode = comAdvanced;
     def->gui_flags = "serialized";
     def->multiline = true;
@@ -3436,6 +3445,15 @@ void PrintConfigDef::init_fff_params()
             def->set_default_value(new ConfigOptionFloats(axis.max_jerk));
         }
     }
+    // M205 J... [mm] machine junction deviation limits 
+    def = this->add("machine_max_junction_deviation", coFloats);
+    def->full_label = L("Maximum Junction Deviation");
+    def->category = L("Machine limits");
+    def->tooltip = L("Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin Firmware)");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{0. ,0. });
 
     // M205 S... [mm/sec]
     def = this->add("machine_min_extruding_rate", coFloats);

@@ -58,7 +58,9 @@ bool GLGizmoBrimEars::on_init()
     m_desc["right_click_caption"]      = _L("Right click");
     m_desc["right_click"]              = _L("Delete a brim ear");
     m_desc["ctrl_mouse_wheel_caption"] = _L("Ctrl+Mouse wheel");
-    m_desc["ctrl_mouse_wheel"]         = _L("Adjust section view");
+    m_desc["ctrl_mouse_wheel"]         = _L("Adjust head diameter");
+    m_desc["alt_mouse_wheel_caption"]  = _L("Alt + Mouse wheel");
+    m_desc["alt_mouse_wheel"]          = _L("Adjust section view");
 
     return true;
 }
@@ -100,7 +102,7 @@ void GLGizmoBrimEars::on_render()
 void GLGizmoBrimEars::render_points(const Selection &selection)
 {
     auto editing_cache = m_editing_cache;
-    if (render_hover_point != nullptr) { editing_cache.push_back(*render_hover_point); }
+    if (render_hover_point) { editing_cache.push_back(*render_hover_point); }
 
     size_t cache_size = editing_cache.size();
 
@@ -265,16 +267,12 @@ void GLGizmoBrimEars::data_changed(bool is_serializing)
 
 bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
 {
-    if (use_grabbers(mouse_event)) {
-        return true;
-    }
-
     // wxCoord == int --> wx/types.h
     Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d   mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.Moving()) {
-        return gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
+        gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
     }
     
     // when control is down we allow scene pan and rotation even when clicking
@@ -317,15 +315,15 @@ bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
             return false;
         }
     } else if (mouse_event.LeftUp()) {
-        if (!m_parent.is_mouse_dragging()) {
+        if (gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), control_down)
+            && !m_parent.is_mouse_dragging()) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp
             // event and stop processing - neither object moving or selecting
             // is suppressed in that case
-            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), control_down);
             return true;
         }
     }
-    return false;
+    return use_grabbers(mouse_event);
 }
 
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
@@ -334,6 +332,10 @@ bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
 // concludes that the event was not intended for it, it should return false.
 bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
+    if (action != SLAGizmoEventType::MouseWheelDown || action != SLAGizmoEventType::MouseWheelUp || action != SLAGizmoEventType::Moving) {
+        apply_radius_change();
+    }
+
     ModelObject *mo          = m_c->selection_info()->model_object();
     int          active_inst = m_c->selection_info()->get_active_instance();
 
@@ -348,10 +350,9 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
         Transform3d             inverse_trsf = volume->get_instance_transformation().get_matrix_no_offset().inverse();
         std::pair<Vec3f, Vec3f> pos_and_normal;
         if (unproject_on_mesh2(mouse_position, pos_and_normal)) {
-            render_hover_point = new CacheEntry(BrimPoint(pos_and_normal.first, m_new_point_head_diameter / 2.f), false, (inverse_trsf * m_world_normal).cast<float>(), true);
+            render_hover_point = CacheEntry(BrimPoint(pos_and_normal.first, m_new_point_head_diameter / 2.f), false, (inverse_trsf * m_world_normal).cast<float>(), true);
         } else {
-            delete render_hover_point;
-            render_hover_point = nullptr;
+            render_hover_point.reset();
         }
     } else if (action == SLAGizmoEventType::LeftDown && (shift_down || alt_down || control_down)) {
         // left down with shift - show the selection rectangle:
@@ -479,14 +480,38 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
     }
 
     // mouse wheel up
-    if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
+    if (action == SLAGizmoEventType::MouseWheelUp) {
+        if (control_down) {
+            float initial_value = m_new_point_head_diameter;
+            begin_radius_change(initial_value);
+            m_new_point_head_diameter = std::min(20., initial_value + 0.1);
+            update_cache_radius();
+            return true;
+        }
+
+        apply_radius_change();
+    }
+
+    if (action == SLAGizmoEventType::MouseWheelDown) {
+        if (control_down) {
+            float initial_value = m_new_point_head_diameter;
+            begin_radius_change(initial_value);
+            m_new_point_head_diameter = std::max(5., initial_value - 0.1);
+            update_cache_radius();
+            return true;
+        }
+
+        apply_radius_change();
+    }
+
+    if (action == SLAGizmoEventType::MouseWheelUp && alt_down) {
         double pos = m_c->object_clipper()->get_position();
         pos        = std::min(1., pos + 0.01);
         m_c->object_clipper()->set_position_by_ratio(pos, false, true);
         return true;
     }
 
-    if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
+    if (action == SLAGizmoEventType::MouseWheelDown && alt_down) {
         double pos = m_c->object_clipper()->get_position();
         pos        = std::max(0., pos - 0.01);
         m_c->object_clipper()->set_position_by_ratio(pos, false, true);
@@ -552,6 +577,41 @@ std::vector<const ConfigOption *> GLGizmoBrimEars::get_config_options(const std:
     return out;
 }
 
+void GLGizmoBrimEars::begin_radius_change(float initial_value)
+{
+    if (m_old_point_head_diameter == 0.f)
+        m_old_point_head_diameter = initial_value;
+}
+
+void GLGizmoBrimEars::update_cache_radius()
+{
+    if (render_hover_point)
+        render_hover_point->brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
+
+    for (auto &cache_entry : m_editing_cache)
+        if (cache_entry.selected) {
+            cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
+            find_single();
+        }
+    m_parent.set_as_dirty();
+}
+
+void GLGizmoBrimEars::apply_radius_change()
+{
+    if (m_old_point_head_diameter == 0.f) return;
+
+    // momentarily restore the old value to take snapshot
+    for (auto& cache_entry : m_editing_cache)
+        if (cache_entry.selected)
+            cache_entry.brim_point.head_front_radius = m_old_point_head_diameter / 2.f;
+    float backup              = m_new_point_head_diameter;
+    m_new_point_head_diameter = m_old_point_head_diameter;
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Change point head diameter");
+    m_new_point_head_diameter = backup;
+    update_cache_radius();
+    m_old_point_head_diameter = 0.f;
+}
+
 void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limit)
 {
     static float last_y = 0.0f;
@@ -605,29 +665,14 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->text(m_desc["head_diameter"]);
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(slider_width);
-    auto update_cache_radius = [this]() {
-        for (auto &cache_entry : m_editing_cache)
-            if (cache_entry.selected) {
-                cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
-                find_single();
-            }
-    };
     m_imgui->bbl_slider_float_style("##head_diameter", &m_new_point_head_diameter, 5, 20, "%.1f", 1.0f, true);
     if (m_imgui->get_last_slider_status().clicked) {
-        if (m_old_point_head_diameter == 0.f) m_old_point_head_diameter = initial_value;
+        begin_radius_change(initial_value);
     }
     if (m_imgui->get_last_slider_status().edited)
         update_cache_radius();
     if (m_imgui->get_last_slider_status().deactivated_after_edit) {
-        // momentarily restore the old value to take snapshot
-        for (auto &cache_entry : m_editing_cache)
-            if (cache_entry.selected) cache_entry.brim_point.head_front_radius = m_old_point_head_diameter / 2.f;
-        float backup              = m_new_point_head_diameter;
-        m_new_point_head_diameter = m_old_point_head_diameter;
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Change point head diameter");
-        m_new_point_head_diameter = backup;
-        update_cache_radius();
-        m_old_point_head_diameter = 0.f;
+        apply_radius_change();
     }
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
@@ -737,7 +782,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
 
 void GLGizmoBrimEars::show_tooltip_information(float x, float y)
 {
-    std::array<std::string, 3> info_array  = std::array<std::string, 3>{"left_click", "right_click", "ctrl_mouse_wheel"};
+    std::array<std::string, 4> info_array  = std::array<std::string, 4>{"left_click", "right_click", "ctrl_mouse_wheel", "alt_mouse_wheel"};
     float                      caption_max = 0.f;
     for (const auto &t : info_array) { caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x); }
 

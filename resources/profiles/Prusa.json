@@ -922,6 +922,10 @@
             "sub_path": "filament/fdm_filament_pa11cf.json"
         },
         {
+            "name": "fdm_filament_flex",
+            "sub_path": "filament/fdm_filament_flex.json"
+        },
+        {
             "name": "Prusa Generic PLA",
             "sub_path": "filament/Prusa Generic PLA.json"
         },
@@ -1024,6 +1028,14 @@
         {
             "name": "Prusa Generic TPU @MINIIS",
             "sub_path": "filament/Prusa Generic TPU @MINIIS.json"
+        },
+        {
+            "name": "Prusa Generic FLEX @XL",
+            "sub_path": "filament/Prusa Generic FLEX @XL.json"
+        },
+        {
+            "name": "Prusa Generic FLEX @XL 5T",
+            "sub_path": "filament/Prusa Generic FLEX @XL 5T.json"
         },
         {
             "name": "Prusa Generic ASA",
