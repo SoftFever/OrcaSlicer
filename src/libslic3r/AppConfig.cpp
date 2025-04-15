@@ -350,6 +350,10 @@ void AppConfig::set_defaults()
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
     }
+    
+    if (get("helio_api_url").empty()) {
+        set("helio_api_url", "https://api.helioadditive.com/graphql/sdk");
+    }
 
     // if (get("staff_pick_switch").empty()) {
     //     set_bool("staff_pick_switch", false);

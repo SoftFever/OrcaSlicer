@@ -185,7 +185,7 @@ public:
                             BackgroundSlicingProcess::State&           slicing_state,
                             std::unique_ptr<GUI::NotificationManager>& notification_manager);
 
-    HelioBackgroundProcess() { helio_api_url = "https://api.helioadditive.com/graphql/sdk"; }
+    HelioBackgroundProcess() {}
 
     ~HelioBackgroundProcess()
     {
@@ -196,6 +196,7 @@ public:
     }
 
     void init(std::string                   api_key,
+              std::string                   api_url,
               std::string                   printer_id,
               std::string                   filament_id,
               Slic3r::GCodeProcessorResult* gcode_result,
@@ -205,6 +206,7 @@ public:
         m_state = STATE_STARTED;
         m_gcode_processor.reset();
         helio_api_key     = api_key;
+        helio_api_url     = api_url;
         this->printer_id  = printer_id;
         this->filament_id = filament_id;
         m_gcode_result    = gcode_result;

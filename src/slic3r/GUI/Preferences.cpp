@@ -1240,6 +1240,8 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_helio_options = create_item_title(_L("Helio Options"), page, _L("Helio Options"));
     auto input_helio_api_key = create_item_input(_L("Helio API Key"), "", page, _L("You can generate this by going to the Helio website"), 
         "helio_api_key", wxFILTER_ASCII, [](wxString value) {});
+    auto input_helio_api_url = create_item_input(_L("Helio API Endpoint"), "", page, _L("This is the endpoint the slicer will communicate with"),
+        "helio_api_url", wxFILTER_ASCII, [](wxString value) {});
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
@@ -1313,6 +1315,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     sizer_page->Add(title_helio_options, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(input_helio_api_key, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(input_helio_api_url, 0, wxTOP, FromDIP(3));
 
     page->SetSizer(sizer_page);
     page->Layout();
