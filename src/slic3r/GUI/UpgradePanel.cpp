@@ -880,6 +880,10 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                                 }
                             }
                         }
+                        else if (!it->second.sw_new_ver.empty() && (it->second.sw_new_ver != it->second.sw_ver)) {
+                            amspanel->m_ams_new_version_img->Show();
+                            ams_ver = wxString::Format("%s->%s", it->second.sw_ver, it->second.sw_new_ver);
+                        }
                         else {
                             std::string ams_idx = (boost::format("ams/%1%") % ams_id).str();
                             auto        ver_item = obj->new_ver_list.find(ams_idx);

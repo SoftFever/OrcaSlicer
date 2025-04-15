@@ -3304,6 +3304,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
                         if ((*it).contains("sw_new_ver"))
                             ver_info.sw_new_ver = (*it)["sw_new_ver"].get<std::string>();
+                        if ((*it).contains("visible") && (*it).contains("new_ver")) {
+                            ver_info.sw_new_ver = (*it)["new_ver"].get<std::string>();
+                        }
                         if ((*it).contains("sn"))
                             ver_info.sn = (*it)["sn"].get<std::string>();
                         if ((*it).contains("hw_ver"))
