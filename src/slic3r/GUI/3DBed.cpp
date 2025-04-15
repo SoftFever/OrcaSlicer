@@ -655,9 +655,9 @@ void Bed3D::update_bed_triangles()
         (*model_offset_ptr)(1) += 0;
     }else if(m_build_volume.type() == BuildVolume_Type::Rectangle){
         const ConfigOptionPoints *rect_origin_cfg = dynamic_cast<const ConfigOptionPoints *>(wxGetApp().preset_bundle->full_config().option("rect_origin"));
-        Vec2d point_shift = (rect_origin_cfg != nullptr) ? rect_origin_cfg->values[0] : Vec2d(0,0);
-        (*model_offset_ptr)(0) += point_shift.x();
-        (*model_offset_ptr)(1) += point_shift.y();
+        Vec2d rect_origin = (rect_origin_cfg != nullptr) ? rect_origin_cfg->values[0] : Vec2d(0,0);
+        (*model_offset_ptr)(0) += rect_origin.x();
+        (*model_offset_ptr)(1) += rect_origin.y();
     }
 
     for (size_t i = 0; i < m_bed_shape.size(); i++) {
