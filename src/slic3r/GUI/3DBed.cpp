@@ -649,20 +649,19 @@ void Bed3D::update_bed_triangles()
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     // ORCA fix bed shape (without 3D model) rendered with shifted position
-    Vec2d point_shift;
-    if(m_build_volume.type() == BuildVolume_Type::Circle){
-        point_shift = Vec2d(0,0);
-    }else if(m_build_volume.type() == BuildVolume_Type::Custom){
-        point_shift = Vec2d(-1 * m_build_volume.bounding_volume2d().center().x(),0);
+    std::vector<Vec2d> origin_bed_shape;
+    if(m_build_volume.type() == BuildVolume_Type::Circle || m_build_volume.type() == BuildVolume_Type::Custom){
+        (*model_offset_ptr)(0) += 0;
+        (*model_offset_ptr)(1) += 0;
     }else if(m_build_volume.type() == BuildVolume_Type::Rectangle){
         const ConfigOptionPoints *rect_origin_cfg = dynamic_cast<const ConfigOptionPoints *>(wxGetApp().preset_bundle->full_config().option("rect_origin"));
-        point_shift = (rect_origin_cfg != nullptr) ? rect_origin_cfg->values[0] : Vec2d(0,0);
-    }else{
-        point_shift = m_bed_shape[0];
+        Vec2d point_shift = (rect_origin_cfg != nullptr) ? rect_origin_cfg->values[0] : Vec2d(0,0);
+        (*model_offset_ptr)(0) += point_shift.x();
+        (*model_offset_ptr)(1) += point_shift.y();
     }
-    std::vector<Vec2d> origin_bed_shape;
+
     for (size_t i = 0; i < m_bed_shape.size(); i++) {
-        origin_bed_shape.push_back(m_bed_shape[i] - point_shift);
+         origin_bed_shape.push_back(m_bed_shape[i]);
     }
     std::vector<Vec2d> new_bed_shape; // offset to correct origin
     for (auto point : origin_bed_shape) {
