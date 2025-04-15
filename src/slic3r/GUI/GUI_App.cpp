@@ -1923,8 +1923,10 @@ bool GUI_App::is_blocking_printing(MachineObject *obj_)
     if (!dev) return true;
     std::string target_model;
     if (obj_ == nullptr) {
-        auto        obj_         = dev->get_selected_machine();
-        target_model = obj_->printer_type;
+        auto obj_ = dev->get_selected_machine();
+        if (obj_) {
+            target_model = obj_->printer_type;
+        }
     } else {
         target_model = obj_->printer_type;
     }
