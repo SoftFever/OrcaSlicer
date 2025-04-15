@@ -1443,7 +1443,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
     int out_tray_id;
     get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
 
-    if (!is_virtual_slot(ams_id) && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+    if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
         bool in_blacklist = false;
         std::string action;
         std::string info;
