@@ -3695,8 +3695,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
     update_model_info();
 
-    if (obj->is_system_printing()
-        || obj->is_in_calibration()) {
+    if (obj->is_system_printing() || obj->is_in_calibration()) {
         reset_printing_values();
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
         if (obj->is_in_prepare() || obj->print_status == "SLICING") {
@@ -3834,6 +3833,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
 
     if (is_task_changed(obj)) {
         obj->set_modeltask(nullptr);
+        obj->set_slice_info(nullptr);
         reset_printing_values();
         BOOST_LOG_TRIVIAL(info) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
