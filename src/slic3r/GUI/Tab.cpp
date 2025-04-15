@@ -3409,7 +3409,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("pellet_flow_coefficient", "Pellet-modded-printer");
         optgroup->append_single_option_line("extruder_rotation_volume", "Pellet-modded-printer");
         optgroup->append_single_option_line("mixing_stepper_rotation_volume", "Pellet-modded-printer");
-        optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
+
         optgroup->append_single_option_line("filament_flow_ratio");
 
         optgroup->append_single_option_line("enable_pressure_advance");
@@ -3931,7 +3931,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("use_active_pellet_feeding", "Pellet-modded-printer");
         optgroup->append_single_option_line("multi_zone", "pellet-flow-coefficient");
         optgroup->append_single_option_line("multi_zone_number", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
+
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("disable_m73");

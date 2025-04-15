@@ -2079,7 +2079,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Pellet flow coefficient");
     def->tooltip = L("A value representing the extrusion capacity of pellets, influenced by factors such as shape, material, and viscosity. It determines how much material is extruded per turn and is converted to an equivalent filament diameter for volumetric calculations.");
     def->min = 0;
-    
+    def->set_default_value(new ConfigOptionFloats{0.4157});
+
     def           = this->add("extruder_rotation_volume", coFloats);
     def->label    = L("Extruder rotation volume");
     def->tooltip  = L("The volume of material extruded (in mm³) for each full turn of the extruder motor. This parameter is crucial for configuring precise extrusion settings during printing.");
