@@ -29,9 +29,18 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Pellet Printers (pellet flow coefficient)](pellet-flow-coefficient)
 
 ## Printer Calibration
-The guide below takes you through the key calibration tests in Orca - flow rate, pressure advance, print temperature, retraction, tolerances and maximum volumetric speed
-- [Calibration Guide](./Calibration)
-- [Adaptive Pressure Advance Guide](adaptive-pressure-advance)
+The [Calibration Guide](./print_settings/calibration/Calibration.md) takes you through the key calibration tests in Orca - flow rate, pressure advance, print temperature, retraction, tolerances, etc.
+
+- [Flow Rate](print_settings/calibration/flow-rate-calib.md)
+- [Pressure Advance](print_settings/calibration/pressure-advance-calib.md)
+- [Temperature](print_settings/calibration/temp-calib.md)
+- [Retraction](print_settings/calibration/retraction-calib.md)
+- [Tolerance](print_settings/calibration/tolerance-calib.md)
+- Advanced:
+  - [Volumetric Speed](print_settings/calibration/volumetric-speed-calib.md)
+  - [Adaptive Pressure Advance Guide](print_settings/calibration/adaptive-pressure-advance-calib.md)
+  - [Input Shaping](print_settings/calibration/input-shaping-calib.md)
+  - [Cornering (Jerk & Junction Deviation)](print_settings/calibration/cornering-calib.md)
 
 ## Developer Section
 - [How to build Orca Slicer](./How-to-build)
