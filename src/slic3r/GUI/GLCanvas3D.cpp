@@ -4493,6 +4493,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 render();
             }
 
+            //ORCA allow right click on empty space while an object selected
+            if (m_hover_plate_idxs.empty() && m_hover_volume_idxs.empty() && (m_canvas_type == CanvasView3D) && !m_mouse.dragging) {
+                deselect_all();
+                render();
+            }
+
             Vec2d logical_pos = pos.cast<double>();
 #if ENABLE_RETINA_GL
             const float factor = m_retina_helper->get_scale_factor();

@@ -907,6 +907,20 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
                 auto compatible_printers = preset->config.option<ConfigOptionStrings>("compatible_printers", true);
                 if (!compatible_printers || compatible_printers->values.empty()) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "there is a preset has no compatible printers and the preset name is: " << preset->name;
+                    // If no compatible printers are defined, add all visible printers
+                    for (const std::string& visible_printer : m_visible_printers) {
+                        std::string nozzle = get_printer_nozzle_diameter(visible_printer);
+                        if (nozzle_diameter[nozzle] == 0) {
+                            BOOST_LOG_TRIVIAL(info)
+                                << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << visible_printer;
+                            continue;
+                        }
+                        // Add to the list of available printer-preset pairs
+                        printer_name_to_filament_preset.push_back(std::make_pair(visible_printer, preset));
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show compatible printer name: " << visible_printer
+                                                << " and preset name is: " << preset->name;
+                    }
+                    
                     continue;
                 }
                 for (std::string &compatible_printer_name : compatible_printers->values) {
@@ -1309,6 +1323,43 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
         auto    compatible_printers = preset->config.option<ConfigOptionStrings>("compatible_printers", true);
         if (!compatible_printers || compatible_printers->values.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "there is a preset has no compatible printers and the preset name is: " << preset->name;
+            // If no compatible printers are defined, add all visible printers
+            for (const std::string& visible_printer : m_visible_printers) {
+                Preset* inherit_preset = nullptr;
+                auto    inherit        = dynamic_cast<ConfigOptionString*>(preset->config.option(BBL_JSON_KEY_INHERITS, false));
+                if (inherit && !inherit->value.empty()) {
+                    std::string inherits_value = inherit->value;
+                    inherit_preset             = preset_bundle->filaments.find_preset(inherits_value, false, true);
+                }
+
+                ConfigOptionStrings* filament_types;
+                if (!inherit_preset) {
+                    filament_types = dynamic_cast<ConfigOptionStrings*>(preset->config.option("filament_type"));
+                } else {
+                    filament_types = dynamic_cast<ConfigOptionStrings*>(inherit_preset->config.option("filament_type"));
+                }
+
+                if (filament_types && filament_types->values.empty())
+                    continue;
+                const std::string filament_type = filament_types->values[0];
+                if (filament_type != type_name) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " preset type is not selected type and preset name is: " << preset->name;
+                    continue;
+                }
+
+                std::string nozzle = get_printer_nozzle_diameter(visible_printer);
+                if (nozzle_diameter[nozzle] == 0) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                            << " compatible printer nozzle encounter exception and name is: " << visible_printer;
+                    continue;
+                }
+
+                // Add all visible printers as compatible printers
+                machine_name_to_presets[visible_printer].push_back(preset);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show compatible printer name: " << visible_printer
+                                        << " and preset name is: " << preset->name;
+            }
+            
             continue;
         }
         for (std::string &compatible_printer_name : compatible_printers->values) {
