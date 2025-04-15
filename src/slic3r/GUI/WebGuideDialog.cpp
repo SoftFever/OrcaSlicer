@@ -1137,10 +1137,25 @@ int GuideFrame::SaveProfileData()
 
 
         for (auto it = m_ProfileJson["filament"].begin(); it != m_ProfileJson["filament"].end(); ++it) {
-            //json temp_filament = it.value();
             std::string filament_name = it.key();
             if (enabled_filaments.find(filament_name) != enabled_filaments.end())
                 m_ProfileJson["filament"][filament_name]["selected"] = 1;
+            else {
+                // Orca: Support renamed filament
+                json temp_filament = it.value();
+                if (enabled_filaments.find(temp_filament["name"]) != enabled_filaments.end())
+                    m_ProfileJson["filament"][filament_name]["selected"] = 1;
+                else if (temp_filament.contains("renamed_from")) {
+                    std::vector<std::string> renamed_from;
+                    if (unescape_strings_cstyle(temp_filament["renamed_from"], renamed_from)) {
+                        if (std::any_of(renamed_from.begin(), renamed_from.end(), [&enabled_filaments](const std::string& n) {
+                                return enabled_filaments.find(n) != enabled_filaments.end();
+                            })) {
+                            m_ProfileJson["filament"][filament_name]["selected"] = 1;
+                        }
+                    }
+                }
+            }
         }
 
         //----region
@@ -1330,6 +1345,11 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 
                             ModelList = (boost::format("%1%[%2%]") % ModelList % NewModel).str();
                         }
+                    }
+
+                    OneFF["name"] = pm["name"];
+                    if (pm.contains("renamed_from")) {
+                        OneFF["renamed_from"] = pm["renamed_from"];
                     }
 
                     OneFF["models"]    = ModelList;
