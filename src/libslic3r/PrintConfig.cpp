@@ -1699,11 +1699,11 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallDirection>(WallDirection::CounterClockwise));
 
-    def = this->add("reverse_internal_walls", coBool);
-    def->label = L("Reverse internal perimeters");
-    def->full_label = L("Reverse internal perimeters");
+    def = this->add("alternate_internal_walls", coBool);
+    def->label = L("Alternate internal perimeters");
+    def->full_label = L("Alternate internal perimeters direction");
     def->category = L("Quality");
-    def->tooltip = L("Apply the reverse perimeters logic on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.");
+    def->tooltip = L("Alternate each internal perimeter direction.\n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -6507,7 +6507,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         value = "ccw";
     }
     else if (opt_key == "overhang_reverse_internal_only" && value == "1") {
-        opt_key = "reverse_internal_walls";
+        opt_key = "alternate_internal_walls";
         value   = "1";
     }
 

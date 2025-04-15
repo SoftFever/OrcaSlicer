@@ -459,7 +459,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    if (config->opt_bool("reverse_internal_walls") && !config->opt_bool("staggered_inner_seams")) {
+    if (config->opt_bool("alternate_internal_walls") && !config->opt_bool("staggered_inner_seams")) {
         const wxString     msg_text = _(L("Reverse internal walls should be used with Staggered inner seams option.\n Set to on."));
         MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
@@ -755,7 +755,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("overhang_reverse", !has_spiral_vase);
     toggle_field("overhang_reverse_threshold", has_detect_overhang_wall);
     toggle_line("overhang_reverse_threshold", !has_spiral_vase && has_overhang_reverse);
-    toggle_field("reverse_internal_walls", !has_spiral_vase && (config->opt_int("wall_loops") > 1));
+    toggle_field("alternate_internal_walls", !has_spiral_vase && (config->opt_int("wall_loops") > 1));
     toggle_line("timelapse_type", is_BBL_Printer);
 
 

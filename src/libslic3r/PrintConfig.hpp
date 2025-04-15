@@ -1025,7 +1025,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
     ((ConfigOptionEnum<WallDirection>,  wall_direction))
-    ((ConfigOptionBool,                 reverse_internal_walls))
+    ((ConfigOptionBool,                 alternate_internal_walls))
 
     // Orca: seam slopes
     ((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
