@@ -477,28 +477,10 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     }
 
     // ORCA draw grid lines relative to origin
-    auto bed_ext   = get_extents(poly);
-    auto start_pt = pp_bbox.min;//Point(pp_bbox.min(0),pp_bbox.min(1));
+    auto start_pt = pp_bbox.min;
     auto volume_type = m_plater->get_build_volume_type();
-    if(volume_type == BuildVolume_Type::Circle || volume_type == BuildVolume_Type::Custom){
+    if(volume_type == BuildVolume_Type::Circle || volume_type == BuildVolume_Type::Custom || m_shape.size() > 4) // last one detects custom shapes without 3D model
         start_pt = pp_bbox.center();
-    }else if(volume_type == BuildVolume_Type::Rectangle){
-        const ConfigOptionPoints *rect_origin_cfg = dynamic_cast<const ConfigOptionPoints *>(m_config.option("rect_origin"));
-        auto rect_origin = (rect_origin_cfg != nullptr) ? rect_origin_cfg->values[0] : Vec2d(0,0);
-        for (int i = 0; i < 2; ++i)
-        //    start_pt[i] = bed_ext.min(i) + rect_origin(i);
-            start_pt[i] = coord_t(double(pp_bbox.min(i)) + double(rect_origin(i)));
-        //const Vec2d& add = Vec2d(pp_bbox.min(0),pp_bbox.min(1));
-        //const Vec2d& final_point =add + rect_origin;
-        //start_pt = Point(double(rect_origin.x()),double(rect_origin.y()));
-        //for (int i = 0; i < 2; ++i)
-        //    start_pt[i] = m_origin(i) + rect_origin(i);
-        //start_pt = Point(m_origin + rect_origin);
-        //start_point.x() += rect_origin.x();
-        //start_point.y() += rect_origin.y();
-        //if(rect_origin_cfg != nullptr)
-        //    start_pt = Point(Vec2d(double(pp_bbox.min.x()),double(pp_bbox.min.y())) + Vec2d(rect_origin_cfg->values[0]));
-    }
 
     for (coord_t x = start_pt.x(); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
