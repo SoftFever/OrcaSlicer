@@ -12175,6 +12175,8 @@ void Plater::load_gcode(const wxString& filename)
     if (m_only_gcode) {
         p->view3D->get_canvas3d()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
     }
+
+    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);//STUDIO-11512
 }
 
 void Plater::reload_gcode_from_disk()
