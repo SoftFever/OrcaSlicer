@@ -2553,6 +2553,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def = this->add("default_junction_deviation", coFloat);
+    def->label = L("Junction Deviation");
+    def->tooltip = L("Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("outer_wall_jerk", coFloat);
     def->label = L("Outer wall");
     def->tooltip = L("Jerk of outer walls");
@@ -3437,6 +3445,15 @@ void PrintConfigDef::init_fff_params()
             def->set_default_value(new ConfigOptionFloats(axis.max_jerk));
         }
     }
+    // M205 J... [mm] machine junction deviation limits 
+    def = this->add("machine_max_junction_deviation", coFloats);
+    def->full_label = L("Maximum Junction Deviation");
+    def->category = L("Machine limits");
+    def->tooltip = L("Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin Firmware)");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{0. ,0. });
 
     // M205 S... [mm/sec]
     def = this->add("machine_min_extruding_rate", coFloats);
