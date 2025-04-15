@@ -648,18 +648,7 @@ void Bed3D::update_bed_triangles()
     (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y() - bed_ext.min.y();
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
-    // ORCA fix bed shape (without 3D model) rendered with shifted position
     std::vector<Vec2d> origin_bed_shape;
-    if(m_build_volume.type() == BuildVolume_Type::Circle || m_build_volume.type() == BuildVolume_Type::Custom){
-        (*model_offset_ptr)(0) += 0;
-        (*model_offset_ptr)(1) += 0;
-    }else if(m_build_volume.type() == BuildVolume_Type::Rectangle){
-        const ConfigOptionPoints *rect_origin_cfg = dynamic_cast<const ConfigOptionPoints *>(wxGetApp().preset_bundle->full_config().option("rect_origin"));
-        Vec2d rect_origin = (rect_origin_cfg != nullptr) ? rect_origin_cfg->values[0] : Vec2d(0,0);
-        (*model_offset_ptr)(0) += rect_origin.x();
-        (*model_offset_ptr)(1) += rect_origin.y();
-    }
-
     for (size_t i = 0; i < m_bed_shape.size(); i++) {
          origin_bed_shape.push_back(m_bed_shape[i]);
     }
