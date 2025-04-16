@@ -133,6 +133,8 @@ static wxString to_wstring_name(std::string name)
         return _L("Hardened Steel");
     } else if (name == "stainless_steel") {
         return _L("Stainless Steel");
+    } else if (name == "tungsten_carbide") {
+        return _L("Tungsten Carbide");
     }
 
     return wxEmptyString;

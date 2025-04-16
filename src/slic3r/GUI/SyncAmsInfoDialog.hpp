@@ -224,7 +224,6 @@ public:
     std::string get_print_status_info(PrintDialogStatus status);
 
     PrintFromType            get_print_type() { return m_print_type; };
-    wxString                 format_steel_name(NozzleType type);
     wxString                 format_text(wxString &m_msg);
     PrintDialogStatus        get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);

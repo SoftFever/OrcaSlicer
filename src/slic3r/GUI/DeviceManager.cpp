@@ -6221,6 +6221,8 @@ void MachineObject::parse_new_info(json print)
                         nozzle_obj.nozzle_type = NozzleType::ntStainlessSteel;
                     } else if (type.substr(2, 2) == std::string("01")) {
                         nozzle_obj.nozzle_type = NozzleType::ntHardenedSteel;
+                    } else if (type.substr(2, 2) == std::string("05")) {
+                        nozzle_obj.nozzle_type = NozzleType::ntTungstenCarbide;
                     }
                 } else {
                     nozzle_obj.tool_type   = NozzleToolType::NONE_TOOLTYPE;
@@ -6696,7 +6698,7 @@ bool DeviceManager::EnableMultiMachine = false;
 bool DeviceManager::key_field_only = false;
 
 std::vector<float> nozzle_diameter_list{ 0.2f,0.4f,0.6f,0.8f };
-std::vector<std::string> nozzle_type_list{ "hardened_steel", "stainless_steel" };
+std::vector<std::string> nozzle_type_list {"hardened_steel", "stainless_steel", "tungsten_carbide"};
 
 DeviceManager::DeviceManager(NetworkAgent* agent)
 {

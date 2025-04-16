@@ -421,7 +421,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LayerSeq)
 static t_config_enum_values s_keys_map_NozzleType {
     { "undefine",       int(NozzleType::ntUndefine) },
     { "hardened_steel", int(NozzleType::ntHardenedSteel) },
-    { "stainless_steel",int(NozzleType::ntStainlessSteel) },
+    { "stainless_steel", int(NozzleType::ntStainlessSteel)},
+    { "tungsten_carbide", int(NozzleType::ntTungstenCarbide)},
     { "brass",          int(NozzleType::ntBrass) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleType)
@@ -3198,10 +3199,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("undefine");
     def->enum_values.push_back("hardened_steel");
     def->enum_values.push_back("stainless_steel");
+    def->enum_values.push_back("tungsten_carbide");
     def->enum_values.push_back("brass");
     def->enum_labels.push_back(L("Undefine"));
     def->enum_labels.push_back(L("Hardened steel"));
     def->enum_labels.push_back(L("Stainless steel"));
+    def->enum_labels.push_back(L("Tungsten carbide"));
     def->enum_labels.push_back(L("Brass"));
     def->mode = comAdvanced;
     def->nullable = true;
