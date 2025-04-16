@@ -56,7 +56,7 @@
 		"printer_series": "series_x1",
 		"has_cali_line": true,
 		"printer_is_enclosed": true,
-		"enable_set_nozzle_info": true
+		"enable_set_nozzle_info": false
 	},
 	"01.01.01.00": {
 		"print": {
