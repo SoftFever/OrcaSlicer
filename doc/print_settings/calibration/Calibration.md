@@ -9,35 +9,36 @@ The recommended order for calibration is as follows:
 
 1. **[Temperature](temp-calib.md)**: Start by calibrating the temperature of the nozzle and the bed. This is crucial as it affects the viscosity of the filament, which in turn influences how well it flows through the nozzle and adheres to the print bed.
 
-![temp_tower](https://user-images.githubusercontent.com/103989404/221344534-40e1a629-450c-4ad5-a051-8e240e261a51.jpeg)  
-2. **[Retraction](retraction-calib.md)**: Calibrate the retraction settings to minimize stringing and improve print quality.
+   <img src="https://user-images.githubusercontent.com/103989404/221344534-40e1a629-450c-4ad5-a051-8e240e261a51.jpeg" alt="temp_tower" height="200">  
 
-![retraction](../../images/retraction_test_print.jpg)
-
-3. **[Flow](flow-rate-calib.md)**: Calibrate the flow rate to ensure that the correct amount of filament is being extruded. This is important for achieving accurate dimensions and good layer adhesion.
+2. **[Flow](flow-rate-calib.md)**: Calibrate the flow rate to ensure that the correct amount of filament is being extruded. This is important for achieving accurate dimensions and good layer adhesion.
  
-![flowrate-pass1_resize](https://user-images.githubusercontent.com/103989404/210138585-98821729-b19e-4452-a08d-697f147d36f0.jpg)
+   <img src="https://user-images.githubusercontent.com/103989404/210138585-98821729-b19e-4452-a08d-697f147d36f0.jpg" alt="flowrate-pass1_resize" height="200">
 
-4. **[Pressure Advance](pressure-advance-calib.md)**: Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
+3. **[Pressure Advance](pressure-advance-calib.md)**: Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
    - **[Adaptative Pressure Advance](adaptive-pressure-advance-calib.md)**: This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
  
-![tower](https://user-images.githubusercontent.com/103989404/210140231-e886b98d-280a-4464-9781-c74ed9b7d44e.jpg)
+   <img src="https://user-images.githubusercontent.com/103989404/210140231-e886b98d-280a-4464-9781-c74ed9b7d44e.jpg" alt="tower" height="200">
+
+4. **[Retraction](retraction-calib.md)**: Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and 
+
+   <img src="../../images/retraction_test_print.jpg" alt="retraction" height="200">
 
 5. **[Tolerance](tolerance-calib.md)**: Calibrate the tolerances of your printer to ensure that it can accurately reproduce the dimensions of the model being printed. This is important for achieving a good fit between parts and for ensuring that the final print meets the desired specifications.
 
-![image](../../images/OrcaToleranceTes_m6.jpg)
+   <img src="../../images/OrcaToleranceTes_m6.jpg" alt="image" height="200">
 
 6. **[Max Volumetric Speed](volumetric-speed-calib.md)**: Calibrate the maximum volumetric speed of the filament. This is important for ensuring that the printer can handle the flow rate of the filament without causing issues such as under-extrusion or over-extrusion.
 
-![image](../../images/vmf_measurement_point.jpg)
+   <img src="../../images/vmf_measurement_point.jpg" alt="image" height="200">
 
 7.  **[Cornering](cornering-calib.md)**: Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
 
-![image](../../images/JunctionDeviation/jd_second_print_measure.jpg)
+      <img src="../../images/JunctionDeviation/jd_second_print_measure.jpg" alt="image" height="200">
 
 8. **[Input Shaping](input-shaping-calib.md)**: This is an advanced calibration technique that can be used to reduce ringing and improve print quality by compensating for mechanical vibrations in the printer.
 
-![image](../../images/InputShaping/IS_damp_marlin_print_measure.jpg)
+   <img src="../../images/InputShaping/IS_damp_marlin_print_measure.jpg" alt="image" height="200">
 
 ### VFA
 
