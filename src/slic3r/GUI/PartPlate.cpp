@@ -477,20 +477,11 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     }
 
     // ORCA draw grid lines relative to origin
-    auto start_pt = pp_bbox.min;
-    auto volume_type = m_plater->get_build_volume_type();
-    if(volume_type == BuildVolume_Type::Circle || volume_type == BuildVolume_Type::Custom || m_shape.size() > 4) // last one detects custom shapes without 3D model
+    Point start_pt;
+    if(m_plater->get_build_volume_type() == BuildVolume_Type::Rectangle){
+        start_pt = pp_bbox.min;
+    }else{ // Circular / Custom
         start_pt = pp_bbox.center();
-    else if(volume_type == BuildVolume_Type::Rectangle){
-        Vec2d bed_size = get_extents(m_shape).size();
-        Vec2d origin   = Vec2d(
-            ((m_shape[0] - m_shape[2]).x() + bed_size.x())/2,
-            ((m_shape[1] - m_shape[3]).y() + bed_size.y())/2
-        );
-        start_pt(0) = double(origin.x()); // WORKS ONLY FOR FIRST PLATE OTHER PLATES SHARES SAME ORIGIN. OPERATIR += ALSO NOT WORKS
-        start_pt(1) = double(origin.y()); // WORKS ONLY FOR FIRST PLATE OTHER PLATES SHARES SAME ORIGIN. OPERATIR += ALSO NOT WORKS
-        //start_pt(0) = pp_bbox.min.x() + double(origin.x()); // NOT WORKS - CALCULATION IGNORES ORIGIN VALUE
-        //start_pt(1) = pp_bbox.min.y() + double(origin.y()); // NOT WORKS - CALCULATION IGNORES ORIGIN VALUE
     }
 
     for (coord_t x = start_pt.x(); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
