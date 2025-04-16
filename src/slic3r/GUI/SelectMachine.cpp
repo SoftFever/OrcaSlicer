@@ -640,9 +640,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
 
     for (auto print_opt : m_checkbox_list_order) {
-        if (print_opt != option_use_ams) {
-            print_opt->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) { save_option_vals();});
-        }
+        print_opt->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) { save_option_vals(); });
     }
 
     option_auto_bed_level->Hide();
@@ -2445,6 +2443,8 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
 
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
+        if (item.second->getParam() == "use_ams") { continue; }
+
         const std::string &val = config->get(obj->printer_type, item.first);
         if (opt->contain_opt(val)) {
             opt->setValue(val);
@@ -2480,7 +2480,10 @@ void SelectMachineDialog::save_option_vals(MachineObject *obj) {
     AppConfig *config = wxGetApp().app_config;
     if (!config) return;
     if (!obj) return;
-    for (auto item : m_checkbox_list) { config->set(obj->printer_type, item.first, item.second->getValue());}
+    for (auto item : m_checkbox_list) {
+        if (item.second->getParam() == "use_ams") { continue;}
+        config->set(obj->printer_type, item.first, item.second->getValue());
+    }
 }
 
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
