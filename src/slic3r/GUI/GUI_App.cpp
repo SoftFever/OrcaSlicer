@@ -122,6 +122,13 @@
 #include "dark_mode.hpp"
 #include "wx/headerctrl.h"
 #include "wx/msw/headerctrl.h"
+
+typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS2)(
+    HANDLE hProcess,
+    USHORT *pProcessMachine,
+    USHORT *pNativeMachine
+);
+
 #endif // _MSW_DARK_MODE
 #endif // __WINDOWS__
 
@@ -2291,7 +2298,7 @@ bool GUI_App::on_init_inner()
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
     m_is_arm64 = false;
     if (hKernel32) {
-        auto fnIsWow64Process2 = (decltype(&IsWow64Process2))GetProcAddress(hKernel32, "IsWow64Process2");
+        auto fnIsWow64Process2 = (LPFN_ISWOW64PROCESS2)GetProcAddress(hKernel32, "IsWow64Process2");
         if (fnIsWow64Process2) {
             USHORT processMachine = 0;
             USHORT nativeMachine = 0;
