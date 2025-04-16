@@ -1,12 +1,29 @@
 # Filament Tolerance Calibration
 
-Every filament/printer quality setting combination has a different tolerance. This means that the same filament can have different tolerances on different printers. The tolerance test is designed to help you find the best tolerance for your printer and filament combination.
+Each filament and printer combination can result in different tolerances. This means that even using the same filament and print profile, tolerances may vary from one printer to another.
+To correct for these variations, Orca Slicer provides:
+ - Filament Compensation:
+   - Shrinkage (XY)
+
+     ![image](../../images/Tolerance/FilamentShrinkageCompensation.png)
+
+ - Process Compensation:
+ -  X-Y hole compensation
+ -  X-Y contour compensation
+ -  Precise wall
+ -  Precise Z height
+
+    ![image](../../images/Tolerance/QualityPrecision.png)
+
 
 ## Orca Tolerance Test
-This tolerance test is specifically designed to assess the dimensional accuracy of your printer and filament. The model comprises a base and a hexagon tester. The base contains six hexagon hole, each with a different tolerance: 0.0mm, 0.05mm, 0.1mm, 0.2mm, 0.3mm, and 0.4mm. The dimensions of the hexagon tester are illustrated in the image.  
-![image](../../images/tolerance_hole.jpg) 
 
-You can assess the tolerance using either an M6 Allen key or the printed hexagon tester.
+This calibration test is designed to evaluate the dimensional accuracy of your printer and filament. The model consists of a base with six hexagonal holes, each with a different tolerance: 0.0 mm, 0.05 mm, 0.1 mm, 0.2 mm, 0.3 mm, and 0.4 mm, as well as a hexagon-shaped tester.
 
-![image](../../images/OrcaToleranceTes_m6.jpg)  
-![image](../../images/OrcaToleranceTest_print.jpg)  
+![image](../../images/Tolerance/tolerance_hole.jpg)
+
+You can check the tolerance using either an M6 Allen key or the included printed hexagon tester.
+Use calipers to measure both the holes and the inner tester. Based on your results, you can fine-tune the X-Y hole compensation and X-Y contour compensation settings. Repeat the process until you achieve the desired precision.
+
+![image](../../images/Tolerance/OrcaToleranceTes_m6.jpg)
+![image](../../images/Tolerance/OrcaToleranceTest_print.jpg)
