@@ -1,6 +1,7 @@
 {
   "type": "machine",
   "name": "Ginger_G1_common",
+  "renamed_from":"ginger_one_common",
   "printer_settings_id": "Ginger_G1_common",
   "from": "system",
   "inherits": "fdm_machine_common",

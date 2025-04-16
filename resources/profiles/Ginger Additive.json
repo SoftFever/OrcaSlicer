@@ -1,11 +1,11 @@
 {
-  "name": "Ginger Additive",
+  "name": "ginger Additive",
   "version":  "02.03.00.03",
   "force_update": "1",
-  "description": "Ginger configuration",
+  "description": "ginger configuration",
   "machine_model_list": [
     {
-      "name": "Ginger G1",
+      "name": "ginger G1",
       "sub_path": "machine/Ginger G1.json"
     }
   ],
@@ -15,23 +15,23 @@
       "sub_path": "machine/fdm_machine_common.json"
     },
     {
-      "name": "Ginger_G1_common",
+      "name": "ginger_one_common",
       "sub_path": "machine/Ginger_G1_common.json"
     },
     {
-      "name": "Ginger G1 1.2 nozzle",
+      "name": "ginger G1 1.2 nozzle",
       "sub_path": "machine/Ginger G1 1.2 nozzle.json"
     },
     {
-      "name": "Ginger G1 3.0 nozzle",
+      "name": "ginger G1 3.0 nozzle",
       "sub_path": "machine/Ginger G1 3.0 nozzle.json"
     },
     {
-      "name": "Ginger G1 5.0 nozzle",
+      "name": "ginger G1 5.0 nozzle",
       "sub_path": "machine/Ginger G1 5.0 nozzle.json"
     },
     {
-      "name": "Ginger G1 8.0 nozzle",
+      "name": "ginger G1 8.0 nozzle",
       "sub_path": "machine/Ginger G1 8.0 nozzle.json"
     }
   ],
@@ -67,11 +67,11 @@
       "sub_path": "filament/fdm_filament_common.json"
     },
     {
-      "name": "Ginger Generic PETG",
+      "name": "ginger Generic PETG",
       "sub_path": "filament/Ginger Generic PETG.json"
     },
     {
-      "name": "Ginger Generic PLA",
+      "name": "ginger Generic PLA",
       "sub_path": "filament/Ginger Generic PLA.json"
     }
   ]

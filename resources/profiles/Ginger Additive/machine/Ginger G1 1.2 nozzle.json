@@ -1,6 +1,7 @@
 {
   "type": "machine",
   "name": "Ginger G1 1.2 nozzle",
+  "renamed_from":"ginger G1 1.2 nozzle",
   "printer_settings_id": "Ginger G1 1.2 nozzle",
   "instantiation": "true",
   "inherits": "Ginger_G1_common",
