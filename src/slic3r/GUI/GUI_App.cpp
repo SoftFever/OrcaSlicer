@@ -2286,23 +2286,31 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
+
 #if defined(__WINDOWS__)
-    USHORT processMachine = 0;
-    USHORT nativeMachine = 0;
-    if (IsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
-        switch (nativeMachine) {
-            case IMAGE_FILE_MACHINE_ARM64:
-                m_is_arm64 = true;
-                break;
-            case IMAGE_FILE_MACHINE_AMD64:
-            default:
-                m_is_arm64 = false;
-                break;
+    HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
+    m_is_arm64 = false;
+    if (hKernel32) {
+        auto fnIsWow64Process2 = (decltype(&IsWow64Process2))GetProcAddress(hKernel32, "IsWow64Process2");
+        if (fnIsWow64Process2) {
+            USHORT processMachine = 0;
+            USHORT nativeMachine = 0;
+            if (IsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
+                if (nativeMachine == IMAGE_FILE_MACHINE_ARM64) {
+                    m_is_arm64 = true;
+                }
+                BOOST_LOG_TRIVIAL(info) << boost::format("processMachine architecture %1%, nativeMachine %2% m_is_arm64 %3%")%(int)(processMachine) %(int) nativeMachine %m_is_arm64;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("IsWow64Process2 failed, set m_is_arm64 to %1%") %m_is_arm64;
+            }
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("processMachine architecture %1%, nativeMachine %2% m_is_arm64 %3%")%(int)(processMachine) %(int) nativeMachine %m_is_arm64;
+        else {
+            BOOST_LOG_TRIVIAL(info) << boost::format("can not find IsWow64Process2, set m_is_arm64 to %1%") %m_is_arm64;
+        }
     }
     else {
-        BOOST_LOG_TRIVIAL(info) << boost::format("IsWow64Process2 failed, m_is_arm64 %1%") %m_is_arm64;
+        BOOST_LOG_TRIVIAL(info) << boost::format("can not find kernel32, set m_is_arm64 to %1%") %m_is_arm64;
     }
 #endif
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
