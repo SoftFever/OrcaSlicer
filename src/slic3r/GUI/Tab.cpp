@@ -2198,6 +2198,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_jerk");
         optgroup->append_single_option_line("initial_layer_jerk");
         optgroup->append_single_option_line("travel_jerk");
+        optgroup->append_single_option_line("default_junction_deviation");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
@@ -4122,6 +4123,8 @@ PageShp TabPrinter::build_kinematics_page()
             append_option_line(optgroup, "machine_max_jerk_" + axis);
         }
 
+        // machine max junction deviation
+         append_option_line(optgroup, "machine_max_junction_deviation");
     //optgroup = page->new_optgroup(L("Minimum feedrates"));
     //    append_option_line(optgroup, "machine_min_extruding_rate");
     //    append_option_line(optgroup, "machine_min_travel_rate");
@@ -4634,6 +4637,9 @@ void TabPrinter::toggle_options()
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper, i);
         toggle_line("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper);
+        for (int i = 0; i < max_field; ++i)
+            toggle_option("machine_max_junction_deviation", gcf == gcfMarlinFirmware, i);
+        toggle_line("machine_max_junction_deviation", gcf == gcfMarlinFirmware);
     }
 }
 

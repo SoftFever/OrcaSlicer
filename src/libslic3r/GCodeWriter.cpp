@@ -37,6 +37,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     if (use_mach_limits) {
         m_max_jerk_x  = std::lrint(print_config.machine_max_jerk_x.values.front());
         m_max_jerk_y  = std::lrint(print_config.machine_max_jerk_y.values.front());
+        m_max_junction_deviation  = (print_config.machine_max_junction_deviation.values.front());
     };
     m_max_jerk_z = print_config.machine_max_jerk_z.values.front();
     m_max_jerk_e = print_config.machine_max_jerk_e.values.front();
@@ -315,13 +316,21 @@ std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double je
 
 std::string GCodeWriter::set_junction_deviation(double junction_deviation){
     std::ostringstream gcode;
-    if (FLAVOR_IS_NOT(gcfMarlinFirmware)) {
-        throw std::runtime_error("Junction deviation is only supported by Marlin firmware");
+    if (FLAVOR_IS(gcfMarlinFirmware) && junction_deviation > 0 && m_max_junction_deviation > 0) {
+        // Clamp the junction deviation to the allowed maximum.
+        gcode << "M205 J";
+        if (junction_deviation <= m_max_junction_deviation) {
+            gcode << std::fixed << std::setprecision(3) << junction_deviation;
+        } else {
+            gcode << std::fixed << std::setprecision(3) << m_max_junction_deviation;
+        }
+        if (GCodeWriter::full_gcode_comment) {
+            gcode << " ; Junction Deviation";
+        }
+        gcode << "\n";
     }
-    gcode << "M205 J" << std::fixed << std::setprecision(3) << junction_deviation << " ; Junction Deviation\n";
     return gcode.str();
 }
-
 
 std::string GCodeWriter::set_pressure_advance(double pa) const
 {
