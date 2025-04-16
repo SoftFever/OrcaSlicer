@@ -1100,9 +1100,13 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
     // When all values are rolled, then we have to update whole tab in respect to the reverted values
     update();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
 
     // BBS: restore all pages in preset, update_dirty also update combobox
     update_dirty();
+
+    m_page_view->GetParent()->Layout();
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -2194,6 +2198,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_jerk");
         optgroup->append_single_option_line("initial_layer_jerk");
         optgroup->append_single_option_line("travel_jerk");
+        optgroup->append_single_option_line("default_junction_deviation");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
@@ -2311,11 +2316,11 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_start_angle");
-        optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
+        optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("single_loop_draft_shield");
-        
+
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
@@ -4118,6 +4123,8 @@ PageShp TabPrinter::build_kinematics_page()
             append_option_line(optgroup, "machine_max_jerk_" + axis);
         }
 
+        // machine max junction deviation
+         append_option_line(optgroup, "machine_max_junction_deviation");
     //optgroup = page->new_optgroup(L("Minimum feedrates"));
     //    append_option_line(optgroup, "machine_min_extruding_rate");
     //    append_option_line(optgroup, "machine_min_travel_rate");
@@ -4630,6 +4637,9 @@ void TabPrinter::toggle_options()
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper, i);
         toggle_line("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper);
+        for (int i = 0; i < max_field; ++i)
+            toggle_option("machine_max_junction_deviation", gcf == gcfMarlinFirmware, i);
+        toggle_line("machine_max_junction_deviation", gcf == gcfMarlinFirmware);
     }
 }
 

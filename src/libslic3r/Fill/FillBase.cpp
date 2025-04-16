@@ -171,16 +171,11 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                 params.extrusion_role,
                 flow_mm3_per_mm, float(flow_width), params.flow.height());
         }
-
-        if (is_flow_calib) {
+        if (!params.can_reverse || is_flow_calib) {
             for (size_t i = idx; i < eec->entities.size(); i++)
-                eec->entities[i]->reverse();
-        } else {
-            if (!params.can_reverse) {
-                for (size_t i = idx; i < eec->entities.size(); i++)
-                    eec->entities[i]->set_reverse();
-            }
+                eec->entities[i]->set_reverse();
         }
+
         // Orca: run gap fill
         this->_create_gap_fill(surface, params, eec);
     }
