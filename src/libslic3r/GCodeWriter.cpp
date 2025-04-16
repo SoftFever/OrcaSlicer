@@ -37,6 +37,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     if (use_mach_limits) {
         m_max_jerk_x  = std::lrint(print_config.machine_max_jerk_x.values.front());
         m_max_jerk_y  = std::lrint(print_config.machine_max_jerk_y.values.front());
+        m_max_junction_deviation  = (print_config.machine_max_junction_deviation.values.front());
     };
     m_max_jerk_z = print_config.machine_max_jerk_z.values.front();
     m_max_jerk_e = print_config.machine_max_jerk_e.values.front();
@@ -45,6 +46,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
     std::sort(extruder_ids.begin(), extruder_ids.end());
+    m_extruder = nullptr; // this points to object inside `m_extruders`, so should be cleared too
     m_extruders.clear();
     m_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
@@ -312,6 +314,24 @@ std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double je
 
 }
 
+std::string GCodeWriter::set_junction_deviation(double junction_deviation){
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfMarlinFirmware) && junction_deviation > 0 && m_max_junction_deviation > 0) {
+        // Clamp the junction deviation to the allowed maximum.
+        gcode << "M205 J";
+        if (junction_deviation <= m_max_junction_deviation) {
+            gcode << std::fixed << std::setprecision(3) << junction_deviation;
+        } else {
+            gcode << std::fixed << std::setprecision(3) << m_max_junction_deviation;
+        }
+        if (GCodeWriter::full_gcode_comment) {
+            gcode << " ; Junction Deviation";
+        }
+        gcode << "\n";
+    }
+    return gcode.str();
+}
+
 std::string GCodeWriter::set_pressure_advance(double pa) const
 {
     std::ostringstream gcode;
@@ -332,6 +352,52 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     return gcode.str();
 }
 
+std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) const
+{
+    if (freq < 0.0f || damp < 0.f || damp > 1.0f || (axis != 'X' && axis != 'Y' && axis != 'Z' && axis != 'A'))// A = all axis
+    {
+    throw std::runtime_error("Invalid input shaping parameters: freq=" + std::to_string(freq) + ", damp=" + std::to_string(damp));
+    }
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfKlipper)) {
+        gcode << "SET_INPUT_SHAPER";
+        if (axis != 'A')
+        {
+            if (freq > 0.0f) {
+                gcode << " SHAPER_FREQ_" << axis << "=" << std::fixed << std::setprecision(2) << freq;
+            }
+            if (damp > 0.0f){
+                gcode  << " DAMPING_RATIO_" << axis << "=" << damp;
+            } 
+        } else {
+            if (freq > 0.0f) {
+                gcode << " SHAPER_FREQ_X=" << std::fixed << std::setprecision(2) << freq << " SHAPER_FREQ_Y=" << std::fixed << std::setprecision(2) << freq;
+            }
+            if (damp > 0.0f) {
+                gcode << " DAMPING_RATIO_X=" << std::fixed << std::setprecision(3) << damp << " DAMPING_RATIO_Y=" << std::fixed << std::setprecision(3) << damp;
+            }
+        }
+    } else {
+        gcode << "M593";
+        if (axis != 'A')
+        {
+            gcode << " " << axis;
+        }
+        if (freq > 0.0f)
+        {
+            gcode << " F" << std::fixed << std::setprecision(2) << freq;
+        }
+        if (damp > 0.0f)
+        {
+            gcode << " D" << std::fixed << std::setprecision(3) << damp;
+        }
+    }
+    if (GCodeWriter::full_gcode_comment){
+        gcode << " ; Override input shaping";
+    }
+    gcode << "\n";
+    return gcode.str();
+}
 
 
 std::string GCodeWriter::reset_e(bool force)

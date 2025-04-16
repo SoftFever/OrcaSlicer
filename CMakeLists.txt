@@ -182,7 +182,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT WIN32)
     # Add DEBUG flags to debug builds.
-    add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
+    add_compile_definitions("$<IF:$<CONFIG:Debug>,DEBUG,NDEBUG>")
 endif()
 
 # To be able to link libslic3r with the Perl XS module.
@@ -430,7 +430,7 @@ endif()
 # set(Boost_COMPILER "-mgw81")
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
-find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log log_setup locale regex chrono atomic date_time iostreams program_options)
+find_package(Boost 1.83.0 REQUIRED COMPONENTS system filesystem thread log log_setup locale regex chrono atomic date_time iostreams program_options nowide)
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)

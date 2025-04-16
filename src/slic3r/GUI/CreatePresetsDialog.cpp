@@ -1,4 +1,5 @@
 #include "CreatePresetsDialog.hpp"
+#include <boost/log/trivial.hpp>
 #include <vector>
 #include <set>
 #include <unordered_map>
@@ -37,7 +38,7 @@
 namespace Slic3r { 
 namespace GUI {
 
-static const std::vector<std::string> filament_vendors = 
+    static const std::vector<std::string> filament_vendors = 
     {"3Dgenius",               "3DJake",                 "3DXTECH",                "3D BEST-Q",              "3D Hero",
      "3D-Fuel",                "Aceaddity",              "AddNorth",               "Amazon Basics",          "AMOLEN",
      "Ankermake",              "Anycubic",               "Atomic",                 "AzureFilm",              "BASF",
@@ -46,18 +47,18 @@ static const std::vector<std::string> filament_vendors =
      "CERPRiSE",               "Das Filament",           "DO3D",                   "DOW",                    "DSM",
      "Duramic",                "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",
      "Extrudr",                "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",
-     "Fillamentum",            "FLASHFORGE",             "Formfutura",             "Francofil",              "FilamentOne",
-     "Fil X",                  "GEEETECH",               "Giantarm",               "Gizmo Dorks",            "GreenGate3D",
-     "HATCHBOX",               "Hello3D",                "IC3D",                   "IEMAI",                  "IIID Max",
-     "INLAND",                 "iProspect",              "iSANMATE",               "Justmaker",              "Keene Village Plastics",
-     "Kexcelled",              "LDO",                    "MakerBot",               "MatterHackers",          "MIKA3D",
-     "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",               "OVVNYXE",
-     "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",             "Prusament",
-     "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",                "Regen",
-     "RatRig",                 "Sain SMART",             "SliceWorx",              "Snapmaker",              "SnoLabs",
-     "Spectrum",               "SUNLU",                  "TTYT3D",                 "Tianse",                 "UltiMaker",
-     "Valment",                "Verbatim",               "VO3D",                   "Voxelab",                "VOXELPLA",
-     "YOOPAI",                 "Yousu",                  "Ziro",                   "Zyltech"};
+     "Fillamentum",            "FLASHFORGE",             "Formfutura",             "Francofil",              "FusRock",
+     "FilamentOne",            "Fil X",                  "GEEETECH",               "Giantarm",               "Gizmo Dorks",
+     "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",                   "IEMAI",
+     "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",               "Justmaker",
+     "Keene Village Plastics", "Kexcelled",              "LDO",                    "MakerBot",               "MatterHackers",
+     "MIKA3D",                 "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",
+     "OVVNYXE",                "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",
+     "Prusament",              "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",
+     "Regen",                  "RatRig",                 "Sain SMART",             "SliceWorx",              "Snapmaker",
+     "SnoLabs",                "Spectrum",               "SUNLU",                  "TTYT3D",                 "Tianse",
+     "UltiMaker",              "Valment",                "Verbatim",               "VO3D",                   "Voxelab",
+     "VOXELPLA",               "YOOPAI",                 "Yousu",                  "Ziro",                   "Zyltech"};
      
 static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+",      "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",   "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PVB",       "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",    "PP",     "PEI",    "PET",
@@ -906,6 +907,20 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
                 auto compatible_printers = preset->config.option<ConfigOptionStrings>("compatible_printers", true);
                 if (!compatible_printers || compatible_printers->values.empty()) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "there is a preset has no compatible printers and the preset name is: " << preset->name;
+                    // If no compatible printers are defined, add all visible printers
+                    for (const std::string& visible_printer : m_visible_printers) {
+                        std::string nozzle = get_printer_nozzle_diameter(visible_printer);
+                        if (nozzle_diameter[nozzle] == 0) {
+                            BOOST_LOG_TRIVIAL(info)
+                                << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << visible_printer;
+                            continue;
+                        }
+                        // Add to the list of available printer-preset pairs
+                        printer_name_to_filament_preset.push_back(std::make_pair(visible_printer, preset));
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show compatible printer name: " << visible_printer
+                                                << " and preset name is: " << preset->name;
+                    }
+                    
                     continue;
                 }
                 for (std::string &compatible_printer_name : compatible_printers->values) {
@@ -1308,6 +1323,43 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
         auto    compatible_printers = preset->config.option<ConfigOptionStrings>("compatible_printers", true);
         if (!compatible_printers || compatible_printers->values.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "there is a preset has no compatible printers and the preset name is: " << preset->name;
+            // If no compatible printers are defined, add all visible printers
+            for (const std::string& visible_printer : m_visible_printers) {
+                Preset* inherit_preset = nullptr;
+                auto    inherit        = dynamic_cast<ConfigOptionString*>(preset->config.option(BBL_JSON_KEY_INHERITS, false));
+                if (inherit && !inherit->value.empty()) {
+                    std::string inherits_value = inherit->value;
+                    inherit_preset             = preset_bundle->filaments.find_preset(inherits_value, false, true);
+                }
+
+                ConfigOptionStrings* filament_types;
+                if (!inherit_preset) {
+                    filament_types = dynamic_cast<ConfigOptionStrings*>(preset->config.option("filament_type"));
+                } else {
+                    filament_types = dynamic_cast<ConfigOptionStrings*>(inherit_preset->config.option("filament_type"));
+                }
+
+                if (filament_types && filament_types->values.empty())
+                    continue;
+                const std::string filament_type = filament_types->values[0];
+                if (filament_type != type_name) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " preset type is not selected type and preset name is: " << preset->name;
+                    continue;
+                }
+
+                std::string nozzle = get_printer_nozzle_diameter(visible_printer);
+                if (nozzle_diameter[nozzle] == 0) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                            << " compatible printer nozzle encounter exception and name is: " << visible_printer;
+                    continue;
+                }
+
+                // Add all visible printers as compatible printers
+                machine_name_to_presets[visible_printer].push_back(preset);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show compatible printer name: " << visible_printer
+                                        << " and preset name is: " << preset->name;
+            }
+            
             continue;
         }
         for (std::string &compatible_printer_name : compatible_printers->values) {
@@ -1827,7 +1879,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
      // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_x_input = new TextInput(parent, "200", "mm", "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_size_x_input = new TextInput(parent, "200", _L("mm"), "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_size_x_input->GetTextCtrl()->SetValidator(validator);
     length_input_sizer->Add(m_bed_size_x_input, 0, wxEXPAND | wxLEFT, FromDIP(5));
@@ -1837,7 +1889,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
     // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_y_input            = new TextInput(parent, "200", "mm", "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_size_y_input            = new TextInput(parent, "200", _L("mm"), "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     m_bed_size_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_size_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1860,7 +1912,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_x_input           = new TextInput(parent, "0", "mm", "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_origin_x_input           = new TextInput(parent, "0", _L("mm"), "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_origin_x_input->GetTextCtrl()->SetValidator(validator);
     length_input_sizer->Add(m_bed_origin_x_input, 0, wxEXPAND | wxLEFT, FromDIP(5)); // Align with other
@@ -1870,7 +1922,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_y_input          = new TextInput(parent, "0", "mm", "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_origin_y_input          = new TextInput(parent, "0", _L("mm"), "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     m_bed_origin_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_origin_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1963,7 +2015,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *hight_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_print_height_input          = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER); // Use same alignment with all other input boxes
+    m_print_height_input          = new TextInput(parent, "200", _L("mm"), wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER); // Use same alignment with all other input boxes
     wxTextValidator validator(wxFILTER_DIGITS);
     m_print_height_input->GetTextCtrl()->SetValidator(validator);
     hight_input_sizer->Add(m_print_height_input, 0, wxEXPAND | wxLEFT, FromDIP(5));
@@ -4240,6 +4292,10 @@ void ExportConfigsDialog::data_init()
         Preset *new_filament_preset = new Preset(filament_preset);
         const Preset *base_filament_preset = preset_bundle.filaments.get_preset_base(*new_filament_preset);
 
+        if (base_filament_preset == nullptr) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to find base preset";
+            continue;
+        }
         std::string filament_preset_name = base_filament_preset->name;
         std::string machine_name         = get_machine_name(filament_preset_name);
         m_filament_name_to_presets[get_filament_name(filament_preset_name)].push_back(std::make_pair(get_vendor_name(machine_name), new_filament_preset));

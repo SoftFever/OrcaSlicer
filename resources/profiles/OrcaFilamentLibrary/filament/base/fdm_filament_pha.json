@@ -2,7 +2,7 @@
     "type": "filament",
     "name": "fdm_filament_pha",
     "inherits": "fdm_filament_common",
-    "filament_id": "GFR98",
+    "filament_id": "OGFR98",
     "from": "system",
     "instantiation": "false",
     "additional_cooling_fan_speed": [
@@ -75,7 +75,7 @@
         "4"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "temperature_vitrification": [
         "120"

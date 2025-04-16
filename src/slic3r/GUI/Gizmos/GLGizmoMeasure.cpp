@@ -39,7 +39,7 @@ std::string GLGizmoMeasure::surface_feature_type_as_string(Measure::SurfaceFeatu
     switch (type)
     {
     default:
-    case Measure::SurfaceFeatureType::Undef:  { return ("No feature"); }
+    case Measure::SurfaceFeatureType::Undef:  { return _u8L("No feature"); }
     case Measure::SurfaceFeatureType::Point:  { return _u8L("Vertex"); }
     case Measure::SurfaceFeatureType::Edge:   { return _u8L("Edge"); }
     case Measure::SurfaceFeatureType::Circle: { return _u8L("Circle"); }
@@ -2470,11 +2470,11 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         m_pending_scale ++;
         if (same_model_object == false) {
-            auto object_displacement = v->get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            Vec3d object_displacement = v->get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
             v->set_instance_transformation(v->get_instance_transformation().get_matrix() * Geometry::translation_transform(object_displacement));
         } else {
             Geometry::Transformation tran(v->world_matrix());
-            auto                     local_displacement = tran.get_matrix_no_offset().inverse() * displacement;
+            Vec3d                     local_displacement = tran.get_matrix_no_offset().inverse() * displacement;
             v->set_volume_transformation(v->get_volume_transformation().get_matrix() * Geometry::translation_transform(local_displacement));
         }
         wxGetApp().plater()->canvas3D()->do_move("");
@@ -2647,7 +2647,7 @@ void GLGizmoMeasure::set_parallel_distance(bool same_model_object, float dist)
         const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
         Vec3d proj_pt2;
         Measure::get_point_projection_to_plane(pt2, pt1, normal1, proj_pt2);
-        auto new_pt2 = proj_pt2 + normal1 * dist;
+        Vec3d new_pt2 = proj_pt2 + normal1 * dist;
 
         Vec3d displacement = new_pt2 - pt2;
 

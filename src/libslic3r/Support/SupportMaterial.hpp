@@ -6,6 +6,7 @@
 #include "Slicing.hpp"
 #include "Fill/FillBase.hpp"
 #include "SupportLayer.hpp"
+#include "SupportParameters.hpp"
 namespace Slic3r {
 
 class PrintObject;
@@ -18,35 +19,6 @@ class PrintObjectConfig;
 // the parameters of the raft to determine the 1st layer height and thickness.
 class PrintObjectSupportMaterial
 {
-public:
-
-	struct SupportParams {
-		Flow 		first_layer_flow;
-		Flow 		support_material_flow;
-		Flow 		support_material_interface_flow;
-		Flow 		support_material_bottom_interface_flow;
-		// Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
-		bool 		can_merge_support_regions;
-
-	    coordf_t 	support_layer_height_min;
-	//	coordf_t	support_layer_height_max;
-
-		coordf_t	gap_xy;
-
-	    float    				base_angle;
-	    float    				interface_angle;
-	    coordf_t 				interface_spacing;
-	    coordf_t				support_expansion;
-	    coordf_t 				interface_density;
-	    coordf_t 				support_spacing;
-	    coordf_t 				support_density;
-
-	    InfillPattern           base_fill_pattern;
-	    InfillPattern           interface_fill_pattern;
-	    InfillPattern 			contact_fill_pattern;
-	    bool                    with_sheath;
-	};
-
 public:
 	PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params);
 
@@ -97,25 +69,7 @@ private:
 	    SupportGeneratorLayersPtr         &intermediate_layers,
 	    const std::vector<Polygons> &layer_support_areas) const;
 
-	// Generate raft layers, also expand the 1st support layer
-	// in case there is no raft layer to improve support adhesion.
-    SupportGeneratorLayersPtr generate_raft_base(
-    	const PrintObject   &object,
-	    const SupportGeneratorLayersPtr   &top_contacts,
-	    const SupportGeneratorLayersPtr   &interface_layers,
-	    const SupportGeneratorLayersPtr   &base_interface_layers,
-	    const SupportGeneratorLayersPtr   &base_layers,
-	    SupportGeneratorLayerStorage      &layer_storage) const;
 
-	// Turn some of the base layers into base interface layers.
-	// For soluble interfaces with non-soluble bases, print maximum two first interface layers with the base
-	// extruder to improve adhesion of the soluble filament to the base.
-	std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interface_layers(
-	    const SupportGeneratorLayersPtr   &bottom_contacts,
-	    const SupportGeneratorLayersPtr   &top_contacts,
-	    SupportGeneratorLayersPtr         &intermediate_layers,
-	    SupportGeneratorLayerStorage      &layer_storage) const;
-	
 
 	// Trim support layers by an object to leave a defined gap between
 	// the support volume and the object.
@@ -131,16 +85,6 @@ private:
 	void clip_with_shape();
 */
 
-	// Produce the actual G-code.
-	void generate_toolpaths(
-		SupportLayerPtrs    &support_layers,
-        const SupportGeneratorLayersPtr 	&raft_layers,
-        const SupportGeneratorLayersPtr   &bottom_contacts,
-        const SupportGeneratorLayersPtr   &top_contacts,
-        const SupportGeneratorLayersPtr   &intermediate_layers,
-		const SupportGeneratorLayersPtr   &interface_layers,
-        const SupportGeneratorLayersPtr   &base_interface_layers) const;
-
 	// Following objects are not owned by SupportMaterial class.
 	const PrintObject 		*m_object;
 	const PrintConfig 		*m_print_config;
@@ -149,7 +93,7 @@ private:
 	// carrying information on a raft, 1st layer height, 1st object layer height, gap between the raft and object etc.
 	SlicingParameters	     m_slicing_params;
 	// Various precomputed support parameters to be shared with external functions.
-	SupportParams 			 m_support_params;
+	SupportParameters   	 m_support_params;
 };
 
 } // namespace Slic3r

@@ -433,6 +433,8 @@ Slic3r::Polygons   diff(const Slic3r::Polygons &subject, const Slic3r::ExPolygon
 // Optimized version clipping the "clipping" polygon using clip_clipper_polygon_with_subject_bbox().
 // To be used with complex clipping polygons, where majority of the clipping polygons are outside of the source polygon.
 Slic3r::Polygons   diff_clipped(const Slic3r::Polygons &src, const Slic3r::Polygons &clipping, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
+Slic3r::ExPolygons diff_clipped(const Slic3r::ExPolygons &src, const Slic3r::Polygons &clipping, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
+Slic3r::ExPolygons diff_clipped(const Slic3r::ExPolygons &src, const Slic3r::ExPolygons &clipping, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::Polygons   diff(const Slic3r::ExPolygons &subject, const Slic3r::Polygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::Polygons   diff(const Slic3r::ExPolygons &subject, const Slic3r::ExPolygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::Polygons   diff(const Slic3r::Surfaces &subject, const Slic3r::Polygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);

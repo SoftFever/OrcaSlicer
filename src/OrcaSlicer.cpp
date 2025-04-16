@@ -36,10 +36,10 @@ using namespace nlohmann;
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/args.hpp>
-#include <boost/nowide/cenv.hpp>
+#include <boost/nowide/cstdlib.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
-#include <boost/nowide/integration/filesystem.hpp>
+#include <boost/nowide/filesystem.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/log/trivial.hpp>
 
@@ -1123,7 +1123,6 @@ int CLI::run(int argc, char **argv)
     bool start_gui = m_actions.empty() && !downward_check;
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
-        ::Label::initSysFont();
 #ifdef SLIC3R_GUI
     /*#if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux / unix system
@@ -1387,7 +1386,7 @@ int CLI::run(int argc, char **argv)
                 // BBS: adjust whebackup
                 //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
                 //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
-                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, nullptr, nullptr, plate_to_slice);
+                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
