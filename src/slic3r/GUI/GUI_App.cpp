@@ -2302,8 +2302,8 @@ bool GUI_App::on_init_inner()
         if (fnIsWow64Process2) {
             USHORT processMachine = 0;
             USHORT nativeMachine = 0;
-            if (IsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
-                if (nativeMachine == IMAGE_FILE_MACHINE_ARM64) {
+            if (fnIsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
+                if (nativeMachine == IMAGE_FILE_MACHINE_ARM64) {//IMAGE_FILE_MACHINE_ARM64
                     m_is_arm64 = true;
                 }
                 BOOST_LOG_TRIVIAL(info) << boost::format("processMachine architecture %1%, nativeMachine %2% m_is_arm64 %3%")%(int)(processMachine) %(int) nativeMachine %m_is_arm64;
