@@ -1,8 +1,8 @@
 {
     "type": "filament",
-    "filament_id": "GFB98_5",
+    "filament_id": "GFB98_7",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic ASA @MK3.5 0.25",
+    "name": "Prusa Generic ASA HF @MK3.5 0.8",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_asa",
@@ -28,7 +28,7 @@
         "100"
     ],
     "filament_max_volumetric_speed": [
-        "11"
+        "36"
     ],
     "fan_max_speed": [
         "15"
@@ -43,10 +43,10 @@
         "1"
     ],
     "pressure_advance": [
-        "0.09"
+        "0.01"
     ],
 
     "compatible_printers": [
-        "Prusa MK3.5 0.25 nozzle"
+        "Prusa MK3.5 0.8 nozzle"
       ]
 }

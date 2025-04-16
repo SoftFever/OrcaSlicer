@@ -3139,6 +3139,9 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
             print.config().machine_max_jerk_y.values.front() * factor,
             print.config().machine_max_jerk_z.values.front() * factor,
             print.config().machine_max_jerk_e.values.front() * factor);
+
+        // New Marlin uses M205 J[mm] for junction deviation (only apply if it is > 0)
+        file.write_format(writer().set_junction_deviation(config().machine_max_junction_deviation.values.front()).c_str());
     }
 }
 
@@ -3783,9 +3786,6 @@ LayerResult GCode::process_layer(
         }
         case CalibMode::Calib_Input_shaping_freq: {
             if (m_layer_index == 1){
-                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
-                    gcode += writer().set_junction_deviation(0.25);//Set junction deviation at high value to maximize ringing.
-                }
                 gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
             } else {
                 if (print.calib_params().freqStartX == print.calib_params().freqStartY && print.calib_params().freqEndX == print.calib_params().freqEndY) {
@@ -3799,9 +3799,6 @@ LayerResult GCode::process_layer(
         }
         case CalibMode::Calib_Input_shaping_damp: {
             if (m_layer_index == 1){
-                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
-                    gcode += writer().set_junction_deviation(0.25); // Set junction deviation at high value to maximize ringing.
-                }
                 gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX);
             gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY);
             } else {
@@ -3826,6 +3823,9 @@ LayerResult GCode::process_layer(
             gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
 
+        if (m_writer.get_gcode_flavor() == gcfMarlinFirmware && m_config.default_junction_deviation.value > 0) {
+            gcode += m_writer.set_junction_deviation(m_config.default_junction_deviation.value);
+        }
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
