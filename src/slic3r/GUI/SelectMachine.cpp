@@ -2308,6 +2308,9 @@ wxString SelectMachineDialog::format_steel_name(NozzleType type)
     else if (type == NozzleType::ntStainlessSteel) {
         return _L("Stainless Steel");
     }
+    else if (type == NozzleType::ntTungstenCarbide) {
+        return _L("Tungsten Carbide");
+    }
 
     return _L("Unknown");
 }

@@ -792,6 +792,7 @@ wxString PrinterPartsDialog::GetString(NozzleType nozzle_type) const {
     switch (nozzle_type) {
         case Slic3r::ntHardenedSteel:  return _L("Hardened Steel");
         case Slic3r::ntStainlessSteel: return _L("Stainless Steel");
+        case Slic3r::ntTungstenCarbide: return _L("Tungsten Carbide");
         default: break;
     }
 

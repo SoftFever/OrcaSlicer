@@ -2088,17 +2088,6 @@ void SyncAmsInfoDialog::show_errors(wxString &info)
     confirm_dlg.on_show();
 }
 
-wxString SyncAmsInfoDialog::format_steel_name(NozzleType type)
-{
-    if (type == NozzleType::ntHardenedSteel) {
-        return _L("Hardened Steel");
-    } else if (type == NozzleType::ntStainlessSteel) {
-        return _L("Stainless Steel");
-    }
-
-    return wxEmptyString;
-}
-
 void SyncAmsInfoDialog::Enable_Auto_Refill(bool enable)
 {
     if (!m_ams_backup_tip) { return; }

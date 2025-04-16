@@ -188,7 +188,7 @@ struct Nozzle
     int   id;
     NozzleToolType  tool_type;         // H nozzle or Cut
     NozzleFlowType  nozzle_flow;       // 0-common 1-high flow
-    NozzleType      nozzle_type;       // 0-stainless_steel 1-hardened_steel
+    NozzleType      nozzle_type;       // 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
     float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
     int   max_temp = 0;
     int   wear = 0;
