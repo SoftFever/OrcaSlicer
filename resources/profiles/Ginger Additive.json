@@ -1,8 +1,8 @@
 {
-  "name": "ginger Additive",
+  "name": "Ginger Additive",
   "version":  "02.03.00.03",
   "force_update": "1",
-  "description": "ginger configuration",
+  "description": "Ginger configuration",
   "machine_model_list": [
     {
       "name": "ginger G1",
