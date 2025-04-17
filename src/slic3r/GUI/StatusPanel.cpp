@@ -4699,6 +4699,10 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
         {
             obj->command_stop_buzzer();
         }
+        else if (id == PrintErrorDialog::CONTINUE || id == PrintErrorDialog::RETRY_PROBLEM_SOLVED)
+        {
+            obj->command_ams_control("resume");
+        }
 
         if (m_print_error_dlg) { m_print_error_dlg->on_hide(); }
         if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->on_hide();}

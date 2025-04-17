@@ -1222,6 +1222,12 @@ void PrintErrorDialog::init_button_list()
             post_event(evt);
             e.Skip();
         });
+
+    init_button(RETRY_PROBLEM_SOLVED, _L("Retry (problem solved)"));
+    m_button_list[RETRY_PROBLEM_SOLVED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_DONE));
+        e.Skip();
+    });
 }
 
 PrintErrorDialog::~PrintErrorDialog()
