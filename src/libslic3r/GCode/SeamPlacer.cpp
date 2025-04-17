@@ -1508,11 +1508,13 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop,
   };
 
   auto get_shifted_loop_point = [loop](ExtrusionLoop::ClosestPathPoint current) {
-    double furthest = std::min(10.0, loop.length()*SCALING_FACTOR / 2);
-    double dist = 0;
+    double shift = std::min(4. + ((double)rand())/RAND_MAX*2., loop.length() * SCALING_FACTOR / 2);
+    double way = 0;
     Point const *point = &loop.paths[current.path_idx].polyline.points[current.segment_idx];
+    Point const *prev = point;
+    double way_to_prev = 0;
 
-    while (dist < furthest) {
+    while (way < shift) {
         current.segment_idx += 1;
 
         if (current.segment_idx >= loop.paths[current.path_idx].polyline.points.size()) {
@@ -1521,13 +1523,18 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop,
         }
 
         Point const &next = loop.paths[current.path_idx].polyline.points[current.segment_idx];
-
-        dist += point->distance_to(next)*SCALING_FACTOR;
+        way_to_prev = way;
+        way += point->distance_to(next)*SCALING_FACTOR;
+        prev = point;
         point = &next;
     }
 
-    current.foot_pt = loop.paths[current.path_idx].polyline.points[current.segment_idx];
-    return current;
+    double leg    = way - way_to_prev;
+    double part   = shift - way_to_prev;
+    double kprev  = 1-part/leg;
+    double kpoint = 1 - kprev;
+
+    return Point(prev->x()*kprev + point->x()*kpoint ,prev->y()*kprev + point->y()*kpoint);
   };
 
   const PrintObjectSeamData::LayerSeams &layer_perimeters =
@@ -1630,18 +1637,20 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop,
             projected_point = next_point;
           }
           seam_point = projected_point.foot_pt;
-      }else
-          seam_point = get_shifted_loop_point(projected_point).foot_pt;
+          // Because the G-code export has 1um resolution, don't generate segments shorter than 1.5 microns,
+          // thus empty path segments will not be produced by G-code export.
+          if (!loop.split_at_vertex(seam_point, scaled<double>(0.0015))) {
+            // The point is not in the original loop.
+            // Insert it.
+            loop.split_at(seam_point, true);
+          }
+      } else {
+          seam_point = get_shifted_loop_point(projected_point);
+          loop.split_at(seam_point, true);
+      }
     }
   }
 
-  // Because the G-code export has 1um resolution, don't generate segments shorter than 1.5 microns,
-  // thus empty path segments will not be produced by G-code export.
-  if (!loop.split_at_vertex(seam_point, scaled<double>(0.0015))) {
-    // The point is not in the original loop.
-    // Insert it.
-    loop.split_at(seam_point, true);
-  }
 
 }
 
