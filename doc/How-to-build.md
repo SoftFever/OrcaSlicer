@@ -25,7 +25,7 @@
    - For Visual Studio 2022:  
      Open **x64 Native Tools Command Prompt for VS 2022** and run:
      ```sh
-     build_release_2022.bat
+     build_release_vs2022.bat
      ```
 
 **⚠️ Note:** If the build fails, delete the entire project directory, re-clone the repository, and try again to ensure a clean cache.
