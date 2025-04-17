@@ -191,6 +191,8 @@ public:
         PROBLEM_SOLVED_RESUME = 28,
         STOP_BUZZER = 29,
 
+        RETRY_PROBLEM_SOLVED = 34,
+
         ERROR_BUTTON_COUNT
     };
     PrintErrorDialog(
