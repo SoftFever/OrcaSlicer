@@ -9,8 +9,6 @@
 - [Git](https://git-scm.com/)
 - [Git LFS](https://git-lfs.github.com/)
 
-**⚠️ Note:** check the Cmake 
-
 ### Instructions
 1. Clone the repository:
    ```sh
