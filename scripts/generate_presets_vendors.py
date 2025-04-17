@@ -70,11 +70,11 @@ filament_vendors = [
     'California Filament',
     'Capricorn',
     'CC3D',
+    'CERPRiSE',
     'colorFabb',
     'Comgrow',
     'Cookiecad',
     'Creality',
-    'CERPRiSE',
     'Das Filament',
     'DO3D',
     'DOW',
@@ -89,12 +89,13 @@ filament_vendors = [
     'Fiberlogy',
     'FilaCube',
     'Filamentive',
+    'FilamentOne',
     'Fillamentum',
+    'Fil X',
     'FLASHFORGE',
     'Formfutura',
     'Francofil',
-    'FilamentOne',
-    'Fil X',
+    'FusRock',
     'GEEETECH',
     'Giantarm',
     'Gizmo Dorks',
@@ -147,7 +148,7 @@ filament_vendors = [
     'Yousu',
     'Ziro',
     'Zyltech',
-    ]
+]
 
 filament_vendors_formatted = [f'"{vendor_name}",' for vendor_name in filament_vendors]
 fil_col_width = len(max(filament_vendors_formatted, key=len))

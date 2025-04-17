@@ -563,6 +563,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "outer_wall_jerk", "inner_wall_jerk", "initial_layer_jerk", "top_surface_jerk", "travel_jerk", "infill_jerk"})
         toggle_field(el, have_default_jerk);
 
+    toggle_line("default_junction_deviation", gcflavor == gcfMarlinFirmware);
+
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
     toggle_line("single_loop_draft_shield", have_skirt); // ORCA: Display one wall if skirt enabled

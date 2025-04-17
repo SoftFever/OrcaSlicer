@@ -4,6 +4,7 @@
   "from": "system",
   "instantiation": "false",
   "inherits": "process_common_MK3.5",
+  "initial_layer_infill_speed": "100",
   "outer_wall_speed": "150",
   "inner_wall_speed": "150",
   "small_perimeter_speed": "150",

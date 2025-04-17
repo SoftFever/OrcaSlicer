@@ -3,6 +3,7 @@
   "filament_id": "GFL99",
   "setting_id": "GFSA04",
   "name": "Generic ASA @Flashforge AD4",
+  "renamed_from": "Generic ASA @AD4",
   "from": "system",
   "instantiation": "true",
   "inherits": "Flashforge Generic ASA",

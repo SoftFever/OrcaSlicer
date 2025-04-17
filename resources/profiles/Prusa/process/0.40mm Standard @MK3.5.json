@@ -21,6 +21,7 @@
   "bottom_shell_thickness": "0.8",
   "bottom_shell_layers": "3",
   "initial_layer_speed": "30",
+  "initial_layer_infill_speed": "55",
   "outer_wall_speed": "40",
   "inner_wall_speed": "40",
   "bridge_speed": "22",
