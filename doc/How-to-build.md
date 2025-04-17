@@ -3,11 +3,13 @@
 ## Windows 64-bit
 
 ### Tools Required
-- [Visual Studio 2019](https://visualstudio.microsoft.com/it/vs/) or Visual Studio 2022  
-- [CMake (version 3.14)](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
-- [Strawberry Perl](https://github.com/StrawberryPerl)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or Visual Studio 2019  
+- [CMake (version 3.31)](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
+- [Strawberry Perl](https://strawberryperl.com/)
 - [Git](https://git-scm.com/)
 - [Git LFS](https://git-lfs.github.com/)
+
+**⚠️ Note:** check the Cmake 
 
 ### Instructions
 1. Clone the repository:
@@ -28,7 +30,11 @@
      build_release_vs2022.bat
      ```
 
-**⚠️ Note:** If the build fails, delete the entire project directory, re-clone the repository, and try again to ensure a clean cache.
+**⚠️ Note 1:** Make sure that CMake version 3.31.x is actually being used. Run cmake --version and verify it returns a 3.31.x version.
+If you see an older version (e.g. 3.29), it's likely due to another copy in your system's PATH (e.g. from Strawberry Perl).
+You can run where cmake to check the active paths and rearrange your System Environment Variables > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
+
+**⚠️ Note 2:** If the build fails, delete the entire project directory, re-clone the repository, and try again to ensure a clean cache.
 
 ## macOS 64-bit
 
