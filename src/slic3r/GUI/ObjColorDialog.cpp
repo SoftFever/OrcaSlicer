@@ -233,7 +233,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
                   EndModal(wxCANCEL);
                   return;
               }
-              m_panel_ObjColor->clear_instance();
+              m_panel_ObjColor->clear_instance_and_revert_offset();
               m_panel_ObjColor->send_new_filament_to_ui();
               EndModal(wxID_OK);
             }, wxID_OK);
@@ -357,9 +357,11 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
                 auto mo = m_obj_in_out.model->objects[0];
                 mo->add_instance();
                 auto mv  = mo->volumes[0];
+                m_thumbnail_offset = Slic3r::Vec3d::Zero();
                 auto box = mo->bounding_box_exact();
                 if (box.min.x() < 0 || box.min.y() < 0 || box.min.z() < 0) {
-                    mv->translate(box.min.x() < 0 ? -box.min.x() : 0, box.min.y() < 0 ? -box.min.y() : 0, box.min.z() < 0 ? -box.min.z() : 0);
+                    m_thumbnail_offset = Slic3r::Vec3d(box.min.x() < 0 ? -box.min.x() : 0, box.min.y() < 0 ? -box.min.y() : 0, box.min.z() < 0 ? -box.min.z() : 0);
+                    mv->translate(m_thumbnail_offset);
                 }
             }
 
@@ -518,7 +520,7 @@ void ObjColorPanel::cancel_paint_color() {
     m_filament_ids.clear();
     auto mo = m_obj_in_out.model->objects[0];
     mo->config.set("extruder", 1);
-    clear_instance();
+    clear_instance_and_revert_offset();
     auto mv = mo->volumes[0];
     mv->mmu_segmentation_facets.reset();
     mv->config.set("extruder", 1);
@@ -931,10 +933,15 @@ void ObjColorPanel::set_view_angle_type(int value)
 }
 
 
-void ObjColorPanel::clear_instance()
+void ObjColorPanel::clear_instance_and_revert_offset()
 {
     auto mo = m_obj_in_out.model->objects[0];
     mo->clear_instances();
+    auto mv  = mo->volumes[0];
+    auto box = mo->bounding_box_exact();
+    if (!m_thumbnail_offset.isApprox(Slic3r::Vec3d::Zero())) {
+        mv->translate(-m_thumbnail_offset);
+    }
 }
 
 bool ObjColorPanel::do_show(bool show) {

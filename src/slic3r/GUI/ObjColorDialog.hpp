@@ -36,7 +36,7 @@ public:
     void set_layout_callback(LayoutChanggeCallback);
     void do_layout_callback();
     bool do_show(bool show);
-    void clear_instance();
+    void clear_instance_and_revert_offset();
 
 private:
     wxBoxSizer *create_approximate_match_btn_sizer(wxWindow *parent);
@@ -105,6 +105,8 @@ private:
     bool                        m_is_add_filament{false};
     unsigned char&             m_first_extruder_id;
     std::vector<unsigned char> &m_filament_ids;
+
+    Slic3r::Vec3d m_thumbnail_offset;
 };
 
 class ObjColorDialog : public Slic3r::GUI::DPIDialog
