@@ -4,7 +4,7 @@
 
 ### Tools Required
 - [Visual Studio 2019](https://visualstudio.microsoft.com/it/vs/) or Visual Studio 2022  
-- [CMake (version 3.14 or later)](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
+- [CMake (version 3.14)](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
 - [Strawberry Perl](https://github.com/StrawberryPerl)
 - [Git](https://git-scm.com/)
 - [Git LFS](https://git-lfs.github.com/)
