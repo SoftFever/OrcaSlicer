@@ -8,5 +8,6 @@
   "max_layer_height": ["2.5"],
   "nozzle_diameter": ["3.0"],
   "printer_variant": "3.0",
+  "printer_model": "ginger G1",
   "version": "0.1.0.0"
 }
