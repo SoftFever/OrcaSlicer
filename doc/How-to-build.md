@@ -7,14 +7,11 @@
 - [CMake (version 3.31)](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
 - [Strawberry Perl](https://strawberryperl.com/)
 - [Git](https://git-scm.com/)
-- [Git LFS](https://git-lfs.github.com/)
 
 ### Instructions
 1. Clone the repository:
    ```sh
    git clone https://github.com/SoftFever/OrcaSlicer
-   cd OrcaSlicer
-   git lfs pull
    ```
 2. Open the appropriate command prompt:
    - For Visual Studio 2019:  
