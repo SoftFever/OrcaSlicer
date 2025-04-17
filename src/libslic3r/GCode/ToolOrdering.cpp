@@ -895,9 +895,6 @@ bool ToolOrdering::cal_non_support_filaments(const PrintConfig &config,
     int find_first_filaments_count = 0;
     bool has_non_support = has_non_support_filament(config);
     for (const LayerTools &layer_tool : m_layer_tools) {
-        if (!layer_tool.has_object)
-            continue;
-
         for (const unsigned int &filament : layer_tool.extruders) {
             //check first filament
             if (!config.filament_map.values.empty() && initial_filaments[config.filament_map.values[filament] - 1] == -1) {
