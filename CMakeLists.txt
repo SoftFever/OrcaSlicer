@@ -41,8 +41,6 @@ You can do this in Environment Variables settings.
 
         if(NOT IS_CI)
             message(FATAL_ERROR "${_warning_text}")
-        else()
-            message(WARNING "[CI MODE DETECTED] ${_warning_text}")
         endif()
     endif()
 endif ()
