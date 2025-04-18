@@ -1089,7 +1089,7 @@ void AuxiliaryPanel::update_all_cover()
      m_sizer_license->Add(m_combo_license, 0, wxALIGN_CENTER, 0);
 
      wxBoxSizer *m_sizer_description = new wxBoxSizer(wxHORIZONTAL);
-     auto m_text_description = new wxStaticText(this, wxID_ANY, _L("Model Name"), wxDefaultPosition, wxSize(180, -1), 0);
+     auto m_text_description = new wxStaticText(this, wxID_ANY, _L("Description:"), wxDefaultPosition, wxSize(180, -1), 0); // Using "Description:" with the : because that already exists in the Localizations files
      m_text_description->SetForegroundColour(*wxBLACK);
      m_text_description->Wrap(-1);
      m_sizer_description->Add(m_text_description, 0, wxALIGN_CENTER, 0);
@@ -1156,6 +1156,12 @@ void DesignerPanel::on_input_enter_model(wxCommandEvent &evt)
 {
     auto text   = evt.GetString();
     ensure_model_info()->model_name = std::string(text.ToUTF8().data());
+}
+
+void DesignerPanel::on_input_enter_description(wxCommandEvent &evt) 
+{
+    auto text   = evt.GetString();
+    ensure_model_info()->description = std::string(text.ToUTF8().data());
 }
 
 void DesignerPanel::update_info() 
