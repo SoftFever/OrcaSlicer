@@ -1710,9 +1710,9 @@ void GUI_App::init_networking_callbacks()
                     obj->command_get_version();
                     obj->erase_user_access_code();
                     obj->command_get_access_code();
-                    if (!is_enable_multi_machine()) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
-                    }
+                    if (m_agent)
+                        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                 }
                 });
             });
@@ -1821,13 +1821,11 @@ void GUI_App::init_networking_callbacks()
                     else {
                         obj->parse_json(msg, true);
                     }
-                    
 
-                    if (!this->is_enable_multi_machine()) {
-                        if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
-                            GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
-                            obj->is_ams_need_update = false;
-                        }
+
+                    if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                        obj->is_ams_need_update = false;
                     }
                 }
 
