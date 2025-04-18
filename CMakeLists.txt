@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 # Verify that your CMake version is exactly 3.31.x series or lower on windows
-if(${CMAKE_VERSION} VERSION_LESS "3.13" OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.32.0")
+if(${CMAKE_VERSION} VERSION_LESS "3.13" OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0")
     message(FATAL_ERROR "Only CMake versions between 3.13.x and 3.31.x is supported. Detected version: ${CMAKE_VERSION}")
 endif()
 
