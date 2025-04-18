@@ -2067,6 +2067,17 @@ int MachineObject::command_hms_ignore(const std::string& error_str, const std::s
     return this->publish_json(j.dump(), 1);
 }
 
+int MachineObject::command_hms_stop(const std::string &error_str, const std::string &job_id) {
+    json j;
+    j["print"]["command"]     = "stop";
+    j["print"]["err"]         = error_str;
+    j["print"]["param"]       = "reserve";
+    j["print"]["job_id"]      = job_id;
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+    return this->publish_json(j.dump(), 1);
+}
+
 int MachineObject::command_stop_buzzer()
 {
     json j;
