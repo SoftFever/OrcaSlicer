@@ -1314,8 +1314,8 @@ wxPanel* SendMultiMachinePage::create_page()
 
     // add send option
     wxBoxSizer* title_send_option = create_item_title(_L("Send Options"), main_page, "");
-    wxBoxSizer* max_printer_send = create_item_input(_L("Send to"), _L("printers at the same time.(It depends on how many devices can undergo heating at the same time.)"), main_page, "", "max_send");
-    wxBoxSizer* delay_time = create_item_input(_L("Wait"), _L("minute each batch.(It depends on how long it takes to complete the heating.)"), main_page, "", "sending_interval");
+    wxBoxSizer* max_printer_send = create_item_input(_L("Send to"), _L("printers at the same time. (It depends on how many devices can undergo heating at the same time.)"), main_page, "", "max_send");
+    wxBoxSizer* delay_time = create_item_input(_L("Wait"), _L("minute each batch. (It depends on how long it takes to complete the heating.)"), main_page, "", "sending_interval");
     sizer->Add(title_send_option, 0, wxEXPAND, 0);
     sizer->Add(max_printer_send, 0, wxLEFT, FromDIP(20));
     sizer->AddSpacer(FromDIP(3));
