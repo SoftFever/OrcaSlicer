@@ -1093,10 +1093,9 @@ void AuxiliaryPanel::update_all_cover()
      m_text_description->SetForegroundColour(*wxBLACK);
      m_text_description->Wrap(-1);
      m_sizer_description->Add(m_text_description, 0, wxALIGN_CENTER, 0);
-     m_input_description =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition,wxSize(FromDIP(450),FromDIP(30)), wxTE_PROCESS_ENTER);
-     m_input_description->GetTextCtrl()->SetFont(::Label::Body_14);
-     m_input_description->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
-     m_sizer_description->Add(m_input_description, 0, wxALIGN_CENTER, 0);
+     m_text_description = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), FromDIP(100)), wxTE_MULTILINE | wxTE_PROCESS_ENTER);
+     m_text_description->SetFont(::Label::Body_14);
+     m_sizer_description->Add(m_text_description, 1, wxEXPAND | wxALIGN_CENTER, 0);
 
 
      m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(50) );
