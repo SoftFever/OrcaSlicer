@@ -960,7 +960,7 @@ public:
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
-    int  camera_recording_hold_count = 0;
+    time_t  camera_recording_ctl_start = 0;
     int  camera_timelapse_hold_count = 0;
     int  camera_resolution_hold_count = 0;
     std::string camera_resolution            = "";
