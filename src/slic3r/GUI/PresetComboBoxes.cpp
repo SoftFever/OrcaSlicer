@@ -230,8 +230,10 @@ int PresetComboBox::update_ams_color()
     int idx = selected_ams_filament();
     std::string color;
     if (idx < 0) {
-        auto *preset = m_collection->find_preset(Preset::remove_suffix_modified(GetLabel().ToUTF8().data()));
-        if (preset) color = preset->config.opt_string("default_filament_colour", 0u);
+        auto  name   = Preset::remove_suffix_modified(GetValue().ToUTF8().data());
+        auto *preset = m_collection->find_preset(name);
+        if (preset)
+            color = preset->config.opt_string("default_filament_colour", 0u);
         if (color.empty()) return -1;
     } else {
         auto &ams_list = wxGetApp().preset_bundle->filament_ams_list;
@@ -911,7 +913,7 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
             wxTheApp->CallAfter([sp]() { run_wizard(sp); });
         //}
         return;
-    } else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || m_last_selected != selected_item || m_collection->current_is_dirty()) {
+    } else if (marker == LABEL_ITEM_PHYSICAL_PRINTER ||  selected_item >= 0 || m_collection->current_is_dirty()) {
         m_last_selected = selected_item;
         if (m_type == Preset::TYPE_FILAMENT)
             update_ams_color();
