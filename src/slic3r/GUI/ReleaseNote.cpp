@@ -655,7 +655,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
             e.Skip();
         });
 
-    m_button_resume = new Button(this, _L("resume"));
+    m_button_resume = new Button(this, _L("Resume"));
     m_button_resume->SetBackgroundColor(btn_bg_white);
     m_button_resume->SetBorderColor(wxColour(38, 46, 48));
     m_button_resume->SetFont(Label::Body_12);

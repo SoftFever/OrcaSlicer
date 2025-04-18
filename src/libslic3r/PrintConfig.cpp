@@ -7469,16 +7469,19 @@ CLITransformConfigDef::CLITransformConfigDef()
     def = this->add("rotate", coFloat);
     def->label = L("Rotate");
     def->tooltip = L("Rotation angle around the Z axis in degrees.");
+    def->sidetext = L("°");
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_x", coFloat);
-    def->label = "Rotate around X";
-    def->tooltip = "Rotation angle around the X axis in degrees.";
+    def->label = L("Rotate around X");
+    def->tooltip = L("Rotation angle around the X axis in degrees.");
+    def->sidetext = L("°");
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_y", coFloat);
     def->label = L("Rotate around Y");
     def->tooltip = L("Rotation angle around the Y axis in degrees.");
+    def->sidetext = L("°");
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("scale", coFloat);
