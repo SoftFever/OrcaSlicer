@@ -4342,7 +4342,7 @@ LayerResult GCode::process_layer(
                             this->set_origin(0., 0.);
                             m_avoid_crossing_perimeters.use_external_mp();
                             for (const ExtrusionEntity* ee : print.m_brimMap.at(instance_to_print.print_object.id()).entities) {
-                                gcode += this->extrude_entity(*ee, "brim", m_config.support_speed.get_at(cur_extruder_index()));
+                                gcode += this->extrude_entity(*ee, "brim", m_config.support_speed.value);
                             }
                             m_avoid_crossing_perimeters.use_external_mp(false);
                             // Allow a straight travel move to the first object point.
