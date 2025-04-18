@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 
+if(WIN32)
+    # Verify that your CMake version is exactly 3.31.x series on windows
+    if(CMAKE_VERSION VERSION_LESS "3.31.0" OR CMAKE_VERSION VERSION_GREATER_EQUAL "3.32.0")
+        message(FATAL_ERROR "Only CMake 3.31.x is supported. Detected version: ${CMAKE_VERSION}")
+    endif()
+endif()
+    
 if (APPLE)
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
