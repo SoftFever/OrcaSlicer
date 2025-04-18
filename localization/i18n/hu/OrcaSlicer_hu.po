@@ -15343,8 +15343,8 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Nyomtatási paraméterek"
 
-msgid "Plate Type"
-msgstr "Plate Type"
+msgid "Plate type"
+msgstr ""
 
 msgid "filament position"
 msgstr "filamentpozíció"

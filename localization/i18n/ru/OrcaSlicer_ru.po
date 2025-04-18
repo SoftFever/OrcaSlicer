@@ -16957,7 +16957,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Параметры печати"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "Типа печатной пластины"
 
 msgid "filament position"

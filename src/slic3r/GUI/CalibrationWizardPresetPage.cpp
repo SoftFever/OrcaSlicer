@@ -521,7 +521,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 
     panel_sizer->AddSpacer(PRESET_GAP);
 
-    auto plate_type_combo_text = new Label(parent, _L("Plate Type"));
+    auto plate_type_combo_text = new Label(parent, _L("Plate type"));
     plate_type_combo_text->SetFont(Label::Head_14);
     plate_type_combo_text->Wrap(-1);
     panel_sizer->Add(plate_type_combo_text, 0, wxALL, 0);

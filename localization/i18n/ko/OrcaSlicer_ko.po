@@ -15914,7 +15914,7 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "출력 매개변수"
 
-msgid "Plate Type"
+msgid "Plate type"
 msgstr "플레이트 타입"
 
 msgid "filament position"
