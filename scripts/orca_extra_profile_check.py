@@ -27,6 +27,9 @@ def check_filament_compatible_printers(vendor_folder):
     vendor_path = Path(vendor_folder)
     if not vendor_path.exists():
         return 0
+    
+    profiles = {}
+
     # Use rglob to recursively find .json files.
     for file_path in vendor_path.rglob("*.json"):
         try:
@@ -42,11 +45,40 @@ def check_filament_compatible_printers(vendor_folder):
             error += 1
             continue
 
-        instantiation = str(data.get("instantiation", "")).lower() == "true"
-        compatible_printers = data.get("compatible_printers")
-        if instantiation and (not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers)):
-            print(file_path)
+        profile_name = data['name']
+        if profile_name in profiles:
+            print(f"Duplicated profile {profile_name}: {file_path}")
             error += 1
+            continue
+
+        profiles[profile_name] = data
+    
+    def get_inherit_property(data, key):
+        if key in data:
+            return data[key]
+
+        if 'inherits' in data:
+            inherits = data['inherits']
+            if inherits not in profiles:
+                raise ValueError(f"Parent profile not found: {inherits}")
+            
+            return get_inherit_property(profiles[inherits], key)
+        
+        return None
+
+    for data in profiles.values():
+        instantiation = str(data.get("instantiation", "")).lower() == "true"
+        if instantiation:
+            try:
+                compatible_printers = get_inherit_property(data, "compatible_printers")
+                if not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers):
+                    print(f"'compatible_printers' missing in {file_path}")
+                    error += 1
+            except ValueError as ve:
+                print(f"Unable to parse {file_path}: {ve}")
+                error += 1
+                continue
+
     return error
 
 def load_available_filament_profiles(profiles_dir, vendor_name):
