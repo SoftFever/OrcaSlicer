@@ -6,7 +6,7 @@
   "machine_model_list": [
     {
       "name": "ginger G1",
-      "sub_path": "machine/ginger G1.json"
+      "sub_path": "machine/Ginger G1.json"
     }
   ],
   "machine_list": [
@@ -16,23 +16,23 @@
     },
     {
       "name": "ginger_one_common",
-      "sub_path": "machine/ginger_one_common.json"
+      "sub_path": "machine/Ginger_G1_common.json"
     },
     {
       "name": "ginger G1 1.2 nozzle",
-      "sub_path": "machine/ginger G1 1.2 nozzle.json"
+      "sub_path": "machine/Ginger G1 1.2 nozzle.json"
     },
     {
       "name": "ginger G1 3.0 nozzle",
-      "sub_path": "machine/ginger G1 3.0 nozzle.json"
+      "sub_path": "machine/Ginger G1 3.0 nozzle.json"
     },
     {
       "name": "ginger G1 5.0 nozzle",
-      "sub_path": "machine/ginger G1 5.0 nozzle.json"
+      "sub_path": "machine/Ginger G1 5.0 nozzle.json"
     },
     {
       "name": "ginger G1 8.0 nozzle",
-      "sub_path": "machine/ginger G1 8.0 nozzle.json"
+      "sub_path": "machine/Ginger G1 8.0 nozzle.json"
     }
   ],
   "process_list": [
@@ -67,36 +67,12 @@
       "sub_path": "filament/fdm_filament_common.json"
     },
     {
-      "name": "fdm_filament_petg",
-      "sub_path": "filament/fdm_filament_petg.json"
-    },
-    {
-      "name": "fdm_filament_pla",
-      "sub_path": "filament/fdm_filament_pla.json"
-    },
-    {
-      "name": "fdm_filament_rpetg",
-      "sub_path": "filament/fdm_filament_rpetg.json"
-    },
-    {
-      "name": "fdm_filament_rpla",
-      "sub_path": "filament/fdm_filament_rpla.json"
-    },
-    {
       "name": "Ginger Generic PETG",
       "sub_path": "filament/Ginger Generic PETG.json"
     },
     {
       "name": "Ginger Generic PLA",
       "sub_path": "filament/Ginger Generic PLA.json"
-    },
-    {
-      "name": "Ginger Generic rPETG",
-      "sub_path": "filament/Ginger Generic rPETG.json"
-    },
-    {
-      "name": "Ginger Generic rPLA",
-      "sub_path": "filament/Ginger Generic rPLA.json"
     }
   ]
 }
