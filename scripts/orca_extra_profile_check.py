@@ -45,7 +45,7 @@ def check_filament_compatible_printers(vendor_folder):
         instantiation = str(data.get("instantiation", "")).lower() == "true"
         compatible_printers = data.get("compatible_printers")
         if instantiation and (not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers)):
-            print(file_path)
+            print(f"'compatible_printers' missing in {file_path}")
             error += 1
     return error
 
