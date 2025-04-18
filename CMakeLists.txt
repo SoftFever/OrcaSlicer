@@ -1,5 +1,50 @@
 cmake_minimum_required(VERSION 3.13)
 
+# Verify that your CMake version is exactly 3.31.x series or lower on windows
+if(${CMAKE_VERSION} VERSION_LESS "3.13" OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0")
+    message(FATAL_ERROR "Only CMake versions between 3.13.x and 3.31.x is supported. Detected version: ${CMAKE_VERSION}")
+endif()
+
+if (WIN32)
+    # Detect known CI environments
+    set(IS_CI FALSE)
+    if(DEFINED ENV{CI})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{GITHUB_ACTIONS})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{GITLAB_CI})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{TF_BUILD})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{BUILD_NUMBER}) # Jenkins
+        set(IS_CI TRUE)
+    endif()
+
+    # Detect common misconfiguration (Strawberry Perl in PATH before CMake)
+    # We use ENV to check the PATH order
+    string(REPLACE "\\" "/" ENV_PATH "$ENV{PATH}")
+    string(FIND "${ENV_PATH}" "Strawberry/c/bin" STRAWBERRY_POS)
+    string(FIND "${ENV_PATH}" "Program Files/CMake/bin" CMAKE_POS)
+
+    if (STRAWBERRY_POS GREATER -1 AND CMAKE_POS GREATER -1 AND STRAWBERRY_POS LESS CMAKE_POS)
+        set(_warning_text "
+#############################################################
+Detected Strawberry Perl's 'c/bin' appearing before CMake in PATH.
+This is known to cause CMake to misbehave (e.g., missing modules).
+Please adjust your PATH so that:
+C:\\Program Files\\CMake\\bin
+appears before:
+C:\\Strawberry\\c\\bin
+You can do this in Environment Variables settings.
+#############################################################
+        ")
+
+        if(NOT IS_CI)
+            message(FATAL_ERROR "${_warning_text}")
+        endif()
+    endif()
+endif ()
+    
 if (APPLE)
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
