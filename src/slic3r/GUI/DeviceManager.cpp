@@ -2725,7 +2725,7 @@ int MachineObject::command_ipcam_record(bool on_off)
     j["camera"]["command"] = "ipcam_record_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["control"] = on_off ? "enable" : "disable";
-    camera_recording_hold_count = HOLD_COUNT_CAMERA;
+    camera_recording_ctl_start          = time(nullptr);
     this->camera_recording_when_printing = on_off;
     return this->publish_json(j.dump());
 }
@@ -2750,7 +2750,7 @@ int MachineObject::command_ipcam_resolution_set(std::string resolution)
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["resolution"] = resolution;
     camera_resolution_hold_count = HOLD_COUNT_CAMERA;
-    camera_recording_hold_count = HOLD_COUNT_CAMERA;
+    camera_recording_ctl_start = time(nullptr);
     this->camera_resolution = resolution;
     return this->publish_json(j.dump());
 }
@@ -4200,9 +4200,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             if (jj.contains("ipcam")) {
                                 json const & ipcam = jj["ipcam"];
                                 if (ipcam.contains("ipcam_record")) {
-                                    if (camera_recording_hold_count > 0)
-                                        camera_recording_hold_count--;
-                                    else {
+                                    if (time(nullptr) - camera_recording_ctl_start > HOLD_TIME_MAX) {
                                         if (ipcam["ipcam_record"].get<std::string>() == "enable") {
                                             camera_recording_when_printing = true;
                                         }
@@ -5317,9 +5315,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 BOOST_LOG_TRIVIAL(info) << "ack of timelapse = " << camera_timelapse;
                             }
                         } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
-                            if (camera_recording_hold_count > 0) {
-                                camera_recording_hold_count--;
-                            } else {
+                            if (time(nullptr) - camera_recording_ctl_start > HOLD_TIME_MAX) {
                                 if (j["camera"]["control"].get<std::string>() == "enable") this->camera_recording_when_printing = true;
                                 if (j["camera"]["control"].get<std::string>() == "disable") this->camera_recording_when_printing = false;
                                 BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
@@ -5992,7 +5988,6 @@ void MachineObject::parse_new_info(json print)
     BOOST_LOG_TRIVIAL(info) << "new print data cfg = " << cfg;
 
     if(!cfg.empty()){
-        if (camera_recording_hold_count > 0) camera_recording_hold_count--;
         if (camera_resolution_hold_count > 0) camera_resolution_hold_count--;
         if (camera_timelapse_hold_count > 0) camera_timelapse_hold_count--;
         //if (xcam_buildplate_marker_hold_count > 0) xcam_buildplate_marker_hold_count--;first_layer_inspector
@@ -6011,11 +6006,7 @@ void MachineObject::parse_new_info(json print)
 
         upgrade_force_upgrade = get_flag_bits(cfg, 2);
 
-        if (camera_recording_hold_count > 0)
-        {
-            camera_recording_hold_count--;
-        }
-        else
+        if (time(nullptr) - camera_recording_ctl_start > HOLD_COUNT_MAX)
         {
             camera_recording_when_printing = get_flag_bits(cfg, 3);
         }
