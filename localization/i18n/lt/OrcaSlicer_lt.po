@@ -8880,9 +8880,6 @@ msgid ""
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
 
 msgid "Shift+Tab"
 msgstr "Shift+Tab"
@@ -9388,8 +9385,6 @@ msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
-"Failed to generate gcode for invalid custom G-code.\n"
-"\n"
 
 msgid "Please check the custom G-code or use the default custom G-code."
 msgstr ""
@@ -18475,9 +18470,6 @@ msgstr ""
 #~ msgctxt "Verb"
 #~ msgid "Scale"
 #~ msgstr "Mastelis"
-
-#~ msgid "Orca Slicer "
-#~ msgstr "Orca Slicer "
 
 #, c-format, boost-format
 #~ msgid "Connect failed [%d]!"
