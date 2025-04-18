@@ -1,0 +1,15 @@
+{
+    "compatible_printers": [
+        "Prusa COREONE 0.8 nozzle"
+    ],
+    "fan_cooling_layer_time": [
+        "40"
+    ],
+    "filament_id": "Prusa Generic ABS @COREONE 0.8",
+    "from": "system",
+    "inherits": "Prusa Generic ABS @COREONE",
+    "instantiation": "true",
+    "name": "Prusa Generic ABS @COREONE 0.8",
+    "setting_id": "GFSA04",
+    "type": "filament"
+}
