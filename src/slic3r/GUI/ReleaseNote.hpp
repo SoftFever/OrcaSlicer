@@ -186,7 +186,7 @@ public:
 
         NO_REMINDER_NEXT_TIME = 23,
         IGNORE_NO_REMINDER_NEXT_TIME = 25,
-        //LOAD_FILAMENT = 26, /*TODO*/
+        //LOAD_FILAMENT = 26*/
         IGNORE_RESUME = 27,
         PROBLEM_SOLVED_RESUME = 28,
         STOP_BUZZER = 29,

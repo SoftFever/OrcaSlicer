@@ -1185,6 +1185,7 @@ public:
     int command_hms_idle_ignore(const std::string &error_str, int type);
     int command_hms_resume(const std::string& error_str, const std::string& job_id);
     int command_hms_ignore(const std::string& error_str, const std::string& job_id);
+    int command_hms_stop(const std::string &error_str, const std::string &job_id);
     /* buzzer*/
     int command_stop_buzzer();
 

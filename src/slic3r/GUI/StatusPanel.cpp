@@ -4678,30 +4678,72 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
 {
     if (obj)
     {
-        int id = event.GetInt();
-        if (id == PrintErrorDialog::NO_REMINDER_NEXT_TIME)
-        {
-            obj->command_hms_idle_ignore(std::to_string(before_error_code), 0);/*the type is 0, supported by AP*/
-        }
-        else if (id == PrintErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME)
-        {
-            obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
-        }
-        else if (id == PrintErrorDialog::IGNORE_RESUME)
-        {
-            obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
-        }
-        else if (id == PrintErrorDialog::PROBLEM_SOLVED_RESUME)
-        {
-            obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-        }
-        else if (id == PrintErrorDialog::STOP_BUZZER)
-        {
-            obj->command_stop_buzzer();
-        }
-        else if (id == PrintErrorDialog::CONTINUE || id == PrintErrorDialog::RETRY_PROBLEM_SOLVED)
-        {
-            obj->command_ams_control("resume");
+        PrintErrorDialog::PrintErrorButton btn_id = static_cast<PrintErrorDialog::PrintErrorButton>(event.GetInt());
+        switch (btn_id) {
+            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING: {
+                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING_DEFECTS: {
+                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING_PROBELM_SOLVED: {
+                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::STOP_PRINTING: {
+                obj->command_hms_stop(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::CHECK_ASSISTANT: {
+                wxGetApp().mainframe->m_monitor->jump_to_HMS(event); // go to assistant page
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::FILAMENT_EXTRUDED: {
+                obj->command_ams_control("done");
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::RETRY_FILAMENT_EXTRUDED: {
+                obj->command_ams_control("resume");
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::CONTINUE: {
+                obj->command_ams_control("resume");
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::LOAD_VIRTUAL_TRAY: break;/*Unknown what it is*/
+            case Slic3r::GUI::PrintErrorDialog::OK_BUTTON: break;/*do nothing*/
+            case Slic3r::GUI::PrintErrorDialog::FILAMENT_LOAD_RESUME: {
+                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::NO_REMINDER_NEXT_TIME: {
+                obj->command_hms_idle_ignore(std::to_string(before_error_code), 0); /*the type is 0, supported by AP*/
+                break;
+            } 
+            case Slic3r::GUI::PrintErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME: {
+                obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::IGNORE_RESUME: {
+                obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::PROBLEM_SOLVED_RESUME: {
+                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::STOP_BUZZER: {
+                obj->command_stop_buzzer();
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::RETRY_PROBLEM_SOLVED: {
+                obj->command_ams_control("resume");
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::ERROR_BUTTON_COUNT: break;
+            default: break;
         }
 
         if (m_print_error_dlg) { m_print_error_dlg->on_hide(); }
