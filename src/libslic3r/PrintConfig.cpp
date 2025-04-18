@@ -494,13 +494,13 @@ void PrintConfigDef::init_common_params()
     def->label = L("Bed custom texture");
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("bed_custom_model", coString);
     def->label = L("Bed custom model");
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("elefant_foot_compensation", coFloat);
     def->label = L("Elephant foot compensation");
@@ -571,14 +571,14 @@ void PrintConfigDef::init_common_params()
         "in the following format: https://username:password@your-octopi-address/");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("print_host_webui", coString);
     def->label = L("Device UI");
     def->tooltip = L("Specify the URL of your device user interface if it's not same as print_host");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
@@ -586,7 +586,7 @@ void PrintConfigDef::init_common_params()
         "the API Key or the password required for authentication.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("printhost_port", coString);
     def->label = L("Printer");
@@ -594,7 +594,7 @@ void PrintConfigDef::init_common_params()
     def->gui_type = ConfigOptionDef::GUIType::select_open;
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("printhost_cafile", coString);
     def->label = L("HTTPS CA File");
@@ -602,23 +602,23 @@ void PrintConfigDef::init_common_params()
         "If left blank, the default OS CA certificate repository is used.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     // Options used by physical printers
 
     def = this->add("printhost_user", coString);
     def->label = L("User");
-    //    def->tooltip = "";
+    //def->tooltip = L("");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("printhost_password", coString);
     def->label = L("Password");
-    //    def->tooltip = "";
+    //def->tooltip = L("");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     // Only available on Windows.
     def = this->add("printhost_ssl_ignore_revoke", coBool);
@@ -637,7 +637,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printhost_authorization_type", coEnum);
     def->label = L("Authorization Type");
-    //    def->tooltip = "";
+    //def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
     def->enum_values.push_back("key");
     def->enum_values.push_back("user");
@@ -866,7 +866,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 5;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("bottom_shell_layers", coInt);
     def->label = L("Bottom shell layers");
@@ -1561,7 +1561,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height     = 12;
     def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("filament_end_gcode", coStrings);
     def->label = L("End G-code");
@@ -3307,7 +3307,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 5;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("time_lapse_gcode",coString);
     def->label = L("Time lapse G-code");
@@ -3315,7 +3315,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height =5;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("silent_mode", coBool);
     def->label = L("Supports silent mode");
@@ -3338,7 +3338,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("template_custom_gcode", coString);
     def->label = L("Custom G-code");
@@ -3347,7 +3347,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("small_area_infill_flow_compensation", coBool);
     def->label = L("Small area flow compensation (beta)");
@@ -3624,7 +3624,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 13;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
@@ -3852,7 +3852,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 13;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
     
     def = this->add("printer_variant", coString);
     def->label = L("Printer variant");
@@ -3861,12 +3861,12 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("print_settings_id", coString);
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
 
     def = this->add("printer_settings_id", coString);
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
 
@@ -4115,7 +4115,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("bbl_calib_mark_logo", coBool);
     def->label = L("Show auto-calibration marks");
-    def->tooltip = "";
+    //def->tooltip = L("");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -4519,7 +4519,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("preheat_steps", coInt);
     def->label = L("Preheat steps");
     def->tooltip = L("Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For other printers, please set it to 1.");
-    // def->sidetext = "";
+    //def->sidetext = "";
     def->min = 1;
     def->max = 10;
     def->mode = comDevelop;
@@ -5152,7 +5152,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
-    //def->tooltip = "";
+    //def->tooltip = L("");
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
@@ -5160,7 +5160,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("nozzle_temperature_range_high", coInts);
     def->label = L("Max");
-    //def->tooltip = "";
+    //def->tooltip = L("");
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
@@ -5186,7 +5186,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 5;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("change_extrusion_role_gcode", coString);
     def->label = L("Change extrusion role G-code");
@@ -5195,7 +5195,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 5;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 
     def = this->add("top_surface_line_width", coFloatOrPercent);
     def->label = L("Top surface");
@@ -5771,47 +5771,48 @@ void PrintConfigDef::init_sla_params()
     // SLA Printer settings
 
     def = this->add("display_width", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->min = 1;
     def->set_default_value(new ConfigOptionFloat(120.));
 
     def = this->add("display_height", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->min = 1;
     def->set_default_value(new ConfigOptionFloat(68.));
 
     def = this->add("display_pixels_x", coInt);
-    def->full_label = " ";
+    //def->full_label = L("");
     def->label = ("X");
-    def->tooltip = " ";
+    //def->tooltip = L("");
     def->min = 100;
     def->set_default_value(new ConfigOptionInt(2560));
 
     def = this->add("display_pixels_y", coInt);
+    //def->full_label = L("");
     def->label = ("Y");
-    def->tooltip = " ";
+    //def->tooltip = L("");
     def->min = 100;
     def->set_default_value(new ConfigOptionInt(1440));
 
     def = this->add("display_mirror_x", coBool);
-    def->full_label = " ";
-    def->label = " ";
-    def->tooltip = " ";
+    //def->full_label = L("");
+    //def->label = L("");
+    //def->tooltip = L("");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("display_mirror_y", coBool);
-    def->full_label = " ";
-    def->label = " ";
-    def->tooltip = " ";
+    //def->full_label = L("");
+    //def->label = L("");
+    //def->tooltip = L("");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("display_orientation", coEnum);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<SLADisplayOrientation>::get_enum_values();
     def->enum_values.push_back("landscape");
     def->enum_values.push_back("portrait");
@@ -5821,83 +5822,83 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionEnum<SLADisplayOrientation>(sladoPortrait));
 
     def = this->add("fast_tilt_time", coFloat);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
     def = this->add("slow_tilt_time", coFloat);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(8.));
 
     def = this->add("area_fill", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.));
 
     def = this->add("relative_correction", coFloats);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats( { 1., 1.} ));
 
     def = this->add("relative_correction_x", coFloat);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("relative_correction_y", coFloat);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("relative_correction_z", coFloat);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("absolute_correction", coFloat);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("elefant_foot_min_width", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("gamma_correction", coFloat);
-    def->label = " ";
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
@@ -5907,14 +5908,14 @@ void PrintConfigDef::init_sla_params()
     // SLA Material settings.
 
     def = this->add("material_colour", coString);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->set_default_value(new ConfigOptionString("#29B2B2"));
 
     def = this->add("material_type", coString);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;   // TODO: ???
     def->gui_flags = "show_value";
     def->enum_values.push_back("Tough");
@@ -5925,212 +5926,218 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionString("Tough"));
 
     def = this->add("initial_layer_height", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.3));
 
     def = this->add("bottle_volume", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 50;
     def->set_default_value(new ConfigOptionFloat(1000.0));
 
     def = this->add("bottle_weight", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("material_density", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("bottle_cost", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("faded_layers", coInt);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->min = 3;
     def->max = 20;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(10));
 
     def = this->add("min_exposure_time", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("max_exposure_time", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("exposure_time", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(10));
 
     def = this->add("min_initial_exposure_time", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("max_initial_exposure_time", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(150));
 
     def = this->add("initial_exposure_time", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(15));
 
     def = this->add("material_correction", coFloats);
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats( { 1., 1., 1. } ));
 
     def = this->add("material_correction_x", coFloat);
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("material_correction_y", coFloat);
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("material_correction_z", coFloat);
-    def->full_label = " ";
-    def->tooltip  = " ";
+    //def->full_label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("material_vendor", coString);
-    def->set_default_value(new ConfigOptionString(""));
+    //def->label = L("");
+    //def->tooltip = L("");
+    def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("default_sla_material_profile", coString);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("sla_material_settings_id", coString);
-    def->set_default_value(new ConfigOptionString(""));
+    //def->label = L("");
+    //def->tooltip = L("");
+    def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("default_sla_print_profile", coString);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("sla_print_settings_id", coString);
-    def->set_default_value(new ConfigOptionString(""));
+    //def->label = L("");
+    //def->tooltip = L("");
+    def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("supports_enable", coBool);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("support_head_front_diameter", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
     def = this->add("support_head_penetration", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
     def = this->add("support_head_width", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 20;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("support_pillar_diameter", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 15;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("support_small_pillar_diameter_percent", coPercent);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 1;
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(50));
 
     def = this->add("support_max_bridges_on_pillar", coInt);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->max = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_pillar_connection_mode", coEnum);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<SLAPillarConnectionMode>::get_enum_values();
     def->enum_values.push_back("zigzag");
     def->enum_values.push_back("cross");
@@ -6142,241 +6149,241 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionEnum<SLAPillarConnectionMode>(slapcmDynamic));
 
     def = this->add("support_buildplate_only", coBool);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("support_pillar_widening_factor", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("support_base_diameter", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 30;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(4.0));
 
     def = this->add("support_base_height", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
     def = this->add("support_base_safety_distance", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip  = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("support_critical_angle", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 90;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
 
     def = this->add("support_max_bridge_length", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(15.0));
 
     def = this->add("support_max_pillar_link_distance", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;   // 0 means no linking
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10.0));
 
     def = this->add("support_object_elevation", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 150; // This is the max height of print on SL1
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.0));
 
     def = this->add("support_points_density_relative", coInt);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(100));
 
     def = this->add("support_points_minimal_distance", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("pad_enable", coBool);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("pad_wall_thickness", coFloat);
-    def->label = " ";
-    def->category = " ";
-     def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 30;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(2.0));
 
     def = this->add("pad_wall_height", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->category = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->category = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 30;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("pad_brim_size", coFloat);
-    def->label = " ";
-    def->tooltip = " ";
-    def->category = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
+    //def->category = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 30;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.6));
 
     def = this->add("pad_max_merge_distance", coFloat);
-    def->label = " ";
-    def->category = " ";
-     def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.0));
 
     def = this->add("pad_wall_slope", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 45;
     def->max = 90;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(90.0));
 
     def = this->add("pad_around_object", coBool);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("pad_around_object_everywhere", coBool);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("pad_object_gap", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip  = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->max = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("pad_object_connector_stride", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10));
 
     def = this->add("pad_object_connector_width", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip  = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("pad_object_connector_penetration", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip  = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.3));
 
     def = this->add("hollowing_enable", coBool);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("hollowing_min_thickness", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip  = " ";
-    def->sidetext = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
+    //def->sidetext = "";
     def->min = 1;
     def->max = 10;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(3.));
 
     def = this->add("hollowing_quality", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("hollowing_closing_distance", coFloat);
-    def->label = " ";
-    def->category = " ";
-    def->tooltip  = " ";
+    //def->label = L("");
+    //def->category = L("");
+    //def->tooltip = L("");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 10;
@@ -6384,8 +6391,8 @@ void PrintConfigDef::init_sla_params()
     def->set_default_value(new ConfigOptionFloat(2.0));
 
     def = this->add("material_print_speed", coEnum);
-    def->label = " ";
-    def->tooltip = " ";
+    //def->label = L("");
+    //def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<SLAMaterialSpeed>::get_enum_values();
     def->enum_values.push_back("slow");
     def->enum_values.push_back("fast");
@@ -7375,7 +7382,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->label = L("Send progress to pipe");
     def->tooltip = L("Send progress to pipe.");
     def->cli_params = "pipename";
-    def->set_default_value(new ConfigOptionString(""));
+    def->set_default_value(new ConfigOptionString());
 }
 
 //BBS: remove unused command currently
