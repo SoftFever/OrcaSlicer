@@ -68,7 +68,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRegionPtrs &compatible_regions, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, const SubSliceCollection& sub_slices, const LayerRegionPtrs &compatible_regions, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -85,6 +85,8 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRe
     PerimeterGenerator g(
         // input:
         &slices,
+        &sub_slices,
+        &this->layer()->lsub_slices,
         &compatible_regions,
         this->layer()->height,
         this->layer()->slice_z,
@@ -102,12 +104,15 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRe
         fill_no_overlap
     );
     
-    if (this->layer()->lower_layer != nullptr)
+    if (this->layer()->lower_layer != nullptr) {
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
-    if (this->layer()->upper_layer != NULL)
+        g.lower_sub_slices = &this->layer()->lower_layer->lsub_slices;
+    }
+    if (this->layer()->upper_layer != NULL) {
         g.upper_slices = &this->layer()->upper_layer->lslices;
-
+        g.upper_sub_slices = &this->layer()->upper_layer->lsub_slices;
+    }
     int region_id = this->region().print_object_region_id();
     if (this->layer()->upper_layer != NULL)
         g.upper_slices_same_region = &this->layer()->upper_layer->get_region(region_id)->slices;
@@ -116,6 +121,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRe
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
     g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
     g.solid_infill_flow     = this->flow(frSolidInfill);
+    g.sub_slice_flow        = this->flow(frExternalPerimeter, this->layer()->height / object_config.outer_perimeter_layer_divider);
 
     if (this->layer()->object()->config().wall_generator.value == PerimeterGeneratorType::Arachne && !spiral_mode)
         g.process_arachne();
