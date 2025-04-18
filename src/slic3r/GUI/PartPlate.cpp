@@ -2656,7 +2656,6 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
 	Pointfs new_shape, new_exclude_areas;
-	m_raw_shape = shape;
 	for (const Vec2d& p : shape) {
 		new_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 	}

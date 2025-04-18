@@ -1410,4 +1410,14 @@ ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<s
 	return output;
 }
 
+Pointfs make_counter_clockwise(const Pointfs& pointfs)
+{
+    Pointfs ps = pointfs;
+    if (Polygon::new_scale(pointfs).is_clockwise()) {
+        std::reverse(ps.begin(), ps.end());
+    }
+
+    return ps;
+}
+
 }

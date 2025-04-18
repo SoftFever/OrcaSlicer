@@ -1278,7 +1278,7 @@ PageBedShape::PageBedShape(ConfigWizard* parent)
 {
     append_text(_L("Set the shape of your printer's bed."));
 
-    shape_panel->build_panel(*wizard_p()->custom_config->option<ConfigOptionPoints>("printable_area"),
+    shape_panel->build_panel(wizard_p()->custom_config->option<ConfigOptionPoints>("printable_area")->values,
         *wizard_p()->custom_config->option<ConfigOptionString>("bed_custom_texture"),
         *wizard_p()->custom_config->option<ConfigOptionString>("bed_custom_model"));
 

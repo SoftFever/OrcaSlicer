@@ -3081,7 +3081,7 @@ int CLI::run(int argc, char **argv)
         else {
             partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, false);
         }
-        partplate_list.set_shapes(current_printable_area, current_exclude_area, bed_texture, height_to_lid, height_to_rod);
+        partplate_list.set_shapes(make_counter_clockwise(current_printable_area), current_exclude_area, bed_texture, height_to_lid, height_to_rod);
         //plate_stride = partplate_list.plate_stride_x();
     }
 
