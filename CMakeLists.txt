@@ -6,6 +6,20 @@ if(${CMAKE_VERSION} VERSION_LESS "3.13" OR ${CMAKE_VERSION} VERSION_GREATER_EQUA
 endif()
 
 if (WIN32)
+    # Detect known CI environments
+    set(IS_CI FALSE)
+    if(DEFINED ENV{CI})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{GITHUB_ACTIONS})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{GITLAB_CI})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{TF_BUILD})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{BUILD_NUMBER}) # Jenkins
+        set(IS_CI TRUE)
+    endif()
+
     # Detect common misconfiguration (Strawberry Perl in PATH before CMake)
     # We use ENV to check the PATH order
     string(REPLACE "\\" "/" ENV_PATH "$ENV{PATH}")
@@ -13,7 +27,7 @@ if (WIN32)
     string(FIND "${ENV_PATH}" "Program Files/CMake/bin" CMAKE_POS)
 
     if (STRAWBERRY_POS GREATER -1 AND CMAKE_POS GREATER -1 AND STRAWBERRY_POS LESS CMAKE_POS)
-        message(FATAL_ERROR "
+        set(_warning_text "
 #############################################################
 Detected Strawberry Perl's 'c/bin' appearing before CMake in PATH.
 This is known to cause CMake to misbehave (e.g., missing modules).
@@ -24,6 +38,12 @@ C:\\Strawberry\\c\\bin
 You can do this in Environment Variables settings.
 #############################################################
         ")
+
+        if(NOT IS_CI)
+            message(FATAL_ERROR "${_warning_text}")
+        else()
+            message(WARNING "[CI MODE DETECTED] ${_warning_text}")
+        endif()
     endif()
 endif ()
     
