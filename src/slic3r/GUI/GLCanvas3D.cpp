@@ -1201,6 +1201,8 @@ bool GLCanvas3D::init()
     // init dark mode status
     on_change_color_mode(wxGetApp().app_config->get("dark_color_mode") == "1", false);
 
+    m_show_world_axes = wxGetApp().app_config->get("show_axes") == "true";
+
     BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< " enter";
     glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
     glsafe(::glClearDepth(1.0f));
@@ -1365,6 +1367,16 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
     ModelInstanceEPrintVolumeState state;
     m_volumes.check_outside_state(m_bed.build_volume(), &state);
     return state;
+}
+
+void GLCanvas3D::toggle_world_axes_visibility(bool force_show)
+{
+    if (force_show) {
+        m_show_world_axes = true;
+    } else {
+        m_show_world_axes = !m_show_world_axes;
+    }
+    set_as_dirty();
 }
 
 void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
@@ -1912,7 +1924,7 @@ void GLCanvas3D::render(bool only_init)
     _render_background();
 
     //BBS add partplater rendering logic
-    bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
+    bool only_current = false, only_body = false, no_partplate = false;    
     bool show_grid = true;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
     if (!m_main_toolbar.is_enabled()) {
@@ -1932,7 +1944,7 @@ void GLCanvas3D::render(bool only_init)
         _render_sla_slices();
         _render_selection();
         if (!no_partplate)
-            _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
+            _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
         if (!no_partplate) //BBS: add outline logic
             _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
@@ -1942,7 +1954,7 @@ void GLCanvas3D::render(bool only_init)
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_sla_slices();
         _render_selection();
-        _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
+        _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
         _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, true, hover_id);
         // BBS: GUI refactor: add canvas size as parameters
         _render_gcode(cnv_size.get_width(), cnv_size.get_height());
@@ -1950,9 +1962,9 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
-        if (m_show_world_axes) {
-            m_axes.render();
-        }
+        //if (m_show_world_axes) {
+        //    m_axes.render();
+        //}
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_selection();
         //_render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);

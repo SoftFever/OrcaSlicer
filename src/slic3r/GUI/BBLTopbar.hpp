@@ -35,6 +35,7 @@ public:
     void OnSaveProject(wxAuiToolBarEvent& event);
     void OnUndo(wxAuiToolBarEvent& event);
     void OnRedo(wxAuiToolBarEvent& event);
+    void OnToggleAxes(wxAuiToolBarEvent& event);
     void OnModelStoreClicked(wxAuiToolBarEvent& event);
     void OnPublishClicked(wxAuiToolBarEvent &event);
 
@@ -51,6 +52,8 @@ public:
 
     void EnableUndoRedoItems();
     void DisableUndoRedoItems();
+    void EnableToggleAxesItem();
+    void DisableToggleAxesItem();
 
     void SaveNormalRect();
 
@@ -73,6 +76,8 @@ private:
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* m_calib_item;
+    wxAuiToolBarItem* m_toggle_item;
+    
     wxAuiToolBarItem* maximize_btn;
 
     wxBitmap m_publish_bitmap;
