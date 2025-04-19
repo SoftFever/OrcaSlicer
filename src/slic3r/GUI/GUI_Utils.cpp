@@ -18,6 +18,7 @@
 #include <wx/dcclient.h>
 #include <wx/font.h>
 #include <wx/fontutil.h>
+#include <wx/display.h>
 
 #include "libslic3r/Config.hpp"
 
