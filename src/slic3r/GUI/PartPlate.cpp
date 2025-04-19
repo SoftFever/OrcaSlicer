@@ -476,35 +476,8 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
         step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
     }
 
-    if (0) {
-    for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(step)) {
-		Polyline line;
-		line.append(Point(x, pp_bbox.min(1)));
-		line.append(Point(x, pp_bbox.max(1)));
-
-		if ( (count % 5) == 0 )
-			axes_lines_bolder.push_back(line);
-		else
-			axes_lines.push_back(line);
-		count ++;
-	}
-	count = 0;
-	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(step)) {
-		Polyline line;
-		line.append(Point(pp_bbox.min(0), y));
-		line.append(Point(pp_bbox.max(0), y));
-		axes_lines.push_back(line);
-
-		if ( (count % 5) == 0 )
-			axes_lines_bolder.push_back(line);
-		else
-			axes_lines.push_back(line);
-		count ++;
-	}
-    }
-
     // ORCA draw grid lines relative to origin
-    for (coord_t x = m_origin.x(); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
+    for (coord_t x = scale_(m_origin.x()); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(x, pp_bbox.min(1)),
             Point(x, pp_bbox.max(1))
@@ -512,7 +485,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
         count ++;
     }
     count = 0;
-    for (coord_t x = m_origin.x(); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
+    for (coord_t x = scale_(m_origin.x()); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(x, pp_bbox.min(1)),
             Point(x, pp_bbox.max(1))
@@ -520,7 +493,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
         count ++;
     }
     count = 0;
-    for (coord_t y = m_origin.y(); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
+    for (coord_t y = scale_(m_origin.y()); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(pp_bbox.min(0), y),
             Point(pp_bbox.max(0), y)
@@ -528,7 +501,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
         count ++;
     }
     count = 0;
-    for (coord_t y = m_origin.y(); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
+    for (coord_t y = scale_(m_origin.y()); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(pp_bbox.min(0), y),
             Point(pp_bbox.max(0), y)
