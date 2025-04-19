@@ -1,0 +1,17 @@
+{
+    "type": "process",
+    "name": "0.12mm Fine @BBL X1C",
+    "inherits": "fdm_process_bbl_0.12",
+    "from": "system",
+    "setting_id": "GP002",
+    "instantiation": "true",
+    "description": "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, and results in almost negligible layer lines and higher printing quality, but longer printing time.",
+    "smooth_coefficient": "150",
+    "overhang_totally_speed": "50",
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab X1E 0.4 nozzle"
+    ]
+}

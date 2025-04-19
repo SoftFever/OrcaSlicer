@@ -1,0 +1,177 @@
+#Content
+{
+	overflow-y:auto;
+}
+
+.BlockBanner
+{
+	padding: 0px;
+	border-bottom:#009688 1px solid;
+	width: 100%;
+}
+
+
+.BannerBtns
+{
+	float: right;
+	display: flex;
+	white-space: nowrap;
+	justify-content: space-around;
+	align-items: center;
+	height: 40px;
+	text-align: center;
+	margin-right: 10px;
+}
+
+/*.Banner-Btn
+{
+	background-color: #C0C0C0;
+	color: #000;
+	padding: 0px 6px;
+	min-width: 50px;
+	border-radius: 4px;
+	height: 32px;
+	line-height: 32px;
+	cursor: pointer;
+}
+
+.Banner-Btn-green
+{
+	background-color: #009688;
+	color: #fff;
+	padding: 0px 6px;
+	min-width: 50px;
+	border-radius: 8px;
+	height: 32px;
+	line-height: 32px;
+	cursor: pointer;
+}*/
+
+.BlockBanner  a
+{
+	display: inline-block;
+	background-color:#009688;
+	line-height: 40px;
+	height: 40px;
+	padding: 0px 24px;
+	color: #fff;
+}
+
+.PrinterArea
+{
+	padding: 10px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.PrinterBlock
+{
+	width: 160px;
+	text-align: center;
+	padding: 10px;
+}
+
+.PrinterBlock img
+{
+	width:160px;
+	height: 160px;
+}
+
+.PName
+{
+	font-weight: 700;
+	text-align:left;
+}
+
+.pNozzel
+{
+	display: flex;
+	align-items: center;
+	justify-content:flex-start;
+	color: #5A5A5A;	
+	padding-left: 10px;
+}
+
+.pNozzel input
+{
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+
+/*-----Notice-----*/
+#NoticeMask
+{
+	background-color: #000;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	opacity: 0.05;
+	display: none;
+}
+
+#NoticeBody
+{
+	display: none;
+	width: 400px;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 4px;
+	background-color: inherit;	
+	position: absolute;
+	left: 50%;
+	top: 200px;
+	margin-left: -200px;
+}
+
+#NoticeBar
+{
+	background-color:#00f0d8;
+	height: 40px;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+}
+
+#NoticeContent
+{
+	padding: 4mm 10mm;	
+}
+
+
+#NoticeBtns
+{
+	margin-top: 4mm;
+	display: flex;
+	justify-content:space-around;
+}
+
+.search {
+	width: 100%;
+	position: relative;
+	display: flex;
+  }
+  
+  .searchTerm {
+	width: 100%;
+	border: 3px solid #009688;
+	/*border-right: none;*/
+	padding: 5px;
+	height: 20px;
+	border-radius: 5px 5px 5px 5px;
+	outline: none;
+	color: #9DBFAF;
+  }
+  
+  .searchTerm:focus{
+	color: #009688;
+  }
+  
+  /*Resize the wrap to see the search bar change!*/
+  .wrap{
+	width: 30%;
+	padding-bottom: 5px;
+	padding-left: 42px;
+  }

@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "name": "Generic PPA-CF @BBL X1E",
+    "inherits": "Generic PPA-CF @base",
+    "from": "system",
+    "setting_id": "GFSN97_01",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "fan_max_speed": [
+        "35"
+    ],
+    "filament_max_volumetric_speed": [
+        "6.5"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1E 0.4 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle"
+    ]
+}

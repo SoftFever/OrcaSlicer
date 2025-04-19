@@ -1,0 +1,59 @@
+{
+    "type": "machine",
+    "settings_id": "GM011",
+    "name": "BLOCKS RF50 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_klipper_common",
+    "printer_model": "BLOCKS RF50",
+    "default_print_profile": "0.38mm Standard 0.8 nozzle @Blocks_RF50",
+    "max_layer_height": [
+        "0.60"
+    ],
+    "min_layer_height": [
+        "0.20"
+    ],
+    "nozzle_diameter": [
+        "0.8"
+    ],
+    "printable_area": [
+        "0x0",
+        "500x0",
+        "500x500",
+        "0x500"
+    ],
+    "machine_max_acceleration_x": [
+      "30000",
+      "30000"
+    ],
+    "machine_max_acceleration_y": [
+      "30000",
+      "30000"
+    ],
+    "machine_max_acceleration_extruding": [
+      "30000",
+      "30000"
+    ],
+    "retraction_length": [
+      "0.8"
+    ],
+    "retraction_speed": [
+      "30"
+    ],
+    "deretraction_speed": [
+      "80"
+    ],
+    "z_hop": [
+      "0.2"
+    ],
+    "z_hop_types": "Auto Lift",
+    "auxiliary_fan": "1",
+    "printable_height": "500",
+    "extruder_clearance_radius": "106",
+    "extruder_clearance_height_to_rod": "30",
+    "extruder_clearance_height_to_lid": "185",
+    "upward_compatible_machine": [
+        "BLOCKS RF50"
+    ],
+    "printer_variant": "0.8"
+}

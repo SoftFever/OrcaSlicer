@@ -1,0 +1,45 @@
+{
+    "name": "Thinker X400",
+    "version":  "02.03.00.03",
+    "force_update": "0",
+    "description": "Eryone  configurations",
+    "machine_model_list": [
+        {
+            "name": "Thinker X400",
+            "sub_path": "machine/Thinker X400.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "0.20mm Standard @Thinker X400",
+            "sub_path": "process/0.20mm Standard @Thinker X400.json"
+        },
+        {
+            "name": "0.12mm Standard @Thinker X400",
+            "sub_path": "process/0.12mm Standard @Thinker X400.json"
+        },
+        {
+            "name": "0.16mm Standard @Thinker X400",
+            "sub_path": "process/0.16mm Standard @Thinker X400.json"
+        },
+        {
+            "name": "0.24mm Standard @Thinker X400",
+            "sub_path": "process/0.24mm Standard @Thinker X400.json"
+        }
+    ],
+    "filament_list": [],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "Thinker X400 0.4 nozzle",
+            "sub_path": "machine/Thinker X400 0.4 nozzle.json"
+        }
+    ]
+}

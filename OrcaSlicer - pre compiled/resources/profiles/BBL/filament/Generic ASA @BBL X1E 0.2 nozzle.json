@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "name": "Generic ASA @BBL X1E 0.2 nozzle",
+    "inherits": "Generic ASA @0.2 nozzle",
+    "from": "system",
+    "setting_id": "GFSB98_01",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab X1E 0.2 nozzle"
+    ]
+}

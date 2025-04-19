@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "setting_id": "GFSC00_02",
+    "name": "Arena PC @Arena X1C 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Arena PC @base",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "compatible_printers": [
+      "Orca Arena X1 Carbon 0.2 nozzle"
+    ]
+}

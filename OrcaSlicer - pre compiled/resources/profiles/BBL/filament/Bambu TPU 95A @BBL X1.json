@@ -1,0 +1,16 @@
+{
+    "type": "filament",
+    "name": "Bambu TPU 95A @BBL X1",
+    "inherits": "Bambu TPU 95A @base",
+    "from": "system",
+    "setting_id": "GFSU01",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "3.6"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle"
+    ]
+}

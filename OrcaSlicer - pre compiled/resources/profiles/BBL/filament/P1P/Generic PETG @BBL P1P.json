@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "name": "Generic PETG @BBL P1P",
+    "inherits": "Generic PETG @base",
+    "from": "system",
+    "setting_id": "GFSG99_10",
+    "instantiation": "true",
+    "hot_plate_temp": [
+        "80"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "80"
+    ],
+    "textured_plate_temp": [
+        "80"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "80"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle"
+    ]
+}

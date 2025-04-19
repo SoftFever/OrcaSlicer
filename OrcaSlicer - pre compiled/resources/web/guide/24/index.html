@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="max-age=7200" />
+<title>引导_P21</title>
+<link rel="stylesheet" type="text/css" href="../css/common.css" />	
+<link rel="stylesheet" type="text/css" href="24.css" />
+<link rel="stylesheet" type="text/css" href="../css/dark.css" />	
+<!-- <script type="text/javascript" src="test.js"></script> -->
+<script type="text/javascript" src="../js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="../js/json2.js"></script>	
+<script type="text/javascript" src="../../data/text.js"></script>	
+<script type="text/javascript" src="../js/globalapi.js"></script>	
+<!-- <script type="text/javascript" src="../js/common.js"></script> -->
+<script type="text/javascript" src="24.js"></script>		
+</head>
+<body onLoad="OnInit()">
+<div id="Title">
+	<div class="trans" tid="t10">Printer Selection</div>
+</div>
+<div class="wrap">
+	<div class="search">
+		<input type="text" class="searchTerm" placeholder="Device keyword" oninput="textInput(this)">
+	</div>
+</div>
+<div id="Content"  class="ZScrol"s>
+
+<!--<div class="OneVendorBlock" Vendor="BBL">	
+<div class="BlockBanner">
+	<div class="BannerBtns">
+		<div class="SmallBtn_Green" onClick="SelectPrinterAll('BBL')">所有</div>
+		<div class="SmallBtn" onClick="SelectPrinterNone('BBL')">无</div>
+	</div>
+	
+	<a>BBL-3DP</a>	
+</div>
+	
+<div class="PrinterArea">	
+	
+<div class="PrinterBlock">
+	<div class="PImg"><img src="p2.jpg"  /></div>	
+    <div class="PName">BBL-3DP-V4NORMAL</div>
+    <div class="pNozzel"><input id="ZZ" type="checkbox" model="BBL-3DP-V4NORMAL" nozzel="0.4" vendor="BBL" />0.4mm nozzle</div>
+	<div class="pNozzel"><input type="checkbox" model="BBL-3DP-V4NORMAL" nozzel="0.1" vendor="BBL" />0.1mm nozzle</div>
+</div>
+<div class="PrinterBlock">
+	<div class="PImg"><img src="p1.jpg"  /></div>	
+    <div class="PName">BBL-3DP-V4NORMAL</div>
+    <div class="pNozzel"><input type="checkbox" model="BBL-3DP-V5NORMAL" nozzel="0.4" vendor="BBL" />0.4mm nozzle</div>
+	<div class="pNozzel"><input type="checkbox" model="BBL-3DP-V5NORMAL" nozzel="0.2" vendor="BBL" />0.2mm nozzle</div>
+	<div class="pNozzel"><input type="checkbox" model="BBL-3DP-V5NORMAL" nozzel="0.1" vendor="BBL" />0.1mm nozzle</div>
+</div>
+	
+</div>		
+
+</div>
+	
+
+<div class="OneVendorBlock" Vendor="BAMBU">	
+<div class="BlockBanner">
+	<div class="BannerBtns">
+		<div class="Banner-Btn-green" onClick="SelectPrinterAll('BAMBU')">所有</div>
+		<div class="Banner-Btn" onClick="SelectPrinterNone('BAMBU')">无</div>
+	</div>
+	
+	<a>BBL-3DP</a>	
+</div>
+	
+<div class="PrinterArea">	
+	
+<div class="PrinterBlock">
+	<div class="PImg"><img src="p2.jpg"  /></div>	
+    <div class="PName">BBL-3DP-V4NORMAL</div>
+    <div class="pNozzel"><input type="checkbox" model="BBL-3DP-V4NORMAL" nozzel="0.4" vendor="BAMBU" />0.4mm nozzle</div>
+	<div class="pNozzel"><input type="checkbox" model="BBL-3DP-V4NORMAL" nozzel="0.1" vendor="BAMBU" />0.1mm nozzle</div>
+</div>
+<div class="PrinterBlock">
+	<div class="PImg"><img src="p1.jpg"  /></div>	
+    <div class="PName">BBL-3DP-V4NORMAL</div>
+    <div class="pNozzel"><input type="checkbox" model="BBL-3DP-V5NORMAL" nozzel="0.4" vendor="BAMBU" />0.4mm nozzle</div>
+	<div class="pNozzel"><input type="checkbox" model="BBL-3DP-V5NORMAL" nozzel="0.2" vendor="BAMBU" />0.2mm nozzle</div>
+	<div class="pNozzel"><input type="checkbox" model="BBL-3DP-V5NORMAL" nozzel="0.1" vendor="BAMBU" />0.1mm nozzle</div>
+</div>		
+</div>		
+
+</div>-->
+	
+</div>
+<div id="AcceptArea">
+	<div class="NormalBtn trans" tid="t39" id="AcceptBtn"  onclick="ConfirmSelect()">Confirm</div>	
+	<div class="GrayBtn trans" tid="t38" id="PreBtn"  onclick="CancelSelect()">Cancel</div>
+</div>
+	
+<div id="NoticeMask"></div>
+<div id="NoticeBody">
+	<div id="NoticeBar" class="trans" tid="t18">error</div>
+	<div id="NoticeContent">
+	<div id="NoticeText" class="trans" tid="t37">At least one printer must be selected.</div>
+	<div id="NoticeBtns">
+		<div class="SmallBtn trans" tid="t36" onClick="ShowNotice(0)">ok</div>
+	</div>
+	</div>
+</div>	
+	
+	
+</body>
+<script>
+	document.onkeydown = function (event) {
+		var e = event || window.event || arguments.callee.caller.arguments[0];
+
+		if (e.keyCode == 27)
+			ClosePage();
+
+		if (window.event) {
+			try { e.keyCode = 0; } catch (e) { }
+			e.returnValue = true;
+		}
+	};
+	let pModel = {};
+	let ModelNozzleSelected = {};
+	function textInput(obj) {
+		FilterModelList(obj.value);
+	}
+</script>
+</html>

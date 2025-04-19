@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "name": "Generic ABS @BBL X1E 0.2 nozzle",
+    "inherits": "Generic ABS @0.2 nozzle",
+    "from": "system",
+    "setting_id": "GFSB99_04",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab X1E 0.2 nozzle"
+    ]
+}

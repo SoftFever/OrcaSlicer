@@ -1,0 +1,8 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "false",
+  "name": "Snapmaker PLA @base",
+  "filament_id": "3177068229",
+  "inherits": "fdm_filament_pla"
+}

@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "name": "Generic HIPS @BBL X1C 0.2 nozzle",
+    "inherits": "Generic HIPS @base",
+    "from": "system",
+    "setting_id": "GFSS98_01",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "0.5"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.2 nozzle",
+        "Bambu Lab X1 0.2 nozzle",
+        "Bambu Lab P1P 0.2 nozzle",
+        "Bambu Lab P1S 0.2 nozzle",
+        "Bambu Lab X1E 0.2 nozzle"
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "type": "filament",
+    "name": "Generic PPA-GF @BBL X1E",
+    "inherits": "Generic PPA-GF @base",
+    "from": "system",
+    "setting_id": "GFSN96_01",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle",
+        "Bambu Lab X1E 0.4 nozzle"
+    ]
+}

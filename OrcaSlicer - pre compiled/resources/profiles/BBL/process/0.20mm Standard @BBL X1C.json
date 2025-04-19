@@ -1,0 +1,17 @@
+{
+    "type": "process",
+    "name": "0.20mm Standard @BBL X1C",
+    "inherits": "fdm_process_bbl_0.20",
+    "from": "system",
+    "setting_id": "GP004",
+    "instantiation": "true",
+    "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
+    "smooth_coefficient": "150",
+    "overhang_totally_speed": "50",
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab X1E 0.4 nozzle"
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "name": "Bambu PC @BBL X1C",
+    "inherits": "Bambu PC @base",
+    "from": "system",
+    "setting_id": "GFSC00",
+    "instantiation": "true",
+    "fan_max_speed": [
+        "40"
+    ],
+    "slow_down_layer_time": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 0.4 nozzle"
+    ]
+}

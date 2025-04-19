@@ -1,0 +1,22 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "true",
+  "name": "Snapmaker Dual PLA Eco @0.8 nozzle",
+  "setting_id": "1134628044",
+  "inherits": "Snapmaker Dual PLA Eco @base",
+  "compatible_printers": [
+    "Snapmaker A250 Dual (0.8 nozzle)",
+    "Snapmaker A250 Dual BKit (0.8 nozzle)",
+    "Snapmaker A250 Dual QS+B Kit (0.8 nozzle)",
+    "Snapmaker A250 Dual QSKit (0.8 nozzle)",
+    "Snapmaker A350 Dual (0.8 nozzle)",
+    "Snapmaker A350 Dual BKit (0.8 nozzle)",
+    "Snapmaker A350 Dual QS+B Kit (0.8 nozzle)",
+    "Snapmaker A350 Dual QSKit (0.8 nozzle)",
+    "Snapmaker Artisan (0.8 nozzle)"
+  ],
+  "slow_down_min_speed": [
+    "20"
+  ]
+}

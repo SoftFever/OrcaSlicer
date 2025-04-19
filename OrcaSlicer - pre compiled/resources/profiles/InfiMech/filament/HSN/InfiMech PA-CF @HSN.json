@@ -1,0 +1,34 @@
+{
+    "type": "filament",
+    "filament_id": "GFN98",
+    "setting_id": "GFSA04",
+    "name": "InfiMech PA-CF @HSN",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa @HSN",
+    "filament_type": [
+        "PA-CF"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "filament_flow_ratio": [
+        "0.96"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "2"
+    ],
+    "filament_retract_before_wipe": [
+        "0%"
+    ],
+    "filament_retraction_length": [
+        "0.8"
+    ],
+    "compatible_printers": [
+      "InfiMech TX HSN 0.4 nozzle"
+
+    ]
+  }
