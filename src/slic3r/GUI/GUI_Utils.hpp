@@ -494,6 +494,12 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
 int get_dpi_for_window(const wxWindow *window);
 
 
+/// <summary>
+/// Make sure the given window fits inside current display
+/// </summary>
+void fit_in_display(wxTopLevelWindow& window, wxSize desired_size);
+
+
 }}
 
 #endif
