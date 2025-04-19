@@ -477,14 +477,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     }
 
     // ORCA draw grid lines relative to origin
-    Point start_pt;
-    if(m_plater->get_build_volume_type() == BuildVolume_Type::Rectangle){
-        start_pt = pp_bbox.min;
-    }else{ // Circular / Custom
-        start_pt = pp_bbox.center();
-    }
-
-    for (coord_t x = start_pt.x(); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
+    for (coord_t x = scale_(m_origin.x()); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(x, pp_bbox.min(1)),
             Point(x, pp_bbox.max(1))
@@ -492,7 +485,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
         count ++;
     }
     count = 0;
-    for (coord_t x = start_pt.x(); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
+    for (coord_t x = scale_(m_origin.x()); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(x, pp_bbox.min(1)),
             Point(x, pp_bbox.max(1))
@@ -500,7 +493,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
         count ++;
     }
     count = 0;
-    for (coord_t y = start_pt.y(); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
+    for (coord_t y = scale_(m_origin.y()); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(pp_bbox.min(0), y),
             Point(pp_bbox.max(0), y)
@@ -508,7 +501,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
         count ++;
     }
     count = 0;
-    for (coord_t y = start_pt.y(); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
+    for (coord_t y = scale_(m_origin.y()); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
         (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
             Point(pp_bbox.min(0), y),
             Point(pp_bbox.max(0), y)
