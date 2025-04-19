@@ -115,7 +115,9 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     topSizer->SetSizeHints(this);
 
     this->Fit();
-    SetSize({100 * em, 70 * em});
+
+    fit_in_display(*this, {100 * em, 70 * em});
+
     this->Layout();
 
     this->CenterOnScreen();
