@@ -2948,7 +2948,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, - angle), rotate_vector.second.rotated(-angle), angle, line_width + coord_t(SCALED_EPSILON), line_spacing, coord_t(scale_(sweep.pattern_shift)), fill_lines);
     }
 
-    if (params.dont_connect() || fill_lines.size() <= 1) {
+    if (params.dont_connect()) {
         if (fill_lines.size() > 1)
             fill_lines = chain_polylines(std::move(fill_lines));
         append(polylines_out, std::move(fill_lines));
