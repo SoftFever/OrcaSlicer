@@ -3,7 +3,7 @@
     "name": "SUNLU PETG @BBL X1C 0.2 nozzle",
     "inherits": "SUNLU PETG @base",
     "from": "system",
-    "setting_id": "SNLS08_00",
+    "setting_id": "GFSNLS08_00",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
         "1"

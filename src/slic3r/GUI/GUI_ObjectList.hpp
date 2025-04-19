@@ -175,6 +175,7 @@ private:
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select()
                                                     // happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler
                                                     // calls this method again and again and again
+    bool        m_prevent_list_manipulation = false;
 
     bool        m_prevent_update_filament_in_config = false; // We use this flag to avoid updating of the extruder value in config
                                                              // during updating of the extruder count.

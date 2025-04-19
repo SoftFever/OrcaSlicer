@@ -118,7 +118,7 @@
 	"change_filament_gcode": "M600\nG1 E0.4 F1500 ; prime after color change",
 	"machine_pause_gcode": "M601",
 	"default_filament_profile": [
-		"Sovol Generic PLA"
+		"Generic PLA @System"
 	],
 	"machine_start_gcode": "M190 S[bed_temperature_initial_layer_single] ; Setting bed temprature\nM109 S[nozzle_temperature_initial_layer] ; Setting hot-end temprature\nSTART_PRINT ; Running macro from klipper\n",
 	"machine_end_gcode": "END_PRINT",

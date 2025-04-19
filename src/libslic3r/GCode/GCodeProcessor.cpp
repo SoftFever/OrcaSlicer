@@ -1038,6 +1038,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         if (machine_max_jerk_e != nullptr)
             m_time_processor.machine_limits.machine_max_jerk_e.values = machine_max_jerk_e->values;
 
+          const ConfigOptionFloats* machine_max_junction_deviation = config.option<ConfigOptionFloats>("machine_max_junction_deviation");
+        if (machine_max_junction_deviation != nullptr)
+              m_time_processor.machine_limits.machine_max_junction_deviation.values = machine_max_junction_deviation->values;
+
         const ConfigOptionFloats* machine_max_acceleration_extruding = config.option<ConfigOptionFloats>("machine_max_acceleration_extruding");
         if (machine_max_acceleration_extruding != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_extruding.values = machine_max_acceleration_extruding->values;
@@ -4415,32 +4419,42 @@ void GCodeProcessor::run_post_process()
                         }
                     }
                 }
-            }
-            else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
+            } else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                    const TimeMachine& machine = m_time_processor.machines[i];
-                    PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
+                    const TimeMachine&                  machine = m_time_processor.machines[i];
+                    PrintEstimatedStatistics::ETimeMode mode    = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
-                        sprintf(buf, "; estimated printing time (%s mode) = %s\n",
-                            (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                            get_time_dhms(machine.time).c_str());
+                        if (!s_IsBBLPrinter)
+                            // Orca: compatibility with klipper_estimator
+                            sprintf(buf, "; estimated printing time (%s mode) = %s\n",
+                                    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
+                                    get_time_dhms(machine.time).c_str());
+                        else {
+                            sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
+                                    get_time_dhms(machine.time - machine.prepare_time).c_str(), get_time_dhms(machine.time).c_str());
+                        }
                         export_lines.append_line(buf);
-                        processed = true;
                     }
                 }
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                    const TimeMachine& machine = m_time_processor.machines[i];
-                    PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
+                    const TimeMachine&                  machine = m_time_processor.machines[i];
+                    PrintEstimatedStatistics::ETimeMode mode    = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
                         sprintf(buf, "; estimated first layer printing time (%s mode) = %s\n",
-                            (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                            get_time_dhms(machine.prepare_time).c_str());
+                                (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
+                                get_time_dhms(machine.prepare_time).c_str());
                         export_lines.append_line(buf);
                         processed = true;
                     }
                 }
+            }
+            // Orca: write total layer number, this is used by Bambu printers only as of now
+            else if (line == reserved_tag(ETags::Total_Layer_Number_Placeholder)) {
+                char buf[128];
+                sprintf(buf, "; total layer number: %u\n", m_layer_id);
+                export_lines.append_line(buf);
             }
         }
 

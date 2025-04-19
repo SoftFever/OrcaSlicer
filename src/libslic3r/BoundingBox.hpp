@@ -282,7 +282,7 @@ BoundingBox3Base<Vec<3, T>> unscaled(const BoundingBox3 &bb) { return {unscaled<
 template<class Tout, class Tin>
 auto cast(const BoundingBoxBase<Tin> &b)
 {
-    return BoundingBoxBase<Vec<3, Tout>>{b.min.template cast<Tout>(),
+    return BoundingBoxBase<Vec<2, Tout>>{b.min.template cast<Tout>(),
                                          b.max.template cast<Tout>()};
 }
 
