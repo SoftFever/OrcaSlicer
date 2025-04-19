@@ -71,7 +71,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     m_params_list = new ParamsViewCtrl(this, wxSize(em * 45, em * 70));
     m_params_list->SetFont(wxGetApp().code_font());
     wxGetApp().UpdateDarkUI(m_params_list);
-    param_sizer->Add(m_params_list, 0, wxEXPAND | wxALL, border);
+    param_sizer->Add(m_params_list, 1, wxEXPAND | wxALL, border);
 
     m_add_btn = new ScalableButton(this, wxID_ANY, "add_copies");
     m_add_btn->SetToolTip(_L("Add selected placeholder to G-code"));
