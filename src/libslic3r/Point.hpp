@@ -8,7 +8,11 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
-#include <Eigen/Geometry>
+
+#include <oneapi/tbb/scalable_allocator.h>
+
+
+#include <Eigen/Geometry> 
 
 #include "LocalesUtils.hpp"
 
@@ -48,7 +52,9 @@ using Vec2d   = Eigen::Matrix<double,   2, 1, Eigen::DontAlign>;
 using Vec3d   = Eigen::Matrix<double,   3, 1, Eigen::DontAlign>;
 using Vec4d   = Eigen::Matrix<double,   4, 1, Eigen::DontAlign>;
 
-using Points         = std::vector<Point>;
+template<typename BaseType>
+using PointsAllocator = tbb::scalable_allocator<BaseType>;
+using Points         = std::vector<Point, PointsAllocator<Point>>;
 using PointPtrs      = std::vector<Point*>;
 using PointConstPtrs = std::vector<const Point*>;
 using Points3        = std::vector<Vec3crd>;
@@ -56,7 +62,7 @@ using Pointfs        = std::vector<Vec2d>;
 using Vec2ds         = std::vector<Vec2d>;
 using Pointf3s       = std::vector<Vec3d>;
 
-using VecOfPoints    = std::vector<Points>;
+using VecOfPoints    = std::vector<Points, PointsAllocator<Points>>;
 
 using Matrix2f       = Eigen::Matrix<float,  2, 2, Eigen::DontAlign>;
 using Matrix2d       = Eigen::Matrix<double, 2, 2, Eigen::DontAlign>;
