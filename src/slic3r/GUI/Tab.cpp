@@ -2159,7 +2159,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
         optgroup->append_separator();
-
+//resonance avoidance ported over from qidi slicer
         optgroup = page->new_optgroup(L("Resonance Avoidance"));
         optgroup->append_single_option_line("resonance_avoidance");
 
