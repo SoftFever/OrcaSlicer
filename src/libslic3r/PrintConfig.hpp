@@ -1042,6 +1042,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                scarf_joint_flow_ratio))
     ((ConfigOptionPercent,              scarf_overhang_threshold))
 
+        //resonance avoidance
+    ((ConfigOptionBool,                resonance_avoidance))
+    ((ConfigOptionFloat,               min_resonance_avoidance_speed))
+    ((ConfigOptionFloat,               max_resonance_avoidance_speed))
+
 
 )
 
