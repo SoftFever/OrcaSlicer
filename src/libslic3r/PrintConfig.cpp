@@ -1317,7 +1317,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
-     // Y27
+     // resonance avoidance ported over from qidi slicer
     def          = this->add("resonance_avoidance", coBool);
     def->label   = L("Resonance avoidance");
     def->tooltip = L("By reducing the speed of the outer wall to avoid the resonance zone of the printer, ringing on the surface of the "
