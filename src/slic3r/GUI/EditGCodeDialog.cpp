@@ -68,7 +68,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
 
     param_sizer->Add(m_search_bar, 0, wxEXPAND | wxALL, border);
 
-    m_params_list = new ParamsViewCtrl(this, wxSize(em * 45, em * 70));
+    m_params_list = new ParamsViewCtrl(this, wxDefaultSize);
     m_params_list->SetFont(wxGetApp().code_font());
     wxGetApp().UpdateDarkUI(m_params_list);
     param_sizer->Add(m_params_list, 1, wxEXPAND | wxALL, border);
@@ -76,7 +76,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     m_add_btn = new ScalableButton(this, wxID_ANY, "add_copies");
     m_add_btn->SetToolTip(_L("Add selected placeholder to G-code"));
 
-    m_gcode_editor = new wxTextCtrl(this, wxID_ANY, value, wxDefaultPosition, wxSize(em * 75, em * 70), wxTE_MULTILINE
+    m_gcode_editor = new wxTextCtrl(this, wxID_ANY, value, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE
 #ifdef _WIN32
     | wxBORDER_SIMPLE
 #endif
@@ -91,7 +91,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
 
     grid_sizer->AddGrowableRow(0, 1);
     grid_sizer->AddGrowableCol(0, 1);
-    grid_sizer->AddGrowableCol(2, 1);
+    grid_sizer->AddGrowableCol(2, 2);
 
     m_param_label = new wxStaticText(this, wxID_ANY, _L("Select placeholder"));
     m_param_label->SetFont(wxGetApp().bold_font());
@@ -115,6 +115,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     topSizer->SetSizeHints(this);
 
     this->Fit();
+    SetSize({100 * em, 70 * em});
     this->Layout();
 
     this->CenterOnScreen();
