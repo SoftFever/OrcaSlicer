@@ -6060,6 +6060,9 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
             << std::endl
             << "Run --help-fff / --help-sla to see the full listing of print options." << std::endl;
     }*/
+    // flush the output buffer
+    boost::nowide::cout.flush();
+    boost::nowide::cerr.flush();
 }
 
 bool CLI::export_models(IO::ExportFormat format, std::string path_dir)
@@ -6295,6 +6298,46 @@ extern "C" {
             int *a = nullptr;
             *a     = 0;
             });
+        bool cli_mode = argc > 1; // Simple check for CLI mode
+        bool console_attached = false;
+
+        if (cli_mode) {
+            // Try attaching to the parent console first
+            if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+                console_attached = true;
+            } else if (GetLastError() == ERROR_ACCESS_DENIED) {
+                // Already has a console (maybe attached by debugger)
+                console_attached = true;
+            } else {
+                // No parent console found, try allocating a new one
+                if (AllocConsole()) {
+                    console_attached = true;
+                }
+            }
+
+            if (console_attached) {
+                FILE* fp = nullptr;
+                // Redirect standard C streams to the console
+                if (freopen_s(&fp, "CONOUT$", "w", stdout) == 0) {
+                   setvbuf(stdout, NULL, _IONBF, 0); // Optional: Disable buffering
+                }
+                if (freopen_s(&fp, "CONOUT$", "w", stderr) == 0) {
+                   setvbuf(stderr, NULL, _IONBF, 0); // Optional: Disable buffering
+                }
+                if (freopen_s(&fp, "CONIN$", "r", stdin) == 0) {
+                   // Input redirection successful
+                }
+                // Sync C++ streams with C streams after redirection
+                std::ios::sync_with_stdio(true);
+                // Clear potential error states from C++ streams
+                std::cout.clear();
+                std::cerr.clear();
+                std::cin.clear();
+                boost::nowide::cout.clear();
+                boost::nowide::cerr.clear();
+                boost::nowide::cin.clear();
+            }
+        }
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }
