@@ -5,7 +5,7 @@
          {
              for (typename NodeRange::Iterator it = range.begin(); it; ++it) {
 -                OpT::template eval(mNodeOp, it);
-+                OpT::template eval<>(mNodeOp, it);
++                OpT::eval(mNodeOp, it);
              }
          }
          const NodeOp mNodeOp;
@@ -14,7 +14,7 @@
          {
              for (typename NodeRange::Iterator it = range.begin(); it; ++it) {
 -                OpT::template eval(mNodeOp, it);
-+                OpT::template eval<>(mNodeOp, it);
++                OpT::eval(mNodeOp, it);
              }
          }
          const NodeOp& mNodeOp;
@@ -23,7 +23,7 @@
          {
              for (typename NodeRange::Iterator it = range.begin(); it; ++it) {
 -                OpT::template eval(*mNodeOp, it);
-+                OpT::template eval<>(*mNodeOp, it);
++                OpT::eval(*mNodeOp, it);
              }
          }
          void join(const NodeReducer& other)
