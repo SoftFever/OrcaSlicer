@@ -3139,6 +3139,9 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
             print.config().machine_max_jerk_y.values.front() * factor,
             print.config().machine_max_jerk_z.values.front() * factor,
             print.config().machine_max_jerk_e.values.front() * factor);
+
+        // New Marlin uses M205 J[mm] for junction deviation (only apply if it is > 0)
+        file.write_format(writer().set_junction_deviation(config().machine_max_junction_deviation.values.front()).c_str());
     }
 }
 
@@ -3515,6 +3518,7 @@ inline std::string get_instance_name(const PrintObject *object, const PrintInsta
 std::string GCode::generate_skirt(const Print &print,
         const ExtrusionEntityCollection &skirt,
         const Point& offset,
+        const float skirt_start_angle,
         const LayerTools &layer_tools,
         const Layer& layer,
         unsigned int extruder_id)
@@ -3559,7 +3563,7 @@ std::string GCode::generate_skirt(const Print &print,
             //FIXME using the support_speed of the 1st object printed.
             if (first_layer && i==loops.first) {
                 //set skirt start point location
-                const Point desired_start_point = Skirt::find_start_point(loop, layer.object()->config().skirt_start_angle);
+                const Point desired_start_point = Skirt::find_start_point(loop, skirt_start_angle);
                 gcode += this->extrude_loop(loop, "skirt", m_config.support_speed.value, {}, &desired_start_point);
             }
             else
@@ -3782,9 +3786,6 @@ LayerResult GCode::process_layer(
         }
         case CalibMode::Calib_Input_shaping_freq: {
             if (m_layer_index == 1){
-                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
-                    gcode += writer().set_junction_deviation(0.25);//Set junction deviation at high value to maximize ringing.
-                }
                 gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
             } else {
                 if (print.calib_params().freqStartX == print.calib_params().freqStartY && print.calib_params().freqEndX == print.calib_params().freqEndY) {
@@ -3798,9 +3799,6 @@ LayerResult GCode::process_layer(
         }
         case CalibMode::Calib_Input_shaping_damp: {
             if (m_layer_index == 1){
-                if (print.config().gcode_flavor.value == gcfMarlinFirmware) {
-                    gcode += writer().set_junction_deviation(0.25); // Set junction deviation at high value to maximize ringing.
-                }
                 gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX);
             gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY);
             } else {
@@ -3825,6 +3823,9 @@ LayerResult GCode::process_layer(
             gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
 
+        if (m_writer.get_gcode_flavor() == gcfMarlinFirmware && m_config.default_junction_deviation.value > 0) {
+            gcode += m_writer.set_junction_deviation(m_config.default_junction_deviation.value);
+        }
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
@@ -4156,7 +4157,8 @@ LayerResult GCode::process_layer(
             m_last_processor_extrusion_role = erWipeTower;
         
         if (print.config().skirt_type == stCombined && !print.skirt().empty())
-            gcode += generate_skirt(print, print.skirt(), Point(0,0), layer_tools, layer, extruder_id);
+            gcode += generate_skirt(print, print.skirt(), Point(0, 0), layer.object()->config().skirt_start_angle, layer_tools, layer,
+                                    extruder_id);
 
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
         if (objects_by_extruder_it == by_extruder.end())
@@ -4216,7 +4218,7 @@ LayerResult GCode::process_layer(
                     m_skirt_done.erase(m_skirt_done.begin()+1,m_skirt_done.end());
 
                 const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
-                gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, layer_tools, layer, extruder_id);
+                gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, instance_to_print.print_object.config().skirt_start_angle, layer_tools, layer, extruder_id);
             }
         }
 
@@ -4236,7 +4238,7 @@ LayerResult GCode::process_layer(
                     if (first_layer)
                         m_skirt_done.clear();
                     const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
-                    gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, layer_tools, layer, extruder_id);
+                    gcode += generate_skirt(print, instance_to_print.print_object.object_skirt(), offset, instance_to_print.print_object.config().skirt_start_angle, layer_tools, layer, extruder_id);
                     if (instances_to_print.size() > 1 && &instance_to_print != &*(instances_to_print.end() - 1))
                         m_skirt_done.pop_back();
                 }

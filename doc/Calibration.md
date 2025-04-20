@@ -315,8 +315,8 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    M205 J0.012
    M500
    ```
-   3. Recompile four MarlinFW
-      1. In Configuration.h set:
+   3. Recompile your MarlinFW
+      1. In Configuration.h uncomment and set:
       ```cpp
             #define JUNCTION_DEVIATION_MM 0.012  // (mm) Distance from real junction edge
       ```
@@ -333,10 +333,10 @@ Because of the nature of these artifacts the methods to reduce them can be mecha
 
 ***
 *Credits:*  
-- *The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer)*  
-- *The PA Line method is inspired by [K-factor Calibration Pattern](https://marlinfw.org/tools/lin_advance/k-factor.html)*     
-- *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html)*
-- *The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076)
-- *The max flowrate test was inspired by Stefan(CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure).
-- *ZV Input Shaping is inspired by [Marlin Input Shaping](https://marlinfw.org/docs/features/input_shaping.html) and [Ringing Tower 3D STL](https://marlinfw.org/assets/stl/ringing_tower.stl)
+- *The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer).*
+- *The PA Line method is inspired by [K-factor Calibration Pattern](https://marlinfw.org/tools/lin_advance/k-factor.html).*
+- *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html).*
+- *The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076).*
+- *The max flowrate test was inspired by Stefan (CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure).*
+- *ZV Input Shaping is inspired by [Marlin Input Shaping](https://marlinfw.org/docs/features/input_shaping.html) and [Ringing Tower 3D STL](https://marlinfw.org/assets/stl/ringing_tower.stl).*
 - *ChatGPT* ;)
