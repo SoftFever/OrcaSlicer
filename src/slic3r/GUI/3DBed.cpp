@@ -228,7 +228,6 @@ void Bed3D::Axes::render()
     shader->set_uniform("emission_factor", 0.0f);
 
     // ORCA show axes on current plate
-    
     Vec3d plate_origin = wxGetApp().plater()->get_partplate_list().get_selected_plate()->get_origin();
 
     // x axis
