@@ -3453,8 +3453,8 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
 
 msgid ""

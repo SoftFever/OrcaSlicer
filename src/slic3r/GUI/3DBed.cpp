@@ -649,8 +649,8 @@ void Bed3D::update_bed_triangles()
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     std::vector<Vec2d> origin_bed_shape;
-    for (size_t i = 0; i < m_bed_shape.size(); i++) { 
-        origin_bed_shape.push_back(m_bed_shape[i] - m_bed_shape[0]);
+    for (size_t i = 0; i < m_bed_shape.size(); i++) {
+         origin_bed_shape.push_back(m_bed_shape[i]);
     }
     std::vector<Vec2d> new_bed_shape; // offset to correct origin
     for (auto point : origin_bed_shape) {
@@ -729,7 +729,9 @@ void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Tr
         if (m_model.get_filename().empty() && !bottom) {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
-            m_triangles.set_color(DEFAULT_MODEL_COLOR);
+            ColorRGBA color = m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR;   // ORCA add dark mode support
+            color = ColorRGBA(color[0] * 0.8f, color[1] * 0.8f,color[2] * 0.8f, color[3]);  // ORCA shift color a darker tone to fix difference between flat / gouraud_light shader
+            m_triangles.set_color(color);
             m_triangles.render();
             glsafe(::glDepthMask(GL_TRUE));
         }
