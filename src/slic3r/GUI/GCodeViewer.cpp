@@ -4472,7 +4472,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
                 //ImGui::PopStyleVar(1);
                 // ORCA replace checkboxes with eye icon
-                ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 0.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
+                ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 6.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
                 ImGui::Text(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16 * m_scale, 16 * m_scale));
             }
         }
@@ -4523,7 +4523,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (size_t i = 0; i < title_offsets.size(); i++) {
             if (title_offsets[i].first == _u8L("Display")) { // ORCA Hide Display header
                 ImGui::SameLine(title_offsets[i].second);
-                ImGui::Dummy({(16.f - 6.f) * m_scale, 1}); // 16(icon) - 6(half of spacing)
+                ImGui::Dummy({16.f * m_scale, 1}); // 16(icon)
                 continue;
             }
             ImGui::SameLine(title_offsets[i].second);
