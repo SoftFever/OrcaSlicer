@@ -33,7 +33,7 @@ def check_filament_compatible_printers(vendor_folder):
     # Use rglob to recursively find .json files.
     for file_path in vendor_path.rglob("*.json"):
         try:
-            with open(file_path, 'r') as fp:
+            with open(file_path, 'r', encoding='UTF-8') as fp:
                 # Use custom hook to detect duplicates.
                 data = json.load(fp, object_pairs_hook=no_duplicates_object_pairs_hook)
         except ValueError as ve:
@@ -100,7 +100,7 @@ def load_available_filament_profiles(profiles_dir, vendor_name):
     
     for file_path in vendor_path.rglob("*.json"):
         try:
-            with open(file_path, 'r') as fp:
+            with open(file_path, 'r', encoding='UTF-8') as fp:
                 data = json.load(fp)
                 if "name" in data:
                     profiles.add(data["name"])
@@ -136,7 +136,7 @@ def check_machine_default_materials(profiles_dir, vendor_name):
     # Check each machine profile
     for file_path in machine_dir.rglob("*.json"):
         try:
-            with open(file_path, 'r') as fp:
+            with open(file_path, 'r', encoding='UTF-8') as fp:
                 data = json.load(fp)
                 
             default_materials = None
