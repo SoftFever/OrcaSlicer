@@ -41,6 +41,7 @@ struct SurfaceFillParams
 
     // FillParams
     float       	density = 0.f;
+    int   multiline = 1;
     // Don't adjust spacing to fill the space evenly.
 //    bool        	dont_adjust = false;
     // Length of the infill anchor along the perimeter line.
@@ -83,6 +84,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(angle);
 		RETURN_COMPARE_NON_EQUAL(rotate_angle);
 		RETURN_COMPARE_NON_EQUAL(density);
+        RETURN_COMPARE_NON_EQUAL(multiline); // TODO is this needed
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
@@ -110,7 +112,8 @@ struct SurfaceFillParams
 				this->bridge   			== rhs.bridge   		&&
 				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
-//				this->dont_adjust   	== rhs.dont_adjust 		&&
+                this->multiline         == rhs.multiline        &&
+               //				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
 				this->flow 				== rhs.flow 			&&
@@ -619,11 +622,13 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
+                params.multiline     = int(region_config.fill_multiline);
                 params.lattice_angle_1 = region_config.lattice_angle_1;
                 params.lattice_angle_2 = region_config.lattice_angle_2;
 
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
+                    // params.multiline = 1;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
 					if (surface.is_solid_infill())
                         params.pattern = region_config.internal_solid_infill_pattern.value;
@@ -820,6 +825,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 else
                     params.pattern 		 = ipRectilinear;
 	            params.density 		 = 100.f;
+                // params.multiline 		 = 1;
 		        params.extrusion_role = erSolidInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().solid_infill_direction.value));
                 params.rotate_angle  = layerm.region().config().rotate_solid_infill_direction;
@@ -957,6 +963,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
         params.density 		     = float(0.01 * surface_fill.params.density);
+        params.multiline         = surface_fill.params.multiline;
 		params.dont_adjust		 = false; //  surface_fill.params.dont_adjust;
         params.anchor_length     = surface_fill.params.anchor_length;
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
@@ -1095,6 +1102,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         params.layer_height      = layerm.layer()->height;
         params.lattice_angle_1   = surface_fill.params.lattice_angle_1; 
         params.lattice_angle_2   = surface_fill.params.lattice_angle_2; 
+        params.multiline         = surface_fill.params.multiline;
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
             // Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
@@ -1102,6 +1110,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
             surface_fill.surface.expolygon = std::move(expoly);
             try {
                 Polylines polylines = f->fill_surface(&surface_fill.surface, params);
+                // TODO: add the multiline here?
                 sparse_infill_polylines.insert(sparse_infill_polylines.end(), polylines.begin(), polylines.end());
             } catch (InfillFailedException &) {}
         }
