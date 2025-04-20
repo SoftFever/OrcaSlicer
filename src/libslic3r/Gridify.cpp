@@ -4,7 +4,7 @@
 namespace Slic3r {
 struct GridifyCfg
 {
-    const double            angle;
+    const double            angle; // in rad
     const Point::coord_type gap_width;
     const int               gap_layers;
     const Point::coord_type grid_width;
@@ -54,7 +54,7 @@ void Layer::gridify()
         if (region->slices.empty() || !region_config.gridify_enabled)continue;
 
         const GridifyCfg cfg{
-            region_config.gridify_angle,
+            Geometry::deg2rad(region_config.gridify_angle),
             (Point::coord_type)scale_(region_config.gridify_gap_width.value),
             region_config.gridify_gap_layers,
             (Point::coord_type)scale_(region_config.gridify_grid_width),
