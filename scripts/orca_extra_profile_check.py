@@ -51,31 +51,35 @@ def check_filament_compatible_printers(vendor_folder):
             error += 1
             continue
 
-        profiles[profile_name] = data
+        profiles[profile_name] = {
+            'file_path': file_path,
+            'content': data,
+        }
     
-    def get_inherit_property(data, key):
-        if key in data:
-            return data[key]
+    def get_inherit_property(profile, key):
+        content = profile['content']
+        if key in content:
+            return content[key]
 
-        if 'inherits' in data:
-            inherits = data['inherits']
+        if 'inherits' in content:
+            inherits = content['inherits']
             if inherits not in profiles:
-                raise ValueError(f"Parent profile not found: {inherits}")
+                raise ValueError(f"Parent profile not found: {inherits}, referrenced in {profile['file_path']}")
             
             return get_inherit_property(profiles[inherits], key)
         
         return None
 
-    for data in profiles.values():
-        instantiation = str(data.get("instantiation", "")).lower() == "true"
+    for profile in profiles.values():
+        instantiation = str(profile['content'].get("instantiation", "")).lower() == "true"
         if instantiation:
             try:
-                compatible_printers = get_inherit_property(data, "compatible_printers")
+                compatible_printers = get_inherit_property(profile, "compatible_printers")
                 if not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers):
-                    print(f"'compatible_printers' missing in {file_path}")
+                    print(f"'compatible_printers' missing in {profile['file_path']}")
                     error += 1
             except ValueError as ve:
-                print(f"Unable to parse {file_path}: {ve}")
+                print(f"Unable to parse {profile['file_path']}: {ve}")
                 error += 1
                 continue
 
