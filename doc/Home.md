@@ -12,6 +12,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Line Width Settings](quality_settings_line_width)
 - [Seam Settings](quality_settings_seam)
 - [Precise wall](Precise-wall)
+- [STL Transformation](stl-transformation)
 
 ### Speed Settings
 - [Extrusion rate smoothing](extrusion-rate-smoothing)

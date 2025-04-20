@@ -793,6 +793,42 @@ void Tab::decorate()
             tt = &m_tt_white_bullet;
         }
 
+        if (opt.first == "compatible_prints" || opt.first == "compatible_printers") {
+            bool sys_page      = true;
+            bool modified_page = false;
+            if (m_type == Slic3r::Preset::TYPE_PRINTER) {
+                sys_page      = m_presets->get_selected_preset_parent() != nullptr;
+                modified_page = false;
+            } else {
+                if (opt.first == "compatible_prints") {
+                    get_sys_and_mod_flags("compatible_prints", sys_page, modified_page);
+                    // Don't call for "compatible_printers"
+                } else if (opt.first == "compatible_printers") {
+                    get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
+                    if (m_type == Slic3r::Preset::TYPE_FILAMENT || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL) {
+                        get_sys_and_mod_flags("compatible_prints", sys_page, modified_page);
+                    }
+                }
+            }
+            if (!sys_page) { 
+                is_nonsys_value = true;
+                sys_icon        = m_bmp_non_system;
+                sys_tt          = m_tt_non_system;
+
+                if (!modified_page) 
+                    color = &m_default_text_clr;
+                else 
+                    color = &m_modified_label_clr;
+            }
+
+            if (!modified_page) { 
+                is_modified_value = false;
+                icon              = &m_bmp_white_bullet;
+                tt                = &m_tt_white_bullet;
+            }
+
+        }
+
         if (option_without_field) {
             if (Line* line = get_line(opt.first)) {
                 line->set_undo_bitmap(icon);
@@ -945,9 +981,20 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
     auto opt = m_options_list.find(opt_key);
     if (opt == m_options_list.end())
         return;
+    // If the value is empty, clear the system flag
+    if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
+        auto* compatible_values = m_config->option<ConfigOptionStrings>(opt_key);
+        if (compatible_values && compatible_values->values.empty()) {
+            sys_page = false; // Empty value should NOT be treated as a system value
+        }
+    } else if (sys_page) {
+        sys_page = (opt->second & osSystemValue) != 0;
+    }
 
-    if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
     modified_page |= (opt->second & osInitValue) == 0;
+
+    //if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
+    //modified_page |= (opt->second & osInitValue) == 0;
 }
 
 void Tab::update_changed_tree_ui()
@@ -1068,22 +1115,10 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
             if (m_type != Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                 load_key_value("compatible_printers", true/*some value*/, true);
-
-                if (m_compatible_printers.checkbox) {
-                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-                    m_compatible_printers.checkbox->SetValue(is_empty);
-                    is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
-                }
             }
             if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                 load_key_value("compatible_prints", true/*some value*/, true);
-
-                if (m_compatible_prints.checkbox) {
-                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
-                    m_compatible_prints.checkbox->SetValue(is_empty);
-                    is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
-                }
             }
         }
         for (const auto &kvp : group->opt_map()) {
@@ -1100,9 +1135,24 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
     // When all values are rolled, then we have to update whole tab in respect to the reverted values
     update();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
 
     // BBS: restore all pages in preset, update_dirty also update combobox
     update_dirty();
+
+    if (m_compatible_printers.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+        m_compatible_printers.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+    }
+    if (m_compatible_prints.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+        m_compatible_prints.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+    }
+
+    m_page_view->GetParent()->Layout();
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
@@ -2202,6 +2252,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_jerk");
         optgroup->append_single_option_line("initial_layer_jerk");
         optgroup->append_single_option_line("travel_jerk");
+        optgroup->append_single_option_line("default_junction_deviation");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
@@ -2285,13 +2336,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
         optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
-        optgroup = page->new_optgroup(L("Filament for Features"));
+        optgroup = page->new_optgroup(L("Filament for Features"), L"param_filament_for_features");
         optgroup->append_single_option_line("wall_filament");
         optgroup->append_single_option_line("sparse_infill_filament");
         optgroup->append_single_option_line("solid_infill_filament");
         optgroup->append_single_option_line("wipe_tower_filament");
 
-        optgroup = page->new_optgroup(L("Ooze prevention"));
+        optgroup = page->new_optgroup(L("Ooze prevention"), L"param_ooze_prevention");
         optgroup->append_single_option_line("ooze_prevention");
         optgroup->append_single_option_line("standby_temperature_delta");
         optgroup->append_single_option_line("preheat_time");
@@ -2319,11 +2370,11 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_start_angle");
-        optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
+        optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("single_loop_draft_shield");
-        
+
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
@@ -2379,8 +2430,8 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line(option);
 
     // Orca: hide the dependencies tab for process for now. The UI is not ready yet.
-    // page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
-    //     optgroup = page->new_optgroup(L("Profile dependencies"));
+    // page = add_options_page(L("Dependencies"), "param_profile_dependencies"); // icons ready
+    //     optgroup = page->new_optgroup(L("Profile dependencies"), "param_profile_dependencies"); // icons ready
 
     //     create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
     //         return compatible_widget_create(parent, m_compatible_printers);
@@ -3303,7 +3354,7 @@ void TabFilament::build()
         };
 
         // Orca: New section to focus on flow rate and PA to declutter general section
-        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
+        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_flow_ratio_and_pressure_advance");
         optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
@@ -3519,7 +3570,7 @@ void TabFilament::build()
             return sizer;
         });
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with multi extruder MM printers"));
+        optgroup = page->new_optgroup(L("Toolchange parameters with multi extruder MM printers"), "param_toolchange_multi_extruder");
         optgroup->append_single_option_line("filament_multitool_ramming");
         optgroup->append_single_option_line("filament_multitool_ramming_volume");
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
@@ -4126,6 +4177,8 @@ PageShp TabPrinter::build_kinematics_page()
             append_option_line(optgroup, "machine_max_jerk_" + axis);
         }
 
+        // machine max junction deviation
+         append_option_line(optgroup, "machine_max_junction_deviation");
     //optgroup = page->new_optgroup(L("Minimum feedrates"));
     //    append_option_line(optgroup, "machine_min_extruding_rate");
     //    append_option_line(optgroup, "machine_min_travel_rate");
@@ -4638,6 +4691,9 @@ void TabPrinter::toggle_options()
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper, i);
         toggle_line("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper);
+        for (int i = 0; i < max_field; ++i)
+            toggle_option("machine_max_junction_deviation", gcf == gcfMarlinFirmware, i);
+        toggle_line("machine_max_junction_deviation", gcf == gcfMarlinFirmware);
     }
 }
 
@@ -5872,11 +5928,23 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     {
         deps.btn->Enable(! deps.checkbox->GetValue());
         // All printers have been made compatible with this preset.
-        if (deps.checkbox->GetValue())
+        if (deps.checkbox->GetValue()) 
             this->load_key_value(deps.key_list, std::vector<std::string> {});
         this->get_field(deps.key_condition)->toggle(deps.checkbox->GetValue());
         this->update_changed_ui();
     }) );
+
+    if (m_compatible_printers.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+        m_compatible_printers.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+    }
+
+    if (m_compatible_prints.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+        m_compatible_prints.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+    }
 
     deps.btn->Bind(wxEVT_BUTTON, ([this, parent, &deps](wxCommandEvent e)
     {
