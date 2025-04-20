@@ -28,6 +28,10 @@
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
 
+#include "../Utils/Http.hpp"
+#include "ICRSConfig.hpp"
+#include "AlertDialog.hpp"
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_UPDATE_WINDOWS_POSITION, wxCommandEvent);
@@ -2433,6 +2437,34 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     MachineObject* obj_ = dev->get_selected_machine();
     if (!obj_) return;
 
+    bool send_print = false;
+    std::string error_message;
+
+    Slic3r::Http http = Slic3r::Http::get(ICRS_ENABLE_PRINT_ENDPOINT + "?dev=" + obj_->dev_name);
+    http.timeout_connect(1)
+        .timeout_max(1)
+        .on_complete([&send_print](std::string body, unsigned int status) {
+            try {
+                if (body.substr(0, 1) == "1") {
+                    BOOST_LOG_TRIVIAL(info) << "Sending Print";
+                    send_print = true;
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << "Failed to verify";
+                    error_message = body.substr(1, body.length()-1);
+                }
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(error) << "Error somewhere!";
+            }
+        })
+        .on_error([](std::string body; std::string error, unsigned int status) {
+            BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
+        })
+        .perform_sync()
+
+    if (!send_print) {
+        auto m_verification_dlg = new AlertDialog(error_message);
+    }
 
     std::vector<ConfirmBeforeSendInfo> confirm_text;
     confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please check the following:")));

@@ -15,7 +15,7 @@ docker run \
   `# Run as your workstations username to keep permissions the same` \
   -u $USER \
   `# Bind mount your home directory into the container for loading/saving files` \
-  -v $HOME:/home/$USER \
+  -v /root:/$USER \
   `# Pass the X display number to the container` \
   -e DISPLAY=$DISPLAY \
   `# It seems that libGL and dbus things need privileged mode` \

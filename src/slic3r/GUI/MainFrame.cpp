@@ -70,6 +70,9 @@
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
+#include "ICRSConfig.hpp"
+#include "../Utils/Http.hpp"
+#include "AlertDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -1609,40 +1612,67 @@ wxBoxSizer* MainFrame::create_side_tools()
             this->m_tabpanel->SetSelection(tpPreview);
         });
 
-    m_print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        m_print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             //this->m_plater->select_view_3D("Preview");
-            if (m_print_select == ePrintAll || m_print_select == ePrintPlate || m_print_select == ePrintMultiMachine)
+            if (m_print_select == ePrintAll || m_print_select == ePrintPlate)
             {
                 m_plater->apply_background_progress();
                 // check valid of print
-                m_print_enable = get_enable_print_status();
-                m_print_btn->Enable(m_print_enable);
-                if (m_print_enable) {
-                    if (m_print_select == ePrintAll)
-                        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL));
-                    if (m_print_select == ePrintPlate)
-                        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
-                    if(m_print_select == ePrintMultiMachine)
-                         wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE));
+                auto m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
+
+                double total_time_all_plates = 0.0;
+                PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+                for (auto plate : plate_list.get_nonempty_plate_list())
+                {
+                    auto plate_print_statistics = plate->get_slice_result()->print_statistics;
+                    auto plate_extruders = plate->get_extruders(true);
+                    const PrintEstimatedStatistics::Mode& plate_time_mode = plate_print_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
+                    total_time_all_plates += plate_time_mode.time;
                 }
+
+                // std::time_t curr_time = std::time(NULL);
+	            // std::tm *tm_local = std::localtime(&curr_time);
+                // int hour = tm_local->tm_hour;
+
+                // bool isLessThan3hours = (total_time_all_plates < 3 * 60 * 60);
+                // bool after10 = (hour > 22);
+                // bool isLessThan9Hours = (total_time_all_plates < 9 * 60 * 60);
+
+                // bool afterHoursPrint = after10 && isLessThan9Hours;
+
+                bool time_allowed = false;
+
+                Slicer::Http http = Slic3r::Http::get(ICRS_PRINT_SUBMITTED + "?time=" + boost::lexical_cast<std::string>(total_time_all_plates));
+                http.timeout_connect(1)
+                    .timeout_max(1)
+                    .on_complete([&time_allowed](std::string body, unsigned int status) {
+                        try {
+                            if (body == "1") {
+                                BOOST_LOG_TRIVIAL(info) << "Time OK";
+                                time_allowed = true;
+                            } else {
+                                BOOST_LOG_TRIVIAL(info) << "Time exceeds limit";
+                            }
+                        }
+                        catch (...) {
+                            BOOST_LOG_TRIVIAL(error) << "error somewhere";
+                        }
+                    })
+                    .on_error([](std::string body, unsigned int status) {
+                        BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
+                    })
+                    .perform_sync();
+
+                m_print_enable = get_enable_print_status() && time_allowed;
+                m_print_btn->Enable(m_print_enable);
+
+                if(!m_print_enable) {
+                    auto m_noprint_dlg = new AlertDialog("Print time exceeds allowed limit");
+                    m_noprint_dlg->ShowModal();
+                }
+                else if (m_print_select == ePrintPlate) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
             }
-            else if (m_print_select == eExportGcode)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
-            else if (m_print_select == eSendGcode)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
-            else if (m_print_select == eUploadGcode)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_UPLOAD_GCODE));
-            else if (m_print_select == eExportSlicedFile)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
-            else if (m_print_select == eExportAllSlicedFile)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE));
-            else if (m_print_select == eSendToPrinter)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
-            else if (m_print_select == eSendToPrinterAll)
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL));
-            /* else if (m_print_select == ePrintMultiMachine)
-                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE));*/
         });
 
     m_slice_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
