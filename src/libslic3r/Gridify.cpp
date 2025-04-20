@@ -54,7 +54,7 @@ void Layer::gridify()
         if (region->slices.empty() || !region_config.gridify_enabled)continue;
 
         const GridifyCfg cfg{
-            Geometry::deg2rad(region_config.gridify_angle),
+            Geometry::deg2rad(region_config.gridify_angle.value),
             (Point::coord_type)scale_(region_config.gridify_gap_width.value),
             region_config.gridify_gap_layers,
             (Point::coord_type)scale_(region_config.gridify_grid_width),
