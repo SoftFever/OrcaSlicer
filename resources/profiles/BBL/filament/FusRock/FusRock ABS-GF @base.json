@@ -4,7 +4,7 @@
     "inherits": "fdm_filament_common",
     "from": "system",
     "filament_id": "GFR00",
-    "instantiation": "true",
+    "instantiation": "false",
     "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials（https://wiki.fusrock.com）.",
     "filament_notes": "//EN\n1.Be sure to read it carefully before using (https://wiki.fusrock.com).\n2.When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials（https://wiki.fusrock.com）.\\n3.Thank you for choosing us FusRock. \n//CN\n1.使用前请务必仔细阅读（https://wiki.fusrock.com）。\n2.打印该耗材时，可能会出现喷嘴堵塞、拉丝、翘边以及层间附着力不足等问题。为了获得更好的打印效果，请参考此维基页面：高温 / 工程材料打印技巧（https://wiki.fusrock.com）。\n3.感谢您选择FusRock。",
     "activate_air_filtration": [
