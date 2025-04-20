@@ -6,7 +6,7 @@
 
 body
 {
-	background-color:#2D2D31;
+	background-color:#2D2D31; /* ORCA match background color */
 	color: #efeff0;
 }
 
@@ -38,14 +38,14 @@ input[type=checkbox]:checked{
 }
 
 /*-----Button-----*/
-.GrayBtn, .SmallBtn
+.GrayBtn, .SmallBtn /* ORCA match button style GrayBtn & SmallBtn */
 {
 	background-color:#3E3E45;
 	/* border: 1px solid #B9B9BC; */
 	color: #FFFFFF;	
 }
 
-.GrayBtn:hover, .SmallBtn:hover
+.GrayBtn:hover, .SmallBtn:hover /* ORCA match button style GrayBtn & SmallBtn */
 {
 	background-color:#49494E;
 	color: #FFFFFF;

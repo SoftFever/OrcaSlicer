@@ -133,17 +133,17 @@ body
 	padding: 3mm 9mm;
 	font-size: 14px;
 	text-align: center;
-	/* border: 1px solid #575757; */
+	/* border: 1px solid #575757; */ /* ORCA match button style */
 	border-radius: 18px;
 	background-color: #D9D9D9;
-	color: #000;
+	color: #000;					/* ORCA match button style */
 	cursor: pointer;
 	margin-left: 10px;	
 }
 
 .GrayBtn:hover
 {
-	background-color:#CCCCCC;
+	background-color:#CCCCCC;		/* ORCA match button style */
 }
 
 .SmallBtn
@@ -190,7 +190,7 @@ body
 	cursor: pointer;
 }
 
-/*---Checkboxes ORCA---*/
+/*---Checkboxes ORCA ---*/
 label:has(input[type="checkbox"]){
 	margin:0;
 	padding: 0;
