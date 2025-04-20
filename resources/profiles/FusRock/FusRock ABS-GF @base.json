@@ -1,0 +1,110 @@
+{
+    "type": "filament",
+    "name": "FusRock ABS-GF @base",
+    "inherits": "fdm_filament_common",
+    "from": "system",
+    "filament_id": "GFR00",
+    "instantiation": "true",
+    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials（https://wiki.fusrock.com）.",
+    "filament_notes": "//EN\n1.Be sure to read it carefully before using (https://wiki.fusrock.com).\n2.When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials（https://wiki.fusrock.com）.\\n3.Thank you for choosing us FusRock. \n//CN\n1.使用前请务必仔细阅读（https://wiki.fusrock.com）。\n2.打印该耗材时，可能会出现喷嘴堵塞、拉丝、翘边以及层间附着力不足等问题。为了获得更好的打印效果，请参考此维基页面：高温 / 工程材料打印技巧（https://wiki.fusrock.com）。\n3.感谢您选择FusRock。",
+    "activate_air_filtration": [
+        "1"
+    ],
+    "cool_plate_temp": [
+        "0"
+    ],
+    "cool_plate_temp_initial_layer": [
+        "0"
+    ],
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "fan_min_speed": [
+        "10"
+    ],
+    "filament_type": [
+        "ABS-GF"
+    ],
+    "filament_vendor": [
+        "FusRock"
+    ],
+    "nozzle_temperature": [
+        "270"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "260"
+    ],
+    "nozzle_temperature_range_high": [
+        "280"
+    ],
+    "nozzle_temperature_range_low": [
+        "240"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "slow_down_layer_time": [
+        "3"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "supertack_plate_temp": [
+        "0"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "0"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n\n"
+    ],
+    "eng_plate_temp": [
+        "105"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "105"
+    ],
+    "fan_max_speed": [
+        "50"
+    ],
+    "filament_adhesiveness_category": [
+        "100"
+    ],
+    "filament_cost": [
+        "0"
+    ],
+    "filament_density": [
+        "1.05"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard"
+    ],
+    "filament_flow_ratio": [
+        "0.92"
+    ],
+    "filament_max_volumetric_speed": [
+        "20"
+    ],
+    "filament_retraction_length": [
+        "0.8"
+    ],
+    "hot_plate_temp": [
+        "105"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "105"
+    ],
+    "overhang_fan_speed": [
+        "50"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "textured_plate_temp": [
+        "105"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "105"
+    ],
+    "version": "1.10.0.32"
+}
