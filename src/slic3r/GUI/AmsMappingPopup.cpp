@@ -816,7 +816,7 @@ void AmsMapingPopup::set_tag_texture(std::string texture)
 }
 
 
-bool AmsMapingPopup::is_match_material(std::string material)
+bool AmsMapingPopup::is_match_material(std::string material) const
 {
     return m_tag_material == material ? true : false;
 }
@@ -1300,9 +1300,9 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remai
 
         if (tray_data[i].type == NORMAL) {
             if (is_match_material(tray_data[i].filament_type)) {
-                m_mapping_item->set_data(tray_data[i].colour, tray_data[i].name, remain_detect_flag, tray_data[i]);
+                m_mapping_item->set_data(m_tag_material, tray_data[i].colour, tray_data[i].name, remain_detect_flag, tray_data[i]);
             } else {
-                m_mapping_item->set_data(wxColour(0xEE, 0xEE, 0xEE), tray_data[i].name, remain_detect_flag, tray_data[i], true);
+                m_mapping_item->set_data(m_tag_material, wxColour(0xEE, 0xEE, 0xEE), tray_data[i].name, remain_detect_flag, tray_data[i], true);
                 m_has_unmatch_filament = true;
             }
 
@@ -1316,7 +1316,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remai
 
         // temp
         if (tray_data[i].type == EMPTY) {
-            m_mapping_item->set_data(wxColour(0xCE, 0xCE, 0xCE), "-", remain_detect_flag, tray_data[i]);
+            m_mapping_item->set_data(m_tag_material, wxColour(0xCE, 0xCE, 0xCE), "-", remain_detect_flag, tray_data[i]);
             m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, i, m_mapping_item](wxMouseEvent &e) {
 
                 if (!m_mapping_from_multi_machines) {
@@ -1331,7 +1331,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remai
 
         // third party
         if (tray_data[i].type == THIRD) {
-            m_mapping_item->set_data(wxColour(0xCE, 0xCE, 0xCE), "?", remain_detect_flag, tray_data[i]);
+            m_mapping_item->set_data(m_tag_material, wxColour(0xCE, 0xCE, 0xCE), "?", remain_detect_flag, tray_data[i]);
             m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, i, m_mapping_item](wxMouseEvent &e) {
                 m_mapping_item->send_event(m_current_filament_id);
                 Dismiss();
@@ -1351,10 +1351,10 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
     // set button
     if (tray_data.type == NORMAL) {
         if (is_match_material(tray_data.filament_type)) {
-            item->set_data(tray_data.colour, tray_data.name, false, tray_data);
+            item->set_data(m_tag_material, tray_data.colour, tray_data.name, false, tray_data);
         }
         else {
-            item->set_data(wxColour(0xEE, 0xEE, 0xEE), tray_data.name, false, tray_data, true);
+            item->set_data(m_tag_material, wxColour(0xEE, 0xEE, 0xEE), tray_data.name, false, tray_data, true);
             m_has_unmatch_filament = true;
         }
 
@@ -1368,7 +1368,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 
     // temp
     if (tray_data.type == EMPTY) {
-        item->set_data(wxColour(0xCE, 0xCE, 0xCE), "-", false, tray_data);
+        item->set_data(m_tag_material, wxColour(0xCE, 0xCE, 0xCE), "-", false, tray_data);
         item->Bind(wxEVT_LEFT_DOWN, [this, tray_data,item](wxMouseEvent& e) {
             item->send_event(m_current_filament_id);
             Dismiss();
@@ -1377,7 +1377,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 
     // third party
     if (tray_data.type == THIRD) {
-        item->set_data(tray_data.colour, "?", false, tray_data);
+        item->set_data(m_tag_material, tray_data.colour, "?", false, tray_data);
         //item->set_data(wxColour(0xCE, 0xCE, 0xCE), "?", tray_data);
         item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, item](wxMouseEvent& e) {
             item->send_event(m_current_filament_id);
@@ -1541,7 +1541,7 @@ void MappingItem::render(wxDC &dc)
     dc.DrawText(m_name, wxPoint((GetSize().x - txt_size.x) / 2, top));
 }
 
-void MappingItem::set_data(wxColour colour, wxString name, bool remain_dect, TrayData data, bool unmatch)
+void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString name, bool remain_dect, TrayData data, bool unmatch)
 {
     m_unmatch = unmatch;
     m_tray_data = data;
@@ -1556,7 +1556,20 @@ void MappingItem::set_data(wxColour colour, wxString name, bool remain_dect, Tra
 
     if (m_unmatch || (m_name == "-"))
     {
-        SetToolTip(_L("Note: Only the AMS slots loaded with the same material type can be selected."));
+        if (m_unmatch) {
+            if (!m_name.IsEmpty() && (m_name != "-")) {
+                const wxString &msg = wxString::Format(_L("Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. "
+                                                          "If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."),
+                                                           m_name, tag_name, m_name, tag_name);
+                SetToolTip(msg);
+            } else {
+                const wxString &msg = wxString::Format(_L("Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."), tag_name);
+                SetToolTip(msg);
+            }
+
+        } else {
+            SetToolTip(_L("Note: Only the AMS slots loaded with the same material type can be selected."));
+        }
     }
     else
     {

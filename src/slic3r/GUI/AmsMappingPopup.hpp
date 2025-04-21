@@ -162,7 +162,7 @@ public:
 public:
     void update_data(TrayData data);
     void send_event(int fliament_id);
-    void set_data(wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false);
+    void set_data(const wxString& tag_name, wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false);
     void set_checked(bool checked);
     void set_tray_index(wxString t_index) { m_tray_index = t_index; };
 
@@ -268,7 +268,7 @@ public:
     void         add_ext_ams_mapping(TrayData tray_data, MappingItem *item);
     void         set_current_filament_id(int id) { m_current_filament_id = id; };
     int          get_current_filament_id(){return m_current_filament_id;};
-    bool         is_match_material(std::string material);
+    bool         is_match_material(std::string material) const;
     void         on_left_down(wxMouseEvent &evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
