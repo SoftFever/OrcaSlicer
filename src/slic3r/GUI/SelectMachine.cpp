@@ -2014,7 +2014,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter, i
     return true;
 }
 
-bool SelectMachineDialog::is_same_nozzle_type(const Extder& extruder, std::string& filament_type) const
+bool SelectMachineDialog::is_nozzle_hrc_matched(const Extder& extruder, std::string& filament_type) const
 {
     auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(extruder.current_nozzle_type);
 
@@ -3343,6 +3343,19 @@ static wxString _check_kval_not_default(const MachineObject* obj, const std::vec
     return ams_names;
 }
 
+static wxString _get_nozzle_name(int total_ext_count, int ext_id)
+{
+    if (total_ext_count == 2) {
+        if (ext_id == MAIN_NOZZLE_ID) {
+            return _L("right nozzle");
+        } else {
+            return _L("left nozzle");
+        }
+    }
+
+    return _L("nozzle");
+}
+
 void SelectMachineDialog::update_show_status()
 {
     // refreshing return
@@ -3557,12 +3570,12 @@ void SelectMachineDialog::update_show_status()
             if (used_nozzle_idxes.count(extder.nozzle_id) == 0) { continue; }
 
             std::string filament_type;
-            if (!is_same_nozzle_type(extder, filament_type))
-            {
+            if (!is_nozzle_hrc_matched(extder, filament_type)) {
                 std::vector<wxString> error_msg;
-                error_msg.emplace_back(wxString::Format(_L("Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"),
-                                                            filament_type, format_steel_name(extder.current_nozzle_type)));
-                return show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
+                error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
+                                                           filament_type, _get_nozzle_name(obj_->m_extder_data.total_extder_count, extder.nozzle_id), format_steel_name(extder.current_nozzle_type)));
+                show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
+                return;
             }
         }
     }
