@@ -1186,6 +1186,10 @@
             "sub_path": "filament/FusRock/FusRock ABS-GF @BBL X1C.json"
         },
         {
+            "name": "FusRock ABS-GF @BBL X1E",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @BBL X1E.json"
+        },
+        {
             "name": "Bambu ASA @BBL A1 0.6 nozzle",
             "sub_path": "filament/Bambu ASA @BBL A1 0.6 nozzle.json"
         },
