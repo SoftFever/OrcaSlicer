@@ -882,12 +882,14 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 if (gizmo_event(SLAGizmoEventType::AltUp) || (is_editing && is_rectangle_dragging))
                     processed = true;
             }
-
-            // BBS
-            if (m_current == MmuSegmentation && keyCode > '0' && keyCode <= '9') {
-                // capture number key
-                processed = true;
+            else if (keyCode == WXK_CONTROL) {
+                gizmo_event(SLAGizmoEventType::CtrlUp);
             }
+        }
+        // BBS
+        if (m_current == MmuSegmentation && keyCode > '0' && keyCode <= '9') {
+            // capture number key
+            processed = true;
         }
         if (m_current == Measure || m_current == Assembly) {
             if (keyCode == WXK_CONTROL)

@@ -768,6 +768,7 @@ bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_
     bool ret = ImGui::BBLSliderFloat(str_label.c_str(), v, v_min, v_max, format, power);
 
     m_last_slider_status.hovered = ImGui::IsItemHovered();
+    m_last_slider_status.edited = ImGui::IsItemEdited();
     m_last_slider_status.clicked = ImGui::IsItemClicked();
     m_last_slider_status.deactivated_after_edit = ImGui::IsItemDeactivatedAfterEdit();
 
