@@ -3,7 +3,7 @@
     "name": "SUNLU Wood PLA @BBL P1P",
     "inherits": "SUNLU Wood PLA @base",
     "from": "system",
-    "setting_id": "SNLS07_01",
+    "setting_id": "GFSNLS07_01",
     "instantiation": "true",
     "fan_cooling_layer_time": [
         "80"

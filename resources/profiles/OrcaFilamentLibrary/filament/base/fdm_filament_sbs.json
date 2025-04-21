@@ -4,7 +4,7 @@
     "inherits": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
-    "filament_id": "GFL99",
+    "filament_id": "OGFLSBS99",
     "fan_cooling_layer_time": [
         "100"
     ],
@@ -72,7 +72,7 @@
         "250"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "slow_down_layer_time": [
         "4"

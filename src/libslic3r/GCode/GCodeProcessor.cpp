@@ -1038,6 +1038,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         if (machine_max_jerk_e != nullptr)
             m_time_processor.machine_limits.machine_max_jerk_e.values = machine_max_jerk_e->values;
 
+          const ConfigOptionFloats* machine_max_junction_deviation = config.option<ConfigOptionFloats>("machine_max_junction_deviation");
+        if (machine_max_junction_deviation != nullptr)
+              m_time_processor.machine_limits.machine_max_junction_deviation.values = machine_max_junction_deviation->values;
+
         const ConfigOptionFloats* machine_max_acceleration_extruding = config.option<ConfigOptionFloats>("machine_max_acceleration_extruding");
         if (machine_max_acceleration_extruding != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_extruding.values = machine_max_acceleration_extruding->values;
@@ -4415,32 +4419,42 @@ void GCodeProcessor::run_post_process()
                         }
                     }
                 }
-            }
-            else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
+            } else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                    const TimeMachine& machine = m_time_processor.machines[i];
-                    PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
+                    const TimeMachine&                  machine = m_time_processor.machines[i];
+                    PrintEstimatedStatistics::ETimeMode mode    = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
-                        sprintf(buf, "; estimated printing time (%s mode) = %s\n",
-                            (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                            get_time_dhms(machine.time).c_str());
+                        if (!s_IsBBLPrinter)
+                            // Orca: compatibility with klipper_estimator
+                            sprintf(buf, "; estimated printing time (%s mode) = %s\n",
+                                    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
+                                    get_time_dhms(machine.time).c_str());
+                        else {
+                            sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
+                                    get_time_dhms(machine.time - machine.prepare_time).c_str(), get_time_dhms(machine.time).c_str());
+                        }
                         export_lines.append_line(buf);
-                        processed = true;
                     }
                 }
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                    const TimeMachine& machine = m_time_processor.machines[i];
-                    PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
+                    const TimeMachine&                  machine = m_time_processor.machines[i];
+                    PrintEstimatedStatistics::ETimeMode mode    = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
                         sprintf(buf, "; estimated first layer printing time (%s mode) = %s\n",
-                            (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                            get_time_dhms(machine.prepare_time).c_str());
+                                (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
+                                get_time_dhms(machine.prepare_time).c_str());
                         export_lines.append_line(buf);
                         processed = true;
                     }
                 }
+            }
+            // Orca: write total layer number, this is used by Bambu printers only as of now
+            else if (line == reserved_tag(ETags::Total_Layer_Number_Placeholder)) {
+                char buf[128];
+                sprintf(buf, "; total layer number: %u\n", m_layer_id);
+                export_lines.append_line(buf);
             }
         }
 
@@ -4588,55 +4602,56 @@ void GCodeProcessor::run_post_process()
                     if (m_print != nullptr)
                         m_print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning);
                 }
-            }
-            export_lines.insert_lines(
-                backtrace, cmd,
-                // line inserter
-                [tool_number, this](unsigned int id, const std::vector<float>& time_diffs) {
-                    const int temperature = int(m_layer_id != 1 ? m_extruder_temps_config[tool_number] :
-                                                                  m_extruder_temps_first_layer_config[tool_number]);
-                    // Orca: M104.1 for XL printers, I can't find the documentation for this so I copied the C++ comments from
-                    // Prusa-Firmware-Buddy here
-                    /**
-                     * M104.1: Early Set Hotend Temperature (preheat, and with stealth mode support)
-                     *
-                     * This GCode is used to tell the XL printer the time estimate when a tool will be used next,
-                     * so that the printer can start preheating the tool in advance.
-                     *
-                     * ## Parameters
-                     * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
-                     * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
-                     * The rest is same as M104
-                     */
-                    if (this->m_is_XL_printer) {
-                        std::string out = "M104.1 T" + std::to_string(tool_number);
-                        if (time_diffs.size() > 0)
-                            out += " P" + std::to_string(int(std::round(time_diffs[0])));
-                        if (time_diffs.size() > 1)
-                            out += " Q" + std::to_string(int(std::round(time_diffs[1])));
-                        out += " S" + std::to_string(temperature) + "\n";
-                        return out;
-                    } else {
-                        std::string comment = "preheat T" + std::to_string(tool_number) +
-                                              " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
-                        return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
-                    }
-                },
-                // line replacer
-                [this, tool_number](const std::string& line) {
-                    if (GCodeReader::GCodeLine::cmd_is(line, "M104")) {
-                        GCodeReader::GCodeLine gline;
-                        GCodeReader reader;
-                        reader.parse_line(line, [&gline](GCodeReader& reader, const GCodeReader::GCodeLine& l) { gline = l; });
-
-                        float val;
-                        if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
-                            if (static_cast<int>(val) == tool_number)
-                                return std::string("; removed M104\n");
+                export_lines.insert_lines(
+                    backtrace, cmd,
+                    // line inserter
+                    [tool_number, this](unsigned int id, const std::vector<float>& time_diffs) {
+                        const int temperature = int(m_layer_id != 1 ? m_extruder_temps_config[tool_number] :
+                                                                    m_extruder_temps_first_layer_config[tool_number]);
+                        // Orca: M104.1 for XL printers, I can't find the documentation for this so I copied the C++ comments from
+                        // Prusa-Firmware-Buddy here
+                        /**
+                        * M104.1: Early Set Hotend Temperature (preheat, and with stealth mode support)
+                        *
+                        * This GCode is used to tell the XL printer the time estimate when a tool will be used next,
+                        * so that the printer can start preheating the tool in advance.
+                        *
+                        * ## Parameters
+                        * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
+                        * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
+                        * The rest is same as M104
+                        */
+                        if (this->m_is_XL_printer) {
+                            std::string out = "M104.1 T" + std::to_string(tool_number);
+                            if (time_diffs.size() > 0)
+                                out += " P" + std::to_string(int(std::round(time_diffs[0])));
+                            if (time_diffs.size() > 1)
+                                out += " Q" + std::to_string(int(std::round(time_diffs[1])));
+                            out += " S" + std::to_string(temperature) + "\n";
+                            return out;
+                        } else {
+                            std::string comment = "preheat T" + std::to_string(tool_number) +
+                                                " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
+                            return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
                         }
+                    },
+                    // line replacer
+                    [this, tool_number](const std::string& line) {
+                        if (GCodeReader::GCodeLine::cmd_is(line, "M104")) {
+                            GCodeReader::GCodeLine gline;
+                            GCodeReader reader;
+                            reader.parse_line(line, [&gline](GCodeReader& reader, const GCodeReader::GCodeLine& l) { gline = l; });
+
+                            float val;
+                            if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
+                                if (static_cast<int>(val) == tool_number)
+                                    return std::string("; removed M104\n");
+                            }
+                        }
+                        return line;
                     }
-                    return line;
-                });
+                );
+            }
         }
     };
 

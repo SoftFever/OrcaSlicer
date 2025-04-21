@@ -6,10 +6,12 @@
 #include "Geometry.hpp"
 #include "ObjectID.hpp"
 #include "Point.hpp"
+#include "AppConfig.hpp"
 #include "PrintConfig.hpp"
 #include "Slicing.hpp"
 #include "SLA/SupportPoint.hpp"
 #include "SLA/Hollowing.hpp"
+#include "BrimEarsPoint.hpp"
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
 #include "calib.hpp"
@@ -383,9 +385,7 @@ public:
     // Holes to be drilled into the object so resin can flow out
     sla::DrainHoles         sla_drain_holes;
 
-    // Connectors to be added into the object before cut and are used to create a solid/negative volumes during a cut perform
-    CutConnectors           cut_connectors;
-    CutObjectBase           cut_id;
+    BrimPoints              brim_points;
 
     /* This vector accumulates the total translation applied to the object by the
         center_around_origin() method. Callers might want to apply the same translation
@@ -395,6 +395,10 @@ public:
 
     // BBS: save for compare with new load volumes
     std::vector<ObjectID>   volume_ids;
+
+    // Connectors to be added into the object before cut and are used to create a solid/negative volumes during a cut perform
+    CutConnectors cut_connectors;
+    CutObjectBase cut_id;
 
     Model*                  get_model() { return m_model; }
     const Model*            get_model() const { return m_model; }
@@ -407,8 +411,8 @@ public:
             return global_config.option<T>(config_option);
     }
 
-    ModelVolume*            add_volume(const TriangleMesh &mesh);
-    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART);
+    ModelVolume*            add_volume(const TriangleMesh &mesh, bool modify_to_center_geometry = true);
+    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART, bool modify_to_center_geometry = true);
     ModelVolume*            add_volume(const ModelVolume &volume, ModelVolumeType type = ModelVolumeType::INVALID);
     ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     ModelVolume*            add_volume_with_shared_mesh(const ModelVolume &other, ModelVolumeType type = ModelVolumeType::MODEL_PART);
@@ -673,7 +677,7 @@ private:
         Internal::StaticSerializationWrapper<ModelConfigObject const> config_wrapper(config);
         Internal::StaticSerializationWrapper<LayerHeightProfile const> layer_heigth_profile_wrapper(layer_height_profile);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
-            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
+            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation, brim_points,
             m_bounding_box_approx, m_bounding_box_approx_valid, 
             m_bounding_box_exact, m_bounding_box_exact_valid, m_min_max_z_valid,
             m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
@@ -686,7 +690,7 @@ private:
         // BBS: add backup, check modify
         SaveObjectGaurd gaurd(*this);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
-            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
+            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation, brim_points,
             m_bounding_box_approx, m_bounding_box_approx_valid, 
             m_bounding_box_exact, m_bounding_box_exact_valid, m_min_max_z_valid,
             m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
@@ -1241,11 +1245,13 @@ public:
         m_assemble_initialized = true;
         m_assemble_transformation = transformation;
     }
-    void set_assemble_from_transform(Transform3d& transform) {
+    void set_assemble_from_transform(const Transform3d& transform) {
         m_assemble_initialized = true;
         m_assemble_transformation.set_matrix(transform);
     }
+    Vec3d get_assemble_offset() const {return m_assemble_transformation.get_offset(); }
     void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
+    void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
     }
@@ -1322,6 +1328,8 @@ public:
         this->object->invalidate_bounding_box();
     }
 
+    ModelInstanceEPrintVolumeState calc_print_volume_state(const BuildVolume& build_volume) const;
+
 protected:
     friend class Print;
     friend class SLAPrint;
@@ -1330,6 +1338,12 @@ protected:
 
     explicit ModelInstance(const ModelInstance &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
+
+    ModelInstanceEPrintVolumeState update_print_volume_state(const BuildVolume& build_volume)
+    {
+        print_volume_state = calc_print_volume_state(build_volume);
+        return print_volume_state;
+    }
 
 private:
     // Parent object, owning this instance.
@@ -1527,6 +1541,15 @@ public:
 
     OBJECTBASE_DERIVED_COPY_MOVE_CLONE(Model)
 
+    static Model read_from_step(const std::string&                                      input_file,
+                                LoadStrategy                                            options,
+                                ImportStepProgressFn                                    stepFn,
+                                StepIsUtf8Fn                                            stepIsUtf8Fn,
+                                std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
+                                double                                                  linear_defletion,
+                                double                                                  angle_defletion,
+                                bool                                                    is_split_compound);
+
     //BBS: add part plate related logic
     // BBS: backup
     //BBS: is_xxx is used for is_bbs_3mf when loading 3mf, is used for is_inches when loading amf
@@ -1536,8 +1559,6 @@ public:
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
                                 ImportstlProgressFn        stlFn                = nullptr,
-                                ImportStepProgressFn       stepFn               = nullptr,
-                                StepIsUtf8Fn               stepIsUtf8Fn         = nullptr,
                                 BBLProject *               project              = nullptr,
                                 int                        plate_id             = 0,
                                 ObjImportColorFn           objFn                = nullptr
@@ -1693,6 +1714,8 @@ bool model_custom_seam_data_changed(const ModelObject& mo, const ModelObject& mo
 // Test whether the now ModelObject has newer MMU segmentation data than the old one.
 // The function assumes that volumes list is synchronized.
 extern bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObject& mo_new);
+
+bool model_brim_points_data_changed(const ModelObject& mo, const ModelObject& mo_new);
 
 // If the model has multi-part objects, then it is currently not supported by the SLA mode.
 // Either the model cannot be loaded, or a SLA printer has to be activated.

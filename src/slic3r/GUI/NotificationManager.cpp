@@ -304,10 +304,10 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		bbl_render_left_sign(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
 		render_left_sign(imgui);
 		render_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-		render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
         m_minimize_b_visible = false;
         if (m_multiline && m_lines_count > 3)
 			render_minimize_button(imgui, win_pos.x, win_pos.y);
+        render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y); // ORCA draw it after minimize button since its position related to minimize button
 	}
 	imgui.end();
 
@@ -1364,7 +1364,7 @@ void NotificationManager::URLDownloadNotification::render_pause_button_inner(ImG
 		button_text = m_is_dark ? (m_download_paused ? ImGui::PlayHoverDarkButton : ImGui::PauseHoverDarkButton) : (m_download_paused ? ImGui::PlayHoverButton : ImGui::PauseHoverButton);
 	}
 
-	ImVec2 button_pic_size = ImGui::CalcTextSize(boost::nowide::narrow(button_text).c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(win_size.x - m_line_height * 5.0f);
 	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
@@ -1405,7 +1405,7 @@ void NotificationManager::URLDownloadNotification::render_open_button_inner(ImGu
 		button_text = m_is_dark ? ImGui::OpenHoverDarkButton : ImGui::OpenHoverButton;
 	}
 
-	ImVec2 button_pic_size = ImGui::CalcTextSize(boost::nowide::narrow(button_text).c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(win_size.x - m_line_height * 5.0f);
 	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
