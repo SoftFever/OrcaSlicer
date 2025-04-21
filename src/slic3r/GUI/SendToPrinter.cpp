@@ -742,7 +742,7 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
         }
     }
 #endif
-
+    m_tcp_try_connect = true;
     this->EndModal(wxID_CANCEL);
 }
 
@@ -770,7 +770,6 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
         return;
     }
     assert(obj_->dev_id == m_printer_last_select);
-
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
@@ -1117,7 +1116,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     auto selection = m_comboBox_printer->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-
+    m_tcp_try_connect  = true;
     MachineObject* obj = nullptr;
     for (int i = 0; i < m_list.size(); i++) {
         if (i == selection) {
@@ -1227,7 +1226,7 @@ void SendToPrinterDialog::update_show_status()
         return;
     }
 #else
-        if (obj_->connection_type() == "lan" || !obj_->is_support_brtc) {
+        if (!obj_->is_support_brtc) {
             if (m_file_sys) {
                 m_device_select.clear();
                 m_file_sys->Stop(true);
@@ -1235,7 +1234,7 @@ void SendToPrinterDialog::update_show_status()
             }
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
             return;
-        } else if (obj_->connection_type() == "cloud") {
+        } else/* if (obj_->connection_type() == "cloud")*/ {
             Enable(obj_ && obj_->is_connected());
             std::string dev_id = obj_->dev_ip;
             if (m_file_sys) {
@@ -1260,6 +1259,7 @@ void SendToPrinterDialog::update_show_status()
                 wxString msg;
                 int      status = e.GetInt();
                 int      extra  = e.GetExtraLong();
+
                 switch (status) {
                 case PrinterFileSystem::Initializing:
                 case PrinterFileSystem::Connecting: show_status(PrintDialogStatus::PrintStatusReading); break;
@@ -1281,7 +1281,21 @@ void SendToPrinterDialog::update_show_status()
 
                     break;
                 }
-                case PrinterFileSystem::Failed: msg = _L("Please check the network and try again, You can restart or update the printer if the issue persists."); break;
+                case PrinterFileSystem::Failed: {
+                    m_tcp_try_connect = false;
+                    /*static int i      = 0;
+                    OutputDebugStringA(std::to_string(i).c_str());
+                    OutputDebugStringA("\n");
+                    if (i++ < 2)*/
+                     /*   msg = _L("Attempting TCP connection, please wait.");
+                    else*/
+                        msg = _L("Please check the network and try again, You can restart or update the printer if the issue persists.");
+                    //fs->Stop();
+                    break;
+                    }
+                case PrinterFileSystem::Stopped: {
+                      //  fs->Retry();
+                    }
                 }
 
                 if (!msg.empty()) {
@@ -1447,6 +1461,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Send_Button(false);
 		Enable_Refresh_Button(true);
 	}
+
 	else if (status == PrintDialogStatus::PrintStatusReadingFinished) {
 		update_print_status_msg(wxEmptyString, false, true);
 		Enable_Send_Button(true);
@@ -1665,10 +1680,13 @@ bool SendToPrinterDialog::Show(bool show)
         update_user_machine_list();
     }
 
+
+
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
     } else {
         m_refresh_timer->Stop();
+        m_tcp_try_connect = true;
     }
 
     Layout();
@@ -1722,31 +1740,71 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     NetworkAgent *agent         = wxGetApp().getAgent();
     std::string   agent_version = agent ? agent->get_version() : "";
 
-    if (agent) {
-        std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
-        agent->get_camera_url(obj->dev_id + "|" + dev_ver + "|" + protocols[remote_proto],
-                              [this, wfs, m = dev_id, v = agent->get_version(), dv = dev_ver](std::string url) {
-                                  if (boost::algorithm::starts_with(url, "bambu:///")) {
-                                      url += "&device=" + m;
-                                      url += "&net_ver=" + v;
-                                      url += "&dev_ver=" + dv;
-                                      url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
-                                      url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
-                                      url += "&cli_ver=" + std::string(SLIC3R_VERSION);
-                                  }
-                                  BOOST_LOG_TRIVIAL(info) << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
-                                  std::cout << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
-                                  CallAfter([=] {
-                                      boost::shared_ptr fs(wfs.lock());
-                                      if (!fs) return;
-                                      if (boost::algorithm::starts_with(url, "bambu:///")) {
-                                          fs->SetUrl(url);
-                                      } else {
-                                          fs->SetUrl("3");
-                                      }
-                                  });
-                              });
-    }
+
+       if (agent) {
+            if (obj->connection_type() == "lan") {
+                // In LAN mode, use TCP connection
+                std::string devIP      = obj->dev_ip;
+                std::string accessCode = obj->get_access_code();
+                std::string tcp_url    = "bambu:///local/" + devIP + "?port=6000&user=" + "bblp" + "&passwd=" + accessCode;
+
+                CallAfter([=] {
+                    boost::shared_ptr fs(wfs.lock());
+                    if (!fs) return;
+                    if (boost::algorithm::starts_with(tcp_url, "bambu:///")) {
+                        fs->SetUrl(tcp_url);
+                    } else {
+                        fs->SetUrl("3");
+                    }
+                });
+            } else {
+                // In non-LAN mode, try TCP connection first
+                if (m_tcp_try_connect) {
+                    std::string devIP      = obj->dev_ip;
+                    std::string accessCode = obj->get_access_code();
+                    std::string tcp_url    = "bambu:///local/" + devIP + "?port=6000&user=" + "bblp" + "&passwd=" + accessCode;
+
+                    CallAfter([=] {
+                        boost::shared_ptr fs(wfs.lock());
+                        if (!fs) return;
+
+                        if (boost::algorithm::starts_with(tcp_url, "bambu:///")) {
+                            fs->SetUrl(tcp_url);
+                        }
+                    });
+                }
+                else {
+                    // If the TCP connection fails, switch to TUTK connection
+                    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+                    agent->get_camera_url(obj->dev_id + "|" + dev_ver + "|" + protocols[1], // สนำร "tutk"
+                                          [this, wfs, m = dev_id, v = agent->get_version(), dv = dev_ver](std::string url) {
+                                              if (boost::algorithm::starts_with(url, "bambu:///")) {
+                                                  url += "&device=" + m;
+                                                  url += "&net_ver=" + v;
+                                                  url += "&dev_ver=" + dv;
+                                                  url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
+                                                  url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+                                                  url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+                                              }
+                                              BOOST_LOG_TRIVIAL(info) << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
+                                              std::cout << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
+                                              CallAfter([=] {
+                                                  boost::shared_ptr fs(wfs.lock());
+                                                  if (!fs) return;
+                                                  if (boost::algorithm::starts_with(url, "bambu:///")) {
+                                                      fs->SetUrl(url);
+                                                  } else {
+                                                      fs->SetUrl("3");
+                                                  }
+                                              });
+                                          });
+
+                 }
+
+             }
+
+            }
+
 
     return;
 }

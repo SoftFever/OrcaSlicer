@@ -215,6 +215,7 @@ public:
         ListSyncing,
         ListReady,
         Failed,
+        Stopped,
     };
 
     Status GetStatus() const { return m_status; }
