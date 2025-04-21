@@ -3875,8 +3875,15 @@ void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
                 item->item->SetToolTip(wxEmptyString);
             }
             else {
-                if (item->item->GetToolTipText() != m_ams_tooltip) {
-                    item->item->SetToolTip(m_ams_tooltip);
+                wxString tip_text;
+                if (item->item->m_match) {
+                    tip_text = _L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
+                } else {
+                    tip_text = _L("Unable to automatically match to suitable filament. Please click to manually match.");
+                }
+
+                if (item->item->GetToolTipText() != tip_text) {
+                    item->item->SetToolTip(tip_text);
                 }
             }
         }
