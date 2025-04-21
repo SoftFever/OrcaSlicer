@@ -1094,7 +1094,6 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
     // ORCA: Update search box to modern style
-    // NEEDFIX search list appears after Ctrl + F shortcut even process > objects not selected
     // CHECK scaling ???
     p->m_search_bar = new StaticBox(p->scrolled);
     p->m_search_bar->SetCornerRadius(0);
@@ -1118,7 +1117,7 @@ Sidebar::Sidebar(Plater *parent)
         p->dia->Popup();
         e.Skip(); // required to show caret
     });
-    p->m_search_item->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) { // m_search_bar/TextInput required to show caret
+    text_ctrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
         this->p->on_search_update();
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
