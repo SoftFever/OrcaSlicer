@@ -49,6 +49,7 @@ private:
 	void init_bind();
 	void init_timer();
 
+
 	int									m_print_plate_idx;
     int									m_current_filament_id;
     int                                 m_print_error_code = 0;
@@ -59,6 +60,7 @@ private:
     bool								m_need_adaptation_screen{ false };
     bool								m_export_3mf_cancel{ false };
     bool								m_is_canceled{ false };
+    bool                                m_tcp_try_connect{true};
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
     std::string							m_print_info;
@@ -126,7 +128,7 @@ private:
     bool                                  m_waiting_enable{ false };
     boost::shared_ptr<PrinterFileSystem>  m_file_sys;
     std::vector<std::string>              m_ability_list;
-   
+
 public:
 	SendToPrinterDialog(Plater* plater = nullptr);
     ~SendToPrinterDialog();
