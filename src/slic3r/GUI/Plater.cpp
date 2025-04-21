@@ -1101,8 +1101,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_search_item->SetBorderColor(wxColour("#CECECE"));
 
     p->m_search_bar = new TextInput(p->m_search_item, wxEmptyString, wxEmptyString, "", wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
-    p->m_search_bar->SetIcon(*Slic3r::GUI::BitmapCache().load_svg("search", FromDIP(16), FromDIP(16))); // ORCA: Add search icon to search box
-    p->m_search_bar->SetTextColor(wxColour("#262E30"));
+    p->m_search_bar->SetIcon(*BitmapCache().load_svg("search", FromDIP(16), FromDIP(16))); // ORCA: Add search icon to search box
 
     wxTextCtrl* text_ctrl = p->m_search_bar->GetTextCtrl();
     text_ctrl->SetHint(_L("Search plate, object and part."));
@@ -1111,32 +1110,22 @@ Sidebar::Sidebar(Plater *parent)
     text_ctrl->SetSize(wxSize(-1, FromDIP(16))); // Centers text vertically
 
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
-        wxTextCtrl* text_ctrl = p->m_search_bar->GetTextCtrl();
-        p->m_search_item->SetBorderColor(wxColour("#009688"));
         this->p->on_search_update();
+        p->m_search_item->SetBorderColor(wxColour("#009688"));
         wxPoint pos = this->p->m_search_item->ClientToScreen(wxPoint(0, 0));
-        pos.y += this->p->m_search_item->GetRect().GetHeight();
+        pos.y += this->p->m_search_item->GetRect().height;
         p->dia->SetPosition(pos);
         p->dia->Popup();
-        e.SetId(text_ctrl->GetId());
+        e.SetId(p->m_search_bar->GetTextCtrl()->GetId());
         e.Skip();
     });
-    p->m_search_bar->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { // keep focus on mouse clicks
-        p->m_search_bar->GetTextCtrl()->SetFocus();
-    });
-    p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
+    text_ctrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
         this->p->on_search_update();
-        if(!p->dia->IsShownOnScreen()){ // re show popup if its hidden
-            wxPoint pos = this->p->m_search_item->ClientToScreen(wxPoint(0, 0));
-            pos.y += this->p->m_search_item->GetRect().GetHeight();
-            p->dia->SetPosition(pos);
-            p->dia->Popup();
-        }
     });
-    p->m_search_bar->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+    text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
         p->dia->Dismiss();
         p->m_search_item->SetBorderColor(wxColour("#CECECE"));
-        p->m_search_bar->GetTextCtrl()->SetValue(""); // reset value when loosing focus
+        p->m_search_bar->GetTextCtrl()->SetValue(""); // reset value when loose focus
         e.Skip();
     });
 
@@ -1157,7 +1146,7 @@ Sidebar::Sidebar(Plater *parent)
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
 
-    p->dia = new Search::SearchObjectDialog(p->m_object_list, p->m_search_bar);
+    p->dia = new Search::SearchObjectDialog(p->m_object_list, text_ctrl); // Fixes popup closes after clicking
 #if !NEW_OBJECT_SETTING
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, 5 * em / 10);
