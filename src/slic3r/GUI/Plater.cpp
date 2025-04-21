@@ -1116,10 +1116,9 @@ Sidebar::Sidebar(Plater *parent)
         pos.y += this->p->m_search_item->GetRect().height;
         p->dia->SetPosition(pos);
         p->dia->Popup();
-        e.SetId(p->m_search_bar->GetTextCtrl()->GetId());
-        e.Skip();
+        e.Skip(); // required to show caret
     });
-    text_ctrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
+    p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) { // m_search_bar/TextInput required to show caret
         this->p->on_search_update();
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
