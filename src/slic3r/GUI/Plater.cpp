@@ -439,7 +439,7 @@ void Sidebar::priv::jump_to_object(ObjectDataViewModelNode* item)
 
 void Sidebar::priv::can_search()
 {
-    if (m_search_item->IsShown()) {
+    if (m_search_bar->IsShown()) {
         m_search_item->SetFocus();
     }
 }
