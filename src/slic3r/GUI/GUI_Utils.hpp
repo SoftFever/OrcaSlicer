@@ -7,6 +7,7 @@
 #include <functional>
 
 #include <boost/optional.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/frame.h>
 #include <wx/dialog.h>
@@ -320,7 +321,26 @@ private:
 };
 
 typedef DPIAware<wxFrame> DPIFrame;
-typedef DPIAware<wxDialog> DPIDialog;
+class DPIDialog : public DPIAware<wxDialog>
+{
+public:
+    using DPIAware<wxDialog>::DPIAware;
+
+public:
+    void EndModal(int retCode) override
+    {
+        if (!dialogStack.empty() && dialogStack.front() != this) {
+            // This is a bug in wxWidgets
+            // when the dialog is not top modal dialog, EndModal() just hide dialog without quit 
+            // the modal event loop. And the modal event loop blocks us from bottom widgets.
+            // Solution: let user click it manually or close outside. FIXME
+            BOOST_LOG_TRIVIAL(warning) << "DPIAware::EndModal Error: dialogStack is not empty, but top dialog is not this one. retCode=" << retCode;
+            return;
+        }
+
+        return wxDialog::EndModal(retCode);
+    }
+};
 
 
 class EventGuard
