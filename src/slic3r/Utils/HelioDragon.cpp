@@ -33,7 +33,7 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
     http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
-        .timeout_max(20)
+        .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
@@ -109,7 +109,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
     http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
-        .timeout_max(20)
+        .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
@@ -123,6 +123,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
             }
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
+            res.success = false;
             res.error  = error;
             res.status = status;
         })
@@ -164,7 +165,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
     http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
-        .timeout_max(20)
+        .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
@@ -178,6 +179,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
             }
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
+            res.success = false;
             res.error  = error;
             res.status = status;
         })
@@ -205,7 +207,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
     http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
-        .timeout_max(20)
+        .timeout_max(100)
         .on_complete([&res](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
             res.status                = status;
