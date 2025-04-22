@@ -43,5 +43,7 @@
     "top_surface_acceleration": "2000",
     "top_surface_speed": "200",
     "travel_speed": "500",
-    "travel_speed_z": "0"
+    "travel_speed_z": "0",
+    "z_direction_outwall_speed_continuous": "1",
+    "prime_tower_flat_ironing":"1"
 }
