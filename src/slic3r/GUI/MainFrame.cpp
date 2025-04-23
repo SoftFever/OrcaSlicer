@@ -72,7 +72,7 @@
 
 #include "ICRSConfig.hpp"
 #include "../Utils/Http.hpp"
-#include "AlertDialog.hpp"
+#include "ALERT.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -1642,8 +1642,10 @@ wxBoxSizer* MainFrame::create_side_tools()
                 // bool afterHoursPrint = after10 && isLessThan9Hours;
 
                 bool time_allowed = false;
+                std::stringstream url;
+                url << ICRS_TIME_CHECK << "?time_seconds=" << total_time_all_plates;
 
-                Slicer::Http http = Slic3r::Http::get(ICRS_PRINT_SUBMITTED + "?time=" + boost::lexical_cast<std::string>(total_time_all_plates));
+                Slic3r::Http http = Slic3r::Http::get(url.str());
                 http.timeout_connect(1)
                     .timeout_max(1)
                     .on_complete([&time_allowed](std::string body, unsigned int status) {
@@ -1659,7 +1661,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                             BOOST_LOG_TRIVIAL(error) << "error somewhere";
                         }
                     })
-                    .on_error([](std::string body, unsigned int status) {
+                    .on_error([](std::string body, std::string error, unsigned int status) {
                         BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
                     })
                     .perform_sync();
@@ -1668,7 +1670,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 m_print_btn->Enable(m_print_enable);
 
                 if(!m_print_enable) {
-                    auto m_noprint_dlg = new AlertDialog("Print time exceeds allowed limit");
+                    auto m_noprint_dlg = new PrintTimeAlert();
                     m_noprint_dlg->ShowModal();
                 }
                 else if (m_print_select == ePrintPlate) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));

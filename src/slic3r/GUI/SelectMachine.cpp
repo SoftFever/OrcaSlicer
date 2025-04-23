@@ -30,7 +30,7 @@
 
 #include "../Utils/Http.hpp"
 #include "ICRSConfig.hpp"
-#include "AlertDialog.hpp"
+#include "ALERT.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -2438,32 +2438,46 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_) return;
 
     bool send_print = false;
+    bool permitted = true;
     std::string error_message;
+    
+    std::stringstream url;
+    url << ICRS_ENABLE_PRINT_ENDPOINT << "?dev=" << obj_->dev_id;
 
-    Slic3r::Http http = Slic3r::Http::get(ICRS_ENABLE_PRINT_ENDPOINT + "?dev=" + obj_->dev_name);
+    Slic3r::Http http = Slic3r::Http::get(url.str());
     http.timeout_connect(1)
         .timeout_max(1)
-        .on_complete([&send_print](std::string body, unsigned int status) {
+        .on_complete([&send_print, &permitted](std::string body, unsigned int status) {
             try {
-                if (body.substr(0, 1) == "1") {
+                if (body == "1") {
                     BOOST_LOG_TRIVIAL(info) << "Sending Print";
                     send_print = true;
                 } else {
                     BOOST_LOG_TRIVIAL(info) << "Failed to verify";
-                    error_message = body.substr(1, body.length()-1);
+                    if (body == "01") {
+                        permitted = false;
+                    }
                 }
             }
             catch (...) {
                 BOOST_LOG_TRIVIAL(error) << "Error somewhere!";
             }
         })
-        .on_error([](std::string body; std::string error, unsigned int status) {
+        .on_error([](std::string body, std::string error, unsigned int status) {
             BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
         })
-        .perform_sync()
+        .perform_sync();
 
     if (!send_print) {
-        auto m_verification_dlg = new AlertDialog(error_message);
+        if (permitted) {
+            auto m_verification_dlg = new ScannerAlertDialog();
+            m_verification_dlg->ShowModal();
+        }
+        else {
+            auto m_verification_dlg = new NoPermissionDialog();
+            m_verification_dlg->ShowModal();
+        }
+        return; 
     }
 
     std::vector<ConfirmBeforeSendInfo> confirm_text;
