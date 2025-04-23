@@ -7003,6 +7003,41 @@ void GUI_App::start_download(std::string url)
 
 }
 
+bool is_soluble_filament(int extruder_id)
+{
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+
+    if (extruder_id >= filament_presets.size()) return false;
+
+    Slic3r::Preset *filament = filaments.find_preset(filament_presets[extruder_id]);
+    if (filament == nullptr) return false;
+
+    Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_soluble"));
+    if (support_option == nullptr) return false;
+
+    return support_option->get_at(0);
+};
+
+bool has_filaments(const std::vector<string>& model_filaments) {
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
+    const Slic3r::DynamicPrintConfig &config = wxGetApp().preset_bundle->full_config();
+    Model::setExtruderParams(config, filament_presets.size());
+
+    auto get_filament_name = [](int id) { return Model::extruderParamsMap.find(id) != Model::extruderParamsMap.end() ? Model::extruderParamsMap.at(id).materialName : "PLA"; };
+    for (const ModelObject *mo : model_objects) {
+        for (auto vol : mo->volumes) {
+            auto ve = vol->get_extruders();
+            for (auto id : ve) {
+                auto name = get_filament_name(id);
+                if (find(model_filaments.begin(), model_filaments.end(), name) != model_filaments.end()) return true;
+            }
+        }
+    }
+    return false;
+}
+
 bool is_support_filament(int extruder_id)
 {
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
@@ -7013,9 +7048,20 @@ bool is_support_filament(int extruder_id)
     Slic3r::Preset *filament = filaments.find_preset(filament_presets[extruder_id]);
     if (filament == nullptr) return false;
 
-    Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_is_support"));
-    if (support_option == nullptr) return false;
+    std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
 
+    Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_is_support"));
+
+    if (filament_type == "PETG" || filament_type == "PLA") {
+        std::vector<string> model_filaments;
+        if (filament_type == "PETG")
+            model_filaments.emplace_back("PLA");
+        else {
+            model_filaments = {"PETG", "TPU", "TPU-AMS"};
+        }
+        if (has_filaments(model_filaments)) return true;
+    }
+    if (support_option == nullptr) return false;
     return support_option->get_at(0);
 };
 

@@ -15007,25 +15007,6 @@ void Plater::on_filament_change(size_t filament_idx)
     if (filament == nullptr)
         return;
     std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
-    if (filament_type == "PVA") {
-        auto& process_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
-        auto support_type = process_preset.config.opt_enum<SupportType>("support_type");
-        if (support_type == stNormalAuto || support_type == stNormal)
-            return;
-
-        wxString msg_text = _(L("For PVA filaments, it is strongly recommended to use normal support to avoid print failures."));
-        msg_text += "\n" + _(L("Change these settings automatically? \n"));
-        MessageDialog dialog(this, msg_text, "",
-            wxICON_WARNING | wxYES | wxNO);
-        if (dialog.ShowModal() == wxID_YES) {
-            SupportType target_type = support_type == SupportType::stTree ? SupportType::stNormal : SupportType::stNormalAuto;
-            process_preset.config.option("support_type")->set(new ConfigOptionEnum<SupportType>(target_type));
-            auto print_tab = wxGetApp().get_tab(Preset::Type::TYPE_PRINT);
-            print_tab->on_value_change("support_type", target_type);
-            print_tab->reload_config();
-            print_tab->update_dirty();
-        }
-    }
 }
 
 // BBS.

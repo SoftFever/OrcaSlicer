@@ -1641,23 +1641,59 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_config_manipulation.apply(m_config, &new_conf);
     }
 
+    if (opt_key == "support_filament") {
+        int filament_id           = m_config->opt_int("support_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
+        int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
+        if (is_support_filament(filament_id) && !is_soluble_filament(filament_id) && !has_filaments({"TPU", "TPU-AMS"})) {
+            wxString           msg_text = _L("Non-soluble support materials are not recommended for support base. \n"
+                                                       "Are you sure to use them for support base? \n");
+            MessageDialog      dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+            DynamicPrintConfig new_conf = *m_config;
+            if (dialog.ShowModal() == wxID_NO) {
+                new_conf.set_key_value("support_filament", new ConfigOptionInt(0));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+            wxGetApp().plater()->update();
+        }
+    }
+
     // BBS popup a message to ask the user to set optimum parameters for support interface if support materials are used
     if (opt_key == "support_interface_filament") {
+        int filament_id           = m_config->opt_int("support_filament") - 1;
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
-        if (is_support_filament(interface_filament_id) && !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
-                                                            m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) {
-            wxString msg_text = _L("When using support material for the support interface, we recommend the following settings:\n"
-                                   "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
-            msg_text += "\n\n" + _L("Change these settings automatically?\n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
+        if ((is_support_filament(interface_filament_id) &&
+             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
+               m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) ||
+            (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
+            wxString msg_text;
+            if (!is_soluble_filament(interface_filament_id)) {
+                msg_text = _L("When using support material for the support interface, we recommend the following settings:\n"
+                              "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
+                msg_text += "\n\n" + _L("Change these settings automatically?\n"
+                                        "Yes - Change these settings automatically\n"
+                                        "No  - Do not change these settings for me");
+            } else {
+                msg_text = _L("When using soluble material for the support interface, We recommend the following settings:\n"
+                              "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, disable independent support layer height \n"
+                              "and use soluble materials for both support interface and support base");
+                msg_text += "\n\n" + _L("Change these settings automatically? \n"
+                                        "Yes - Change these settings automatically\n"
+                                        "No  - Do not change these settings for me");
+            }
             MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
             DynamicPrintConfig new_conf = *m_config;
             if (dialog.ShowModal() == wxID_YES) {
+                auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+                auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+                Slic3r::Preset *filament         = filaments.find_preset(filament_presets[interface_filament_id]);
+                std::string     filament_type    = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
+
                 new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+                if ((filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"})) || (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id)))
+                    new_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
             wxGetApp().plater()->update();

@@ -734,6 +734,9 @@ DECLARE_APP(GUI_App)
 wxDECLARE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
 
 bool is_support_filament(int extruder_id);
+bool is_soluble_filament(int extruder_id);
+// check if the filament for model is in the list
+bool has_filaments(const std::vector<string>& model_filaments);
 } // namespace GUI
 } // Slic3r
 
