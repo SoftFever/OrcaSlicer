@@ -138,6 +138,7 @@ public:
     double          m_last_jerk;
     double          m_max_jerk_z;
     double          m_max_jerk_e;
+    double          m_max_junction_deviation;
 
     unsigned int  m_travel_acceleration;
     unsigned int  m_travel_jerk;

@@ -1601,23 +1601,19 @@ void WipeTower2::save_on_last_wipe()
             auto& toolchange = m_layer_info->tool_changes[i];
             tool_change(toolchange.new_tool);
 
-            // Orca: allow calculation of the required depth and wipe volume for soluable toolchanges as well
-            // NOTE: it's not clear if this is the right way, technically we should disable wipe tower if soluble filament is used as it
-            // will will make the wipe tower unstable. Need to revist this in the future.
+            if (i == idx) {
+                float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
 
-            // if (i == idx) {
-            float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
+                float volume_to_save = length_to_volume(finish_layer().total_extrusion_length_in_plane(), m_perimeter_width, m_layer_info->height);
+                float volume_left_to_wipe = std::max(m_filpar[toolchange.new_tool].filament_minimal_purge_on_wipe_tower, toolchange.wipe_volume_total - volume_to_save);
+                float volume_we_need_depth_for = std::max(0.f, volume_left_to_wipe - length_to_volume(toolchange.first_wipe_line, m_perimeter_width*m_extra_flow, m_layer_info->height));
+                float depth_to_wipe = get_wipe_depth(volume_we_need_depth_for, m_layer_info->height, m_perimeter_width, m_extra_flow, m_extra_spacing_wipe, width);
 
-            float volume_to_save = length_to_volume(finish_layer().total_extrusion_length_in_plane(), m_perimeter_width, m_layer_info->height);
-            float volume_left_to_wipe = std::max(m_filpar[toolchange.new_tool].filament_minimal_purge_on_wipe_tower, toolchange.wipe_volume_total - volume_to_save);
-            float volume_we_need_depth_for = std::max(0.f, volume_left_to_wipe - length_to_volume(toolchange.first_wipe_line, m_perimeter_width*m_extra_flow, m_layer_info->height));
-            float depth_to_wipe = get_wipe_depth(volume_we_need_depth_for, m_layer_info->height, m_perimeter_width, m_extra_flow, m_extra_spacing_wipe, width);
-
-            toolchange.required_depth = toolchange.ramming_depth + depth_to_wipe;
-            toolchange.wipe_volume = volume_left_to_wipe;
-        // }
+                toolchange.required_depth = toolchange.ramming_depth + depth_to_wipe;
+                toolchange.wipe_volume = volume_left_to_wipe;
+            }
+        }
     }
-}
 }
 
 
@@ -1626,10 +1622,14 @@ void WipeTower2::save_on_last_wipe()
 int WipeTower2::first_toolchange_to_nonsoluble(
         const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const
 {
-    for (size_t idx=0; idx<tool_changes.size(); ++idx)
-        if (! m_filpar[tool_changes[idx].new_tool].is_soluble)
-            return idx;
-    return -1;
+    // Orca: allow calculation of the required depth and wipe volume for soluable toolchanges as well
+    // NOTE: it's not clear if this is the right way, technically we should disable wipe tower if soluble filament is used as it
+    // will will make the wipe tower unstable. Need to revist this in the future.
+    return tool_changes.empty() ? -1 : 0;
+    //for (size_t idx=0; idx<tool_changes.size(); ++idx)
+    //    if (! m_filpar[tool_changes[idx].new_tool].is_soluble)
+    //        return idx;
+    //return -1;
 }
 
 static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,
