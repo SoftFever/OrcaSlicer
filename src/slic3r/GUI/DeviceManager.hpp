@@ -1040,7 +1040,7 @@ public:
     bool is_support_extrusion_cali{false};
     bool is_support_first_layer_inspect{false};
     bool is_support_ai_monitoring {false};
-    bool is_support_lidar_calibration {false};
+    bool is_support_lidar_calibration {false};// the lidar calibration for 3D Studio
 
     bool is_support_build_plate_marker_detect{false};
     PlateMakerDectect m_plate_maker_detect_type{ POS_CHECK };
