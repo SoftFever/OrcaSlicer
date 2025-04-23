@@ -40,7 +40,6 @@
 #include "ParamsPanel.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/TextInput.hpp"
-#include "Widgets/CheckBox.hpp"
 
 class TabCtrl;
 
