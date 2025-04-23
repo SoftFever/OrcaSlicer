@@ -49,6 +49,7 @@ enum CalibrationFilamentMode {
 enum CalibrationMethod {
     CALI_METHOD_MANUAL = 0,
     CALI_METHOD_AUTO,
+    CALI_METHOD_NEW_AUTO,
     CALI_METHOD_NONE,
 };
 
@@ -78,13 +79,14 @@ enum class CaliPageType {
 class FilamentComboBox : public wxPanel
 {
 public:
-    FilamentComboBox(wxWindow* parent, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    FilamentComboBox(wxWindow* parent, int index, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~FilamentComboBox() {};
 
     void set_select_mode(CalibrationFilamentMode mode);
     CalibrationFilamentMode get_select_mode() { return m_mode; }
     void load_tray_from_ams(int id, DynamicPrintConfig& tray);
     void update_from_preset();
+    int get_index() { return m_index; }
     int get_tray_id() { return m_tray_id; }
     bool is_bbl_filament() { return m_is_bbl_filamnet; }
     std::string get_tray_name() { return m_tray_name; }
@@ -102,6 +104,7 @@ public:
     void HidePanel();
 
 protected:
+    int m_index{0};
     int m_tray_id { -1 };
     std::string m_tray_name;
     bool m_is_bbl_filamnet{ false };

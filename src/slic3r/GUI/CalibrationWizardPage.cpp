@@ -137,7 +137,10 @@ CalibMode get_obj_calibration_mode(const MachineObject* obj, CalibrationMethod& 
     }
 
     CalibMode cali_mode = CalibUtils::get_calib_mode_by_name(obj->subtask_name, cali_stage);
-    if (cali_mode != CalibMode::Calib_None) {
+    if (cali_mode == CalibMode::Calib_PA_Line && cali_stage == 2) {
+        method = CalibrationMethod::CALI_METHOD_NEW_AUTO;
+    }
+    else if (cali_mode != CalibMode::Calib_None) {
         method = CalibrationMethod::CALI_METHOD_MANUAL;
     }
     return cali_mode;
@@ -264,8 +267,9 @@ void CaliPageButton::msw_rescale()
 }
 
 
-FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const wxSize& size)
+FilamentComboBox::FilamentComboBox(wxWindow* parent, int index, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, wxID_ANY, pos, size, wxTAB_TRAVERSAL)
+    , m_index(index)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -571,7 +575,7 @@ void CaliPageStepGuide::set_steps_string(wxArrayString steps)
 CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) 
     : wxPanel(parent, id, pos, size, style)
 {
-    SetBackgroundColour(wxColour(0xCECECE));
+    SetBackgroundColour(wxColour("#CECECE"));
     auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
     top_sizer->AddStretchSpacer();
     m_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);

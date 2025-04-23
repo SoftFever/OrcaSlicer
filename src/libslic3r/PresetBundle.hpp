@@ -75,6 +75,12 @@ struct FilamentBaseInfo
 class PresetBundle
 {
 public:
+    static DynamicPrintConfig construct_full_config(Preset                         &in_printer_preset,
+                                                    Preset                         &in_print_preset,
+                                                    const DynamicPrintConfig       &project_config,
+                                                    std::vector<Preset>            &in_filament_presets,
+                                                    bool                            apply_extruder,
+                                                    std::optional<std::vector<int>> filament_maps_new);
     PresetBundle();
     PresetBundle(const PresetBundle &rhs);
     PresetBundle& operator=(const PresetBundle &rhs);

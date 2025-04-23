@@ -18,6 +18,7 @@ enum class CalibMode : int {
     Calib_PA_Line,
     Calib_PA_Pattern,
     Calib_PA_Tower,
+    Calib_Auto_PA_Line,
     Calib_Flow_Rate,
     Calib_Temp_Tower,
     Calib_Vol_speed_Tower,

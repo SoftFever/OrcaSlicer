@@ -58,6 +58,183 @@ const char *PresetBundle::ORCA_DEFAULT_PRINTER_VARIANT = "0.4";
 const char *PresetBundle::ORCA_DEFAULT_FILAMENT = "Generic PLA @System";
 const char *PresetBundle::ORCA_FILAMENT_LIBRARY = "OrcaFilamentLibrary";
 
+DynamicPrintConfig PresetBundle::construct_full_config(
+    Preset& in_printer_preset,
+    Preset& in_print_preset,
+    const DynamicPrintConfig& project_config,
+    std::vector<Preset>& in_filament_presets,
+    bool apply_extruder,
+    std::optional<std::vector<int>> filament_maps_new)
+{
+    DynamicPrintConfig &printer_config = in_printer_preset.config;
+    DynamicPrintConfig &print_config   = in_print_preset.config;
+
+    DynamicPrintConfig out;
+    out.apply(FullPrintConfig::defaults());
+    out.apply(printer_config);
+    out.apply(print_config);
+    out.apply(project_config);
+    out.apply(in_filament_presets[0].config);
+
+    size_t num_filaments = in_filament_presets.size();
+
+    std::vector<int> filament_maps = out.option<ConfigOptionInts>("filament_map")->values;
+    if (filament_maps_new.has_value())
+        filament_maps = *filament_maps_new;
+    // in some middle state, they may be different
+    if (filament_maps.size() != num_filaments) {
+        filament_maps.resize(num_filaments, 1);
+    }
+
+    auto *extruder_diameter = dynamic_cast<const ConfigOptionFloatsNullable *>(out.option("nozzle_diameter"));
+    // Collect the "compatible_printers_condition" and "inherits" values over all presets (print, filaments, printers) into a single vector.
+    std::vector<std::string> compatible_printers_condition;
+    std::vector<std::string> compatible_prints_condition;
+    std::vector<std::string> inherits;
+    std::vector<std::string> filament_ids;
+    std::vector<std::string> print_compatible_printers;
+    // BBS: add logic for settings check between different system presets
+    std::vector<std::string> different_settings;
+    std::string              different_print_settings, different_printer_settings;
+    compatible_printers_condition.emplace_back(in_print_preset.compatible_printers_condition());
+
+    const ConfigOptionStrings *compatible_printers = print_config.option<ConfigOptionStrings>("compatible_printers", false);
+    if (compatible_printers) print_compatible_printers = compatible_printers->values;
+    // BBS: add logic for settings check between different system presets
+    std::string print_inherits = in_print_preset.inherits();
+    inherits.emplace_back(print_inherits);
+
+    // BBS: update printer config related with variants
+    if (apply_extruder) {
+        out.update_values_to_printer_extruders(out, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
+        out.update_values_to_printer_extruders(out, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
+        // update print config related with variants
+        out.update_values_to_printer_extruders(out, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+    }
+
+    if (num_filaments <= 1) {
+        // BBS: update filament config related with variants
+        DynamicPrintConfig filament_config = in_filament_presets[0].config;
+        if (apply_extruder) filament_config.update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0]);
+        out.apply(filament_config);
+        compatible_printers_condition.emplace_back(in_filament_presets[0].compatible_printers_condition());
+        compatible_prints_condition.emplace_back(in_filament_presets[0].compatible_prints_condition());
+        std::string filament_inherits = in_filament_presets[0].inherits();
+        inherits.emplace_back(filament_inherits);
+        filament_ids.emplace_back(in_filament_presets[0].filament_id);
+
+        std::vector<int> &filament_self_indice = out.option<ConfigOptionInts>("filament_self_index", true)->values;
+        int               index_size           = out.option<ConfigOptionStrings>("filament_extruder_variant")->size();
+        filament_self_indice.resize(index_size, 1);
+    } else {
+        std::vector<const DynamicPrintConfig *> filament_configs;
+        std::vector<const Preset *>             filament_presets;
+        for (const Preset & preset : in_filament_presets) {
+            filament_presets.emplace_back(&preset);
+            filament_configs.emplace_back(&(preset.config));
+        }
+
+        std::vector<DynamicPrintConfig> filament_temp_configs;
+        filament_temp_configs.resize(num_filaments);
+        for (size_t i = 0; i < num_filaments; ++i) {
+            filament_temp_configs[i] = *(filament_configs[i]);
+            if (apply_extruder)
+                filament_temp_configs[i].update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i]);
+        }
+
+        // loop through options and apply them to the resulting config.
+        std::vector<int> filament_variant_count(num_filaments, 1);
+        for (const t_config_option_key &key : in_filament_presets[0].config.keys()) {
+            if (key == "compatible_prints" || key == "compatible_printers") continue;
+            // Get a destination option.
+            ConfigOption *opt_dst = out.option(key, false);
+            if (opt_dst->is_scalar()) {
+                // Get an option, do not create if it does not exist.
+                const ConfigOption *opt_src = filament_temp_configs.front().option(key);
+                if (opt_src != nullptr) opt_dst->set(opt_src);
+            } else {
+                // BBS
+                ConfigOptionVectorBase *opt_vec_dst = static_cast<ConfigOptionVectorBase *>(opt_dst);
+                {
+                    if (apply_extruder) {
+                        std::vector<const ConfigOption *> filament_opts(num_filaments, nullptr);
+                        // Setting a vector value from all filament_configs.
+                        for (size_t i = 0; i < filament_opts.size(); ++i) filament_opts[i] = filament_temp_configs[i].option(key);
+                        opt_vec_dst->set(filament_opts);
+                    } else {
+                        for (size_t i = 0; i < num_filaments; ++i) {
+                            const ConfigOptionVectorBase *filament_option = static_cast<const ConfigOptionVectorBase *>(filament_temp_configs[i].option(key));
+                            if (i == 0)
+                                opt_vec_dst->set(filament_option);
+                            else
+                                opt_vec_dst->append(filament_option);
+
+                            if (key == "filament_extruder_variant") filament_variant_count[i] = filament_option->size();
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!apply_extruder) {
+            // append filament_self_index
+            std::vector<int> &filament_self_indice = out.option<ConfigOptionInts>("filament_self_index", true)->values;
+            int               index_size           = out.option<ConfigOptionStrings>("filament_extruder_variant")->size();
+            filament_self_indice.resize(index_size, 1);
+            int k = 0;
+            for (size_t i = 0; i < num_filaments; i++) {
+                for (size_t j = 0; j < filament_variant_count[i]; j++) { filament_self_indice[k++] = i + 1; }
+            }
+        }
+    }
+
+    // These value types clash between the print and filament profiles. They should be renamed.
+    out.erase("compatible_prints");
+    out.erase("compatible_prints_condition");
+    out.erase("compatible_printers");
+    out.erase("compatible_printers_condition");
+    out.erase("inherits");
+    // BBS: add logic for settings check between different system presets
+    out.erase("different_settings_to_system");
+
+    static const char *keys[] = {"support_filament", "support_interface_filament"};
+    for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+        std::string key = std::string(keys[i]);
+        auto       *opt = dynamic_cast<ConfigOptionInt *>(out.option(key, false));
+        assert(opt != nullptr);
+        opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_filaments));
+    }
+
+    std::vector<std::string> filamnet_preset_names;
+    for (auto preset : in_filament_presets) {
+        filamnet_preset_names.emplace_back(preset.name);
+    }
+    out.option<ConfigOptionString>("print_settings_id", true)->value      = in_print_preset.name;
+    out.option<ConfigOptionStrings>("filament_settings_id", true)->values = filamnet_preset_names;
+    out.option<ConfigOptionString>("printer_settings_id", true)->value    = in_printer_preset.name;
+    out.option<ConfigOptionStrings>("filament_ids", true)->values         = filament_ids;
+    out.option<ConfigOptionInts>("filament_map", true)->values            = filament_maps;
+
+    auto add_if_some_non_empty = [&out](std::vector<std::string> &&values, const std::string &key) {
+        bool nonempty = false;
+        for (const std::string &v : values)
+            if (!v.empty()) {
+                nonempty = true;
+                break;
+            }
+        if (nonempty) out.set_key_value(key, new ConfigOptionStrings(std::move(values)));
+    };
+    add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_machine_expression_group");
+    add_if_some_non_empty(std::move(compatible_prints_condition), "compatible_process_expression_group");
+    add_if_some_non_empty(std::move(inherits), "inherits_group");
+    // BBS: add logic for settings check between different system presets
+    //add_if_some_non_empty(std::move(different_settings), "different_settings_to_system");
+    add_if_some_non_empty(std::move(print_compatible_printers), "print_compatible_printers");
+
+    out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
+    return out;
+}
+
 PresetBundle::PresetBundle()
     : prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
     , filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()), "Default Filament")

@@ -16,9 +16,11 @@ extern const float MAX_PA_K_VALUE;
 class CalibInfo
 {
 public:
+    int                                index = -1;
     int                                extruder_id = 0;
     int                                ams_id = 0;
     int                                slot_id = 0;
+    float                              nozzle_diameter;
     ExtruderType                       extruder_type{ExtruderType::etDirectDrive};
     NozzleVolumeType                   nozzle_volume_type;
     Calib_Params                       params;
@@ -26,6 +28,7 @@ public:
     Preset*                            filament_prest;
     Preset*                            print_prest;
     BedType                            bed_type;
+    std::string                        filament_color;
     std::string                        dev_id;
     std::string                        select_ams;
     std::shared_ptr<ProgressIndicator> process_bar;
@@ -58,6 +61,9 @@ public:
 
     static void calib_pa_pattern(const CalibInfo &calib_info, Model &model);
 
+    static void set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &calib_info, DynamicPrintConfig &full_config, Model &model);
+
+    static bool calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_info, wxString & error_message);
     static bool calib_generic_PA(const CalibInfo &calib_info, wxString &error_message);
     static void calib_temptue(const CalibInfo &calib_info, wxString &error_message);
     static void calib_max_vol_speed(const CalibInfo &calib_info, wxString &error_message);
@@ -76,10 +82,12 @@ public:
 
     static bool check_printable_status_before_cali(const MachineObject *obj, const X1CCalibInfos &cali_infos, wxString &error_message);
     static bool check_printable_status_before_cali(const MachineObject *obj, const CalibInfo &cali_info, wxString &error_message);
+    static bool check_printable_status_before_cali(const MachineObject *obj, const std::vector<CalibInfo> &cali_infos, wxString &error_message);
 
 private:
     static bool process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
+    static void send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
 
 extern void get_tray_ams_and_slot_id(MachineObject* obj, int in_tray_id, int &ams_id, int &slot_id, int &tray_id);

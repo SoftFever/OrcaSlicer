@@ -107,7 +107,7 @@ void CalibrationCaliPage::set_cali_img()
             CalibMode         obj_cali_mode = get_obj_calibration_mode(curr_obj, method, cali_stage);
             set_pa_cali_image(cali_stage);
         }
-        else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
+        else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) {
             if (curr_obj) {
                 if (curr_obj->is_multi_extruders()) {
                     if (m_cur_extruder_id == 0) {
@@ -213,8 +213,8 @@ void CalibrationCaliPage::update(MachineObject* obj)
             return;
         }
 
-        if (m_cali_mode == CalibMode::Calib_PA_Line) {
-            if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
+        if (m_cali_mode == CalibMode::Calib_PA_Line || m_cali_mode == CalibMode::Calib_Auto_PA_Line) {
+            if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) {
                 if (get_obj_calibration_mode(obj) == m_cali_mode) {
                     if (obj->is_printing_finished()) {
                         if (obj->print_status == "FINISH") {
@@ -479,7 +479,7 @@ void CalibrationCaliPage::set_cali_method(CalibrationMethod method)
     manual_steps.Add(_L("Calibration2"));
     manual_steps.Add(_L("Record Factor"));
 
-    if (method == CalibrationMethod::CALI_METHOD_AUTO) {
+    if (method == CalibrationMethod::CALI_METHOD_AUTO || method == CalibrationMethod::CALI_METHOD_NEW_AUTO) {
         m_step_panel->set_steps_string(auto_steps);
         m_step_panel->set_steps(1);
     }

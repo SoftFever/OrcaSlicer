@@ -889,7 +889,7 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
         wxRadioButton* radio_btn = new wxRadioButton(m_filament_list_panel, wxID_ANY, "");
         CheckBox* check_box = new CheckBox(m_filament_list_panel);
         check_box->SetBackgroundColour(*wxWHITE);
-        FilamentComboBox* fcb = new FilamentComboBox(m_filament_list_panel);
+        FilamentComboBox* fcb = new FilamentComboBox(m_filament_list_panel, i);
         fcb->SetRadioBox(radio_btn);
         fcb->SetCheckBox(check_box);
         fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
@@ -1022,7 +1022,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             wxRadioButton *radio_btn               = new wxRadioButton(m_multi_exutrder_filament_list_panel, wxID_ANY, "");
             CheckBox *     check_box               = new CheckBox(m_multi_exutrder_filament_list_panel);
             check_box->SetBackgroundColour(*wxWHITE);
-            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel);
+            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel, i + 4);
             fcb->SetRadioBox(radio_btn);
             fcb->SetCheckBox(check_box);
             fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
@@ -1066,7 +1066,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             wxRadioButton *radio_btn               = new wxRadioButton(m_multi_exutrder_filament_list_panel, wxID_ANY, "");
             CheckBox *     check_box               = new CheckBox(m_multi_exutrder_filament_list_panel);
             check_box->SetBackgroundColour(*wxWHITE);
-            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel);
+            FilamentComboBox *fcb = new FilamentComboBox(m_multi_exutrder_filament_list_panel, i);
             fcb->SetRadioBox(radio_btn);
             fcb->SetCheckBox(check_box);
             fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
@@ -1448,7 +1448,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         }
     }
     if (devPrinterUtil::IsVirtualSlot(ams_id)) {
-        if (m_cali_mode == CalibMode::Calib_PA_Line && m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
+        if (m_cali_mode == CalibMode::Calib_PA_Line && (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)) {
             std::string filamnt_type;
             preset->get_filament_type(filamnt_type);
             if (filamnt_type == "TPU") {
@@ -2360,6 +2360,17 @@ void CalibrationPresetPage::select_default_compatible_filament()
     }
 
     check_filament_compatible();
+}
+
+int CalibrationPresetPage::get_index_by_tray_id(int tray_id)
+{
+    std::vector<FilamentComboBox*> fcb_list = get_selected_filament_combobox();
+    for (auto fcb : fcb_list) {
+        if (fcb->get_tray_id() == tray_id) {
+            return fcb->get_index();
+        }
+    }
+    return -1;
 }
 
 std::vector<FilamentComboBox*> CalibrationPresetPage::get_selected_filament_combobox()

@@ -195,10 +195,14 @@ public:
 
     void select_default_compatible_filament();
 
+    int get_index_by_tray_id(int tray_id);
+
     std::vector<FilamentComboBox*> get_selected_filament_combobox();
 
     // key is tray_id
     std::map<int, Preset*> get_selected_filaments();
+
+    std::map<int, DynamicPrintConfig> get_filament_ams_list() const { return filament_ams_list; }
 
     void get_preset_info(
         float& nozzle_dia,
