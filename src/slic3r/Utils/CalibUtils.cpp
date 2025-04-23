@@ -1433,16 +1433,16 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         }
     }
 
-    if (extruder_id >= obj->m_extder_data.extders.size()) {
+    if (extruder_id >= obj->GetExtderSystem()->GetExtruders().size()) {
         error_message = _L("The number of printer extruders and the printer selected for calibration does not match.");
         return false;
     }
 
-    float                       diameter          = obj->m_extder_data.extders[extruder_id].current_nozzle_diameter;
+    float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
     bool                        is_multi_extruder = obj->is_multi_extruders();
     std::vector<NozzleFlowType> nozzle_volume_types;
     if (is_multi_extruder) {
-        for (const Extder &extruder : obj->m_extder_data.extders) { nozzle_volume_types.emplace_back(extruder.current_nozzle_flow_type); }
+        for (auto &extruder : obj->GetExtderSystem()->GetExtruders()) { nozzle_volume_types.emplace_back(extruder.GetNozzleFlowType()); }
     }
 
     for (const auto &cali_info : cali_infos) {
@@ -1859,19 +1859,19 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
         return;
     }
 
-    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+    else if (!obj_->GetConfig()->SupportPrintWithoutSD() && (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD)) {
         error_message = _L("Storage needs to be inserted before printing.");
         return;
     }
     if (obj_->is_lan_mode_printer()) {
-        if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
             error_message = _L("Storage needs to be inserted before printing via LAN.");
             return;
         }
     }
 
     auto print_job                = std::make_shared<PrintJob>(dev_id);
-    print_job->m_dev_ip      = obj_->dev_ip;
+    print_job->m_dev_ip = obj_->get_dev_ip();
     print_job->m_ftp_folder  = obj_->get_ftp_folder();
     print_job->m_access_code = obj_->get_access_code();
 
@@ -1931,8 +1931,8 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
     print_job->set_calibration_task(true);
 
-    print_job->has_sdcard = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
-    print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true, false, 0, 1, 0);
+    print_job->has_sdcard = obj_->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL;
+    print_job->set_print_config(MachineBedTypeString[bed_type], true, true, false, false, true, false, 0, 1, 0);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
     { // after send: record the print job

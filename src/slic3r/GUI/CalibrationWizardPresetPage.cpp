@@ -2169,9 +2169,9 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         m_filament_list_panel->Hide();
     }
     else {
-
-        if ((obj->m_extder_data.extders.size() > 0) && (obj->m_extder_data.extders[0].current_nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE)) {
-            m_comboBox_nozzle_volume->SetSelection(obj->m_extder_data.extders[0].current_nozzle_flow_type - 1);
+        if ((obj->GetExtderSystem()->GetTotalExtderCount() > 0) && (obj->GetExtderSystem()->GetNozzleFlowType(0) != NozzleFlowType::NONE_FLOWTYPE))
+        {
+            m_comboBox_nozzle_volume->SetSelection(obj->GetExtderSystem()->GetNozzleFlowType(0) - 1);
         } else {
             m_comboBox_nozzle_volume->SetSelection(0);
         }
