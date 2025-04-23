@@ -683,13 +683,8 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 }
             } else {
                 m_ahb_panel->m_ams_new_version_img->Hide();
-                if (obj->ahb_new_version_number.empty()) {
-                    wxString ver_text = wxString::Format("%s", obj->module_vers.find("ahb")->second.sw_ver);
-                    hub_ver           = ver_text;
-                } else {
-                    wxString ver_text = wxString::Format("%s(%s)", obj->module_vers.find("ahb")->second.sw_ver, _L("Latest version"));
-                    hub_ver           = ver_text;
-                }
+                wxString ver_text = wxString::Format("%s(%s)", obj->module_vers.find("ahb")->second.sw_ver, _L("Latest version"));
+                hub_ver = ver_text;
             }
         } else {
             auto ver_item = obj->new_ver_list.find("ahb");
@@ -858,26 +853,16 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                             }
                             else {
                                 amspanel->m_ams_new_version_img->Hide();
-                                if (obj->ams_new_version_number.empty()) {
-                                    wxString ver_text = wxString::Format("%s", it->second.sw_ver);
-                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
-                                        amspanel->m_staticText_beta_version->Show();
-                                    }
-                                    else {
-                                        amspanel->m_staticText_beta_version->Hide();
-                                    }
-                                    ams_ver = ver_text;
+                                wxString ver_text = wxString::Format("%s", it->second.sw_ver, _L("Latest version"));
+                                if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA)
+                                {
+                                    amspanel->m_staticText_beta_version->Show();
                                 }
-                                else {
-                                    wxString ver_text = wxString::Format("%s", it->second.sw_ver, _L("Latest version"));
-                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
-                                        amspanel->m_staticText_beta_version->Show();
-                                    }
-                                    else {
-                                        amspanel->m_staticText_beta_version->Hide();
-                                    }
-                                    ams_ver = ver_text;
+                                else
+                                {
+                                    amspanel->m_staticText_beta_version->Hide();
                                 }
+                                ams_ver = ver_text;
                             }
                         }
                         else if (!it->second.sw_new_ver.empty() && (it->second.sw_new_ver != it->second.sw_ver)) {
@@ -1384,7 +1369,7 @@ void UpgradePanel::update(MachineObject *obj)
                  "The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting Orca."
             ));
             consistency_dlg->on_show();
-	    }
+        }
     }
 
     //update panels
