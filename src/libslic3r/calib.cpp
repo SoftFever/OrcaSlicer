@@ -11,7 +11,9 @@ float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &conf
 {
     const double general_suggested_min_speed   = 100.0;
     double       filament_max_volumetric_speed = config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
-    Flow         pattern_line = Flow(line_width, layer_height, config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
+    const float  nozzle_diameter               = config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    if (line_width <= 0.) line_width = Flow::auto_extrusion_width(frPerimeter, nozzle_diameter);
+    Flow         pattern_line = Flow(line_width, layer_height, nozzle_diameter);
     auto         pa_speed     = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloat>("outer_wall_speed")->value),
                                          filament_max_volumetric_speed / pattern_line.mm3_per_mm());
 
@@ -490,6 +492,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
     double y_pos = start_y;
 
     // prime line
+    gcode << writer.set_pressure_advance(0.0);
     auto prime_x = start_x;
     gcode << move_to(Vec2d(prime_x, y_pos + (num) * m_space_y), writer);
     gcode << writer.set_speed(slow);
@@ -505,6 +508,12 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         gcode << writer.set_speed(slow);
         gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y),
                                       e_per_mm * m_length_short);
+
+        if (i == 0) {
+            // Print extra anchor line
+            gcode << writer.set_pressure_advance(0.0);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + (num) * m_space_y), e_per_mm * m_space_y * num * 1.2);
+        }
     }
     gcode << writer.set_pressure_advance(0.0);
 
@@ -517,7 +526,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         // gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7), writer);
         // gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), thin_e_per_mm * 7);
 
-        const auto     box_start_x = start_x + m_length_short + m_length_long + m_length_short;
+        const auto     box_start_x = start_x + m_length_short + m_length_long + m_length_short + m_line_width;
         DrawBoxOptArgs default_box_opt_args(2, m_height_layer, m_line_width, fast);
         default_box_opt_args.is_filled = true;
         gcode << draw_box(writer, box_start_x, start_y - m_space_y,
@@ -558,9 +567,10 @@ double CalibPressureAdvancePattern::flow_val() const
     double flow_mult = m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
     double nozzle_diameter = m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
     double line_width = m_config.get_abs_value("line_width", nozzle_diameter);
+    if (line_width <= 0.) line_width = Flow::auto_extrusion_width(frPerimeter, nozzle_diameter);
     double layer_height = m_config.get_abs_value("layer_height");
     double speed = speed_perimeter();
-    Flow pattern_line = Flow(line_width, layer_height, m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
+    Flow pattern_line = Flow(line_width, layer_height, nozzle_diameter);
 
     return speed * pattern_line.mm3_per_mm() * flow_mult;
 };
@@ -872,4 +882,6 @@ double CalibPressureAdvancePattern::pattern_shift() const
 {
     return (wall_count() - 1) * line_spacing_first_layer() + line_width_first_layer() + m_glyph_padding_horizontal;
 }
+
+
 } // namespace Slic3r

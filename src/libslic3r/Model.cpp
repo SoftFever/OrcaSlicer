@@ -27,6 +27,7 @@
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
+#include <functional>
 #include "GCodeWriter.hpp"
 
 // BBS: for segment
@@ -176,17 +177,68 @@ Model::~Model()
         Slic3r::remove_backup(*this, true);
 }
 
+Model Model::read_from_step(const std::string&                                      input_file,
+                            LoadStrategy                                            options,
+                            ImportStepProgressFn                                    stepFn,
+                            StepIsUtf8Fn                                            stepIsUtf8Fn,
+                            std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
+                            double                                                  linear_defletion,
+                            double                                                  angle_defletion,
+                            bool                                                   is_split_compound)
+{
+    Model model;
+    bool result = false;
+    bool is_cb_cancel = false;
+    std::string message;
+    Step step_file(input_file);
+    step_file.load();
+    if (step_mesh_fn) {
+        if (step_mesh_fn(step_file, linear_defletion, angle_defletion, is_split_compound) == -1) {
+            Model empty_model;
+            return empty_model;
+        }
+    }
+    result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, is_split_compound, stepFn, stepIsUtf8Fn);
+    if (is_cb_cancel) {
+        Model empty_model;
+        return empty_model;
+    }
+
+    if (!result) {
+        if (message.empty())
+            throw Slic3r::RuntimeError(_L("Loading of a model file failed."));
+        else
+            throw Slic3r::RuntimeError(message);
+    }
+
+    if (model.objects.empty())
+        throw Slic3r::RuntimeError(_L("The supplied file couldn't be read because it's empty"));
+
+    for (ModelObject *o : model.objects)
+        o->input_file = input_file;
+
+    if (options & LoadStrategy::AddDefaultInstances)
+        model.add_default_instances();
+
+    return model;
+}
+
 // BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-                            LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_xxx, Semver* file_version, Import3mfProgressFn proFn,
-                            ImportstlProgressFn        stlFn,
-                            ImportStepProgressFn       stepFn,
-                            StepIsUtf8Fn               stepIsUtf8Fn,
-                            BBLProject *               project,
-                            int                        plate_id,
-                            ObjImportColorFn           objFn)
+Model Model::read_from_file(const std::string&                                  input_file,
+                            DynamicPrintConfig*                                 config,
+                            ConfigSubstitutionContext*                          config_substitutions,
+                            LoadStrategy                                        options,
+                            PlateDataPtrs*                                      plate_data,
+                            std::vector<Preset*>*                               project_presets,
+                            bool                                                *is_xxx,
+                            Semver*                                             file_version,
+                            Import3mfProgressFn                                 proFn,
+                            ImportstlProgressFn                                 stlFn,
+                            BBLProject *                                        project,
+                            int                                                 plate_id,
+                            ObjImportColorFn                                    objFn)
 {
     Model model;
 
@@ -210,10 +262,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     bool result = false;
     bool is_cb_cancel = false;
     std::string message;
-    if (boost::algorithm::iends_with(input_file, ".stp") ||
-        boost::algorithm::iends_with(input_file, ".step"))
-        result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
-    else if (boost::algorithm::iends_with(input_file, ".stl"))
+    if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".oltp"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
@@ -1167,23 +1216,27 @@ bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boole
     return true;
 }
 
-ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
+ModelVolume *ModelObject::add_volume(const TriangleMesh &mesh, bool modify_to_center_geometry)
 {
     ModelVolume* v = new ModelVolume(this, mesh);
     this->volumes.push_back(v);
-    v->center_geometry_after_creation();
-    this->invalidate_bounding_box();
+    if (modify_to_center_geometry) {
+        v->center_geometry_after_creation();
+        this->invalidate_bounding_box();
+    }
     // BBS: backup
     Slic3r::save_object_mesh(*this);
     return v;
 }
 
-ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/)
+ModelVolume *ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/, bool modify_to_center_geometry)
 {
     ModelVolume* v = new ModelVolume(this, std::move(mesh), type);
     this->volumes.push_back(v);
-    v->center_geometry_after_creation();
-    this->invalidate_bounding_box();
+    if (modify_to_center_geometry) {
+        v->center_geometry_after_creation();
+        this->invalidate_bounding_box();
+    }
     // BBS: backup
     Slic3r::save_object_mesh(*this);
     return v;
@@ -2211,48 +2264,12 @@ double ModelObject::get_instance_max_z(size_t instance_idx) const
 unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume &build_volume)
 {
     unsigned int num_printable = 0;
-    enum {
-        INSIDE = 1,
-        OUTSIDE = 2
-    };
-
     //BBS: add logs for build_volume
     //const BoundingBoxf3& print_volume = build_volume.bounding_volume();
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", print_volume {%1%, %2%, %3%} to {%4%, %5%, %6%}")\
     //    %print_volume.min.x() %print_volume.min.y() %print_volume.min.z()%print_volume.max.x() %print_volume.max.y() %print_volume.max.z();
     for (ModelInstance* model_instance : this->instances) {
-        unsigned int inside_outside = 0;
-        for (const ModelVolume *vol : this->volumes) {
-            if (vol->is_model_part()) {
-                //BBS: add bounding box empty check logic, for some volume is empty before split(it will be removed after split to object)
-                BoundingBoxf3 bb = vol->get_convex_hull().bounding_box();
-                Vec3d size = bb.size();
-                if ((size.x() == 0.f) || (size.y() == 0.f) || (size.z() == 0.f)) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s vol %2% is empty, skip it, box: {%3%, %4%, %5%} to {%6%, %7%, %8%}")%this->name %vol->name\
-                        %bb.min.x() %bb.min.y() %bb.min.z()%bb.max.x() %bb.max.y() %bb.max.z();
-                    continue;
-                }
-
-                const Transform3d matrix = model_instance->get_matrix() * vol->get_matrix();
-                BuildVolume::ObjectState state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
-                if (state == BuildVolume::ObjectState::Inside)
-                    // Volume is completely inside.
-                    inside_outside |= INSIDE;
-                else if (state == BuildVolume::ObjectState::Outside)
-                    // Volume is completely outside.
-                    inside_outside |= OUTSIDE;
-                else if (state == BuildVolume::ObjectState::Below) {
-                    // Volume below the print bed, thus it is completely outside, however this does not prevent the object to be printable
-                    // if some of its volumes are still inside the build volume.
-                } else
-                    // Volume colliding with the build volume.
-                    inside_outside |= INSIDE | OUTSIDE;
-            }
-        }
-        model_instance->print_volume_state =
-            inside_outside == (INSIDE | OUTSIDE) ? ModelInstancePVS_Partly_Outside :
-            inside_outside == INSIDE ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
-        if (inside_outside == INSIDE) {
+        if (model_instance->update_print_volume_state(build_volume) == ModelInstancePVS_Inside) {
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s instance inside print volum")%this->name;
             ++num_printable;
         }
@@ -3278,6 +3295,53 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
+}
+
+ModelInstanceEPrintVolumeState ModelInstance::calc_print_volume_state(const BuildVolume& build_volume) const
+{
+    enum {
+        INSIDE = 1,
+        OUTSIDE = 2
+    };
+
+    unsigned int inside_outside = 0;
+    for (const ModelVolume* vol : this->object->volumes) {
+        if (vol->is_model_part()) {
+            //BBS: add bounding box empty check logic, for some volume is empty before split(it will be removed after split to object)
+            BoundingBoxf3 bb = vol->get_convex_hull().bounding_box();
+            Vec3d size = bb.size();
+            if ((size.x() == 0.f) || (size.y() == 0.f) || (size.z() == 0.f)) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s vol %2% is empty, skip it, box: {%3%, %4%, %5%} to {%6%, %7%, %8%}")%this->object->name %vol->name\
+                    %bb.min.x() %bb.min.y() %bb.min.z()%bb.max.x() %bb.max.y() %bb.max.z();
+                continue;
+            }
+
+            const Transform3d matrix = this->get_matrix() * vol->get_matrix();
+
+            const auto bboxt = bb.transformed(matrix);
+            const BoundingBoxf bbox2d{to_2d(bboxt.min), to_2d(bboxt.max)};
+            BuildVolume::ObjectState state;
+            if (!build_volume.bounding_volume2d().inflated(BuildVolume::SceneEpsilon).overlap(bbox2d))
+                state = BuildVolume::ObjectState::Outside;
+            else
+                state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
+            if (state == BuildVolume::ObjectState::Inside)
+                // Volume is completely inside.
+                inside_outside |= INSIDE;
+            else if (state == BuildVolume::ObjectState::Outside)
+                // Volume is completely outside.
+                inside_outside |= OUTSIDE;
+            else if (state == BuildVolume::ObjectState::Below) {
+                // Volume below the print bed, thus it is completely outside, however this does not prevent the object to be printable
+                // if some of its volumes are still inside the build volume.
+            } else
+                // Volume colliding with the build volume.
+                inside_outside |= INSIDE | OUTSIDE;
+        }
+    }
+
+    return inside_outside == (INSIDE | OUTSIDE) ? ModelInstancePVS_Partly_Outside :
+           inside_outside == INSIDE ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

@@ -153,6 +153,12 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         out.push_back(eec = new ExtrusionEntityCollection());
         // Only concentric fills are not sorted.
         eec->no_sort = this->no_sort();
+        // ORCA: special flag for flow rate calibration
+        auto is_flow_calib = params.extrusion_role == erTopSolidInfill && this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
+                             this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool();
+        if (is_flow_calib) {
+            eec->no_sort = true;
+        }
         size_t idx   = eec->entities.size();
         if (params.use_arachne) {
             Flow new_flow = params.flow.with_spacing(float(this->spacing));
@@ -165,11 +171,11 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                 params.extrusion_role,
                 flow_mm3_per_mm, float(flow_width), params.flow.height());
         }
-        if (!params.can_reverse) {
+        if (!params.can_reverse || is_flow_calib) {
             for (size_t i = idx; i < eec->entities.size(); i++)
                 eec->entities[i]->set_reverse();
         }
-        
+
         // Orca: run gap fill
         this->_create_gap_fill(surface, params, eec);
     }
@@ -1779,6 +1785,18 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
 	for (Polyline &pl : infill_ordered)
 		if (! pl.empty())
 			polylines_out.emplace_back(std::move(pl));
+}
+
+void Fill::chain_or_connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params)
+{
+    if (!infill_ordered.empty()) {
+        if (params.dont_connect()) {
+            if (infill_ordered.size() > 1)
+                infill_ordered = chain_polylines(std::move(infill_ordered));
+            append(polylines_out, std::move(infill_ordered));
+        } else
+            connect_infill(std::move(infill_ordered), boundary, polylines_out, spacing, params);
+    }
 }
 
 // Extend the infill lines along the perimeters, this is mainly useful for grid aligned support, where a perimeter line may be nearly

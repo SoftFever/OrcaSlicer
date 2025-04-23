@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3618,8 +3618,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr ""
 "Doporučená teplota trysky pro tento typ filamentu je [%d, %d]stupňů Celsia"
 
@@ -13469,16 +13469,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "Normální (auto)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "Strom (auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "Normální (manuální)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "Strom (manuální)"
 
 msgid "Support/object xy distance"
 msgstr "Podpěry/Objekt xy vzdálenost"
@@ -17333,18 +17333,6 @@ msgstr ""
 #~ "podpěr. Pokud je vybrána možnost Normální(manual) nebo Strom(manual), "
 #~ "budou generovány pouze vynucené podpěry"
 
-#~ msgid "normal(auto)"
-#~ msgstr "Normální (auto)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "Strom (auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "Normální (manuální)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "Strom (manuální)"
-
 #~ msgid "Unselect"
 #~ msgstr "Zrušení výběru"
 
@@ -18151,7 +18139,7 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
 #~ "Teplota podložky ostatních vrstev je nižší než teplota podložky první "
