@@ -162,6 +162,7 @@ class Print;
             float width{ 0.0f }; // mm
             float height{ 0.0f }; // mm
             float mm3_per_mm{ 0.0f };
+            float travel_dist{ 0.0f }; // mm
             float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
             float time{ 0.0f }; // s
@@ -704,6 +705,7 @@ class Print;
         float m_forced_width; // mm
         float m_forced_height; // mm
         float m_mm3_per_mm;
+        float m_travel_dist; // mm
         float m_fan_speed; // percentage
         float m_z_offset; // mm
         ExtrusionRole m_extrusion_role;

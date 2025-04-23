@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-09 14:32+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3579,8 +3579,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Recommended nozzle temperature of this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees Celsius."
 msgstr "このフィラメントで推奨ノズル温度は %d ~ %d ℃です。"
 
 msgid ""
@@ -13151,16 +13151,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "通常 (自動)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "ツリー (自動)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "通常 (手動)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "ツリー (手動)"
 
 msgid "Support/object xy distance"
 msgstr "水平間隔"
@@ -17070,18 +17070,6 @@ msgstr ""
 #~ "generated"
 #~ msgstr "通常 (自動) と ツリー (自動) では自動でサポートを作成します。"
 
-#~ msgid "normal(auto)"
-#~ msgstr "通常 (自動)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "ツリー (自動)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "通常 (手動)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "ツリー (手動)"
-
 #~ msgid "Unselect"
 #~ msgstr "選択解除"
 
@@ -17665,7 +17653,7 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
-#~ "layer for more than %d degree centigrade.\n"
+#~ "layer for more than %d degrees Celsius.\n"
 #~ "This may cause model broken free from build plate during printing"
 #~ msgstr ""
 #~ "ベッド温度が1層目温度より %d ℃以上低いです。造形中プレートより離脱する可能"
