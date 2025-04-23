@@ -124,7 +124,7 @@ namespace GUI {
     {
         try {
             wxString strInput = evt.GetString();
-            json     j = json::parse(strInput);
+            json     j = json::parse(strInput.utf8_string());
 
             wxString strCmd = j["command"];
             
