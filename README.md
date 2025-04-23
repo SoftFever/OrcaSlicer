@@ -4,13 +4,17 @@
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 <br>Orca Slicer is an open source slicer for FDM printers. 
 
+## Follow Us
+Stay connected with us:
+
+[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?logo=twitter&logoColor=white&style=flat)](https://twitter.com/real_OrcaSlicer)
 
 Join our Discord community here:<br>
 <a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/static/v1?message=Discord&logo=discord&label=&color=7289DA&logoColor=white&labelColor=&style=for-the-badge" height="35" alt="discord logo"/> </a>
  
  <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
 
-The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://www.orcaslicer.com/">**orcaslicer.com**</a>, and the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>.
+The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://orcaslicer.com/">**orcaslicer.com**</a>, and the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>.
 
 Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised. 
 
