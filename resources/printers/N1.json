@@ -9,7 +9,7 @@
 					"remote": "tutk"
 				}
 			},
-			"nozzle_temp_range": [ 20, 300 ],
+			"nozzle_temp_range": [ 0, 300 ],
 			"support_motor_noise_cali": true,
 			"support_tunnel_mqtt": true,
 			"support_mqtt_alive": true,
@@ -36,7 +36,7 @@
 			"support_chamber_temp_edit": false,
 			"support_extrusion_cali": true,
 			"support_user_preset": false,
-			"bed_temperature_limit": 100
+			"bed_temperature_limit": 80
 		},
 		"model_id": "N1",
 		"compatible_machine": [],
