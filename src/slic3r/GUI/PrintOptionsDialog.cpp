@@ -606,16 +606,33 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     line_sizer_nozzle_diameter->Add(0, 0, 1, wxEXPAND, 5);
     line_sizer_nozzle_diameter->Add(nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 5);
 
+    //nozzle flow type
+    wxBoxSizer* line_sizer_nozzle_flowtype = new wxBoxSizer(wxHORIZONTAL);
+    nozzle_flow_type_label = new Label(single_panel, _L("Nozzle Flow"));
+    nozzle_flow_type_label->SetFont(Label::Body_14);
+    nozzle_flow_type_label->SetMinSize(wxSize(FromDIP(180), -1));
+    nozzle_flow_type_label->SetMaxSize(wxSize(FromDIP(180), -1));
+    nozzle_flow_type_label->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    nozzle_flow_type_label->Wrap(-1);
+
+    nozzle_flow_type_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
+
+    line_sizer_nozzle_flowtype->Add(nozzle_flow_type_label, 0, wxALIGN_CENTER, 5);
+    line_sizer_nozzle_flowtype->Add(0, 0, 1, wxEXPAND, 5);
+    line_sizer_nozzle_flowtype->Add(nozzle_flow_type_checkbox, 0, wxALIGN_CENTER, 5);
+
     change_nozzle_tips = new Label(single_panel, _L("Please change the nozzle settings on the printer."));
     change_nozzle_tips->SetFont(Label::Body_13);
     change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
     single_sizer->Add(m_line, 0, wxEXPAND, 0);
-    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     single_sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
-    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     single_sizer->Add(line_sizer_nozzle_diameter, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
-    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    single_sizer->Add(line_sizer_nozzle_flowtype, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     single_sizer->Add(change_nozzle_tips, 0, wxLEFT, FromDIP(24));
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
 
@@ -744,6 +761,15 @@ bool PrinterPartsDialog::Show(bool show)
             auto diameter = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
             nozzle_type_checkbox->SetValue(GetString(type));
             nozzle_diameter_checkbox->SetValue(GetString(diameter));
+
+            // nozzle flow type
+            nozzle_flow_type_label->Show(obj->is_nozzle_flow_type_supported());
+            nozzle_flow_type_checkbox->Show(obj->is_nozzle_flow_type_supported());
+            if (obj->is_nozzle_flow_type_supported())
+            {
+                auto flow_type = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_flow_type;
+                nozzle_flow_type_checkbox->SetValue(GetString(flow_type));
+            }
         } else {
             single_panel->Hide();
             multiple_panel->Show();
@@ -775,6 +801,7 @@ void PrinterPartsDialog::EnableEditing(bool enable) {
 
     nozzle_type_checkbox->Enable(enable);
     nozzle_diameter_checkbox->Enable(enable);
+    nozzle_flow_type_checkbox->Enable(enable);
 
     multiple_left_nozzle_type_checkbox->Enable(enable);
     multiple_left_nozzle_diameter_checkbox->Enable(enable);

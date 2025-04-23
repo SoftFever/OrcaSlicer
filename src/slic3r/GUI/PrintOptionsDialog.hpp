@@ -28,6 +28,9 @@ protected:
 
     ComboBox* nozzle_type_checkbox;
     ComboBox* nozzle_diameter_checkbox;
+
+    Label*    nozzle_flow_type_label;
+    ComboBox* nozzle_flow_type_checkbox;
     Label    *change_nozzle_tips;
 
     ComboBox* multiple_left_nozzle_type_checkbox;
