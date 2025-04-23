@@ -9,7 +9,7 @@
 					"remote": "tutk"
 				}
 			},
-			"nozzle_temp_range": [ 20, 300 ],
+			"nozzle_temp_range": [ 0, 300 ],
 			"support_motor_noise_cali": true,
 			"support_tunnel_mqtt": true,
 			"support_mqtt_alive": true,

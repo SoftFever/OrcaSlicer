@@ -1,1 +1,5 @@
+<<<<<<< HEAD   (9f2e21 FIX: protect the EndModal functions while top dialog is not )
 02.00.00.14
+=======
+02.00.00.17
+>>>>>>> CHANGE (04056a ENH: update temperature limit for all printer)
