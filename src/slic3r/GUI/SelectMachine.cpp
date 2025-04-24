@@ -166,7 +166,7 @@ void MachineObjectPanel::set_printer_state(PrinterState state)
 
 void MachineObjectPanel::show_edit_printer_name(bool show)
 {
-    m_show_edit = show;
+    m_show_edit = false;
     Refresh();
 }
 
@@ -2437,49 +2437,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     MachineObject* obj_ = dev->get_selected_machine();
     if (!obj_) return;
 
-    bool send_print = false;
-    bool permitted = true;
-    std::string error_message;
-    
-    std::stringstream url;
-    url << ICRS_ENABLE_PRINT_ENDPOINT << "?dev=" << obj_->dev_id;
-
-    Slic3r::Http http = Slic3r::Http::get(url.str());
-    http.timeout_connect(1)
-        .timeout_max(1)
-        .on_complete([&send_print, &permitted](std::string body, unsigned int status) {
-            try {
-                if (body == "1") {
-                    BOOST_LOG_TRIVIAL(info) << "Sending Print";
-                    send_print = true;
-                } else {
-                    BOOST_LOG_TRIVIAL(info) << "Failed to verify";
-                    if (body == "01") {
-                        permitted = false;
-                    }
-                }
-            }
-            catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "Error somewhere!";
-            }
-        })
-        .on_error([](std::string body, std::string error, unsigned int status) {
-            BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
-        })
-        .perform_sync();
-
-    if (!send_print) {
-        if (permitted) {
-            auto m_verification_dlg = new ScannerAlertDialog();
-            m_verification_dlg->ShowModal();
-        }
-        else {
-            auto m_verification_dlg = new NoPermissionDialog();
-            m_verification_dlg->ShowModal();
-        }
-        return; 
-    }
-
     std::vector<ConfirmBeforeSendInfo> confirm_text;
     confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please check the following:")));
 
@@ -2928,6 +2885,28 @@ void SelectMachineDialog::on_send_print()
         std::string dev_ota_str = "dev_ota_ver:" + obj_->dev_id;
         agent->track_update_property(dev_ota_str, obj_->get_ota_version());
     }
+    
+    auto aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
+    float   time;
+    PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+    if (plate) {
+        if (plate->get_slice_result()) {time = plate->get_slice_result()->print_statistics.modes[0].time; }
+    }
+
+    char weight[64];
+    ::sprintf(weight, "%.2f", aprint_stats.total_weight);
+    std::stringstream ss;
+    ss << "{\"weight\": \"" << weight << "\", \"time\": \"" << time << "\", \"name\": \"" << obj_->dev_name << "\"}\n";
+    // std::string data = "{\"weight\": \"" + std::string(weight) + "\", \"time\": \"" + time + "\", \"name\": \"" + obj_->dev_name + "\"}";
+    std::string data = ss.str();
+    Slic3r::Http http = Slic3r::Http::post(ICRS_PRINT_SUBMITTED);
+    http.header("Content-Type", "application/json")
+        .timeout_max(1) // seconds
+        .set_post_body(data)
+        .on_complete([](std::string body, unsigned status){}).on_error(
+            [](std::string body, std::string error, unsigned int status) {
+                BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
+        }).perform_sync();
 
     replace_job(*m_worker, std::move(m_print_job));
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
@@ -3096,13 +3075,71 @@ void SelectMachineDialog::update_user_printer()
     std::vector<std::string>              machine_list;
     wxArrayString                         machine_list_name;
     std::map<std::string, MachineObject*> option_list;
+    
+    bool can_use_all = false;
+
+    Slic3r::Http http = Slic3r::Http::get(ICRS_CAN_USE_ALL);
+    http.timeout_connect(1)
+        .timeout_max(1)
+        .on_complete([&can_use_all](std::string body, unsigned int status) {
+            try {
+                if (body == "True") {
+                    can_use_all = true;
+                    BOOST_LOG_TRIVIAL(info) << "user can use all printers";
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << "user cannot use all printers";
+                }
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(error) << "error somewhere";
+            }
+        })
+        .on_error([](std::string body, std::string error, unsigned int status){
+            BOOST_LOG_TRIVIAL(error) << "error in parsing or timeout";
+        })
+        .perform_sync();
+
+    std::vector<std::string> committee_dev;
+    
+    if (!can_use_all) {
+        Slic3r::Http http = Slic3r::Http::get(ICRS_COMMITEE_PRINTERS);
+        http.timeout_connect(1)
+            .timeout_max(1)
+            .on_complete([&committee_dev](std::string body, unsigned int status) {
+                try {
+                    int n_printers = body.length()/15;
+                    for (int i = 0; i < body.length(); i += 15) {
+                        committee_dev.push_back(body.substr(i, 15));
+                    }
+                }
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << "error somewhere";
+                }
+            })
+            .on_error([](std::string body, std::string error, unsigned int status){
+                BOOST_LOG_TRIVIAL(error) << "error in parsing or timeout";
+            })
+            .perform_sync();
+    }
+
 
     //user machine list
     option_list = dev->get_my_machine_list();
+    
+    bool committee = false;
 
     // same machine only appear once
     for (auto it = option_list.begin(); it != option_list.end(); it++) {
         if (it->second && (it->second->is_online() || it->second->is_connected())) {
+            if (!can_use_all) {
+                for (const auto& committee_printer : committee_dev) {
+                    if (it->second->dev_id == committee_printer) {
+                        committee = true;
+                        break;
+                    }
+                }
+                if (committee) continue;
+            }
             machine_list.push_back(it->second->dev_name);
         }
     }

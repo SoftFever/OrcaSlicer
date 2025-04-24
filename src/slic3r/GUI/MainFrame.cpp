@@ -1645,8 +1645,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 std::stringstream url;
                 url << ICRS_TIME_CHECK << "?time_seconds=" << total_time_all_plates;
 
-                Slic3r::Http http = Slic3r::Http::get(url.str());
-                http.timeout_connect(1)
+                Slic3r::Http http_time = Slic3r::Http::get(url.str());
+                http_time.timeout_connect(1)
                     .timeout_max(1)
                     .on_complete([&time_allowed](std::string body, unsigned int status) {
                         try {
@@ -1665,13 +1665,42 @@ wxBoxSizer* MainFrame::create_side_tools()
                         BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
                     })
                     .perform_sync();
+                
+                bool send_print = false;
+                
+                if (time_allowed) {
+                    
+                    Slic3r::Http http_enable = Slic3r::Http::get(ICRS_ENABLE_PRINT_ENDPOINT);
+                    http_enable.timeout_connect(1)
+                        .timeout_max(1)
+                        .on_complete([&send_print](std::string body, unsigned int status) {
+                            try {
+                                if (body == "1") {
+                                    BOOST_LOG_TRIVIAL(info) << "Sending Print";
+                                    send_print = true;
+                                } else {
+                                    BOOST_LOG_TRIVIAL(info) << "Failed to verify";
+                                }
+                            }
+                            catch (...) {
+                                BOOST_LOG_TRIVIAL(error) << "Error somewhere!";
+                            }
+                        })
+                        .on_error([](std::string body, std::string error, unsigned int status) {
+                            BOOST_LOG_TRIVIAL(error) << "Error on Request or Timeout";
+                        })
+                        .perform_sync();
+                }
 
-                m_print_enable = get_enable_print_status() && time_allowed;
+                m_print_enable = get_enable_print_status() && time_allowed && send_print;
                 m_print_btn->Enable(m_print_enable);
 
-                if(!m_print_enable) {
+                if(!time_allowed) {
                     auto m_noprint_dlg = new PrintTimeAlert();
                     m_noprint_dlg->ShowModal();
+                } else if (!send_print) {
+                    auto m_verification_dlg = new ScannerAlertDialog();
+                    m_verification_dlg->ShowModal();
                 }
                 else if (m_print_select == ePrintPlate) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
             }
