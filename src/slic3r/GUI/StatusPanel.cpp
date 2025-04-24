@@ -2334,13 +2334,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_FAN_CHANGED, &StatusPanel::on_fan_changed, this);
     Bind(EVT_SECONDARY_CHECK_DONE, &StatusPanel::on_print_error_done, this);
     Bind(EVT_SECONDARY_CHECK_RESUME, &StatusPanel::on_subtask_pause_resume, this);
-    Bind(EVT_PRINT_ERROR_STOP, &StatusPanel::on_subtask_abort, this);
-    Bind(EVT_LOAD_VAMS_TRAY, &StatusPanel::on_ams_load_vams, this);
-    Bind(EVT_JUMP_TO_LIVEVIEW, [this](wxCommandEvent& e) {
-        m_media_play_ctrl->jump_to_play();
-        if (m_print_error_dlg)
-            m_print_error_dlg->on_hide();
-    });
     Bind(EVT_ERROR_DIALOG_BTN_CLICKED, &StatusPanel::on_print_error_dlg_btn_clicked, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
@@ -2732,17 +2725,6 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
 
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
             m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
-            m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, dev_id](wxCommandEvent &e) {
-                MachineObject* the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
-                if (the_obj) { the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error); }
-            });
-
-            m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_RETRY, [this](wxCommandEvent& e) {
-                if (m_ams_control) {
-                    m_ams_control->on_retry();
-                }
-                });
-
             m_print_error_dlg->on_show();
         }
         else {
@@ -4706,16 +4688,27 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
             }
             case Slic3r::GUI::PrintErrorDialog::RETRY_FILAMENT_EXTRUDED: {
                 obj->command_ams_control("resume");
-                break;
+                return;// do not hide the dialogs
             }
             case Slic3r::GUI::PrintErrorDialog::CONTINUE: {
                 obj->command_ams_control("resume");
                 break;
             }
-            case Slic3r::GUI::PrintErrorDialog::LOAD_VIRTUAL_TRAY: break;/*Unknown what it is*/
-            case Slic3r::GUI::PrintErrorDialog::OK_BUTTON: break;/*do nothing*/
+            case Slic3r::GUI::PrintErrorDialog::LOAD_VIRTUAL_TRAY: {
+                m_ams_control->SwitchAms(std::to_string(VIRTUAL_TRAY_MAIN_ID));
+                on_ams_load_curr();
+                break;/*AP, unknown what it is*/
+            }
+            case Slic3r::GUI::PrintErrorDialog::OK_BUTTON: {
+                obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
+                break;/*do nothing*/
+            }
             case Slic3r::GUI::PrintErrorDialog::FILAMENT_LOAD_RESUME: {
                 obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::JUMP_TO_LIVEVIEW: {
+                m_media_play_ctrl->jump_to_play();
                 break;
             }
             case Slic3r::GUI::PrintErrorDialog::NO_REMINDER_NEXT_TIME: {
