@@ -207,7 +207,6 @@ public:
     bool     is_blocking_printing(MachineObject *obj_);
     bool     is_same_nozzle_diameters(NozzleType &tag_nozzle_type, float &nozzle_diameter);
     bool     is_same_nozzle_type(std::string &filament_type, NozzleType &tag_nozzle_type);
-    bool     has_tips(MachineObject *obj);
     bool     is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) { m_print_type = type; };
@@ -220,8 +219,6 @@ public:
     void auto_supply_with_ext(std::vector<AmsTray> slots);
     bool is_nozzle_type_match(ExtderData data, wxString &error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
-
-    std::string get_print_status_info(PrintDialogStatus status);
 
     PrintFromType            get_print_type() { return m_print_type; };
     wxString                 format_text(wxString &m_msg);

@@ -20,6 +20,8 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "CapsuleButton.hpp"
+#include "PrePrintChecker.hpp"
+
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 
@@ -1722,35 +1724,17 @@ void SyncAmsInfoDialog::update_print_error_info(int code, std::string msg, std::
     m_print_error_extra = extra;
 }
 
-bool SyncAmsInfoDialog::has_tips(MachineObject *obj)
-{
-    if (!obj) return false;
-
-    // must set to a status if return true
-    if (m_checkbox_list["timelapse"]->IsShown() && (m_checkbox_list["timelapse"]->getValue() == "on")) {
-        if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
-            show_status(PrintDialogStatus::PrintStatusTimelapseNoSdcard);
-            return true;
-        }
-    }
-
-    return false;
-}
-
 void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
 {
     if (m_print_status != status) {
         m_result.is_same_printer = true;
-        BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status << "(" << get_print_status_info(status) << ")";
+        BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status << "(" << PrePrintChecker::get_print_status_info(status) << ")";
     }
     m_print_status = status;
 
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
         update_print_status_msg(wxEmptyString, false, false);
-    } else if (status == PrintDialogStatus::PrintStatusNoUserLogin) {
-        wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
-        update_print_status_msg(msg_text, false, true);
     } else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
         update_print_status_msg(wxEmptyString, true, true);
     } else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
@@ -1773,15 +1757,6 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
         wxString msg_text = _L("The printer is busy on other print job");
         update_print_status_msg(msg_text, true, true);
-    } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
-        update_print_status_msg(wxEmptyString, false, false);
-    } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
-        wxString msg_text;
-        if (params.size() > 0)
-            msg_text = wxString::Format(_L("Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."), params[0]);
-        else
-            msg_text = _L("Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
-        update_print_status_msg(msg_text, true, false);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess) {
         update_print_status_msg(wxEmptyString, false, false);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
@@ -1802,8 +1777,6 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
                                         params[0], params[1]);
         else
             msg_text = _L("Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingValid) {
-        update_print_status_msg(wxEmptyString, false, false);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
         update_print_status_msg(wxEmptyString, false, true);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
@@ -1814,9 +1787,6 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
     } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
         wxString msg_text = _L("Storage is not available or is in read-only mode.");
         update_print_status_msg(msg_text, true, true);
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
-        wxString msg_text = _L("The printer firmware only supports sequential mapping of filament => AMS slot.");
-        update_print_status_msg(msg_text, false, false);
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
         wxString msg_text = _L("Storage needs to be inserted before printing.");
         update_print_status_msg(msg_text, true, true);
@@ -2348,8 +2318,6 @@ void SyncAmsInfoDialog::update_show_status()
         if (agent) {
             if (agent->is_user_login()) {
                 show_status(PrintDialogStatus::PrintStatusInvalidPrinter);
-            } else {
-                show_status(PrintDialogStatus::PrintStatusNoUserLogin);
             }
         }
         return;
@@ -2393,7 +2361,7 @@ void SyncAmsInfoDialog::update_show_status()
 
 
     // reading done
-    if (wxGetApp().app_config && wxGetApp().app_config->get("internal_debug").empty()) {
+    if (wxGetApp().app_config) {
         if (obj_->upgrade_force_upgrade) {
             show_status(PrintDialogStatus::PrintStatusNeedForceUpgrading);
             return;
@@ -2431,18 +2399,6 @@ void SyncAmsInfoDialog::update_show_status()
             show_status(PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable);
             return;
         }
-    }
-
-    // no ams
-    if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
-        if (!has_tips(obj_)) {
-            if (has_timelapse_warning()) {
-                show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-            } else {
-                show_status(PrintDialogStatus::PrintStatusReadingFinished);
-            }
-        }
-        return;
     }
 
     // do ams mapping if no ams result
@@ -2502,29 +2458,6 @@ void SyncAmsInfoDialog::update_show_status()
                 show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
                 return;
             }
-        }
-    }
-
-    if (m_ams_mapping_res) {
-        if (has_timelapse_warning()) {
-            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-        } else {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
-        }
-        return;
-    } else {
-        if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-            if (!has_tips(obj_)) {
-                if (has_timelapse_warning()) {
-                    show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-                } else {
-                    show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
-                }
-                return;
-            }
-        } else {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
-            return;
         }
     }
 }
@@ -2674,8 +2607,6 @@ void SyncAmsInfoDialog::set_default(bool hide_some)
         if (!hide_some) {
             if (agent->is_user_login()) {
                 show_status(PrintDialogStatus::PrintStatusInit);
-            } else {
-                show_status(PrintDialogStatus::PrintStatusNoUserLogin);
             }
         }
     }
@@ -3376,39 +3307,6 @@ void SyncAmsInfoDialog::update_lan_machine_list()
         }
     }
     BOOST_LOG_TRIVIAL(info) << "SyncAmsInfoDialog update_lan_devices end";
-}
-
-std::string SyncAmsInfoDialog::get_print_status_info(PrintDialogStatus status)
-{
-    switch (status) {
-    case PrintStatusInit: return "PrintStatusInit";
-    case PrintStatusNoUserLogin: return "PrintStatusNoUserLogin";
-    case PrintStatusInvalidPrinter: return "PrintStatusInvalidPrinter";
-    case PrintStatusConnectingServer: return "PrintStatusConnectingServer";
-    case PrintStatusReading: return "PrintStatusReading";
-    case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
-    case PrintStatusReadingTimeout: return "PrintStatusReadingTimeout";
-    case PrintStatusInUpgrading: return "PrintStatusInUpgrading";
-    case PrintStatusNeedUpgradingAms: return "PrintStatusNeedUpgradingAms";
-    case PrintStatusInSystemPrinting: return "PrintStatusInSystemPrinting";
-    case PrintStatusInPrinting: return "PrintStatusInPrinting";
-    case PrintStatusDisableAms: return "PrintStatusDisableAms";
-    case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
-    case PrintStatusAmsMappingInvalid: return "PrintStatusAmsMappingInvalid";
-    case PrintStatusAmsMappingU0Invalid: return "PrintStatusAmsMappingU0Invalid";
-    case PrintStatusAmsMappingValid: return "PrintStatusAmsMappingValid";
-    case PrintStatusAmsMappingByOrder: return "PrintStatusAmsMappingByOrder";
-    case PrintStatusRefreshingMachineList: return "PrintStatusRefreshingMachineList";
-    case PrintStatusSending: return "PrintStatusSending";
-    case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
-    case PrintStatusLanModeNoSdcard: return "PrintStatusLanModeNoSdcard";
-    case PrintStatusLanModeSDcardNotAvailable: return "PrintStatusLanModeSDcardNotAvailable";
-    case PrintStatusNoSdcard: return "PrintStatusNoSdcard";
-    case PrintStatusUnsupportedPrinter: return "PrintStatusUnsupportedPrinter";
-    case PrintStatusTimelapseNoSdcard: return "PrintStatusTimelapseNoSdcard";
-    case PrintStatusNotSupportedPrintAll: return "PrintStatusNotSupportedPrintAll";
-    }
-    return "unknown";
 }
 
 SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(InputInfo &input_info)

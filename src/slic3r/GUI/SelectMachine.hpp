@@ -35,6 +35,7 @@
 #include "Plater.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarPrint.hpp"
+#include "PrePrintChecker.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
@@ -62,86 +63,6 @@ enum PrintPageMode {
     PrintPageModePrepare = 0,
     PrintPageModeSending,
     PrintPageModeFinish
-};
-
-enum PrintDialogStatus : unsigned int {
-    /*Errors*/
-    PrintStatusErrorBegin,
-
-    //Errors for printer, Block Print
-    PrintStatusPrinterErrorBegin,
-    PrintStatusInit,
-    PrintStatusNoUserLogin,
-    PrintStatusInvalidPrinter,
-    PrintStatusConnectingServer,
-    PrintStatusReadingTimeout,
-    PrintStatusReading,
-    PrintStatusInUpgrading,
-    PrintStatusModeNotFDM,
-    PrintStatusInSystemPrinting,
-    PrintStatusInPrinting,
-    PrintStatusNozzleMatchInvalid,
-    PrintStatusNozzleDataInvalid,
-    PrintStatusNozzleDiameterMismatch,
-    PrintStatusNozzleTypeMismatch,
-    PrintStatusRefreshingMachineList,
-    PrintStatusSending,
-    PrintStatusLanModeNoSdcard,
-    PrintStatusNoSdcard,
-    PrintStatusLanModeSDcardNotAvailable,
-    PrintStatusNeedForceUpgrading,
-    PrintStatusNeedConsistencyUpgrading,
-    PrintStatusNotSupportedPrintAll,
-    PrintStatusBlankPlate,
-    PrintStatusUnsupportedPrinter,
-    PrintStatusInvalidMapping,
-    PrintStatusPrinterErrorEnd,
-
-    //Errors for filament, Block Print
-    PrintStatusFilamentErrorBegin,
-    PrintStatusNeedUpgradingAms,
-    PrintStatusAmsOnSettingup,
-    PrintStatusAmsMappingInvalid,
-    PrintStatusAmsMappingU0Invalid,
-    PrintStatusAmsMappingMixInvalid,
-    PrintStatusTPUUnsupportAutoCali,
-    PrintStatusFilamentErrorEnd,
-
-    PrintStatusErrorEnd,
-
-    /*Warnings*/
-    PrintStatusWarningBegin,
-
-    //Warnings for printer
-    PrintStatusPrinterWarningBegin,
-    PrintStatusTimelapseNoSdcard,
-    PrintStatusTimelapseWarning,
-    PrintStatusMixAmsAndVtSlotWarning,
-    PrintStatusPrinterWarningEnd,
-
-    //Warnings for filament
-    PrintStatusFilamentWarningBegin,
-    PrintStatusAmsMappingByOrder,
-    PrintStatusWarningKvalueNotUsed,
-    PrintStatusFilamentWarningEnd,
-
-    PrintStatusWarningEnd,
-
-    /*Success*/
-    //printer
-    PrintStatusReadingFinished,
-    PrintStatusSendingCanceled,
-
-    //filament
-    PrintStatusDisableAms,
-    PrintStatusAmsMappingSuccess,
-    PrintStatusAmsMappingValid,
-
-    /*Other, SendToPrinterDialog*/
-    PrintStatusNotOnTheSameLAN,
-    PrintStatusNotSupportedSendToSDCard,
-    PrintStatusPublicInitFailed,
-    PrintStatusPublicUploadFiled,
 };
 
 
@@ -468,6 +389,8 @@ protected:
     wxGridSizer*                        m_sizer_ams_mapping_left{ nullptr };
     wxGridSizer*                        m_sizer_ams_mapping_right{ nullptr };
 
+    PrePrintChecker                     m_pre_print_checker;
+
 public:
     static std::vector<wxString> MACHINE_BED_TYPE_STRING;
     static void                  init_machine_bed_types();
@@ -479,7 +402,6 @@ public:
 
     void init_bind();
     void init_timer();
-    void check_focus(wxWindow* window);
     void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void check_fcous_state(wxWindow* window);
     void popup_filament_backup();
@@ -494,10 +416,10 @@ public:
     void reset_timeout();
     void update_user_printer();
     void reset_ams_material();
-    void update_show_status();
+    void update_show_status(MachineObject* obj_ = nullptr);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
-    void     on_rename_click(wxMouseEvent &event);
+    void on_rename_click(wxMouseEvent &event);
     void on_rename_enter();
     void update_printer_combobox(wxCommandEvent& event);
     void on_cancel(wxCloseEvent& event);
@@ -525,26 +447,22 @@ public:
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
     void on_selection_changed(wxCommandEvent &event);
-    void update_flow_cali_check(MachineObject* obj);
     void Enable_Refresh_Button(bool en);
     void Enable_Send_Button(bool en);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_user_machine_list();
-    void update_lan_machine_list();
-    void stripWhiteSpace(std::string& str);
-    void update_ams_status_msg(wxString msg, bool can_send_print);
-    void update_priner_status_msg(wxString msg, bool can_send_print);
+    void update_ams_status_msg(wxString msg, bool is_error);
+    void update_priner_status_msg(wxString msg, bool is_error);
     void update_printer_status_msg_tips(const wxString& msg_tips);
-    void update_print_status_msg(wxString msg, bool is_printer, bool can_send_print, bool can_refresh, const wxString& printer_msg_tips = wxEmptyString);
+    void update_print_status_msg();
     void update_print_error_info(int code, std::string msg, std::string extra);
-    void set_flow_calibration_state(bool state, bool show_tips = true);
     bool has_timelapse_warning(wxString& msg);
     bool has_timelapse_warning() { wxString msg; return has_timelapse_warning(msg);};
     bool can_support_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
     bool is_nozzle_hrc_matched(const Extder& extruder, std::string& filament_type) const;
-    bool has_tips(MachineObject* obj);
+    bool check_sdcard_for_timelpase(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
@@ -557,8 +475,6 @@ public:
     void auto_supply_with_ext(std::vector<AmsTray> slots);
     bool is_nozzle_type_match(ExtderData data, wxString& error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
-
-    std::string get_print_status_info(PrintDialogStatus status);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_bed_name(std::string plate_name);
@@ -579,14 +495,6 @@ private:
     void load_option_vals(MachineObject* obj);
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
-
-    /*go check*/
-    bool is_error(PrintDialogStatus status)            { return (PrintStatusErrorBegin < status)           && (PrintStatusErrorEnd > status); };
-    bool is_error_printer(PrintDialogStatus status)    { return (PrintStatusPrinterErrorBegin < status)    && (PrintStatusPrinterErrorEnd > status); };
-    bool is_error_filament(PrintDialogStatus status)   { return (PrintStatusFilamentErrorBegin < status)   && (PrintStatusFilamentErrorEnd > status); };
-    bool is_warning(PrintDialogStatus status)          { return (PrintStatusWarningBegin < status)         && (PrintStatusWarningEnd > status); };
-    bool is_warning_printer(PrintDialogStatus status)  { return (PrintStatusPrinterWarningBegin < status)  && (PrintStatusPrinterWarningEnd > status); };
-    bool is_warning_filament(PrintDialogStatus status) { return (PrintStatusFilamentWarningBegin < status) && (PrintStatusFilamentWarningEnd > status); };
 };
 
 

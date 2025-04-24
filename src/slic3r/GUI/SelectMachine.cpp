@@ -57,25 +57,6 @@ std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_t
     }
 }
 
-
-void SelectMachineDialog::stripWhiteSpace(std::string& str)
-{
-    if (str == "") { return; }
-
-    string::iterator cur_it;
-    cur_it = str.begin();
-
-    while (cur_it != str.end()) {
-        if ((*cur_it) == '\n' || (*cur_it) == ' ') {
-            cur_it = str.erase(cur_it);
-        }
-        else {
-            cur_it++;
-        }
-    }
-}
-
-
 std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
 std::vector<string> SelectMachineDialog::MachineBedTypeString;
 void                SelectMachineDialog::init_machine_bed_types()
@@ -606,25 +587,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         ops_auto, "nozzle_offset_cali"
     );
 
-    auto option_use_ams             = new PrintOption(
-        m_options_other,
-        _L("Use AMS"),
-        wxEmptyString,
-        ops_no_auto,
-        "use_ams"
-    );
-
-    option_use_ams->setValue("on");
-
     m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(28));
     m_sizer_options->Add(option_timelapse, 0, wxEXPAND);
-    m_sizer_options->Add(option_use_ams, 0, wxEXPAND);
     m_sizer_options->Add(option_auto_bed_level, 0, wxEXPAND);
     m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND);
     m_sizer_options->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND);
 
     m_checkbox_list_order.push_back(option_timelapse);
-    m_checkbox_list_order.push_back(option_use_ams);
     m_checkbox_list_order.push_back(option_auto_bed_level);
     m_checkbox_list_order.push_back(option_flow_dynamics_cali);
     m_checkbox_list_order.push_back(option_nozzle_offset_cali_cali);
@@ -635,7 +604,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_checkbox_list["timelapse"]     = option_timelapse;
     m_checkbox_list["bed_leveling"]  = option_auto_bed_level;
-    m_checkbox_list["use_ams"]       = option_use_ams;
     m_checkbox_list["flow_cali"]     = option_flow_dynamics_cali;
     m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
 
@@ -646,7 +614,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     option_auto_bed_level->Hide();
     option_flow_dynamics_cali->Hide();
     option_nozzle_offset_cali_cali->Hide();
-    option_use_ams->Hide();
 
     m_simplebook   = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2, 0);
     m_simplebook->SetMinSize(SELECT_MACHINE_DIALOG_SIMBOOK_SIZE2);
@@ -885,13 +852,6 @@ void SelectMachineDialog::init_bind()
     });
 }
 
-void SelectMachineDialog::check_focus(wxWindow* window)
-{
-    if (window == m_rename_input || window == m_rename_input->GetTextCtrl()) {
-        on_rename_enter();
-    }
-}
-
 void SelectMachineDialog::show_print_failed_info(bool show, int code, wxString description, wxString extra)
 {
 
@@ -926,7 +886,7 @@ void SelectMachineDialog::show_print_failed_info(bool show, int code, wxString d
 
 void SelectMachineDialog::check_fcous_state(wxWindow* window)
 {
-    check_focus(window);
+    if (window == m_rename_input || window == m_rename_input->GetTextCtrl()) { on_rename_enter(); }
     auto children = window->GetChildren();
     for (auto child : children) {
         check_fcous_state(child);
@@ -1549,9 +1509,9 @@ void SelectMachineDialog::prepare(int print_plate_idx)
     m_print_plate_idx = print_plate_idx;
 }
 
-void SelectMachineDialog::update_ams_status_msg(wxString msg, bool can_send_print)
+void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_error)
 {
-    auto colour = can_send_print ? wxColour(0xFF, 0x6F, 0x00) : wxColour("#D01B1B");
+    auto colour = is_error ? wxColour("#D01B1B") : wxColour("#FF6F00");
     m_statictext_ams_msg->SetForegroundColour(colour);
 
     if (msg.empty()) {
@@ -1563,10 +1523,7 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool can_send_prin
         }
     } else {
         auto str_new = msg.utf8_string();
-        stripWhiteSpace(str_new);
-
         auto str_old = m_statictext_ams_msg->GetLabel().utf8_string();
-        stripWhiteSpace(str_old);
 
         if (str_new != str_old) {
             if (m_statictext_ams_msg->GetLabel() != msg) {
@@ -1580,9 +1537,9 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool can_send_prin
     }
 }
 
-void SelectMachineDialog::update_priner_status_msg(wxString msg, bool can_send_print)
+void SelectMachineDialog::update_priner_status_msg(wxString msg, bool is_error)
 {
-    auto colour = can_send_print ? wxColour(0xFF, 0x6F, 0x00) : wxColour("#D01B1B");
+    auto colour = is_error ? wxColour("#D01B1B") : wxColour("#FF6F00");
     m_text_printer_msg->SetForegroundColour(colour);
 
     if (msg.empty()) {
@@ -1594,10 +1551,7 @@ void SelectMachineDialog::update_priner_status_msg(wxString msg, bool can_send_p
         }
     } else {
         auto str_new = msg.utf8_string();
-        stripWhiteSpace(str_new);
-
         auto str_old = m_text_printer_msg->GetLabel().utf8_string();
-        stripWhiteSpace(str_old);
 
         if (str_new != str_old) {
             if (m_text_printer_msg->GetLabel() != msg) {
@@ -1613,28 +1567,20 @@ void SelectMachineDialog::update_priner_status_msg(wxString msg, bool can_send_p
     }
 }
 
-void SelectMachineDialog::update_printer_status_msg_tips(const wxString& msg_tips)
+void SelectMachineDialog::update_printer_status_msg_tips(const wxString &msg_tips)
 {
-    if (msg_tips.empty())
-    {
-        if (!m_text_printer_msg_tips->GetLabel().empty())
-        {
+    if (msg_tips.empty()) {
+        if (!m_text_printer_msg_tips->GetLabel().empty()) {
             m_text_printer_msg_tips->SetLabel(wxEmptyString);
             m_text_printer_msg_tips->Hide();
             Layout();
             Fit();
         }
-    }
-    else
-    {
+    } else {
         auto str_new = msg_tips.utf8_string();
-        stripWhiteSpace(str_new);
-
         auto str_old = m_text_printer_msg_tips->GetLabel().utf8_string();
-        stripWhiteSpace(str_old);
 
-        if (str_new != str_old)
-        {
+        if (str_new != str_old) {
             if (m_text_printer_msg_tips->GetLabel() != msg_tips) {
                 m_text_printer_msg_tips->SetLabel(msg_tips);
                 m_text_printer_msg_tips->SetMinSize(wxSize(FromDIP(420), -1));
@@ -1648,20 +1594,19 @@ void SelectMachineDialog::update_printer_status_msg_tips(const wxString& msg_tip
     }
 }
 
-void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_printer_msg, bool can_send_print, bool can_refresh, const wxString& printer_msg_tips /*=wxEmptyString*/)
+void SelectMachineDialog::update_print_status_msg()
 {
-    if (is_printer_msg) {
-        update_ams_status_msg(wxEmptyString, can_send_print);
-        update_priner_status_msg(msg, can_send_print);
-    } else {
-        update_ams_status_msg(msg, can_send_print);
-        update_priner_status_msg(wxEmptyString, can_send_print);
+    if (m_pre_print_checker.filamentList.size() <= 0) update_ams_status_msg(wxEmptyString, false);
+    if (m_pre_print_checker.printerList.size() <= 0) update_priner_status_msg(wxEmptyString, false);
+
+    for (const auto &info : m_pre_print_checker.filamentList) {
+        update_ams_status_msg(info.msg, info.level == Error ? true : false);
     }
 
-    update_printer_status_msg_tips(printer_msg_tips);
-
-    Enable_Send_Button(can_send_print);
-    Enable_Refresh_Button(can_refresh);
+    for (const auto &info : m_pre_print_checker.printerList) {
+        update_priner_status_msg(info.msg, info.level == Error ? true : false);
+        update_printer_status_msg_tips(info.tips);
+    }
 }
 
 void SelectMachineDialog::update_print_error_info(int code, std::string msg, std::string extra)
@@ -1671,13 +1616,12 @@ void SelectMachineDialog::update_print_error_info(int code, std::string msg, std
     m_print_error_extra = extra;
 }
 
-bool SelectMachineDialog::has_tips(MachineObject* obj)
+bool SelectMachineDialog::check_sdcard_for_timelpase(MachineObject* obj)
 {
     if (!obj) return false;
 
     // must set to a status if return true
-    if (m_checkbox_list["timelapse"]->IsShown() &&
-        (m_checkbox_list["timelapse"]->getValue() == "on"))
+    if (m_checkbox_list["timelapse"]->IsShown() && m_checkbox_list["timelapse"]->getValue() == "on")
     {
         if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
             show_status(PrintDialogStatus::PrintStatusTimelapseNoSdcard);
@@ -1690,74 +1634,77 @@ bool SelectMachineDialog::has_tips(MachineObject* obj)
 
 void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
 {
+    wxString msg;
+    wxString tips;
+
+    if ( params.size() > 0 ) {
+        msg = params[0];
+    } else if (params.size() > 1) {
+        tips = params[1];
+    }
+
     if (m_print_status != status)
-        BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status << "(" << get_print_status_info(status) << ")";
+        BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status << "(" << PrePrintChecker::get_print_status_info(status) << ")";
     m_print_status = status;
 
-    // m_comboBox_printer
-    if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-        m_comboBox_printer->Disable();
-    }
-    else {
-        if (status == PrintDialogStatus::PrintStatusRefreshingMachineList)
-            m_comboBox_printer->Disable();
-        else
-            m_comboBox_printer->Enable();
-    }
-
-    // other
+    // all message
     if (status == PrintDialogStatus::PrintStatusInit) {
-        update_print_status_msg(wxEmptyString, false, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusNoUserLogin) {
-        wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
-        update_print_status_msg(msg_text, true, false, true);
-    }else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
-        update_print_status_msg(wxEmptyString, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
+    } else if (status == PrintDialogStatus::PrintStatusReadyToGo) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
-        wxString msg_text = _L("Connecting to server");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusReading) {
-        wxString msg_text = _L("Synchronizing device information");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
-        wxString msg_text = _L("Synchronizing device information time out");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusModeNotFDM) {
-        update_print_status_msg(_L("Cannot send the print job when the printer is not at FDM mode"), true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
-        wxString msg_text = _L("Cannot send the print job when the printer is updating firmware");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusInSystemPrinting) {
-        wxString msg_text = _L("The printer is executing instructions. Please restart printing after it ends");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
-        wxString msg_text = _L("The printer is busy on other print job");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusAmsOnSettingup) {
-        update_print_status_msg(_L("AMS is setting up. Please try again later."), false, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusInvalidMapping) {
-        update_print_status_msg(wxEmptyString, false, false, true);
-    } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
-        wxString msg_text;
-        if (params.size() > 0)
-            msg_text = wxString::Format(_L("Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."), params[0]);
-        else
-            msg_text = _L("Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
-        update_print_status_msg(msg_text, false, false, true);
-    }  else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
-        update_print_status_msg(wxEmptyString, false, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
+    } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
-        wxString msg_text = _L("Please do not mix-use the Ext with AMS");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusNozzleDataInvalid) {
-        wxString msg_text = _L("Invalid nozzle information, please refresh or manually set nozzle information.");
-        update_print_status_msg(msg_text, true, false, true);
-    } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid && (params.size() > 1)) {
-        update_print_status_msg(params[0], true, false, true, params[1]);
-    } else if (status == PrintStatusNozzleDiameterMismatch && (params.size() > 1)) {
-        update_print_status_msg(params[0], true, false, true, params[1]);
-    } else if (status == PrintStatusNozzleTypeMismatch && !params.empty()) {
-        update_print_status_msg(params[0], true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
+    } else if (status == PrintDialogStatus::PrintStatusNozzleMatchInvalid) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
+    } else if (status == PrintStatusNozzleDiameterMismatch) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
+    } else if (status == PrintStatusNozzleTypeMismatch) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     }
     else if (status == PrintDialogStatus::PrintStatusAmsMappingU0Invalid) {
         wxString msg_text;
@@ -1765,23 +1712,26 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             msg_text = wxString::Format(_L("Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."), params[0], params[1]);
         else
             msg_text = _L("Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
-        update_print_status_msg(msg_text, false, false, true);
+
+        msg = msg_text;
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
-        update_print_status_msg(wxEmptyString, true, false, false);
+        Enable_Refresh_Button(false);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusSending) {
-        update_print_status_msg(wxEmptyString, true, false, false);
+        Enable_Refresh_Button(false);
+        Enable_Send_Button(false);
+        sending_mode();
     } else if (status == PrintDialogStatus::PrintStatusLanModeNoSdcard) {
-        wxString msg_text = _L("Storage needs to be inserted before printing via LAN.");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable) {
-        wxString msg_text = _L("Storage is not available or is in read-only mode.");
-        update_print_status_msg(msg_text, true, false, true);
-    } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
-        wxString msg_text = _L("The printer firmware only supports sequential mapping of filament => AMS slot.");
-        update_print_status_msg(msg_text, false, true, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
-        wxString msg_text = _L("Storage needs to be inserted before printing.");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     }else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
         wxString msg_text;
         try
@@ -1811,27 +1761,31 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
             msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."), sourcet_print_name, target_print_name);
 
-            update_print_status_msg(msg_text, true, false, true);
+
+            msg = msg_text;
+            Enable_Refresh_Button(true);
+            Enable_Send_Button(false);
         }
         catch (...)
         {
-            update_print_status_msg(wxEmptyString, true, false, true);
+            Enable_Refresh_Button(true);
+            Enable_Send_Button(false);
         }
     } else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
-        wxString msg_text = _L("Storage needs to be inserted to record timelapse.");
-        update_print_status_msg(msg_text, true, true, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedForceUpgrading) {
-        wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusNeedConsistencyUpgrading) {
-        wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusBlankPlate) {
-        wxString msg_text = _L("Cannot send the print job for empty plate");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
-        wxString msg_text = _L("This printer does not support printing all plates");
-        update_print_status_msg(msg_text, true, false, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusTimelapseWarning) {
         wxString   msg_text;
         PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
@@ -1845,26 +1799,24 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
                 }
             }
         }
-        update_print_status_msg(msg_text, true, true, true);
+        msg = msg_text;
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     }
     else if (status == PrintStatusMixAmsAndVtSlotWarning) {
-        wxString msg_text = _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
-        update_print_status_msg(msg_text, false, true, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     } else if (status == PrintStatusTPUUnsupportAutoCali) {
-        wxString msg_text = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
-        update_print_status_msg(msg_text, false, false, true);
-    } else if (status == PrintStatusWarningKvalueNotUsed && !params.empty()) {
-        wxString msg_text = _L("Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value.");
-        update_print_status_msg(msg_text, false, true, true);
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
+    } else if (status == PrintStatusWarningKvalueNotUsed) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     }
 
-    // m_panel_warn m_simplebook
-    if (status == PrintDialogStatus::PrintStatusSending) {
-        sending_mode();
-    }
-    else {
-        prepare_mode(false);
-    }
+    /*enter perpare mode*/
+    prepare_mode(false);
+    m_pre_print_checker.add(status, msg, tips);
 }
 
 void SelectMachineDialog::init_timer()
@@ -2212,7 +2164,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
     }
 
-    if (has_prohibited_filament && obj_->has_ams() && (m_checkbox_list["use_ams"]->getValue() == "on")) {
+    if (has_prohibited_filament && obj_->has_ams()) {
         wxString tpu_tips = prohibited_error;
         show_errors(tpu_tips);
         return;
@@ -2438,8 +2390,6 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
 
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
-        if (item.second->getParam() == "use_ams") { continue; }
-
         const std::string &val = config->get(obj->printer_type, item.first);
         if (opt->contain_opt(val)) {
             opt->setValue(val);
@@ -2476,7 +2426,6 @@ void SelectMachineDialog::save_option_vals(MachineObject *obj) {
     if (!config) return;
     if (!obj) return;
     for (auto item : m_checkbox_list) {
-        if (item.second->getParam() == "use_ams") { continue;}
         config->set(obj->printer_type, item.first, item.second->getValue());
     }
 }
@@ -2529,7 +2478,9 @@ static bool _HasExt(const std::vector<FilamentInfo> &ams_mapping_result) {
 
 static bool _HasAms(const std::vector<FilamentInfo> &ams_mapping_result) {
     for (const auto &info : ams_mapping_result) {
-        if (info.ams_id != VIRTUAL_AMS_MAIN_ID_STR && info.ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) { return true; }
+        if (info.ams_id != VIRTUAL_AMS_MAIN_ID_STR && info.ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) {
+            return true;
+        }
     }
 
     return false;
@@ -2559,11 +2510,6 @@ void SelectMachineDialog::on_send_print()
     assert(obj_->dev_id == m_printer_last_select);
     if (obj_ == nullptr) { return; }
 
-    /*github-6179*/
-    if (obj_->m_extder_data.total_extder_count < 2 && _HasExt(m_ams_mapping_result)) {
-        m_checkbox_list["use_ams"]->setValue("off");
-    }
-
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
@@ -2591,18 +2537,8 @@ void SelectMachineDialog::on_send_print()
     std::string ams_mapping_array;
     std::string ams_mapping_array2;
     std::string ams_mapping_info;
-    //if (m_checkbox_list["use_ams"]->getValue() == "on")
+
     get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
-    //else {
-    //    json mapping_info_json = json::array();
-    //    json item;
-    //    if (m_filaments.size() > 0) {
-    //        item["sourceColor"] = m_filaments[0].color.substr(1, 8);
-    //        item["filamentType"] = m_filaments[0].type;
-    //        mapping_info_json.push_back(item);
-    //        ams_mapping_info = mapping_info_json.dump();
-    //    }
-    //}
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
@@ -2709,10 +2645,22 @@ void SelectMachineDialog::on_send_print()
         true,
         m_checkbox_list["bed_leveling"]->getValueInt(),
         m_checkbox_list["flow_cali"]->getValueInt(),
-        m_checkbox_list["nozzle_offset_cali"]->getValueInt());
+        m_checkbox_list["nozzle_offset_cali"]->getValueInt()
+    );
 
     if (obj_->has_ams()) {
-        m_print_job->task_use_ams = (m_checkbox_list["use_ams"]->getValue() == "on");
+        bool has_ext = _HasExt(m_ams_mapping_result);
+        bool has_ams = _HasAms(m_ams_mapping_result);
+
+        if (has_ams && !has_ext) {
+            m_print_job->task_use_ams = true;
+        }
+        else if (has_ext && !has_ams) {
+            m_print_job->task_use_ams = false;
+        }
+        else {
+            m_print_job->task_use_ams = true;
+        }
     } else {
         m_print_job->task_use_ams = false;
     }
@@ -2777,7 +2725,6 @@ void SelectMachineDialog::on_refresh(wxCommandEvent &event)
 {
     BOOST_LOG_TRIVIAL(info) << "m_printer_last_select: on_refresh";
     show_status(PrintDialogStatus::PrintStatusRefreshingMachineList);
-
     update_user_machine_list();
 }
 
@@ -2813,9 +2760,6 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
         }
 
 
-        int use_ext_count = 0;
-        int use_ams_count = 0;
-
         for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
             if (m_ams_mapping_result[i].id == wxAtoi(selection_data_arr[5])) {
                 m_ams_mapping_result[i].tray_id = evt.GetInt();
@@ -2829,20 +2773,10 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 m_ams_mapping_result[i].slot_id = selection_data_arr[7].ToStdString();
 
                 if (m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-                    use_ext_count++;
                 }else if (m_ams_mapping_result[i].ams_id >= std::to_string(0)) {
-                    use_ams_count++;
                 }
             }
             BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
-        }
-
-        /*check use ams options*/
-        if (use_ext_count == m_ams_mapping_result.size()) {
-            m_checkbox_list["use_ams"]->setValue("off");
-        }
-        else if (use_ams_count > 0) {
-            m_checkbox_list["use_ams"]->setValue("on");
         }
 
         MaterialHash::iterator iter = m_materialList.begin();
@@ -3124,16 +3058,10 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
-    update_show_status();
-
-    ///show auto refill
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if(!dev) return;
-    MachineObject* obj_ = dev->get_selected_machine();
+    DeviceManager* dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if(!dev_) return;
+    MachineObject* obj_ = dev_->get_my_machine(m_printer_last_select);
     if(!obj_) return;
-
-
-
 
     if (obj_->m_extder_data.total_extder_count > 1) {
         change_materialitem_tip(false); /*mapping to both ams and ext, is supported while total_extder_count is 2*/
@@ -3141,13 +3069,11 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         change_materialitem_tip(true);
     }
 
-    if (!obj_
-        || obj_->amsList.empty()
+    if (   obj_->amsList.empty()
         || obj_->ams_exist_bits == 0
         || !obj_->is_support_filament_backup
         || !obj_->is_support_show_filament_backup
         || !obj_->ams_auto_switch_filament_flag
-        || m_checkbox_list["use_ams"]->getValue() != "on"
         || !_HasAms(m_ams_mapping_result)) {
         if (m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
@@ -3161,9 +3087,9 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         }
     }
 
-    update_option_opts(obj_);
     load_option_vals(obj_);
-
+    update_show_status(obj_);
+    update_print_status_msg();
     update_scroll_area_size();
 }
 
@@ -3175,12 +3101,15 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_ams_mapping_res  = false;
     m_ams_mapping_valid  = false;
     m_ams_mapping_result.clear();
+    m_pre_print_checker.clear();
 
     m_link_edit_nozzle->Show(false);
     m_mapping_sugs_sizer->Show(false);
     m_change_filament_times_sizer->Show(false);
     m_txt_change_filament_times->Show(false);
 
+
+    update_print_status_msg();
     auto selection = m_comboBox_printer->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -3209,7 +3138,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     if (obj && !obj->get_lan_mode_connection_state()) {
-
         // update image
         auto printer_img_name = "printer_preview_" + obj->printer_type;
         try {
@@ -3238,8 +3166,8 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
     //reset print status
     show_status(PrintDialogStatus::PrintStatusInit);
-
     update_show_status();
+    update_print_status_msg();
 }
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
@@ -3248,15 +3176,12 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
 
     if (!obj->is_enable_np) {
         if (obj->has_ams()) {
-            m_checkbox_list["use_ams"]->setValue("on");
             change_materialitem_tip(false);
         }
         else {
-            m_checkbox_list["use_ams"]->setValue("off");
             change_materialitem_tip(true);
         }
     }else{
-        m_checkbox_list["use_ams"]->setValue("on");
         change_materialitem_tip(false);
     }
 }
@@ -3348,53 +3273,53 @@ static wxString _get_nozzle_name(int total_ext_count, int ext_id)
     return _L("nozzle");
 }
 
-void SelectMachineDialog::update_show_status()
+void SelectMachineDialog::update_show_status(MachineObject* obj_)
 {
-    // refreshing return
-    if (get_status() == PrintDialogStatus::PrintStatusRefreshingMachineList)
-        return;
+    m_pre_print_checker.clear();
 
-    if (get_status() == PrintDialogStatus::PrintStatusSending)
-        return;
-
+    /*agent check and printer valid check*/
     NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!agent) {
+        show_status(PrintDialogStatus::PrintStatusNoUserLogin);
+        update_ams_check(nullptr);
+    }
+
+    if (!obj_) {
+        show_status(PrintDialogStatus::PrintStatusInvalidPrinter);
         update_ams_check(nullptr);
         return;
     }
-    if (!dev) return;
 
-    PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+    /*combobox check*/
+    if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+        m_comboBox_printer->Disable();
+    } else {
+        if (get_status() == PrintDialogStatus::PrintStatusRefreshingMachineList)
+            m_comboBox_printer->Disable();
+        else
+            m_comboBox_printer->Enable();
+    }
 
-    // blank plate has no valid gcode file
+    /*mode check*/
+    if (get_status() == PrintDialogStatus::PrintStatusRefreshingMachineList || get_status() == PrintDialogStatus::PrintStatusSending) return;
+
+    /*no valid gcode file*/
     if (m_print_type == PrintFromType::FROM_NORMAL) {
+        PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
         if (plate && !plate->is_valid_gcode_file()) {
             show_status(PrintDialogStatus::PrintStatusBlankPlate);
             return;
         }
     }
-    MachineObject* obj_ = dev->get_my_machine(m_printer_last_select);
-    if (!obj_) {
-        update_ams_check(nullptr);
-        if (agent) {
-            if (agent->is_user_login()) {
-                show_status(PrintDialogStatus::PrintStatusInvalidPrinter);
-            }
-            else {
-                show_status(PrintDialogStatus::PrintStatusNoUserLogin);
-            }
-        }
-        return;
-    }
 
+
+
+    /** error check **/
     /* check cloud machine connections */
-    if (!obj_->is_lan_mode_printer()) {
-        if (!agent->is_server_connected()) {
-            show_status(PrintDialogStatus::PrintStatusConnectingServer);
-            reset_timeout();
-            return;
-        }
+    if (!obj_->is_lan_mode_printer() && !agent->is_server_connected()) {
+        show_status(PrintDialogStatus::PrintStatusConnectingServer);
+        reset_timeout();
+        return;
     }
 
     if (!obj_->is_info_ready()) {
@@ -3402,18 +3327,16 @@ void SelectMachineDialog::update_show_status()
             m_ams_mapping_result.clear();
             sync_ams_mapping_result(m_ams_mapping_result);
             show_status(PrintDialogStatus::PrintStatusReadingTimeout);
-            return;
-        }
-        else {
+        } else {
             m_timeout_count++;
             show_status(PrintDialogStatus::PrintStatusReading);
-            return;
         }
         return;
     }
 
     reset_timeout();
 
+    /*check print all*/
     if (!obj_->is_support_print_all && m_print_plate_idx == PLATE_ALL_IDX) {
         show_status(PrintDialogStatus::PrintStatusNotSupportedPrintAll);
         return;
@@ -3424,14 +3347,15 @@ void SelectMachineDialog::update_show_status()
         update_ams_check(obj_);
         m_check_flag = true;
     }
-    // do ams mapping if no ams result
+
+    /*do ams mapping if no ams result*/
     if (m_ams_mapping_result.empty()) {
-       do_ams_mapping(obj_, m_checkbox_list["use_ams"]->getValue() == "on");
-       update_filament_change_count();
+        do_ams_mapping(obj_, true);
+        update_filament_change_count();
     }
 
-    // reading done
-    if (wxGetApp().app_config && wxGetApp().app_config->get("internal_debug").empty()) {
+     /*reading done*/
+    if (wxGetApp().app_config) {
         if (obj_->upgrade_force_upgrade) {
             show_status(PrintDialogStatus::PrintStatusNeedForceUpgrading);
             return;
@@ -3443,8 +3367,7 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (!obj_->is_fdm_type())
-    {
+    if (!obj_->is_fdm_type()) {
         show_status(PrintDialogStatus::PrintStatusModeNotFDM);
         return;
     }
@@ -3452,31 +3375,26 @@ void SelectMachineDialog::update_show_status()
     if (is_blocking_printing(obj_)) {
         show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
         return;
-    }
-    else if (obj_->is_in_upgrading()) {
+    } else if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
         return;
-    }
-    else if (obj_->is_system_printing()) {
+    } else if (obj_->is_system_printing()) {
         show_status(PrintDialogStatus::PrintStatusInSystemPrinting);
         return;
-    }
-    else if (obj_->is_in_printing() || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+    } else if (obj_->is_in_printing() || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         show_status(PrintDialogStatus::PrintStatusInPrinting);
         return;
-    }
-    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+    } else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
         show_status(PrintDialogStatus::PrintStatusNoSdcard);
         return;
     }
 
-    // check sdcard when if lan mode printer
+    /*check sdcard when if lan mode printer*/
     if (obj_->is_lan_mode_printer()) {
         if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
             show_status(PrintDialogStatus::PrintStatusLanModeNoSdcard);
             return;
-        } else if (obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL
-            || obj_->get_sdcard_state() ==  MachineObject::SdcardState::HAS_SDCARD_READONLY) {
+        } else if (obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL || obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_READONLY) {
             show_status(PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable);
             return;
         }
@@ -3487,7 +3405,7 @@ void SelectMachineDialog::update_show_status()
         return;
     }
 
-    // disable print when there is no mapping
+    /*disable print when there is no mapping*/
     if (obj_->m_extder_data.total_extder_count > 1) {
         for (auto mres : m_ams_mapping_result) {
             if (mres.ams_id.empty() && mres.slot_id.empty()) {
@@ -3497,10 +3415,10 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    const auto& full_config = wxGetApp().preset_bundle->full_config();
-    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    const auto &full_config = wxGetApp().preset_bundle->full_config();
+    size_t      nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
-    //the nozzle type of preset and machine are different
+    /*the nozzle type of preset and machine are different*/
     if (nozzle_nums > 1 && m_print_type == FROM_NORMAL) {
         if (!_is_nozzle_data_valid(obj_, obj_->m_extder_data)) {
             show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
@@ -3508,9 +3426,8 @@ void SelectMachineDialog::update_show_status()
         }
 
         wxString error_message;
-        if (!is_nozzle_type_match(obj_->m_extder_data, error_message))
-        {
-            std::vector<wxString> params { error_message };
+        if (!is_nozzle_type_match(obj_->m_extder_data, error_message)) {
+            std::vector<wxString> params{error_message};
             params.emplace_back(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
             show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid, params);
             return;
@@ -3525,40 +3442,34 @@ void SelectMachineDialog::update_show_status()
         if (!_is_same_nozzle_diameters(obj_, nozzle_diameter, mismatch_nozzle_id))
         {
             std::vector<wxString> msg_params;
-            if (obj_->m_extder_data.total_extder_count == 2)
-            {
+            if (obj_->m_extder_data.total_extder_count == 2) {
                 wxString mismatch_nozzle_str;
-                if (mismatch_nozzle_id == MAIN_NOZZLE_ID)
-                {
+                if (mismatch_nozzle_id == MAIN_NOZZLE_ID) {
                     mismatch_nozzle_str = _L("right nozzle");
-                }
-                else
-                {
+                } else {
                     mismatch_nozzle_str = _L("left nozzle");
                 }
 
-                const wxString& nozzle_config = wxString::Format(_L("The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). "
+                const wxString &nozzle_config = wxString::Format(_L("The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). "
                                                                     "Please make sure the nozzle installed matches with settings in printer, then set the "
-                                                                    "corresponding printer preset when slicing."), mismatch_nozzle_str,
-                                                                     obj_->m_extder_data.extders[mismatch_nozzle_id].current_nozzle_diameter, nozzle_diameter);
+                                                                    "corresponding printer preset when slicing."),
+                                                                 mismatch_nozzle_str, obj_->m_extder_data.extders[mismatch_nozzle_id].current_nozzle_diameter, nozzle_diameter);
                 msg_params.emplace_back(nozzle_config);
-            }
-            else
-            {
-                const wxString& nozzle_config = wxString::Format(_L("The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). "
-                                                                     "Please make sure the nozzle installed matches with settings in printer, then set the "
-                                                                     "corresponding printer preset when slicing."), obj_->m_extder_data.extders[0].current_nozzle_diameter,
-                                                                      nozzle_diameter);
+            } else {
+                const wxString &nozzle_config = wxString::Format(_L("The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). "
+                                                                    "Please make sure the nozzle installed matches with settings in printer, then set the "
+                                                                    "corresponding printer preset when slicing."),
+                                                                 obj_->m_extder_data.extders[0].current_nozzle_diameter, nozzle_diameter);
                 msg_params.emplace_back(nozzle_config);
             }
 
             msg_params.emplace_back(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
-            return show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, msg_params);
+            show_status(PrintDialogStatus::PrintStatusNozzleDiameterMismatch, msg_params);
+            return;
         }
 
         const auto &used_nozzle_idxes = _get_used_nozzle_idxes();
-        for (const auto& extder : obj_->m_extder_data.extders)
-        {
+        for (const auto &extder : obj_->m_extder_data.extders) {
             if (used_nozzle_idxes.count(extder.nozzle_id) == 0) { continue; }
 
             std::string filament_type;
@@ -3572,25 +3483,12 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (!m_mapping_popup.m_supporting_mix_print && nozzle_nums == 1)
-    {
-        bool useAms = false;
-        bool useExt = false;
-        for (auto iter = m_ams_mapping_result.begin(); iter != m_ams_mapping_result.end(); iter++)
-        {
-            if (iter->tray_id != VIRTUAL_TRAY_MAIN_ID)
-            {
-                useAms = true;
-            }
-            if (iter->tray_id == VIRTUAL_TRAY_MAIN_ID)
-            {
-                useExt = true;
-            }
-            if (useAms && useExt)
-            {
-                show_status(PrintDialogStatus::PrintStatusAmsMappingMixInvalid);
-                return;
-            }
+    if (!m_mapping_popup.m_supporting_mix_print && nozzle_nums == 1) {
+        bool useAms = _HasAms(m_ams_mapping_result);
+        bool useExt = _HasExt(m_ams_mapping_result);
+        if (useAms && useExt) {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingMixInvalid);
+            return;
         }
     }
 
@@ -3603,15 +3501,8 @@ void SelectMachineDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
         return;
     }
-    /*Warnings*/
-        // no ams
-    if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
-        if (has_timelapse_warning()) {
-            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-            return;
-        }
-    }
 
+    /** warning check **/
     struct ExtruderStatus
     {
         bool has_ams{false};
@@ -3640,10 +3531,9 @@ void SelectMachineDialog::update_show_status()
             show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
             return;
         }
-    }
-    else {
+    } else {
         if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-            if (!has_tips(obj_)){
+            if (!check_sdcard_for_timelpase(obj_)) {
                 if (has_timelapse_warning()) {
                     show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
                     return;
@@ -3657,12 +3547,13 @@ void SelectMachineDialog::update_show_status()
         const auto &not_default_ams_names = _check_kval_not_default(obj_, m_ams_mapping_result);
         if (!not_default_ams_names.empty()) {
             std::vector<wxString> params{not_default_ams_names};
-            show_status(PrintDialogStatus::PrintStatusWarningKvalueNotUsed, params);
+            show_status(PrintDialogStatus::PrintStatusWarningKvalueNotUsed);
             return;
         }
     }
 
-    update_print_status_msg(wxEmptyString, false, true, true);
+    /** normal check **/
+    show_status(PrintDialogStatus::PrintStatusReadyToGo);
 }
 
 bool SelectMachineDialog::has_timelapse_warning(wxString &msg_text)
@@ -3854,9 +3745,6 @@ void SelectMachineDialog::set_default()
         if (agent->is_user_login()) {
             show_status(PrintDialogStatus::PrintStatusInit);
         }
-        else {
-            show_status(PrintDialogStatus::PrintStatusNoUserLogin);
-        }
     }
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
@@ -3879,7 +3767,7 @@ void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
         int       id   = iter->first;
         Material *item = iter->second;
         if (item) {
-            if (no_ams_only_ext && (item->item->m_ams_name == "Ext") && (m_checkbox_list["use_ams"]->getValue() != "on")) {
+            if (no_ams_only_ext && item->item->m_ams_name == "Ext") {
                 item->item->SetToolTip(wxEmptyString);
             }
             else {
@@ -4711,67 +4599,6 @@ SelectMachineDialog::~SelectMachineDialog()
 {
     delete m_refresh_timer;
 }
-
-void SelectMachineDialog::update_lan_machine_list()
-{
-    DeviceManager* dev = wxGetApp().getDeviceManager();
-    if (!dev) return;
-   auto  m_free_machine_list = dev->get_local_machine_list();
-
-    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices start";
-
-    for (auto& elem : m_free_machine_list) {
-        MachineObject* mobj = elem.second;
-
-        /* do not show printer bind state is empty */
-        if (!mobj->is_avaliable()) continue;
-        if (!mobj->is_online()) continue;
-        if (!mobj->is_lan_mode_printer()) continue;
-        if (mobj->has_access_right()) {
-            std::vector<std::string>               machine_list;
-            wxArrayString                          machine_list_name;
-            std::map<std::string, MachineObject *> option_list;
-        }
-
-    }
-    BOOST_LOG_TRIVIAL(trace) << "SelectMachineDialog update_lan_devices end";
-}
-
-
-std::string SelectMachineDialog::get_print_status_info(PrintDialogStatus status)
-{
-    switch (status) {
-    case PrintStatusInit: return "PrintStatusInit";
-    case PrintStatusNoUserLogin: return "PrintStatusNoUserLogin";
-    case PrintStatusInvalidPrinter: return "PrintStatusInvalidPrinter";
-    case PrintStatusConnectingServer: return "PrintStatusConnectingServer";
-    case PrintStatusReading: return "PrintStatusReading";
-    case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
-    case PrintStatusReadingTimeout: return "PrintStatusReadingTimeout";
-    case PrintStatusInUpgrading: return "PrintStatusInUpgrading";
-    case PrintStatusNeedUpgradingAms: return "PrintStatusNeedUpgradingAms";
-    case PrintStatusInSystemPrinting: return "PrintStatusInSystemPrinting";
-    case PrintStatusInPrinting: return "PrintStatusInPrinting";
-    case PrintStatusDisableAms: return "PrintStatusDisableAms";
-    case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
-    case PrintStatusAmsMappingInvalid: return "PrintStatusAmsMappingInvalid";
-    case PrintStatusAmsMappingU0Invalid: return "PrintStatusAmsMappingU0Invalid";
-    case PrintStatusAmsMappingValid: return "PrintStatusAmsMappingValid";
-    case PrintStatusAmsMappingByOrder: return "PrintStatusAmsMappingByOrder";
-    case PrintStatusRefreshingMachineList: return "PrintStatusRefreshingMachineList";
-    case PrintStatusSending: return "PrintStatusSending";
-    case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
-    case PrintStatusLanModeNoSdcard: return "PrintStatusLanModeNoSdcard";
-    case PrintStatusLanModeSDcardNotAvailable: return "PrintStatusLanModeSDcardNotAvailable";
-    case PrintStatusNoSdcard: return "PrintStatusNoSdcard";
-    case PrintStatusUnsupportedPrinter: return "PrintStatusUnsupportedPrinter";
-    case PrintStatusTimelapseNoSdcard: return "PrintStatusTimelapseNoSdcard";
-    case PrintStatusNotSupportedPrintAll: return "PrintStatusNotSupportedPrintAll";
-    case PrintStatusInvalidMapping: return "PrintStatusInvalidMapping";
-    }
-    return "unknown";
-}
-
 
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)
      : wxPanel(parent, winid, pos, size)
