@@ -553,9 +553,7 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
 
     em = GUI::wxGetApp().em_unit();
 
-    m_text_color   = wxColour(38, 46, 48);
     m_bg_colour    = wxColour(255, 255, 255);
-    m_hover_colour = wxColour(248, 248, 248);
     m_thumb_color  = wxColour(196, 196, 196);
 
     SetFont(GUI::wxGetApp().normal_font());
@@ -582,10 +580,8 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
     search_line->SetFont(GUI::wxGetApp().bold_font());
 #endif
 
-    // default_string = _L("Enter a search term");
     search_line->Bind(wxEVT_TEXT, &SearchDialog::OnInputText, this);
     search_line->Bind(wxEVT_LEFT_UP, &SearchDialog::OnLeftUpInTextCtrl, this);
-    search_line->Bind(wxEVT_KEY_DOWN, &SearchDialog::OnKeyDown, this);
     search_line2 = search_line->GetTextCtrl();
 
     // scroll window
@@ -681,74 +677,19 @@ void SearchDialog::Die()
     wxPostEvent(search_line, event);
 }
 
-void SearchDialog::ProcessSelection(wxDataViewItem selection)
-{
-    if (!selection.IsOk()) return;
-    // this->EndModal(wxID_CLOSE);
-
-    // If call GUI::wxGetApp().sidebar.jump_to_option() directly from here,
-    // then mainframe will not have focus and found option will not be "active" (have cursor) as a result
-    // SearchDialog have to be closed and have to lose a focus
-    // and only after that jump_to_option() function can be called
-    // So, post event to plater:
-    wxCommandEvent event(wxCUSTOMEVT_JUMP_TO_OPTION);
-    event.SetInt(search_list_model->GetRow(selection));
-    wxPostEvent(GUI::wxGetApp().plater(), event);
-}
-
 void SearchDialog::OnInputText(wxCommandEvent &)
 {
     search_line2->SetInsertionPointEnd();
     wxString input_string = search_line2->GetValue();
-    if (input_string == default_string) input_string.Clear();
+    if (input_string == *wxEmptyString) input_string.Clear();
     searcher->search(into_u8(input_string), true, search_type);
     update_list();
 }
 
 void SearchDialog::OnLeftUpInTextCtrl(wxEvent &event)
 {
-    if (search_line2->GetValue() == default_string) search_line2->SetValue("");
+    if (search_line2->GetValue() == *wxEmptyString) search_line2->SetValue("");
     event.Skip();
-}
-
-void SearchDialog::OnKeyDown(wxKeyEvent &event)
-{
-    event.Skip();
-    /* int key = event.GetKeyCode();
-
-     if (key == WXK_UP || key == WXK_DOWN)
-     {
-         search_list->SetFocus();
-
-         auto item = search_list->GetSelection();
-
-         if (item.IsOk()) {
-             unsigned selection = search_list_model->GetRow(item);
-
-             if (key == WXK_UP && selection > 0)
-                 selection--;
-             if (key == WXK_DOWN && selection < unsigned(search_list_model->GetCount() - 1))
-                 selection++;
-
-             prevent_list_events = true;
-             search_list->Select(search_list_model->GetItem(selection));
-             prevent_list_events = false;
-         }
-     }
-
-     else if (key == WXK_NUMPAD_ENTER || key == WXK_RETURN)
-         ProcessSelection(search_list->GetSelection());
-     else
-         event.Skip();*/
-}
-
-void SearchDialog::OnActivate(wxDataViewEvent &event) { ProcessSelection(event.GetItem()); }
-
-void SearchDialog::OnSelect(wxDataViewEvent &event)
-{
-    if (prevent_list_events) return;
-    // if (wxGetMouseState().LeftIsDown())
-    // ProcessSelection(search_list->GetSelection());
 }
 
 void SearchDialog::update_list()
@@ -787,76 +728,11 @@ void SearchDialog::update_list()
 #ifndef __WXGTK__
     Thaw();
 #endif
-
-    // Under OSX model->Clear invoke wxEVT_DATAVIEW_SELECTION_CHANGED, so
-    // set prevent_list_events to true already here
-    // prevent_list_events = true;
-    // search_list_model->Clear();
-
-    /* const std::vector<FoundOption> &filters = searcher->found_options();
-      for (const FoundOption &item : filters)
-          search_list_model->Prepend(item.label);*/
-
-    // select first item, if search_list
-    /*if (search_list_model->GetCount() > 0)
-        search_list->Select(search_list_model->GetItem(0));
-        prevent_list_events = false;*/
-    // Refresh();
 }
-
-void SearchDialog::OnCheck(wxCommandEvent &event)
-{
-    OptionViewParameters &params = searcher->view_params;
-    params.category              = check_category->GetValue();
-
-    searcher->search();
-    update_list();
-}
-
-void SearchDialog::OnMotion(wxMouseEvent &event)
-{
-    wxDataViewItem    item;
-    wxWindow *        win = this;
-
-    // search_list->HitTest(wxGetMousePosition() - win->GetScreenPosition(), item, col);
-    // search_list->Select(item);
-
-    event.Skip();
-}
-
-void SearchDialog::OnLeftDown(wxMouseEvent &event) { ProcessSelection(search_list->GetSelection()); }
 
 void SearchDialog::msw_rescale()
 {
-    /* const int &em = GUI::wxGetApp().em_unit();
-
-     search_list_model->msw_rescale();
-     search_list->GetColumn(SearchListModel::colIcon      )->SetWidth(3  * em);
-     search_list->GetColumn(SearchListModel::colMarkedText)->SetWidth(45 * em);
-
-     msw_buttons_rescale(this, em, { wxID_CANCEL });
-
-     const wxSize& size = wxSize(40 * em, 30 * em);
-     SetMinSize(size);
-
-     Fit();
-     Refresh();*/
 }
-
-// void SearchDialog::on_sys_color_changed()
-//{
-//#ifdef _WIN32
-//    GUI::wxGetApp().UpdateAllStaticTextDarkUI(this);
-//    GUI::wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)), true);
-//    for (wxWindow* win : std::vector<wxWindow*> {search_line, search_list, check_category, check_english})
-//        if (win) GUI::wxGetApp().UpdateDarkUI(win);
-//#endif
-//
-//    // msw_rescale updates just icons, so use it
-//    search_list_model->msw_rescale();
-//
-//    Refresh();
-//}
 
 // ----------------------------------------------------------------------------
 // SearchListModel
@@ -914,7 +790,6 @@ SearchObjectDialog::SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* p
 
     em = GUI::wxGetApp().em_unit();
 
-    m_text_color = wxColour(38, 46, 48);
     m_bg_color = wxColour(255, 255, 255);
     m_thumb_color = wxColour(196, 196, 196);
 
