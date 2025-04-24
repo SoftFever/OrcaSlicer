@@ -543,8 +543,6 @@ public:
     bool can_support_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
-    bool is_nozzle_data_valid(const ExtderData& ext_data) const;
-    bool is_same_nozzle_diameters(float& tag_nozzle_diameter, int& mismatch_nozzle_id) const;
     bool is_nozzle_hrc_matched(const Extder& extruder, std::string& filament_type) const;
     bool has_tips(MachineObject* obj);
     bool is_timeout();

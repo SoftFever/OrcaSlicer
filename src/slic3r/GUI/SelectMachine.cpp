@@ -1935,12 +1935,8 @@ static std::unordered_set<int> _get_used_nozzle_idxes()
 }
 
 
-bool SelectMachineDialog::is_nozzle_data_valid(const ExtderData &ext_data) const
+static bool _is_nozzle_data_valid(MachineObject* obj_, const ExtderData &ext_data)
 {
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return false;
-
-    MachineObject *obj_ = dev->get_selected_machine();
     if (obj_ == nullptr) return false;
 
     PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
@@ -1970,13 +1966,9 @@ bool SelectMachineDialog::is_nozzle_data_valid(const ExtderData &ext_data) const
  * @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
  * @return is same or not
 /*************************************************************/
-bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter, int& mismatch_nozzle_id) const
+static bool _is_same_nozzle_diameters(MachineObject* obj, float &tag_nozzle_diameter, int& mismatch_nozzle_id)
 {
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return false;
-
-    MachineObject* obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return false;
+    if (obj == nullptr) return false;
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
@@ -1999,7 +1991,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter, i
             }
 
             tag_nozzle_diameter = float(opt_nozzle_diameters->get_at(used_nozzle_idx));
-            if (tag_nozzle_diameter != obj_->m_extder_data.extders[used_nozzle_idx].current_nozzle_diameter)
+            if (tag_nozzle_diameter != obj->m_extder_data.extders[used_nozzle_idx].current_nozzle_diameter)
             {
                 mismatch_nozzle_id = used_nozzle_idx;
                 return false;
@@ -3510,7 +3502,7 @@ void SelectMachineDialog::update_show_status()
 
     //the nozzle type of preset and machine are different
     if (nozzle_nums > 1 && m_print_type == FROM_NORMAL) {
-        if (!is_nozzle_data_valid(obj_->m_extder_data)) {
+        if (!_is_nozzle_data_valid(obj_, obj_->m_extder_data)) {
             show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
             return;
         }
@@ -3530,7 +3522,7 @@ void SelectMachineDialog::update_show_status()
     {
         int mismatch_nozzle_id = 0;
         float nozzle_diameter = 0;
-        if (!is_same_nozzle_diameters(nozzle_diameter, mismatch_nozzle_id))
+        if (!_is_same_nozzle_diameters(obj_, nozzle_diameter, mismatch_nozzle_id))
         {
             std::vector<wxString> msg_params;
             if (obj_->m_extder_data.total_extder_count == 2)
