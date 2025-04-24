@@ -34,7 +34,7 @@ MultiTaskItem::MultiTaskItem(wxWindow* parent, MachineObject* obj, int type)
 
 
     auto m_btn_bg_enable = StateColor(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), 
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
     );
@@ -46,8 +46,8 @@ MultiTaskItem::MultiTaskItem(wxWindow* parent, MachineObject* obj, int type)
     m_button_resume->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
     m_button_resume->SetMinSize(wxSize(FromDIP(70), FromDIP(35)));
     m_button_resume->SetCornerRadius(6);
-    
-    
+
+
     StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
@@ -107,7 +107,7 @@ MultiTaskItem::MultiTaskItem(wxWindow* parent, MachineObject* obj, int type)
     });
 
     m_button_stop->Bind(wxEVT_BUTTON, [this](auto& e) {
-        onStop(); 
+        onStop();
     });
 
     wxGetApp().UpdateDarkUIWin(this);
@@ -115,7 +115,7 @@ MultiTaskItem::MultiTaskItem(wxWindow* parent, MachineObject* obj, int type)
 
 void MultiTaskItem::update_info()
 {
-    //local 
+    //local
     if (m_task_type == 0) {
         m_button_stop->Hide();
         m_button_pause->Hide();
@@ -363,7 +363,7 @@ void MultiTaskItem::doRender(wxDC& dc)
     else {
         DrawTextWithEllipsis(dc, get_cloud_state_task(), FromDIP(TASK_LEFT_PRO_STATE), left);
     }
-    
+
     left += FromDIP(TASK_LEFT_PRO_STATE);
 
     //cloud task info
@@ -387,7 +387,7 @@ void MultiTaskItem::doRender(wxDC& dc)
                 else if (state_device > 2 && state_device < 7) {
                     dc.SetFont(Label::Body_12);
                     dc.SetTextForeground(wxColour(0, 150, 136));
-                    if (obj_->get_curr_stage().IsEmpty()) {
+                    if (obj_->get_curr_stage() == _L("Printing") && obj_->subtask_) {
                         //wxString layer_info = wxString::Format(_L("Layer: %d/%d"), obj_->curr_layer, obj_->total_layers);
                         wxString progress_info = wxString::Format("%d", obj_->subtask_->task_progress);
                         wxString left_time = wxString::Format("%s", get_left_time(obj_->mc_left_time));
@@ -1368,7 +1368,7 @@ bool CloudTaskManagerPage::Show(bool show)
             dev->subscribe_device_list(std::vector<std::string>());
         }
     }
-        
+
     return wxPanel::Show(show);
 }
 
