@@ -415,7 +415,7 @@ void ExtruderSwithingStatus::updateBy(MachineObject *obj)
     else
     {
         /*do not display while command sended in a mean while*/
-        if ((time(nullptr) - m_last_ctrl_time) > HOLD_TIME_SWITCHING)
+        if ((time(nullptr) - m_last_ctrl_time) > HOLD_TIME_6SEC)
         {
             updateBy(obj->m_extder_data);
         }
@@ -5109,10 +5109,12 @@ void StatusPanel::on_show_print_options(wxCommandEvent& event)
         if (print_options_dlg == nullptr) {
             print_options_dlg = new PrintOptionsDialog(this);
             print_options_dlg->update_machine_obj(obj);
+            print_options_dlg->update_options(obj);
             print_options_dlg->ShowModal();
         }
         else {
             print_options_dlg->update_machine_obj(obj);
+            print_options_dlg->update_options(obj);
             print_options_dlg->ShowModal();
         }
     }

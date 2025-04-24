@@ -39,8 +39,8 @@
 #define HOLD_COUNT_MAX          3
 #define HOLD_COUNT_CAMERA       6
 
-#define HOLD_TIME_MAX           3 // 3 seconds
-#define HOLD_TIME_SWITCHING     6 // 6 seconds
+#define HOLD_TIME_3SEC     3 // 3 seconds
+#define HOLD_TIME_6SEC     6 // 6 seconds
 
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
@@ -888,6 +888,7 @@ public:
     int     total_layers = 0;
     bool    is_support_layer_num { false };
     bool    nozzle_blob_detection_enabled{ false };
+    time_t  nozzle_blob_detection_hold_start = 0;
 
     int last_cali_version = -1;
     int cali_version = -1;
@@ -966,7 +967,7 @@ public:
     std::string camera_resolution            = "";
     std::vector<std::string> camera_resolution_supported;
     bool xcam_first_layer_inspector { false };
-    int  xcam_first_layer_hold_count = 0;
+    time_t  xcam_first_layer_hold_start = 0;
     std::string local_rtsp_url;
     std::string tutk_state;
     enum LiveviewLocal {
@@ -1022,13 +1023,13 @@ public:
     time_t xcam_ai_monitoring_hold_start = 0;
     std::string xcam_ai_monitoring_sensitivity;
     bool xcam_buildplate_marker_detector{ false };
-    int  xcam_buildplate_marker_hold_count = 0;
+    time_t  xcam_buildplate_marker_hold_start = 0;
     bool xcam_auto_recovery_step_loss{ false };
     bool xcam_allow_prompt_sound{ false };
     bool xcam_filament_tangle_detect{ false };
-    int  xcam_auto_recovery_hold_count = 0;
-    int  xcam_prompt_sound_hold_count = 0;
-    int  xcam_filament_tangle_detect_count = 0;
+    time_t  xcam_auto_recovery_hold_start = 0;
+    time_t  xcam_prompt_sound_hold_start = 0;
+    time_t  xcam_filament_tangle_detect_hold_start = 0;
     int  nozzle_selected_count = 0;
     bool flag_update_nozzle = {true};
 
