@@ -2125,7 +2125,7 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
     json j;
     try {
         auto tray_id = 0;
-        if (ams_id < "16") {
+        if (atoi(ams_id.c_str()) < 16) {
             tray_id = atoi(ams_id.c_str()) * 4 + atoi(slot_id.c_str());
         }
         // TODO: Orca hack
