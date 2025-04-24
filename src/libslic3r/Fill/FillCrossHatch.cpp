@@ -218,10 +218,7 @@ void FillCrossHatch ::_fill_surface_single(
     if (!polylines.empty()) {
         int infill_start_idx = polylines_out.size(); // only rotate what belongs to us.
         // connect lines
-        if (params.dont_connect() || polylines.size() <= 1)
-            append(polylines_out, chain_polylines(std::move(polylines)));
-        else
-            this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+        chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
 
         // rotate back
         if (std::abs(infill_angle) >= EPSILON) {

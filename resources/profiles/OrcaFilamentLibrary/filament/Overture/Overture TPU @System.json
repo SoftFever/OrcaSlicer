@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "name": "Overture TPU @System",
+    "inherits": "Overture TPU @base",
+    "from": "system",
+    "setting_id": "OFOVT08",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "4"
+    ],
+    "filament_long_retractions_when_cut": ["0"],
+    "filament_retraction_distances_when_cut": ["0"],
+    "compatible_printers": []
+}
