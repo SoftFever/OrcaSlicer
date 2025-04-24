@@ -105,6 +105,7 @@ src/slic3r/GUI/SavePresetDialog.cpp
 src/slic3r/GUI/Search.cpp
 src/slic3r/GUI/Selection.cpp
 src/slic3r/GUI/SelectMachine.cpp
+src/slic3r/GUI/PrePrintChecker.cpp
 src/slic3r/GUI/SendSystemInfoDialog.cpp
 src/slic3r/GUI/SendToPrinter.cpp
 src/slic3r/GUI/SlicingProgressNotification.cpp
