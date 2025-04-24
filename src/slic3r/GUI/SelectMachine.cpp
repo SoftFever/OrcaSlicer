@@ -3075,71 +3075,39 @@ void SelectMachineDialog::update_user_printer()
     std::vector<std::string>              machine_list;
     wxArrayString                         machine_list_name;
     std::map<std::string, MachineObject*> option_list;
-    
-    bool can_use_all = false;
-
-    Slic3r::Http http = Slic3r::Http::get(ICRS_CAN_USE_ALL);
-    http.timeout_connect(1)
-        .timeout_max(1)
-        .on_complete([&can_use_all](std::string body, unsigned int status) {
-            try {
-                if (body == "True") {
-                    can_use_all = true;
-                    BOOST_LOG_TRIVIAL(info) << "user can use all printers";
-                } else {
-                    BOOST_LOG_TRIVIAL(info) << "user cannot use all printers";
-                }
-            }
-            catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "error somewhere";
-            }
-        })
-        .on_error([](std::string body, std::string error, unsigned int status){
-            BOOST_LOG_TRIVIAL(error) << "error in parsing or timeout";
-        })
-        .perform_sync();
-
-    std::vector<std::string> committee_dev;
-    
-    if (!can_use_all) {
-        Slic3r::Http http = Slic3r::Http::get(ICRS_COMMITEE_PRINTERS);
-        http.timeout_connect(1)
-            .timeout_max(1)
-            .on_complete([&committee_dev](std::string body, unsigned int status) {
-                try {
-                    int n_printers = body.length()/15;
-                    for (int i = 0; i < body.length(); i += 15) {
-                        committee_dev.push_back(body.substr(i, 15));
-                    }
-                }
-                catch (...) {
-                    BOOST_LOG_TRIVIAL(error) << "error somewhere";
-                }
-            })
-            .on_error([](std::string body, std::string error, unsigned int status){
-                BOOST_LOG_TRIVIAL(error) << "error in parsing or timeout";
-            })
-            .perform_sync();
-    }
-
 
     //user machine list
     option_list = dev->get_my_machine_list();
     
-    bool committee = false;
-
     // same machine only appear once
     for (auto it = option_list.begin(); it != option_list.end(); it++) {
         if (it->second && (it->second->is_online() || it->second->is_connected())) {
-            if (!can_use_all) {
-                for (const auto& committee_printer : committee_dev) {
-                    if (it->second->dev_id == committee_printer) {
-                        committee = true;
-                        break;
+            bool can_use = false;
+            
+            std::stringstream url;
+            url << ICRS_CAN_USE_ALL << "?dev=" << it->second->dev_id;
+
+            Slic3r::Http http = Slic3r::Http::get(url.str());
+            http.timeout_connect(1)
+                .timeout_max(1)
+                .on_complete([&can_use](std::string body, unsigned int status) {
+                    try {
+                        if (body == "True") {
+                            can_use = true;
+                            BOOST_LOG_TRIVIAL(info) << "user can use printer";
+                        } else {
+                            BOOST_LOG_TRIVIAL(info) << "user cannot use printer";
+                        }
                     }
-                }
-                if (committee) continue;
-            }
+                    catch (...) {
+                        BOOST_LOG_TRIVIAL(error) << "error somewhere";
+                    }
+                })
+                .on_error([](std::string body, std::string error, unsigned int status){
+                    BOOST_LOG_TRIVIAL(error) << "error in parsing or timeout";
+                })
+                .perform_sync();
+            if (!can_use) continue;
             machine_list.push_back(it->second->dev_name);
         }
     }

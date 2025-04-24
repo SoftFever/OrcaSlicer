@@ -1703,6 +1703,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_verification_dlg->ShowModal();
                 }
                 else if (m_print_select == ePrintPlate) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+                m_print_btn->Enable(true);
             }
         });
 
