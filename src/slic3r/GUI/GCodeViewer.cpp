@@ -412,6 +412,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         //     break;
         // }
         case EViewType::VolumetricRate: {
+            if (m_curr_move.type != EMoveType::Extrude) break;
             ImGui::SameLine(startx2);
             sprintf(buf, "%s%.2f", flow.c_str(), m_curr_move.volumetric_rate());
             ImGui::PushItemWidth(item_size);
@@ -1143,8 +1144,12 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
             m_extrusions.ranges.width.update_from(round_to_bin(curr.width));
             m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
             m_extrusions.ranges.temperature.update_from(curr.temperature);
-            if (curr.extrusion_role != erCustom || is_visible(erCustom))
-                m_extrusions.ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
+            if (curr.delta_extruder > 0.005 && curr.travel_dist > 0.01) {
+                // Ignore very tiny extrusions from flow rate calculation, because
+                // it could give very imprecise result due to rounding in gcode generation
+                if (curr.extrusion_role != erCustom || is_visible(erCustom))
+                    m_extrusions.ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
+            }
 
             if (curr.layer_duration > 0.f) {
                 m_extrusions.ranges.layer_duration.update_from(curr.layer_duration);

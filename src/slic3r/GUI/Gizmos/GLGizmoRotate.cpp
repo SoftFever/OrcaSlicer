@@ -174,7 +174,9 @@ void GLGizmoRotate::on_render()
             render_angle_arc(m_highlight_color, hover_radius_changed);
         }
 
-        render_grabber_connection(color, radius_changed);
+        // ORCA dont use axis color on line because they are not on same direction with axis
+        const ColorRGBA line_color = (m_hover_id != -1) ? m_drag_color : ColorRGBA(.6f, .6f ,.6f, 1.f);
+        render_grabber_connection(line_color, radius_changed); 
         shader->stop_using();
     }
 

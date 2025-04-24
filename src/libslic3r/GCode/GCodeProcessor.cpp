@@ -1150,6 +1150,7 @@ void GCodeProcessor::reset()
     m_forced_width = 0.0f;
     m_forced_height = 0.0f;
     m_mm3_per_mm = 0.0f;
+    m_travel_dist = 0.0f;
     m_fan_speed = 0.0f;
     m_z_offset = 0.0f;
 
@@ -2648,7 +2649,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
 
     EMoveType type = move_type(delta_pos);
     if (type == EMoveType::Extrude) {
-        float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        const float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        m_travel_dist = delta_xyz;
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
 
@@ -3125,7 +3127,8 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     EMoveType type = move_type(delta_pos[E]);
 
 
-    float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
+    const float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
+    m_travel_dist         = delta_xyz;
     if (type == EMoveType::Extrude) {
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
@@ -4783,6 +4786,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_width,
         m_height,
         m_mm3_per_mm,
+        m_travel_dist,
         m_fan_speed,
         m_extruder_temps[m_extruder_id],
         static_cast<float>(m_result.moves.size()),

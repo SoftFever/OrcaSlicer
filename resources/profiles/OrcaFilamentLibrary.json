@@ -368,6 +368,14 @@
             "name": "Overture PLA @base",
             "sub_path": "filament/Overture/Overture PLA @base.json"
         },
+		{
+            "name": "Overture TPU @base",
+            "sub_path": "filament/Overture/Overture TPU @base.json"
+        },
+		{
+            "name": "Overture ABS Basic @base",
+            "sub_path": "filament/Overture/Overture ABS Basic @base.json"
+        },
         {
             "name": "PolyLite PLA @base",
             "sub_path": "filament/Polymaker/PolyLite PLA @base.json"
@@ -683,6 +691,14 @@
         {
             "name": "Overture PLA @System",
             "sub_path": "filament/Overture/Overture PLA @System.json"
+        },
+		{
+            "name": "Overture TPU @System",
+            "sub_path": "filament/Overture/Overture TPU @System.json"
+        },
+		{
+            "name": "Overture ABS Basic @System",
+            "sub_path": "filament/Overture/Overture ABS Basic @System.json"
         },
         {
             "name": "PolyLite Dual PLA @System",
