@@ -132,8 +132,6 @@ AddMachinePanel::~AddMachinePanel() {
         update_hms_tag();
         e.Skip();
     });
-
-    Bind(EVT_JUMP_TO_HMS, &MonitorPanel::jump_to_HMS, this);
 }
 
 MonitorPanel::~MonitorPanel()
