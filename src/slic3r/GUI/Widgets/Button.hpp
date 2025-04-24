@@ -4,6 +4,27 @@
 #include "../wxExtensions.hpp"
 #include "StaticBox.hpp"
 
+class ButtonProps
+{
+public:
+    static int ChoiceGap();
+};
+
+enum class ButtonType{
+    None      = 0,
+    Compact   = 1,
+    Window    = 2,
+    Choice    = 3,
+    Parameter = 4,
+};
+
+enum class ButtonStyle{
+    Regular   = 1,
+    Confirm   = 2,
+    Alert     = 3,
+    Disabled  = 4,
+};
+
 class Button : public StaticBox
 {
     wxRect textSize;
@@ -40,7 +61,13 @@ public:
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
+
+    //void SetStyle(const ButtonStyle style = ButtonStyle::Regular, const ButtonType& type = ButtonType::None);
     
+    void SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type = "" /* Choice/Window/Parameter */);
+    
+    void SetType(const wxString size);
+
     void SetTextColor(StateColor const &color);
 
     void SetTextColorNormal(wxColor const &color);
