@@ -294,6 +294,9 @@ public:
 
     wxWindow* m_border_panel{ nullptr };
     wxWindow* m_client_panel{ nullptr };
+
+private:
+    bool m_is_dismissing{ false };
 };
 
 } // namespace Search

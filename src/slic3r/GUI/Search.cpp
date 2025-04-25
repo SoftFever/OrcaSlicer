@@ -860,6 +860,9 @@ SearchObjectDialog::~SearchObjectDialog() {}
 
 void SearchObjectDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 {
+    if (m_is_dismissing || this->IsShown()) {
+        return;
+    }
     search_line2->SetValue(wxString(""));
     PopupWindow::Popup();
     search_line2->SetFocus();
@@ -890,10 +893,12 @@ void SearchObjectDialog::Dismiss()
 
 void SearchObjectDialog::Die()
 {
+    m_is_dismissing = true;
     m_object_list->SetFocus();
     PopupWindow::Dismiss();
     wxCommandEvent event(wxCUSTOMEVT_EXIT_SEARCH);
     wxPostEvent(m_object_list, event);
+    m_is_dismissing = false;
 }
 
 void SearchObjectDialog::OnInputText(wxCommandEvent&)
