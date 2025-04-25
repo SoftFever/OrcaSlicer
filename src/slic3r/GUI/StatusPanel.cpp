@@ -3815,7 +3815,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
 
     if (is_task_changed(obj)) {
         obj->set_modeltask(nullptr);
-        obj->set_slice_info(nullptr);
+        obj->free_slice_info();
         reset_printing_values();
         BOOST_LOG_TRIVIAL(info) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
