@@ -523,7 +523,7 @@ void SearchItem::on_mouse_left_up(wxMouseEvent &evt)
     }
 
     if (m_search_object_dialog) {
-        m_search_object_dialog->Dismiss();
+        m_search_object_dialog->Die();
         wxCommandEvent event(wxCUSTOMEVT_JUMP_TO_OBJECT);
         event.SetClientData(m_item);
         wxPostEvent(GUI::wxGetApp().plater(), event);
@@ -782,9 +782,11 @@ void SearchListModel::GetValueByRow(wxVariant &variant, unsigned int row, unsign
     }
 }
 
-SearchObjectDialog::SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* parent)
-    : PopupWindow(parent, wxBORDER_NONE), m_object_list(object_list)
+SearchObjectDialog::SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* parent, TextInput* input)
+    : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), m_object_list(object_list)
 {
+    search_line = input;
+
     Freeze();
     SetBackgroundColour(wxColour(238, 238, 238));
 
@@ -807,6 +809,19 @@ SearchObjectDialog::SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* p
     // client
     m_client_panel = new wxPanel(m_border_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
     m_client_panel->SetBackgroundColour(m_bg_color);
+
+    // search line
+#ifdef __WXGTK__
+    search_line = new TextInput(m_client_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    search_line->SetBackgroundColour(wxColour(238, 238, 238));
+    search_line->SetForegroundColour(wxColour(43, 52, 54));
+    search_line->SetFont(GUI::wxGetApp().bold_font());
+#endif
+
+    search_line->Bind(wxEVT_TEXT, &SearchObjectDialog::OnInputText, this);
+    search_line->Bind(wxEVT_LEFT_UP, &SearchObjectDialog::OnLeftUpInTextCtrl, this);
+    search_line2 = search_line->GetTextCtrl();
+
 
     // scroll window
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
@@ -845,15 +860,60 @@ SearchObjectDialog::~SearchObjectDialog() {}
 
 void SearchObjectDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 {
-    update_list();
+    search_line2->SetValue(wxString(""));
     PopupWindow::Popup();
+    search_line2->SetFocus();
+
+    m_object_list->assembly_plate_object_name();
+    m_object_list->GetModel()->search_object(*wxEmptyString);
+    update_list();
 }
+
+void SearchObjectDialog::MSWDismissUnfocusedPopup()
+{
+    Dismiss();
+    OnDismiss();
+}
+
+void SearchObjectDialog::OnDismiss() {}
 
 void SearchObjectDialog::Dismiss()
 {
-    auto focus_window = this->GetParent()->HasFocus();
+    auto pos = wxGetMousePosition();
+    auto focus_window = wxWindow::FindFocus();
     if (!focus_window)
-        PopupWindow::Dismiss();
+        Die();
+    else if (!search_line->GetScreenRect().Contains(pos) && !this->GetScreenRect().Contains(pos)) {
+        Die();
+    }
+}
+
+void SearchObjectDialog::Die()
+{
+    m_object_list->SetFocus();
+    PopupWindow::Dismiss();
+    wxCommandEvent event(wxCUSTOMEVT_EXIT_SEARCH);
+    wxPostEvent(m_object_list, event);
+}
+
+void SearchObjectDialog::OnInputText(wxCommandEvent&)
+{
+    search_line2->SetInsertionPointEnd();
+    wxString input_string = search_line2->GetValue();
+    if (input_string == *wxEmptyString)
+        input_string.Clear();
+
+    m_object_list->assembly_plate_object_name();
+    m_object_list->GetModel()->search_object(input_string);
+
+    update_list();
+}
+
+void SearchObjectDialog::OnLeftUpInTextCtrl(wxEvent& event)
+{
+    if (search_line2->GetValue() == *wxEmptyString)
+        search_line2->SetValue("");
+    event.Skip();
 }
 
 void SearchObjectDialog::update_list()

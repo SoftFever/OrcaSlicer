@@ -259,11 +259,17 @@ public:
 class SearchObjectDialog : public PopupWindow
 {
 public:
-    SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* parent);
+    SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* parent, TextInput* input);
     ~SearchObjectDialog();
 
+    void MSWDismissUnfocusedPopup();
     void Popup(wxPoint position = wxDefaultPosition);
+    void OnDismiss();
     void Dismiss();
+    void Die();
+
+    void OnInputText(wxCommandEvent& event);
+    void OnLeftUpInTextCtrl(wxEvent& event);
 
     void update_list();
 
@@ -273,6 +279,9 @@ public:
     int       em;
     const int POPUP_WIDTH = 41;
     const int POPUP_HEIGHT = 45;
+
+    TextInput*  search_line{nullptr};
+    wxTextCtrl* search_line2{nullptr};
 
     ScrolledWindow* m_scrolledWindow{ nullptr };
 
