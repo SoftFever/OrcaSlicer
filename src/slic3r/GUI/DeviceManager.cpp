@@ -1568,9 +1568,10 @@ void MachineObject::parse_status(int flag)
     }
 
     is_support_flow_calibration = ((flag >> 15) & 0x1) != 0;
-    if (this->is_series_n()) { is_support_flow_calibration = true; }/* STUDIO-11014 cover the mistake of AP at n series*/
+    if (this->is_series_o()) { is_support_flow_calibration = false; } // todo: Temp modification due to incorrect machine push message for H2D
 
     is_support_pa_calibration = ((flag >> 16) & 0x1) != 0;
+    if (this->is_series_p()) { is_support_pa_calibration = false; } // todo: Temp modification due to incorrect machine push message for P
 
     if (time(nullptr) - xcam_prompt_sound_hold_start > HOLD_TIME_3SEC) {
         xcam_allow_prompt_sound = ((flag >> 17) & 0x1) != 0;
@@ -3470,7 +3471,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                 if (jj.contains("support_flow_calibration") && jj["support_flow_calibration"].is_boolean())
                 {
-                    is_support_flow_calibration = jj["support_flow_calibration"].get<bool>();
+                    is_support_pa_calibration = jj["support_flow_calibration"].get<bool>();
                 }
 
                 if (jj.contains("support_auto_flow_calibration") && jj["support_auto_flow_calibration"].is_boolean())
@@ -6106,7 +6107,9 @@ void MachineObject::parse_new_info(json print)
 
         is_220V_voltage  = get_flag_bits(fun, 2) == 0?false:true;
         is_support_flow_calibration = get_flag_bits(fun, 6);
+        if (this->is_series_o()) { is_support_flow_calibration = false; } // todo: Temp modification due to incorrect machine push message for H2D
         is_support_pa_calibration = get_flag_bits(fun, 7);
+        if (this->is_series_p()) { is_support_pa_calibration = false; } // todo: Temp modification due to incorrect machine push message for P
         is_support_prompt_sound = get_flag_bits(fun, 8);
         is_support_filament_tangle_detect = get_flag_bits(fun, 9);
         is_support_motor_noise_cali = get_flag_bits(fun, 10);
