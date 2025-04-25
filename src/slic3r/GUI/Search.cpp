@@ -681,14 +681,14 @@ void SearchDialog::OnInputText(wxCommandEvent &)
 {
     search_line2->SetInsertionPointEnd();
     wxString input_string = search_line2->GetValue();
-    if (input_string == *wxEmptyString) input_string.Clear();
+    if (input_string == wxEmptyString) input_string.Clear();
     searcher->search(into_u8(input_string), true, search_type);
     update_list();
 }
 
 void SearchDialog::OnLeftUpInTextCtrl(wxEvent &event)
 {
-    if (search_line2->GetValue() == *wxEmptyString) search_line2->SetValue("");
+    if (search_line2->GetValue() == wxEmptyString) search_line2->SetValue("");
     event.Skip();
 }
 
@@ -865,7 +865,7 @@ void SearchObjectDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
     search_line2->SetFocus();
 
     m_object_list->assembly_plate_object_name();
-    m_object_list->GetModel()->search_object(*wxEmptyString);
+    m_object_list->GetModel()->search_object(wxEmptyString);
     update_list();
 }
 
@@ -900,7 +900,7 @@ void SearchObjectDialog::OnInputText(wxCommandEvent&)
 {
     search_line2->SetInsertionPointEnd();
     wxString input_string = search_line2->GetValue();
-    if (input_string == *wxEmptyString)
+    if (input_string == wxEmptyString)
         input_string.Clear();
 
     m_object_list->assembly_plate_object_name();
@@ -911,7 +911,7 @@ void SearchObjectDialog::OnInputText(wxCommandEvent&)
 
 void SearchObjectDialog::OnLeftUpInTextCtrl(wxEvent& event)
 {
-    if (search_line2->GetValue() == *wxEmptyString)
+    if (search_line2->GetValue() == wxEmptyString)
         search_line2->SetValue("");
     event.Skip();
 }
