@@ -296,7 +296,7 @@ void CalibrationFlowRateStartPage::on_device_connected(MachineObject* obj)
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
 
-    if (obj->is_multi_extruders() || obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
+    if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
