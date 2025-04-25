@@ -837,6 +837,10 @@ SearchObjectDialog::SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* p
     m_listPanel->Fit();
     m_scrolledWindow->SetScrollbars(1, 1, 0, m_listPanel->GetSize().GetHeight());
 
+#ifdef __WXGTK__
+    m_sizer_body->Add(search_line, 0, wxEXPAND | wxALL, em / 2);
+    search_line = input;
+#endif
     m_sizer_body->Add(m_scrolledWindow, 0, wxEXPAND | wxALL, em);
 
     m_client_panel->SetSizer(m_sizer_body);
