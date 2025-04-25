@@ -868,6 +868,11 @@ void SearchObjectDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
         return;
     }
     search_line2->SetValue(wxString(""));
+#ifdef __WXOSX__
+    // On macOS we need to remove the focus from the text input before popping up the
+    // dropdown list, otherwise the text input won't be usable
+    m_object_list->SetFocus();
+#endif
     PopupWindow::Popup();
     search_line2->SetFocus();
 
