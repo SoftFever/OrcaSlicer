@@ -92,10 +92,11 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_page_caption, 0, wxEXPAND, 0);
     create_when(parent,
         _L("When do you need Flow Dynamics Calibration"),
-        _L("We now have added the auto-calibration for different filaments, which is fully automated and the result will be saved into the printer for future use. You only need to do the calibration in the following limited cases:\
-\n1. If you introduce a new filament of different brands/models or the filament is damp;\
-\n2. if the nozzle is worn out or replaced with a new one;\
-\n3. If the max volumetric speed or print temperature is changed in the filament setting."));
+        _L("We now have added the auto-calibration for different filaments, which is fully automated and the result will be saved into the printer for future use. "
+           "You only need to do the calibration in the following limited cases:\n"
+           "1. If you introduce a new filament of different brands/models or the filament is damp;\n"
+           "2. If the nozzle is worn out or replaced with a new one;\n"
+           "3. If the max volumetric speed or print temperature is changed in the filament setting."));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);

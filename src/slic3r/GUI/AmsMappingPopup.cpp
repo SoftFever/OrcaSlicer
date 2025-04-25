@@ -913,7 +913,9 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     humidity_level_list = new AmsHumidityLevelList(this);
     curr_humidity_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("hum_level1_light", this, 132), wxDefaultPosition, wxSize(FromDIP(132), FromDIP(132)), 0);
 
-    m_staticText_note = new Label(this, _L("Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases : when the lid is open or the desiccant pack is changed. it take hours to absorb the moisture, low temperatures also slow down the process."));
+    m_staticText_note = new Label(this, _L("Please change the desiccant when it is too wet. "
+                                           "The indicator may not represent accurately in following cases: when the lid is open or the desiccant pack is changed. "
+                                           "It take hours to absorb the moisture, and low temperatures also slow down the process."));
     m_staticText_note->SetMinSize(wxSize(FromDIP(680), -1));
     m_staticText_note->SetMaxSize(wxSize(FromDIP(680), -1));
     m_staticText_note->Wrap(FromDIP(680));

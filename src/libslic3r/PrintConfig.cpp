@@ -1016,7 +1016,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bridge_flow", coFloat);
     def->label = L("Bridge flow ratio");
     def->category = L("Quality");
-    def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
+    def->tooltip = L("Decrease this value slightly (for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag. \n\nThe actual bridge flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.");
     def->min = 0;
     def->max = 2.0;
@@ -1847,7 +1847,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("pressure_advance", coFloats);
     def->label = L("Pressure advance");
-    def->tooltip = L("Pressure advance(Klipper) AKA Linear advance factor(Marlin)");
+    def->tooltip = L("Pressure advance (Klipper) AKA Linear advance factor (Marlin).");
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
@@ -1879,13 +1879,12 @@ void PrintConfigDef::init_fff_params()
                      "1. Run the pressure advance test for at least 3 speeds per acceleration value. It is recommended that the test is run "
                      "for at least the speed of the external perimeters, the speed of the internal perimeters and the fastest feature "
                      "print speed in your profile (usually its the sparse or solid infill). Then run them for the same speeds for the slowest and fastest print accelerations,"
-                     "and no faster than the recommended maximum acceleration as given by the Klipper input shaper.\n"
+                     "and no faster than the recommended maximum acceleration as given by the Klipper input shaper;\n"
                      "2. Take note of the optimal PA value for each volumetric flow speed and acceleration. You can find the flow number by selecting "
                      "flow from the color scheme drop down and move the horizontal slider over the PA pattern lines. The number should be visible "
-                     "at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly."
-                     "The slower and with less acceleration you print, the larger the range of acceptable PA values. If no difference is visible, use the PA value from the faster test."
-                     "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile\n\n"
-                     "");
+                     "at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly. "
+                     "The slower and with less acceleration you print, the larger the range of acceptable PA values. If no difference is visible, use the PA value from the faster test;\n"
+                     "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile;");
     def->mode = comAdvanced;
     //def->gui_flags = "serialized";
     def->multiline = true;
@@ -2096,7 +2095,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_unloading_speed", coFloats);
     def->label = L("Unloading speed");
     def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
-                      " initial part of unloading just after ramming).");
+                      "initial part of unloading just after ramming).");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2698,7 +2697,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_material_interface_fan_speed", coInts);
     def->label = L("Support interface fan speed");
     def->tooltip = L("This part cooling fan speed is applied when printing support interfaces. Setting this parameter to a higher than regular speed "
-                     " reduces the layer binding strength between supports and the supported part, making them easier to separate."
+                     "reduces the layer binding strength between supports and the supported part, making them easier to separate."
                     "\nSet to -1 to disable it."
                      "\nThis setting is overridden by disable_fan_first_layers.");
     def->sidetext = L("%");
@@ -3709,7 +3708,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Extra loading distance");
     def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
                       "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
-                      " if negative, the loading move is shorter than unloading.");
+                      "if negative, the loading move is shorter than unloading.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-2.));
@@ -3765,7 +3764,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("make_overhang_printable_hole_size", coFloat);
     def->label = L("Make overhangs printable - Hole area");
     def->category = L("Quality");
-    def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material."
+    def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material. "
                      "A value of 0 will fill all the holes in the model base.");
     def->sidetext = L("mm²");
     def->mode = comAdvanced;
@@ -3968,15 +3967,15 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt {0});
 
     def = this->add("long_retractions_when_cut", coBools);
-    def->label = L("Long retraction when cut(beta)");
-    def->tooltip = L("Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge."
+    def->label = L("Long retraction when cut (beta)");
+    def->tooltip = L("Experimental feature: Retracting and cutting off the filament at a longer distance during changes to minimize purge. "
                      "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBools {false});
 
     def = this->add("retraction_distances_when_cut",coFloats);
     def->label = L("Retraction distance when cut");
-    def->tooltip = L("Experimental feature.Retraction length before cutting off during filament change");
+    def->tooltip = L("Experimental feature: Retraction length before cutting off during filament change.");
     def->mode = comDevelop;
     def->min = 10;
     def->max = 18;
@@ -4203,7 +4202,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip  = L(
         "This option sets the printing speed for scarf joints. It is recommended to print scarf joints at a slow speed (less than 100 "
-         "mm/s).  It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
+         "mm/s). It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
          "outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default "
          "to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective "
          "outer or inner wall speed. The default value is set to 100%.");
@@ -4258,7 +4257,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");
-    def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role."
+    def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role. "
                      "e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
@@ -4281,9 +4280,9 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_speed", coFloatOrPercent);
     def->label = L("Wipe speed");
-    def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration."
-                   "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above."
-                   "The default value for this parameter is 80%");
+    def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration. "
+                     "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above. "
+                     "The default value for this parameter is 80%.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "travel_speed";
     def->min = 0;
@@ -4518,7 +4517,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("preheat_steps", coInt);
     def->label = L("Preheat steps");
-    def->tooltip = L("Insert multiple preheat commands(e.g. M104.1). Only useful for Prusa XL. For other printers, please set it to 1.");
+    def->tooltip = L("Insert multiple preheat commands (e.g. M104.1). Only useful for Prusa XL. For other printers, please set it to 1.");
     // def->sidetext = "";
     def->min = 1;
     def->max = 10;
@@ -4943,7 +4942,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("independent_support_layer_height", coBool);
     def->label = L("Independent support layer height");
     def->category = L("Support");
-    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time."
+    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time. "
                      "This option will be invalid when the prime tower is enabled.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
@@ -4972,7 +4971,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("tree_support_branch_angle", coFloat);
     def->label = L("Tree support branch angle");
     def->category = L("Support");
-    def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
+    def->tooltip = L("This setting determines the maximum overhang angle that the branches of tree support are allowed to make. "
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
     def->sidetext = L("°");
     def->min = 0;
@@ -4983,7 +4982,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("tree_support_branch_angle_organic", coFloat);
     def->label = L("Tree support branch angle");
     def->category = L("Support");
-    def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
+    def->tooltip = L("This setting determines the maximum overhang angle that the branches of tree support are allowed to make. "
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
     def->sidetext = L("°");
     def->min = 0;
@@ -5040,7 +5039,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("tree_support_adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
     def->category = L("Quality");
-    def->tooltip = L("Enabling this option means the height of  tree support layer except the first will be automatically calculated ");
+    def->tooltip = L("Enabling this option means the height of tree support layer except the first will be automatically calculated ");
     def->set_default_value(new ConfigOptionBool(1));
     
     def = this->add("tree_support_auto_brim", coBool);
@@ -5447,7 +5446,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("idle_temperature", coInts);
     def->label = L("Idle temperature");
-    def->tooltip = L("Nozzle temperature when the tool is currently not used in multi-tool setups."
+    def->tooltip = L("Nozzle temperature when the tool is currently not used in multi-tool setups. "
                      "This is only used when 'Ooze prevention' is active in Print Settings. Set to 0 to disable.");
     def->sidetext = L("°C");
     def->min = 0;
@@ -5529,10 +5528,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("use_relative_e_distances", coBool);
     def->label = L("Use relative E distances");
-    def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option."
+    def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option. "
                    "Some extruders work better with this option unchecked (absolute extrusion mode). "
                    "Wipe tower is only compatible with relative mode. It is recommended on "
-                   "most printers. Default is checked");
+                   "most printers. Default is checked.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
