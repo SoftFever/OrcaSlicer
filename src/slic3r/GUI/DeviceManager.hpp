@@ -1302,8 +1302,10 @@ public:
     BBLSubTask* get_subtask();
     BBLModelTask* get_modeltask();
     void set_modeltask(BBLModelTask* task);
-    void set_slice_info(BBLSliceInfo *info);
+
     void update_model_task();
+
+    void free_slice_info();
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };

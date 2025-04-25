@@ -722,17 +722,7 @@ MachineObject::~MachineObject()
         model_task = nullptr;
     }
 
-    if (get_slice_info_thread) {
-        if (get_slice_info_thread->joinable()) {
-            get_slice_info_thread->join();
-            get_slice_info_thread = nullptr;
-        }
-    }
-
-    if (slice_info) {
-        delete slice_info;
-        slice_info = nullptr;
-    }
+    free_slice_info();
 
     for (auto it = amsList.begin(); it != amsList.end(); it++) {
         for (auto tray_it = it->second->trayList.begin(); tray_it != it->second->trayList.end(); tray_it++) {
@@ -5437,10 +5427,6 @@ void MachineObject::set_modeltask(BBLModelTask* task)
     model_task = task;
 }
 
-void MachineObject::set_slice_info(BBLSliceInfo *info) {
-    slice_info = info;
-}
-
 void MachineObject::update_model_task()
 {
     if (request_model_result > 10) return;
@@ -5538,6 +5524,27 @@ void MachineObject::update_model_task()
     });
 }
 
+void MachineObject::free_slice_info()
+{
+    if (get_slice_info_thread)
+    {
+        if (get_slice_info_thread->joinable())
+        {
+            get_slice_info_thread->interrupt();
+            get_slice_info_thread->join();
+        }
+
+        delete get_slice_info_thread;
+        get_slice_info_thread = nullptr;
+    }
+
+    if (slice_info)
+    {
+        delete slice_info;
+        slice_info = nullptr;
+    }
+}
+
 void MachineObject::update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx)
 {
     if (!m_agent) return;
@@ -5563,6 +5570,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
             int plate_index = -1;
 
             if (!m_agent) return;
+            if (!slice_info) return;
+            if (get_slice_info_thread->interruption_requested()) { return;}
 
             if (plate_idx >= 0) {
                 plate_index = plate_idx;
