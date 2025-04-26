@@ -4353,7 +4353,7 @@ if (is_marlin_flavor)
     // Orca: build missed extruder pages
     for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
         // auto extruder_idx = 0;
-        const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+        const wxString& page_name = wxString::Format(_L("Extruder %d"), int(extruder_idx + 1));
         bool page_exist = false;
         for (auto page_temp : m_pages) {
             if (page_temp->title() == page_name) {
@@ -4365,7 +4365,7 @@ if (is_marlin_flavor)
         if (!page_exist)
         {
             //# build page
-            //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+            //const wxString& page_name = wxString::Format(_L("Extruder %d"), int(extruder_idx + 1));
             auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
             m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
