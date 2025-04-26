@@ -35,6 +35,7 @@ function usage() {
     echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in debug mode"
     echo "   -c: force a clean build"
+    echo "   -C: enable ANSI-colored compile output (GNU/Clang only)"
     echo "   -d: download and build dependencies in ./deps/ (build prerequisite)"
     echo "   -h: prints this help text"
     echo "   -i: build the Orca Slicer AppImage (optional)"
@@ -49,7 +50,7 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1j:bcdhiprsu" opt ; do
+while getopts ":1j:bcCdhiprsu" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -62,6 +63,9 @@ while getopts ":1j:bcdhiprsu" opt ; do
         ;;
     c )
         CLEAN_BUILD=1
+        ;;
+    C )
+        COLORED_OUTPUT="-DCOLORED_OUTPUT=ON"
         ;;
     d )
         BUILD_DEPS="1"
@@ -146,13 +150,13 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         if [ ! -d "deps/build/release" ] ; then
             mkdir deps/build/release
         fi
-        cmake -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${BUILD_ARGS}
+        cmake -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${COLORED_OUTPUT} ${BUILD_ARGS}
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
     echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
+    cmake -S deps -B deps/build -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
     cmake --build deps/build
 fi
 
@@ -170,13 +174,16 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     else
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
-    echo -e "cmake -S . -B build -G Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
-    cmake -S . -B build -G Ninja \
-        -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
-        -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
-        -DSLIC3R_STATIC=1 \
-        -DORCA_TOOLS=ON \
-        ${BUILD_ARGS}
+
+    CMAKE_CMD="cmake -S . -B build -G Ninja \
+-DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
+-DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
+-DSLIC3R_STATIC=1 \
+-DORCA_TOOLS=ON \
+${COLORED_OUTPUT} \
+${BUILD_ARGS}"
+    echo -e "${CMAKE_CMD}"
+    ${CMAKE_CMD}
     echo "done"
     echo "Building OrcaSlicer ..."
     cmake --build build --target OrcaSlicer
