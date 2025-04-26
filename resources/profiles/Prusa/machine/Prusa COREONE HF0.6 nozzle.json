@@ -11,8 +11,8 @@
     "nozzle_diameter": [
         "0.6"
     ],
-    "printer_model": "COREONE",
-    "printer_variant": "HF0.6",
+    "printer_model": "COREONE HF",
+    "printer_variant": "0.6",
     "retraction_length": "0.7",
     "type": "machine",
     "wipe": "1"

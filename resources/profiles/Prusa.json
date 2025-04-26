@@ -43,6 +43,10 @@
         {
             "name": "COREONE",
             "sub_path": "machine/Prusa COREONE.json"
+        },
+        {
+            "name": "COREONE HF",
+            "sub_path": "machine/Prusa COREONE HF.json"
         }
     ],
     "process_list": [

@@ -100,11 +100,11 @@
         "0x220"
     ],
     "printable_height": "270",
-    "printer_model": "COREONE",
+    "printer_model": "COREONE HF",
     "printer_notes": [
         "Don't remove the following keywords! These keywords are used in the \"compatible printer\" condition of the print and filament profiles to link the particular print and filament profiles to this printer profile.\nPRINTER_MODEL_COREONE\nHF_NOZZLE\nPG\nNO_TEMPLATES"
     ],
-    "printer_variant": "HF0.4",
+    "printer_variant": "0.4",
     "retract_before_wipe": "80",
     "retract_length_toolchange": "0",
     "retract_lift_above": "0",
