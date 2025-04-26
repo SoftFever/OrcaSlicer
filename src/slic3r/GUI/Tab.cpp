@@ -273,7 +273,7 @@ void Tab::create_preset_tab()
     //search input
     m_search_item = new StaticBox(m_top_panel);
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#DBDBDB"), StateColor::Normal)); // ORCA match border color with other input/combo boxes
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Normal)); // ORCA match border color with other input/combo boxes
 
     m_search_item->SetBackgroundColor(box_colour);
     m_search_item->SetBorderColor(box_border_colour);
@@ -286,8 +286,9 @@ void Tab::create_preset_tab()
     m_search_input->SetBackgroundColour(wxColour(238, 238, 238));
     m_search_input->SetForegroundColour(wxColour(43, 52, 54));
     m_search_input->SetFont(wxGetApp().bold_font());
-
-    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(6));
+    m_search_input->SetIcon(*BitmapCache().load_svg("search", FromDIP(16), FromDIP(16)));
+    m_search_input->GetTextCtrl()->SetHint(_L("Search in preset") + dots);
+    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(2));
     search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, FromDIP(2));
     //bbl for linux
     //search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
@@ -3545,14 +3546,30 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_stamping_loading_speed");
         optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
-            auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-            wxGetApp().UpdateDarkUI(ramming_dialog_btn);
-            ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(ramming_dialog_btn);
+            // ORCA modernize button style
+            Button* btn = new Button(parent, _(L("Set")) + " " + dots);
+            btn->SetFont(Label::Body_14);
+            btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+            btn->SetCornerRadius(FromDIP(4));
+            StateColor clr_bg = StateColor(
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+                std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+            );
+            btn->SetBackgroundColor(clr_bg);
+            btn->SetBorderColor(clr_bg);
+            btn->SetTextColor(StateColor(
+                std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+                std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
+                std::pair(wxColour("#262E30"), (int)StateColor::Normal)
+            ));
 
-            ramming_dialog_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(btn);
+
+            btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
                 RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
                 if (dlg.ShowModal() == wxID_OK) {
                     load_key_value("filament_ramming_parameters", dlg.get_parameters());
@@ -3568,7 +3585,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
 
     page = add_options_page(L("Dependencies"), "advanced");
-        optgroup = page->new_optgroup(L("Profile dependencies"));
+        optgroup = page->new_optgroup(L("Profile dependencies"), "param_profile_dependencies");
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
         });
@@ -5907,10 +5924,27 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
-    deps.btn = new ScalableButton(parent, wxID_ANY, "printer", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
-                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-    deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    deps.btn->SetSize(deps.btn->GetBestSize());
+
+    // ORCA modernize button style
+    Button* btn = new Button(parent, _(L("Set")) + " " + dots);
+    btn->SetFont(Label::Body_14);
+    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+    btn->SetCornerRadius(FromDIP(4));
+    StateColor clr_bg = StateColor(
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+    );
+    btn->SetBackgroundColor(clr_bg);
+    btn->SetBorderColor(clr_bg);
+    btn->SetTextColor(StateColor(
+        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
+        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
+    ));
+    deps.btn = btn;
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -5994,10 +6028,25 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
-    ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer", " " + _(L("Set")) + " " + dots,
-        wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-    btn->SetFont(wxGetApp().normal_font());
-    btn->SetSize(btn->GetBestSize());
+     // ORCA modernize button style
+    Button* btn = new Button(parent, _(L("Set")) + " " + dots);
+    btn->SetFont(Label::Body_14);
+    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+    btn->SetCornerRadius(FromDIP(4));
+    StateColor clr_bg = StateColor(
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+    );
+    btn->SetBackgroundColor(clr_bg);
+    btn->SetBorderColor(clr_bg);
+    btn->SetTextColor(StateColor(
+        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
+        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
+    ));
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
