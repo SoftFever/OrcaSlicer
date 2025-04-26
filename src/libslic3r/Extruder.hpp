@@ -34,7 +34,9 @@ public:
     double unretract();
     double E() const { return m_share_extruder ? m_share_E : m_E; }
     void   reset_E() { m_E = 0.; m_share_E = 0.; }
+    // e_per_mm is extrusion_per_mm = geometric volume * (filament flow ratio / cross-sectional area)  [Doesn't account for print_flow_ratio, or modifiers like bridge flow ratio etc.]
     double e_per_mm(double mm3_per_mm) const { return mm3_per_mm * m_e_per_mm3; }
+    // e_per_mm3 is extrusion_per_mm3 = filament flow ratio / cross-sectional area    [Doesn't account for print_flow_ratio, or modifiers like bridge flow ratio etc.]
     double e_per_mm3() const { return m_e_per_mm3; }
     // Used filament volume in mm^3.
     double extruded_volume() const;

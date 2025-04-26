@@ -307,7 +307,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Left"),  L("Horizontal slider - Move active thumb Left")},
         { L("Arrow Right"), L("Horizontal slider - Move active thumb Right")},
         { "L", L("On/Off one layer mode of the vertical slider")},
-        { "C", L("On/Off g-code window")},
+        { "C", L("On/Off G-code window")},
         { "Tab", L("Switch between Prepare/Preview") },
         {L("Shift+Any arrow"), L("Move slider 5x faster")},
         {L("Shift+Mouse wheel"), L("Move slider 5x faster")},
