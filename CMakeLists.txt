@@ -5,15 +5,6 @@ if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0") )
     message(FATAL_ERROR "Only cmake versions between 3.13.x and 3.31.x is supported on windows. Detected version: ${CMAKE_VERSION}")
 endif()
 
-option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." TRUE)
-if (${FORCE_COLORED_OUTPUT})
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options (-fdiagnostics-color=always)
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        add_compile_options (-fcolor-diagnostics)
-    endif ()
-endif ()
-
 if (WIN32)
     # Detect known CI environments
     set(IS_CI FALSE)
@@ -116,6 +107,15 @@ set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find 
 set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 set(IS_CROSS_COMPILE FALSE)
+
+option (COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." OFF)
+if (${COLORED_OUTPUT})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options (-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options (-fcolor-diagnostics)
+    endif ()
+endif ()
 
 if (APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
