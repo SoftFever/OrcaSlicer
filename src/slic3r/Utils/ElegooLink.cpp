@@ -332,7 +332,7 @@ namespace Slic3r {
 
     wxString ElegooLink::get_test_ok_msg() const
     {
-        return _L("Connection to ElegooLink works correctly.");
+        return _L("Connection to ElegooLink is working correctly.");
     }
 
     wxString ElegooLink::get_test_failed_msg(wxString& msg) const

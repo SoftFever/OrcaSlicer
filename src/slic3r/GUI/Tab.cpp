@@ -1611,8 +1611,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_floor));
                 m_config_manipulation.apply(m_config, &new_conf);
             } else {
-                wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may "
-                                        "cause printing quality issues."));
+                wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, "
+                                        "this may cause printing quality issues."));
                 msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
                 dialog.SetButtonLabel(wxID_YES, _L("Adjust"));
@@ -3380,32 +3380,38 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
-        line = {L("Cool Plate (SuperTack)"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate SuperTack")};
+        line = { L("Cool Plate (SuperTack)"),
+                 L("Bed temperature when the Cool Plate SuperTack is installed. A value of 0 means the filament does not support printing on the Cool Plate SuperTack.") };
         line.append_option(optgroup->get_option("supertack_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("supertack_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Cool Plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
+        line = { L("Cool Plate"),
+                 L("Bed temperature when the Cool Plate is installed. A value of 0 means the filament does not support printing on the Cool Plate.") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Textured Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Textured Cool Plate") };
+        line = { L("Textured Cool Plate"),
+                 L("Bed temperature when the Textured Cool Plate is installed. A value of 0 means the filament does not support printing on the Textured Cool Plate.") };
         line.append_option(optgroup->get_option("textured_cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("textured_cool_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Engineering plate"), L("Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate") };
+        line = { L("Engineering Plate"),
+                 L("Bed temperature when the Engineering Plate is installed. A value of 0 means the filament does not support printing on the Engineering Plate.") };
         line.append_option(optgroup->get_option("eng_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("eng_plate_temp"));
         optgroup->append_line(line);
 
-        line = {L("Smooth PEI Plate / High Temp Plate"), L("Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate") };
+        line = { L("Smooth PEI Plate / High Temp Plate"),
+                 L("Bed temperature when the Smooth PEI Plate/High Temperature Plate is installed. A value of 0 means the filament does not support printing on the Smooth PEI Plate/High Temp Plate.") };
         line.append_option(optgroup->get_option("hot_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("hot_plate_temp"));
         optgroup->append_line(line);
 
-        line = {L("Textured PEI Plate"), L("Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate")};
+        line = { L("Textured PEI Plate"),
+                 L("Bed temperature when the Textured PEI Plate is installed. A value of 0 means the filament does not support printing on the Textured PEI Plate.") };
         line.append_option(optgroup->get_option("textured_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("textured_plate_temp"));
         optgroup->append_line(line);
@@ -3534,7 +3540,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Wipe tower parameters"), "param_tower");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"), "param_toolchange");
+        optgroup = page->new_optgroup(L("Tool change parameters with single extruder MM printers"), "param_toolchange");
         optgroup->append_single_option_line("filament_loading_speed_start", "semm");
         optgroup->append_single_option_line("filament_loading_speed", "semm");
         optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
@@ -3579,7 +3585,7 @@ void TabFilament::build()
             return sizer;
         });
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with multi extruder MM printers"), "param_toolchange_multi_extruder");
+        optgroup = page->new_optgroup(L("Tool change parameters with multi extruder MM printers"), "param_toolchange_multi_extruder");
         optgroup->append_single_option_line("filament_multitool_ramming");
         optgroup->append_single_option_line("filament_multitool_ramming_volume");
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
@@ -3909,7 +3915,7 @@ void TabPrinter::build_fff()
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
-    page = add_options_page(L("Machine gcode"), "custom-gcode_gcode"); // ORCA: icon only visible on placeholders
+    page = add_options_page(L("Machine G-code"), "custom-gcode_gcode"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Machine start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
@@ -5770,7 +5776,7 @@ void Tab::delete_preset()
                 presets += "\n - " + preset2.name;
             }
         if (count > 0) {
-            msg = _L("Presets inherited by other presets can not be deleted!");
+            msg = _L("Presets inherited by other presets cannot be deleted!");
             msg += "\n";
             msg += _L_PLURAL("The following presets inherit this preset.",
                             "The following preset inherits this preset.", count);
