@@ -2623,29 +2623,38 @@ bool MachineObject::is_camera_busy_off()
     return false;
 }
 
-int MachineObject::publish_json(std::string json_str, int qos)
+int MachineObject::publish_json(std::string json_str, int qos, int flag)
 {
+    int rtn = 0;
     if (is_lan_mode_printer()) {
-        return local_publish_json(json_str, qos);
+        rtn = local_publish_json(json_str, qos, flag);
     } else {
-        return cloud_publish_json(json_str, qos);
+        rtn = cloud_publish_json(json_str, qos, flag);
     }
+
+    if (rtn == 0) {
+        BOOST_LOG_TRIVIAL(info) << "publish_json: " << json_str << " code: " << rtn;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "publish_json: " << json_str << " code: " << rtn;
+    }
+
+    return rtn;
 }
 
-int MachineObject::cloud_publish_json(std::string json_str, int qos)
+int MachineObject::cloud_publish_json(std::string json_str, int qos, int flag)
 {
     int result = -1;
     if (m_agent)
-        result = m_agent->send_message(dev_id, json_str, qos);
+        result = m_agent->send_message(dev_id, json_str, qos, flag);
 
     return result;
 }
 
-int MachineObject::local_publish_json(std::string json_str, int qos)
+int MachineObject::local_publish_json(std::string json_str, int qos, int flag)
 {
     int result = -1;
     if (m_agent) {
-        result = m_agent->send_message_to_printer(dev_id, json_str, qos);
+        result = m_agent->send_message_to_printer(dev_id, json_str, qos, flag);
     }
     return result;
 }

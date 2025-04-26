@@ -38,10 +38,12 @@ typedef int (*func_del_subscribe)(void *agent, std::vector<std::string> dev_list
 typedef void (*func_enable_multi_machine)(void *agent, bool enable);
 typedef int (*func_start_device_subscribe)(void* agent);
 typedef int (*func_stop_device_subscribe)(void* agent);
-typedef int (*func_send_message)(void *agent, std::string dev_id, std::string json_str, int qos);
+typedef int (*func_send_message)(void *agent, std::string dev_id, std::string json_str, int qos, int flag);
 typedef int (*func_connect_printer)(void *agent, std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
 typedef int (*func_disconnect_printer)(void *agent);
-typedef int (*func_send_message_to_printer)(void *agent, std::string dev_id, std::string json_str, int qos);
+typedef int (*func_send_message_to_printer)(void *agent, std::string dev_id, std::string json_str, int qos, int flag);
+typedef int (*func_check_cert)(void* agent);
+typedef void (*func_install_device_cert)(void* agent, std::string dev_id, bool lan_only);
 typedef bool (*func_start_discovery)(void *agent, bool start, bool sending);
 typedef int (*func_change_user)(void *agent, std::string user_info);
 typedef bool (*func_is_user_login)(void *agent);
@@ -110,6 +112,7 @@ typedef int (*func_get_model_mall_rating_result)(void *agent, int job_id, std::s
 typedef int (*func_get_mw_user_preference)(void *agent, std::function<void(std::string)> callback);
 typedef int (*func_get_mw_user_4ulist)(void *agent, int seed, int limit, std::function<void(std::string)> callback);
 
+
 //the NetworkAgent class
 class NetworkAgent
 {
@@ -125,6 +128,7 @@ public:
 #endif
     static std::string get_version();
     static void* get_network_function(const char* name);
+    static bool use_legacy_network;
     NetworkAgent(std::string log_dir);
     ~NetworkAgent();
 
@@ -155,10 +159,12 @@ public:
     void enable_multi_machine(bool enable);
     int start_device_subscribe();
     int stop_device_subscribe();
-    int send_message(std::string dev_id, std::string json_str, int qos);
+    int send_message(std::string dev_id, std::string json_str, int qos, int flag);
     int connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
     int disconnect_printer();
-    int send_message_to_printer(std::string dev_id, std::string json_str, int qos);
+    int send_message_to_printer(std::string dev_id, std::string json_str, int qos, int flag);
+    int check_cert();
+    void install_device_cert(std::string dev_id, bool lan_only);
     bool start_discovery(bool start, bool sending);
     int change_user(std::string user_info);
     bool is_user_login();
@@ -266,6 +272,8 @@ private:
     static func_connect_printer                connect_printer_ptr;
     static func_disconnect_printer             disconnect_printer_ptr;
     static func_send_message_to_printer        send_message_to_printer_ptr;
+    static func_check_cert                     check_cert_ptr;
+    static func_install_device_cert            install_device_cert_ptr;
     static func_start_discovery                start_discovery_ptr;
     static func_change_user                    change_user_ptr;
     static func_is_user_login                  is_user_login_ptr;

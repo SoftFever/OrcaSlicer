@@ -958,9 +958,9 @@ public:
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
-    int publish_json(std::string json_str, int qos = 0);
-    int cloud_publish_json(std::string json_str, int qos = 0);
-    int local_publish_json(std::string json_str, int qos = 0);
+    int publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
 
