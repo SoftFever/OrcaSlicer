@@ -470,10 +470,11 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	int count = 0;
 	int step  = 10;
 	// Orca: use 500 x 500 bed size as baseline.
-    const Point grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
+    Vec2d grid_counts = pp_bbox.size() / (step * 50);
     // if the grid is too dense, we increase the step
-    if (grid_counts.minCoeff() > 1) {
-        step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
+    while (grid_counts.minCoeff() > 1) {
+        step *= 10;
+        grid_counts = pp_bbox.size() / (step * 50);
     }
 
     // ORCA draw grid lines relative to origin
