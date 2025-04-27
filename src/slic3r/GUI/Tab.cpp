@@ -273,7 +273,7 @@ void Tab::create_preset_tab()
     //search input
     m_search_item = new StaticBox(m_top_panel);
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#DBDBDB"), StateColor::Normal)); // ORCA match border color with other input/combo boxes
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Normal)); // ORCA match border color with other input/combo boxes
 
     m_search_item->SetBackgroundColor(box_colour);
     m_search_item->SetBorderColor(box_border_colour);
@@ -286,8 +286,9 @@ void Tab::create_preset_tab()
     m_search_input->SetBackgroundColour(wxColour(238, 238, 238));
     m_search_input->SetForegroundColour(wxColour(43, 52, 54));
     m_search_input->SetFont(wxGetApp().bold_font());
-
-    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(6));
+    m_search_input->SetIcon(*BitmapCache().load_svg("search", FromDIP(16), FromDIP(16)));
+    m_search_input->GetTextCtrl()->SetHint(_L("Search in preset") + dots);
+    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(2));
     search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, FromDIP(2));
     //bbl for linux
     //search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
@@ -793,6 +794,42 @@ void Tab::decorate()
             tt = &m_tt_white_bullet;
         }
 
+        if (opt.first == "compatible_prints" || opt.first == "compatible_printers") {
+            bool sys_page      = true;
+            bool modified_page = false;
+            if (m_type == Slic3r::Preset::TYPE_PRINTER) {
+                sys_page      = m_presets->get_selected_preset_parent() != nullptr;
+                modified_page = false;
+            } else {
+                if (opt.first == "compatible_prints") {
+                    get_sys_and_mod_flags("compatible_prints", sys_page, modified_page);
+                    // Don't call for "compatible_printers"
+                } else if (opt.first == "compatible_printers") {
+                    get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
+                    if (m_type == Slic3r::Preset::TYPE_FILAMENT || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL) {
+                        get_sys_and_mod_flags("compatible_prints", sys_page, modified_page);
+                    }
+                }
+            }
+            if (!sys_page) { 
+                is_nonsys_value = true;
+                sys_icon        = m_bmp_non_system;
+                sys_tt          = m_tt_non_system;
+
+                if (!modified_page) 
+                    color = &m_default_text_clr;
+                else 
+                    color = &m_modified_label_clr;
+            }
+
+            if (!modified_page) { 
+                is_modified_value = false;
+                icon              = &m_bmp_white_bullet;
+                tt                = &m_tt_white_bullet;
+            }
+
+        }
+
         if (option_without_field) {
             if (Line* line = get_line(opt.first)) {
                 line->set_undo_bitmap(icon);
@@ -945,9 +982,20 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
     auto opt = m_options_list.find(opt_key);
     if (opt == m_options_list.end())
         return;
+    // If the value is empty, clear the system flag
+    if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
+        auto* compatible_values = m_config->option<ConfigOptionStrings>(opt_key);
+        if (compatible_values && compatible_values->values.empty()) {
+            sys_page = false; // Empty value should NOT be treated as a system value
+        }
+    } else if (sys_page) {
+        sys_page = (opt->second & osSystemValue) != 0;
+    }
 
-    if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
     modified_page |= (opt->second & osInitValue) == 0;
+
+    //if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
+    //modified_page |= (opt->second & osInitValue) == 0;
 }
 
 void Tab::update_changed_tree_ui()
@@ -1068,22 +1116,10 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
             if (m_type != Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                 load_key_value("compatible_printers", true/*some value*/, true);
-
-                if (m_compatible_printers.checkbox) {
-                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-                    m_compatible_printers.checkbox->SetValue(is_empty);
-                    is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
-                }
             }
             if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                 load_key_value("compatible_prints", true/*some value*/, true);
-
-                if (m_compatible_prints.checkbox) {
-                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
-                    m_compatible_prints.checkbox->SetValue(is_empty);
-                    is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
-                }
             }
         }
         for (const auto &kvp : group->opt_map()) {
@@ -1105,6 +1141,17 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 
     // BBS: restore all pages in preset, update_dirty also update combobox
     update_dirty();
+
+    if (m_compatible_printers.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+        m_compatible_printers.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+    }
+    if (m_compatible_prints.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+        m_compatible_prints.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+    }
 
     m_page_view->GetParent()->Layout();
 }
@@ -1564,8 +1611,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_floor));
                 m_config_manipulation.apply(m_config, &new_conf);
             } else {
-                wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may "
-                                        "cause printing quality issues."));
+                wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, "
+                                        "this may cause printing quality issues."));
                 msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
                 dialog.SetButtonLabel(wxID_YES, _L("Adjust"));
@@ -2282,13 +2329,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
         optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
-        optgroup = page->new_optgroup(L("Filament for Features"));
+        optgroup = page->new_optgroup(L("Filament for Features"), L"param_filament_for_features");
         optgroup->append_single_option_line("wall_filament");
         optgroup->append_single_option_line("sparse_infill_filament");
         optgroup->append_single_option_line("solid_infill_filament");
         optgroup->append_single_option_line("wipe_tower_filament");
 
-        optgroup = page->new_optgroup(L("Ooze prevention"));
+        optgroup = page->new_optgroup(L("Ooze prevention"), L"param_ooze_prevention");
         optgroup->append_single_option_line("ooze_prevention");
         optgroup->append_single_option_line("standby_temperature_delta");
         optgroup->append_single_option_line("preheat_time");
@@ -2376,8 +2423,8 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line(option);
 
     // Orca: hide the dependencies tab for process for now. The UI is not ready yet.
-    // page = add_options_page(L("Dependencies"), "custom-gcode_advanced");
-    //     optgroup = page->new_optgroup(L("Profile dependencies"));
+    // page = add_options_page(L("Dependencies"), "param_profile_dependencies"); // icons ready
+    //     optgroup = page->new_optgroup(L("Profile dependencies"), "param_profile_dependencies"); // icons ready
 
     //     create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
     //         return compatible_widget_create(parent, m_compatible_printers);
@@ -3300,7 +3347,7 @@ void TabFilament::build()
         };
 
         // Orca: New section to focus on flow rate and PA to declutter general section
-        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
+        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_flow_ratio_and_pressure_advance");
         optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
@@ -3333,32 +3380,38 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
-        line = {L("Cool Plate (SuperTack)"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate SuperTack")};
+        line = { L("Cool Plate (SuperTack)"),
+                 L("Bed temperature when the Cool Plate SuperTack is installed. A value of 0 means the filament does not support printing on the Cool Plate SuperTack.") };
         line.append_option(optgroup->get_option("supertack_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("supertack_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Cool Plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
+        line = { L("Cool Plate"),
+                 L("Bed temperature when the Cool Plate is installed. A value of 0 means the filament does not support printing on the Cool Plate.") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Textured Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Textured Cool Plate") };
+        line = { L("Textured Cool Plate"),
+                 L("Bed temperature when the Textured Cool Plate is installed. A value of 0 means the filament does not support printing on the Textured Cool Plate.") };
         line.append_option(optgroup->get_option("textured_cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("textured_cool_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Engineering plate"), L("Bed temperature when engineering plate is installed. Value 0 means the filament does not support to print on the Engineering Plate") };
+        line = { L("Engineering Plate"),
+                 L("Bed temperature when the Engineering Plate is installed. A value of 0 means the filament does not support printing on the Engineering Plate.") };
         line.append_option(optgroup->get_option("eng_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("eng_plate_temp"));
         optgroup->append_line(line);
 
-        line = {L("Smooth PEI Plate / High Temp Plate"), L("Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate") };
+        line = { L("Smooth PEI Plate / High Temp Plate"),
+                 L("Bed temperature when the Smooth PEI Plate/High Temperature Plate is installed. A value of 0 means the filament does not support printing on the Smooth PEI Plate/High Temp Plate.") };
         line.append_option(optgroup->get_option("hot_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("hot_plate_temp"));
         optgroup->append_line(line);
 
-        line = {L("Textured PEI Plate"), L("Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate")};
+        line = { L("Textured PEI Plate"),
+                 L("Bed temperature when the Textured PEI Plate is installed. A value of 0 means the filament does not support printing on the Textured PEI Plate.") };
         line.append_option(optgroup->get_option("textured_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("textured_plate_temp"));
         optgroup->append_line(line);
@@ -3487,7 +3540,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Wipe tower parameters"), "param_tower");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"), "param_toolchange");
+        optgroup = page->new_optgroup(L("Tool change parameters with single extruder MM printers"), "param_toolchange");
         optgroup->append_single_option_line("filament_loading_speed_start", "semm");
         optgroup->append_single_option_line("filament_loading_speed", "semm");
         optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
@@ -3499,14 +3552,30 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_stamping_loading_speed");
         optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
-            auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-            wxGetApp().UpdateDarkUI(ramming_dialog_btn);
-            ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(ramming_dialog_btn);
+            // ORCA modernize button style
+            Button* btn = new Button(parent, _(L("Set")) + " " + dots);
+            btn->SetFont(Label::Body_14);
+            btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+            btn->SetCornerRadius(FromDIP(4));
+            StateColor clr_bg = StateColor(
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+                std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+                std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+            );
+            btn->SetBackgroundColor(clr_bg);
+            btn->SetBorderColor(clr_bg);
+            btn->SetTextColor(StateColor(
+                std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+                std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
+                std::pair(wxColour("#262E30"), (int)StateColor::Normal)
+            ));
 
-            ramming_dialog_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(btn);
+
+            btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
                 RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
                 if (dlg.ShowModal() == wxID_OK) {
                     load_key_value("filament_ramming_parameters", dlg.get_parameters());
@@ -3516,13 +3585,13 @@ void TabFilament::build()
             return sizer;
         });
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with multi extruder MM printers"));
+        optgroup = page->new_optgroup(L("Tool change parameters with multi extruder MM printers"), "param_toolchange_multi_extruder");
         optgroup->append_single_option_line("filament_multitool_ramming");
         optgroup->append_single_option_line("filament_multitool_ramming_volume");
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
 
     page = add_options_page(L("Dependencies"), "advanced");
-        optgroup = page->new_optgroup(L("Profile dependencies"));
+        optgroup = page->new_optgroup(L("Profile dependencies"), "param_profile_dependencies");
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
         });
@@ -3846,7 +3915,7 @@ void TabPrinter::build_fff()
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
-    page = add_options_page(L("Machine gcode"), "custom-gcode_gcode"); // ORCA: icon only visible on placeholders
+    page = add_options_page(L("Machine G-code"), "custom-gcode_gcode"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Machine start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
@@ -4284,7 +4353,7 @@ if (is_marlin_flavor)
     // Orca: build missed extruder pages
     for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
         // auto extruder_idx = 0;
-        const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+        const wxString& page_name = wxString::Format(_L("Extruder %d"), int(extruder_idx + 1));
         bool page_exist = false;
         for (auto page_temp : m_pages) {
             if (page_temp->title() == page_name) {
@@ -4296,7 +4365,7 @@ if (is_marlin_flavor)
         if (!page_exist)
         {
             //# build page
-            //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+            //const wxString& page_name = wxString::Format(_L("Extruder %d"), int(extruder_idx + 1));
             auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
             m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
@@ -5707,7 +5776,7 @@ void Tab::delete_preset()
                 presets += "\n - " + preset2.name;
             }
         if (count > 0) {
-            msg = _L("Presets inherited by other presets can not be deleted!");
+            msg = _L("Presets inherited by other presets cannot be deleted!");
             msg += "\n";
             msg += _L_PLURAL("The following presets inherit this preset.",
                             "The following preset inherits this preset.", count);
@@ -5861,10 +5930,27 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
-    deps.btn = new ScalableButton(parent, wxID_ANY, "printer", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
-                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-    deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    deps.btn->SetSize(deps.btn->GetBestSize());
+
+    // ORCA modernize button style
+    Button* btn = new Button(parent, _(L("Set")) + " " + dots);
+    btn->SetFont(Label::Body_14);
+    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+    btn->SetCornerRadius(FromDIP(4));
+    StateColor clr_bg = StateColor(
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+    );
+    btn->SetBackgroundColor(clr_bg);
+    btn->SetBorderColor(clr_bg);
+    btn->SetTextColor(StateColor(
+        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
+        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
+    ));
+    deps.btn = btn;
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -5874,11 +5960,23 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     {
         deps.btn->Enable(! deps.checkbox->GetValue());
         // All printers have been made compatible with this preset.
-        if (deps.checkbox->GetValue())
+        if (deps.checkbox->GetValue()) 
             this->load_key_value(deps.key_list, std::vector<std::string> {});
         this->get_field(deps.key_condition)->toggle(deps.checkbox->GetValue());
         this->update_changed_ui();
     }) );
+
+    if (m_compatible_printers.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+        m_compatible_printers.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+    }
+
+    if (m_compatible_prints.checkbox) {
+        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+        m_compatible_prints.checkbox->SetValue(is_empty);
+        is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+    }
 
     deps.btn->Bind(wxEVT_BUTTON, ([this, parent, &deps](wxCommandEvent e)
     {
@@ -5936,10 +6034,25 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
-    ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer", " " + _(L("Set")) + " " + dots,
-        wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-    btn->SetFont(wxGetApp().normal_font());
-    btn->SetSize(btn->GetBestSize());
+     // ORCA modernize button style
+    Button* btn = new Button(parent, _(L("Set")) + " " + dots);
+    btn->SetFont(Label::Body_14);
+    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+    btn->SetCornerRadius(FromDIP(4));
+    StateColor clr_bg = StateColor(
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+    );
+    btn->SetBackgroundColor(clr_bg);
+    btn->SetBorderColor(clr_bg);
+    btn->SetTextColor(StateColor(
+        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
+        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
+    ));
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
