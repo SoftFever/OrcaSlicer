@@ -105,6 +105,12 @@ void Button::SetMinSize(const wxSize& size)
     messureSize();
 }
 
+void Button::SetMaxSize(const wxSize& size)
+{
+    wxWindow::SetMaxSize(size);
+    messureSize();
+}
+
 void Button::SetPaddingSize(const wxSize& size)
 {
     paddingSize = size;
@@ -385,8 +391,14 @@ void Button::messureSize()
     if (minSize.GetHeight() > 0)
         size.SetHeight(minSize.GetHeight());
 
-    if (auto w = GetMaxWidth(); w > 0 && size.GetWidth() > w)
+    if (auto w = GetMaxWidth(); w > 0 && size.GetWidth() > w) {
         size.SetWidth(GetMaxWidth());
+
+        const wxString& tip_str = GetToolTipText();
+        if (tip_str.IsEmpty()) {
+            SetToolTip(GetLabel());
+        }
+    }
 
     if (minSize.GetWidth() > size.GetWidth())
         wxWindow::SetMinSize(minSize);
