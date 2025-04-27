@@ -2176,6 +2176,24 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<FilamentMapMode>(fmmAutoForFlush));
 
+    def = this->add("filament_flush_temp", coInts);
+    def->label = L("Flush temperature");
+    def->tooltip = L("temperature when flushing filament");
+    def->mode = comAdvanced;
+    def->nullable = true;
+    def->min = 0;
+    def->max = max_temp;
+    def->set_default_value(new ConfigOptionIntsNullable{0});
+
+    def = this->add("filament_flush_volumetric_speed", coFloats);
+    def->label = L("Flush volumetric speed");
+    def->tooltip = L("Volumetric speed when flushing filament");
+    def->mode = comAdvanced;
+    def->nullable = true;
+    def->min = 0;
+    def->max = 200;
+    def->set_default_value(new ConfigOptionFloatsNullable{ 0 });
+
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");
     def->tooltip = L("This setting stands for how much volume of filament can be melted and extruded per second. "
@@ -7437,8 +7455,9 @@ std::set<std::string> filament_options_with_variant = {
     "filament_long_retractions_when_cut",
     "filament_retraction_distances_when_cut",
     "nozzle_temperature_initial_layer",
-    "nozzle_temperature"
-
+    "nozzle_temperature",
+    "filament_flush_volumetric_speed",
+    "filament_flush_temp"
 };
 
 // Parameters that are the same as the number of extruders

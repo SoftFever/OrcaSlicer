@@ -3848,6 +3848,10 @@ void TabFilament::build()
     page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Wipe tower parameters"), "param_tower");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
+        
+        optgroup = page->new_optgroup(L("Multi Filament"));
+        optgroup->append_single_option_line("filament_flush_temp", "", 0);
+        optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
 
         optgroup = page->new_optgroup(L("Tool change parameters with single extruder MM printers"), "param_toolchange");
         optgroup->append_single_option_line("filament_loading_speed_start", "semm");
@@ -4758,7 +4762,6 @@ if (is_marlin_flavor)
                 // do not display this params now
                 optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
                 optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
-
     #if 0
                 //optgroup = page->new_optgroup(L("Preview"), -1, true);
 

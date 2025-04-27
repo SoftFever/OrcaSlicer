@@ -819,6 +819,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
                 config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
 
+                auto flush_v_speed = m_print_config->filament_flush_volumetric_speed.values;
+                auto flush_temps = m_print_config->filament_flush_temp.values;
+                for (size_t idx = 0; idx < flush_v_speed.size(); ++idx) {
+                    if (flush_v_speed[idx] == 0)
+                        flush_v_speed[idx] = m_print_config->filament_max_volumetric_speed.get_at(idx);
+                }
+                for (size_t idx = 0; idx < flush_temps.size(); ++idx) {
+                    if (flush_temps[idx] == 0)
+                        flush_temps[idx] = m_print_config->nozzle_temperature_range_high.get_at(idx);
+                }
+                config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
+                config.set_key_value("flush_temperatures", new ConfigOptionInts(flush_temps));
                 config.set_key_value("flush_length", new ConfigOptionFloat(purge_length));
                 config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(is_used_travel_avoid_perimeter));
                 config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
@@ -2499,6 +2511,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     this->placeholder_parser().set("retraction_distances_when_cut", new ConfigOptionFloats(m_config.retraction_distances_when_cut));
     this->placeholder_parser().set("long_retractions_when_cut",new ConfigOptionBools(m_config.long_retractions_when_cut));
+
     //Set variable for total layer count so it can be used in custom gcode.
     this->placeholder_parser().set("total_layer_count", m_layer_count);
     // Useful for sequential prints.
@@ -7047,6 +7060,18 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(false));
     dyn_config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
 
+    auto flush_v_speed = m_print->config().filament_flush_volumetric_speed.values;
+    auto flush_temps =m_print->config().filament_flush_temp.values;
+    for (size_t idx = 0; idx < flush_v_speed.size(); ++idx) {
+        if (flush_v_speed[idx] == 0)
+            flush_v_speed[idx] = m_print->config().filament_max_volumetric_speed.get_at(idx);
+    }
+    for (size_t idx = 0; idx < flush_temps.size(); ++idx) {
+        if (flush_temps[idx] == 0)
+            flush_temps[idx] = m_print->config().nozzle_temperature_range_high.get_at(idx);
+    }
+    dyn_config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
+    dyn_config.set_key_value("flush_temperatures", new ConfigOptionInts(flush_temps));
     dyn_config.set_key_value("flush_length", new ConfigOptionFloat(wipe_length));
 
     int flush_count = std::min(g_max_flush_count, (int)std::round(wipe_volume / g_purge_volume_one_time));
