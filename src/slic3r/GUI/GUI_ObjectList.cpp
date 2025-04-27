@@ -83,15 +83,49 @@ class wxRenderer : public wxDelegateRendererNative
 {
 public:
     wxRenderer() : wxDelegateRendererNative(wxRendererNative::Get()) {}
-    virtual void DrawItemSelectionRect(wxWindow *win,
-                                       wxDC& dc,
-                                       const wxRect& rect,
-                                       int flags = 0) wxOVERRIDE
-        { GetGeneric().DrawItemSelectionRect(win, dc, rect, flags); }
+    virtual void DrawItemSelectionRect(wxWindow *win, wxDC& dc, const wxRect& rect, int flags = 0) wxOVERRIDE
+    {   // ORCA draw selection background to improve consistency between platforms
+        dc.SetBrush(StateColor::darkModeColorFor(wxColour("#BFE1DE")));
+        dc.DrawRectangle(rect);
+        //GetGeneric().DrawItemSelectionRect(win, dc, rect, flags);
+    }
+    virtual void DrawFocusRect(        wxWindow *win, wxDC& dc, const wxRect& rect, int flags = 0) wxOVERRIDE
+    {   // ORCA draw focus rectangle to improve consistency between platforms
+        dc.SetPen(  StateColor::darkModeColorFor(wxColour("#009688")));
+        dc.DrawRectangle(rect);
+    }
+    virtual void DrawTreeItemButton(   wxWindow *win, wxDC& dc, const wxRect& rect, int flags = 0) wxOVERRIDE
+    {   // ORCA draw custom triangle to improve consistency between platforms
+        dc.SetPen(  StateColor::darkModeColorFor(wxColour("#7C8282")));
+        dc.SetBrush(StateColor::darkModeColorFor(wxColour("#7C8282")));
+        bool expanded = (flags == wxCONTROL_EXPANDED || flags == (wxCONTROL_CURRENT | wxCONTROL_EXPANDED));
+        wxRect r = rect;
+        // stretch rectangle depends on orientation
+        r.Deflate((expanded ? wxSize(4, 6) : wxSize(6, 4)) * dc.GetContentScaleFactor());
+        wxPoint triangle[3];
+        triangle[0] = wxPoint(r.x, r.y);
+        triangle[1] = triangle[0] + wxPoint(r.width, expanded ? 0 :r.height/2);
+        triangle[2] = triangle[0] + wxPoint(expanded ? r.width/2 : 0, r.height);
+        dc.DrawPolygon(3, &triangle[0]);
+    }
+    virtual void DrawItemText(
+        wxWindow* win,
+        wxDC& dc,
+        const wxString& text,
+        const wxRect& rect,
+        int align = wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
+        int flags = 0, // wxCONTROL_SELECTED wxCONTROL_FOCUSED wxCONTROL_DISABLED 
+        wxEllipsizeMode ellipsizeMode = wxELLIPSIZE_END
+    ) wxOVERRIDE
+    {   // ORCA draw custom text to improve consistency between platforms
+        dc.SetFont(Label::sysFont(13));
+        dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30"))); // use same color for selected / non-selected
+        dc.DrawText(text,wxPoint(rect.x, rect.y));
+    }
 };
 
 ObjectList::ObjectList(wxWindow* parent) :
-    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
+    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE | wxNO_BORDER) // ORCA: Remove Border
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
 
@@ -107,6 +141,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     static auto render = new wxRenderer;
     wxRendererNative::Set(render);
 #endif
+
+    GenericGetHeader()->Hide(); // ORCA: Hide header to gain vertical space
 
     // create control
     create_objects_ctrl();
