@@ -1246,7 +1246,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(150, true));
 
     def = this->add("gridify_enabled", coBool);
-    def->label = L("Gridify");
+    def->label = L("Gridify Anti-warping");
     def->full_label = L("Enable Gridify");
     def->category = L("Quality");
     def->tooltip = L("Split object into grids to avoid wrapping");

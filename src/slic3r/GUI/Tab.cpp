@@ -2147,7 +2147,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("overhang_reverse_internal_only");
         optgroup->append_single_option_line("overhang_reverse_threshold");
 
-        optgroup = page->new_optgroup(L("Gridify"));
+        optgroup = page->new_optgroup(L("Gridify Anti-warping"));
         optgroup->append_single_option_line("gridify_enabled");
         optgroup->append_single_option_line("gridify_angle");
         optgroup->append_single_option_line("gridify_gap_width");
