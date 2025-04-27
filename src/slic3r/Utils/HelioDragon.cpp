@@ -30,7 +30,7 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
 
     auto http = Http::post(helio_api_url);
 
-    http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
+    http.header("Content-Type", "application/json").header("Authorization", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
         .timeout_max(100)
@@ -86,7 +86,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
 {
     HelioQuery::CreateGCodeResult res;
     std::string                   query_body_template = R"( {
-			"query": "mutation CreateGcode($input: CreateGcodeInput!) { createGcode(input: $input) { success gcode { id name } extraInputsRequired } }",
+			"query": "mutation CreateGcode($input: CreateGcodeInput!) { createGcode(input: $input) {  missingInfo criticalErrors warnings gcode { id name sizeKb } } }",
 			"variables": {
 			  "input": {
 				"name": "%1%",
@@ -106,7 +106,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
 
     auto http = Http::post(helio_api_url);
 
-    http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
+    http.header("Content-Type", "application/json").header("Authorization", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
         .timeout_max(100)
@@ -117,9 +117,36 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
                 res.error   = parsed_obj["errors"].dump();
                 res.success = false;
             } else {
-                res.success = true;
-                res.id      = parsed_obj["data"]["createGcode"]["gcode"]["id"];
-                res.name    = parsed_obj["data"]["createGcode"]["gcode"]["name"];
+
+                if (!parsed_obj["data"]["createGcode"]["gcode"].is_null()) {
+                    res.success = true;
+                    res.id      = parsed_obj["data"]["createGcode"]["gcode"]["id"];
+                    res.name    = parsed_obj["data"]["createGcode"]["gcode"]["name"];
+                } else {
+                    res.success = false;
+                    res.error   = "";
+                    for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
+                        std::string error_msg = err.get<std::string>();
+                        res.error_flags.push_back(error_msg);
+
+                        res.error += " ";
+                        res.error += error_msg;
+                    }
+
+                    for (const auto& err : parsed_obj["data"]["createGcode"]["criticalErrors"]) {
+                        std::string error_msg = err.get<std::string>();
+                        res.error_flags.push_back(error_msg);
+
+                        res.error += " ";
+                        res.error += error_msg;
+                    }
+                }
+
+				for (const auto& err : parsed_obj["data"]["createGcode"]["warnings"]) {
+					std::string error_msg = err.get<std::string>();
+					res.warning_flags.push_back(error_msg);
+				}
+
             }
         })
         .on_error([&res](std::string body, std::string error, unsigned status) {
@@ -141,20 +168,22 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
 {
     HelioQuery::CreateSimulationResult res;
     std::string                        query_body_template = R"( {
-					"query": "mutation CreateSimulation($simulationSettings: SimulationSettingsInput!) { createSimulation(simulationSettings: $simulationSettings) { id name } }",
-					"variables": {
-					  "simulationSettings": {
-						"name": "%1%",
-						"gcodeId": "%2%",
-						"initialRoomAirtemp": %3%,
-						"layerThreshold": %4%,
-						"objectProximityAirtemp": %5%,
-						"platformTemperature": null,
-						"nozzleTemperature": null,
-						"fanSpeed": null
-					  }
-					}
-				} )";
+	  "query": "mutation CreateSimulation($input: CreateSimulationInput!) { createSimulation(input: $input) { id name progress status gcode { id name } printer { id name } material { id name } reportUrl thermalIndexGcodeUrl estimatedSimulationDurationSeconds insertedAt updatedAt } }",
+	  "variables": {
+		"input": {
+		  "name": "%1%",
+		  "gcodeId": "%2%",
+		  "simulationSettings": {
+			"airTemperatureAboveBuildPlate": %3%,
+			"temperatureStabilizationHeight": %4%,
+			"stabilizedTemperature": %5%,
+			"platformTemperature": null,
+			"nozzleTemperature": null,
+			"fanSpeed": null
+		  }
+		}
+	  }
+	} )";
 
     std::string query_body = (boost::format(query_body_template) % generateTimestampedString() % gcode_id % initial_room_airtemp %
                               layer_threshold % object_proximity_airtemp)
@@ -162,7 +191,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
 
     auto http = Http::post(helio_api_url);
 
-    http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
+    http.header("Content-Type", "application/json").header("Authorization", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
         .timeout_max(100)
@@ -204,7 +233,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 
     auto http = Http::post(helio_api_url);
 
-    http.header("Content-Type", "application/json").header("Helio-Key", helio_api_key).set_post_body(query_body);
+    http.header("Content-Type", "application/json").header("Authorization", helio_api_key).set_post_body(query_body);
 
     http.timeout_connect(20)
         .timeout_max(100)

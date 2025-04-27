@@ -7187,7 +7187,7 @@ void Plater::priv::on_action_slice_plate_helio(SimpleEvent& a)
     on_action_slice_plate(a);
 
     if (!(partplate_list.get_curr_plate()->empty())) {
-        std::string                      helio_api_key = wxGetApp().app_config->get("helio_api_key");
+        std::string                      helio_api_key = wxGetApp().app_config->get("helio_access_token");
         std::string                      helio_api_url = wxGetApp().app_config->get("helio_api_url");
         const Slic3r::DynamicPrintConfig config        = wxGetApp().preset_bundle->full_config();
         auto                             g_result      = background_process.get_current_gcode_result();

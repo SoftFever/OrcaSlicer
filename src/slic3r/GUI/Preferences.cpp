@@ -1238,8 +1238,8 @@ wxWindow* PreferencesDialog::create_general_page()
 
     //Helio options
     auto title_helio_options = create_item_title(_L("Helio Options"), page, _L("Helio Options"));
-    auto input_helio_api_key = create_item_input(_L("Helio API Key"), "", page, _L("You can generate this by going to the Helio website"), 
-        "helio_api_key", wxFILTER_ASCII, [](wxString value) {});
+    auto input_helio_api_key = create_item_input(_L("Personal Access Token"), "", page, _L("You can generate this by going to the Helio website"), 
+        "helio_access_token", wxFILTER_ASCII, [](wxString value) {});
     auto input_helio_api_url = create_item_input(_L("Helio API Endpoint"), "", page, _L("This is the endpoint the slicer will communicate with"),
         "helio_api_url", wxFILTER_ASCII, [](wxString value) {});
 

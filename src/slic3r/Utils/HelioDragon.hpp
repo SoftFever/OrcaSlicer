@@ -20,6 +20,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "../GUI/GUI_Preview.hpp"
 #include "../GUI/Plater.hpp"
+#include <vector>
 
 namespace Slic3r {
 
@@ -52,6 +53,8 @@ public:
         std::string name;
         std::string id;
         std::string error;
+        vector<std::string> warning_flags;
+        vector<std::string> error_flags;
     };
 
     struct CreateSimulationResult
@@ -205,7 +208,7 @@ public:
     {
         m_state = STATE_STARTED;
         m_gcode_processor.reset();
-        helio_api_key     = api_key;
+        helio_api_key     = "Bearer " + api_key;
         helio_api_url     = api_url;
         this->printer_id  = printer_id;
         this->filament_id = filament_id;
@@ -248,31 +251,3 @@ public:
 };
 } // namespace Slic3r
 #endif
-
-/*
-
-void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends)
-{
-    assert(! m_file.is_open());
-    if (m_file.is_open())
-        return;
-
-    m_filename   = filename;
-    m_lines_ends = lines_ends;
-
-    m_selected_line_id = 0;
-    m_last_lines_size = 0;
-
-    try
-    {
-        m_file.open(boost::filesystem::path(m_filename));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mapping file " << m_filename;
-    }
-    catch (...)
-    {
-        BOOST_LOG_TRIVIAL(error) << "Unable to map file " << m_filename << ". Cannot show G-code window.";
-        reset();
-    }
-}
-
-*/
