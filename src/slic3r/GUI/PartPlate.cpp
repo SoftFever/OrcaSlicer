@@ -472,10 +472,10 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	// Orca: use 500 x 500 bed size as baseline.
     Point grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
     // if the grid is too dense, we increase the step
-    if (grid_counts.minCoeff() > 1) {
+    if (grid_counts.minCoeff() > 1) {    // Switch when short edge >= 1000mm
         step = 50;
         grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
-        if (grid_counts.minCoeff() > 1)
+        if (grid_counts.minCoeff() > 1)  // Switch when short edge >= 5000mm
             step = 100;
     }
 
