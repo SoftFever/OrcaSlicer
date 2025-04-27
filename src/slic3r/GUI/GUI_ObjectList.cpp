@@ -101,7 +101,7 @@ public:
         bool expanded = (flags == wxCONTROL_EXPANDED || flags == (wxCONTROL_CURRENT | wxCONTROL_EXPANDED));
         wxRect r = rect;
         // stretch rectangle depends on orientation
-        r.Deflate((expanded ? wxSize(4, 6) : wxSize(6, 4)) * dc.GetContentScaleFactor());
+        r.Deflate((expanded ? wxSize(4, 6) : wxSize(6, 4)) * (wxGetApp().em_unit() * .1));
         wxPoint triangle[3];
         triangle[0] = wxPoint(r.x, r.y);
         triangle[1] = triangle[0] + wxPoint(r.width, expanded ? 0 :r.height/2);
@@ -118,7 +118,7 @@ public:
         wxEllipsizeMode ellipsizeMode = wxELLIPSIZE_END
     ) wxOVERRIDE
     {   // ORCA draw custom text to improve consistency between platforms
-        dc.SetFont(Label::sysFont(13));
+        dc.SetFont(Label::Body_13);
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30"))); // use same color for selected / non-selected
         dc.DrawText(text,wxPoint(rect.x, rect.y));
     }
