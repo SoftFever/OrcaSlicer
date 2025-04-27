@@ -7777,6 +7777,124 @@ void DeviceManager::OnSelectedMachineLost() {
     GUI::wxGetApp().sidebar().load_ams_list(string(), nullptr);
 }
 
+// moved from tao.wang and zhimin.zeng
+void check_filaments_for_ams_slot(std::string model_id,
+                                  std::string tag_vendor,
+                                  std::string tag_type,
+                                  int                ams_id,
+                                  int                slot_id,
+                                  std::string        tag_name,
+                                  bool& in_blacklist,
+                                  std::string& ac,
+                                  std::string& info)
+{
+    if (tag_name.empty())
+    {
+        tag_name = DeviceManager::get_filament_name_from_ams(ams_id, slot_id);
+    }
+
+    std::unordered_map<std::string, wxString> blacklist_prompt =
+    {
+    {"TPU: not supported", _L("TPU is not supported by AMS.")},
+    {"Bambu CF: not supported",  _L("Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS.")},
+    {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use.")},
+    {"CF/GF: hard and brittle", _L("CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution.")},
+    {"PLA-Glow", _L("The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite.")}
+    };
+
+    in_blacklist = false;
+
+    if (DeviceManager::filaments_blacklist.contains("blacklist"))
+    {
+        for (auto prohibited_filament : DeviceManager::filaments_blacklist["blacklist"])
+        {
+
+            std::string vendor;
+            std::string type;
+            std::string action;
+            std::string description;
+            std::string name = "undefine";
+            std::vector<std::string> model_ids;
+
+            if (prohibited_filament.contains("vendor") &&
+                prohibited_filament.contains("type") &&
+                prohibited_filament.contains("action") &&
+                prohibited_filament.contains("description"))
+            {
+                vendor = prohibited_filament["vendor"].get<std::string>();
+                type = prohibited_filament["type"].get<std::string>();
+                if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
+                    action = "warning";
+                } else {
+                    action = prohibited_filament["action"].get<std::string>();
+                }
+                description = prohibited_filament["description"].get<std::string>();
+            }
+            else
+            {
+                return;
+            }
+
+            if (prohibited_filament.contains("name"))
+            {
+                name = prohibited_filament["name"].get<std::string>();
+            }
+
+            if (prohibited_filament.contains("model_id"))
+            {
+                for (auto res : prohibited_filament["model_id"])
+                    model_ids.emplace_back(res.get<std::string>());
+            }
+
+            std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
+            std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
+            std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
+            std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
+
+            bool mactch_printer = false;
+            auto it = std::find(model_ids.begin(), model_ids.end(), model_id);
+            if (it != model_ids.end()) { mactch_printer = true; }
+
+            // third party
+            if (vendor == "third party")
+            {
+                if ("bambu lab" != tag_vendor && tag_type == type)
+                {
+                    if (name == "undefine" || (tag_name.find(name) != std::string::npos))
+                    {
+
+                        if (model_ids.empty() || mactch_printer)
+                        {
+                            in_blacklist = true;
+                            ac = action;
+                            info = blacklist_prompt[description].ToStdString();
+                            return;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (vendor == tag_vendor && tag_type == type)
+                {
+                    if (name == "undefine" || (tag_name.find(name) != std::string::npos))
+                    {
+
+                        if (model_ids.empty() || mactch_printer)
+                        {
+                            in_blacklist = true;
+                            ac = action;
+                            info = blacklist_prompt[description].ToStdString();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 
 void DeviceManager::check_filaments_in_blacklist(std::string model_id,
@@ -7800,98 +7918,8 @@ void DeviceManager::check_filaments_in_blacklist(std::string model_id,
 
     if (DeviceManager::is_virtual_slot(ams_id)) {
         check_filaments_for_vt_slot(tag_vendor, tag_type, ams_id, in_blacklist, ac, info);
-        return;
-    }
-
-    if (tag_name.empty()) {
-        tag_name = get_filament_name_from_ams(ams_id, slot_id);
-    }
-
-    std::unordered_map<std::string, wxString> blacklist_prompt =
-        {
-        {"TPU: not supported", _L("TPU is not supported by AMS.")},
-        {"Bambu CF: not supported",  _L("Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS.")},
-        {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use.")},
-        {"CF/GF: hard and brittle", _L("CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution.")},
-        {"PLA-Glow", _L("The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite.")}
-    };
-
-    in_blacklist = false;
-
-    if (filaments_blacklist.contains("blacklist")) {
-        for (auto prohibited_filament : filaments_blacklist["blacklist"]) {
-
-            std::string vendor;
-            std::string type;
-            std::string action;
-            std::string description;
-            std::string name = "undefine";
-            std::vector<std::string> model_ids;
-
-            if (prohibited_filament.contains("vendor") &&
-                prohibited_filament.contains("type") &&
-                prohibited_filament.contains("action") &&
-                prohibited_filament.contains("description"))
-            {
-                vendor = prohibited_filament["vendor"].get<std::string>();
-                type = prohibited_filament["type"].get<std::string>();
-                if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
-                    action = "warning";
-                } else {
-                    action = prohibited_filament["action"].get<std::string>();
-                }
-                description = prohibited_filament["description"].get<std::string>();
-            }
-            else {
-                return;
-            }
-
-            if (prohibited_filament.contains("name")) {
-                name = prohibited_filament["name"].get<std::string>();
-            }
-
-            if (prohibited_filament.contains("model_id")) {
-                for (auto res : prohibited_filament["model_id"])
-                    model_ids.emplace_back(res.get<std::string>());
-            }
-
-            std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
-            std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
-            std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
-            std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-
-
-            bool mactch_printer = false;
-            auto it = std::find(model_ids.begin(), model_ids.end(), model_id);
-            if (it != model_ids.end()) {mactch_printer = true;}
-
-            // third party
-            if (vendor == "third party") {
-                if ("bambu lab" != tag_vendor && tag_type == type) {
-                    if (name == "undefine" || (tag_name.find(name) != std::string::npos)) {
-
-                        if (model_ids.empty() || mactch_printer) {
-                            in_blacklist = true;
-                            ac           = action;
-                            info         = blacklist_prompt[description].ToUTF8().data();
-                            return;
-                        }
-                    }
-                }
-            } else {
-                if (vendor == tag_vendor && tag_type == type) {
-                    if (name == "undefine" || (tag_name.find(name) != std::string::npos)) {
-
-                        if (model_ids.empty() || mactch_printer) {
-                            in_blacklist = true;
-                            ac           = action;
-                            info         = blacklist_prompt[description].ToUTF8().data();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
+    } else {
+        check_filaments_for_ams_slot(model_id, tag_vendor, tag_type, ams_id, slot_id, tag_name, in_blacklist, ac, info);
     }
 }
 

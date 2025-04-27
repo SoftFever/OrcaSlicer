@@ -1729,10 +1729,22 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusTPUUnsupportAutoCali) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
-    } else if (status == PrintStatusHasFilamentInBlackList) {
+    } else if (status == PrintStatusHasFilamentInBlackListError) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
     } else if (status == PrintStatusWarningKvalueNotUsed) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintStatusHasFilamentInBlackListWarning) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintStatusWarningTpuRightColdPulling) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintStatusFilamentHighChamberTempCloseDoor) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     }
@@ -3213,8 +3225,6 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         }
     }
 
-
-
     /** error check **/
     /* check cloud machine connections */
     if (!obj_->is_lan_mode_printer() && !agent->is_server_connected()) {
@@ -3423,12 +3433,17 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
 
         DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
                                                     action, info);
+        if (in_blacklist) {
 
-        if (in_blacklist && action == "prohibition") {
-            std::vector<wxString> error_msg;
-            error_msg.emplace_back(info);
-            show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackList, error_msg);
-            return;
+            std::vector<wxString> error_msg { info };
+            if (action == "prohibition") {
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, error_msg);
+                return;
+            }
+            else if (action == "warning") {
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, error_msg);/** warning check **/
+                return;
+            }
         }
     }
 
@@ -3480,6 +3495,56 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
             show_status(PrintDialogStatus::PrintStatusWarningKvalueNotUsed);
             return;
         }
+    }
+
+    /*Check the tpu at right*/
+    if (obj_->m_extder_data.total_extder_count == 2) {
+        for (const FilamentInfo& item : m_ams_mapping_result) {
+            if (item.ams_id.empty()) continue;
+            if (item.type.compare("TPU") != 0 && item.type.compare("TPU-AMS") != 0) { continue; }
+
+            int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
+            if (extruder_id == MAIN_NOZZLE_ID)
+            {
+                show_status(PrintDialogStatus::PrintStatusWarningTpuRightColdPulling);
+                break;
+            }
+        }
+    }
+
+    /*Check high temperture slicing*/
+    auto preset_full_config = wxGetApp().preset_bundle->full_config();
+    auto chamber_temperatures = preset_full_config.option<ConfigOptionInts>("chamber_temperatures");
+    for (const FilamentInfo& item : m_ams_mapping_result)
+    {
+        try
+        {
+            int fila_id = atoi(item.filament_id.c_str());
+            int chamber_temp = chamber_temperatures->values[fila_id];
+
+            // check close door
+            if (obj_->is_support_chamber_edit && chamber_temp >= obj_->chamber_temp_switch_heat)
+            {
+                show_status(PrintDialogStatus::PrintStatusFilamentHighChamberTempCloseDoor);
+                return;
+            }
+
+            // check vitrification
+            if (obj_->is_filament_at_extruder())
+            {
+                AmsTray* tray = obj_->get_curr_tray();
+                if (tray)
+                {
+                    auto filament_info = wxGetApp().preset_bundle->get_filament_by_filament_id(tray->setting_id);
+                    if (filament_info && (filament_info->temperature_vitrification - chamber_temp <= 5))
+                    {
+                        show_status(PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft);
+                        return;
+                    }
+                }
+            }
+        }
+        catch (std::exception&) { assert(0); }
     }
 
     /** normal check **/

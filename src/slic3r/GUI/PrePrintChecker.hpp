@@ -67,7 +67,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusAmsMappingU0Invalid,
     PrintStatusAmsMappingMixInvalid,
     PrintStatusTPUUnsupportAutoCali,
-    PrintStatusHasFilamentInBlackList,
+    PrintStatusHasFilamentInBlackListError,
     PrintStatusFilamentErrorEnd,
 
     PrintStatusErrorEnd,//->end error<-
@@ -85,6 +85,10 @@ enum PrintDialogStatus : unsigned int {
     // Warnings for filament
     PrintStatusFilamentWarningBegin,
     PrintStatusWarningKvalueNotUsed,
+    PrintStatusWarningTpuRightColdPulling,
+    PrintStatusHasFilamentInBlackListWarning,
+    PrintStatusFilamentHighChamberTempCloseDoor,
+    PrintStatusFilamentHighChamberTempSoft,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-

@@ -421,6 +421,8 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
                 info.nozzle_temp_range_high = config.option<ConfigOptionInts>("nozzle_temperature_range_high")->values[0];
             if (config.has("nozzle_temperature_range_low"))
                 info.nozzle_temp_range_low = config.option<ConfigOptionInts>("nozzle_temperature_range_low")->values[0];
+            if(config.has("temperature_vitrification"))
+                info.temperature_vitrification = config.option<ConfigOptionInts>("temperature_vitrification")->values[0];
 
             if (!printer_name.empty()) {
                 std::vector<std::string> compatible_printers = config.option<ConfigOptionStrings>("compatible_printers")->values;

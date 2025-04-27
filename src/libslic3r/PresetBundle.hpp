@@ -65,6 +65,7 @@ struct FilamentBaseInfo
     std::string vendor;
     int nozzle_temp_range_low{ 220 };
     int nozzle_temp_range_high{ 220 };
+    int temperature_vitrification = INT_MAX;
     bool is_support{ false };
     bool is_system{ true };
     int  filament_printable = 3;

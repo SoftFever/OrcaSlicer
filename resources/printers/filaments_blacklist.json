@@ -85,26 +85,26 @@
     {
       "vendor": "Bambu Lab",
       "type": "PET-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
     },
     {
       "vendor": "Bambu Lab",
       "type": "PA6-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
     },
     {
       "vendor": "Bambu Lab",
       "type": "PPS-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
     },
     {
       "vendor": "Bambu Lab",
       "type": "PPA-CF",
-      "action": "prohibition",
-      "description": "Bambu CF: not supported"
+      "action": "warning",
+      "description": "CF/GF: hard and brittle"
     }
   ]
 }
