@@ -1537,9 +1537,9 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         while (m_stopped) {
             if (m_session.owner == nullptr)
                 return;
-            m_status = Status::Stopped;
-            SendChangedEvent(EVT_STATUS_CHANGED, m_status);
-            m_cond.wait(l);
+           m_status = Status::Reconnecting;
+           SendChangedEvent(EVT_STATUS_CHANGED, m_status);
+           m_cond.wait(l);
         }
         wxLogMessage("PrinterFileSystem::Reconnect Initializing");
         m_status = Status::Initializing;

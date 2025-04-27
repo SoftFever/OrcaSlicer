@@ -37,6 +37,8 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusConnectingServer,
     PrintStatusReadingTimeout,
     PrintStatusReading,
+    PrintStatusConnecting,
+    PrintStatusReconnecting,
     PrintStatusInUpgrading,
     PrintStatusModeNotFDM,
     PrintStatusInSystemPrinting,

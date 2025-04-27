@@ -266,8 +266,8 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetCornerRadius(FromDIP(10));
     m_button_refresh->Bind(wxEVT_BUTTON, &SendToPrinterDialog::on_refresh, this);
-    m_sizer_printer->Add(m_button_refresh, 0, wxALL | wxLEFT, FromDIP(5));
 
+    m_sizer_printer->Add(m_button_refresh, 0, wxALL | wxLEFT, FromDIP(5));
 
     /*select storage*/
     m_storage_panel = new wxPanel(this);
@@ -276,10 +276,41 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_storage_panel->SetSizer(m_storage_sizer);
     m_storage_panel->Layout();
 
+    // try to connect
     m_statictext_printer_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_printer_msg->SetFont(::Label::Body_13);
     m_statictext_printer_msg->SetForegroundColour(*wxBLACK);
     m_statictext_printer_msg->Hide();
+
+    wxBoxSizer *m_sizer_connecting      = new wxBoxSizer(wxHORIZONTAL);
+    m_connecting_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+
+    m_connecting_printer_msg = new wxStaticText(m_connecting_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    m_connecting_printer_msg->SetFont(::Label::Body_13);
+    m_connecting_printer_msg->SetForegroundColour(*wxBLACK);
+    m_connecting_printer_msg->SetLabel("Try to connect");
+    /*m_connecting_printer_msg->Hide();*/
+    m_connecting_printer_msg->Show();
+
+    std::vector<std::string> list{"ams_rfid_1", "ams_rfid_2", "ams_rfid_3", "ams_rfid_4"};
+    m_animaicon = new AnimaIcon(m_connecting_panel, wxID_ANY, list, "refresh_printer", 100);
+    m_sizer_connecting->Add(m_connecting_printer_msg, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
+    m_sizer_connecting->Add(m_animaicon, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_connecting_panel->SetSizer(m_sizer_connecting);
+    m_connecting_panel->Layout();
+    m_connecting_panel->Fit();
+    m_connecting_panel->Hide();
+
+    m_animaicon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        if (m_file_sys) {
+            /* static int i = 0;
+             i++;
+             OutputDebugStringA(std::to_string(i).c_str());
+             OutputDebugStringA("\n");*/
+            m_file_sys->Retry();
+        }
+    });
 
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
@@ -352,7 +383,6 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
     m_sw_print_failed_info->SetSizer(sizer_print_failed_info);
 
-
     wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
@@ -373,7 +403,6 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
     sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
     sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
-
 
     auto st_title_error_desc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, wxT("Error desc"));
     auto st_title_error_desc_doc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, ": ");
@@ -408,7 +437,6 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
     sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
     sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
-
 
     m_link_network_state = new wxHyperlinkCtrl(m_sw_print_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
     m_link_network_state->SetFont(::Label::Body_12);
@@ -536,6 +564,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_sizer_main->Add(m_storage_panel, 0, wxALIGN_CENTER | wxTOP, FromDIP(8));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(11));
     m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_connecting_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(22));
     m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -743,6 +772,9 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
     }
 #endif
     m_tcp_try_connect = true;
+    m_tutk_try_connect = false;
+    m_ftp_try_connect  = false;
+    m_connect_try_times = 0;
     this->EndModal(wxID_CANCEL);
 }
 
@@ -1002,6 +1034,7 @@ std::vector<std::string> SendToPrinterDialog::sort_string(std::vector<std::strin
     return outputArray;
 }
 
+
 bool  SendToPrinterDialog::is_timeout()
 {
     if (timeout_count > 15 * 1000 / LIST_REFRESH_INTERVAL) {
@@ -1117,6 +1150,9 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
     m_tcp_try_connect  = true;
+    m_tutk_try_connect = false;
+    m_ftp_try_connect  = false;
+    m_connect_try_times = 0;
     MachineObject* obj = nullptr;
     for (int i = 0; i < m_list.size(); i++) {
         if (i == selection) {
@@ -1226,7 +1262,7 @@ void SendToPrinterDialog::update_show_status()
         return;
     }
 #else
-        if (!obj_->is_support_brtc) {
+        if (!obj_->is_support_brtc || m_ftp_try_connect) {
             if (m_file_sys) {
                 m_device_select.clear();
                 m_file_sys->Stop(true);
@@ -1251,7 +1287,7 @@ void SendToPrinterDialog::update_show_status()
             m_file_sys = boost::make_shared<PrinterFileSystem>();
             m_file_sys->Attached();
 
-            m_file_sys->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(m_file_sys)](auto e) {
+            m_file_sys->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(m_file_sys),obj_](auto e) {
                 e.Skip();
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs) return;
@@ -1262,7 +1298,8 @@ void SendToPrinterDialog::update_show_status()
 
                 switch (status) {
                 case PrinterFileSystem::Initializing:
-                case PrinterFileSystem::Connecting: show_status(PrintDialogStatus::PrintStatusReading); break;
+                case PrinterFileSystem::Connecting: show_status(PrintDialogStatus::PrintStatusConnecting); break;
+
                 case PrinterFileSystem::ListSyncing: {
                     show_status(PrintDialogStatus::PrintStatusReading);
                     boost::uint32_t seq = fs->RequestMediaAbility(3);
@@ -1282,20 +1319,22 @@ void SendToPrinterDialog::update_show_status()
                     break;
                 }
                 case PrinterFileSystem::Failed: {
-                    m_tcp_try_connect = false;
-                    /*static int i      = 0;
-                    OutputDebugStringA(std::to_string(i).c_str());
-                    OutputDebugStringA("\n");
-                    if (i++ < 2)*/
-                     /*   msg = _L("Attempting TCP connection, please wait.");
-                    else*/
+                    if (m_connect_try_times < 3) {
+                        bool is_lan = (obj_->connection_type() == "lan");
+
+                        m_ftp_try_connect  = is_lan || m_tutk_try_connect;
+                        m_tutk_try_connect = !is_lan || m_tutk_try_connect;
+                        m_tcp_try_connect  = false;
+                    }
+                    else
                         msg = _L("Please check the network and try again, You can restart or update the printer if the issue persists.");
-                    //fs->Stop();
+                    fs->Stop();
+                    m_connect_try_times++;
                     break;
-                    }
-                case PrinterFileSystem::Stopped: {
-                      //  fs->Retry();
-                    }
+                }
+
+                case PrinterFileSystem::Reconnecting: show_status(PrintDialogStatus::PrintStatusReconnecting);
+
                 }
 
                 if (!msg.empty()) {
@@ -1433,6 +1472,37 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 	else
 		m_comboBox_printer->Enable();
 
+
+    //connecting
+    if(status == PrintDialogStatus::PrintStatusConnecting)
+    {
+        m_connecting_printer_msg->SetLabel("Try to connect.");
+        update_print_status_msg(wxEmptyString, true, true);
+        m_connecting_panel->Show();
+        m_animaicon->Play();
+
+        Layout();
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+        return;
+
+    } else if (status == PrintDialogStatus::PrintStatusReconnecting) {
+            m_connecting_printer_msg->SetLabel("Click the spinning icon to retry.");
+            update_print_status_msg(wxEmptyString, true, true);
+            m_connecting_panel->Show();
+            m_animaicon->Stop();
+            m_animaicon->Enable();
+
+            Layout();
+            Enable_Send_Button(false);
+            Enable_Refresh_Button(true);
+            return;
+    }
+    else {
+        m_connecting_panel->Hide();
+    }
+
+
 	// m_panel_warn m_simplebook
 	if (status == PrintDialogStatus::PrintStatusSending) {
 		sending_mode();
@@ -1454,13 +1524,13 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		update_print_status_msg(msg_text, true, true);
 		Enable_Send_Button(true);
 		Enable_Refresh_Button(true);
-	}
-	else if (status == PrintDialogStatus::PrintStatusReading) {
-		wxString msg_text = _L("Synchronizing device information");
-		update_print_status_msg(msg_text, false, true);
-		Enable_Send_Button(false);
-		Enable_Refresh_Button(true);
-	}
+    }
+    else if (status == PrintDialogStatus::PrintStatusReading) {
+        wxString msg_text = _L("Synchronizing device information");
+        update_print_status_msg(msg_text, false, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    }
 
 	else if (status == PrintDialogStatus::PrintStatusReadingFinished) {
 		update_print_status_msg(wxEmptyString, false, true);
@@ -1684,9 +1754,12 @@ bool SendToPrinterDialog::Show(bool show)
 
     if (show) {
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
+        m_tcp_try_connect   = true;
+        m_ftp_try_connect   = false;
+        m_tutk_try_connect  = false;
+        m_connect_try_times = 0;
     } else {
         m_refresh_timer->Stop();
-        m_tcp_try_connect = true;
     }
 
     Layout();
@@ -1740,14 +1813,11 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     NetworkAgent *agent         = wxGetApp().getAgent();
     std::string   agent_version = agent ? agent->get_version() : "";
 
-
        if (agent) {
-            if (obj->connection_type() == "lan") {
-                // In LAN mode, use TCP connection
+            if (m_tcp_try_connect) {
                 std::string devIP      = obj->dev_ip;
                 std::string accessCode = obj->get_access_code();
                 std::string tcp_url    = "bambu:///local/" + devIP + "?port=6000&user=" + "bblp" + "&passwd=" + accessCode;
-
                 CallAfter([=] {
                     boost::shared_ptr fs(wfs.lock());
                     if (!fs) return;
@@ -1757,52 +1827,31 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                         fs->SetUrl("3");
                     }
                 });
-            } else {
-                // In non-LAN mode, try TCP connection first
-                if (m_tcp_try_connect) {
-                    std::string devIP      = obj->dev_ip;
-                    std::string accessCode = obj->get_access_code();
-                    std::string tcp_url    = "bambu:///local/" + devIP + "?port=6000&user=" + "bblp" + "&passwd=" + accessCode;
-
+            }
+            else if (m_tutk_try_connect){
+                std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+                agent->get_camera_url(obj->dev_id + "|" + dev_ver + "|" + protocols[1], [this, wfs, m = dev_id, v = agent->get_version(), dv = dev_ver](std::string url) {
+                    if (boost::algorithm::starts_with(url, "bambu:///")) {
+                        url += "&device=" + m;
+                        url += "&net_ver=" + v;
+                        url += "&dev_ver=" + dv;
+                        url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
+                        url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+                        url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+                    }
+                    BOOST_LOG_TRIVIAL(info) << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
+                    std::cout << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
                     CallAfter([=] {
                         boost::shared_ptr fs(wfs.lock());
                         if (!fs) return;
-
-                        if (boost::algorithm::starts_with(tcp_url, "bambu:///")) {
-                            fs->SetUrl(tcp_url);
+                        if (boost::algorithm::starts_with(url, "bambu:///")) {
+                            fs->SetUrl(url);
+                        } else {
+                            fs->SetUrl("3");
                         }
                     });
+                });
                 }
-                else {
-                    // If the TCP connection fails, switch to TUTK connection
-                    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
-                    agent->get_camera_url(obj->dev_id + "|" + dev_ver + "|" + protocols[1], // สนำร "tutk"
-                                          [this, wfs, m = dev_id, v = agent->get_version(), dv = dev_ver](std::string url) {
-                                              if (boost::algorithm::starts_with(url, "bambu:///")) {
-                                                  url += "&device=" + m;
-                                                  url += "&net_ver=" + v;
-                                                  url += "&dev_ver=" + dv;
-                                                  url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
-                                                  url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
-                                                  url += "&cli_ver=" + std::string(SLIC3R_VERSION);
-                                              }
-                                              BOOST_LOG_TRIVIAL(info) << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
-                                              std::cout << "SendToPrinter::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
-                                              CallAfter([=] {
-                                                  boost::shared_ptr fs(wfs.lock());
-                                                  if (!fs) return;
-                                                  if (boost::algorithm::starts_with(url, "bambu:///")) {
-                                                      fs->SetUrl(url);
-                                                  } else {
-                                                      fs->SetUrl("3");
-                                                  }
-                                              });
-                                          });
-
-                 }
-
-             }
-
             }
 
 
