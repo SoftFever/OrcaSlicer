@@ -558,11 +558,15 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     wxBoxSizer *sizer_advanced_options_title  = new wxBoxSizer(wxHORIZONTAL);
 
-    m_hyperlink          = new wxHyperlinkCtrl(m_scroll_area, wxID_ANY, _L("Click here if you can't connect to the printer"),
-                                      wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    m_hyperlink->SetFont(::Label::Body_12);
+    m_connect_printer_help_hyperlink = new Label(m_scroll_area, _L("Click here if you can't connect to the printer ->"));
+    m_connect_printer_help_hyperlink->SetForegroundColour(0x00ae42);
+    m_connect_printer_help_hyperlink->SetBackgroundColour(*wxWHITE);
+    m_connect_printer_help_hyperlink->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    m_connect_printer_help_hyperlink->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    m_connect_printer_help_hyperlink->Bind(wxEVT_LEFT_DOWN, [this](auto& e) { wxLaunchDefaultBrowser(wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"));});
+    m_connect_printer_help_hyperlink->SetFont(::Label::Body_13);
 
-    sizer_advanced_options_title->Add(m_hyperlink, 0, wxALIGN_CENTER, 0);
+    sizer_advanced_options_title->Add(m_connect_printer_help_hyperlink, 0, wxALIGN_CENTER, 0);
     sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
 
     m_options_other = new wxPanel(m_scroll_area);
@@ -3678,14 +3682,14 @@ void SelectMachineDialog::set_default()
         m_comboBox_printer->Show(true);
         m_button_refresh->Show(true);
         m_rename_normal_panel->Show(true);
-        m_hyperlink->Show(true);
+        m_connect_printer_help_hyperlink->Show(true);
     }
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         m_stext_printer_title->Show(false);
         m_comboBox_printer->Show(true);
         m_button_refresh->Show(false);
         m_rename_normal_panel->Show(false);
-        m_hyperlink->Show(false);
+        m_connect_printer_help_hyperlink->Show(false);
     }
 
     //project name

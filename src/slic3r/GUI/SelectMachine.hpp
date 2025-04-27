@@ -360,7 +360,7 @@ protected:
     TextInput*                          m_rename_input{nullptr};
     wxTimer*                            m_refresh_timer{ nullptr };
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-    wxHyperlinkCtrl*                    m_hyperlink{nullptr};
+    Label*                              m_connect_printer_help_hyperlink{nullptr};
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
