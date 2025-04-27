@@ -61,6 +61,7 @@ public:
     void SetInactiveIcon(const wxString& icon);
 
     void SetMinSize(const wxSize& size) override;
+    void SetMaxSize(const wxSize& size) override;
 
     void SetPaddingSize(const wxSize& size);
 
