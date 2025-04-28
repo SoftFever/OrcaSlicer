@@ -670,7 +670,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     if (m_type == Preset::TYPE_FILAMENT) {
         int em = wxGetApp().em_unit();
         clr_picker = new wxBitmapButton(parent, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
-        clr_picker->SetToolTip(_L("Click to pick filament color"));
+        clr_picker->SetToolTip(_L("Click to select filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
             m_clrData.SetChooseFull(true);
@@ -681,7 +681,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                  m_clrData.SetCustomColour(i, string_to_wxColor(colors[i]));
             }
             wxColourDialog dialog(this, &m_clrData);
-            dialog.SetTitle(_L("Please choose the filament colour"));
+            dialog.SetTitle(_L("Please choose the filament color"));
             if ( dialog.ShowModal() == wxID_OK )
             {
                 m_clrData = dialog.GetColourData();

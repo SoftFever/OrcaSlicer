@@ -352,7 +352,8 @@ struct Sidebar::priv
     wxPanel* m_panel_project_title;
     ScalableButton* m_filament_icon = nullptr;
     Button * m_flushing_volume_btn = nullptr;
-    wxSearchCtrl* m_search_bar = nullptr;
+    TextInput* m_search_item = nullptr;
+    StaticBox* m_search_bar = nullptr;
     Search::SearchObjectDialog* dia = nullptr;
 
     // BBS printer config
@@ -426,7 +427,7 @@ void Sidebar::priv::on_search_update()
 {
     m_object_list->assembly_plate_object_name();
 
-    wxString search_text = m_search_bar->GetValue();
+    wxString search_text = m_search_item->GetTextCtrl()->GetValue();
     m_object_list->GetModel()->search_object(search_text);
     dia->update_list();
 }
@@ -439,7 +440,7 @@ void Sidebar::priv::jump_to_object(ObjectDataViewModelNode* item)
 void Sidebar::priv::can_search()
 {
     if (m_search_bar->IsShown()) {
-        m_search_bar->SetFocus();
+        m_search_item->SetFocus();
     }
 }
 
@@ -999,7 +1000,7 @@ Sidebar::Sidebar(Plater *parent)
     }
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, false, 18);
+                                                 wxBU_EXACTFIT | wxNO_BORDER, false, 16); // ORCA match icon size with other icons as 16x16
     ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
         sync_ams_list();
@@ -1092,25 +1093,45 @@ Sidebar::Sidebar(Plater *parent)
     //add project content
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
-    p->m_search_bar = new wxSearchCtrl(p->scrolled, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    p->m_search_bar->ShowSearchButton(true);
-    p->m_search_bar->ShowCancelButton(true);
-    p->m_search_bar->SetDescriptiveText(_L("Search plate, object and part."));
+    // ORCA: Update search box to modern style
+    p->m_search_bar = new StaticBox(p->scrolled);
+    p->m_search_bar->SetCornerRadius(0);
+    p->m_search_bar->SetBorderColor(wxColour("#CECECE"));
 
-    p->m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
+    p->m_search_item = new TextInput(p->m_search_bar, wxEmptyString, wxEmptyString, "", wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
+    p->m_search_item->SetIcon(*BitmapCache().load_svg("search", FromDIP(16), FromDIP(16))); // ORCA: Add search icon to search box
+
+    wxTextCtrl* text_ctrl = p->m_search_item->GetTextCtrl();
+    text_ctrl->SetHint(_L("Search plate, object and part."));
+    text_ctrl->SetForegroundColour(wxColour("#262E30"));
+    text_ctrl->SetFont(Label::Body_13);
+    text_ctrl->SetSize(wxSize(-1, FromDIP(16))); // Centers text vertically
+
+    text_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
         this->p->on_search_update();
+        p->m_search_bar->SetBorderColor(wxColour("#009688"));
         wxPoint pos = this->p->m_search_bar->ClientToScreen(wxPoint(0, 0));
         pos.y += this->p->m_search_bar->GetRect().height;
         p->dia->SetPosition(pos);
         p->dia->Popup();
-        });
-    p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
+        e.Skip(); // required to show caret
+    });
+    text_ctrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
         this->p->on_search_update();
-        });
-    p->m_search_bar->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+    });
+    text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
         p->dia->Dismiss();
+        p->m_search_bar->SetBorderColor(wxColour("#CECECE"));
+        p->m_search_item->GetTextCtrl()->SetValue(""); // reset value when loose focus
         e.Skip();
-        });
+    });
+
+    auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
+    search_sizer->Add(new wxWindow(p->m_search_bar, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(1));
+    search_sizer->Add(p->m_search_item, 1, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    p->m_search_bar->SetSizer(search_sizer);
+    p->m_search_bar->Layout();
+    search_sizer->Fit(p->m_search_bar);
 
     p->m_object_list = new ObjectList(p->scrolled);
 
@@ -1122,7 +1143,7 @@ Sidebar::Sidebar(Plater *parent)
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
 
-    p->dia = new Search::SearchObjectDialog(p->m_object_list, p->m_search_bar);
+    p->dia = new Search::SearchObjectDialog(p->m_object_list, text_ctrl);
 #if !NEW_OBJECT_SETTING
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, 5 * em / 10);
@@ -1511,6 +1532,9 @@ void Sidebar::msw_rescale()
     // BBS
     //p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
+    p->m_search_item->Rescale();
+    p->m_search_item->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(16)));
+    p->m_search_bar->Layout();
 
     // BBS
 #if 0
@@ -3831,7 +3855,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //     load_config = false;
                     //     if (!load_model) {
                     //         // only load config case, return directly
-                    //         show_info(q, _L("The Config can not be loaded."), _L("Load 3mf"));
+                    //         show_info(q, _L("The Config cannot be loaded."), _L("Load 3mf"));
                     //         q->skip_thumbnail_invalid = false;
                     //         return empty_result;
                     //     }
@@ -4014,9 +4038,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
                                     warning_message += "-" + *it + "\n";
                                 warning_message += "\n";
-                                //show_info(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
+                                //show_info(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-code"));
 
-                                MessageDialog dlg(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
+                                MessageDialog dlg(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-code"));
                                 dlg.show_dsa_button();
                                 auto  res = dlg.ShowModal();
                                 if (dlg.get_checkbox_state())
@@ -7509,7 +7533,7 @@ void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
 
 void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
 {
-    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only, Can not enter the Prepare page")));
+    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains G-code only, cannot enter the Prepare page.")));
 }
 
 void Plater::priv::on_apple_change_color_mode(wxSysColourChangedEvent& evt) {
@@ -10458,7 +10482,7 @@ void Plater::load_gcode(const wxString& filename)
     p->preview->get_canvas3d()->zoom_to_plate(0);
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
-        MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
+        MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid G-code."),
             wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error occurs while loading G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
         set_project_filename(DEFAULT_PROJECT_NAME);
     } else {
@@ -11107,7 +11131,7 @@ bool Plater::load_files(const wxArrayString& filenames)
     }
 
     if (!gcode_paths.empty()) {
-        show_info(this, _L("G-code files can not be loaded with models together!"), _L("G-code loading"));
+        show_info(this, _L("G-code files cannot be loaded with models together!"), _L("G-code loading"));
         return false;
     }
 
@@ -11159,7 +11183,7 @@ bool Plater::load_files(const wxArrayString& filenames)
     if (this->m_only_gcode || this->m_exported_file) {
         if ((loadfiles_type == LoadFilesType::SingleOther)
             || (loadfiles_type == LoadFilesType::MultipleOther)) {
-            show_info(this, _L("Can not add models when in preview mode!"), _L("Add Models"));
+            show_info(this, _L("Cannot add models when in preview mode!"), _L("Add Models"));
             return false;
         }
     }
@@ -14615,7 +14639,8 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
                         break;
                     }
                 }
-                err.string = format(_L("Plate %d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non-zero."),
+                err.string = format(_L("Plate %d: %s is not suggested to be used to print filament %s(%s). "
+                                       "If you still want to do this print job, please set this filament's bed temperature to non-zero."),
                              err.params[0], err.params[1], err.params[2], filament_name);
                 err.string += "\n";
             }
