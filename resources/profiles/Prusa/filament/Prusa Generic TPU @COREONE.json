@@ -35,7 +35,7 @@
         "1.75"
     ],
     "filament_end_gcode": [
-        "\"; Filament-specific end gcode\""
+        "; Filament-specific end gcode"
     ],
     "filament_flow_ratio": [
         "1.08"
@@ -48,7 +48,7 @@
         "15"
     ],
     "filament_notes": [
-        "\"\""
+        ""
     ],
     "filament_retraction_length": [
         "2.5"
@@ -63,7 +63,7 @@
         "0"
     ],
     "filament_start_gcode": [
-        "\"M900 K0 ; Filament gcode\\n\\nM142 S36 ; set heatbreak target temp\""
+        "M900 K0 ; Filament gcode\n\nM142 S36 ; set heatbreak target temp"
     ],
     "filament_type": [
         "FLEX"
