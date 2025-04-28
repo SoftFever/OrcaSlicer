@@ -199,7 +199,7 @@ void SideToolsPanel::doRender(wxDC &dc)
         auto sizet = dc.GetTextExtent(m_dev_name);
         auto text_end = size.x - m_wifi_none_img.GetBmpSize().x - 20;
 
-        std::string finally_name = m_dev_name.ToStdString();
+        wxString finally_name = m_dev_name;
         if (sizet.x > (text_end - left)) {
             auto limit_width = text_end - left - dc.GetTextExtent("...").x - 20;
             for (auto i = 0; i < m_dev_name.length(); i++) {
