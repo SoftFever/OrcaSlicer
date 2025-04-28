@@ -6341,7 +6341,6 @@ extern "C" {
             int *a = nullptr;
             *a     = 0;
             });
-        
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }

@@ -468,13 +468,16 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 
 	Polylines axes_lines, axes_lines_bolder;
 	int count = 0;
-	int step  = 10;
+	int step  = 10;                   //                Uses up to 599mm    Main Grid:  10 x 5 = 50mm
 	// Orca: use 500 x 500 bed size as baseline.
-    const Point grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
     // if the grid is too dense, we increase the step
-    if (grid_counts.minCoeff() > 1) {
-        step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
-    }
+    auto min_edge_scaled = (pp_bbox.size() / ((coord_t) scale_(1))).minCoeff();
+    if (     min_edge_scaled >= 6000) // Switch when short edge >= 6000mm   Main Grid: 100 x 5 = 500mm
+        step = 100;
+    else if (min_edge_scaled >= 1200) // Switch when short edge >= 1200mm   Main Grid:  50 x 5 = 250mm
+        step = 50;
+    else if (min_edge_scaled >= 600)  // Switch when short edge >= 600mm    Main Grid:  20 x 5 = 100mm
+        step = 20;
 
     // ORCA draw grid lines relative to origin
     for (coord_t x = scale_(m_origin.x()); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
