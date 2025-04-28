@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSL96_02",
     "instantiation": "true",
-    "description": "To make the prints get higher gloss, please dry the filament before use, and set the outer wall speed to be 40 to 60 mm/s when slicing.",
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -13,6 +12,14 @@
     "filament_flow_ratio": [
         "0.98",
         "0.98"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
@@ -74,6 +81,10 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "220",
         "220"
@@ -81,6 +92,10 @@
     "nozzle_temperature_initial_layer": [
         "220",
         "220"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

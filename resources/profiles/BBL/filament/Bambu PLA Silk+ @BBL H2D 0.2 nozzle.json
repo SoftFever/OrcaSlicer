@@ -16,6 +16,14 @@
         "0.98",
         "0.98"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
@@ -76,6 +84,10 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "230",
         "230"
@@ -87,14 +99,18 @@
     "pre_start_fan_time": [
         "2"
     ],
-    "slow_down_layer_time": [
-        "6"
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "supertack_plate_temp": [
         "35"
     ],
     "supertack_plate_temp_initial_layer": [
         "35"
+    ],
+    "slow_down_layer_time": [
+        "6"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

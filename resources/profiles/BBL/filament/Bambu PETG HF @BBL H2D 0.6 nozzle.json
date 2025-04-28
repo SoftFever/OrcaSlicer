@@ -19,6 +19,14 @@
         "0.95",
         "0.95"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
@@ -87,6 +95,10 @@
         "0",
         "0"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "245",
         "245"
@@ -100,6 +112,10 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "slow_down_layer_time": [
         "10"

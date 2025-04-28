@@ -28,6 +28,14 @@
         "0.98",
         "0.98"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
@@ -99,6 +107,10 @@
         "0",
         "0"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "210",
         "210"
@@ -109,6 +121,10 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

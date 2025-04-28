@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSG00_15",
     "instantiation": "true",
-    "description": "To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG.",
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -13,6 +12,14 @@
     "filament_flow_ratio": [
         "0.95",
         "0.95"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
@@ -74,6 +81,10 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "255",
         "255"
@@ -84,6 +95,10 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

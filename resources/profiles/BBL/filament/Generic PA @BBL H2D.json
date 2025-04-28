@@ -27,6 +27,14 @@
         "1",
         "1"
     ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
@@ -87,6 +95,10 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature_range_low": [
         "240"
     ],
@@ -109,6 +121,10 @@
     ],
     "required_nozzle_HRC": [
         "3"
+    ],
+    "retraction_distances_when_ec": [
+        "4",
+        "4"
     ],
     "slow_down_layer_time": [
         "8"

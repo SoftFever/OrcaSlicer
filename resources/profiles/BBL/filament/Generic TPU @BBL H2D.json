@@ -6,7 +6,6 @@
     "filament_id": "GFU99",
     "setting_id": "GFSU99_02",
     "instantiation": "true",
-    "description": "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",
     "additional_cooling_fan_speed": [
         "100"
     ],
@@ -17,6 +16,14 @@
     "filament_flow_ratio": [
         "1",
         "1"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
@@ -29,6 +36,9 @@
     "filament_ramming_volumetric_speed": [
         "0.8",
         "0.8"
+    ],
+    "filament_printable": [
+        "2"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -78,8 +88,9 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_printable": [
-        "2"
+    "long_retractions_when_ec": [
+        "1",
+        "1"
     ],
     "nozzle_temperature": [
         "240",
@@ -88,6 +99,10 @@
     "nozzle_temperature_initial_layer": [
         "240",
         "240"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

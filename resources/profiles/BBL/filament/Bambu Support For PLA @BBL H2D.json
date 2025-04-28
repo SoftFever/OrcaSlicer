@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSS02_07",
     "instantiation": "true",
-    "description": "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",
     "fan_max_speed": [
         "30"
     ],
@@ -19,6 +18,14 @@
     "filament_flow_ratio": [
         "1",
         "1"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
@@ -88,6 +95,10 @@
         "0",
         "0"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "220",
         "220"
@@ -98,6 +109,10 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

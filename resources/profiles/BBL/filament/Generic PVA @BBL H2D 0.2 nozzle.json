@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSS99_05",
     "instantiation": "true",
-    "description": "This is a water-soluble support filament, and usually it is only for the support structure and not for the model body. Printing this filament is of many requirements, and to get better printing quality, please refer to this wiki: PVA Printing Guide.",
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -13,6 +12,14 @@
     "filament_flow_ratio": [
         "0.95",
         "0.95"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil",
@@ -74,6 +81,10 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "long_retractions_when_ec": [
+        "1",
+        "1"
+    ],
     "nozzle_temperature": [
         "220",
         "220"
@@ -81,6 +92,10 @@
     "nozzle_temperature_initial_layer": [
         "220",
         "220"
+    ],
+    "retraction_distances_when_ec": [
+        "10",
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"
