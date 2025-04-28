@@ -927,7 +927,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
 void SelectMachineDialog::prepare_mode(bool refresh_button)
 {
     Enable_Auto_Refill(true);
-    EnableEditing(true);
     show_print_failed_info(false);
 
     m_is_in_sending_mode = false;
@@ -937,6 +936,7 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
         wxEndBusyCursor();
 
     if (refresh_button) {
+        EnableEditing(true);
         Enable_Send_Button(true);
     }
 
