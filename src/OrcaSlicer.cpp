@@ -6033,6 +6033,7 @@ bool CLI::setup(int argc, char **argv)
 }
 
 void attach_console_on_demand(){
+#ifdef _WIN32
     static bool console_attached = false;
 
     if (!console_attached) {
@@ -6072,6 +6073,7 @@ void attach_console_on_demand(){
             boost::nowide::cin.clear();
         }
     }
+#endif
 }
 void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const
 {
