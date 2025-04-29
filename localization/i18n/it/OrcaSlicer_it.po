@@ -18873,9 +18873,6 @@ msgstr ""
 #~ msgid "Support: propagate branches at layer %d"
 #~ msgstr "Supporto: propagazione rami allo strato %d"
 
-#~ msgid "Current Cabin humidity"
-#~ msgstr "Current Cabin humidity"
-
 #~ msgid "Stopped."
 #~ msgstr "Interrotto."
 
@@ -19019,12 +19016,6 @@ msgstr ""
 #~ msgctxt "Verb"
 #~ msgid "Scale"
 #~ msgstr "Ridimensiona"
-
-#~ msgid "Orca Slicer "
-#~ msgstr "Orca Slicer "
-
-#~ msgid "Cool plate"
-#~ msgstr "Cool plate"
 
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Applicazione dell'ascensore Z"
@@ -19445,12 +19436,6 @@ msgstr ""
 #~ msgid "Please find the cornor with perfect degree of extrusion"
 #~ msgstr "Si prega di trovare il cornor con il perfetto grado di estrusione"
 
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
 #~ msgid ""
 #~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 #~ "first, which works best in most cases.\n"
@@ -19471,9 +19456,6 @@ msgstr ""
 #~ "con conseguente peggioramento della finitura superficiale esterna. Può "
 #~ "anche far brillare il riempimento attraverso le superfici esterne della "
 #~ "parte."
-
-#~ msgid "V"
-#~ msgstr "V"
 
 #~ msgid ""
 #~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
@@ -19511,37 +19493,6 @@ msgstr ""
 
 #~ msgid "Unload Filament"
 #~ msgstr "Scarica Filamento"
-
-#~ msgid ""
-#~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
-#~ "automatically load or unload filiament."
-#~ msgstr ""
-#~ "Seleziona uno slot AMS, premi \"Carica\" o \"Scarica\" per caricare o "
-#~ "scaricare automaticamente il filamento."
-
-#~ msgid "MC"
-#~ msgstr "MC"
-
-#~ msgid "MainBoard"
-#~ msgstr "MainBoard"
-
-#~ msgid "TH"
-#~ msgstr "TH"
-
-#~ msgid "XCam"
-#~ msgstr "XCam"
-
-#~ msgid "HMS"
-#~ msgstr "HMS"
-
-#~ msgid "- ℃"
-#~ msgstr "- °C"
-
-#~ msgid "0.5"
-#~ msgstr "0.5"
-
-#~ msgid "0.005"
-#~ msgstr "0.005"
 
 #~ msgid "active"
 #~ msgstr "attivo"
@@ -19627,10 +19578,6 @@ msgstr ""
 #~ msgstr "Caricamento non riuscito [%d]!"
 
 #, c-format, boost-format
-#~ msgid "No files [%d]"
-#~ msgstr "No files [%d]"
-
-#, c-format, boost-format
 #~ msgid "Load failed [%d]"
 #~ msgstr "Caricamento non riuscito [%d]"
 
@@ -19663,9 +19610,6 @@ msgstr ""
 #~ "Sono stati modificati alcuni preset preimpostati. \n"
 #~ "Vuoi mantenere le impostazioni (nuovo valore) dopo aver cambiato i preset?"
 
-#~ msgid " ℃"
-#~ msgstr " °C"
-
 #~ msgid ""
 #~ "Please go to filament setting to edit your presets if you need.\n"
 #~ "Please note that nozzle temperature, hot bed temperature, and maximum "
@@ -19680,15 +19624,6 @@ msgstr ""
 
 #~ msgid "Studio Version:"
 #~ msgstr "Versione Studio:"
-
-#~ msgid "Test BambuLab"
-#~ msgstr "Test BambuLab"
-
-#~ msgid "Test BambuLab:"
-#~ msgstr "Test BambuLab:"
-
-#~ msgid "Test HTTP"
-#~ msgstr "Test HTTP"
 
 #~ msgid "Test HTTP Service:"
 #~ msgstr "Test servizio HTTP:"
@@ -19710,12 +19645,6 @@ msgstr ""
 
 #~ msgid "Test Storage Download:"
 #~ msgstr "Test Download dell'archiviazione:"
-
-#~ msgid "Test plugin download"
-#~ msgstr "Test plugin download"
-
-#~ msgid "Test Plugin Download:"
-#~ msgstr "Test Plugin Download:"
 
 #~ msgid "Test Storage Upload"
 #~ msgstr "Test Caricamento dell'archiviazione"
@@ -19765,9 +19694,6 @@ msgstr ""
 #~ "Per superfici fortemente inclinate, questa opzione non è adatta in quanto "
 #~ "genererebbe uno strato superiore troppo sottile e dovrebbe essere "
 #~ "disabilitata."
-
-#~ msgid " "
-#~ msgstr " "
 
 #~ msgid "Text-Rotate"
 #~ msgstr "Ruota testo"
@@ -19827,9 +19753,6 @@ msgstr ""
 #~ "compatibile solo con la modalità relativa. È sempre abilitato sulle "
 #~ "stampanti BambuLab. Il valore predefinito è selezionato"
 
-#~ msgid "Movement:"
-#~ msgstr "Movement:"
-
 #~ msgid "Movement"
 #~ msgstr "Movimento"
 
@@ -19838,9 +19761,6 @@ msgstr ""
 
 #~ msgid "Depth ratio"
 #~ msgstr "Rapporto di profondità"
-
-#~ msgid "Prizm"
-#~ msgstr "Prizm"
 
 #~ msgid "connector is out of cut contour"
 #~ msgstr "Connettore fuori dal contorno"
@@ -20023,9 +19943,6 @@ msgstr ""
 #~ msgid "The 3mf is not compatible, load geometry data only!"
 #~ msgstr "Il 3mf non è compatibile, carica solo i dati della geometria!"
 
-#~ msgid "Incompatible 3mf"
-#~ msgstr "Incompatible 3mf"
-
 #~ msgid "Add/Remove printers"
 #~ msgstr "Aggiungi/Rimuovi stampanti"
 
@@ -20077,10 +19994,6 @@ msgstr ""
 
 #~ msgid "inner-outer-inner/infill"
 #~ msgstr "interno-esterno-interno/riempimento"
-
-#, c-format, boost-format
-#~ msgid "%%"
-#~ msgstr "%%"
 
 #~ msgid "Export the objects as multiple STL."
 #~ msgstr "Esportare gli oggetti come STL multipli."
@@ -20134,9 +20047,6 @@ msgstr ""
 #~ msgid "Online Models"
 #~ msgstr "Modelli Online"
 
-#~ msgid "The minimum printing speed when slow down for cooling"
-#~ msgstr "The minimum printing speed when slowing down for cooling."
-
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "
 #~ "open the front door of printer before printing to avoid nozzle clog."
@@ -20144,31 +20054,6 @@ msgstr ""
 #~ "La temperatura del piano supera la temperatura di vetrificazione del "
 #~ "filamento. Aprire lo sportello anteriore della stampante prima di "
 #~ "stampare per evitare l'intasamento del nozzle."
-
-#~ msgid "Temperature of vitrificaiton"
-#~ msgstr "Temperature of vitrification"
-
-#~ msgid ""
-#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
-#~ "hotter than this tempature"
-#~ msgstr ""
-#~ "Material becomes soft at this temperature. Thus, the heat bed cannot be "
-#~ "hotter than this temperature."
-
-#~ msgid "Enable this option if machine has auxiliary part cooling fan"
-#~ msgstr "Enable this option if the machine has an auxiliary part cooling fan"
-
-#~ msgid ""
-#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
-#~ "during printing except the first several layers which is defined by no "
-#~ "cooling layers"
-#~ msgstr ""
-#~ "This is the speed of auxiliary part cooling fan. The auxiliary fan will "
-#~ "run at this speed during printing except for during the first several "
-#~ "layers which may be set to have no part cooling."
-
-#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
-#~ msgstr "Empty layers around bottom are replaced by nearest normal layers."
 
 #~ msgid "The model has too many empty layers."
 #~ msgstr "Il modello ha troppi layers vuoti."
@@ -20220,9 +20105,6 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "Punteggio"
 
-#~ msgid "Bambu High Temperature Plate"
-#~ msgstr "Bambu High Temperature Plate"
-
 #~ msgid "Can't connect to the printer"
 #~ msgstr "Impossibile connettersi alla stampante"
 
@@ -20254,9 +20136,6 @@ msgstr ""
 #~ "mentre lo stile ibrido creerà una struttura simile a quella dei sostegni "
 #~ "normali sotto grandi sporgenze piatte."
 
-#~ msgid "Bed temperature difference"
-#~ msgstr "Bed temperature difference"
-
 #~ msgid ""
 #~ "Do not recommend bed temperature of other layer to be lower than initial "
 #~ "layer for more than this threshold. Too low bed temperature of other "
@@ -20266,6 +20145,3 @@ msgstr ""
 #~ "inferiore a quella del primo layer di oltre questa soglia. Una "
 #~ "temperatura del piano troppo bassa degli altri layer può causare il "
 #~ "distacco dell'oggetto dal piatto."
-
-#~ msgid "Orient the model"
-#~ msgstr "Orient the model"
