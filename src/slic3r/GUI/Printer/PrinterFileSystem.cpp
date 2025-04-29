@@ -1123,9 +1123,9 @@ void PrinterFileSystem::RequestUploadFile()
             if (result != SUCCESS && result != CONTINUE && result != FILE_EXIST) {
                 std::string error_msg = "";
                 if (result == ERROR_CANCEL) {
-                    error_msg = L("User cancels task.");
+                    error_msg = _L("User cancels task.").ToStdString();
                 } else if (result == FILE_READ_WRITE_ERR || result == FILE_OPEN_ERR) {
-                    error_msg = L("Failed to read file, please try again.");
+                    error_msg = _L("Failed to read file, please try again.").ToStdString();
                 }
                 wxLogWarning("PrinterFileSystem::UploadFile error: %d\n", result);
                 SendChangedEvent(EVT_UPLOAD_CHANGED, FF_UPLOADCANCEL, error_msg, result);
