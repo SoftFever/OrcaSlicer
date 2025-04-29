@@ -598,7 +598,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     std::vector<float>        m_filament_densities          = result->filament_densities;
     auto get_used_filament_from_volume = [m_filament_diameters, m_filament_densities](double volume, int extruder_id) {
         double                    koef = 0.001;
-        std::pair<double, double> ret = {koef * volume / (PI * sqr(0.5 * m_filament_diameters[extruder_id])), volume * m_filament_densities[extruder_id] * 0.001};
+        double                    section_area = PI * sqr(0.5 * m_filament_diameters[extruder_id]);
+        std::pair<double, double> ret = {section_area < EPSILON ? 0 : (koef * volume / section_area), volume * m_filament_densities[extruder_id] * 0.001};
         return ret;
     };
 
