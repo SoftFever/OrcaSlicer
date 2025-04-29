@@ -1106,8 +1106,8 @@ void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
 void PrintErrorDialog::init_button_list()
 {
     init_button(RESUME_PRINTING, _L("Resume Printing"));
-    init_button(RESUME_PRINTING_DEFECTS, _L("Resume Printing (defects acceptable)"));
-    init_button(RESUME_PRINTING_PROBELM_SOLVED, _L("Resume Printing (problem solved)"));
+    init_button(RESUME_PRINTING_DEFECTS, _L("Resume (defects acceptable)"));
+    init_button(RESUME_PRINTING_PROBELM_SOLVED, _L("Resume (problem solved)"));
     init_button(STOP_PRINTING, _L("Stop Printing"));// pop up recheck dialog?
     init_button(CHECK_ASSISTANT, _L("Check Assistant"));
     init_button(FILAMENT_EXTRUDED, _L("Filament Extruded, Continue"));
