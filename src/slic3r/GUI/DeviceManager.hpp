@@ -593,6 +593,8 @@ public:
         bool isAirPump() const { return product_name.Contains("Air Pump"); }
         bool isLaszer() const { return product_name.Contains("Laser"); }
         bool isCuttingModule() const { return product_name.Contains("Cutting Module"); }
+        bool isExtinguishSystem() const { return product_name.Contains("Extinguishing System"); }// Auto Fire Extinguishing System
+        bool isRotary() const { return product_name.Contains("Rotary"); }// Rotary Attachment
     };
 
     enum SdcardState {
@@ -849,6 +851,8 @@ public:
     ModuleVersionInfo air_pump_version_info;
     ModuleVersionInfo laser_version_info;
     ModuleVersionInfo cutting_module_version_info;
+    ModuleVersionInfo extinguish_version_info;
+    ModuleVersionInfo rotary_version_info;
     std::map<std::string, ModuleVersionInfo> module_vers;
     std::map<std::string, ModuleVersionInfo> new_ver_list;
     std::map<std::string, ExtrusionRatioInfo> extrusion_ratio_map;
