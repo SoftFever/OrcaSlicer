@@ -201,7 +201,7 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
     Preset* preset = filament_presets->find_preset(old_preset_name);
     if (!preset) {
-        message = wxString::Format(_L("The selected preset: %s is not found."), old_preset_name);
+        message = wxString::Format(_L("The selected preset: %s was not found."), old_preset_name);
         return false;
     }
 
