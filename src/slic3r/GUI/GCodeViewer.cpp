@@ -873,10 +873,10 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 
     // set to color print by default if use multi extruders
     if (m_nozzle_nums > 1) {
-        m_view_type_sel = (int)EViewType::Summary;
+        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
         set_view_type(EViewType::Summary);
     } else {
-        m_view_type_sel = (int)EViewType::ColorPrint;
+        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::ColorPrint));
         set_view_type(EViewType::ColorPrint);
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
