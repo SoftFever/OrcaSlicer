@@ -6032,8 +6032,53 @@ bool CLI::setup(int argc, char **argv)
     return true;
 }
 
+void attach_console_on_demand(){
+#ifdef _WIN32
+    static bool console_attached = false;
+
+    if (!console_attached) {
+        // Try attaching to the parent console first
+        if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+            console_attached = true;
+        } else if (GetLastError() == ERROR_ACCESS_DENIED) {
+            // Already has a console (maybe attached by debugger)
+            console_attached = true;
+        } else {
+            // No parent console found, try allocating a new one
+            if (AllocConsole()) {
+                console_attached = true;
+            }
+        }
+
+        if (console_attached) {
+            FILE* fp = nullptr;
+            // Redirect standard C streams to the console
+            if (freopen_s(&fp, "CONOUT$", "w", stdout) == 0) {
+                setvbuf(stdout, NULL, _IONBF, 0); // Optional: Disable buffering
+            }
+            if (freopen_s(&fp, "CONOUT$", "w", stderr) == 0) {
+                setvbuf(stderr, NULL, _IONBF, 0); // Optional: Disable buffering
+            }
+            if (freopen_s(&fp, "CONIN$", "r", stdin) == 0) {
+                // Input redirection successful
+            }
+            // Sync C++ streams with C streams after redirection
+            std::ios::sync_with_stdio(true);
+            // Clear potential error states from C++ streams
+            std::cout.clear();
+            std::cerr.clear();
+            std::cin.clear();
+            boost::nowide::cout.clear();
+            boost::nowide::cerr.clear();
+            boost::nowide::cin.clear();
+        }
+    }
+#endif
+}
 void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const
 {
+    attach_console_on_demand();
+
     boost::nowide::cout
         << SLIC3R_APP_KEY <<"-"<< SoftFever_VERSION << ":"
         << std::endl
@@ -6298,46 +6343,6 @@ extern "C" {
             int *a = nullptr;
             *a     = 0;
             });
-        bool cli_mode = argc > 1; // Simple check for CLI mode
-        bool console_attached = false;
-
-        if (cli_mode) {
-            // Try attaching to the parent console first
-            if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-                console_attached = true;
-            } else if (GetLastError() == ERROR_ACCESS_DENIED) {
-                // Already has a console (maybe attached by debugger)
-                console_attached = true;
-            } else {
-                // No parent console found, try allocating a new one
-                if (AllocConsole()) {
-                    console_attached = true;
-                }
-            }
-
-            if (console_attached) {
-                FILE* fp = nullptr;
-                // Redirect standard C streams to the console
-                if (freopen_s(&fp, "CONOUT$", "w", stdout) == 0) {
-                   setvbuf(stdout, NULL, _IONBF, 0); // Optional: Disable buffering
-                }
-                if (freopen_s(&fp, "CONOUT$", "w", stderr) == 0) {
-                   setvbuf(stderr, NULL, _IONBF, 0); // Optional: Disable buffering
-                }
-                if (freopen_s(&fp, "CONIN$", "r", stdin) == 0) {
-                   // Input redirection successful
-                }
-                // Sync C++ streams with C streams after redirection
-                std::ios::sync_with_stdio(true);
-                // Clear potential error states from C++ streams
-                std::cout.clear();
-                std::cerr.clear();
-                std::cin.clear();
-                boost::nowide::cout.clear();
-                boost::nowide::cerr.clear();
-                boost::nowide::cin.clear();
-            }
-        }
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }

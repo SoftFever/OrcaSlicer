@@ -18975,15 +18975,6 @@ msgstr ""
 #~ "La mida del fitxer supera el límit de pujada de 100 MB. Si us plau, "
 #~ "carregueu el vostre fitxer a través del panell."
 
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
-#~ msgid "V"
-#~ msgstr "V"
-
 #, fuzzy
 #~ msgid "Maximum print speed when purging"
 #~ msgstr "Màxima velocitat d'impressió en purgar"
@@ -19027,20 +19018,8 @@ msgstr ""
 #~ msgid "Unload Filament"
 #~ msgstr "Descarregar Filament"
 
-#~ msgid "MC"
-#~ msgstr "MC"
-
 #~ msgid "MainBoard"
 #~ msgstr "Placa Base"
-
-#~ msgid "TH"
-#~ msgstr "TH"
-
-#~ msgid "XCam"
-#~ msgstr "XCam"
-
-#~ msgid "HMS"
-#~ msgstr "HMS"
 
 #, fuzzy
 #~| msgid "Unsaved Changes"
@@ -19247,9 +19226,6 @@ msgstr ""
 
 #~ msgid "Resize"
 #~ msgstr "Redimensionar"
-
-#~ msgid " "
-#~ msgstr " "
 
 #~ msgid "The Config cannot be loaded."
 #~ msgstr "La Configuració no es pot carregar."
