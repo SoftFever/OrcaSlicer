@@ -64,6 +64,8 @@ namespace Slic3r {
         Polygon m_bed_polygon;
         Point m_plate_offset;
 
+        std::unordered_map<const PrintInstance*, BoundingBoxf3> bbox_cache;
+
         std::optional<Point> m_all_layer_pos;
     };
 }

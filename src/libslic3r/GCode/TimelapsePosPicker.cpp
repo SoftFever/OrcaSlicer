@@ -16,6 +16,7 @@ namespace Slic3r {
         m_bed_polygon.clear();
         m_extruder_printable_area.clear();
         m_all_layer_pos = std::nullopt;
+        bbox_cache.clear();
     }
 
     /**
@@ -171,6 +172,10 @@ namespace Slic3r {
     // get the real instance bounding box, remove the plate offset and add raft height
     BoundingBoxf3 TimelapsePosPicker::get_real_instance_bbox(const PrintInstance& instance)
     {
+        auto iter = bbox_cache.find(&instance);
+        if (iter != bbox_cache.end())
+            return iter->second;
+
         auto bbox = instance.get_bounding_box();
         double raft_height =get_raft_height(instance.print_object);
         bbox.max.z() += raft_height;
@@ -179,6 +184,9 @@ namespace Slic3r {
         bbox.max.x() -= m_plate_offset.x();
         bbox.min.y() -= m_plate_offset.y();
         bbox.max.y() -= m_plate_offset.y();
+
+        bbox_cache[&instance] = bbox;
+
         return bbox;
     }
 
@@ -270,7 +278,7 @@ namespace Slic3r {
         if (!obj)
             return {};
         // in bambu studio, each object only has one instance
-        auto instance = obj->instances().front();
+        const auto& instance = obj->instances().front();
         auto instance_bbox = get_real_instance_bbox(instance);
         Point min_p{ instance_bbox.min.x(),instance_bbox.min.y() };
         Point max_p{ instance_bbox.max.x(),instance_bbox.max.y() };
