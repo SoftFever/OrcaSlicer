@@ -73,7 +73,8 @@ public:
     bool IsFirstUse();
 
     //Model - Machine - Filaments
-    int LoadProfile();
+    int LoadProfileData();
+    int SaveProfileData();
     int LoadProfileFamily(std::string strVendor, std::string strFilePath);
     int SaveProfile();
     int GetFilamentInfo( std::string VendorDirectory,json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType);
@@ -106,6 +107,11 @@ private:
     bool orca_bundle_rsrc;
     boost::filesystem::path vendor_dir;
     boost::filesystem::path rsrc_vendor_dir;
+
+    //First Load
+    bool bFirstComplete{false};
+    bool m_destroy{false};
+    boost::thread* m_load_task{ nullptr };
 
     // User Config
     bool PrivacyUse;

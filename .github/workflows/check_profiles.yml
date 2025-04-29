@@ -23,6 +23,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Run extra JSON check
+        run: |
+          python3 ./scripts/orca_extra_profile_check.py
+
       # download
       - name: Download 
         working-directory: ${{ github.workspace }}
@@ -44,4 +48,4 @@ jobs:
 
 
 
-        
+

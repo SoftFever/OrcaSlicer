@@ -97,6 +97,8 @@ public:
     // Whether using bbl's device tab
     bool use_bbl_device_tab();
 
+    bool backup_user_folder() const;
+
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();

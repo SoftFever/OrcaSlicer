@@ -4,7 +4,7 @@
     "inherits": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
-    "filament_id": "GFL99",
+    "filament_id": "OGFL99",
     "additional_cooling_fan_speed": [
         "70"
     ],
@@ -72,7 +72,7 @@
         "4"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "temperature_vitrification": [
         "45"

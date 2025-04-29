@@ -2,7 +2,7 @@
     "type": "filament",
     "name": "fdm_filament_pc",
     "inherits": "fdm_filament_common",
-    "filament_id": "GFC99",
+    "filament_id": "OGFC99",
     "from": "system",
     "instantiation": "false",
     "supertack_plate_temp": [
@@ -72,7 +72,7 @@
         "2"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "temperature_vitrification": [
         "120"

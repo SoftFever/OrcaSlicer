@@ -8,5 +8,5 @@
     "bed_model": "320x320.stl",
     "bed_texture": "Geeetech_buildplate_texture.png",
     "hotend_model": "",
-    "default_materials": "Generic PLA @Geeetech;Generic PLA @Geeetech_FastSpeed;Generic PETG @Geeetech;Generic ABS @Geeetech;Generic TPU @Geeetech"
+    "default_materials": "Generic PLA @System;Generic PLA @System;Generic PETG @System;Generic ABS @System;Generic TPU @System"
 }

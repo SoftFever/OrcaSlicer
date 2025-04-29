@@ -1368,7 +1368,13 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2. + 10), scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width))));
 
     // get the Polygons upper the polygon this layer
-    Polygons upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
+    Polygons upper_polygons_series_clipped;
+    if (object_config->interface_shells) {
+        auto upper_slicer_same_region = to_expolygons(this->upper_slices_same_region->surfaces);
+        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(upper_slicer_same_region, last_box);
+    } else
+        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
+
     upper_polygons_series_clipped          = offset(upper_polygons_series_clipped, min_width_top_surface);
 
     // set the clip to a virtual "second perimeter"
@@ -1949,7 +1955,7 @@ void PerimeterGenerator::process_classic()
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2;
     // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
-    if(config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter)
+    if(config->precise_outer_wall)
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
     else
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
@@ -2948,7 +2954,7 @@ void PerimeterGenerator::process_arachne()
         if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
             loop_number = 0;
         
-        auto apply_precise_outer_wall = config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter;
+        auto apply_precise_outer_wall = config->precise_outer_wall;
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
                        apply_precise_outer_wall? -float(ext_perimeter_width - ext_perimeter_spacing )
@@ -2968,7 +2974,7 @@ void PerimeterGenerator::process_arachne()
         const int inner_loop_number = (config->only_one_wall_top && upper_slices != nullptr) ? loop_number - 1 : -1;
 
         // Set one perimeter when TopSurfaces is selected.
-        if (config->only_one_wall_top)
+        if (config->only_one_wall_top && loop_number > 0)
             loop_number = 0;
 
         Arachne::WallToolPathsParams input_params_tmp = input_params;
@@ -2991,7 +2997,13 @@ void PerimeterGenerator::process_arachne()
             coord_t perimeter_width = this->perimeter_flow.scaled_width();
 
             // Get top ExPolygons from current infill contour.
-            Polygons upper_slices_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*upper_slices, infill_contour_bbox);
+            Polygons upper_slices_clipped;
+            if (object_config->interface_shells) {
+                auto upper_slicer_same_region = to_expolygons(this->upper_slices_same_region->surfaces);
+                upper_slices_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(upper_slicer_same_region, infill_contour_bbox);
+            } else
+                upper_slices_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*upper_slices, infill_contour_bbox);
+
             top_expolygons = diff_ex(infill_contour, upper_slices_clipped);
 
             if (!top_expolygons.empty()) {
@@ -3176,13 +3188,19 @@ void PerimeterGenerator::process_arachne()
                 
                 // Debug statement to print spacing values:
                 //printf("External threshold - Ext perimeter: %d Ext spacing: %d Int perimeter: %d Int spacing: %d\n", this->ext_perimeter_flow.scaled_width(),this->ext_perimeter_flow.scaled_spacing(),this->perimeter_flow.scaled_width(), this->perimeter_flow.scaled_spacing());
-               
-                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by 3% to cover
-                // rounding errors
-                coord_t threshold_external = (this->ext_perimeter_flow.scaled_spacing()/2 + this->perimeter_flow.scaled_spacing()/2)*1.03;
+
+                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by the factor
+                // rounding errors. When precise wall is enabled, the external perimeter full spacing is used.
+                coord_t threshold_external = (apply_precise_outer_wall)
+                    // Precise outer wall ⇒ use “full external spacing”
+                    ? ( this->ext_perimeter_flow.scaled_spacing()
+                        + this->perimeter_flow.scaled_spacing()/2.0 )
+                    // Normal ⇒ half ext spacing + half int spacing
+                    : ( this->ext_perimeter_flow.scaled_spacing()/2.0
+                        + this->perimeter_flow.scaled_spacing()/2.0 );
                 
-                // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by 3% to cover rounding errors.
-                coord_t threshold_internal = this->perimeter_flow.scaled_spacing() * 1.03;
+                // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by the factor to cover rounding errors.
+                coord_t threshold_internal = this->perimeter_flow.scaled_spacing();
                 
                 // Re-order extrusions based on distance
                 // Alorithm will aggresively optimise for the appearance of the outermost perimeter

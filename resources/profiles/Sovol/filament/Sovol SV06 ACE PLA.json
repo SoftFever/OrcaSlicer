@@ -5,13 +5,14 @@
 	"name": "Sovol SV06 ACE PLA",
 	"from": "system",
 	"instantiation": "true",
-	"inherits": "Sovol Generic PLA",
+	"inherits": "Generic PLA @System",
 	"filament_flow_ratio": ["0.98"],
 	"filament_max_volumetric_speed": ["21"],
 	"full_fan_speed_layer": [
         "3"
     ],
 	"compatible_printers": [
+		"Sovol SV06 ACE 0.2 nozzle",
 		"Sovol SV06 ACE 0.4 nozzle",
 		"Sovol SV06 ACE 0.6 nozzle",
 		"Sovol SV06 ACE 0.8 nozzle"

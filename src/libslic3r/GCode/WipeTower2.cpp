@@ -1655,10 +1655,14 @@ void WipeTower2::save_on_last_wipe()
 int WipeTower2::first_toolchange_to_nonsoluble(
         const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const
 {
-    for (size_t idx=0; idx<tool_changes.size(); ++idx)
-        if (! m_filpar[tool_changes[idx].new_tool].is_soluble)
-            return idx;
-    return -1;
+    // Orca: allow calculation of the required depth and wipe volume for soluable toolchanges as well
+    // NOTE: it's not clear if this is the right way, technically we should disable wipe tower if soluble filament is used as it
+    // will will make the wipe tower unstable. Need to revist this in the future.
+    return tool_changes.empty() ? -1 : 0;
+    //for (size_t idx=0; idx<tool_changes.size(); ++idx)
+    //    if (! m_filpar[tool_changes[idx].new_tool].is_soluble)
+    //        return idx;
+    //return -1;
 }
 
 static WipeTower::ToolChangeResult merge_tcr(WipeTower::ToolChangeResult& first,

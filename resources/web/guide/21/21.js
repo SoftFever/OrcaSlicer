@@ -98,7 +98,8 @@ function HandleModelList( pVal )
 		for(let m=0;m<NozzleArray.length;m++)
 		{
 			let nNozzel=NozzleArray[m];
-			HtmlNozzel += '<div class="pNozzel TextS2"><input type="checkbox" model="' + OneModel['model'] + '" nozzel="' + nNozzel + '" vendor="' + strVendor +'" onclick="CheckBoxOnclick(this)" /><span>'+nNozzel+'</span><span class="trans" tid="t13">mm nozzle</span></div>';
+			/* ORCA use label tag to allow checkbox to toggle when user ckicked to text */
+			HtmlNozzel += '<label class="pNozzel TextS2"><input type="checkbox" model="' + OneModel['model'] + '" nozzel="' + nNozzel + '" vendor="' + strVendor +'" onclick="CheckBoxOnclick(this)" /><span>'+nNozzel+'</span><span class="trans" tid="t13">mm nozzle</span></label>';
 		}
 		
 		let CoverImage=OneModel['cover'];
@@ -216,14 +217,16 @@ function FilterModelList(keyword) {
 
 	let nTotal = pModel.length;
 	let ModelHtml = {};
+	let kwSplit = keyword.toLowerCase().match(/\S+/g) || [];
 
 	$('#Content').empty();
 	for (let n = 0; n < nTotal; n++) {
 		let OneModel = pModel[n];
 
 		let strVendor = OneModel['vendor'];
-		let ModelName = OneModel['model'];
-		if (ModelName.toLowerCase().indexOf(keyword.toLowerCase()) == -1)
+		let search = (OneModel['model'] + '\0' + strVendor).toLowerCase();
+
+		if (!kwSplit.every(s => search.includes(s)))
 			continue;
 
 		//Add Vendor Html Node
@@ -259,7 +262,8 @@ function FilterModelList(keyword) {
 		let HtmlNozzel = '';
 		for (let m = 0; m < NozzleArray.length; m++) {
 			let nNozzel = NozzleArray[m];
-			HtmlNozzel += '<div class="pNozzel TextS2"><input type="checkbox" model="' + OneModel['model'] + '" nozzel="' + nNozzel + '" vendor="' + strVendor + '" onclick="CheckBoxOnclick(this)" /><span>' + nNozzel + '</span><span class="trans" tid="t13">mm nozzle</span></div>';
+			/* ORCA use label tag to allow checkbox to toggle when user ckicked to text */
+			HtmlNozzel += '<label class="pNozzel TextS2"><input type="checkbox" model="' + OneModel['model'] + '" nozzel="' + nNozzel + '" vendor="' + strVendor + '" onclick="CheckBoxOnclick(this)" /><span>' + nNozzel + '</span><span class="trans" tid="t13">mm nozzle</span></label>';
 		}
 
 		let CoverImage = OneModel['cover'];
