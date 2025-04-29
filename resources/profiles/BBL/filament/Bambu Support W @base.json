@@ -27,9 +27,6 @@
     "filament_scarf_seam_type": [
         "none"
     ],
-    "filament_printable": [
-        "1"
-    ],
     "slow_down_layer_time": [
         "8"
     ],
