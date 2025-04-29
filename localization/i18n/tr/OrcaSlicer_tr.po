@@ -3252,10 +3252,10 @@ msgid "Underflow"
 msgstr "Düşük Akış"
 
 msgid "Floating reserved operand"
-msgstr "Floating reserved operand"
+msgstr ""
 
 msgid "Stack overflow"
-msgstr "Stack overflow"
+msgstr ""
 
 msgid "Running post-processing scripts"
 msgstr "İşlem sonrası komut dosyalarını çalıştırma"
@@ -7269,22 +7269,22 @@ msgid "Busy"
 msgstr "Meşgul"
 
 msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
+msgstr ""
 
 msgid "PLA Plate"
 msgstr "PLA Plaka"
 
 msgid "Bambu Engineering Plate"
-msgstr "Bambu Engineering Plate"
+msgstr ""
 
 msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Smooth PEI Plate"
+msgstr ""
 
 msgid "High temperature Plate"
-msgstr "High Temperature Plate"
+msgstr ""
 
 msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Yazdırma işini şuraya gönder"
@@ -8022,7 +8022,7 @@ msgstr ""
 "SuperTack üzerine yazdırmayı desteklemediği anlamına gelir"
 
 msgid "Cool Plate"
-msgstr ""
+msgstr "Soğuk plaka"
 
 msgid ""
 "Bed temperature when the Cool Plate is installed. A value of 0 means the "
@@ -8190,7 +8190,7 @@ msgid "Layer change G-code"
 msgstr "Katman Değişimi G-kod"
 
 msgid "Time lapse G-code"
-msgstr "Time Lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Filament Değişimi G-kod"
@@ -18368,17 +18368,6 @@ msgstr ""
 #~ "en az 2 arayüz katmanı, en az 0,1 mm üst z mesafesi veya arayüzde destek "
 #~ "malzemeleri kullanılması."
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
-#~ "independent support layer height"
-#~ msgstr ""
-#~ "Destek arayüzü için destek materyali kullanırken aşağıdaki ayarları "
-#~ "öneriyoruz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, eş merkezli desen ve bağımsız destek "
-#~ "katmanı yüksekliğini devre dışı bırakma"
-
 #~ msgid "Branch Diameter with double walls"
 #~ msgstr "Çift duvarlı dal çapı"
 
@@ -18637,9 +18626,6 @@ msgstr ""
 
 #~ msgid "Orca Slicer "
 #~ msgstr "Orca Dilimleyici "
-
-#~ msgid "Cool plate"
-#~ msgstr "Soğuk plaka"
 
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Z Kaldırma Uygulaması"
@@ -19157,12 +19143,6 @@ msgstr ""
 #~ msgid "Please find the cornor with perfect degree of extrusion"
 #~ msgstr "Lütfen mükemmel ekstrüzyon derecesine sahip köşeyi bulun"
 
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
 #~ msgid ""
 #~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
 #~ "PrusaSlicer links from Printable.com"
@@ -19188,9 +19168,6 @@ msgstr ""
 #~ "duvarları tutturulduğu yerden hafifçe dışarı doğru itecek ve bu da daha "
 #~ "kötü bir dış yüzey kalitesine neden olacaktır. Ayrıca dolgunun parçanın "
 #~ "dış yüzeylerinden parlamasına da neden olabilir."
-
-#~ msgid "V"
-#~ msgstr "V"
 
 #~ msgid ""
 #~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
@@ -19291,36 +19268,8 @@ msgstr ""
 #~ msgid "Unload Filament"
 #~ msgstr "Filamenti Çıkarın"
 
-#~ msgid ""
-#~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
-#~ "automatically load or unload filiament."
-#~ msgstr ""
-#~ "Filamenti otomatik olarak yüklemek veya çıkarmak için bir AMS yuvası "
-#~ "seçin ve ardından \"Yükle\" veya \"Boşalt\" düğmesine basın."
-
-#~ msgid "MC"
-#~ msgstr "MC"
-
 #~ msgid "MainBoard"
 #~ msgstr "Anakart"
-
-#~ msgid "TH"
-#~ msgstr "TH"
-
-#~ msgid "XCam"
-#~ msgstr "XCam"
-
-#~ msgid "HMS"
-#~ msgstr "HMS"
-
-#~ msgid "- ℃"
-#~ msgstr "- °C"
-
-#~ msgid "0.5"
-#~ msgstr "0.5"
-
-#~ msgid "0.005"
-#~ msgstr "0.005"
 
 #~ msgid "New Flow Dynamics Calibration"
 #~ msgstr "Yeni Akış Dinamiği Kalibrasyonu"
@@ -19439,9 +19388,6 @@ msgstr ""
 
 #~ msgid "Failed to fetching model informations from printer."
 #~ msgstr "Model bilgileri yazıcıdan alınamadı."
-
-#~ msgid "Failed to parse model informations."
-#~ msgstr "Model bilgileri ayrıştırılamadı."
 
 #~ msgid "Connection lost. Please retry."
 #~ msgstr "Bağlantı koptu. Lütfen tekrar deneyiniz."
@@ -19583,9 +19529,6 @@ msgstr ""
 #~ "Çok eğimli yüzeyler için bu seçenek çok ince bir üst katman "
 #~ "oluşturacağından ve devre dışı bırakılması gerektiğinden uygun değildir."
 
-#~ msgid " "
-#~ msgstr " "
-
 #~ msgid "Text-Rotate"
 #~ msgstr "Metin Döndürme"
 
@@ -19632,18 +19575,6 @@ msgstr ""
 
 #~ msgid "wiki"
 #~ msgstr "wiki"
-
-#~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" "
-#~ "option.Some extruders work better with this option unchecked (absolute "
-#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
-#~ "always enabled on BambuLab printers. Default is checked"
-#~ msgstr ""
-#~ "\"label_objects\" seçeneği kullanılırken göreceli ekstrüzyon önerilir. "
-#~ "Bazı ekstruderler bu seçeneğin işareti kaldırıldığında (mutlak ekstrüzyon "
-#~ "modu) daha iyi çalışır. Temizleme kulesi yalnızca göreceli modla "
-#~ "uyumludur. BambuLab yazıcılarında her zaman etkindir. Varsayılan olarak "
-#~ "işaretlendi"
 
 #~ msgid "Movement:"
 #~ msgstr "Hareket:"
@@ -19711,9 +19642,6 @@ msgstr ""
 
 #~ msgid "Choose SLA archive:"
 #~ msgstr "SLA arşivini seçin:"
-
-#~ msgid "Import file"
-#~ msgstr "Dosyayı içe aktar"
 
 #~ msgid "Import model and profile"
 #~ msgstr "Modeli ve profili içe aktar"
@@ -19912,15 +19840,6 @@ msgstr ""
 #~ "3D sahnede fare ve dokunmatik panel ile görünümü ve nesne/parça seçimini "
 #~ "nasıl kontrol edeceğinizi biliyor muydunuz?"
 
-#~ msgid ""
-#~ "Fix Model\n"
-#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
-#~ "slicing problems?"
-#~ msgstr ""
-#~ "Modeli Düzelt\n"
-#~ "Pek çok dilimleme sorununu önlemek için bozuk bir 3D modeli "
-#~ "düzeltebileceğinizi biliyor muydunuz?"
-
 #~ msgid "Embedded"
 #~ msgstr "Gömülü"
 
@@ -20027,11 +19946,6 @@ msgstr ""
 #~ "Yüksek sıcaklık plakası takıldığında yatak sıcaklığı. 0 değeri, "
 #~ "filamentin Yüksek Sıcaklık Plakasına yazdırmayı desteklemediği anlamına "
 #~ "gelir"
-
-#~ msgid ""
-#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
-#~ msgstr ""
-#~ "Klipper max_accel_to_decel değeri bu hızlanma % değerine ayarlanacaktır"
 
 #~ msgid "Maximum acceleration for travel (M204 T)"
 #~ msgstr "Hareket için maksimum hızlanma (M204 T)"

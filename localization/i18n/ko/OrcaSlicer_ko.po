@@ -2782,10 +2782,10 @@ msgid "License"
 msgstr "라이센스"
 
 msgid "Orca Slicer is licensed under "
-msgstr "Orca Slicer is licensed under "
+msgstr ""
 
 msgid "GNU Affero General Public License, version 3"
-msgstr "GNU Affero General Public License, version 3"
+msgstr ""
 
 msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr "Orca Slicer는 PrusaSlicer와 BambuStudio를 기반으로 합니다"
@@ -3467,16 +3467,13 @@ msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
 "heating at the same time.)"
 msgstr ""
-"printers at the same time. (It depends on how many devices can undergo "
-"heating at the same time.)"
 
 msgid "Wait"
-msgstr "Wait"
+msgstr ""
 
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
-"minute each batch. (It depends on how long it takes to complete heating.)"
 
 msgid "Send"
 msgstr "전송"
@@ -13876,10 +13873,10 @@ msgid "XY separation between an object and its support"
 msgstr "객체와 서포트를 분리하는 XY 간격"
 
 msgid "Support/object first layer gap"
-msgstr "Support/object first layer gap"
+msgstr ""
 
 msgid "XY separation between an object and its support at the first layer."
-msgstr "XY separation between an object and its support at the first layer."
+msgstr ""
 
 msgid "Pattern angle"
 msgstr "패턴 각도"
@@ -17767,16 +17764,6 @@ msgstr ""
 #~ "\"강한 나무\" 및 \"혼합 나무\" 모양의 경우 최소 접점 레이어 2, 상단 Z 거"
 #~ "리 0.1 또는 접점에서 서포트 재료를 사용하는 설정을 권장합니다."
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
-#~ "independent support layer height"
-#~ msgstr ""
-#~ "서포트 접점에 서포트 재료를 사용하는 경우 다음 설정을 권장합니다:\n"
-#~ "상단 Z 거리 0, 접점 간격 0, 접점 패턴 동심원 및 독립적 서포트 높이 비활성"
-#~ "화"
-
 #~ msgid "Branch Diameter with double walls"
 #~ msgstr "이중 벽이 있는 가지 직경"
 
@@ -18014,12 +18001,6 @@ msgstr ""
 #~ msgctxt "Verb"
 #~ msgid "Scale"
 #~ msgstr "규모"
-
-#~ msgid "Orca Slicer "
-#~ msgstr "Orca Slicer "
-
-#~ msgid "Cool plate"
-#~ msgstr "쿨 플레이트"
 
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "강제 Z 올리기"
@@ -18449,12 +18430,6 @@ msgstr ""
 #~ msgid "Please find the cornor with perfect degree of extrusion"
 #~ msgstr "완벽한 압출각도를 가진 모서리를 찾아주세요"
 
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
 #~ msgid ""
 #~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 #~ "first, which works best in most cases.\n"
@@ -18472,9 +18447,6 @@ msgstr ""
 #~ "이 될 수 있습니다. 그러나 충전재는 출력된 벽이 부착된 부분을 약간 밀어내"
 #~ "어 외부 표면 마감이 더 나빠집니다. 또한 충전재가 부품의 외부 표면을 통해 "
 #~ "빛날 수도 있습니다."
-
-#~ msgid "V"
-#~ msgstr "V"
 
 #~ msgid ""
 #~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
@@ -18518,36 +18490,8 @@ msgstr ""
 #~ msgid "Unload Filament"
 #~ msgstr "필라멘트 언로드"
 
-#~ msgid ""
-#~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
-#~ "automatically load or unload filiament."
-#~ msgstr ""
-#~ "AMS 슬롯을 선택한 후 \"넣기\" 또는 \"빼기\" 버튼을 눌러 필라멘트를 자동으"
-#~ "로 넣거나 뺍니다."
-
-#~ msgid "MC"
-#~ msgstr "MC"
-
 #~ msgid "MainBoard"
 #~ msgstr "메인보드"
-
-#~ msgid "TH"
-#~ msgstr "TH"
-
-#~ msgid "XCam"
-#~ msgstr "XCam"
-
-#~ msgid "HMS"
-#~ msgstr "HMS"
-
-#~ msgid "- ℃"
-#~ msgstr "- ℃"
-
-#~ msgid "0.5"
-#~ msgstr "0.5"
-
-#~ msgid "0.005"
-#~ msgstr "0.005"
 
 #~ msgid "active"
 #~ msgstr "활성화"
@@ -18633,9 +18577,6 @@ msgstr ""
 
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr "프린터에서 모델 정보를 가져오지 못했습니다."
-
-#~ msgid "Failed to parse model informations."
-#~ msgstr "모델 정보를 해석하지 못했습니다."
 
 #~ msgid "Connection lost. Please retry."
 #~ msgstr "연결이 끊어졌습니다. 다시 시도해 주세요."
@@ -18752,9 +18693,6 @@ msgstr ""
 #~ "경사진 표면 근처에 꽉찬 내부 채우기를 추가하여 수직 쉘 두께를 보장합니다 "
 #~ "(상단+하단 꽉찬 레이어)"
 
-#~ msgid " "
-#~ msgstr " "
-
 #~ msgid "Text-Rotate"
 #~ msgstr "텍스트 회전"
 
@@ -18792,16 +18730,6 @@ msgstr ""
 
 #~ msgid "wiki"
 #~ msgstr "위키"
-
-#~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" "
-#~ "option.Some extruders work better with this option unchecked (absolute "
-#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
-#~ "always enabled on BambuLab printers. Default is checked"
-#~ msgstr ""
-#~ "상대적 압출은 \"label_objects\" 옵션(기타; 객체 이름표)을 사용할 때 권장됩"
-#~ "니다. 일부 압출기는 이 옵션을 해제하면 더 잘 작동합니다(절대 압출 모드). "
-#~ "닦기 타워는 상대 모드에서만 호환됩니다"
 
 #~ msgid "Movement:"
 #~ msgstr "이동:"
@@ -18868,9 +18796,6 @@ msgstr ""
 
 #~ msgid "Choose SLA archive:"
 #~ msgstr "SLA 압축파일 선택:"
-
-#~ msgid "Import file"
-#~ msgstr "파일 가져오기"
 
 #~ msgid "Import model and profile"
 #~ msgstr "모델과 파일 가져오기"
@@ -18962,9 +18887,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid " doesn't work at 100%% density "
 #~ msgstr " 100%% 밀도에서 작동하지 않음 "
-
-#~ msgid "Ctrl + Shift + Enter"
-#~ msgstr "Ctrl + Shift + Enter"
 
 #~ msgid "Tool-Lay on Face"
 #~ msgstr "바닥면 선택 도구"
@@ -19063,15 +18985,6 @@ msgstr ""
 #~ "3D 화면 작업\n"
 #~ "3D 화면에서 마우스와 터치패널로 보기 및 객체/부품 선택을 제어하는 방법을 "
 #~ "알고 있습니까?"
-
-#~ msgid ""
-#~ "Fix Model\n"
-#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
-#~ "slicing problems?"
-#~ msgstr ""
-#~ "모델 수리\n"
-#~ "많은 슬라이싱 문제를 피하기 위해 손상된 3D 모델을 수리할 수 있다는 것을 알"
-#~ "고 있습니까?"
 
 #~ msgid ""
 #~ "When need to print with the printer door opened\n"
@@ -19173,9 +19086,6 @@ msgstr ""
 #~ msgid "Calibration of extrusion"
 #~ msgstr "압출 교정"
 
-#~ msgid "Push new filament into the extruder"
-#~ msgstr "새 필라멘트를 압출기에 밀어 넣으세요"
-
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
@@ -19246,11 +19156,6 @@ msgstr ""
 #~ "지지대 루프는 내부 다리를 공중에서 압출하는 것을 방지하고, 특히 드문 채우"
 #~ "기 밀도가 낮을 때 상단 표면 품질을 향상시킬 수 있습니다. 이 값은 지지대 루"
 #~ "프의 두께를 결정하며 0은 이 기능을 사용하지 않음을 의미합니다"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
-#~ msgstr "Klipper의 max_accel_to_decel이 이 가속도 % o로 조정됩니다"
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "
