@@ -5014,7 +5014,7 @@ msgid "Flow rate"
 msgstr "Débit"
 
 msgid "Pressure advance"
-msgstr "Pressure Advance"
+msgstr ""
 
 msgid "Retraction test"
 msgstr "Test de rétraction"
@@ -7427,16 +7427,16 @@ msgid "PLA Plate"
 msgstr "Plaque PLA"
 
 msgid "Bambu Engineering Plate"
-msgstr "Bambu Engineering Plate"
+msgstr ""
 
 msgid "Bambu Smooth PEI Plate"
-msgstr "Bambu Smooth PEI Plate"
+msgstr ""
 
 msgid "High temperature Plate"
 msgstr "Plateau haute température"
 
 msgid "Bambu Textured PEI Plate"
-msgstr "Bambu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Envoyer le travail d'impression à"
@@ -7880,10 +7880,6 @@ msgid ""
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
 msgstr ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8772,58 +8768,54 @@ msgid "The configuration is up to date."
 msgstr "La configuration est à jour."
 
 msgid "Obj file Import color"
-msgstr "Obj file Import color"
+msgstr ""
 
 msgid "Specify number of colors:"
-msgstr "Specify number of colors:"
+msgstr ""
 
 #, c-format, boost-format
 msgid "The color count should be in range [%d, %d]."
-msgstr "The color count should be in range [%d, %d]."
+msgstr ""
 
 msgid "Recommended "
-msgstr "Recommended "
+msgstr ""
 
 msgid "Current filament colors:"
-msgstr "Current filament colors:"
+msgstr ""
 
 msgid "Quick set:"
-msgstr "Quick set:"
+msgstr ""
 
 msgid "Color match"
-msgstr "Color match"
+msgstr ""
 
 msgid "Approximate color matching."
-msgstr "Approximate color matching."
+msgstr ""
 
 msgid "Append"
-msgstr "Append"
+msgstr ""
 
 msgid "Add consumable extruder after existing extruders."
-msgstr "Add consumable extruder after existing extruders."
+msgstr ""
 
 msgid "Reset mapped extruders."
-msgstr "Reset mapped extruders."
+msgstr ""
 
 msgid "Cluster colors"
-msgstr "Cluster colors"
+msgstr ""
 
 msgid "Map Filament"
-msgstr "Map Filament"
+msgstr ""
 
 msgid ""
 "Note:The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
 msgstr ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
 
 msgid ""
 "Waring:The count of newly added and \n"
 " current extruders exceeds 16."
 msgstr ""
-"Warning: The count of newly added and \n"
-" current extruders exceeds 16."
 
 msgid "Ramming customization"
 msgstr "Personnalisation du pilonnage"
@@ -12434,7 +12426,7 @@ msgstr ""
 "extérieure."
 
 msgid "mm/s² or %"
-msgstr "mm/s² or %"
+msgstr "mm/s² ou %"
 
 msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage "
@@ -14725,10 +14717,10 @@ msgid "XY separation between an object and its support"
 msgstr "Séparation XY entre un objet et ses supports"
 
 msgid "Support/object first layer gap"
-msgstr "Support/object first layer gap"
+msgstr ""
 
 msgid "XY separation between an object and its support at the first layer."
-msgstr "XY separation between an object and its support at the first layer."
+msgstr ""
 
 msgid "Pattern angle"
 msgstr "Angle du motif"
@@ -18514,7 +18506,7 @@ msgid "Brim Ears"
 msgstr "Bordure à oreilles"
 
 msgid "Please select single object."
-msgstr "Please select single object."
+msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -19205,12 +19197,6 @@ msgstr ""
 #~ msgid "Scale"
 #~ msgstr "Redimensionner"
 
-#~ msgid "Orca Slicer "
-#~ msgstr "Orca Slicer "
-
-#~ msgid "Cool plate"
-#~ msgstr "Plaque Cool plate"
-
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "Exécution du décalage en Z"
 
@@ -19827,12 +19813,6 @@ msgstr ""
 #~ msgid "Please find the cornor with perfect degree of extrusion"
 #~ msgstr "Veuillez trouver le coin avec un degré d’extrusion parfait"
 
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
 #~ msgid ""
 #~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
 #~ "PrusaSlicer links from Printable.com"
@@ -19860,9 +19840,6 @@ msgstr ""
 #~ "imprimées à l’endroit où il est fixé, ce qui se traduira par une moins "
 #~ "bonne finition de la surface extérieure. Cela peut également faire "
 #~ "briller le remplissage à travers les surfaces externes de la pièce."
-
-#~ msgid "V"
-#~ msgstr "V"
 
 #~ msgid "Maximum print speed when purging"
 #~ msgstr "Vitesse d’impression maximale lors de la purge"
@@ -20014,36 +19991,8 @@ msgstr ""
 #~ msgid "Unload Filament"
 #~ msgstr "Déchargement"
 
-#~ msgid ""
-#~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
-#~ "automatically load or unload filiament."
-#~ msgstr ""
-#~ "Choisissez un emplacement AMS puis appuyez sur le bouton correspondant "
-#~ "pour Charger ou Décharger le filament."
-
-#~ msgid "MC"
-#~ msgstr "MC"
-
 #~ msgid "MainBoard"
 #~ msgstr "Carte mère"
-
-#~ msgid "TH"
-#~ msgstr "TH"
-
-#~ msgid "XCam"
-#~ msgstr "XCam"
-
-#~ msgid "HMS"
-#~ msgstr "HMS"
-
-#~ msgid "- ℃"
-#~ msgstr "- ℃"
-
-#~ msgid "0.5"
-#~ msgstr "0.5"
-
-#~ msgid "0.005"
-#~ msgstr "0.005"
 
 #~ msgid "New Flow Dynamics Calibration"
 #~ msgstr "Nouvelle calibration de la dynamique du flux"
@@ -20148,9 +20097,6 @@ msgstr ""
 #~ msgid "Failed to fetching model information from printer."
 #~ msgstr ""
 #~ "Impossible de récupérer les informations du modèle depuis l'imprimante."
-
-#~ msgid "Failed to parse model informations."
-#~ msgstr "Impossible d'analyser les informations du modèle."
 
 #~ msgid "Connection lost. Please retry."
 #~ msgstr "Connexion perdue. Veuillez réessayer."
@@ -20313,9 +20259,6 @@ msgstr ""
 #~ "surplombs et lorsque les fonctionnalités de vitesses ne sont pas "
 #~ "spécifiées explicitement."
 
-#~ msgid " "
-#~ msgstr " "
-
 #~ msgid "Small Area Infill Flow Compensation (beta)"
 #~ msgstr ""
 #~ "Compensation des débits de remplissage des petites zones (expérimental)"
@@ -20336,18 +20279,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Le fichier 3mf a été généré par une ancienne version de Orca Slicer, "
 #~ "chargement des données de géométrie uniquement."
-
-#~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" "
-#~ "option.Some extruders work better with this option unchecked (absolute "
-#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
-#~ "always enabled on BambuLab printers. Default is checked"
-#~ msgstr ""
-#~ "L’extrusion relative est recommandée lors de l’utilisation de l’option "
-#~ "\"label_objects\". Certains extrudeurs fonctionnent mieux avec cette "
-#~ "option décochée (mode d’extrusion absolu). La tour d’essuyage n’est "
-#~ "compatible qu’avec le mode relatif. Il est toujours activé sur les "
-#~ "imprimantes BambuLab. La valeur par défaut est cochée"
 
 #~ msgid "Movement:"
 #~ msgstr "Mouvement:"
@@ -20418,9 +20349,6 @@ msgstr ""
 
 #~ msgid "Choose SLA archive:"
 #~ msgstr "Choisissez l'archive SLA:"
-
-#~ msgid "Import file"
-#~ msgstr "Importer un fichier"
 
 #~ msgid "Import model and profile"
 #~ msgstr "Importer modèle et profil"
@@ -20588,15 +20516,6 @@ msgstr ""
 #~ "Savez-vous comment contrôler la vue et la sélection des objets/pièces "
 #~ "avec la souris et l'écran tactile dans la scène 3D ?"
 
-#~ msgid ""
-#~ "Fix Model\n"
-#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
-#~ "slicing problems?"
-#~ msgstr ""
-#~ "Réparer le Modèle\n"
-#~ "Saviez-vous que vous pouvez réparer un modèle 3D corrompu pour éviter de "
-#~ "nombreux problèmes de découpage ?"
-
 #~ msgid "Embedded"
 #~ msgstr "Intégré"
 
@@ -20688,9 +20607,6 @@ msgstr ""
 #~ msgid "Calibration of extrusion"
 #~ msgstr "Calibration de l'extrusion"
 
-#~ msgid "Push new filament into the extruder"
-#~ msgstr "Poussez le nouveau filament dans l'extrudeur"
-
 #, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
@@ -20753,13 +20669,6 @@ msgstr ""
 
 #~ msgid "Internal bridge support thickness"
 #~ msgstr "Épaisseur du support interne du pont"
-
-#, fuzzy, c-format, boost-format
-#~ msgid ""
-#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
-#~ msgstr ""
-#~ "Le paramètre max_accel_to_decel de Klipper sera ajusté à ce pourcentage "
-#~ "d’accélération"
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "
