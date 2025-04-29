@@ -23,6 +23,8 @@ static const std::unordered_map<wxString, wxString> ACCESSORY_DISPLAY_STR = {
     {"O2L_PCM", L("Cutting Module")},
     {"O2L_ACM", "Active Cutting Module"},
     {"O2L_UCM", "Ultrasonic Cutting Module"},
+    {"O2L-LFA", L("Rotary Attachment")},
+    {"O2L-AFP",L("Auto Fire Extinguishing System")}
 };
 
 enum FIRMWARE_STASUS
@@ -213,6 +215,8 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     createCuttingWidgets(m_main_left_sizer);
     createLaserWidgets(m_main_left_sizer);
     createAirPumpWidgets(m_main_left_sizer);
+    createExtinguishWidgets(m_main_left_sizer);
+    createRotaryWidgets(m_main_left_sizer);
 
     m_main_sizer->Add(m_main_left_sizer, 1, wxEXPAND, 0);
 
@@ -333,7 +337,6 @@ void MachineInfoPanel::createAirPumpWidgets(wxBoxSizer* main_left_sizer)
     m_air_pump_img->SetBitmap(m_img_air_pump.bmp());
 
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
-    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
     m_air_pump_version = new uiDeviceUpdateVersion(this, wxID_ANY);
     content_sizer->Add(m_air_pump_version, 0, wxEXPAND, 0);
 
@@ -354,7 +357,6 @@ void MachineInfoPanel::createCuttingWidgets(wxBoxSizer* main_left_sizer)
     m_cutting_img->SetBitmap(m_img_cutting.bmp());
 
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
-    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
     m_cutting_version = new uiDeviceUpdateVersion(this, wxID_ANY);
     content_sizer->Add(m_cutting_version, 0, wxEXPAND, 0);
 
@@ -375,7 +377,6 @@ void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
     m_lazer_img->SetBitmap(m_img_laser.bmp());
 
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
-    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
     m_laser_version = new uiDeviceUpdateVersion(this, wxID_ANY);
     content_sizer->Add(m_laser_version, 0, wxEXPAND, 0);
 
@@ -384,6 +385,46 @@ void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
     m_laser_sizer->Add(content_sizer, 1, wxEXPAND, 0);
 
     main_left_sizer->Add(m_laser_sizer, 0, wxEXPAND, 0);
+}
+
+void MachineInfoPanel::createExtinguishWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_extinguish_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_extinguish_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_extinguish_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_extinguish_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_extinguish_img->SetBitmap(m_img_extinguish.bmp());
+
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    m_extinguish_version = new uiDeviceUpdateVersion(this, wxID_ANY);
+    content_sizer->Add(m_extinguish_version, 0, wxEXPAND, 0);
+
+    m_extinguish_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_extinguish_sizer->Add(m_extinguish_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_extinguish_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_extinguish_sizer, 0, wxEXPAND, 0);
+}
+
+void MachineInfoPanel::createRotaryWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_rotary_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_rotary_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_rotary_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_rotary_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_rotary_img->SetBitmap(m_img_rotary.bmp());
+
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    m_rotary_version = new uiDeviceUpdateVersion(this, wxID_ANY);
+    content_sizer->Add(m_rotary_version, 0, wxEXPAND, 0);
+
+    m_rotary_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_rotary_sizer->Add(m_rotary_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_rotary_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_rotary_sizer, 0, wxEXPAND, 0);
 }
 
 void MachineInfoPanel::msw_rescale()
@@ -418,6 +459,8 @@ void MachineInfoPanel::init_bitmaps()
 
     m_img_laser          = ScalableBitmap(this, "laser", 160);
     m_img_cutting        = ScalableBitmap(this, "cut", 160);
+    m_img_extinguish     = ScalableBitmap(this, "cut", 160);//TODO
+    m_img_rotary        = ScalableBitmap(this, "cut", 160);//TODO
 
     upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
     upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
@@ -513,6 +556,8 @@ void MachineInfoPanel::update(MachineObject* obj)
         update_air_pump(obj);
         update_cut(obj);
         update_laszer(obj);
+        update_extinguish(obj);
+        update_rotary(obj);
 
         //update progress
         int upgrade_percent = obj->get_upgrade_percent();
@@ -1000,40 +1045,51 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
 void MachineInfoPanel::update_air_pump(MachineObject* obj)
 {
-    if (obj && obj->air_pump_version_info.isValid())
-    {
+    if (obj && obj->air_pump_version_info.isValid()) {
         m_air_pump_version->UpdateInfo(obj->air_pump_version_info);
         show_air_pump(true);
-    }
-    else
-    {
+    } else {
         show_air_pump(false);
     }
 }
 
 void MachineInfoPanel::update_cut(MachineObject* obj)
 {
-    if (obj && obj->cutting_module_version_info.isValid())
-    {
+    if (obj && obj->cutting_module_version_info.isValid()) {
         m_cutting_version->UpdateInfo(obj->cutting_module_version_info);
         show_cut(true);
-    }
-    else
-    {
+    } else {
         show_cut(false);
     }
 }
 
 void MachineInfoPanel::update_laszer(MachineObject* obj)
 {
-    if (obj && obj->laser_version_info.isValid())
-    {
+    if (obj && obj->laser_version_info.isValid()) {
         m_laser_version->UpdateInfo(obj->laser_version_info);
         show_laszer(true);
-    }
-    else
-    {
+    } else {
         show_laszer(false);
+    }
+}
+
+void MachineInfoPanel::update_extinguish(MachineObject* obj)
+{
+    if (obj && obj->extinguish_version_info.isValid()) {
+        m_extinguish_version->UpdateInfo(obj->extinguish_version_info);
+        show_extinguish(true);
+    } else {
+        show_extinguish(false);
+    }
+}
+
+void MachineInfoPanel::update_rotary(MachineObject* obj)
+{
+    if (obj && obj->rotary_version_info.isValid()) {
+        m_rotary_version->UpdateInfo(obj->rotary_version_info);
+        show_rotary(true);
+    } else {
+        show_rotary(false);
     }
 }
 
@@ -1158,6 +1214,24 @@ void MachineInfoPanel::show_laszer(bool show)
         m_lazer_img->Show(show);
         m_laser_line_above->Show(show);
         m_laser_version->Show(show);
+    }
+}
+
+void MachineInfoPanel::show_extinguish(bool show)
+{
+    if (m_extinguish_version->IsShown() != show) {
+        m_extinguish_img->Show(show);
+        m_extinguish_line_above->Show(show);
+        m_extinguish_version->Show(show);
+    }
+}
+
+void MachineInfoPanel::show_rotary(bool show)
+{
+    if (m_rotary_version->IsShown() != show) {
+        m_rotary_img->Show(show);
+        m_rotary_line_above->Show(show);
+        m_rotary_version->Show(show);
     }
 }
 
