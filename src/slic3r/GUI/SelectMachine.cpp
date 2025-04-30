@@ -270,86 +270,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_rename->Add(m_bitmap_last_plate, 0,  wxALIGN_CENTER, 0);
     sizer_rename->Add(m_bitmap_next_plate, 0,  wxALIGN_CENTER, 0);
 
-    /*printer combobox*/
-    wxBoxSizer* sizer_split_printer = new wxBoxSizer(wxHORIZONTAL);
-    m_stext_printer_title = new Label(m_basic_panel, _L("Printer"));
-    m_stext_printer_title->SetFont(::Label::Body_14);
-    m_stext_printer_title->SetForegroundColour(0x909090);
-    auto m_split_line = new wxPanel(m_basic_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_split_line->SetBackgroundColour(0xeeeeee);
-    m_split_line->SetMinSize(wxSize(-1, 1));
-    m_split_line->SetMaxSize(wxSize(-1, 1));
-    sizer_split_printer->Add(0, 0, 0, wxEXPAND, 0);
-    sizer_split_printer->Add(m_stext_printer_title, 0, wxALIGN_CENTER, 0);
-    sizer_split_printer->Add(m_split_line, 1, wxALIGN_CENTER_VERTICAL, 0);
-
-    wxBoxSizer* sizer_printer_area = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer* sizer_bed_staticbox = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* sizer_printer_staticbox = new wxBoxSizer(wxHORIZONTAL);
-
-    /*printer area*/
-    auto printer_staticbox = new StaticBox(m_basic_panel);
-    printer_staticbox->SetMinSize(wxSize(FromDIP(338), FromDIP(68)));
-    printer_staticbox->SetMaxSize(wxSize(FromDIP(338), FromDIP(68)));
-    printer_staticbox->SetBorderColor(wxColour(0xCECECE));
-
-    m_printer_image = new wxStaticBitmap(printer_staticbox, wxID_ANY, create_scaled_bitmap("printer_preview_BL-P001", m_scroll_area, 52));
-    m_printer_image->SetMinSize(wxSize(FromDIP(52), FromDIP(52)));
-    m_printer_image->SetMaxSize(wxSize(FromDIP(52), FromDIP(52)));
-
-    m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-    m_comboBox_printer->SetBorderWidth(0);
-    m_comboBox_printer->SetMinSize(wxSize(FromDIP(250), FromDIP(60)));
-    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(250), FromDIP(60)));
-    m_comboBox_printer->SetBackgroundColor(*wxWHITE);
-    m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, this);
-    //m_comboBox_printer->Bind(wxEVT_LEFT_DOWN, [=](auto& e) {
-    //    if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
-    //});
-    //m_comboBox_printer->Bind(wxEVT_LEFT_UP, [=](auto &e) {
-    //    if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {e.Skip();}
-    //});
-    m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                               std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_button_refresh = new ScalableButton(printer_staticbox, wxID_ANY, "refresh_printer", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
-    m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, this);
-
-    sizer_printer_staticbox->Add(0, 0, 0, wxLEFT, FromDIP(7));
-    sizer_printer_staticbox->Add(m_printer_image, 0, wxALIGN_CENTER, 0);
-    sizer_printer_staticbox->Add(m_comboBox_printer, 0, wxALIGN_CENTER, 0);
-    sizer_printer_staticbox->Add(m_button_refresh, 0, wxALIGN_CENTER, 0);
-
-    printer_staticbox->SetSizer(sizer_printer_staticbox);
-    printer_staticbox->Layout();
-    printer_staticbox->Fit();
-
-    /*bed area*/
-    auto bed_staticbox = new StaticBox(m_basic_panel);
-    bed_staticbox->SetMinSize(wxSize(FromDIP(98), FromDIP(68)));
-    bed_staticbox->SetMaxSize(wxSize(FromDIP(98), FromDIP(68)));
-    bed_staticbox->SetBorderColor(wxColour(0xCECECE));
-
-    m_bed_image = new wxStaticBitmap(bed_staticbox, wxID_ANY, create_scaled_bitmap("bed_cool", m_scroll_area, 32));
-    m_bed_image->SetBackgroundColour(*wxWHITE);
-    m_bed_image->SetMinSize(wxSize(FromDIP(32), FromDIP(32)));
-    m_bed_image->SetMaxSize(wxSize(FromDIP(32), FromDIP(32)));
-
-    m_text_bed_type = new Label(bed_staticbox);
-    m_text_bed_type->SetForegroundColour(0xCECECE);
-    m_text_bed_type->SetMaxSize(wxSize(FromDIP(80), FromDIP(24)));
-
-    sizer_bed_staticbox->Add(0, 0, 0, wxTOP, FromDIP(16));
-    sizer_bed_staticbox->Add(m_bed_image, 0, wxALIGN_CENTER, 0);
-    sizer_bed_staticbox->Add(m_text_bed_type, 0, wxALIGN_CENTER, 0);
-
-    bed_staticbox->SetSizer(sizer_bed_staticbox);
-    bed_staticbox->Layout();
-    bed_staticbox->Fit();
-
-    sizer_printer_area->Add(printer_staticbox, 0, wxALIGN_CENTER, 0);
-    sizer_printer_area->Add(0, 0, 0, wxLEFT, FromDIP(4));
-    sizer_printer_area->Add(bed_staticbox, 0, wxALIGN_CENTER, 0);
+    m_printer_box = new PrinterInfoBox(m_basic_panel, this);
 
     m_text_printer_msg = new Label(m_basic_panel);
     m_text_printer_msg->SetMinSize(wxSize(FromDIP(420), FromDIP(24)));
@@ -369,11 +290,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(5));
     sizer_basic_right_info->Add(m_sizer_basic_weight_time, 0, wxTOP, 0);
     sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(10));
-    sizer_basic_right_info->Add(m_text_bed_type, 0, wxTOP, 0);
-    sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(15));
-    sizer_basic_right_info->Add(sizer_split_printer, 1, wxEXPAND, 0);
-    sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(8));
-    sizer_basic_right_info->Add(sizer_printer_area, 0, wxTOP, 0);
+    sizer_basic_right_info->Add(m_printer_box, 0, wxTOP, 0);
     sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(4));
     sizer_basic_right_info->Add(m_text_printer_msg, 0, wxLEFT, 0);
     sizer_basic_right_info->AddSpacer(FromDIP(10));
@@ -629,8 +546,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxVERTICAL);
 
-
-
+    m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(m_btn_bg_enable);
     m_button_ensure->SetBorderColor(m_btn_bg_enable);
@@ -832,7 +749,7 @@ void SelectMachineDialog::init_bind()
             if (!obj) return;
 
             if (obj->dev_id == e.GetString()) {
-                m_comboBox_printer->SetValue(wxString::FromUTF8(obj->dev_name) + "(LAN)");
+                m_printer_box->SetPrinterName(wxString::FromUTF8(obj->dev_name) + "(LAN)");
             }
         }
     });
@@ -958,7 +875,6 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
 void SelectMachineDialog::sending_mode()
 {
     // disable combobox
-    m_comboBox_printer->Disable();
     Enable_Auto_Refill(false);
     EnableEditing(false);
 
@@ -2269,8 +2185,7 @@ void SelectMachineDialog::EnableEditing(bool enable)
     m_rename_button->Enable(enable);
 
     /*printer*/
-    m_comboBox_printer->Enable(enable);
-    m_button_refresh->Enable(enable);
+    m_printer_box->EnableEditing(enable);
 
     /*mapping*/
     for (size_t i = 0; i < m_sizer_ams_mapping_left->GetItemCount(); ++i) {
@@ -2949,20 +2864,20 @@ void SelectMachineDialog::update_user_printer()
     _collect_sorted_machines(dev, m_list, sorted_machine_names);
 
     // update the machine list, and select a default machine
-    m_comboBox_printer->Set(sorted_machine_names);
+    m_printer_box->SetPrinterName(sorted_machine_names);
     if (!m_list.empty())
     {
         m_printer_last_select = m_list.front()->dev_id;
-        m_comboBox_printer->SetSelection(0);
+        m_printer_box->GetPrinterComboBox()->SetSelection(0);
         wxCommandEvent event(wxEVT_COMBOBOX);
-        event.SetEventObject(m_comboBox_printer);
-        wxPostEvent(m_comboBox_printer, event);
+        event.SetEventObject(m_printer_box->GetPrinterComboBox());
+        wxPostEvent(m_printer_box->GetPrinterComboBox(), event);
     }
     else
     {
         m_printer_last_select = "";
         update_select_layout(nullptr);
-        m_comboBox_printer->SetTextLabel("");
+        m_printer_box->GetPrinterComboBox()->SetTextLabel("");
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
@@ -3114,7 +3029,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 
     update_print_status_msg();
-    auto selection = m_comboBox_printer->GetSelection();
+    auto selection = m_printer_box->GetPrinterComboBox()->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
@@ -3128,9 +3043,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
                 dlg.set_machine_object(m_list[i]);
                 auto res = dlg.ShowModal();
                 m_printer_last_select = "";
-                m_comboBox_printer->SetSelection(-1);
-                m_comboBox_printer->Refresh();
-                m_comboBox_printer->Update();
+                m_printer_box->GetPrinterComboBox()->SetSelection(-1);
+                m_printer_box->GetPrinterComboBox()->Refresh();
+                m_printer_box->GetPrinterComboBox()->Update();
             }
 
             m_printer_last_select = m_list[i]->dev_id;
@@ -3145,9 +3060,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         // update image
         auto printer_img_name = "printer_preview_" + obj->printer_type;
         try {
-            m_printer_image->SetBitmap(create_scaled_bitmap(printer_img_name, this, 52));
+            m_printer_box->SetPrinterImage(create_scaled_bitmap(printer_img_name, this, 52));
         } catch (const std::exception &) {
-            m_printer_image->SetBitmap(create_scaled_bitmap("printer_preview_BL-P001", this, 52));
+            m_printer_box->SetPrinterImage(create_scaled_bitmap("printer_preview_BL-P001", this, 52));
         }
 
 
@@ -3296,12 +3211,12 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
 
     /*combobox check*/
     if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-        m_comboBox_printer->Disable();
+        m_printer_box->GetPrinterComboBox()->Disable();
     } else {
         if (get_status() == PrintDialogStatus::PrintStatusRefreshingMachineList)
-            m_comboBox_printer->Disable();
+            m_printer_box->GetPrinterComboBox()->Disable();
         else
-            m_comboBox_printer->Enable();
+            m_printer_box->GetPrinterComboBox()->Enable();
     }
 
     /*mode check*/
@@ -3616,15 +3531,7 @@ void SelectMachineDialog::reset_ams_material()
 
 void SelectMachineDialog::Enable_Refresh_Button(bool en)
 {
-    if (!en) {
-        if (m_button_refresh->IsEnabled()) {
-            m_button_refresh->Disable();
-        }
-    } else {
-        if (!m_button_refresh->IsEnabled()) {
-            m_button_refresh->Enable();
-        }
-    }
+    m_printer_box->EnableRefreshButton(en);
 }
 
 void SelectMachineDialog::Enable_Send_Button(bool en)
@@ -3678,16 +3585,12 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 void SelectMachineDialog::set_default()
 {
     if (m_print_type == PrintFromType::FROM_NORMAL) {
-        m_stext_printer_title->Show(true);
-        m_comboBox_printer->Show(true);
-        m_button_refresh->Show(true);
+        m_printer_box->SetDefault(false);
         m_rename_normal_panel->Show(true);
         m_connect_printer_help_hyperlink->Show(true);
     }
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-        m_stext_printer_title->Show(false);
-        m_comboBox_printer->Show(true);
-        m_button_refresh->Show(false);
+        m_printer_box->SetDefault(true);
         m_rename_normal_panel->Show(false);
         m_connect_printer_help_hyperlink->Show(false);
     }
@@ -3732,11 +3635,8 @@ void SelectMachineDialog::set_default()
 
     //clear combobox
     m_list.clear();
-    m_comboBox_printer->Clear();
     m_printer_last_select = "";
     m_print_info = "";
-    m_comboBox_printer->SetValue(wxEmptyString);
-    m_comboBox_printer->Enable();
     m_mapping_sugs_sizer->Show(false);
     m_change_filament_times_sizer->Show(false);
     m_txt_change_filament_times->Show(false);
@@ -4287,7 +4187,7 @@ void SelectMachineDialog::set_default_from_sdcard()
     MachineObject *obj_ = dev_manager->get_selected_machine();
     if (!obj_) { return; };
 
-    m_comboBox_printer->GetTextCtrl()->SetValue(obj_->dev_name);
+    m_printer_box->SetPrinterName(obj_->dev_name);
 
     m_print_plate_total = m_required_data_plate_data_list.size();
     update_page_turn_state(true);
@@ -4547,20 +4447,8 @@ bool SelectMachineDialog::Show(bool show)
             plate_name = elem.first;
     }
 
-    if (plate_name.empty()) {
-        m_text_bed_type->Hide();
-    }
-    else {
-        wxString name = format_bed_name(plate_name);
-        if (name.length() > 8) {
-            m_text_bed_type->SetFont(Label::Body_9);
-        }
-        else {
-            m_text_bed_type->SetFont(Label::Body_12);
-        }
-        m_text_bed_type->SetLabelText(name);
-        m_text_bed_type->Show();
-    }
+    m_printer_box->UpdatePlate(plate_name);
+
     // set default value when show this dialog
     wxGetApp().UpdateDlgDarkUI(this);
     wxGetApp().reset_to_active();
@@ -4575,28 +4463,6 @@ bool SelectMachineDialog::Show(bool show)
 
 void SelectMachineDialog::show_init() {
     m_ams_mapping_result.clear();
-}
-
-wxString SelectMachineDialog::format_bed_name(std::string plate_name)
-{
-    wxString name;
-    if (plate_name == "Cool Plate") {
-        name = _L("Cool");
-        m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool", this, 32));
-    } else if (plate_name == "Engineering Plate") {
-        name = _L("Engineering");
-        m_bed_image->SetBitmap(create_scaled_bitmap("bed_engineering", this, 32));
-    } else if (plate_name == "High Temp Plate") {
-        name = _L("High Temp");
-        m_bed_image->SetBitmap(create_scaled_bitmap("bed_high_templ", this, 32));
-    } else if (plate_name == "Textured PEI Plate") {
-        name = "PEI";
-        m_bed_image->SetBitmap(create_scaled_bitmap("bed_pei", this, 32));
-    } else if (plate_name == "Supertack Plate") {
-        name = _L("Cool(Supertack)");
-        m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool_supertack", this, 32));
-    }
-    return name;
 }
 
 SelectMachineDialog::~SelectMachineDialog()
@@ -4947,4 +4813,170 @@ void SendModeSwitchButton::setSelected(bool selected)
     }
 }
 
-}} // namespace Slic3r::GUI
+PrinterInfoBox::PrinterInfoBox(wxWindow* parent, SelectMachineDialog* select_dialog)
+    : StaticBox(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER), m_select_dialog(select_dialog)
+{
+    Create();
+}
+
+void PrinterInfoBox::UpdatePlate(const std::string& plate_name)
+{
+    if (plate_name.empty())
+    {
+        m_text_bed_type->Hide();
+    }
+    else
+    {
+        wxString name;
+        if (plate_name == "Cool Plate") {
+            name = _L("Cool");
+            m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool", this, 32));
+        }
+        else if (plate_name == "Engineering Plate") {
+            name = _L("Engineering");
+            m_bed_image->SetBitmap(create_scaled_bitmap("bed_engineering", this, 32));
+        }
+        else if (plate_name == "High Temp Plate") {
+            name = _L("High Temp");
+            m_bed_image->SetBitmap(create_scaled_bitmap("bed_high_templ", this, 32));
+        }
+        else if (plate_name == "Textured PEI Plate") {
+            name = "PEI";
+            m_bed_image->SetBitmap(create_scaled_bitmap("bed_pei", this, 32));
+        }
+        else if (plate_name == "Supertack Plate") {
+            name = _L("Cool(Supertack)");
+            m_bed_image->SetBitmap(create_scaled_bitmap("bed_cool_supertack", this, 32));
+        }
+
+        if (name.length() > 8) {
+            m_text_bed_type->SetFont(Label::Body_9);
+        }
+        else{
+            m_text_bed_type->SetFont(Label::Body_12);
+        }
+        m_text_bed_type->SetLabelText(name);
+        m_text_bed_type->Show();
+    }
+}
+
+void PrinterInfoBox::EnableEditing(bool enable)
+{
+    m_comboBox_printer->Enable(enable);
+    m_button_refresh->Enable(enable);
+}
+
+void PrinterInfoBox::EnableRefreshButton(bool enable)
+{
+    if (m_button_refresh->IsEnabled() != enable) {
+        m_button_refresh->Enable(enable);
+    }
+}
+
+void PrinterInfoBox::SetDefault(bool from_sd)
+{
+    if (!from_sd)
+    {
+        m_stext_printer_title->Show(true);
+        m_comboBox_printer->Show(true);
+        m_button_refresh->Show(true);
+    }
+    else
+    {
+        m_stext_printer_title->Show(false);
+        m_comboBox_printer->Show(true);
+        m_button_refresh->Show(false);
+    }
+
+    m_comboBox_printer->Clear();
+    m_comboBox_printer->SetValue(wxEmptyString);
+    m_comboBox_printer->Enable();
+}
+
+void PrinterInfoBox::Create()
+{
+    /*printer combobox*/
+    wxBoxSizer* sizer_split_printer = new wxBoxSizer(wxHORIZONTAL);
+    m_stext_printer_title = new Label(this, _L("Printer"));
+    m_stext_printer_title->SetFont(::Label::Body_14);
+    m_stext_printer_title->SetForegroundColour(0x909090);
+    auto m_split_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_split_line->SetBackgroundColour(0xeeeeee);
+    m_split_line->SetMinSize(wxSize(-1, 1));
+    m_split_line->SetMaxSize(wxSize(-1, 1));
+    sizer_split_printer->Add(0, 0, 0, wxEXPAND, 0);
+    sizer_split_printer->Add(m_stext_printer_title, 0, wxALIGN_CENTER, 0);
+    sizer_split_printer->Add(m_split_line, 1, wxALIGN_CENTER_VERTICAL, 0);
+
+    wxBoxSizer* sizer_printer_area = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_bed_staticbox = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* sizer_printer_staticbox = new wxBoxSizer(wxHORIZONTAL);
+
+    /*printer area*/
+    auto printer_staticbox = new StaticBox(this);
+    printer_staticbox->SetMinSize(wxSize(FromDIP(338), FromDIP(68)));
+    printer_staticbox->SetMaxSize(wxSize(FromDIP(338), FromDIP(68)));
+    printer_staticbox->SetBorderColor(wxColour(0xCECECE));
+
+    m_printer_image = new wxStaticBitmap(printer_staticbox, wxID_ANY, create_scaled_bitmap("printer_preview_BL-P001", this, 52));
+    m_printer_image->SetMinSize(wxSize(FromDIP(52), FromDIP(52)));
+    m_printer_image->SetMaxSize(wxSize(FromDIP(52), FromDIP(52)));
+
+    m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    m_comboBox_printer->SetBorderWidth(0);
+    m_comboBox_printer->SetMinSize(wxSize(FromDIP(250), FromDIP(60)));
+    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(250), FromDIP(60)));
+    m_comboBox_printer->SetBackgroundColor(*wxWHITE);
+    m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, m_select_dialog);
+
+    m_button_refresh = new ScalableButton(printer_staticbox, wxID_ANY, "refresh_printer", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, m_select_dialog);
+
+    sizer_printer_staticbox->Add(0, 0, 0, wxLEFT, FromDIP(7));
+    sizer_printer_staticbox->Add(m_printer_image, 0, wxALIGN_CENTER, 0);
+    sizer_printer_staticbox->Add(m_comboBox_printer, 0, wxALIGN_CENTER, 0);
+    sizer_printer_staticbox->Add(m_button_refresh, 0, wxALIGN_CENTER, 0);
+
+    printer_staticbox->SetSizer(sizer_printer_staticbox);
+    printer_staticbox->Layout();
+    printer_staticbox->Fit();
+
+    /*bed area*/
+    auto bed_staticbox = new StaticBox(this);
+    bed_staticbox->SetMinSize(wxSize(FromDIP(98), FromDIP(68)));
+    bed_staticbox->SetMaxSize(wxSize(FromDIP(98), FromDIP(68)));
+    bed_staticbox->SetBorderColor(wxColour(0xCECECE));
+
+    m_bed_image = new wxStaticBitmap(bed_staticbox, wxID_ANY, create_scaled_bitmap("bed_cool", this, 32));
+    m_bed_image->SetBackgroundColour(*wxWHITE);
+    m_bed_image->SetMinSize(wxSize(FromDIP(32), FromDIP(32)));
+    m_bed_image->SetMaxSize(wxSize(FromDIP(32), FromDIP(32)));
+
+    m_text_bed_type = new Label(bed_staticbox);
+    m_text_bed_type->SetForegroundColour(0xCECECE);
+    m_text_bed_type->SetMaxSize(wxSize(FromDIP(80), FromDIP(24)));
+
+    sizer_bed_staticbox->Add(0, 0, 0, wxTOP, FromDIP(16));
+    sizer_bed_staticbox->Add(m_bed_image, 0, wxALIGN_CENTER, 0);
+    sizer_bed_staticbox->Add(m_text_bed_type, 0, wxALIGN_CENTER, 0);
+
+    bed_staticbox->SetSizer(sizer_bed_staticbox);
+    bed_staticbox->Layout();
+    bed_staticbox->Fit();
+
+    sizer_printer_area->Add(printer_staticbox, 0, wxALIGN_CENTER, 0);
+    sizer_printer_area->Add(0, 0, 0, wxLEFT, FromDIP(4));
+    sizer_printer_area->Add(bed_staticbox, 0, wxALIGN_CENTER, 0);
+
+
+    wxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_text_bed_type, 0, wxTOP, 0);
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    main_sizer->Add(sizer_split_printer, 1, wxEXPAND, 0);
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    main_sizer->Add(sizer_printer_area, 0, wxTOP, 0);
+    SetSizer(main_sizer);
+}
+
+}
+} // namespace Slic3r::GUI
