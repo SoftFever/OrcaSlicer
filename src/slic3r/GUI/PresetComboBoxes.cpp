@@ -1112,8 +1112,11 @@ void PlaterPresetComboBox::update()
     //BBS: add project embedded presets logic
     std::map<wxString, wxBitmap*>  project_embedded_presets;
     std::map<wxString, wxBitmap *> system_presets;
+    std::map<wxString, wxBitmap *>  uncompatible_presets;
     std::unordered_set<std::string> system_printer_models;
     std::map<wxString, wxString>   preset_descriptions;
+    std::map<wxString, std::string> preset_filament_vendors;
+    std::map<wxString, std::string> preset_filament_types;
     //BBS:  move system to the end
     wxString selected_system_preset;
     wxString selected_user_preset;
@@ -1133,7 +1136,7 @@ void PlaterPresetComboBox::update()
                             m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection() ? false :
                             i == m_collection->get_selected_idx();
 
-        if (!is_selected && (!preset.is_visible ||!preset.is_compatible))
+        if (!is_selected && !preset.is_visible)
         {
             continue;
         }
@@ -1156,6 +1159,16 @@ void PlaterPresetComboBox::update()
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
 #endif
+            if (preset.is_system) {
+                if (!preset.is_compatible && preset_filament_vendors.count(name) > 0)
+                    continue;
+                else if (preset.is_compatible && preset_filament_vendors.count(name) > 0)
+                    uncompatible_presets.erase(name);
+                preset_filament_vendors[name] = preset.config.option<ConfigOptionStrings>("filament_vendor")->values.at(0);
+                if (preset_filament_vendors[name] == "Bambu Lab")
+                    preset_filament_vendors[name] = "Bambu";
+                preset_filament_types[name] = preset.config.option<ConfigOptionStrings>("filament_type")->values.at(0);
+            }
         }
 
         wxBitmap* bmp = get_bmp(preset);
@@ -1163,7 +1176,12 @@ void PlaterPresetComboBox::update()
 
         preset_descriptions.emplace(name, from_u8(preset.description));
 
-        if (preset.is_default || preset.is_system) {
+        if (!preset.is_compatible) {
+            if (boost::ends_with(name, " template"))
+                continue;
+            uncompatible_presets.emplace(name, bmp);
+        }
+        else if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
             if (m_type == Preset::TYPE_PRINTER) {
                 auto printer_model = preset.config.opt_string("printer_model");
@@ -1210,21 +1228,61 @@ void PlaterPresetComboBox::update()
     //if (m_type == Preset::TYPE_PRINTER)
     //    add_connected_printers("", true);
     bool selected_in_ams = false;
-    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor()) {
+    if (m_type == Preset::TYPE_FILAMENT) {
         set_replace_text("Bambu", "BambuStudioBlack");
-        selected_in_ams = add_ams_filaments(into_u8(selected_user_preset), true);
+        selected_in_ams = add_ams_filaments(into_u8(selected_user_preset.empty() ? selected_system_preset : selected_user_preset), true);
     }
 
-    auto add_presets = [this, &preset_descriptions, &selected_in_ams]
+    std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Matte", "Bambu PETG HF",    "Bambu ABS",      "Bambu PLA Silk", "Bambu PLA-CF",
+                                                "Bambu PLA Galaxy", "Bambu PLA Metal", "Bambu PLA Marble", "Bambu PETG-CF", "Bambu PETG Translucent", "Bambu ABS-GF"};
+    std::vector<std::string> first_vendors     = {"Bambu", "Generic"};
+    std::vector<std::string> first_types     = {"PLA", "PETG", "ABS", "TPU"};
+    auto  add_presets       = [this, &preset_descriptions, &filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &selected_in_ams]
             (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group) {
         if (!presets.empty()) {
             set_label_marker(Append(separator(group), wxNullBitmap));
+            if (m_type == Preset::TYPE_FILAMENT) {
+                std::vector<std::map<wxString, wxBitmap *>::value_type const*> list(presets.size(), nullptr);
+                std::transform(presets.begin(), presets.end(), list.begin(), [](auto & pair) { return &pair; });
+                if (group == "System presets")
+                    std::sort(list.begin(), list.end(), [&filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types](auto *l, auto *r) {
+                        { // Compare order
+                            auto iter1 = std::find(filament_orders.begin(), filament_orders.end(), l->first);
+                            auto iter2 = std::find(filament_orders.begin(), filament_orders.end(), r->first);
+                            if (iter1 != iter2)
+                                return iter1 < iter2;
+                        }
+                        { // Compare vendor
+                            auto iter1 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[l->first]);
+                            auto iter2 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[r->first]);
+                            if (iter1 != iter2)
+                                return iter1 < iter2;
+                        }
+                        { // Compare type
+                            auto iter1 = std::find(first_types.begin(), first_types.end(), preset_filament_types[l->first]);
+                            auto iter2 = std::find(first_types.begin(), first_types.end(), preset_filament_types[r->first]);
+                            if (iter1 != iter2)
+                                return iter1 < iter2;
+                        }
+                        return l->first < r->first;
+                    });
+                for (auto it : list) {
+                    auto vendor = preset_filament_vendors[it->first];
+                    if (!vendor.empty() && group == "Unsupported presets")
+                        vendor.push_back(' ');
+                    SetItemTooltip(Append(it->first, *it->second, vendor), preset_descriptions[it->first]);
+                    bool is_selected = it->first == selected;
+                    validate_selection(is_selected);
+                    if (is_selected  && selected_in_ams) {
+                        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+                    }
+                }
+            } else {
                 for (std::map<wxString, wxBitmap *>::const_iterator it = presets.begin(); it != presets.end(); ++it) {
                     SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
-                bool is_selected = it->first == selected;
-                validate_selection(is_selected);
-                if (is_selected && selected_in_ams) {
-                    SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+                    if (group == "System presets")
+                        set_label_marker(GetCount() - 1, LABEL_ITEM_PRINTER_MODELS);
+                    validate_selection(it->first == selected);
                 }
             }
         }
@@ -1235,6 +1293,7 @@ void PlaterPresetComboBox::update()
     add_presets(nonsys_presets, selected_user_preset, L("User presets"));
     // BBS: move system to the end
     add_presets(system_presets, selected_system_preset, L("System presets"));
+    add_presets(uncompatible_presets, {}, L("Unsupported presets"));
 
     //BBS: remove unused pysical printer logic
     /*if (m_type == Preset::TYPE_PRINTER)

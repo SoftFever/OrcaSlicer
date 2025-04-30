@@ -54,6 +54,7 @@ private:
     StateColor   selector_border_color;
     StateColor   selector_background_color;
     ScalableBitmap check_bitmap;
+    ScalableBitmap arrow_bitmap;
 
     bool pressedDown = false;
     boost::posix_time::ptime dismissTime;

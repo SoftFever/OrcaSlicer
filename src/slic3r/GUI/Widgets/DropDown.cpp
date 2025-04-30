@@ -59,6 +59,7 @@ void DropDown::Create(wxWindow *parent, long style)
     state_handler.update_binds();
     if ((style & DD_NO_CHECK_ICON) == 0)
         check_bitmap = ScalableBitmap(this, "checked", 16);
+    arrow_bitmap = ScalableBitmap(this, "hms_arrow", 16);
     text_off = style & DD_NO_TEXT;
 
     // BBS set default font
@@ -323,7 +324,7 @@ void DropDown::render(wxDC &dc)
         }
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : item.text.substr(group.size()).Trim(false);
+                        : (item.text.StartsWith(group) ? item.text.substr(group.size()).Trim(false) : item.text);
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
@@ -335,6 +336,12 @@ void DropDown::render(wxDC &dc)
             pt.y += (rcContent.height - textSize.y) / 2;
             dc.SetFont(GetFont());
             dc.DrawText(text, pt);
+            if (group.IsEmpty() && !item.group.IsEmpty()) {
+                auto szBmp = arrow_bitmap.GetBmpSize();
+                pt.x = rcContent.GetRight() - szBmp.x - 5;
+                pt.y = rcContent.y += (rcContent.height - szBmp.y) / 2;
+                dc.DrawBitmap(arrow_bitmap.bmp(), pt);
+            }
         }
         rcContent.y += rowSize.y;
     }
@@ -407,6 +414,7 @@ void DropDown::messureSize()
     iconSize = wxSize();
     count = 0;
     wxClientDC dc(GetParent() ? GetParent() : this);
+    dc.SetFont(GetFont());
     std::set<wxString> groups;
     for (size_t i = 0; i < items.size(); ++i) {
         auto &item = items[i];
@@ -427,7 +435,7 @@ void DropDown::messureSize()
         if (!text_off) {
             auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : item.text.substr(group.size()).Trim(false);
+                        : (item.text.StartsWith(group) ? item.text.substr(group.size()).Trim(false) : item.text);
             size1 = dc.GetMultiLineTextExtent(text);
         }
         if (item.icon.IsOk()) {
@@ -442,6 +450,8 @@ void DropDown::messureSize()
     }
     if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
+    if (szContent.x < FromDIP(120))
+        szContent.x = FromDIP(120);
     szContent.x += 10;
     if (check_bitmap.bmp().IsOk()) {
         auto szBmp = check_bitmap.GetBmpSize();
