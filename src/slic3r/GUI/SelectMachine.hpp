@@ -248,6 +248,7 @@ private:
     ScalableBitmap m_img_unselected_tag;
 };
 
+class PrinterInfoBox;
 class SelectMachineDialog : public DPIDialog
 {
 private:
@@ -273,7 +274,6 @@ private:
     wxColour                            m_colour_def_color{wxColour(255, 255, 255)};
     wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
     StateColor                          m_btn_bg_enable;
-    Label* m_text_bed_type;
 
     std::unordered_map<string, PrintOption*> m_checkbox_list;
     std::list<PrintOption*>                  m_checkbox_list_order;
@@ -287,11 +287,6 @@ private:
     std::vector<int>                    m_filaments_map;
     std::shared_ptr<BBLStatusBarPrint>  m_status_bar;
     std::unique_ptr<Worker>             m_worker;
-
-    //SendModeSwitchButton*               m_mode_print {nullptr};
-    //SendModeSwitchButton*               m_mode_send {nullptr};
-    wxStaticBitmap*                     m_printer_image{nullptr};
-    wxStaticBitmap*                     m_bed_image{nullptr};
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
     Slic3r::Model                       m_required_data_model;
@@ -319,10 +314,8 @@ protected:
     wxBoxSizer*                         m_sizer_autorefill{ nullptr };
     wxBoxSizer*                         m_mapping_sugs_sizer{ nullptr };
     wxBoxSizer*                         m_change_filament_times_sizer{ nullptr };
-    ScalableButton*                     m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
     wxStaticBitmap *                    m_rename_button{nullptr};
-    ComboBox*                           m_comboBox_printer{ nullptr };
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
     wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
     wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };
@@ -347,11 +340,12 @@ protected:
     wxSimplebook*                       m_rename_switch_panel{nullptr};
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
-    Label*                              m_stext_printer_title{nullptr};
     Label*                              m_stext_time{ nullptr };
     Label*                              m_stext_weight{ nullptr };
     Label*                              m_statictext_ams_msg{ nullptr };
     Label*                              m_txt_change_filament_times{ nullptr };
+
+    PrinterInfoBox*                     m_printer_box { nullptr};
     Label*                              m_text_printer_msg{ nullptr };
     Label*                              m_text_printer_msg_tips{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
@@ -477,7 +471,6 @@ public:
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
     PrintFromType get_print_type() {return m_print_type;};
-    wxString    format_bed_name(std::string plate_name);
     wxString    format_steel_name(NozzleType type);
     PrintDialogStatus  get_status() { return m_print_status; }
 
@@ -495,6 +488,41 @@ private:
     void load_option_vals(MachineObject* obj);
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
+};
+
+class PrinterInfoBox : public StaticBox
+{
+public:
+    PrinterInfoBox(wxWindow* parent, SelectMachineDialog* select_dialog);
+
+public:
+    void  UpdatePlate(const std::string& plate_name);
+
+    ComboBox* GetPrinterComboBox() const { return m_comboBox_printer; }
+    void      SetPrinterName(const wxString& printer_name) { m_comboBox_printer->SetValue(printer_name); };
+    void      SetPrinterName(const wxArrayString& priner_names) { m_comboBox_printer->Set(priner_names); }
+
+    void  SetPrinterImage(const wxBitmap& bitmap) { m_printer_image->SetBitmap(bitmap); }
+
+    void  EnableEditing(bool enable);
+    void  EnableRefreshButton(bool enable);
+
+    void  SetDefault(bool from_sd);
+
+private:
+    void  Create();
+
+private:
+    // owner
+    SelectMachineDialog* m_select_dialog;
+
+    wxStaticBitmap* m_printer_image{ nullptr };
+    Label*          m_stext_printer_title{ nullptr };
+    ComboBox*       m_comboBox_printer{ nullptr };
+    ScalableButton* m_button_refresh{ nullptr };
+
+    wxStaticBitmap* m_bed_image{ nullptr };
+    Label*         m_text_bed_type;
 };
 
 
