@@ -166,7 +166,7 @@ static bool check_internet_connection_win()
 
 
 // Last version where the info was sent / dialog dismissed is saved in appconfig.
-// Only show the dialog when this info is not found (e.g. fresh install) or when
+// Only show the dialog when this info was not found (e.g. fresh install) or when
 // current version is newer. Only major and minor versions are compared.
 static bool should_dialog_be_shown()
 {
