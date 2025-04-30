@@ -1,6 +1,7 @@
 {
     "from": "User",
     "inherits": "fdm_machine_common",
+    "instantiation": "true",
     "printer_technology": "FFF",
     "version": "0.0.0.1",
     "printer_settings_id": "Phrozen Arco 0.4 nozzle",
