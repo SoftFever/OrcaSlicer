@@ -217,11 +217,11 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_page_caption, 0, wxEXPAND, 0);
     create_when(parent,
         _L("When to use Flow Rate Calibration"),
-        _L("After using Flow Dynamics Calibration, there might still be some extrusion issues, such as:\
-\n1. Over-Extrusion: Excess material on your printed object, forming blobs or zits, or the layers seem thicker than expected and not uniform.\
-\n2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the top layer of the model, even when printing slowly.\
-\n3. Poor Surface Quality: The surface of your prints seems rough or uneven.\
-\n4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as they should be."));
+        _L("After using Flow Dynamics Calibration, there might still be some extrusion issues, such as:\n"
+           "1. Over-Extrusion: Excess material on your printed object, forming blobs or zits, or the layers seem thicker than expected and not uniform\n"
+           "2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the top layer of the model, even when printing slowly\n"
+           "3. Poor Surface Quality: The surface of your prints seems rough or uneven\n"
+           "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as they should be"));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);
