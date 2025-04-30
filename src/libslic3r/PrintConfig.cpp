@@ -889,7 +889,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
-    
+
     def = this->add("gap_fill_target", coEnum);
     def->label = L("Apply gap fill");
     def->category = L("Strength");
@@ -899,8 +899,8 @@ void PrintConfigDef::init_fff_params()
                      "1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces for maximum strength\n"
                      "2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces only, balancing print speed, "
                      "reducing potential over extrusion in the solid infill and making sure the top and bottom surfaces have "
-                     "no pin hole gaps\n"
-                     "3. Nowhere: Disables gap fill for all solid infill areas.\n\n"
+                     "no pinhole gaps\n"
+                     "3. Nowhere: Disables gap fill for all solid infill areas\n\n"
                      "Note that if using the classic perimeter generator, gap fill may also be generated between perimeters, "
                      "if a full width line cannot fit between them. That perimeter gap fill is not controlled by this setting.\n\n"
                      "If you would like all gap fill, including the classic perimeter generated one, removed, "
@@ -918,7 +918,6 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Nowhere"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftNowhere));
-    
 
     def = this->add("enable_overhang_bridge_fan", coBools);
     def->label = L("Force cooling for overhangs and bridges");
@@ -1122,9 +1121,9 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip  = L(
         "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
-         "1. None: No bridge is created.\n"
-         "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
-         "3. Sacrificial Layer: A full sacrificial bridge layer is created.");
+         "1. None: No bridge is created\n"
+         "2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
+         "3. Sacrificial Layer: A full sacrificial bridge layer is created");
     def->mode = comAdvanced;
     def->enum_keys_map = &ConfigOptionEnum<CounterboreHoleBridgingOption>::get_enum_values();
     def->enum_values.emplace_back("none");
@@ -1494,13 +1493,14 @@ void PrintConfigDef::init_fff_params()
                      "The extra bridge layer results in reduced pillowing on top surfaces, as well as reduced separation of the external bridge layer from its surrounding perimeters.\n\n"
                      "It is generally recommended to set this to at least 'External bridge only', unless specific issues with the sliced model are found.\n\n"
                      "Options:\n"
-                     "1. Disabled - does not generate second bridge layers. This is the default and is set for compatibility purposes.\n"
+                     "1. Disabled - does not generate second bridge layers. This is the default and is set for compatibility purposes\n"
                      "2. External bridge only - generates second bridge layers for external-facing bridges only. Please note that small bridges that are shorter "
-                     "or narrower than the set number of perimeters will be skipped as they would not benefit from a second bridge layer. If generated, the second bridge layer will be extruded "
-                     "parallel to the first bridge layer to reinforce the bridge strength.\n"
-                     "3. Internal bridge only - generates second bridge layers for internal bridges over sparse infill only. Please note that the internal "
-                     "bridges count towards the top shell layer count of your model. The second internal bridge layer will be extruded as close to perpendicular to the first as possible. If multiple regions "
-                     "in the same island, with varying bridge angles are present, the last region of that island will be selected as the angle reference.\n"
+                     "or narrower than the set number of perimeters will be skipped as they would not benefit from a second bridge layer. If generated, "
+                     "the second bridge layer will be extruded parallel to the first bridge layer to reinforce the bridge strength\n"
+                     "3. Internal bridge only - generates second bridge layers for internal bridges over sparse infill only. "
+                     "Please note that the internal bridges count towards the top shell layer count of your model. "
+                     "The second internal bridge layer will be extruded as close to perpendicular to the first as possible. "
+                     "If multiple regions in the same island, with varying bridge angles are present, the last region of that island will be selected as the angle reference\n"
                      "4. Apply to all - generates second bridge layers for both internal and external-facing bridges\n");
 
     def->enum_keys_map = &ConfigOptionEnum<EnableExtraBridgeLayer>::get_enum_values();
@@ -1518,20 +1518,21 @@ void PrintConfigDef::init_fff_params()
     def = this->add("dont_filter_internal_bridges", coEnum);
     def->label = L("Filter out small internal bridges");
     def->category = L("Quality");
-    def->tooltip = L("This option can help reduce pillowing on top surfaces in heavily slanted or curved models.\n\n"
-                     "By default, small internal bridges are filtered out and the internal solid infill is printed directly "
-                     "over the sparse infill. This works well in most cases, speeding up printing without too much compromise "
-                     "on top surface quality.\n\n"
-                     "However, in heavily slanted or curved models, especially where too low a sparse infill density is used, "
-                     "this may result in curling of the unsupported solid infill, causing pillowing.\n\n"
-                     "Enabling limited filtering or no filtering will print internal bridge layer over slightly unsupported internal "
-                     "solid infill. The options below control the sensitivity of the filtering, i.e. they control where internal bridges are "
-                     "created.\n\n"
-                     "1. Filter - enables this option. This is the default behavior and works well in most cases.\n\n"
-                     "2. Limited filtering - creates internal bridges on heavily slanted surfaces while avoiding unnecessary bridges. "
-                     "This works well for most difficult models.\n\n"
-                     "3. No filtering - creates internal bridges on every potential internal overhang. This option is useful for "
-                     "heavily slanted top surface models; however, in most cases, it creates too many unnecessary bridges.");
+    def->tooltip = L("This option can help reduce pillowing on top surfaces in heavily slanted or curved models.\n"
+                     "By default, small internal bridges are filtered out and the internal solid infill is printed "
+                     "directly over the sparse infill. This works well in most cases, speeding up printing without "
+                     "too much compromise on top surface quality.\n"
+                     "However, in heavily slanted or curved models, especially where too low a sparse infill density "
+                     "is used, this may result in curling of the unsupported solid infill, causing pillowing.\n"
+                     "Enabling limited filtering or no filtering will print internal bridge layer over slightly "
+                     "unsupported internal solid infill. The options below control the sensitivity of the filtering, "
+                     "i.e. they control where internal bridges are created:\n"
+                     "1. Filter - enables this option. This is the default behavior and works well in most cases\n"
+                     "2. Limited filtering - creates internal bridges on heavily slanted surfaces while avoiding "
+                     "unnecessary bridges. This works well for most difficult models\n"
+                     "3. No filtering - creates internal bridges on every potential internal overhang. This option is "
+                     "useful for heavily slanted top surface models; however, in most cases, it creates too many "
+                     "unnecessary bridges");
     def->enum_keys_map = &ConfigOptionEnum<InternalBridgeFilter>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
@@ -1883,7 +1884,7 @@ void PrintConfigDef::init_fff_params()
                      "strongly recommended to act as a fallback and for when tool changing.\n\n");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools{ false });
-    
+
     // Orca: Adaptive pressure advance option and calibration values
     def = this->add("adaptive_pressure_advance_model", coStrings);
     def->label = L("Adaptive pressure advance measurements (beta)");
@@ -1894,14 +1895,14 @@ void PrintConfigDef::init_fff_params()
                      "How to calibrate:\n"
                      "1. Run the pressure advance test for at least 3 speeds per acceleration value. It is recommended that the test is run "
                      "for at least the speed of the external perimeters, the speed of the internal perimeters and the fastest feature "
-                     "print speed in your profile (usually its the sparse or solid infill). Then run them for the same speeds for the slowest and fastest print accelerations,"
-                     "and no faster than the recommended maximum acceleration as given by the Klipper input shaper.\n"
+                     "print speed in your profile (usually its the sparse or solid infill). Then run them for the same speeds for the slowest and fastest print accelerations, "
+                     "and no faster than the recommended maximum acceleration as given by the Klipper input shaper\n"
                      "2. Take note of the optimal PA value for each volumetric flow speed and acceleration. You can find the flow number by selecting "
                      "flow from the color scheme drop down and move the horizontal slider over the PA pattern lines. The number should be visible "
-                     "at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly. "
-                     "The slower and with less acceleration you print, the larger the range of acceptable PA values. If no difference is visible, use the PA value from the faster test.\n"
-                     "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile\n\n"
-                     "");
+                     "at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. "
+                     "If it is not, confirm that your extruder is functioning correctly. The slower and with less acceleration you print, "
+                     "the larger the range of acceptable PA values. If no difference is visible, use the PA value from the faster test\n"
+                     "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile");
     def->mode = comAdvanced;
     //def->gui_flags = "serialized";
     def->multiline = true;
@@ -1943,14 +1944,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enabling this setting means that the part cooling fan will never stop completely "
                      "and will run at least at minimum speed to reduce the frequency of starting and stopping.");
     def->set_default_value(new ConfigOptionBools { false });
-    
+
     def = this->add("dont_slow_down_outer_wall", coBools);
     def->label = L("Don't slow down outer walls");
     def->tooltip = L("If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. "
-                     "This is particularly helpful in the below scenarios:\n\n "
-                     "1. To avoid changes in shine when printing glossy filaments \n"
-                     "2. To avoid changes in external wall speed which may create slight wall artifacts that appear like z banding \n"
-                     "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls\n\n");
+                     "This is particularly helpful in the below scenarios:\n"
+                     "1. To avoid changes in shine when printing glossy filaments\n"
+                     "2. To avoid changes in external wall speed which may create slight wall artifacts that appear like Z banding\n"
+                     "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls");
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("fan_cooling_layer_time", coFloats);
