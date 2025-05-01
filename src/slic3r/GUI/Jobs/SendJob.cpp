@@ -194,18 +194,18 @@ void SendJob::process(Ctl &ctl)
         &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
                         if (stage == SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
-                                msg = _u8L("Sending gcode file over LAN");
+                                msg = _u8L("Sending G-code file over LAN");
                             } else {
-                                msg = _u8L("Sending gcode file to sdcard");
+                                msg = _u8L("Sending G-code file to SD card");
                             }
                         }
                         else if (stage == SendingPrintJobStage::PrintingStageUpload) {
                             if (code >= 0 && code <= 100 && !info.empty()) {
 							    if (this->connection_type == "lan") {
-                                    msg = _u8L("Sending gcode file over LAN");
+                                    msg = _u8L("Sending G-code file over LAN");
 							    }
 							    else {
-                                    msg = _u8L("Sending gcode file to sdcard");
+                                    msg = _u8L("Sending G-code file to SD card");
 							    }
                                 if (!info.empty()) {
                                     msg += format("(%s)", info);
@@ -217,10 +217,10 @@ void SendJob::process(Ctl &ctl)
 						}
 						else {
 							if (this->connection_type == "lan") {
-                                msg = _u8L("Sending gcode file over LAN");
+                                msg = _u8L("Sending G-code file over LAN");
 							}
 							else {
-                                msg = _u8L("Sending gcode file over LAN");
+                                msg = _u8L("Sending G-code file over LAN");
 							}
 						}
 
@@ -273,7 +273,7 @@ void SendJob::process(Ctl &ctl)
             && this->has_sdcard) {
             // try to send local with record
             BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode to printer";
-            ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+            ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
             if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
                 params.comments = "upload_failed";
@@ -283,15 +283,15 @@ void SendJob::process(Ctl &ctl)
             if (result < 0) {
                 // try to send with cloud
                 BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode file to printer";
-                ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+                ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
             }
         } else {
             BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode file to printer";
-            ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+            ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
         }
     } else {
         if (this->has_sdcard) {
-            ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+            ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
         } else {
             ctl.update_status(curr_percent, _u8L("An SD card needs to be inserted before sending to printer."));

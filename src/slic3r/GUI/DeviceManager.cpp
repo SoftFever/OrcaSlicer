@@ -141,7 +141,7 @@ wxString get_stage_string(int stage)
     case 29:
         return _L("Cooling chamber");
     case 30:
-        return _L("Paused by the Gcode inserted by user");
+        return _L("Paused by the G-code inserted by user");
     case 31:
         return _L("Motor noise showoff");
     case 32:
@@ -4344,7 +4344,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();
                         if (result == "FAIL") {
-                            wxString text = _L("Failed to start printing job");
+                            wxString text = _L("Failed to start print job");
                             GUI::wxGetApp().push_notification(text);
                         }
                     }
@@ -4480,7 +4480,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 info = _L("Selected diameter and machine diameter do not match");
                             }
                             else if (reason == "generate auto filament cali gcode failure") {
-                                info = _L("Failed to generate cali gcode");
+                                info = _L("Failed to generate cali G-code");
                             }
                             else {
                                 info = reason;
