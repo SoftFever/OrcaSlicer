@@ -117,7 +117,6 @@ private:
 
     friend class PartPlateList;
 
-    Pointfs m_raw_shape;
     Pointfs m_shape;
     Pointfs m_exclude_area;
     BoundingBoxf3 m_bounding_box;
