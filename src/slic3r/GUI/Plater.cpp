@@ -380,7 +380,6 @@ struct Sidebar::priv
     ~priv();
 
     void show_preset_comboboxes();
-    void on_search_update();
     void jump_to_object(ObjectDataViewModelNode* item);
     void can_search();
 
@@ -421,15 +420,6 @@ void Sidebar::priv::show_preset_comboboxes()
 
     scrolled->GetParent()->Layout();
     scrolled->Refresh();
-}
-
-void Sidebar::priv::on_search_update()
-{
-    m_object_list->assembly_plate_object_name();
-
-    wxString search_text = m_search_item->GetTextCtrl()->GetValue();
-    m_object_list->GetModel()->search_object(search_text);
-    dia->update_list();
 }
 
 void Sidebar::priv::jump_to_object(ObjectDataViewModelNode* item)
@@ -1108,22 +1098,20 @@ Sidebar::Sidebar(Plater *parent)
     text_ctrl->SetSize(wxSize(-1, FromDIP(16))); // Centers text vertically
 
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
-        this->p->on_search_update();
+        if (p->dia->IsShown()) {
+            e.Skip();
+            return;
+        }
         p->m_search_bar->SetBorderColor(wxColour("#009688"));
         wxPoint pos = this->p->m_search_bar->ClientToScreen(wxPoint(0, 0));
+#ifndef __WXGTK__
         pos.y += this->p->m_search_bar->GetRect().height;
+#else
+        this->p->m_search_item->Enable(false);
+#endif
         p->dia->SetPosition(pos);
         p->dia->Popup();
         e.Skip(); // required to show caret
-    });
-    text_ctrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
-        this->p->on_search_update();
-    });
-    text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
-        p->dia->Dismiss();
-        p->m_search_bar->SetBorderColor(wxColour("#CECECE"));
-        p->m_search_item->GetTextCtrl()->SetValue(""); // reset value when loose focus
-        e.Skip();
     });
 
     auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1134,6 +1122,13 @@ Sidebar::Sidebar(Plater *parent)
     search_sizer->Fit(p->m_search_bar);
 
     p->m_object_list = new ObjectList(p->scrolled);
+    p->m_object_list->Bind(wxCUSTOMEVT_EXIT_SEARCH, [this](wxCommandEvent&) {
+#ifdef __WXGTK__
+        this->p->m_search_item->Enable(true);
+#endif
+        this->p->m_search_bar->SetBorderColor(wxColour("#CECECE"));
+        this->p->m_search_item->GetTextCtrl()->SetValue(""); // reset value when close
+    });
 
     p->sizer_params->Add(p->m_search_bar, 0, wxALL | wxEXPAND, 0);
     p->sizer_params->Add(p->m_object_list, 1, wxEXPAND | wxTOP, 0);
@@ -1143,7 +1138,7 @@ Sidebar::Sidebar(Plater *parent)
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
 
-    p->dia = new Search::SearchObjectDialog(p->m_object_list, text_ctrl);
+    p->dia = new Search::SearchObjectDialog(p->m_object_list, p->scrolled->GetParent(), p->m_search_item);
 #if !NEW_OBJECT_SETTING
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, 5 * em / 10);
@@ -13402,7 +13397,7 @@ void Plater::set_bed_shape() const
 //BBS: add bed exclude area
 void Plater::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
 {
-    p->set_bed_shape(shape, exclude_area, printable_height, custom_texture, custom_model, force_as_custom);
+    p->set_bed_shape(make_counter_clockwise(shape), exclude_area, printable_height, custom_texture, custom_model, force_as_custom);
 }
 
 void Plater::force_filament_colors_update()

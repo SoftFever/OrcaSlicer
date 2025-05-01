@@ -16931,9 +16931,6 @@ msgstr ""
 #~ msgid "Orca Slicer "
 #~ msgstr "逆戟鲸切片"
 
-#~ msgid "Cool plate"
-#~ msgstr "低温打印热床"
-
 #~ msgid "Lift Z Enforcement"
 #~ msgstr "强化抬Z策略"
 
@@ -17206,9 +17203,6 @@ msgstr ""
 #~ msgid "Wipe tower extruder"
 #~ msgstr "擦拭塔挤出机"
 
-#~ msgid "V"
-#~ msgstr "V"
-
 #~ msgid "Export &Configs"
 #~ msgstr "导出预设"
 
@@ -17430,9 +17424,6 @@ msgstr ""
 #~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
 #~ "thickness (top+bottom solid layers)"
 #~ msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
-
-#~ msgid " "
-#~ msgstr " "
 
 #~ msgid "Text-Rotate"
 #~ msgstr "旋转文字"

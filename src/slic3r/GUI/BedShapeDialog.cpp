@@ -20,9 +20,9 @@
 namespace Slic3r {
 namespace GUI {
 
-BedShape::BedShape(const ConfigOptionPoints& points)
+BedShape::BedShape(const Pointfs& points)
 {
-    m_build_volume = { points.values, 0. };
+    m_build_volume = { points, 0. };
 }
 
 static std::string get_option_label(BedShape::Parameter param)
@@ -130,7 +130,7 @@ void BedShape::apply_optgroup_values(ConfigOptionsGroupShp optgroup)
     }
 }
 
-void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
+void BedShapeDialog::build_dialog(const Pointfs& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
 {
     SetFont(wxGetApp().normal_font());
 
@@ -172,10 +172,10 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 const std::string BedShapePanel::NONE = "None";
 const std::string BedShapePanel::EMPTY_STRING = "";
 
-void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std::string& custom_texture, const std::string& custom_model)
+void BedShapePanel::build_panel(const Pointfs& default_pt, const std::string& custom_texture, const std::string& custom_model)
 {
     wxGetApp().UpdateDarkUI(this);
-    m_shape = default_pt.values;
+    m_shape = make_counter_clockwise(default_pt);
     m_custom_texture = custom_texture.empty() ? NONE : custom_texture;
     m_custom_model = custom_model.empty() ? NONE : custom_model;
 
@@ -240,7 +240,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std:
 
 	SetSizerAndFit(top_sizer);
 
-	set_shape(default_pt);
+	set_shape(m_shape);
 	update_preview();
 }
 
@@ -454,7 +454,7 @@ wxPanel* BedShapePanel::init_model_panel()
 // Deduce the bed shape type(rect, circle, custom)
 // This routine shall be smart enough if the user messes up
 // with the list of points in the ini file directly.
-void BedShapePanel::set_shape(const ConfigOptionPoints& points)
+void BedShapePanel::set_shape(const Pointfs& points)
 {
     BedShape shape(points);
 
@@ -463,7 +463,7 @@ void BedShapePanel::set_shape(const ConfigOptionPoints& points)
 
     // Copy the polygon to the canvas, make a copy of the array, if custom shape is selected
     if (shape.is_custom())
-        m_loaded_shape = points.values;
+        m_loaded_shape = points;
 
     update_shape();
 
@@ -580,6 +580,7 @@ void BedShapePanel::load_stl()
 	}
 
 	auto polygon = expolygons[0].contour;
+    polygon.make_counter_clockwise();
 	std::vector<Vec2d> points;
 	for (auto pt : polygon.points)
 		points.push_back(unscale(pt));

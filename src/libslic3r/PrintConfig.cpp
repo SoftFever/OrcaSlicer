@@ -8117,15 +8117,15 @@ Points get_bed_shape(const DynamicPrintConfig &config)
         return {};
     }
 
-    return to_points(bed_shape_opt->values);
+    return to_points(make_counter_clockwise(bed_shape_opt->values));
 }
 
 Points get_bed_shape(const PrintConfig &cfg)
 {
-    return to_points(cfg.printable_area.values);
+    return to_points(make_counter_clockwise(cfg.printable_area.values));
 }
 
-Points get_bed_shape(const SLAPrinterConfig &cfg) { return to_points(cfg.printable_area.values); }
+Points get_bed_shape(const SLAPrinterConfig &cfg) { return to_points(make_counter_clockwise(cfg.printable_area.values)); }
 
 Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg)
 {
