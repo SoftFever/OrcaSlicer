@@ -4053,7 +4053,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         try {
         auto evt_str = evt.GetString();
         if (!evt_str.empty()) {
-            json j = json::parse(evt_str);
+            json j = json::parse(evt_str.utf8_string());
             if (j.contains("code")) {
                 if (!j["code"].is_null())
                     code = j["code"].get<int>();
