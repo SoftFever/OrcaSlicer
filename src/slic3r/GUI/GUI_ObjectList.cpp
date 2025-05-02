@@ -419,7 +419,7 @@ void ObjectList::create_objects_ctrl()
     AppendColumn(name_col);
 
     // column PrintableProperty (Icon) of the view control:
-    AppendBitmapColumn(" ", colPrint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, 3*em,
+    AppendBitmapColumn(" ", colPrint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colPrint]*em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column Extruder of the view control:
@@ -5499,14 +5499,8 @@ void ObjectList::msw_rescale()
 
     const int em = wxGetApp().em_unit();
 
-    GetColumn(colName    )->SetWidth(20 * em);
-    GetColumn(colPrint   )->SetWidth( 3 * em);
-    GetColumn(colFilament)->SetWidth( 5 * em);
-    // BBS
-    GetColumn(colSupportPaint)->SetWidth(3 * em);
-    GetColumn(colColorPaint)->SetWidth(3 * em);
-    GetColumn(colSinking)->SetWidth(3 * em);
-    GetColumn(colEditing )->SetWidth( 3 * em);
+    for (int cn = colName; cn < colCount; cn++)
+        GetColumn(cn)->SetWidth(m_columns_width[cn] * em);
 
     // rescale/update existing items with bitmaps
     m_objects_model->Rescale();
