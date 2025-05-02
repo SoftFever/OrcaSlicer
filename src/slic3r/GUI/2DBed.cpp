@@ -1,6 +1,9 @@
 #include "2DBed.hpp"
 #include "GUI_App.hpp"
 
+#include "3DBed.hpp"
+#include "PartPlate.hpp"
+
 #include <wx/dcbuffer.h>
 
 #include "libslic3r/BoundingBox.hpp"
@@ -28,6 +31,7 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	auto ch = GetSize().GetHeight();
 	// when canvas is not rendered yet, size is 0, 0
 	if (cw == 0) return ; 
+    bool is_dark = wxGetApp().dark_mode();
 
 	if (m_user_drawn_background) {
 		// On all systems the AutoBufferedPaintDC() achieves double buffering.
@@ -35,7 +39,7 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 		// and on Linux / GTK the background is erased to gray color.
 		// Fill DC with the background on Windows & Linux / GTK.
 		wxColour color;
-		if (wxGetApp().dark_mode()) {// SetBackgroundColour
+		if (is_dark) {// SetBackgroundColour
 			color = wxColour(45, 45, 49);
 		}
 		else {
@@ -75,8 +79,16 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	m_scale_factor = sfactor;
     m_shift = Vec2d(shift(0) + cbb.min(0), shift(1) - (cbb.max(1) - ch));
 
+    // ORCA match colors
+    ColorRGBA   bed_rgba   = is_dark ? Bed3D::DEFAULT_MODEL_COLOR_DARK    : Bed3D::DEFAULT_MODEL_COLOR;
+    std::string bed_color  = encode_color(ColorRGBA(bed_rgba[0] * 0.8f, bed_rgba[1] * 0.8f,bed_rgba[2] * 0.8f, bed_rgba[3]));
+    ColorRGBA   grid_color = is_dark ? PartPlate::LINE_TOP_SEL_DARK_COLOR : PartPlate::LINE_TOP_SEL_COLOR;
+    std::string lines_bold_color = encode_color(grid_color);
+    std::string lines_thin_color = encode_color(grid_color * (is_dark ? 0.85 : 1.15)); // use darker or brighter color depends on theme
+    wxColour    text_color = wxColour(StateColor::darkModeColorFor("#262E30"));
+
 	// draw bed fill
-	dc.SetBrush(wxBrush(wxColour(255, 255, 255), wxBRUSHSTYLE_SOLID));
+	dc.SetBrush(wxBrush(wxColour(bed_color), wxBRUSHSTYLE_SOLID));
 	wxPointList pt_list;
     for (auto pt : shape)
     {
@@ -86,29 +98,75 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	dc.DrawPolygon(&pt_list, 0, 0);
 
 	// draw grid
-	auto step = 10;  // 1cm grid
-	Polylines polylines;
-	for (auto x = bb.min(0) - fmod(bb.min(0), step) + step; x < bb.max(0); x += step) {
-		polylines.push_back(Polyline::new_scale({ Vec2d(x, bb.min(1)), Vec2d(x, bb.max(1)) }));
-	}
-	for (auto y = bb.min(1) - fmod(bb.min(1), step) + step; y < bb.max(1); y += step) {
-		polylines.push_back(Polyline::new_scale({ Vec2d(bb.min(0), y), Vec2d(bb.max(0), y) }));
-	}
-	polylines = intersection_pl(polylines, bed_polygon);
+	Polylines lines_thin, lines_bold; // Calculations should be same with PartPlate::calc_gridlines
+	int count = 0;
+	int step  = 10;                   //                Uses up to 599mm    Main Grid: 10 x 5 = 50mm
+	// Orca: use 500 x 500 bed size as baseline.
+    Vec2d grid_counts = bb.size() / (step * 50);
+    // if the grid is too dense, we increase the step
+    auto min_edge_scaled = (bb.size()).minCoeff(); // calculations should match with PartPlate.cpp
+    if (     min_edge_scaled >= 6000) // Switch when short edge >= 6000mm   Main Grid: 100 x 5 = 500mm
+        step = 100;
+    else if (min_edge_scaled >= 1200) // Switch when short edge >= 1200mm   Main Grid:  50 x 5 = 250mm
+        step = 50;
+    else if (min_edge_scaled >= 600)  // Switch when short edge >= 600mm    Main Grid:  20 x 5 = 100mm
+        step = 20;
 
-    dc.SetPen(wxPen(wxColour(230, 230, 230), 1, wxPENSTYLE_SOLID));
-	for (auto pl : polylines)
-	{
+    // ORCA draw grid lines relative to origin
+    for (auto x = m_pos.x(); x >= bb.min(0); x -= step) { // Negative X axis
+        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
+            Vec2d(x, bb.min(1)),
+            Vec2d(x, bb.max(1))
+        }));
+        count ++;
+    }
+    count = 0;
+    for (auto x = m_pos.x(); x <= bb.max(0); x += step) { // Positive X axis
+        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
+            Vec2d(x, bb.min(1)),
+            Vec2d(x, bb.max(1))
+        }));
+        count ++;
+    }
+    count = 0;
+    for (auto y = m_pos.y(); y >= bb.min(1); y -= step) { // Negative Y axis
+        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
+            Vec2d(bb.min(0), y),
+            Vec2d(bb.max(0), y)
+        }));
+        count ++;
+    }
+    count = 0;
+    for (auto y = m_pos.y(); y <= bb.max(1); y += step) { // Positive Y axis
+        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
+            Vec2d(bb.min(0), y),
+            Vec2d(bb.max(0), y)
+        }));
+        count ++;
+    }
+    count = 0;
+
+    // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
+    dc.SetPen(wxPen(wxColour(lines_thin_color), 1, wxPENSTYLE_SOLID));
+	for (auto pl : intersection_pl(lines_thin, bed_polygon)) {
 		for (size_t i = 0; i < pl.points.size()-1; i++) {
-            Point pt1 = to_pixels(unscale(pl.points[i]), ch);
+            Point pt1 = to_pixels(unscale(pl.points[i])    , ch);
+            Point pt2 = to_pixels(unscale(pl.points[i + 1]), ch);
+            dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
+		}
+	}
+    dc.SetPen(wxPen(wxColour(lines_bold_color), 1, wxPENSTYLE_SOLID));
+	for (auto pl : intersection_pl(lines_bold, bed_polygon)) {
+		for (size_t i = 0; i < pl.points.size()-1; i++) {
+            Point pt1 = to_pixels(unscale(pl.points[i])    , ch);
             Point pt2 = to_pixels(unscale(pl.points[i + 1]), ch);
             dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
 		}
 	}
 
 	// draw bed contour
-    dc.SetPen(wxPen(wxColour(0, 0, 0), 1, wxPENSTYLE_SOLID));
-	dc.SetBrush(wxBrush(wxColour(0, 0, 0), wxBRUSHSTYLE_TRANSPARENT));
+    dc.SetPen(  wxPen(  wxColour(lines_bold_color), 1, wxPENSTYLE_SOLID));
+	dc.SetBrush(wxBrush(wxColour(lines_bold_color), wxBRUSHSTYLE_TRANSPARENT));
 	dc.DrawPolygon(&pt_list, 0, 0);
 
     auto origin_px = to_pixels(Vec2d(0, 0), ch);
@@ -139,12 +197,25 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	dc.DrawCircle(origin_px(0), origin_px(1), 3);
 
 	static const auto origin_label = wxString("(0,0)");
-	dc.SetTextForeground(wxColour(0, 0, 0));
+	dc.SetTextForeground(text_color);
     dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 	auto extent = dc.GetTextExtent(origin_label);
-	const auto origin_label_x = origin_px(0) <= cw / 2 ? origin_px(0) + 1 : origin_px(0) - 1 - extent.GetWidth();
-	const auto origin_label_y = origin_px(1) <= ch / 2 ? origin_px(1) + 1 : origin_px(1) - 1 - extent.GetHeight();
+	const auto origin_label_x = origin_px(0) + 2;                       // ORCA always draw (0,0) text in axes bounding box
+	const auto origin_label_y = origin_px(1) - extent.GetHeight() - 2;
+    dc.SetPen(  wxPen(  wxColour(wxColour(bed_color)), 1, wxPENSTYLE_SOLID));
+    dc.SetBrush(wxBrush(wxColour(wxColour(bed_color)), wxBRUSHSTYLE_SOLID));
+    dc.DrawRectangle(wxPoint(origin_label_x, origin_label_y), extent);  // ORCA draw a background to origin position text to improve readability when overlaps with grid
 	dc.DrawText(origin_label, origin_label_x, origin_label_y);
+
+    // ORCA add grid size value as information for large scale beds
+    auto grid_label = wxString("1x1 Grid: " + std::to_string(step) + " mm");
+    Point draw_bb = to_pixels(Vec2d(
+        std::min(m_pos(0),bb.min(0)),
+        std::min(m_pos(1),bb.min(1))
+    ),ch);
+    dc.SetTextForeground(text_color);
+    dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    dc.DrawText(grid_label, draw_bb(0), draw_bb(1) + 5);
 
 	// draw current position
 	if (m_pos!= Vec2d(0, 0)) {

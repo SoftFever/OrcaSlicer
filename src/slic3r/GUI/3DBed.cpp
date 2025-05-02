@@ -28,10 +28,6 @@
 #endif
 
 static const float GROUND_Z = -0.04f;
-static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR             = { 0.3255f, 0.337f, 0.337f, 1.0f };
-static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR_DARK        = { 0.255f, 0.255f, 0.283f, 1.0f };
-static const Slic3r::ColorRGBA DEFAULT_SOLID_GRID_COLOR        = { 0.9f, 0.9f, 0.9f, 1.0f };
-static const Slic3r::ColorRGBA DEFAULT_TRANSPARENT_GRID_COLOR  = { 0.9f, 0.9f, 0.9f, 0.6f };
 
 namespace Slic3r {
 namespace GUI {
@@ -184,6 +180,12 @@ const float Bed3D::Axes::DefaultStemRadius = 0.5f;
 const float Bed3D::Axes::DefaultStemLength = 25.0f;
 const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
+
+// ORCA make bed colors accessable for 2D bed
+ColorRGBA Bed3D::DEFAULT_MODEL_COLOR             = { 0.3255f, 0.337f, 0.337f, 1.0f };
+ColorRGBA Bed3D::DEFAULT_MODEL_COLOR_DARK        = { 0.255f, 0.255f, 0.283f, 1.0f };
+ColorRGBA Bed3D::DEFAULT_SOLID_GRID_COLOR        = { 0.9f, 0.9f, 0.9f, 1.0f };
+ColorRGBA Bed3D::DEFAULT_TRANSPARENT_GRID_COLOR  = { 0.9f, 0.9f, 0.9f, 0.6f };
 
 ColorRGBA Bed3D::AXIS_X_COLOR = ColorRGBA::X();
 ColorRGBA Bed3D::AXIS_Y_COLOR = ColorRGBA::Y();
