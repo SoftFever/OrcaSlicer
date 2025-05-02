@@ -2994,7 +2994,7 @@ Polylines FillMonotonicLine::fill_surface(const Surface* surface, const FillPara
     return polylines_out;
 }
 
-Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &params)
+Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &params) //Rodrigo  TODO fill multiline
 {
     Polylines polylines_out;
     if (! this->fill_surface_by_multilines(

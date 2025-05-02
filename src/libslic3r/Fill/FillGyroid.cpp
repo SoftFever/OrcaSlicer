@@ -3,7 +3,7 @@
 #include "../Surface.hpp"
 #include <cmath>
 #include <algorithm>
-#include <iostream>
+
 
 #include "FillGyroid.hpp"
 
@@ -16,7 +16,7 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
         double a   = sin(x + phase_offset);
         double b   = - z_cos;
         double res = z_sin * cos(x + phase_offset + (flip ? M_PI : 0.));
-        double r   = sqrt(sqr(a) + sqr(b));
+        double r   = std::hypot(a, b);
         return asin(a/r) + asin(res/r) + M_PI;
     }
     else {
@@ -24,7 +24,7 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
         double a   = cos(x + phase_offset);
         double b   = - z_sin;
         double res = z_cos * sin(x + phase_offset + (flip ? 0 : M_PI));
-        double r   = sqrt(sqr(a) + sqr(b));
+        double r   = std::hypot(a,b);
         return (asin(a/r) + asin(res/r) + M_PI_2);
     }
 }
@@ -156,21 +156,39 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
     Polylines    result;
     const double offset_step = line_width / unscale<double>(scaleFactor);
 
+    // compute symmetric offsets around the center
+    std::vector<double> offsets;
+    offsets.reserve(multiline);
+    if (multiline % 2 == 0) {
+        // Even: no center line, symmetric offsets around 0
+        for (unsigned int i = 0; i < multiline / 2; ++i) {
+            double val = (i + 0.5) * offset_step;
+            offsets.push_back(-val);
+            offsets.push_back(+val);
+        }
+    } else {
+        // Odd: center line at offset 0
+        offsets.push_back(0.0);
+        for (unsigned int i = 1; i <= multiline / 2; ++i) {
+            double val = i * offset_step;
+            offsets.push_back(-val);
+            offsets.push_back(+val);
+        }
+    }
+
     for (double y0 = lower_bound; y0 < upper_bound + EPSILON; y0 += M_PI) {
-		        // creates odd polylines
-        for (unsigned int i = 0; i < multiline; ++i) {
-            double offset = (i - (multiline - 1) / 2.0) * offset_step;
+        // creates odd polylines
+        for (double offset : offsets) {
             result.emplace_back(make_wave(make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance, offset), width,// creates one period of the waves, so it doesn't have to be recalculated all the time
-			// even polylines are a bit shifted
                                           height, y0, scaleFactor, z_cos, z_sin, vertical, flip, offset));
         }
         // creates even polylines
         y0 += M_PI;
         if (y0 < upper_bound + EPSILON) {
-            for (unsigned int i = 0; i < multiline; ++i) {
-                double offset = (i - (multiline - 1) / 2.0) * offset_step;
-                result.emplace_back(make_wave(make_one_period(width, scaleFactor, z_cos, z_sin, vertical, !flip, tolerance, offset), width,
-                                              height, y0, scaleFactor, z_cos, z_sin, vertical, !flip, offset));
+            bool local_flip = !flip;
+            for (double offset : offsets) {
+                result.emplace_back(make_wave(make_one_period(width, scaleFactor, z_cos, z_sin, vertical, local_flip, tolerance, offset),
+                                              width, height, y0, scaleFactor, z_cos, z_sin, vertical, local_flip, offset));
             }
         }
     }
