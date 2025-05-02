@@ -125,7 +125,7 @@ public:
 };
 
 ObjectList::ObjectList(wxWindow* parent) :
-    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE | wxNO_BORDER) // ORCA: Remove Border
+    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE | wxNO_BORDER | wxDV_NO_HEADER) // ORCA: Remove border and header
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
 
@@ -137,10 +137,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     SetFont(Label::sysFont(13));
 #ifdef __WXMSW__
-    GenericGetHeader()->SetFont(Label::sysFont(13));
     static auto render = new wxRenderer;
     wxRendererNative::Set(render);
-    GenericGetHeader()->Hide(); // ORCA: Hide header to gain vertical space
 #endif
 
     // create control
