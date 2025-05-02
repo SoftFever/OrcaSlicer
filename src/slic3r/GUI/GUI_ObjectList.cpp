@@ -860,7 +860,8 @@ void ObjectList::update_objects_list_filament_column(size_t filaments_count)
     // set show/hide for this column
     set_filament_column_hidden(filaments_count == 1);
     //a workaround for a wrong last column width updating under OSX
-    GetColumn(colEditing)->SetWidth(25);
+    auto em = em_unit(this);
+    GetColumn(colEditing)->SetWidth(m_columns_width[colEditing]*em);
 
     m_prevent_update_filament_in_config = false;
 }
