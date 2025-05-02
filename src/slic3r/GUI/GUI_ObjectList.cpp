@@ -457,6 +457,7 @@ void ObjectList::create_objects_ctrl()
     // Therefore, force set column width.
     if (wxOSX)
     {
+        dataview_remove_insets(this);
         for (int cn = colName; cn < colCount; cn++)
             GetColumn(cn)->SetWidth(m_columns_width[cn] * em);
     }
