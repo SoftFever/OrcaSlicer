@@ -324,18 +324,12 @@ ObjectList::ObjectList(wxWindow* parent) :
              } else {
                  m_last_size = this->GetSize();
              }
-#ifdef __WXGTK__
-        // On GTK, the EnsureVisible call is postponed to Idle processing (see wxDataViewCtrl::m_ensureVisibleDefered).
-        // So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
-        // event is succeeded by a delete of the currently active item. We are trying our luck by postponing the wxEVT_SIZE triggered EnsureVisible(),
-        // which seems to be working as of now.
-        this->CallAfter([this](){ ensure_current_item_visible(); });
-#else
+
         update_name_column_width();
 
         // BBS
         this->CallAfter([this]() { ensure_current_item_visible(); });
-#endif
+
         e.Skip();
     }));
     m_last_size = this->GetSize();
