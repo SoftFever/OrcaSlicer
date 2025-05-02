@@ -84,8 +84,8 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
     std::string bed_color  = encode_color(ColorRGBA(bed_rgba[0] * 0.8f, bed_rgba[1] * 0.8f,bed_rgba[2] * 0.8f, bed_rgba[3]));
     ColorRGBA   grid_color = is_dark ? PartPlate::LINE_TOP_SEL_DARK_COLOR : PartPlate::LINE_TOP_SEL_COLOR;
     std::string lines_bold_color = encode_color(grid_color);
-    std::string lines_thin_color = encode_color(grid_color * (is_dark ? 0.85 : 1.15)); // use darker or brighter color depends on theme
-    wxColour    text_color = wxColour(StateColor::darkModeColorFor("#262E30"));
+    std::string lines_thin_color = encode_color(grid_color * 0.85);
+    wxColour    text_color = wxColour(lines_bold_color);
 
 	// draw bed fill
 	dc.SetBrush(wxBrush(wxColour(bed_color), wxBRUSHSTYLE_SOLID));
@@ -197,7 +197,7 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	dc.DrawCircle(origin_px(0), origin_px(1), 3);
 
 	static const auto origin_label = wxString("(0,0)");
-	dc.SetTextForeground(text_color);
+	dc.SetTextForeground(wxColour("#FFFFFF"));
     dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 	auto extent = dc.GetTextExtent(origin_label);
 	const auto origin_label_x = origin_px(0) + 2;                       // ORCA always draw (0,0) text in axes bounding box
@@ -213,7 +213,7 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
         std::min(m_pos(0),bb.min(0)),
         std::min(m_pos(1),bb.min(1))
     ),ch);
-    dc.SetTextForeground(text_color);
+    dc.SetTextForeground(wxColour(StateColor::darkModeColorFor("#262E30")));
     dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
     dc.DrawText(grid_label, draw_bb(0), draw_bb(1) + 5);
 
