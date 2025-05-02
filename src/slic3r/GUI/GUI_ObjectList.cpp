@@ -453,12 +453,11 @@ void ObjectList::create_objects_ctrl()
 
     // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
     // Therefore, force set column width.
-    if (wxOSX)
-    {
+#ifdef __WXOSX__
         dataview_remove_insets(this);
         for (int cn = colName; cn < colCount; cn++)
             GetColumn(cn)->SetWidth(m_columns_width[cn] * em);
-    }
+#endif
 }
 
 void ObjectList::get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& input_item/* = wxDataViewItem(nullptr)*/)
