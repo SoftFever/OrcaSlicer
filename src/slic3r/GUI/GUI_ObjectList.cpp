@@ -888,7 +888,7 @@ void ObjectList::update_name_column_width() const
         }
     }
 
-    GetColumn(colName)->SetWidth(client_size.x - (others_width)*em);
+    GetColumn(colName)->SetWidth(max(0, client_size.x - (others_width)*em));
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const
