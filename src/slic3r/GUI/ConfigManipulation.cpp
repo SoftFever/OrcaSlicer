@@ -520,8 +520,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
      
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
-    bool have_sparse_infill_pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern") == ipGyroid ||// toggle option fill_multiline 
-                                      config->opt_enum<InfillPattern>("sparse_infill_pattern") == ipCrossHatch;                                                                                                         // fill_multiline 
+    bool have_sparse_infill_pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern") == ipGyroid;//fill_multiline Gyroid
     toggle_line("fill_multiline", have_sparse_infill_pattern);
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
