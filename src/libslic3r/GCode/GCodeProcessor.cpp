@@ -831,7 +831,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionPoints* printable_area = config.option<ConfigOptionPoints>("printable_area");
     if (printable_area != nullptr)
-        m_result.printable_area = printable_area->values;
+        m_result.printable_area = make_counter_clockwise(printable_area->values);
 
     //BBS: add bed_exclude_area
     const ConfigOptionPoints* bed_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area");

@@ -432,7 +432,7 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
         while (curr != nullptr) {
             if (curr->config.has("printable_area")) {
                 std::string texture_filename, model_filename;
-                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values) {
+                if (shape == make_counter_clockwise(dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values)) {
                     if (curr->is_system)
                         model_filename = PresetUtils::system_printer_bed_model(*curr);
                     else {
