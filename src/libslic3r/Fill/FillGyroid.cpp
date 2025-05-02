@@ -59,7 +59,7 @@ static inline Polyline make_wave(
     double z_cos, double z_sin, bool vertical, bool flip,double multiline_offset)
 {
     std::vector<Vec2d> points = one_period;
-    double             period = points.back()(0);
+    double period = points.back()(0);
     if (width != period) // do not extend if already truncated
     {
         points.reserve(one_period.size() * size_t(floor(width / period)));
@@ -91,8 +91,8 @@ static std::vector<Vec2d> make_one_period(
     double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip, double tolerance, double multiline_offset)
 {
     std::vector<Vec2d> points;
-    double             dx    = M_PI_2; // exact coordinates on main inflexion lobes
-    double             limit = std::min(2 * M_PI, width);
+    double dx    = M_PI_2; // exact coordinates on main inflexion lobes
+    double limit = std::min(2 * M_PI, width);
     points.reserve(coord_t(ceil(limit / tolerance / 3)));
 
     for (double x = 0.; x < limit - EPSILON; x += dx) {
@@ -105,11 +105,11 @@ static std::vector<Vec2d> make_one_period(
     {
         size_t size = points.size();
         for (unsigned int i = 1; i < size; ++i) {
-            auto&  lp = points[i - 1]; // left point
-            auto&  rp = points[i];     // right point
-            double x  = lp(0) + (rp(0) - lp(0)) / 2;
-            double y  = f2(x, z_sin, z_cos, vertical, flip,multiline_offset);
-            Vec2d  ip = {x, y};
+            auto& lp = points[i - 1]; // left point
+            auto& rp = points[i];     // right point
+            double x = lp(0) + (rp(0) - lp(0)) / 2;
+            double y = f2(x, z_sin, z_cos, vertical, flip,multiline_offset);
+            Vec2d ip = {x, y};
             if (std::abs(cross2(Vec2d(ip - lp), Vec2d(ip - rp))) > sqr(tolerance)) {
                 points.emplace_back(std::move(ip));
             }
@@ -136,8 +136,8 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
     // no processing-speed benefit to do so beyond a certain point
     const double tolerance = std::min(line_spacing / 2, FillGyroid::PatternTolerance) / unscale<double>(scaleFactor);
 
-    // scale factor for 5% : 8 712 388
-    //  1z = 10^-6 mm ?
+    //scale factor for 5% : 8 712 388
+    // 1z = 10^-6 mm ?
     const double z     = gridZ / scaleFactor;
     const double z_sin = sin(z);
     const double z_cos = cos(z);
@@ -147,7 +147,7 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
     double upper_bound = height;
     bool   flip        = true;
     if (vertical) {
-        flip        = false;
+        flip = false;
         lower_bound = -M_PI;
         upper_bound = width - M_PI_2;
         std::swap(width, height);
@@ -222,8 +222,7 @@ void FillGyroid::_fill_surface_single(
         // The infill perimeter lines should be separated by around a single infill line width.
         const double minlength = scale_(0.8 * this->spacing);
         polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
-                                       [minlength](const Polyline& pl) { return pl.length() < minlength; }),
-                        polylines.end());
+                                       [minlength](const Polyline& pl) { return pl.length() < minlength; }),polylines.end());
     }
 
     if (!polylines.empty()) {
@@ -238,5 +237,4 @@ void FillGyroid::_fill_surface_single(
         }
     }
 }
-
 } // namespace Slic3r
