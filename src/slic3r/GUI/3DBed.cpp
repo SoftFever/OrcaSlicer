@@ -432,7 +432,7 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
         while (curr != nullptr) {
             if (curr->config.has("printable_area")) {
                 std::string texture_filename, model_filename;
-                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values) {
+                if (shape == make_counter_clockwise(dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values)) {
                     if (curr->is_system)
                         model_filename = PresetUtils::system_printer_bed_model(*curr);
                     else {
@@ -648,11 +648,9 @@ void Bed3D::update_bed_triangles()
     (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y() - bed_ext.min.y();
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
-    // ORCA fix for circular bed (without 3D model) beds rendered with shifted position
-    Vec2d point_shift = m_build_volume.type() == BuildVolume_Type::Circle ? Vec2d(0,0) : m_bed_shape[0];
     std::vector<Vec2d> origin_bed_shape;
     for (size_t i = 0; i < m_bed_shape.size(); i++) {
-        origin_bed_shape.push_back(m_bed_shape[i] - point_shift);
+         origin_bed_shape.push_back(m_bed_shape[i]);
     }
     std::vector<Vec2d> new_bed_shape; // offset to correct origin
     for (auto point : origin_bed_shape) {

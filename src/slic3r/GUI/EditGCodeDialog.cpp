@@ -55,7 +55,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     m_search_bar = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     m_search_bar->ShowSearchButton(true);
     m_search_bar->ShowCancelButton(true);
-    m_search_bar->SetDescriptiveText(_L("Search gcode placeholders"));
+    m_search_bar->SetDescriptiveText(_L("Search G-code placeholders"));
     m_search_bar->SetForegroundColour(*wxBLACK);
     wxGetApp().UpdateDarkUI(m_search_bar);
 
@@ -356,7 +356,7 @@ void EditGCodeDialog::selection_changed(wxDataViewEvent& evt)
                 break;
             }
         }
-        // Orca: move below checking for def in custom defined gcode placeholders
+        // Orca: move below checking for def in custom defined G-code placeholders
         // This allows custom placeholders to override the default ones for this dialog
         // Override custom def if selection is within the preset category
         if (!def || m_params_list->GetSelectedTopLevelCategory() == "Presets") {

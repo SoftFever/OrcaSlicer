@@ -1,0 +1,39 @@
+{
+    "compatible_printers": [
+        "Prusa CORE One 0.8 nozzle"
+    ],
+    "fan_cooling_layer_time": [
+        "35"
+    ],
+    "fan_max_speed": [
+        "65"
+    ],
+    "filament_id": "Prusa Generic PETG @CORE One 0.8",
+    "filament_max_volumetric_speed": [
+        "22"
+    ],
+    "filament_retract_before_wipe": [
+        "50"
+    ],
+    "filament_z_hop": [
+        "0.6"
+    ],
+    "from": "system",
+    "inherits": "Prusa Generic PETG @CORE One",
+    "instantiation": "true",
+    "name": "Prusa Generic PETG @CORE One 0.8",
+    "nozzle_temperature": [
+        "245"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "245"
+    ],
+    "overhang_fan_speed": [
+        "65"
+    ],
+    "setting_id": "GFSA04",
+    "slow_down_layer_time": [
+        "20"
+    ],
+    "type": "filament"
+}

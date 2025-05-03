@@ -27,10 +27,13 @@ def check_filament_compatible_printers(vendor_folder):
     vendor_path = Path(vendor_folder)
     if not vendor_path.exists():
         return 0
+    
+    profiles = {}
+
     # Use rglob to recursively find .json files.
     for file_path in vendor_path.rglob("*.json"):
         try:
-            with open(file_path, 'r') as fp:
+            with open(file_path, 'r', encoding='UTF-8') as fp:
                 # Use custom hook to detect duplicates.
                 data = json.load(fp, object_pairs_hook=no_duplicates_object_pairs_hook)
         except ValueError as ve:
@@ -42,11 +45,44 @@ def check_filament_compatible_printers(vendor_folder):
             error += 1
             continue
 
-        instantiation = str(data.get("instantiation", "")).lower() == "true"
-        compatible_printers = data.get("compatible_printers")
-        if instantiation and (not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers)):
-            print(file_path)
+        profile_name = data['name']
+        if profile_name in profiles:
+            print(f"Duplicated profile {profile_name}: {file_path}")
             error += 1
+            continue
+
+        profiles[profile_name] = {
+            'file_path': file_path,
+            'content': data,
+        }
+    
+    def get_inherit_property(profile, key):
+        content = profile['content']
+        if key in content:
+            return content[key]
+
+        if 'inherits' in content:
+            inherits = content['inherits']
+            if inherits not in profiles:
+                raise ValueError(f"Parent profile not found: {inherits}, referrenced in {profile['file_path']}")
+            
+            return get_inherit_property(profiles[inherits], key)
+        
+        return None
+
+    for profile in profiles.values():
+        instantiation = str(profile['content'].get("instantiation", "")).lower() == "true"
+        if instantiation:
+            try:
+                compatible_printers = get_inherit_property(profile, "compatible_printers")
+                if not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers):
+                    print(f"'compatible_printers' missing in {profile['file_path']}")
+                    error += 1
+            except ValueError as ve:
+                print(f"Unable to parse {profile['file_path']}: {ve}")
+                error += 1
+                continue
+
     return error
 
 def load_available_filament_profiles(profiles_dir, vendor_name):
@@ -68,7 +104,7 @@ def load_available_filament_profiles(profiles_dir, vendor_name):
     
     for file_path in vendor_path.rglob("*.json"):
         try:
-            with open(file_path, 'r') as fp:
+            with open(file_path, 'r', encoding='UTF-8') as fp:
                 data = json.load(fp)
                 if "name" in data:
                     profiles.add(data["name"])
@@ -104,7 +140,7 @@ def check_machine_default_materials(profiles_dir, vendor_name):
     # Check each machine profile
     for file_path in machine_dir.rglob("*.json"):
         try:
-            with open(file_path, 'r') as fp:
+            with open(file_path, 'r', encoding='UTF-8') as fp:
                 data = json.load(fp)
                 
             default_materials = None

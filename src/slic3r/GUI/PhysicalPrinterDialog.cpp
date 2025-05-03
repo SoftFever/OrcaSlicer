@@ -136,9 +136,26 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     m_optgroup->append_single_option_line("host_type");
 
-    auto create_sizer_with_btn = [](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
-        *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
-        (*btn)->SetFont(wxGetApp().normal_font());
+    auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
+        *btn = new Button(parent, label, ""/*icon_name*/, 0, parent->FromDIP(16));
+        (*btn)->SetFont(Label::Body_14);
+        (*btn)->SetMinSize(wxSize(parent->FromDIP(120), parent->FromDIP(26)));
+        (*btn)->SetSize(wxSize(parent->FromDIP(120), parent->FromDIP(26)));
+        (*btn)->SetCornerRadius(parent->FromDIP(4));
+        StateColor clr_bg = StateColor(
+            std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+            std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+            std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
+            std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+            std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+        );
+        (*btn)->SetBackgroundColor(clr_bg);
+        (*btn)->SetBorderColor(clr_bg);
+        (*btn)->SetTextColor(StateColor(
+            std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+            std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
+            std::pair(wxColour("#262E30"), (int)StateColor::Normal)
+        ));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(*btn);
@@ -235,9 +252,8 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     auto print_host_printers = [this, create_sizer_with_btn](wxWindow* parent) {
         //add_scaled_button(parent, &m_printhost_port_browse_btn, "browse", _(L("Refresh Printers")), wxBU_LEFT | wxBU_EXACTFIT);
-        auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _(L("Refresh Printers")));
-        ScalableButton* btn = m_printhost_port_browse_btn;
-        btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _L("Refresh") + " " + dots);
+        Button* btn = m_printhost_port_browse_btn;
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
         return sizer;
     };
@@ -712,11 +728,11 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
 
-    m_printhost_browse_btn->msw_rescale();
-    m_printhost_test_btn->msw_rescale();
-    m_printhost_logout_btn->msw_rescale();
+    m_printhost_browse_btn->Rescale();
+    m_printhost_test_btn->Rescale();
+    m_printhost_logout_btn->Rescale();
     if (m_printhost_cafile_browse_btn)
-        m_printhost_cafile_browse_btn->msw_rescale();
+        m_printhost_cafile_browse_btn->Rescale();
 
     m_optgroup->msw_rescale();
 
