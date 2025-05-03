@@ -4233,7 +4233,7 @@ void GCodeProcessor::run_post_process()
         }
 
         // add the given gcode line to the cache
-        void append_line(const std::string& line) {
+        void append_line(const std::string& line, const bool ignore_from_move = false) {
             if (line.empty()) return;
 
             m_lines.push_back({ line, m_times });
@@ -4242,8 +4242,10 @@ void GCodeProcessor::run_post_process()
 #endif // NDEBUG
             m_size += line.length();
             ++m_added_lines_counter;
-            assert(!m_gcode_lines_map.empty());
-            m_gcode_lines_map.back().second = m_added_lines_counter;
+            if (!ignore_from_move) {
+                assert(!m_gcode_lines_map.empty());
+                m_gcode_lines_map.back().second = m_added_lines_counter;
+            }
         }
 
         // Insert the gcode lines required by the command cmd by backtracing into the cache
@@ -4537,7 +4539,7 @@ void GCodeProcessor::run_post_process()
                                                                 time_in_minutes(machine.time - it->elapsed_time) };
                         if (last_exported_main[i] != to_export_main) {
                             export_lines.append_line(format_line_M73_main(machine.line_m73_main_mask.c_str(),
-                                to_export_main.first, to_export_main.second));
+                                to_export_main.first, to_export_main.second), true);
                             last_exported_main[i] = to_export_main;
                         }
                         // export remaining time to next printer stop
@@ -4548,7 +4550,7 @@ void GCodeProcessor::run_post_process()
                             if (last_exported_stop[i] != to_export_stop) {
                                 if (to_export_stop > 0) {
                                     if (last_exported_stop[i] != to_export_stop) {
-                                        export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop));
+                                        export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop), true);
                                         last_exported_stop[i] = to_export_stop;
                                     }
                                 }
@@ -4569,9 +4571,9 @@ void GCodeProcessor::run_post_process()
 
                                     if (is_last) {
                                         if (std::distance(machine.stop_times.begin(), it_stop) == static_cast<ptrdiff_t>(machine.stop_times.size() - 1))
-                                            export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop));
+                                            export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop), true);
                                         else
-                                            export_lines.append_line(format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time)));
+                                            export_lines.append_line(format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time)), true);
 
                                         last_exported_stop[i] = to_export_stop;
                                     }
