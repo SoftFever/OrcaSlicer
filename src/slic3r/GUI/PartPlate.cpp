@@ -873,7 +873,7 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 	if (force_default_color) //for thumbnail case
 		return;
 
-	ColorRGBA select_color{   .8f, .76f, .72f, .5f }; // ORCA
+	ColorRGBA select_color{   .9f, .86f, .82f, .7f }; // ORCA
 	ColorRGBA unselect_color{ .6f, .6f, .6f, .3f }; // ORCA
 	//ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
