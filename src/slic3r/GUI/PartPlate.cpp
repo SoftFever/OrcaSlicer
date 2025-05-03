@@ -468,7 +468,6 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     m_gridlines_bolder.reset();
 
     // calculate and generate grid
-	Polylines axes_lines, axes_lines_bolder;
     int   step          = Bed_2D::calculate_grid_step(pp_bbox);
     Vec2d scaled_origin = Vec2d(scale_(m_origin.x()),scale_(m_origin.x()));
     auto  grid_lines    = Bed_2D::generate_grid(poly, pp_bbox, scaled_origin, scale_(step), SCALED_EPSILON);

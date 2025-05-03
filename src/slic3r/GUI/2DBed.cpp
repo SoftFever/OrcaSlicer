@@ -164,16 +164,16 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
     dc.SetPen(wxPen(wxColour(lines_thin_color), 1, wxPENSTYLE_SOLID));
 	for (auto pl : grid_lines[0]) {
 		for (size_t i = 0; i < pl.points.size() - 1; i++) {
-            Point pt1 = to_pixels(Point(pl.points[i  ](0),pl.points[i  ](1)), ch);
-            Point pt2 = to_pixels(Point(pl.points[i+1](0),pl.points[i+1](1)), ch);
+            Point pt1 = to_pixels(pl.points[i  ], ch);
+            Point pt2 = to_pixels(pl.points[i+1], ch);
             dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
 		}
 	}
     dc.SetPen(wxPen(wxColour(lines_bold_color), 1, wxPENSTYLE_SOLID));
 	for (auto pl : grid_lines[1]) {
 		for (size_t i = 0; i < pl.points.size() - 1; i++) {
-            Point pt1 = to_pixels(Point(pl.points[i  ](0),pl.points[i  ](1)), ch);
-            Point pt2 = to_pixels(Point(pl.points[i+1](0),pl.points[i+1](1)), ch);
+            Point pt1 = to_pixels(pl.points[i  ], ch);
+            Point pt2 = to_pixels(pl.points[i+1], ch);
             dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
 		}
 	}
