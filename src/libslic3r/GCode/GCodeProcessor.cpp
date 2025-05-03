@@ -4458,6 +4458,7 @@ void GCodeProcessor::run_post_process()
                 char buf[128];
                 sprintf(buf, "; total layer number: %u\n", m_layer_id);
                 export_lines.append_line(buf);
+                processed = true;
             }
         }
 
