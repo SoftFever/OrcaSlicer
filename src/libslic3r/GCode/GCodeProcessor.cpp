@@ -4234,6 +4234,8 @@ void GCodeProcessor::run_post_process()
 
         // add the given gcode line to the cache
         void append_line(const std::string& line) {
+            if (line.empty()) return;
+
             m_lines.push_back({ line, m_times });
 #ifndef NDEBUG
             m_statistics.add_line(line.length());
