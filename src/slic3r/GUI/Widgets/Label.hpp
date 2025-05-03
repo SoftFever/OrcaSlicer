@@ -31,6 +31,7 @@ private:
 	bool m_skip_size_evt = false;
 
 public:
+    static wxFont Head_96;
     static wxFont Head_48;
     static wxFont Head_32;
 	static wxFont Head_24;

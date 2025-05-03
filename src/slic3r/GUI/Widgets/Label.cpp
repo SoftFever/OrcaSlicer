@@ -35,6 +35,7 @@ wxFont Label::sysFont(int size, bool bold)
     }
     return font;
 }
+wxFont Label::Head_96;
 wxFont Label::Head_48;
 wxFont Label::Head_32;
 wxFont Label::Head_24;
@@ -80,6 +81,7 @@ void Label::initSysFont()
     // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Bold returns %1%")%result;
     printf("add font of NanumGothic-Bold returns %d\n", result);
 #endif
+    Head_96 = Label::sysFont(96, true);
     Head_48 = Label::sysFont(48, true);
     Head_32 = Label::sysFont(32, true);
     Head_24 = Label::sysFont(24, true);
