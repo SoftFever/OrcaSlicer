@@ -24,6 +24,63 @@ wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -
 #endif /*__APPLE__*/
 }
 
+int Bed_2D::calculate_grid_step(const BoundingBox& bb)
+{
+    // Orca: use 500 x 500 bed size as baseline.
+    int min_edge = (bb.size() / ((coord_t) scale_(1)) ).minCoeff(); // Get short edge 
+                                           // if the grid is too dense, we increase the step
+    return   min_edge >= 6000 ? 100        // Short edge >= 6000mm  Main Grid: 5 x 100 = 500mm
+           : min_edge >= 1200 ? 50         // Short edge >= 1200mm  Main Grid: 5 x 50  = 250mm
+           : min_edge >= 600  ? 20         // Short edge >= 600mm   Main Grid: 5 x 20  = 100mm
+           : 10;                           // Short edge <  600mm   Main Grid: 5 x 10  =  50mm
+}
+
+std::vector<Polylines> Bed_2D::generate_grid(const ExPolygon& poly, const BoundingBox& bb, const Vec2d& origin, const float& step, const float& scale)
+{
+    Polylines lines_thin, lines_bold;
+    int   count = 0;
+
+    // ORCA draw grid lines relative to origin
+    for (coord_t x = origin.x(); x >= bb.min(0); x -= step) { // Negative X axis
+        (count % 5 ? lines_thin : lines_bold).push_back(Polyline(
+            Point(x, bb.min(1)),
+            Point(x, bb.max(1))
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t x = origin.x(); x <= bb.max(0); x += step) { // Positive X axis
+        (count % 5 ? lines_thin : lines_bold).push_back(Polyline(
+            Point(x, bb.min(1)),
+            Point(x, bb.max(1))
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = origin.y(); y >= bb.min(1); y -= step) { // Negative Y axis
+        (count % 5 ? lines_thin : lines_bold).push_back(Polyline(
+            Point(bb.min(0), y),
+            Point(bb.max(0), y)
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = origin.y(); y <= bb.max(1); y += step) { // Positive Y axis
+        (count % 5 ? lines_thin : lines_bold).push_back(Polyline(
+            Point(bb.min(0), y),
+            Point(bb.max(0), y)
+        ));
+        count ++;
+    }
+
+    std::vector<Polylines> grid;
+    // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
+    auto scaled_poly = offset(poly, scale);
+    grid.push_back(intersection_pl(lines_thin, scaled_poly));
+    grid.push_back(intersection_pl(lines_bold, scaled_poly));
+    return grid;
+}
+
 void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 {
 	wxAutoBufferedPaintDC dc(this);
@@ -62,7 +119,6 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	auto ccenter = cbb.center();
 
 	// get bounding box of bed shape in G - code coordinates
-    auto bed_polygon = Polygon::new_scale(shape);
     auto bb = BoundingBoxf(shape);
     bb.merge(Vec2d(0, 0));  // origin needs to be in the visible area
 	auto bw = bb.size()(0);
@@ -97,69 +153,27 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	}
 	dc.DrawPolygon(&pt_list, 0, 0);
 
-	// draw grid
-	Polylines lines_thin, lines_bold; // Calculations should be same with PartPlate::calc_gridlines
-	int count = 0;
-	int step  = 10;                   //                Uses up to 599mm    Main Grid: 10 x 5 = 50mm
-	// Orca: use 500 x 500 bed size as baseline.
-    Vec2d grid_counts = bb.size() / (step * 50);
-    // if the grid is too dense, we increase the step
-    auto min_edge_scaled = (bb.size()).minCoeff(); // calculations should match with PartPlate.cpp
-    if (     min_edge_scaled >= 6000) // Switch when short edge >= 6000mm   Main Grid: 100 x 5 = 500mm
-        step = 100;
-    else if (min_edge_scaled >= 1200) // Switch when short edge >= 1200mm   Main Grid:  50 x 5 = 250mm
-        step = 50;
-    else if (min_edge_scaled >= 600)  // Switch when short edge >= 600mm    Main Grid:  20 x 5 = 100mm
-        step = 20;
-
-    // ORCA draw grid lines relative to origin
-    for (auto x = m_pos.x(); x >= bb.min(0); x -= step) { // Negative X axis
-        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
-            Vec2d(x, bb.min(1)),
-            Vec2d(x, bb.max(1))
-        }));
-        count ++;
-    }
-    count = 0;
-    for (auto x = m_pos.x(); x <= bb.max(0); x += step) { // Positive X axis
-        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
-            Vec2d(x, bb.min(1)),
-            Vec2d(x, bb.max(1))
-        }));
-        count ++;
-    }
-    count = 0;
-    for (auto y = m_pos.y(); y >= bb.min(1); y -= step) { // Negative Y axis
-        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
-            Vec2d(bb.min(0), y),
-            Vec2d(bb.max(0), y)
-        }));
-        count ++;
-    }
-    count = 0;
-    for (auto y = m_pos.y(); y <= bb.max(1); y += step) { // Positive Y axis
-        (count % 5 == 0 ? lines_bold : lines_thin).push_back(Polyline::new_scale({
-            Vec2d(bb.min(0), y),
-            Vec2d(bb.max(0), y)
-        }));
-        count ++;
-    }
-    count = 0;
+    ExPolygon bed_poly;
+    for (const Vec2d& p : shape)
+        bed_poly.contour.append({p(0), p(1)});
+    auto bed_bb     = bed_poly.contour.bounding_box();
+    int  step       = calculate_grid_step(bed_bb);
+    auto grid_lines = generate_grid(bed_poly, bed_bb, m_pos, step, 1.0f);
 
     // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
     dc.SetPen(wxPen(wxColour(lines_thin_color), 1, wxPENSTYLE_SOLID));
-	for (auto pl : intersection_pl(lines_thin, bed_polygon)) {
-		for (size_t i = 0; i < pl.points.size()-1; i++) {
-            Point pt1 = to_pixels(unscale(pl.points[i])    , ch);
-            Point pt2 = to_pixels(unscale(pl.points[i + 1]), ch);
+	for (auto pl : grid_lines[0]) {
+		for (size_t i = 0; i < pl.points.size() - 1; i++) {
+            Point pt1 = to_pixels(Point(pl.points[i  ](0),pl.points[i  ](1)), ch);
+            Point pt2 = to_pixels(Point(pl.points[i+1](0),pl.points[i+1](1)), ch);
             dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
 		}
 	}
     dc.SetPen(wxPen(wxColour(lines_bold_color), 1, wxPENSTYLE_SOLID));
-	for (auto pl : intersection_pl(lines_bold, bed_polygon)) {
-		for (size_t i = 0; i < pl.points.size()-1; i++) {
-            Point pt1 = to_pixels(unscale(pl.points[i])    , ch);
-            Point pt2 = to_pixels(unscale(pl.points[i + 1]), ch);
+	for (auto pl : grid_lines[1]) {
+		for (size_t i = 0; i < pl.points.size() - 1; i++) {
+            Point pt1 = to_pixels(Point(pl.points[i  ](0),pl.points[i  ](1)), ch);
+            Point pt2 = to_pixels(Point(pl.points[i+1](0),pl.points[i+1](1)), ch);
             dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
 		}
 	}
@@ -234,6 +248,12 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 Point Bed_2D::to_pixels(const Vec2d& point, int height)
 {
 	auto p = point * m_scale_factor + m_shift;
+    return Point(p(0) + Border, height - p(1) + Border);
+}
+
+Point Bed_2D::to_pixels(const Point& point, int height)
+{
+	auto p = point * m_scale_factor + Point(m_shift);
     return Point(p(0) + Border, height - p(1) + Border);
 }
 
