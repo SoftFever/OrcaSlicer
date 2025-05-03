@@ -468,37 +468,50 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 
 	Polylines axes_lines, axes_lines_bolder;
 	int count = 0;
-	int step  = 10;
+	int step  = 10;                   //                Uses up to 599mm    Main Grid:  10 x 5 = 50mm
 	// Orca: use 500 x 500 bed size as baseline.
-    const Point grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
     // if the grid is too dense, we increase the step
-    if (grid_counts.minCoeff() > 1) {
-        step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
+    auto min_edge_scaled = (pp_bbox.size() / ((coord_t) scale_(1))).minCoeff();
+    if (     min_edge_scaled >= 6000) // Switch when short edge >= 6000mm   Main Grid: 100 x 5 = 500mm
+        step = 100;
+    else if (min_edge_scaled >= 1200) // Switch when short edge >= 1200mm   Main Grid:  50 x 5 = 250mm
+        step = 50;
+    else if (min_edge_scaled >= 600)  // Switch when short edge >= 600mm    Main Grid:  20 x 5 = 100mm
+        step = 20;
+
+    // ORCA draw grid lines relative to origin
+    for (coord_t x = scale_(m_origin.x()); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(x, pp_bbox.min(1)),
+            Point(x, pp_bbox.max(1))
+        ));
+        count ++;
     }
-    for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(step)) {
-		Polyline line;
-		line.append(Point(x, pp_bbox.min(1)));
-		line.append(Point(x, pp_bbox.max(1)));
-
-		if ( (count % 5) == 0 )
-			axes_lines_bolder.push_back(line);
-		else
-			axes_lines.push_back(line);
-		count ++;
-	}
-	count = 0;
-	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(step)) {
-		Polyline line;
-		line.append(Point(pp_bbox.min(0), y));
-		line.append(Point(pp_bbox.max(0), y));
-		axes_lines.push_back(line);
-
-		if ( (count % 5) == 0 )
-			axes_lines_bolder.push_back(line);
-		else
-			axes_lines.push_back(line);
-		count ++;
-	}
+    count = 0;
+    for (coord_t x = scale_(m_origin.x()); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(x, pp_bbox.min(1)),
+            Point(x, pp_bbox.max(1))
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = scale_(m_origin.y()); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(pp_bbox.min(0), y),
+            Point(pp_bbox.max(0), y)
+        ));
+        count ++;
+    }
+    count = 0;
+    for (coord_t y = scale_(m_origin.y()); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
+        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
+            Point(pp_bbox.min(0), y),
+            Point(pp_bbox.max(0), y)
+        ));
+        count ++;
+    }
+    count = 0;
 
 	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
 	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
@@ -636,7 +649,7 @@ void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
     p += Vec2d(gap_left,-1 * (index * (size + gap_y) + gap_top));
 
     if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
-        p[1] -= std::max(0.0, (bed_ext.size()(1) - 5 * size - 4 * gap_y - gap_top) / 2);
+        p[1] -= std::max(0.0, (bed_ext.size()(1) - (size + gap_y) * 6 /* bed_icon_count */) / 2);
 
     poly.contour.append({ scale_(p(0))       , scale_(p(1) - size) });
     poly.contour.append({ scale_(p(0) + size), scale_(p(1) - size) });
@@ -2074,6 +2087,16 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 	if (instance_box.max.z() > plate_box.min.z())
 		plate_box.min.z() += instance_box.min.z(); // not considering outsize if sinking
 
+	if (instance_box.min.z() < SINKING_Z_THRESHOLD) {
+		// Orca: For sinking object, we use a more expensive algorithm so part below build plate won't be considered
+		if (plate_box.intersects(instance_box)) {
+			// TODO: FIXME: this does not take exclusion area into account
+			const BuildVolume build_volume(get_shape(), m_plater->build_volume().printable_height());
+			const auto state = instance->calc_print_volume_state(build_volume);
+			outside = state == ModelInstancePVS_Partly_Outside;
+		}
+	}
+	else
 	if (plate_box.contains(instance_box))
 	{
 		if (m_exclude_bounding_box.size() > 0)
@@ -2608,12 +2631,13 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 			exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
 		}
 	}
+
+	exclude_polygon.contour.make_counter_clockwise();
 }
 
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
 	Pointfs new_shape, new_exclude_areas;
-	m_raw_shape = shape;
 	for (const Vec2d& p : shape) {
 		new_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 	}
@@ -2678,6 +2702,8 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
         calc_vertex_for_icons(5, m_move_front_icon);
+        // ORCA also change bed_icon_count number in calc_vertex_for_icons() after adding or removing icons for circular shaped beds that uses vertical alingment for icons
+
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		if (m_plater) {
@@ -3868,7 +3894,8 @@ std::vector<PartPlate*> PartPlateList::get_nonempty_plate_list()
 {
 	std::vector<PartPlate*> nonempty_plate_list;
 	for (auto plate : m_plate_list){
-		if (plate->get_extruders().size() != 0) {
+        //if (plate->get_extruders().size() != 0) {
+		if (!plate->empty()) { // ORCA counts failed slices as non empty because they have model and should be calculated on total count
 			nonempty_plate_list.push_back(plate);
 		}
 	}

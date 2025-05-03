@@ -1051,7 +1051,7 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
         filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
 
     if (!check_multi_filaments_compatibility(filament_types))
-        return { L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
+        return { L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
 
     return {std::string()};
 }
@@ -1516,6 +1516,17 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                }
             }
 
+            // check  junction deviation
+            const auto max_junction_deviation = m_config.machine_max_junction_deviation.values[0];
+            if (warning_key.empty() && m_default_object_config.default_junction_deviation.value > max_junction_deviation) {
+                warning->string  = L( "Junction deviation setting exceeds the printer's maximum value "
+                                      "(machine_max_junction_deviation).\nOrca will "
+                                      "automatically cap the junction deviation to ensure it doesn't surpass the printer's "
+                                      "capabilities.\nYou can adjust the "
+                                      "machine_max_junction_deviation value in your printer's configuration to get higher limits.");
+                warning->opt_key = warning_key;
+            }
+            
             // check acceleration
             const auto max_accel = m_config.machine_max_acceleration_extruding.values[0];
             if (warning_key.empty() && m_default_object_config.default_acceleration > 0 && max_accel > 0) {
@@ -1931,7 +1942,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 }
                 if (!found_shared) {
                     BOOST_LOG_TRIVIAL(warning) << boost::format("Also can not find the shared object, identify_id %1%, maybe shared object is skipped")%obj->model_object()->instances[0]->loaded_id;
-                    //throw Slic3r::SlicingError("Can not find the cached data.");
+                    //throw Slic3r::SlicingError("Cannot find the cached data.");
                     //don't report errot, set use_cache to false, and reslice these objects
                     need_slicing_objects.insert(obj);
                     re_slicing_objects.insert(obj);
@@ -2520,7 +2531,7 @@ FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
         catch (const json::parse_error& err){
             in.close();
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
-            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
+            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA-GF","PA6-CF","PET-CF", "PETG-GF","PPS","PPS-CF","PPA-GF","PPA-CF","ABS-Aero","ABS-GF"};
             filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA","BVOH","SBS"};
             filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG","PCTG","PE","PP","EVA","PE-CF","PP-CF","PP-GF","PHA"};
         }

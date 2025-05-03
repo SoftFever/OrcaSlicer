@@ -105,6 +105,8 @@
     "retraction_speed": [
         "60"
     ],
+    "machine_load_filament_time": "9.75",
+    "machine_unload_filament_time": "9.75",
     "single_extruder_multi_material": "1",
     "wipe": [
         "1"
