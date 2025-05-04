@@ -3,6 +3,8 @@
 
 #include <wx/wx.h>
 #include "libslic3r/Config.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include "libslic3r/Polyline.hpp"
 
 namespace Slic3r {
 namespace GUI {
