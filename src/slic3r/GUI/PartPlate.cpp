@@ -30,6 +30,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "Widgets/Label.hpp"
+#include "2DBed.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
 #include "Camera.hpp"
@@ -466,65 +467,22 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     m_gridlines.reset();
     m_gridlines_bolder.reset();
 
-	Polylines axes_lines, axes_lines_bolder;
-	int count = 0;
-	int step  = 10;                   //                Uses up to 599mm    Main Grid:  10 x 5 = 50mm
-	// Orca: use 500 x 500 bed size as baseline.
-    // if the grid is too dense, we increase the step
-    auto min_edge_scaled = (pp_bbox.size() / ((coord_t) scale_(1))).minCoeff();
-    if (     min_edge_scaled >= 6000) // Switch when short edge >= 6000mm   Main Grid: 100 x 5 = 500mm
-        step = 100;
-    else if (min_edge_scaled >= 1200) // Switch when short edge >= 1200mm   Main Grid:  50 x 5 = 250mm
-        step = 50;
-    else if (min_edge_scaled >= 600)  // Switch when short edge >= 600mm    Main Grid:  20 x 5 = 100mm
-        step = 20;
+    // calculate and generate grid
+    int   step          = Bed_2D::calculate_grid_step(pp_bbox);
+    Vec2d scaled_origin = Vec2d(scale_(m_origin.x()),scale_(m_origin.x()));
+    auto  grid_lines    = Bed_2D::generate_grid(poly, pp_bbox, scaled_origin, scale_(step), SCALED_EPSILON);
 
-    // ORCA draw grid lines relative to origin
-    for (coord_t x = scale_(m_origin.x()); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(x, pp_bbox.min(1)),
-            Point(x, pp_bbox.max(1))
-        ));
-        count ++;
-    }
-    count = 0;
-    for (coord_t x = scale_(m_origin.x()); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(x, pp_bbox.min(1)),
-            Point(x, pp_bbox.max(1))
-        ));
-        count ++;
-    }
-    count = 0;
-    for (coord_t y = scale_(m_origin.y()); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(pp_bbox.min(0), y),
-            Point(pp_bbox.max(0), y)
-        ));
-        count ++;
-    }
-    count = 0;
-    for (coord_t y = scale_(m_origin.y()); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(pp_bbox.min(0), y),
-            Point(pp_bbox.max(0), y)
-        ));
-        count ++;
-    }
-    count = 0;
-
-	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
-	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
-	Lines gridlines_bolder = to_lines(intersection_pl(axes_lines_bolder, offset(poly, (float)SCALED_EPSILON)));
+    Lines lines_thin = to_lines(grid_lines[0]);
+	Lines lines_bold = to_lines(grid_lines[1]);
 
 	// append bed contours
 	Lines contour_lines = to_lines(poly);
-	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
+	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(lines_thin));
 
-	if (!init_model_from_lines(m_gridlines, gridlines, GROUND_Z_GRIDLINE))
+	if (!init_model_from_lines(m_gridlines       , lines_thin, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 
-	if (!init_model_from_lines(m_gridlines_bolder, gridlines_bolder, GROUND_Z_GRIDLINE))
+	if (!init_model_from_lines(m_gridlines_bolder, lines_bold, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
