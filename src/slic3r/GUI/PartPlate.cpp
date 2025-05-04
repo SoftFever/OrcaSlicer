@@ -831,8 +831,8 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 	if (force_default_color) //for thumbnail case
 		return;
 
-	ColorRGBA select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
-	ColorRGBA unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	ColorRGBA select_color{   .9f, .86f, .82f, .7f }; // ORCA
+	ColorRGBA unselect_color{ .6f, .6f, .6f, .3f }; // ORCA
 	//ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
 	// draw exclude area
@@ -2548,37 +2548,44 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 	int points_count = 8;
 	if (m_exclude_area.size() == 4)
 	{
-			//rectangle case
-			for (int i = 0; i < 4; i++)
-			{
-				const Vec2d& p = m_exclude_area[i];
-				Vec2d center;
-				double start_angle, stop_angle, radius;
-				switch (i) {
-					case 0:
-						radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) + radius;
-						start_angle = PI;
-						stop_angle = 1.5 * PI;
-						compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 1:
-						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-					case 2:
-						radius = 3.f;
-						center(0) = p(0) - radius;
-						center(1) = p(1) - radius;
-						start_angle = 0;
-						stop_angle = 0.5 * PI;
-						compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 3:
-						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-				}
+		//rectangle case
+		for (int i = 0; i < 4; i++)
+		{
+			const Vec2d& p = m_exclude_area[i];
+			Vec2d center;
+			double start_angle, stop_angle, radius;
+			radius = 1.f; // ORCA use equal rounding for all corners
+			switch (i) {
+				case 0: // Left-Bottom
+					center(0)   = p(0) + radius;
+					center(1)   = p(1) + radius;
+					start_angle = 1.0 * PI; //180
+					stop_angle  = 1.5 * PI; //270
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+				break;
+				case 1: // Right-Bottom
+					center(0)   = p(0) - radius;
+					center(1)   = p(1) + radius;
+					start_angle = 1.5 * PI; //270
+					stop_angle  = 2.0 * PI; //360
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+					break;
+				case 2: // Right-Top
+					center(0)   = p(0) - radius;
+					center(1)   = p(1) - radius;
+ 					start_angle = 0.0 * PI; //0
+					stop_angle  = 0.5 * PI; //90
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+					break;
+				case 3: // Left-Top
+					center(0)   = p(0) + radius;
+					center(1)   = p(1) - radius;
+					start_angle = 0.5 * PI; //90
+					stop_angle  = 1.0 * PI; //180
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+					break;
 			}
+		}
 	}
 	else {
 		for (const Vec2d& p : m_exclude_area) {
