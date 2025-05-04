@@ -18,10 +18,15 @@ class Bed_2D : public wxPanel
 	Vec2d		m_pos = Vec2d::Zero();
 
     Point		to_pixels(const Vec2d& point, int height);
+    Point       to_pixels(const Point& point, int height);
     void		set_pos(const Vec2d& pos);
 
 public:
     explicit Bed_2D(wxWindow* parent);
+
+    static int calculate_grid_step(const BoundingBox& bb);
+
+    static std::vector<Polylines> generate_grid(const ExPolygon& poly, const BoundingBox& pp_bbox, const Vec2d& origin, const float& step, const float& scale);
 
     void repaint(const std::vector<Vec2d>& shape);
 };
