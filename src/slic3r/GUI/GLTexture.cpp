@@ -492,8 +492,11 @@ bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wx
 
     m_original_width = (int)w;
     m_original_height = (int)h;
-    m_width = (int)next_highest_power_of_2((uint32_t)w);
-    m_height = (int)next_highest_power_of_2((uint32_t)h);
+    //m_width  = (int)next_highest_power_of_2((uint32_t)w);
+    //m_height = (int)next_highest_power_of_2((uint32_t)h);
+    // using next_highest_power_of_2 changes ratio when height / width values dont match
+    m_width  = static_cast<int>(std::ceil(w)); 
+    m_height = static_cast<int>(std::ceil(h));
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -568,8 +571,11 @@ bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& 
 
     m_original_width = (int)w;
     m_original_height = (int)h;
-    m_width = (int)next_highest_power_of_2((uint32_t)w);
-    m_height = (int)next_highest_power_of_2((uint32_t)h);
+    //m_width  = (int)next_highest_power_of_2((uint32_t)w);
+    //m_height = (int)next_highest_power_of_2((uint32_t)h);
+    // using next_highest_power_of_2 changes ratio when height / width values dont match
+    m_width  = static_cast<int>(std::ceil(w)); 
+    m_height = static_cast<int>(std::ceil(h));
     ww = m_width;
     hh = m_height;
     hl = ll;

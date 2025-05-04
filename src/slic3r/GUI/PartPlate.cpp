@@ -612,21 +612,19 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
     ExPolygon poly;
     auto  bed_ext  = get_extents(m_shape);
     Vec2d p        = bed_ext[3];
-    auto  factor   = bed_ext.size()(1) / 200.0;
-    float width    = 0.f;
-    float height   = PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * factor;
-    float offset_x = 1 * factor;
+    auto  factor   = bed_ext.size()(1) / 250.00; // Should match with plate name factor
+    float width    = m_name_texture_height; // always match size with text height that already scaled with bed size
+    float height   = m_name_texture_height;
     float offset_y = PARTPLATE_TEXT_OFFSET_Y * factor;
 
-    if (texture && texture->get_width() > 0 && texture->get_height())
-        width = int(factor * (texture->get_original_width() * 10) / texture->get_height());
-
-    p += Vec2d(width + offset_x, offset_y + height);
-
-    poly.contour.append({ scale_(p(0))         , scale_(p(1) - height) });
-    poly.contour.append({ scale_(p(0) + height), scale_(p(1) - height) });
-    poly.contour.append({ scale_(p(0) + height), scale_(p(1)) });
-    poly.contour.append({ scale_(p(0))         , scale_(p(1)) });
+    double px = scale_(p(0)) + m_name_texture_width;
+    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
+        px = scale_(bed_ext.center()(0)) + m_name_texture_width * 0.50 - height * 0.50;
+    double py = scale_(p(1) + offset_y);
+	poly.contour.append({px        , py         });
+	poly.contour.append({px + width, py         });
+	poly.contour.append({px + width, py + height});
+	poly.contour.append({px        , py + height});
 
     if (!init_model_from_poly(model.model, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
@@ -1911,25 +1909,34 @@ void PartPlate::generate_plate_name_texture()
 	// generate m_name_texture texture from m_name with generate_from_text_string
 	m_name_texture.reset();
 	auto text = m_name.empty()? _L("Untitled") : from_u8(m_name);
-	wxCoord w, h;
 
 	auto* font = &Label::Head_96;  // ORCA use downscaling with big font size instead using upscaling with small font size to improve quality
 
 	wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
     if (!m_name_texture.generate_from_text_string(text.ToUTF8().data(), *font, *wxBLACK, foreground))
 		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
-    auto bed_ext = get_extents(m_shape);
-    auto factor = bed_ext.size()(1) / 200.0;
-	ExPolygon poly;
-	float offset_x = 1 * factor;
+
+    ExPolygon poly;
+    auto  bed_ext   = get_extents(m_shape);
+    Vec2d p         = bed_ext[3];
+    float factor    = bed_ext.size()(1) / 250.00; // This scale also controls size of edit icon. Should match with edit icon factor
+    float icon_size = factor *  PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
+    float width     = scale_(icon_size * m_name_texture.get_width() / m_name_texture.get_height()); // icon size * text_bb_ratio)
+    float height    = scale_(icon_size); // text height same with icon to preserve ratio between them while scaling
     float offset_y = PARTPLATE_TEXT_OFFSET_Y * factor;
-    w = int(factor * (m_name_texture.get_width() * 10) / m_name_texture.get_height());
-    h = int(factor * 10);
-    Vec2d p = bed_ext[3] + Vec2d(0, 1 + h * m_name_texture.m_original_height / m_name_texture.get_height());
-	poly.contour.append({ scale_(p(0) + offset_x)    , scale_(p(1) - h + offset_y) });
-	poly.contour.append({ scale_(p(0) + w - offset_x), scale_(p(1) - h + offset_y) });
-	poly.contour.append({ scale_(p(0) + w - offset_x), scale_(p(1) - offset_y) });
-	poly.contour.append({ scale_(p(0) + offset_x)    , scale_(p(1) - offset_y) });
+
+    // store scaled size for edit icon
+    m_name_texture_width  = width;
+    m_name_texture_height = height;
+
+    double px = scale_(p(0));
+    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
+        px = scale_(bed_ext.center()(0)) - (width + height) / 2.00;
+    double py = scale_(p(1) + offset_y);
+	poly.contour.append({px        , py         });
+	poly.contour.append({px + width, py         });
+	poly.contour.append({px + width, py + height});
+	poly.contour.append({px        , py + height});
 
     if (!init_model_from_poly(m_plate_name_icon, poly, GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
