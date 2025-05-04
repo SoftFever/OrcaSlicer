@@ -46,6 +46,7 @@ struct SupportParameters {
         this->first_layer_flow = Slic3r::support_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
         this->support_material_flow = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
         this->support_material_interface_flow = Slic3r::support_material_interface_flow(&object, float(slicing_params.layer_height));
+        this->support_iron_flow = support_material_interface_flow.with_height(support_material_interface_flow.height() * 0.01 * 10/*TODO: config*/);
     	this->raft_interface_flow                = support_material_interface_flow;
 
         // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
@@ -210,6 +211,7 @@ struct SupportParameters {
 	Flow 					support_material_flow;
 	// Flow at the top interface and contact layers.
 	Flow 					support_material_interface_flow;
+    Flow 					support_iron_flow;
 	// Flow at the bottom interfaces and contacts.
 	Flow 					support_material_bottom_interface_flow;
 	// Flow at raft inteface & contact layers.
