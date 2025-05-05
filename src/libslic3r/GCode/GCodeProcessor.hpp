@@ -323,10 +323,11 @@ class Print;
             float max;
             float min;
             float mean;
+            bool  isNull;
 
-            ThermalIndex() : max(0.0f), min(0.0f), mean(0.0f) {}
+            ThermalIndex() : min(-200), max(-200), mean(-200), isNull(true){}
 
-            ThermalIndex(float minVal, float maxVal, float meanVal): min(minVal), max(maxVal), mean(meanVal) {}
+            ThermalIndex(float minVal, float maxVal, float meanVal): min(minVal), max(maxVal), mean(meanVal), isNull(false){}
         };
 
     private:
