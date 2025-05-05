@@ -1694,15 +1694,15 @@ void generate_support_toolpaths(
                         base_layer = std::move(top_contact_layer);
                 }
             } else {
-                if (!top_contact_layer.empty()) {
+                if (support_params.ironing && !top_contact_layer.empty()) {
                     // Orca: Generate iron toolpath for contact layer
-                    auto f = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
+                    auto f = std::unique_ptr<Fill>(Fill::new_from_type(support_params.ironing_pattern));
                     f->set_bounding_box(bbox_object);
                     f->layer_id = support_layer.id();
                     f->z        = support_layer.print_z;
                     f->overlap  = 0;
-                    f->angle    = support_interface_angle;
-                    f->spacing  = 0.15;
+                    f->angle    = support_interface_angle; // TODO: should we rotate 90 degrees?
+                    f->spacing         = support_params.ironing_spacing;
                     f->link_max_length = (coord_t) scale_(3. * f->spacing);
                     fill_expolygons_generate_paths(
                         // Destination
@@ -1712,7 +1712,7 @@ void generate_support_toolpaths(
                         // Filler and its parameters
                         f.get(), 1.f,
                         // Extrusion parameters
-                        ExtrusionRole::erIroning, support_params.support_iron_flow);
+                        ExtrusionRole::erIroning, support_params.ironing_flow);
                 }
 
                 loop_interface_processor.generate(top_contact_layer, support_params.support_material_interface_flow);

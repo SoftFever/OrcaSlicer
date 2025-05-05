@@ -223,6 +223,17 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+    if (config->opt_float("support_ironing_spacing") < 0.05)
+    {
+        const wxString msg_text = _(L("Too small ironing spacing.\nReset to 0.1"));
+        MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("support_ironing_spacing", new ConfigOptionFloat(0.1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 
     if (config->option<ConfigOptionFloat>("initial_layer_print_height")->value < EPSILON)
     {
@@ -635,6 +646,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "support_interface_spacing", "support_interface_filament",
         "support_interface_loop_pattern", "support_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
+
+    bool can_ironing_support = have_raft || (have_support_material && config->opt_int("support_interface_top_layers") > 0);
+    toggle_field("support_ironing", can_ironing_support);
+    bool has_support_ironing = can_ironing_support && config->opt_bool("support_ironing");
+    for (auto el : {"support_ironing_pattern", "support_ironing_flow", "support_ironing_spacing" })
+        toggle_line(el, has_support_ironing);
 
     bool have_skirt_height = have_skirt &&
     (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);

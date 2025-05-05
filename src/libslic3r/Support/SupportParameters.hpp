@@ -46,8 +46,12 @@ struct SupportParameters {
         this->first_layer_flow = Slic3r::support_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
         this->support_material_flow = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
         this->support_material_interface_flow = Slic3r::support_material_interface_flow(&object, float(slicing_params.layer_height));
-        this->support_iron_flow = support_material_interface_flow.with_height(support_material_interface_flow.height() * 0.01 * 10/*TODO: config*/);
     	this->raft_interface_flow                = support_material_interface_flow;
+
+        this->ironing = object_config.support_ironing;
+        this->ironing_flow = support_material_interface_flow.with_height(support_material_interface_flow.height() * 0.01 * object_config.support_ironing_flow.value);
+        this->ironing_spacing = object_config.support_ironing_spacing;
+        this->ironing_pattern = object_config.support_ironing_pattern;
 
         // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
         this->support_layer_height_min = scaled<coord_t>(0.01);
@@ -91,9 +95,9 @@ struct SupportParameters {
 
         this->base_angle = Geometry::deg2rad(float(object_config.support_angle.value));
         this->interface_angle = Geometry::deg2rad(float(object_config.support_angle.value + 90.));
-        this->interface_spacing = object_config.support_interface_spacing.value + this->support_material_interface_flow.spacing();
+        this->interface_spacing = (this->ironing ? 0 : object_config.support_interface_spacing.value) + this->support_material_interface_flow.spacing();
         this->interface_density = std::min(1., this->support_material_interface_flow.spacing() / this->interface_spacing);
-        double raft_interface_spacing = object_config.support_interface_spacing.value + this->raft_interface_flow.spacing();
+        double raft_interface_spacing = (this->ironing ? 0 : object_config.support_interface_spacing.value) + this->raft_interface_flow.spacing();
         this->raft_interface_density = std::min(1., this->raft_interface_flow.spacing() / raft_interface_spacing);
         this->support_spacing = object_config.support_base_pattern_spacing.value + this->support_material_flow.spacing();
         this->support_density = std::min(1., this->support_material_flow.spacing() / this->support_spacing);
@@ -211,7 +215,6 @@ struct SupportParameters {
 	Flow 					support_material_flow;
 	// Flow at the top interface and contact layers.
 	Flow 					support_material_interface_flow;
-    Flow 					support_iron_flow;
 	// Flow at the bottom interfaces and contacts.
 	Flow 					support_material_bottom_interface_flow;
 	// Flow at raft inteface & contact layers.
@@ -262,6 +265,11 @@ struct SupportParameters {
 		
     bool independent_layer_height = false;
     const double thresh_big_overhang = Slic3r::sqr(scale_(10));
+
+	bool          ironing;
+    Flow          ironing_flow; // Flow at the interface ironing.
+    InfillPattern ironing_pattern;
+    float         ironing_spacing;
 };
 
 } // namespace Slic3r
