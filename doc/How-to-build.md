@@ -29,7 +29,7 @@
 If you see an older version (e.g. **3.29), it's likely due to another copy in your system's PATH (e.g. from Strawberry Perl).
 You can run where cmake to check the active paths and rearrange your System Environment Variables > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
 
-**⚠️ Note 2:** If the build fails, delete the entire project directory, re-clone the repository, and try again to ensure a clean cache.
+**⚠️ Note 2:** ⚠️ Note: If the build fails, try deleting the `build/` and `deps/build/` directories to clear any cached build data. Rebuilding after a clean-up is usually sufficient to resolve most issues. 
 
 ## macOS 64-bit
 
