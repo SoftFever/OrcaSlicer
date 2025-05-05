@@ -492,7 +492,7 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     const ImU32 handle_border_clr = m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT;
 
     // calculate groove size
-    const ImVec2 groove_start = ImVec2(pos.x + handle_dummy_width, pos.y + size.y - ONE_LAYER_MARGIN.y * m_scale - ONE_LAYER_BUTTON_SIZE.y * m_scale * 0.5f - GROOVE_WIDTH * m_scale * 0.5f);
+    const ImVec2 groove_start = ImVec2(pos.x + handle_dummy_width, pos.y + size.y - ONE_LAYER_MARGIN.y * m_scale - (ONE_LAYER_BUTTON_SIZE.y / 2) * m_scale * 0.5f - GROOVE_WIDTH * m_scale * 0.5f);
     const ImVec2 groove_size = ImVec2(size.x - 2 * handle_dummy_width - text_right_dummy, GROOVE_WIDTH * m_scale);
     const ImRect groove = ImRect(groove_start, groove_start + groove_size);
     const ImRect bg_rect = ImRect(groove.Min - ImVec2(6.0f, 6.0f) * m_scale, groove.Max + ImVec2(6.0f, 6.0f) * m_scale);
@@ -872,7 +872,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     const ImU32 handle_clr = BRAND_COLOR;
     const ImU32 handle_border_clr = m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT;
     // calculate slider groove size
-    const ImVec2 groove_start = ImVec2(pos.x + size.x - ONE_LAYER_MARGIN.x * m_scale - ONE_LAYER_BUTTON_SIZE.x * m_scale * 0.5f - GROOVE_WIDTH * m_scale * 0.5f, pos.y + text_dummy_height);
+    const ImVec2 groove_start = ImVec2(pos.x + size.x - ONE_LAYER_MARGIN.x * m_scale - (ONE_LAYER_BUTTON_SIZE.x / 2) * m_scale * 0.5f - GROOVE_WIDTH * m_scale * 0.5f, pos.y + text_dummy_height);
     const ImVec2 groove_size = ImVec2(GROOVE_WIDTH * m_scale, size.y - 2 * text_dummy_height);
     const ImRect groove = ImRect(groove_start, groove_start + groove_size);
     const ImRect bg_rect = ImRect(groove.Min - ImVec2(6.0f, 6.0f) * m_scale, groove.Max + ImVec2(6.0f, 6.0f) * m_scale);
