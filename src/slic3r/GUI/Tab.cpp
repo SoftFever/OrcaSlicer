@@ -2089,7 +2089,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type", "parameter/ironing");
         optgroup->append_single_option_line("ironing_pattern");
-        optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("ironing_flow");
         optgroup->append_single_option_line("ironing_spacing");
         optgroup->append_single_option_line("ironing_inset");
@@ -2201,6 +2200,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("internal_solid_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
         optgroup->append_single_option_line("gap_infill_speed");
+        optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("support_speed");
         optgroup->append_single_option_line("support_interface_speed");
         optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
