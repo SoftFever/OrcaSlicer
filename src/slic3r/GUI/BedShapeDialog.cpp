@@ -458,12 +458,12 @@ void BedShapePanel::set_shape(const Pointfs& points)
 {
     BedShape shape(points);
 
-    m_shape_options_book->SetSelection(int(shape.get_page_type()));
-    shape.apply_optgroup_values(m_optgroups[int(shape.get_page_type())]);
-
     // Copy the polygon to the canvas, make a copy of the array, if custom shape is selected
     if (shape.is_custom())
         m_loaded_shape = points;
+
+    m_shape_options_book->SetSelection(int(shape.get_page_type()));
+    shape.apply_optgroup_values(m_optgroups[int(shape.get_page_type())]);
 
     update_shape();
 

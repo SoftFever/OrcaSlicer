@@ -30,6 +30,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "Widgets/Label.hpp"
+#include "2DBed.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
 #include "Camera.hpp"
@@ -466,65 +467,22 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     m_gridlines.reset();
     m_gridlines_bolder.reset();
 
-	Polylines axes_lines, axes_lines_bolder;
-	int count = 0;
-	int step  = 10;                   //                Uses up to 599mm    Main Grid:  10 x 5 = 50mm
-	// Orca: use 500 x 500 bed size as baseline.
-    // if the grid is too dense, we increase the step
-    auto min_edge_scaled = (pp_bbox.size() / ((coord_t) scale_(1))).minCoeff();
-    if (     min_edge_scaled >= 6000) // Switch when short edge >= 6000mm   Main Grid: 100 x 5 = 500mm
-        step = 100;
-    else if (min_edge_scaled >= 1200) // Switch when short edge >= 1200mm   Main Grid:  50 x 5 = 250mm
-        step = 50;
-    else if (min_edge_scaled >= 600)  // Switch when short edge >= 600mm    Main Grid:  20 x 5 = 100mm
-        step = 20;
+    // calculate and generate grid
+    int   step          = Bed_2D::calculate_grid_step(pp_bbox);
+    Vec2d scaled_origin = Vec2d(scale_(m_origin.x()),scale_(m_origin.x()));
+    auto  grid_lines    = Bed_2D::generate_grid(poly, pp_bbox, scaled_origin, scale_(step), SCALED_EPSILON);
 
-    // ORCA draw grid lines relative to origin
-    for (coord_t x = scale_(m_origin.x()); x >= pp_bbox.min(0); x -= scale_(step)) { // Negative X axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(x, pp_bbox.min(1)),
-            Point(x, pp_bbox.max(1))
-        ));
-        count ++;
-    }
-    count = 0;
-    for (coord_t x = scale_(m_origin.x()); x <= pp_bbox.max(0); x += scale_(step)) { // Positive X axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(x, pp_bbox.min(1)),
-            Point(x, pp_bbox.max(1))
-        ));
-        count ++;
-    }
-    count = 0;
-    for (coord_t y = scale_(m_origin.y()); y >= pp_bbox.min(1); y -= scale_(step)) { // Negative Y axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(pp_bbox.min(0), y),
-            Point(pp_bbox.max(0), y)
-        ));
-        count ++;
-    }
-    count = 0;
-    for (coord_t y = scale_(m_origin.y()); y <= pp_bbox.max(1); y += scale_(step)) { // Positive Y axis
-        (count % 5 == 0 ? axes_lines_bolder : axes_lines).push_back(Polyline(
-            Point(pp_bbox.min(0), y),
-            Point(pp_bbox.max(0), y)
-        ));
-        count ++;
-    }
-    count = 0;
-
-	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
-	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
-	Lines gridlines_bolder = to_lines(intersection_pl(axes_lines_bolder, offset(poly, (float)SCALED_EPSILON)));
+    Lines lines_thin = to_lines(grid_lines[0]);
+	Lines lines_bold = to_lines(grid_lines[1]);
 
 	// append bed contours
 	Lines contour_lines = to_lines(poly);
-	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
+	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(lines_thin));
 
-	if (!init_model_from_lines(m_gridlines, gridlines, GROUND_Z_GRIDLINE))
+	if (!init_model_from_lines(m_gridlines       , lines_thin, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 
-	if (!init_model_from_lines(m_gridlines_bolder, gridlines_bolder, GROUND_Z_GRIDLINE))
+	if (!init_model_from_lines(m_gridlines_bolder, lines_bold, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
@@ -873,8 +831,8 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 	if (force_default_color) //for thumbnail case
 		return;
 
-	ColorRGBA select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
-	ColorRGBA unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	ColorRGBA select_color{   .9f, .86f, .82f, .7f }; // ORCA
+	ColorRGBA unselect_color{ .6f, .6f, .6f, .3f }; // ORCA
 	//ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
 	// draw exclude area
@@ -2590,37 +2548,44 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 	int points_count = 8;
 	if (m_exclude_area.size() == 4)
 	{
-			//rectangle case
-			for (int i = 0; i < 4; i++)
-			{
-				const Vec2d& p = m_exclude_area[i];
-				Vec2d center;
-				double start_angle, stop_angle, radius;
-				switch (i) {
-					case 0:
-						radius = 5.f;
-						center(0) = p(0) + radius;
-						center(1) = p(1) + radius;
-						start_angle = PI;
-						stop_angle = 1.5 * PI;
-						compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 1:
-						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-					case 2:
-						radius = 3.f;
-						center(0) = p(0) - radius;
-						center(1) = p(1) - radius;
-						start_angle = 0;
-						stop_angle = 0.5 * PI;
-						compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
-						break;
-					case 3:
-						exclude_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
-						break;
-				}
+		//rectangle case
+		for (int i = 0; i < 4; i++)
+		{
+			const Vec2d& p = m_exclude_area[i];
+			Vec2d center;
+			double start_angle, stop_angle, radius;
+			radius = 1.f; // ORCA use equal rounding for all corners
+			switch (i) {
+				case 0: // Left-Bottom
+					center(0)   = p(0) + radius;
+					center(1)   = p(1) + radius;
+					start_angle = 1.0 * PI; //180
+					stop_angle  = 1.5 * PI; //270
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+				break;
+				case 1: // Right-Bottom
+					center(0)   = p(0) - radius;
+					center(1)   = p(1) + radius;
+					start_angle = 1.5 * PI; //270
+					stop_angle  = 2.0 * PI; //360
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+					break;
+				case 2: // Right-Top
+					center(0)   = p(0) - radius;
+					center(1)   = p(1) - radius;
+ 					start_angle = 0.0 * PI; //0
+					stop_angle  = 0.5 * PI; //90
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+					break;
+				case 3: // Left-Top
+					center(0)   = p(0) + radius;
+					center(1)   = p(1) - radius;
+					start_angle = 0.5 * PI; //90
+					stop_angle  = 1.0 * PI; //180
+					compute_exclude_points(center, radius, start_angle, stop_angle, points_count);
+					break;
 			}
+		}
 	}
 	else {
 		for (const Vec2d& p : m_exclude_area) {
