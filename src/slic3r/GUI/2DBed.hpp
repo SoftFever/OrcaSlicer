@@ -26,9 +26,9 @@ class Bed_2D : public wxPanel
 public:
     explicit Bed_2D(wxWindow* parent);
 
-    static int calculate_grid_step(const BoundingBox& bb);
+    static int calculate_grid_step(const BoundingBox& bb, const double& scale);
 
-    static std::vector<Polylines> generate_grid(const ExPolygon& poly, const BoundingBox& pp_bbox, const Vec2d& origin, const float& step, const float& scale);
+    static std::vector<Polylines> generate_grid(const ExPolygon& poly, const BoundingBox& pp_bbox, const Vec2d& origin, const double& step, const double& scale);
 
     void repaint(const std::vector<Vec2d>& shape);
 };
