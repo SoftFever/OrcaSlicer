@@ -40,6 +40,7 @@
 #include "ParamsPanel.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/TextInput.hpp"
+#include "Widgets/CheckBox.hpp" // ORCA
 
 class TabCtrl;
 
@@ -557,7 +558,7 @@ private:
     void            update_filament_overrides_page(const DynamicPrintConfig* printers_config);
 	void 			update_volumetric_flow_preset_hints();
 
-    std::map<std::string, wxCheckBox*> m_overrides_options;
+    std::map<std::string, ::CheckBox*> m_overrides_options;
 
 public:
 	//BBS: GUI refactor
