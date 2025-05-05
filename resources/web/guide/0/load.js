@@ -3,6 +3,8 @@ var TargetPage=null;
 
 function OnInit()
 {
+	TranslatePage();
+
 	TargetPage=GetQueryString("target");
 	
 	//setTimeout("JumpToTarget()",20*1000);
