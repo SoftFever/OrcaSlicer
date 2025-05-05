@@ -24,10 +24,10 @@ wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -
 #endif /*__APPLE__*/
 }
 
-int Bed_2D::calculate_grid_step(const BoundingBox& bb)
+int Bed_2D::calculate_grid_step(const BoundingBox& bb, const double& scale)
 {
     // Orca: use 500 x 500 bed size as baseline.
-    int min_edge = (bb.size() / ((coord_t) scale_(1)) ).minCoeff(); // Get short edge 
+    int min_edge = (bb.size() * (1 / scale)).minCoeff(); // Get short edge 
                                            // if the grid is too dense, we increase the step
     return   min_edge >= 6000 ? 100        // Short edge >= 6000mm  Main Grid: 5 x 100 = 500mm
            : min_edge >= 1200 ? 50         // Short edge >= 1200mm  Main Grid: 5 x 50  = 250mm
@@ -35,7 +35,7 @@ int Bed_2D::calculate_grid_step(const BoundingBox& bb)
            : 10;                           // Short edge <  600mm   Main Grid: 5 x 10  =  50mm
 }
 
-std::vector<Polylines> Bed_2D::generate_grid(const ExPolygon& poly, const BoundingBox& bb, const Vec2d& origin, const float& step, const float& scale)
+std::vector<Polylines> Bed_2D::generate_grid(const ExPolygon& poly, const BoundingBox& bb, const Vec2d& origin, const double& step, const double& scale)
 {
     Polylines lines_thin, lines_bold;
     int   count = 0;
@@ -157,8 +157,8 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
     for (const Vec2d& p : shape)
         bed_poly.contour.append({p(0), p(1)});
     auto bed_bb     = bed_poly.contour.bounding_box();
-    int  step       = calculate_grid_step(bed_bb);
-    auto grid_lines = generate_grid(bed_poly, bed_bb, m_pos, step, 1.0f);
+    int  step       = calculate_grid_step(bed_bb, 1.00);
+    auto grid_lines = generate_grid(bed_poly, bed_bb, m_pos, step, 1.00);
 
     // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
     dc.SetPen(wxPen(wxColour(lines_thin_color), 1, wxPENSTYLE_SOLID));

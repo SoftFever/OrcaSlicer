@@ -298,7 +298,7 @@ modules:
       - |
         mkdir -p build
         CXXFLAGS=-std=gnu++20 cmake . -B build \
-          -DSLIC3R_PCH=ON \
+          -DSLIC3R_PCH=OFF \
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
           -DSLIC3R_STATIC=ON \
