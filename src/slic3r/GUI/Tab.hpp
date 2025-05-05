@@ -40,6 +40,7 @@
 #include "ParamsPanel.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/TextInput.hpp"
+#include "Widgets/CheckBox.hpp"
 
 class TabCtrl;
 
@@ -163,7 +164,8 @@ protected:
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
-		wxCheckBox 	*checkbox = nullptr;
+		::CheckBox*   checkbox = nullptr;
+        wxStaticText* checkbox_title;
 		Button 	*btn  = nullptr;
 		std::string  key_list; // "compatible_printers"
 		std::string  key_condition;
