@@ -187,7 +187,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
 
     const float initial_room_temp_kelvin = initial_room_airtemp + 273.15;
     const float object_proximity_airtemp_kelvin = object_proximity_airtemp + 273.15;
-    const float layer_threshold_meters          = layer_threshold/100;
+    const float layer_threshold_meters          = layer_threshold/1000;
 
     std::string query_body = (boost::format(query_body_template) % generateTimestampedString() % gcode_id % initial_room_temp_kelvin %
                               layer_threshold_meters % object_proximity_airtemp_kelvin)
