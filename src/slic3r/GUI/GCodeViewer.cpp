@@ -605,7 +605,10 @@ void GCodeViewer::SequentialView::GCodeWindow::render_thermal_index_windows(std:
             case 2: ti_value = thermal_index.mean; break;
             };
 
-            sprintf(buf, "%8.2f  ", ti_value);
+            if (thermal_index.isNull)
+				sprintf(buf, "%s  ", "  null  ");
+			else
+				sprintf(buf, "%8.2f  ", ti_value);
 
             imgui.text(buf);
             ImGui::PopStyleColor();
