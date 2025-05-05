@@ -10882,12 +10882,13 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
-
-    auto dont_show_again = create_remember_checkbox(_L("Remember my choice."), this, _L("This option can be changed later in preferences, under 'Load Behaviour'."));
-    m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
-
-    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
+    // Orca: hide the "Don't show again" checkbox, people keeps accidentally checked this then forgot
+    // wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
+    //
+    // auto dont_show_again = create_remember_checkbox(_L("Remember my choice."), this, _L("This option can be changed later in preferences, under 'Load Behaviour'."));
+    // m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
+    //
+    // m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
     wxBoxSizer *m_sizer_right  = new wxBoxSizer(wxHORIZONTAL);
