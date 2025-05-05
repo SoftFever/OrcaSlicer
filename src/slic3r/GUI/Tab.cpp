@@ -3605,7 +3605,7 @@ void TabFilament::build()
             return compatible_widget_create(parent, m_compatible_prints);
         });
         if (Line* line = optgroup->get_line("compatible_prints"))
-            line->label =  L("Select presets");
+            line->label =  L("Select profiles");
 
         option = optgroup->get_option("compatible_prints_condition");
         option.opt.full_width = true;
