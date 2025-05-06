@@ -137,32 +137,51 @@ struct POItem
     bool operator==(const POItem &other) const { return key == other.key && value == other.value; }
 };
 
-class PrintOptionItem : public ComboBox
+class PrintOptionItem : public wxPanel
 {
-    std::vector<POItem> m_ops;
-    std::string         selected_key;
-    std::string         m_param;
-
 public:
-    PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param = "");
+    PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std::string param = "");
     ~PrintOptionItem() {};
 
 public:
-    bool        Enable(bool enable) override {  return ComboBox::Enable(enable); }
-
     void        setValue(std::string value);
     std::string getValue() const { return selected_key; }
+    void        update_options(std::vector<POItem> ops) {
+        if (m_ops != ops)
+        {
+            m_ops = ops;
+            selected_key = "";
+            auto width = ops.size() * FromDIP(56) + FromDIP(8);
+            auto height = FromDIP(22) + FromDIP(8);
+            SetMinSize(wxSize(width, height));
+            SetMaxSize(wxSize(width, height));
+            Refresh();
+        }
+    };
 
-    void        msw_rescale() { ComboBox::Rescale();};
-    void        update_options(std::vector<POItem> ops);
+    void enable(bool able) {
+        if (m_enable != able)
+        {
+            m_enable = able;
+            Refresh();
+        }
+    }
 
-    bool        CanBeFocused() const override { return false; }
+    void msw_rescale() { m_selected_bk.msw_rescale(); Refresh(); };
 
 private:
-    void on_combobox_changed(wxCommandEvent &evt);
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void on_left_down(wxMouseEvent& evt);
+    void doRender(wxDC& dc);
 
-    wxString    get_display_str(const std::string& key) const;
-    std::string get_key(const wxString &display_val) const;
+private:
+    ScalableBitmap m_selected_bk;
+    std::vector<POItem> m_ops;
+    std::string selected_key;
+    std::string m_param;
+
+    bool m_enable = true;
 };
 
 class PrintOption : public wxPanel
@@ -178,7 +197,7 @@ public:
     ~PrintOption(){};
 
 public:
-    void        enable(bool en) { m_printoption_item->Enable(en); }
+    void        enable(bool en) { m_printoption_item->enable(en); }
 
     void        setValue(std::string value);
     std::string getValue();

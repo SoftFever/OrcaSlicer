@@ -4547,8 +4547,6 @@ SelectMachineDialog::~SelectMachineDialog()
 
      m_printoption_title = new Label(this, title);
      m_printoption_title->SetFont(Label::Head_13);
-     //m_printoption_title->SetBackgroundColour(0xF8F8F8);
-     m_printoption_title->SetToolTip(tips);
 
      m_printoption_item = new PrintOptionItem(this, m_ops, param);
      m_printoption_item->SetFont(Label::Body_13);
@@ -4560,6 +4558,8 @@ SelectMachineDialog::~SelectMachineDialog()
      SetSizer(sizer);
      Layout();
      Fit();
+
+     update_tooltip(tips);
  }
 
 void PrintOption::OnPaint(wxPaintEvent &event)
@@ -4628,6 +4628,7 @@ void PrintOption::update_options(std::vector<POItem> ops, const wxString &tips)
 void PrintOption::update_tooltip(const wxString &tips)
 {
     if (m_printoption_title->GetToolTipText() != tips) { m_printoption_title->SetToolTip(tips); }
+    if (m_printoption_item->GetToolTipText() != tips) { m_printoption_item->SetToolTip(tips); }
 }
 
 std::string PrintOption::getValue()
@@ -4648,68 +4649,152 @@ int PrintOption::getValueInt()
     }
 }
 
-PrintOptionItem::PrintOptionItem(wxWindow *parent, std::vector<POItem> ops, std::string param)
-  : ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(parent->FromDIP(70), parent->FromDIP(24)), 0, nullptr, wxCB_READONLY)
+#define PRINT_OPT_WIDTH  FromDIP(44)
+PrintOptionItem::PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std::string param)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
-    Bind(wxEVT_COMBOBOX, &PrintOptionItem::on_combobox_changed, this);
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
+    m_ops = ops;
     m_param = param;
-    update_options(ops);
+    SetBackgroundColour(PRINT_OPT_ITEM_BG_GRAY);
+
+    Bind(wxEVT_PAINT, &PrintOptionItem::OnPaint, this);
+    auto width = ops.size() * PRINT_OPT_WIDTH + FromDIP(8);
+    auto height = FromDIP(22) + FromDIP(8);
+    SetMinSize(wxSize(width, height));
+    SetMaxSize(wxSize(width, height));
+    Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    Bind(wxEVT_LEFT_DOWN, &PrintOptionItem::on_left_down, this);
+
+    m_selected_bk = ScalableBitmap(this, "print_options_bg", 22);
 }
 
-void PrintOptionItem::update_options(std::vector<POItem> ops) {
-    if (m_ops != ops) {
-        m_ops = ops;
+void PrintOptionItem::OnPaint(wxPaintEvent& event)
+{
+    wxPaintDC dc(this);
+    doRender(dc);
+}
 
-        ComboBox::Clear();
-        selected_key.clear();
-        for (const auto &entry : m_ops) { Append(entry.value); }
+void PrintOptionItem::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
 
-        Layout();
-        Fit();
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
     }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
 }
 
-void PrintOptionItem::on_combobox_changed(wxCommandEvent &evt) {
-    const auto &new_key = get_key(evt.GetString());
-    setValue(new_key);
-}
-
-wxString PrintOptionItem::get_display_str(const std::string &key) const {
-    for (const auto &entry : m_ops) {
-        if (entry.key == key) { return entry.value; }
+void PrintOptionItem::on_left_down(wxMouseEvent& evt)
+{
+    if (!m_enable)
+    {
+        return;
     }
 
-    return wxEmptyString;
-}
+    auto pos = ClientToScreen(evt.GetPosition());
+    auto rect = ClientToScreen(wxPoint(0, 0));
+    auto select_size = GetSize().x / m_ops.size();
 
-std::string PrintOptionItem::get_key(const wxString &display_val) const {
-    for (const auto &entry : m_ops) {
-        if (entry.value == display_val) { return entry.key; }
+    int i = 0;
+    for (const auto& entry : m_ops)
+    {
+        auto left_edge = rect.x + i * select_size;
+        auto right_edge = rect.x + (i + 1) * select_size;
+
+        if (pos.x > left_edge && pos.x < right_edge)
+        {
+            selected_key = entry.key;
+        }
+        i++;
     }
 
-    return std::string();
+    wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
+    event.SetString(selected_key);
+    event.SetEventObject(GetParent());
+    wxPostEvent(GetParent(), event);
+
+    Refresh();
 }
 
-void PrintOptionItem::setValue(std::string value) {
-    if (selected_key != value) {
-       selected_key = value;
-       ComboBox::SetStringSelection(get_display_str(value));
+void PrintOptionItem::doRender(wxDC& dc)
+{
+    auto size = GetSize();
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.SetBrush(GetBackgroundColour());
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(5));
 
-       if (!m_param.empty()) {
-           AppConfig *config = wxGetApp().app_config;
-           if (selected_key == "auto") {
-               config->set_str("print", m_param, "2");
-           } else if (selected_key == "on") {
-               config->set_str("print", m_param, "1");
-           } else if (selected_key == "off") {
-               config->set_str("print", m_param, "0");
-           }
+    auto left = FromDIP(4);
+
+    int selected = 0;
+    for (const auto& entry : m_ops)
+    {
+        if (entry.key == selected_key)
+        {
+            break;
+        }
+        selected++;
+    }
+
+    /*selected*/
+    auto selected_left = selected * PRINT_OPT_WIDTH + FromDIP(4);
+    dc.DrawBitmap(m_selected_bk.bmp(), selected_left, (size.y - m_selected_bk.GetBmpHeight()) / 2);
+
+    for (auto it = m_ops.begin(); it != m_ops.end(); ++it)
+    {
+        auto text_key = it->key;
+        auto text_value = it->value;
+
+        if (text_key == selected_key)
+        {
+
+            const wxColour& clr = wxGetApp().dark_mode() ? StateColor::darkModeColorFor("#00AE42") : "#00AE42";
+            dc.SetPen(wxPen(clr));
+            dc.SetTextForeground(clr);
+
+            dc.SetFont(::Label::Head_13);
+            auto text_size = dc.GetTextExtent(text_value);
+            auto text_left = left + (PRINT_OPT_WIDTH - text_size.x) / 2;
+            auto text_top = (size.y - text_size.y) / 2;
+            dc.DrawText(text_value, wxPoint(text_left, text_top));
+        }
+        else
+        {
+            const wxColour& clr = wxGetApp().dark_mode() ? StateColor::darkModeColorFor(*wxBLACK) : *wxBLACK;
+            dc.SetPen(wxPen(clr));
+            dc.SetTextForeground(clr);
+
+            dc.SetFont(::Label::Body_13);
+            auto text_size = dc.GetTextExtent(text_value);
+            auto text_left = left + (PRINT_OPT_WIDTH - text_size.x) / 2;
+            auto text_top = (size.y - text_size.y) / 2;
+            dc.DrawText(text_value, wxPoint(text_left, text_top));
         }
 
-        wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
-        event.SetString(selected_key);
-        event.SetEventObject(GetParent());
-        wxPostEvent(GetParent(), event);
+        left += PRINT_OPT_WIDTH;
+    }
+}
+
+void PrintOptionItem::setValue(std::string value)
+{
+    if (selected_key != value) {
+        selected_key = value;
+        Refresh();
     }
 }
 
