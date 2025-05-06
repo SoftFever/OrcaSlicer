@@ -1723,11 +1723,13 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         msg = msg_text;
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
-    }
-    else if (status == PrintStatusMixAmsAndVtSlotWarning) {
+    } else if (status == PrintStatusMixAmsAndVtSlotWarning) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintStatusTPUUnsupportAutoCali) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
+    } else if (status == PrintStatusHasFilamentInBlackList) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
     } else if (status == PrintStatusWarningKvalueNotUsed) {
@@ -1948,7 +1950,6 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
-
     bool has_slice_warnings = false;
     bool is_printing_block  = false;
 
@@ -2042,11 +2043,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     auto mapping_result = m_mapping_popup.parse_ams_mapping(obj_->amsList);
     auto has_unknown_filament = false;
 
-    // check if ams mapping is has errors, tpu
-    bool has_prohibited_filament = false;
-    wxString prohibited_error = wxEmptyString;
-
-
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
 
         const auto& ams_id = m_ams_mapping_result[i].get_ams_id();
@@ -2065,16 +2061,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
 
-        bool in_blacklist = false;
-        std::string action;
-        std::string info;
-        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, filament_id, ams_id, slot_id, "", in_blacklist, action, info);
-
-        if (in_blacklist && action == "prohibition") {
-            has_prohibited_filament = true;
-            prohibited_error = wxString::FromUTF8(info);
-        }
-
         for (auto miter : mapping_result) {
             //matching
             if (miter.id == tid) {
@@ -2084,12 +2070,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 }
             }
         }
-    }
-
-    if (has_prohibited_filament && obj_->has_ams()) {
-        wxString tpu_tips = prohibited_error;
-        show_errors(tpu_tips);
-        return;
     }
 
     if (has_unknown_filament) {
@@ -3421,6 +3401,35 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     if (!m_ams_mapping_res && !obj_->is_valid_mapping_result(m_ams_mapping_result)) {
         show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
         return;
+    }
+
+    // filaments check for black list
+    for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+        const auto &ams_id  = m_ams_mapping_result[i].get_ams_id();
+        const auto &slot_id = m_ams_mapping_result[i].get_slot_id();
+
+        auto tid = m_ams_mapping_result[i].tray_id;
+
+        std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
+        std::string filament_brand;
+
+        for (auto fs : m_filaments) {
+            if (fs.id == m_ams_mapping_result[i].id) { filament_brand = m_filaments[i].brand; }
+        }
+
+        bool        in_blacklist = false;
+        std::string action;
+        std::string info;
+
+        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
+                                                    action, info);
+
+        if (in_blacklist && action == "prohibition") {
+            std::vector<wxString> error_msg;
+            error_msg.emplace_back(info);
+            show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackList, error_msg);
+            return;
+        }
     }
 
     /** warning check **/

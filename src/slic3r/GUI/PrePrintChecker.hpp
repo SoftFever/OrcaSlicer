@@ -67,6 +67,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusAmsMappingU0Invalid,
     PrintStatusAmsMappingMixInvalid,
     PrintStatusTPUUnsupportAutoCali,
+    PrintStatusHasFilamentInBlackList,
     PrintStatusFilamentErrorEnd,
 
     PrintStatusErrorEnd,//->end error<-
@@ -117,7 +118,7 @@ public:
     static ::std::string get_print_status_info(PrintDialogStatus status);
 
 	wxString get_pre_state_msg(PrintDialogStatus status);
-    bool     is_error(PrintDialogStatus status) { return (PrintStatusErrorBegin < status) && (PrintStatusErrorEnd > status); };
+    bool is_error(PrintDialogStatus status) { return (PrintStatusErrorBegin < status) && (PrintStatusErrorEnd > status); };
     bool is_error_printer(PrintDialogStatus status) { return (PrintStatusPrinterErrorBegin < status) && (PrintStatusPrinterErrorEnd > status); };
     bool is_error_filament(PrintDialogStatus status) { return (PrintStatusFilamentErrorBegin < status) && (PrintStatusFilamentErrorEnd > status); };
     bool is_warning(PrintDialogStatus status) { return (PrintStatusWarningBegin < status) && (PrintStatusWarningEnd > status); };
