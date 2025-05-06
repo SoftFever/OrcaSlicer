@@ -902,9 +902,6 @@ Sidebar::Sidebar(Plater *parent)
                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
 
-    flush_bg_col.setTakeFocusedAsHovered(false); // fixes button stuck on focus
-    flush_bd_col.setTakeFocusedAsHovered(false); // fixes button stuck on focus
-    flush_fg_col.setTakeFocusedAsHovered(false); // fixes button stuck on focus
     p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
     p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
     p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
@@ -2848,7 +2845,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     m_aui_mgr.SetManagedWindow(q);
     m_aui_mgr.SetDockSizeConstraint(1, 1);
-    //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0); // remove frame border from sidebar
+    //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
     //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
     m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 18);
     m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
@@ -2943,7 +2940,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     {
         auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
-        
+
         // Load previous window layout
         const auto cfg    = wxGetApp().app_config;
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
