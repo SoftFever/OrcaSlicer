@@ -2944,25 +2944,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     {
         auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
         
-        auto sbwin = m_aui_mgr.GetManagedWindow();
-        sbwin->Bind(wxEVT_PAINT, [&sbwin](wxPaintEvent& e) {
-            wxAutoBufferedPaintDC dc(sbwin);
-            wxRect sashRect(0, 0, sbwin->GetSize().x, sbwin->GetSize().y);
-            dc.SetBrush(wxBrush(wxColour(255, 0, 0)));
-            dc.SetPen(wxPen(wxColour(255, 0, 0), 1));
-            dc.DrawRectangle(sashRect);
-            dc.SetPen(wxPen(wxColour(255, 0, 0), 1));
-            for (int x = sashRect.x; x < sashRect.x + sashRect.width; x += 4)
-                dc.DrawLine(x, sashRect.y, x + 2, sashRect.y + sashRect.height);
-        });
-        //m_aui_mgr.GetPane(this->sidebar).GripperTop(true);
-        //wxDC dc = main_frame->PrepareDC();
-        //dc.SetPen(wxPen(wxColour("#242427"),2)); // 2px line below titlebar titlebar
-        //dc.DrawLine(sidebar.rect.x, sidebar.rect.y, sidebar.rect.width, sidebar.rect.width);
-
-        //wxBitmap save_bitmap = create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE);
-        //wxAuiToolBarItem* save_btn = sidebar.AddTool(wxID_SAVE, "", save_bitmap);
-
         // Load previous window layout
         const auto cfg    = wxGetApp().app_config;
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
