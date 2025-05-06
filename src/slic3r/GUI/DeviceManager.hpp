@@ -958,6 +958,10 @@ public:
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
     int get_bed_temperature_limit();
     bool is_filament_installed();
+
+    /*stat*/
+    bool  m_lamp_close_recheck = false;
+
     /* camera */
     bool has_ipcam { false };
     bool camera_recording { false };

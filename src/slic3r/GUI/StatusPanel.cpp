@@ -4954,6 +4954,15 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
         obj->command_set_chamber_light2(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
     } else {
+        if (obj->m_lamp_close_recheck) {
+            MessageDialog msg_dlg(nullptr, _L("Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+            msg_dlg.SetButtonLabel(wxID_OK, _L("Turn it Off"));
+            msg_dlg.SetButtonLabel(wxID_CANCEL, _L("Keep it On"));
+            if (msg_dlg.ShowModal() != wxID_OK) {
+                return;
+            }
+        }
+
         m_switch_lamp->SetValue(false);
         set_hold_count(this->m_switch_lamp_timeout);
         obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF);
