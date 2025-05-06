@@ -1916,8 +1916,9 @@ void PartPlate::generate_plate_name_texture()
 	m_name_texture.reset();
 	auto text = m_name.empty()? _L("Untitled") : from_u8(m_name);
 
-    // ORCA also scale font size to frevent low res texture
-    auto l = Label::sysFont(int(PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * wxGetApp().em_unit() * 1.15), true);
+    // ORCA also scale font size to prevent low res texture
+    int size = wxGetApp().em_unit() * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
+    auto l = Label::sysFont(size, true);
     wxFont* font = &l;
 
 	wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
@@ -3415,7 +3416,8 @@ void PartPlateList::generate_icon_textures()
 
 	std::string text_str = "01";
     // ORCA also scale font size to prevent low res texture
-    auto l = Label::sysFont(int(PARTPLATE_ICON_SIZE * wxGetApp().em_unit() * 1.15), true);
+    int size = wxGetApp().em_unit() * PARTPLATE_ICON_SIZE;
+    auto l = Label::sysFont(int(size), true);
     wxFont* font = &l;
 
 	for (int i = 0; i < MAX_PLATE_COUNT; i++) {
