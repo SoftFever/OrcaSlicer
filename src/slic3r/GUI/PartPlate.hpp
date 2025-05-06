@@ -158,8 +158,8 @@ private:
     std::string m_name;
     GLModel m_plate_name_icon;
     GLTexture m_name_texture;
-    double m_name_texture_width;
-    double m_name_texture_height;
+    wxCoord m_name_texture_width;
+    wxCoord m_name_texture_height;
 
     void init();
     bool valid_instance(int obj_id, int instance_id);

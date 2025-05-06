@@ -677,7 +677,7 @@ Sidebar::Sidebar(Plater *parent)
     auto* scrolled_sizer = m_scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
 
-    wxColour title_bg = wxColour(248, 248, 248);
+    wxColour title_bg = wxColour("#F1F1F1"); // dont use gradient on header otherwise titlebar of sidebar cant be discern
     wxColour inactive_text = wxColour(86, 86, 86);
     wxColour active_text = wxColour(0, 0, 0);
     wxColour static_line_col = wxColour(166, 169, 170);
@@ -886,26 +886,30 @@ Sidebar::Sidebar(Plater *parent)
     // add wiping dialog
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
     p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
-    p->m_flushing_volume_btn->SetFont(Label::Body_10);
-    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
-    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
+    p->m_flushing_volume_btn->SetFont(Label::Body_11);
+    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(4)));
+    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(6));
 
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#BFE1DE"), StateColor::Pressed), // ORCA
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Pressed), // ORCA
+                            std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Normal));
 
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
+    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour("#FFFFFD"), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour("#FFFFFD"), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Normal));
 
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
+    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Normal));
 
+    flush_bg_col.setTakeFocusedAsHovered(false); // fixes button stuck on focus
+    flush_bd_col.setTakeFocusedAsHovered(false); // fixes button stuck on focus
+    flush_fg_col.setTakeFocusedAsHovered(false); // fixes button stuck on focus
     p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
     p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
     p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
-    p->m_flushing_volume_btn->SetFocus();
+    //p->m_flushing_volume_btn->SetFocus();
+    p->m_flushing_volume_btn->DisableFocusFromKeyboard();
     p->m_flushing_volume_btn->SetId(wxID_RESET);
     p->m_flushing_volume_btn->Rescale();
 
@@ -2845,7 +2849,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     m_aui_mgr.SetManagedWindow(q);
     m_aui_mgr.SetDockSizeConstraint(1, 1);
-    //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
+    m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0); // remove frame border from sidebar
     //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
     m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 18);
     m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
@@ -2940,6 +2944,25 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     {
         auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+        
+        auto sbwin = m_aui_mgr.GetManagedWindow();
+        sbwin->Bind(wxEVT_PAINT, [&sbwin](wxPaintEvent& e) {
+            wxAutoBufferedPaintDC dc(sbwin);
+            wxRect sashRect(0, 0, sbwin->GetSize().x, sbwin->GetSize().y);
+            dc.SetBrush(wxBrush(wxColour(255, 0, 0)));
+            dc.SetPen(wxPen(wxColour(255, 0, 0), 1));
+            dc.DrawRectangle(sashRect);
+            dc.SetPen(wxPen(wxColour(255, 0, 0), 1));
+            for (int x = sashRect.x; x < sashRect.x + sashRect.width; x += 4)
+                dc.DrawLine(x, sashRect.y, x + 2, sashRect.y + sashRect.height);
+        });
+        //m_aui_mgr.GetPane(this->sidebar).GripperTop(true);
+        //wxDC dc = main_frame->PrepareDC();
+        //dc.SetPen(wxPen(wxColour("#242427"),2)); // 2px line below titlebar titlebar
+        //dc.DrawLine(sidebar.rect.x, sidebar.rect.y, sidebar.rect.width, sidebar.rect.width);
+
+        //wxBitmap save_bitmap = create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE);
+        //wxAuiToolBarItem* save_btn = sidebar.AddTool(wxID_SAVE, "", save_bitmap);
 
         // Load previous window layout
         const auto cfg    = wxGetApp().app_config;
@@ -7558,10 +7581,10 @@ void Plater::priv::apply_color_mode()
     wxColour   orca_color      = wxColour(59, 68, 70);//wxColour(ColorRGBA::ORCA().r_uchar(), ColorRGBA::ORCA().g_uchar(), ColorRGBA::ORCA().b_uchar());
     orca_color                 = is_dark ? StateColor::darkModeColorFor(orca_color) : StateColor::lightModeColorFor(orca_color);
     wxColour sash_color = is_dark ? wxColour(38, 46, 48) : wxColour(206, 206, 206);
-    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_COLOUR, sash_color);
+    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_COLOUR,      is_dark ? wxColour("#2D2D31") : wxColour("#FFFFFF")); // Titlebar
     m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR, *wxWHITE);
-    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_SASH_COLOUR, sash_color);
-    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_BORDER_COLOUR, is_dark ? *wxBLACK : wxColour(165, 165, 165));
+    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_SASH_COLOUR,                  is_dark ? wxColour("#181822") : wxColour("#DBDBDB")); // Vertical resize line
+    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_BORDER_COLOUR,                is_dark ? wxColour("#2D2D31") : wxColour(165, 165, 165)); // Sidebar frame color
 }
 
 static void get_position(wxWindowBase* child, wxWindowBase* until_parent, int& x, int& y) {
