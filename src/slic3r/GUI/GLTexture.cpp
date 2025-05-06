@@ -492,7 +492,7 @@ bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wx
 
     m_original_width = (int)w;
     m_original_height = (int)h;
-    m_width  = (int)next_highest_power_of_2((uint32_t)w);
+    m_width = (int)next_highest_power_of_2((uint32_t)w);
     m_height = (int)next_highest_power_of_2((uint32_t)h);
 
     // generates bitmap
@@ -568,7 +568,7 @@ bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& 
 
     m_original_width = (int)w;
     m_original_height = (int)h;
-    m_width  = (int)next_highest_power_of_2((uint32_t)w);
+    m_width = (int)next_highest_power_of_2((uint32_t)w);
     m_height = (int)next_highest_power_of_2((uint32_t)h);
     ww = m_width;
     hh = m_height;

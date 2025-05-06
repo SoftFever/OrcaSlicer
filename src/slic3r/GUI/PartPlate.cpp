@@ -627,10 +627,10 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
     //    px = scale_(bed_ext.center()(0)) + m_name_texture_width * 0.50 - height * 0.50;
     p += Vec2d(name_width, offset_y);
 
-	poly.contour.append({ scale_(p(0)        ), scale_(p(1)         ) });
-	poly.contour.append({ scale_(p(0) + width), scale_(p(1)         ) });
-	poly.contour.append({ scale_(p(0) + width), scale_(p(1) + height) });
-	poly.contour.append({ scale_(p(0)        ), scale_(p(1) + height) });
+    poly.contour.append({ scale_(p(0)        ), scale_(p(1)         ) });
+    poly.contour.append({ scale_(p(0) + width), scale_(p(1)         ) });
+    poly.contour.append({ scale_(p(0) + width), scale_(p(1) + height) });
+    poly.contour.append({ scale_(p(0)        ), scale_(p(1) + height) });
 
     if (!init_model_from_poly(model.model, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
@@ -1938,10 +1938,10 @@ void PartPlate::generate_plate_name_texture()
 
     p += Vec2d(0, offset_y);
 
-	poly.contour.append({ scale_(p(0)        ), scale_(p(1)         ) });
-	poly.contour.append({ scale_(p(0) + width), scale_(p(1)         ) });
-	poly.contour.append({ scale_(p(0) + width), scale_(p(1) + height) });
-	poly.contour.append({ scale_(p(0)        ), scale_(p(1) + height) });
+    poly.contour.append({ scale_(p(0)        ), scale_(p(1)         ) });
+    poly.contour.append({ scale_(p(0) + width), scale_(p(1)         ) });
+    poly.contour.append({ scale_(p(0) + width), scale_(p(1) + height) });
+    poly.contour.append({ scale_(p(0)        ), scale_(p(1) + height) });
 
     if (!init_model_from_poly(m_plate_name_icon, poly, GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
