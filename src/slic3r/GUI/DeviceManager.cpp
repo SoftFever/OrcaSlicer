@@ -3615,7 +3615,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             if (jj["errno"].get<int>() == -2) {
                                 wxString text = _L("The current chamber temperature or the target chamber temperature exceeds 45\u2103. " /* 45°C */
                                                    "In order to avoid extruder clogging, low temperature filament (PLA/PETG/TPU) is not allowed to be loaded.");
-                                GUI::wxGetApp().push_notification(text);
+                                GUI::wxGetApp().push_notification(this, text);
                             }
                         }
                     }
@@ -3636,7 +3636,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 #if __WXOSX__
                             set_ctt_dlg(text);
 #else
-                            GUI::wxGetApp().push_notification(text);
+                            GUI::wxGetApp().push_notification(this, text);
 #endif
                             }
                         }
@@ -4841,7 +4841,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         result = jj["result"].get<std::string>();
                         if (result == "FAIL") {
                             wxString text = _L("Failed to start print job");
-                            GUI::wxGetApp().push_notification(text);
+                            GUI::wxGetApp().push_notification(this, text);
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting" && !key_field_only) {
@@ -4991,7 +4991,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             else {
                                 info = reason;
                             }
-                            GUI::wxGetApp().push_notification(info, _L("Calibration error"), UserNotificationStyle::UNS_WARNING_CONFIRM);
+                            GUI::wxGetApp().push_notification(this, info, _L("Calibration error"), UserNotificationStyle::UNS_WARNING_CONFIRM);
                             BOOST_LOG_TRIVIAL(info) << cali_mode << " result fail, reason = " << reason;
                         }
                     }

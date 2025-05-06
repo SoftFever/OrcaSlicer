@@ -491,7 +491,7 @@ public:
     static std::string format_display_version();
     std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
-    void            push_notification(wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
+    void            push_notification(const MachineObject* obj, wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);

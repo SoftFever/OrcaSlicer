@@ -4832,23 +4832,33 @@ void GUI_App::show_dialog(wxString msg)
     }
 }
 
-void  GUI_App::push_notification(wxString msg, wxString title, UserNotificationStyle style)
+void  GUI_App::push_notification(const MachineObject* obj, wxString msg, wxString title, UserNotificationStyle style)
 {
-    if (!this->is_enable_multi_machine()) {
-        if (style == UserNotificationStyle::UNS_NORMAL) {
-            if (m_info_dialog_content.empty()) {
-                wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
-                evt->SetString(msg);
-                GUI::wxGetApp().QueueEvent(evt);
-                m_info_dialog_content = msg;
-            }
+    if (this->is_enable_multi_machine())
+    {
+        if (m_device_manager && (obj != m_device_manager->get_selected_machine()))
+        {
+            return;
         }
-        else if (style == UserNotificationStyle::UNS_WARNING_CONFIRM) {
-            GUI::wxGetApp().CallAfter([msg, title] {
+    }
+
+    if (style == UserNotificationStyle::UNS_NORMAL)
+    {
+        if (m_info_dialog_content.empty())
+        {
+            wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
+            evt->SetString(msg);
+            GUI::wxGetApp().QueueEvent(evt);
+            m_info_dialog_content = msg;
+        }
+    }
+    else if (style == UserNotificationStyle::UNS_WARNING_CONFIRM)
+    {
+        GUI::wxGetApp().CallAfter([msg, title]
+            {
                 GUI::MessageDialog msg_dlg(nullptr, msg, title, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
             });
-        }
     }
 }
 
