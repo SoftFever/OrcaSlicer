@@ -978,6 +978,7 @@ void print_ams_mapping_result(std::vector<FilamentInfo>& result)
 bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
 {
     if (!obj_) return false;
+    if (!obj_->has_ams()) { use_ams = false;} /*STUDIO-11971*/
     obj_->get_ams_colors(m_cur_colors_in_thumbnail);
     // try color and type mapping
 
