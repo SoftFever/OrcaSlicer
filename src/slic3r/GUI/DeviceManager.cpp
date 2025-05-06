@@ -1427,23 +1427,22 @@ void MachineObject::clear_version_info()
     air_pump_version_info = ModuleVersionInfo();
     laser_version_info = ModuleVersionInfo();
     cutting_module_version_info = ModuleVersionInfo();
-    extinguish_version_info = ModuleVersionInfo();
-    rotary_version_info = ModuleVersionInfo();
     module_vers.clear();
 }
 
 void MachineObject::store_version_info(const ModuleVersionInfo& info)
 {
-    if (info.isAirPump()) {
+    if (info.isAirPump())
+    {
         air_pump_version_info = info;
-    } else if (info.isLaszer()) {
+    }
+    else if (info.isLaszer())
+    {
         laser_version_info = info;
-    } else if (info.isCuttingModule()) {
+    }
+    else if (info.isCuttingModule())
+    {
         cutting_module_version_info = info;
-    } else if (info.isExtinguishSystem()) {
-        extinguish_version_info = info;
-    } else if (info.isRotary()) {
-        rotary_version_info = info;
     }
 
     module_vers.emplace(info.name, info);
