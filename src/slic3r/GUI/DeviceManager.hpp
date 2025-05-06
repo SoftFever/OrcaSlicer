@@ -406,8 +406,8 @@ public:
     };
 
     enum ActiveState {
-        NotActive, 
-        Active, 
+        NotActive,
+        Active,
         UpdateToDate
     };
 
@@ -473,7 +473,7 @@ public:
     std::string product_name;       // set by iot service, get /user/print
 
     std::vector<int> filam_bak;
-    
+
 
     std::string bind_user_name;
     std::string bind_user_id;
@@ -658,14 +658,16 @@ public:
     ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
     std::vector<PACalibResult> pa_calib_tab;
-    float                      pa_calib_tab_nozzle_dia;
+    PACalibTabInfo             pa_calib_tab_info;
     bool                       get_pa_calib_result { false };
     std::vector<PACalibResult> pa_calib_results;
     bool                       get_flow_calib_result { false };
     std::vector<FlowRatioCalibResult> flow_ratio_results;
     void reset_pa_cali_history_result()
     {
-        pa_calib_tab_nozzle_dia = 0.4f;
+        pa_calib_tab_info.pa_calib_tab_nozzle_dia = 0.4f;
+        pa_calib_tab_info.extruder_id             = -1;
+        pa_calib_tab_info.nozzle_volume_type      = NozzleVolumeType::nvtNormal;
         has_get_pa_calib_tab = false;
         pa_calib_tab.clear();
     }
@@ -727,7 +729,7 @@ public:
     enum LiveviewLocal {
         LVL_None,
         LVL_Disable,
-        LVL_Local, 
+        LVL_Local,
         LVL_Rtsps,
         LVL_Rtsp
     } liveview_local{ LVL_None };
@@ -839,7 +841,7 @@ public:
     RatingInfo*  rating_info { nullptr };
     int           request_model_result             = 0;
     bool          get_model_mall_result_need_retry = false;
-    
+
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
@@ -928,7 +930,7 @@ public:
     int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode
     int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values, bool is_auto_cali);
     int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
-    int command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id = "");
+    int command_get_pa_calibration_tab(const PACalibExtruderInfo& calib_info);
     int command_get_pa_calibration_result(float nozzle_diameter);
     int commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info);
 

@@ -16,6 +16,9 @@ extern const float MAX_PA_K_VALUE;
 class CalibInfo
 {
 public:
+    int                                extruder_id = 0;
+    int                                ams_id = 0;
+    int                                slot_id = 0;
     Calib_Params                       params;
     Preset*                            printer_prest;
     Preset*                            filament_prest;
@@ -35,14 +38,14 @@ public:
     static CalibMode get_calib_mode_by_name(const std::string name, int &cali_stage);
 
     static void calib_PA(const X1CCalibInfos& calib_infos, int mode, wxString& error_message);
-    
+
     static void emit_get_PA_calib_results(float nozzle_diameter);
     static bool get_PA_calib_results(std::vector<PACalibResult> &pa_calib_results);
-    
-    static void emit_get_PA_calib_infos(float nozzle_diameter);
+
+    static void emit_get_PA_calib_infos(const PACalibExtruderInfo &cali_info);
     static bool get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos);
 
-    static void emit_get_PA_calib_info(float nozzle_diameter, const std::string &filament_id);
+    static void emit_get_PA_calib_info(const PACalibExtruderInfo& cali_info);
     static bool get_PA_calib_info(PACalibResult &pa_calib_info);
 
     static void set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_values, bool is_auto_cali);

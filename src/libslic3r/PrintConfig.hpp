@@ -317,6 +317,12 @@ enum ZHopType {
     zhtCount
 };
 
+enum NozzleVolumeType {
+    nvtNormal = 0,
+    nvtBigTraffic,
+    nvtMaxNozzleVolumeType = nvtBigTraffic
+};
+
 enum RetractLiftEnforceType {
     rletAllSurfaces = 0,
     rletTopOnly,

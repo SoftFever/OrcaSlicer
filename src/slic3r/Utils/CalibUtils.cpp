@@ -373,7 +373,7 @@ bool CalibUtils::get_PA_calib_results(std::vector<PACalibResult>& pa_calib_resul
     return pa_calib_results.size() > 0;
 }
 
-void CalibUtils::emit_get_PA_calib_infos(float nozzle_diameter)
+void CalibUtils::emit_get_PA_calib_infos(const PACalibExtruderInfo &cali_info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -383,7 +383,7 @@ void CalibUtils::emit_get_PA_calib_infos(float nozzle_diameter)
     if (obj_ == nullptr)
         return;
 
-    obj_->command_get_pa_calibration_tab(nozzle_diameter);
+    obj_->command_get_pa_calibration_tab(cali_info);
 }
 
 bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
@@ -402,7 +402,7 @@ bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
     return obj_->has_get_pa_calib_tab;
 }
 
-void CalibUtils::emit_get_PA_calib_info(float nozzle_diameter, const std::string &filament_id)
+void CalibUtils::emit_get_PA_calib_info(const PACalibExtruderInfo &cali_info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -410,7 +410,7 @@ void CalibUtils::emit_get_PA_calib_info(float nozzle_diameter, const std::string
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_ == nullptr) return;
 
-    obj_->command_get_pa_calibration_tab(nozzle_diameter, filament_id);
+    obj_->command_get_pa_calibration_tab(cali_info);
 }
 
 bool CalibUtils::get_PA_calib_info(PACalibResult & pa_calib_info) {

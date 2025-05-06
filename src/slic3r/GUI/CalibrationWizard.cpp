@@ -46,7 +46,7 @@ bool is_pa_params_valid(const Calib_Params& params)
 }
 
 CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-    : wxPanel(parent, id, pos, size, style) 
+    : wxPanel(parent, id, pos, size, style)
     , m_mode(mode)
 {
     SetBackgroundColour(wxColour(0xEEEEEE));
@@ -58,8 +58,8 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
     m_scrolledWindow->SetBackgroundColour(*wxWHITE);
 
     wxBoxSizer* padding_sizer = new wxBoxSizer(wxHORIZONTAL);
-    padding_sizer->Add(0, 0, 1);    
-    
+    padding_sizer->Add(0, 0, 1);
+
     m_all_pages_sizer = new wxBoxSizer(wxVERTICAL);
     padding_sizer->Add(m_all_pages_sizer, 0);
 
@@ -320,7 +320,7 @@ void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish, b
     wxGetApp().app_config->save_printer_cali_infos(printer_cali_info, back_cali_flag);
 }
 
-void CalibrationWizard::msw_rescale() 
+void CalibrationWizard::msw_rescale()
 {
     for (int i = 0; i < m_page_steps.size(); i++) {
         if (m_page_steps[i]->page)
@@ -402,7 +402,7 @@ void PressureAdvanceWizard::create_pages()
     preset_step = new CalibrationWizardPageStep(new CalibrationPresetPage(m_scrolledWindow, m_mode, false));
     cali_step   = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
     save_step   = new CalibrationWizardPageStep(new CalibrationPASavePage(m_scrolledWindow));
-    
+
     m_all_pages_sizer->Add(start_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
     m_all_pages_sizer->Add(preset_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
     m_all_pages_sizer->Add(cali_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
@@ -477,7 +477,9 @@ void PressureAdvanceWizard::update(MachineObject* obj)
     if (!m_show_result_dialog) {
         if (obj->cali_version != -1 && obj->cali_version != cali_version) {
             cali_version = obj->cali_version;
-            CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+            PACalibExtruderInfo cali_info;
+            cali_info.nozzle_diameter = obj->nozzle_diameter;
+            CalibUtils::emit_get_PA_calib_info(cali_info);
         }
     }
 }
@@ -620,7 +622,7 @@ void PressureAdvanceWizard::on_cali_start()
                 BOOST_LOG_TRIVIAL(error) << "CaliPreset: get preset info error";
                 return;
             }
-            
+
             CalibInfo calib_info;
             calib_info.dev_id            = curr_obj->dev_id;
             calib_info.select_ams        = "[" + std::to_string(selected_filaments.begin()->first) + "]";
@@ -656,10 +658,10 @@ void PressureAdvanceWizard::on_cali_start()
                 pa_cali_method = ManualPaCaliMethod::PA_LINE;
             else if (calib_info.params.mode == CalibMode::Calib_PA_Pattern)
                 pa_cali_method = ManualPaCaliMethod::PA_PATTERN;
-            
+
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->manual_pa_cali_method = pa_cali_method;
-            
+
             if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
                 MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
                     "You can delete the existing historical results and then start calibration. "
@@ -740,7 +742,7 @@ void PressureAdvanceWizard::on_cali_save()
                 auto iter = std::find_if(curr_obj->pa_calib_tab.begin(), curr_obj->pa_calib_tab.end(), [&new_pa_cali_result](const PACalibResult &item) {
                     return item.name == new_pa_cali_result.name && item.filament_id == item.filament_id;
                 });
-                
+
                 if (iter != curr_obj->pa_calib_tab.end()) {
                     MessageDialog
                         msg_dlg(nullptr,
@@ -819,7 +821,7 @@ void FlowRateWizard::create_pages()
     coarse_save_step = new CalibrationWizardPageStep(new CalibrationFlowCoarseSavePage(m_scrolledWindow));
     cali_fine_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode, CaliPageType::CALI_PAGE_FINE_CALI));
     fine_save_step = new CalibrationWizardPageStep(new CalibrationFlowFineSavePage(m_scrolledWindow));
-    
+
     // auto
     cali_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
     save_step = new CalibrationWizardPageStep(new CalibrationFlowX1SavePage(m_scrolledWindow));
@@ -897,7 +899,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
     else if (action == CaliPageActionType::CALI_ACTION_CALI) {
         if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
             on_cali_start();
-        } 
+        }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE;
             float cali_value = 0.0f;
@@ -908,7 +910,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
                 m_curr_step->chain(cali_fine_step);
             }
             // automatically jump to next step when print job is sending finished.
-        } 
+        }
         else {
             on_cali_start();
         }
@@ -1307,7 +1309,7 @@ void FlowRateWizard::cache_coarse_info(MachineObject *obj)
 
     wxString out_name;
     coarse_page->get_result(&obj->cache_flow_ratio, &out_name);
-    
+
     back_preset_info(obj, false);
 }
 
@@ -1317,7 +1319,7 @@ MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID 
     create_pages();
 }
 
-void MaxVolumetricSpeedWizard::create_pages() 
+void MaxVolumetricSpeedWizard::create_pages()
 {
     start_step  = new CalibrationWizardPageStep(new CalibrationMaxVolumetricSpeedStartPage(m_scrolledWindow));
     preset_step = new CalibrationWizardPageStep(new MaxVolumetricSpeedPresetPage(m_scrolledWindow, m_mode, true));
