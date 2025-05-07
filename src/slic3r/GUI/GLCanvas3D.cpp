@@ -2926,7 +2926,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
                 const Print* print = m_process->fff_print();
                 const Print* current_print = part_plate->fff_print();
-                if (current_print->config().timelapse_type.value != TimelapseType::tlSmooth && part_plate->get_extruders(true).size() < 2) continue;
+                if (!timelapse_enabled && part_plate->get_extruders(true).size() < 2) continue;
                 if (part_plate->get_objects_on_this_plate().empty()) continue;
 
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
