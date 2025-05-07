@@ -266,7 +266,7 @@ void BedShapePanel::build_panel(const Pointfs& default_pt, const std::string& cu
     m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) { m_canvas->Refresh(); });
 
     wxSizer* left_sizer = new wxBoxSizer(wxVERTICAL);
-    left_sizer->Add(sbsizer, 0, wxEXPAND);
+    left_sizer->Add(sbsizer, 1, wxEXPAND);
     left_sizer->Add(texture_panel, 1, wxEXPAND);
     left_sizer->Add(model_panel, 1, wxEXPAND);
 
