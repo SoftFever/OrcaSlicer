@@ -529,7 +529,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         hsizer_printer_btn->Add(btn_edit_printer, 0);
         hsizer_printer_btn->Add(btn_connect_printer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
         combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | (isDual ? wxALIGN_CENTER_HORIZONTAL : wxALIGN_RIGHT));
-        if (isDual) {
+        if (isBBL) {
             wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->AddStretchSpacer(1);
@@ -576,7 +576,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     }
 
     btn_connect_printer->Show(!isBBL);
-    btn_sync_printer->Show(isDual);
+    btn_sync_printer->Show(isBBL);
     panel_printer_bed->Show(isBBL);
     vsizer_printer->GetItem(2)->GetSizer()->GetItem(1)->Show(isDual);
     vsizer_printer->GetItem(2)->Show(isBBL && isDual);
@@ -1216,10 +1216,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return false;
     }
-    if (obj->m_extder_data.extders.size() != 2) {//wxString(obj->get_preset_printer_model_name(machine_print_name))
-        plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::INCONSISTENT, _L("Sync printer information"));
-        return false;
-    }
+    //if (obj->m_extder_data.extders.size() != 2) {//wxString(obj->get_preset_printer_model_name(machine_print_name))
+    //    plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::INCONSISTENT, _L("Sync printer information"));
+    //    return false;
+    //}
 
     if (!plater->check_printer_initialized(obj)) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
@@ -1297,18 +1297,28 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
 
-    int left_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
-    int right_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[1]));
-    assert(left_index != -1 && right_index != -1);
-    left_extruder->combo_diameter->SetSelection(left_index);
-    right_extruder->combo_diameter->SetSelection(right_index);
-    is_switching_diameter = true;
-    switch_diameter(false);
-    is_switching_diameter = false;
-    AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
-    AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
-    AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
-    AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+    if (extruder_nums > 1) {
+        int left_index  = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
+        int right_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[1]));
+        assert(left_index != -1 && right_index != -1);
+        left_extruder->combo_diameter->SetSelection(left_index);
+        right_extruder->combo_diameter->SetSelection(right_index);
+        is_switching_diameter = true;
+        switch_diameter(false);
+        is_switching_diameter = false;
+        AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
+        AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
+        AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
+        AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+    } else {
+        int index = single_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
+        assert(index != -1);
+        single_extruder->combo_diameter->SetSelection(index);
+        is_switching_diameter = true;
+        switch_diameter(true);
+        is_switching_diameter = false;
+    }
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
     return true;
 }
@@ -1368,6 +1378,10 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
                 &&*/ ams_4 == other.ams_4
                 && ams_1 == other.ams_1;
         }
+    };
+
+    auto is_same_nozzle_info = [](const ExtruderInfo &left, const ExtruderInfo &right) {
+        return abs(left.diameter - right.diameter) < EPSILON && left.nozzle_volue_type == right.nozzle_volue_type;
     };
 
     // 2. update extruder status
@@ -1430,7 +1444,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     std::vector<bool> extruder_synced(extruder_nums, false);
     if (extruder_nums == 1) {
-        if (extruder_infos == machine_extruder_infos) {
+        if (is_same_nozzle_info(extruder_infos[0], machine_extruder_infos[0])) {
             single_extruder->ShowBadge(true);
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
