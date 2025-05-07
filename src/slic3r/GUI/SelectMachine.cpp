@@ -3279,7 +3279,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         }
     }
 
-    if (!can_support_auto_cali() && m_checkbox_list["flow_cali"]->getValue() == "on") {
+    if (!can_support_auto_cali() && m_checkbox_list["flow_cali"]->IsShown() && m_checkbox_list["flow_cali"]->getValue() == "on") {
         show_status(PrintDialogStatus::PrintStatusTPUUnsupportAutoCali);
         return;
     }
