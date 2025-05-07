@@ -518,9 +518,7 @@ public:
 
     ComboBox* GetPrinterComboBox() const { return m_comboBox_printer; }
     void      SetPrinterName(const wxString& printer_name) { m_comboBox_printer->SetValue(printer_name); };
-    void      SetPrinterName(const wxArrayString& priner_names) { m_comboBox_printer->Set(priner_names); }
-
-    void  SetPrinterImage(const wxBitmap& bitmap) { m_printer_image->SetBitmap(bitmap); }
+    void      SetPrinters(const std::vector<MachineObject*>& sorted_printers);
 
     void  EnableEditing(bool enable);
     void  EnableRefreshButton(bool enable);
@@ -536,7 +534,6 @@ private:
     // owner
     SelectMachineDialog* m_select_dialog;
 
-    wxStaticBitmap* m_printer_image{ nullptr };
     Label*          m_stext_printer_title{ nullptr };
     ComboBox*       m_comboBox_printer{ nullptr };
     ScalableButton* m_button_refresh{ nullptr };

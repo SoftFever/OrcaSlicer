@@ -19,7 +19,9 @@ public:
     struct Item
     {
         wxString text;
+        wxString text_static_tips;// display static tips for TextInput.eg.PrinterInfoBox
         wxBitmap icon;
+        wxBitmap icon_textctrl;// display icon for TextInput.eg.PrinterInfoBox
         void *   data{nullptr};
         wxString group{};
         wxString alias{};

@@ -2744,17 +2744,14 @@ _compare_obj_names(MachineObject* obj1, MachineObject* obj2)
 *@note   _collect_machine_list
 *@param  dev_manager -- the device manager
 *@param  sorted_machine_objs -- return the sorted machine objects
-*@param  sorted_machine_names -- return the sorted machine shown names
 *@param  best_one -- return the best one
 */
 /*******************************************************************/
 static void
 _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
-                         std::vector<MachineObject*>& sorted_machine_objs,
-                         wxArrayString& sorted_machine_names)
+                         std::vector<MachineObject*>& sorted_machine_objs)
 {
     sorted_machine_objs.clear();
-    sorted_machine_names.clear();
     if (!dev_manager)
     {
         return;
@@ -2806,15 +2803,11 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
 
     /* Step 3: Get the sorted objects*/
     auto _collect_sorted_objs = [](const std::vector<MachineObject*>& obj_list,
-                                   std::vector<MachineObject*>& sorted_machine_objs,
-                                   wxArrayString& sorted_machine_names)
+                                   std::vector<MachineObject*>& sorted_machine_objs)
     {
         for (auto obj : obj_list)
         {
             sorted_machine_objs.push_back(obj);
-            const wxString& dev_name = wxString::FromUTF8(obj->dev_name);
-            obj->is_lan_mode_printer() ? sorted_machine_names.push_back(dev_name + "(LAN)"):
-                                         sorted_machine_names.push_back(dev_name);
         }
     };
 
@@ -2822,11 +2815,11 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
     if (cur_selected_obj)
     {
         std::vector<MachineObject*> cur_selected_obj_list{ cur_selected_obj };
-        _collect_sorted_objs(cur_selected_obj_list, sorted_machine_objs, sorted_machine_names);
+        _collect_sorted_objs(cur_selected_obj_list, sorted_machine_objs);
     }
-    _collect_sorted_objs(match_avaliable_list, sorted_machine_objs, sorted_machine_names);
-    _collect_sorted_objs(match_inavaliable_list, sorted_machine_objs, sorted_machine_names);
-    _collect_sorted_objs(other_list, sorted_machine_objs, sorted_machine_names);
+    _collect_sorted_objs(match_avaliable_list, sorted_machine_objs);
+    _collect_sorted_objs(match_inavaliable_list, sorted_machine_objs);
+    _collect_sorted_objs(other_list, sorted_machine_objs);
 }
 
 void SelectMachineDialog::update_user_printer()
@@ -2840,11 +2833,9 @@ void SelectMachineDialog::update_user_printer()
         m_print_info = "";
     }
 
-    wxArrayString  sorted_machine_names;
-    _collect_sorted_machines(dev, m_list, sorted_machine_names);
-
     // update the machine list, and select a default machine
-    m_printer_box->SetPrinterName(sorted_machine_names);
+    _collect_sorted_machines(dev, m_list);
+    m_printer_box->SetPrinters(m_list);
     if (!m_list.empty())
     {
         m_printer_last_select = m_list.front()->dev_id;
@@ -3037,15 +3028,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     if (obj && !obj->get_lan_mode_connection_state()) {
-        // update image
-        auto printer_img_name = "printer_preview_" + obj->printer_type;
-        try {
-            m_printer_box->SetPrinterImage(create_scaled_bitmap(printer_img_name, this, 52));
-        } catch (const std::exception &) {
-            m_printer_box->SetPrinterImage(create_scaled_bitmap("printer_preview_BL-P001", this, 52));
-        }
-
-
         obj->command_get_version();
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
@@ -5005,6 +4987,67 @@ void PrinterInfoBox::UpdatePlate(const std::string& plate_name)
     }
 }
 
+static wxString _get_tips(MachineObject* obj_)
+{
+    wxString tips;
+    tips = obj_->get_printer_type_display_str();
+
+    wxString ext_diameter;
+    if (obj_->m_extder_data.total_extder_count == 1) {
+        ext_diameter += wxString::FromDouble(obj_->m_extder_data.extders[0].current_nozzle_diameter);
+        ext_diameter += "mm";
+    } else if (obj_->m_extder_data.total_extder_count == 2) {
+        ext_diameter += wxString::FromDouble(obj_->m_extder_data.extders[1].current_nozzle_diameter);//Left
+        ext_diameter += "/";
+        ext_diameter += wxString::FromDouble(obj_->m_extder_data.extders[0].current_nozzle_diameter);
+        ext_diameter += "mm";
+    } else {
+        assert(0);
+    }
+
+    if (!ext_diameter.empty()) {
+        tips += "  ";
+        tips += ext_diameter;
+    }
+
+    return tips;
+}
+
+void PrinterInfoBox::SetPrinters(const std::vector<MachineObject*>& sorted_printers)
+{
+    m_comboBox_printer->Clear();
+
+    std::vector<DropDown::Item> drop_items;
+    for (MachineObject* obj : sorted_printers)
+    {
+        wxString shown_dev_name = wxString::FromUTF8(obj->dev_name);
+        if (obj->is_lan_mode_printer()) {
+            shown_dev_name += "(LAN)";
+        }
+
+        DropDown::Item drop_item;
+        drop_item.text = shown_dev_name;
+        drop_item.text_static_tips = _get_tips(obj);
+
+        // update image
+        try
+        {
+            drop_item.icon = create_scaled_bitmap("printer_preview_" + obj->printer_type, this, 32);
+            drop_item.icon_textctrl = create_scaled_bitmap("printer_preview_" + obj->printer_type, this, 52);
+        }
+        catch (const std::exception&)
+        {
+            drop_item.icon = create_scaled_bitmap("printer_preview_BL-P001", this, 32);
+            drop_item.icon_textctrl = create_scaled_bitmap("printer_preview_BL-P001", this, 52);
+        }
+
+        drop_item.tip = obj->get_printer_type_display_str();
+        drop_items.emplace_back(drop_item);
+    }
+
+    m_comboBox_printer->SetItems(drop_items);
+}
+
 void PrinterInfoBox::EnableEditing(bool enable)
 {
     m_comboBox_printer->Enable(enable);
@@ -5063,14 +5106,10 @@ void PrinterInfoBox::Create()
     printer_staticbox->SetMaxSize(wxSize(FromDIP(338), FromDIP(68)));
     printer_staticbox->SetBorderColor(wxColour(0xCECECE));
 
-    m_printer_image = new wxStaticBitmap(printer_staticbox, wxID_ANY, create_scaled_bitmap("printer_preview_BL-P001", this, 52));
-    m_printer_image->SetMinSize(wxSize(FromDIP(52), FromDIP(52)));
-    m_printer_image->SetMaxSize(wxSize(FromDIP(52), FromDIP(52)));
-
     m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->SetBorderWidth(0);
-    m_comboBox_printer->SetMinSize(wxSize(FromDIP(225), FromDIP(60)));
-    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(225), FromDIP(60)));
+    m_comboBox_printer->SetMinSize(wxSize(FromDIP(277), FromDIP(60)));
+    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(277), FromDIP(60)));
     m_comboBox_printer->SetBackgroundColor(*wxWHITE);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, m_select_dialog);
 
@@ -5082,7 +5121,6 @@ void PrinterInfoBox::Create()
     m_button_question->SetToolTip(_L("Click here if you can't connect to the printer"));
    
     sizer_printer_staticbox->Add(0, 0, 0, wxLEFT, FromDIP(7));
-    sizer_printer_staticbox->Add(m_printer_image, 0, wxALIGN_CENTER, 0);
     sizer_printer_staticbox->Add(m_comboBox_printer, 0, wxALIGN_CENTER, 0);
     sizer_printer_staticbox->Add(m_button_refresh, 0, wxALIGN_CENTER, 0);
     sizer_printer_staticbox->AddSpacer(FromDIP(10));

@@ -96,6 +96,14 @@ void TextInput::SetLabel(const wxString& label)
     Refresh();
 }
 
+void TextInput::SetStaticTips(const wxString& tips, const wxBitmap& bitmap)
+{
+    static_tips = tips;
+    static_tips_icon = bitmap;
+    messureSize();
+    Refresh();
+}
+
 void TextInput::SetIcon(const wxBitmap &icon)
 {
     this->icon = ScalableBitmap();
@@ -229,7 +237,7 @@ void TextInput::render(wxDC& dc)
                 pt.x = (size.x - (szIcon.x + 0 + labelSize.x)) / 2;
         }
         dc.DrawBitmap(icon.bmp(), pt);
-        pt.x += szIcon.x + 0;
+        pt.x += (szIcon.x + szIcon.x * 0.2);
     }
     if (icon_1.bmp().IsOk()) {
         wxSize szIcon = icon_1.GetBmpSize();
@@ -244,21 +252,57 @@ void TextInput::render(wxDC& dc)
     }
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
-        wxSize textSize = text_ctrl->GetSize();
-        if (align_right || align_center) {
-            if (pt.x + labelSize.x + 5 > size.x)
-                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5);
-            pt.y = (size.y - labelSize.y) / 2;
+        if (static_tips.IsEmpty()) {
+            wxSize textSize = text_ctrl->GetSize();
+            if (align_right || align_center)
+            {
+                if (pt.x + labelSize.x + 5 > size.x)
+                    text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5);
+                pt.y = (size.y - labelSize.y) / 2;
+            }
+            else
+            {
+                pt.x += textSize.x;
+                pt.y = (size.y + textSize.y) / 2 - labelSize.y;
+            }
+            dc.SetTextForeground(label_color.colorForStates(states));
+            if(align_right)
+                dc.SetFont(GetFont());
+            else
+                dc.SetFont(Label::Body_12);
+            dc.DrawText(text, pt);
         } else {
-            pt.x += textSize.x;
-            pt.y = (size.y + textSize.y) / 2 - labelSize.y;
-        }
-        dc.SetTextForeground(label_color.colorForStates(states));
-        if(align_right)
+            wxSize textSize = text_ctrl->GetSize();
+            if (align_right || align_center) {
+                if (pt.x + labelSize.x + 5 > size.x)
+                    text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - 5);
+                pt.y = (size.y - labelSize.y - static_tips_size.y - 8) / 2;
+            } else {
+                pt.x += textSize.x;
+                pt.y = (size.y - labelSize.y - static_tips_size.y - 8) / 2;
+            }
+            dc.SetTextForeground(label_color.colorForStates(states));
+            if(align_right)
+                dc.SetFont(GetFont());
+            else
+                dc.SetFont(Label::Body_12);
+            dc.DrawText(text, pt);
+
+            if (align_right || align_center) {
+                if (pt.x + static_tips_size.x + 5 > size.x) {
+                    text = wxControl::Ellipsize(static_tips, dc, wxELLIPSIZE_END, size.x - pt.x - 5);
+                }
+
+                pt.y += (labelSize.y + 8);
+            } else {
+                pt.x += static_tips_size.x;
+                pt.y += (labelSize.y + 8);
+            }
+
+            dc.SetTextForeground(wxColour(144, 144, 144));
             dc.SetFont(GetFont());
-        else
-            dc.SetFont(Label::Body_12);
-        dc.DrawText(text, pt);
+            dc.DrawText(static_tips, pt);
+        }
     }
 }
 
@@ -273,10 +317,19 @@ void TextInput::messureSize()
         dc.SetFont(Label::Body_12);
     labelSize = dc.GetTextExtent(wxWindow::GetLabel());
     wxSize textSize = text_ctrl->GetSize();
+
+    if (!static_tips.empty()) {
+        static_tips_size = dc.GetTextExtent(static_tips);
+        textSize.x = std::max(labelSize.GetWidth(), static_tips_size.GetWidth());
+        textSize.y += static_tips_size.y;
+        textSize.y += 8;
+    }
+
     int h = textSize.y + 8;
     if (size.y < h) {
         size.y = h;
     }
+
     wxSize minSize = size;
     minSize.x = GetMinWidth();
     SetMinSize(minSize);
