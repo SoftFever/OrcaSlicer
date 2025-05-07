@@ -2,6 +2,8 @@
 #include "TimelapsePosPicker.hpp"
 #include "Layer.hpp"
 
+constexpr int FILTER_THRESHOLD = 5;
+
 namespace Slic3r {
     void TimelapsePosPicker::init(const Print* print_, const Point& plate_offset)
     {
@@ -26,7 +28,7 @@ namespace Slic3r {
      * If the optional set of printed objects is provided, it converts the set into a vector.
      * Otherwise, it retrieves all objects from the print instance.
      */
-    std::vector<const PrintObject*> TimelapsePosPicker::get_object_list(const std::optional<std::set<const PrintObject*>>& printed_objects)
+    std::vector<const PrintObject*> TimelapsePosPicker::get_object_list(const std::optional<std::vector<const PrintObject*>>& printed_objects)
     {
         std::vector<const PrintObject*> object_list;
         if (printed_objects.has_value()) {
@@ -54,6 +56,10 @@ namespace Slic3r {
         for (size_t idx = 0; idx < config.printable_area.values.size(); ++idx)
             m_bed_polygon.points.emplace_back(coord_t(scale_(config.printable_area.values[idx].x())), coord_t(scale_(config.printable_area.values[idx].y())));
 
+        auto bed_bbox = get_extents(m_bed_polygon);
+        m_plate_height = unscale_(bed_bbox.max.y());
+        m_plate_width = unscale_(bed_bbox.max.x());
+
         Polygon bed_exclude_area;
         for (size_t idx = 0; idx < config.bed_exclude_area.values.size(); ++idx)
             bed_exclude_area.points.emplace_back(coord_t(scale_(config.bed_exclude_area.values[idx].x())), coord_t(scale_(config.bed_exclude_area.values[idx].y())));
@@ -73,6 +79,7 @@ namespace Slic3r {
             {transform_wt_pt({scale_(wt_box.max.x()),scale_(wt_box.max.y())})},
             {transform_wt_pt({scale_(wt_box.min.x()),scale_(wt_box.max.y())})}
         };
+        wipe_tower_area = expand_object_projection(wipe_tower_area);
 
         for (size_t idx = 0; idx < extruder_count; ++idx) {
             ExPolygons printable_area = diff_ex(diff(m_bed_polygon, bed_exclude_area), { wipe_tower_area });
@@ -140,12 +147,86 @@ namespace Slic3r {
         return ret;
     }
 
+    // scaled data
+    Polygons TimelapsePosPicker::collect_limit_areas_for_rod(const std::vector<const PrintObject*>& object_list, const PosPickCtx& ctx)
+    {
+        double rod_limit_height = ctx.height_to_rod + ctx.curr_layer->print_z;
+        std::vector<const PrintObject*> rod_collision_candidates;
+        for(auto& obj : object_list){
+            if(ctx.printed_objects && obj == ctx.printed_objects->back())
+                continue;
+            auto bbox = get_real_instance_bbox(obj->instances().front());
+            if(bbox.max.z() >= rod_limit_height)
+                rod_collision_candidates.push_back(obj);
+        }
+
+        std::sort(rod_collision_candidates.begin(), rod_collision_candidates.end(), [&](const PrintObject* lhs, const PrintObject* rhs) {
+            auto lbbox =get_real_instance_bbox(lhs->instances().front());
+            auto rbbox =get_real_instance_bbox(rhs->instances().front());
+            if(lbbox.min.y() == rbbox.min.y())
+                return lbbox.max.y() < rbbox.max.y();
+            return lbbox.min.y() < rbbox.min.y();
+        });
+
+        std::vector<std::pair<int,int>> object_y_ranges = {{0,0}};
+        for(auto& candidate : rod_collision_candidates){
+            auto bbox = get_real_instance_bbox(candidate->instances().front());
+            if( object_y_ranges.back().second >= bbox.min.y())
+                object_y_ranges.back().second = bbox.max.y();
+            else
+                object_y_ranges.emplace_back(bbox.min.y(), bbox.max.y());
+        }
+
+        if (object_y_ranges.back().second < m_plate_height)
+            object_y_ranges.emplace_back(m_plate_height, m_plate_height);
+
+        int lower_y_pos = -1, upper_y_pos =-1;
+        auto unscaled_curr_pos = unscale(ctx.curr_pos);
+
+        for (size_t idx = 1; idx < object_y_ranges.size(); ++idx) {
+            if (unscaled_curr_pos.y() >= object_y_ranges[idx - 1].second && unscaled_curr_pos.y() <= object_y_ranges[idx].first) {
+                lower_y_pos = object_y_ranges[idx - 1].second;
+                upper_y_pos = object_y_ranges[idx].first;
+                break;
+            }
+        }
+
+        if(lower_y_pos == -1 && upper_y_pos == -1)
+            return { m_bed_polygon };
+
+        Polygons ret;
+
+        ret.emplace_back(
+            Polygon{
+                Point{scale_(0), scale_(0)},
+                Point{scale_(m_plate_width), scale_(0)},
+                Point{scale_(m_plate_width), scale_(lower_y_pos)},
+                Point{scale_(0), scale_(lower_y_pos)}
+            }
+        );
+
+        ret.emplace_back(
+            Polygon{
+                Point{scale_(0), scale_(upper_y_pos)},
+                Point{scale_(m_plate_width), scale_(upper_y_pos)},
+                Point{scale_(m_plate_width), scale_(m_plate_height)},
+                Point{scale_(0), scale_(m_plate_height)}
+            }
+        );
+        return ret;
+    }
+
+
+
     // expand the object expolygon by safe distance
     Polygon TimelapsePosPicker::expand_object_projection(const Polygon& poly)
     {
         // the input poly is bounding box, so we get the first offseted polygon is ok
         float radius = scale_(print->config().extruder_clearance_radius.value / 2);
-        return offset(poly, radius)[0];
+        auto ret = offset(poly, radius);
+        if (ret.empty())
+            return {};
+        return ret[0];
     }
 
     double TimelapsePosPicker::get_raft_height(const PrintObject* obj)
@@ -170,7 +251,7 @@ namespace Slic3r {
         return ret + slice_params.gap_raft_object;
     }
 
-    // get the real instance bounding box, remove the plate offset and add raft height
+    // get the real instance bounding box, remove the plate offset and add raft height , unscaled data
     BoundingBoxf3 TimelapsePosPicker::get_real_instance_bbox(const PrintInstance& instance)
     {
         auto iter = bbox_cache.find(&instance);
@@ -199,11 +280,12 @@ namespace Slic3r {
         float radius = print->config().extruder_clearance_radius.value / 2;
 
         auto offset_bbox = bbox.inflated(sqrt(2) * radius);
+        // Constrain the coordinates to the first quadrant.
         Polygon ret = {
             DefaultCameraPos,
-            {scale_(offset_bbox.max.x()),scale_(offset_bbox.min.y())},
-            {scale_(offset_bbox.max.x()),scale_(offset_bbox.max.y())},
-            {scale_(offset_bbox.min.x()),scale_(offset_bbox.max.y())}
+            Point{std::max(scale_(offset_bbox.max.x()),0.),std::max(scale_(offset_bbox.min.y()),0.)},
+            Point{std::max(scale_(offset_bbox.max.x()),0.),std::max(scale_(offset_bbox.max.y()),0.)},
+            Point{std::max(scale_(offset_bbox.min.x()),0.),std::max(scale_(offset_bbox.max.y()),0.)}
         };
         return ret;
     }
@@ -273,7 +355,7 @@ namespace Slic3r {
         return { unscale_(res.x()), unscale_(res.y()) };
     }
 
-    // get center point of curr object
+    // get center point of curr object, scaled data
     Point TimelapsePosPicker::get_object_center(const PrintObject* obj)
     {
         if (!obj)
@@ -287,6 +369,7 @@ namespace Slic3r {
         return { scale_((min_p.x() + max_p.x()) / 2),scale_(min_p.y() + max_p.y() / 2) };
     }
 
+    // scaled data
     Point TimelapsePosPicker::pick_nearest_object_center(const Point& curr_pos, const  std::vector<const PrintObject*>& object_list)
     {
         if (object_list.empty())
@@ -304,6 +387,7 @@ namespace Slic3r {
         return get_object_center(ptr);
     }
 
+    // scaled data
     Point TimelapsePosPicker::pick_pos_for_curr_layer(const PosPickCtx& ctx)
     {
         float height_gap = 0;
@@ -316,10 +400,15 @@ namespace Slic3r {
 
         ExPolygons layer_slices = collect_object_slices_data(ctx.curr_layer,height_gap, object_list);
         Polygons camera_limit_areas = collect_limit_areas_for_camera(object_list);
-        ExPolygons unplacable_area = union_ex(layer_slices, camera_limit_areas);
+        Polygons rod_limit_areas;
+        if (ctx.print_sequence == PrintSequence::ByObject) {
+            rod_limit_areas = collect_limit_areas_for_rod(object_list,ctx);
+        }
+        ExPolygons unplacable_area = union_ex(union_ex(layer_slices, camera_limit_areas),rod_limit_areas);
         ExPolygons extruder_printable_area = m_extruder_printable_area[ctx.picture_extruder_id];
 
         ExPolygons safe_area = diff_ex(extruder_printable_area, unplacable_area);
+        safe_area = opening_ex(safe_area, scale_(FILTER_THRESHOLD));
         Point objs_center = get_objects_center(object_list);
         return pick_pos_internal(objs_center, safe_area);
     }
@@ -330,7 +419,7 @@ namespace Slic3r {
      * This function computes the average center of all instances of the provided objects.
      *
      * @param object_list A vector of pointers to PrintObject instances.
-     * @return Point The average center of all objects.
+     * @return Point The average center of all objects.Scaled data
      */
     Point TimelapsePosPicker::get_objects_center(const std::vector<const PrintObject*>& object_list)
     {
@@ -373,6 +462,10 @@ namespace Slic3r {
         for (auto& obj : object_list) {
             for (auto& instance : obj->instances()) {
                 const auto& bbox = get_real_instance_bbox(instance);
+                if (ctx.print_sequence == PrintSequence::ByObject && bbox.max.z() >= ctx.height_to_rod) {
+                    m_all_layer_pos = DefaultTimelapsePos;
+                    return *m_all_layer_pos;
+                }
                 Point min_p{ scale_(bbox.min.x()),scale_(bbox.min.y()) };
                 Point max_p{ scale_(bbox.max.x()),scale_(bbox.max.y()) };
                 Polygon obj_proj{ { min_p.x(),min_p.y() },
@@ -383,6 +476,7 @@ namespace Slic3r {
                 object_projections.emplace_back(expand_object_projection(obj_proj));
             }
         };
+
 
         object_projections = union_(object_projections);
         Polygons camera_limit_areas = collect_limit_areas_for_camera(object_list);
@@ -395,6 +489,7 @@ namespace Slic3r {
             extruder_printable_area = m_extruder_printable_area.front();
 
         ExPolygons safe_area = diff_ex(extruder_printable_area, unplacable_area);
+        safe_area = opening_ex(safe_area, scale_(FILTER_THRESHOLD));
 
         Point starting_pos = get_objects_center(object_list);
 

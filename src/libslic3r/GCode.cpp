@@ -2868,7 +2868,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
                 tool_ordering.cal_most_used_extruder(print.config());
-                m_printed_objects.insert(&object);
+                m_printed_objects.emplace_back(&object);
                 this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file,
                                      prime_extruder);
                 {
@@ -4573,9 +4573,10 @@ LayerResult GCode::process_layer(
         ctx.curr_extruder_id = m_writer.filament()->extruder_id();
         ctx.picture_extruder_id = most_used_extruder;
         if (m_config.nozzle_diameter.size() > 1) {
-            ctx.extruder_height_gap = m_config.extruder_printable_height.values[0] - m_config.extruder_printable_height.values[1];
-            ctx.liftable_extruder_id = m_config.extruder_printable_height.values[0] < m_config.extruder_printable_height.values[0] ? 0 : 1;
+            ctx.extruder_height_gap = std::abs(m_config.extruder_printable_height.values[0] - m_config.extruder_printable_height.values[1]);
+            ctx.liftable_extruder_id = m_config.extruder_printable_height.values[0] < m_config.extruder_printable_height.values[1] ? 0 : 1;
         }
+        ctx.height_to_rod = m_config.extruder_clearance_height_to_rod;
 
         ctx.print_sequence = m_config.print_sequence;
         if (m_config.print_sequence == PrintSequence::ByObject)

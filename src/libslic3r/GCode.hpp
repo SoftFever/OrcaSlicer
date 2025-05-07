@@ -610,7 +610,7 @@ private:
 
     Print *m_print{nullptr};
 
-    std::set<const PrintObject*> m_printed_objects;
+    std::vector<const PrintObject*> m_printed_objects;
 
     // Processor
     GCodeProcessor m_processor;
