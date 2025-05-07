@@ -220,7 +220,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_long_retractions_when_cut",
         "filament_retraction_distances_when_cut",
         "grab_length",
-        "bed_temperature_formula"
+        "bed_temperature_formula",
+        "filament_notes",
+        "process_notes",
+        "printer_notes"
     };
 
     static std::unordered_set<std::string> steps_ignore;
