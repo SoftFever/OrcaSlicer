@@ -5085,15 +5085,24 @@ void PrinterInfoBox::Create()
 {
     /*printer combobox*/
     wxBoxSizer* sizer_split_printer = new wxBoxSizer(wxHORIZONTAL);
-    m_stext_printer_title = new Label(this, _L("Printer"));
+    m_stext_printer_title = new Label(this, _L("Printer"), wxALIGN_TOP);
     m_stext_printer_title->SetFont(::Label::Body_14);
     m_stext_printer_title->SetForegroundColour(0x909090);
+
+    m_button_question = new ScalableButton(this, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_button_question->Bind(wxEVT_BUTTON, &PrinterInfoBox::OnBtnQuestionClicked, this);
+    m_button_question->SetToolTip(_L("Click here if you can't connect to the printer"));
+    m_button_question->SetMinSize(wxSize(FromDIP(18), FromDIP(18)));
+    m_button_question->SetMaxSize(wxSize(FromDIP(18), FromDIP(18)));
+
     auto m_split_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_split_line->SetBackgroundColour(0xeeeeee);
     m_split_line->SetMinSize(wxSize(-1, 1));
     m_split_line->SetMaxSize(wxSize(-1, 1));
     sizer_split_printer->Add(0, 0, 0, wxEXPAND, 0);
-    sizer_split_printer->Add(m_stext_printer_title, 0, wxALIGN_CENTER, 0);
+    sizer_split_printer->Add(m_stext_printer_title, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_split_printer->AddSpacer(FromDIP(5));
+    sizer_split_printer->Add(m_button_question, 0, wxALIGN_CENTER_VERTICAL, 0);
     sizer_split_printer->Add(m_split_line, 1, wxALIGN_CENTER_VERTICAL, 0);
 
     wxBoxSizer* sizer_printer_area = new wxBoxSizer(wxHORIZONTAL);
@@ -5108,23 +5117,17 @@ void PrinterInfoBox::Create()
 
     m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->SetBorderWidth(0);
-    m_comboBox_printer->SetMinSize(wxSize(FromDIP(277), FromDIP(60)));
-    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(277), FromDIP(60)));
+    m_comboBox_printer->SetMinSize(wxSize(FromDIP(300), FromDIP(60)));
+    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(300), FromDIP(60)));
     m_comboBox_printer->SetBackgroundColor(*wxWHITE);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, m_select_dialog);
 
     m_button_refresh = new ScalableButton(printer_staticbox, wxID_ANY, "refresh_printer", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, m_select_dialog);
 
-    m_button_question = new ScalableButton(printer_staticbox, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
-    m_button_question->Bind(wxEVT_BUTTON, &PrinterInfoBox::OnBtnQuestionClicked, this);
-    m_button_question->SetToolTip(_L("Click here if you can't connect to the printer"));
-   
     sizer_printer_staticbox->Add(0, 0, 0, wxLEFT, FromDIP(7));
     sizer_printer_staticbox->Add(m_comboBox_printer, 0, wxALIGN_CENTER, 0);
     sizer_printer_staticbox->Add(m_button_refresh, 0, wxALIGN_CENTER, 0);
-    sizer_printer_staticbox->AddSpacer(FromDIP(10));
-    sizer_printer_staticbox->Add(m_button_question, 0, wxALIGN_CENTER, 0);
 
     printer_staticbox->SetSizer(sizer_printer_staticbox);
     printer_staticbox->Layout();
