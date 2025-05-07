@@ -473,19 +473,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_split_options->Add(0, 0, 0, wxEXPAND, 0);
     sizer_split_options->Add(m_split_options_line, 1, wxALIGN_CENTER, 0);
 
-    wxBoxSizer *sizer_advanced_options_title  = new wxBoxSizer(wxHORIZONTAL);
-
-    m_connect_printer_help_hyperlink = new Label(m_scroll_area, _L("Click here if you can't connect to the printer ->"));
-    m_connect_printer_help_hyperlink->SetForegroundColour(0x00ae42);
-    m_connect_printer_help_hyperlink->SetBackgroundColour(*wxWHITE);
-    m_connect_printer_help_hyperlink->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    m_connect_printer_help_hyperlink->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    m_connect_printer_help_hyperlink->Bind(wxEVT_LEFT_DOWN, [this](auto& e) { wxLaunchDefaultBrowser(wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"));});
-    m_connect_printer_help_hyperlink->SetFont(::Label::Body_13);
-
-    sizer_advanced_options_title->Add(m_connect_printer_help_hyperlink, 0, wxALIGN_CENTER, 0);
-    sizer_advanced_options_title->Add(0, 0, 1, wxEXPAND, 0);
-
     m_options_other = new wxPanel(m_scroll_area);
 
 
@@ -697,7 +684,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_scroll_sizer->Add(m_change_filament_times_sizer, 0,wxLEFT|wxRIGHT, FromDIP(18));
     m_scroll_sizer->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(18));
     m_scroll_sizer->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
-    m_scroll_sizer->Add(sizer_advanced_options_title, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_scroll_sizer->Add(m_options_other, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(30));
@@ -3663,12 +3649,10 @@ void SelectMachineDialog::set_default()
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         m_printer_box->SetDefault(false);
         m_rename_normal_panel->Show(true);
-        m_connect_printer_help_hyperlink->Show(true);
     }
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         m_printer_box->SetDefault(true);
         m_rename_normal_panel->Show(false);
-        m_connect_printer_help_hyperlink->Show(false);
     }
 
     //project name
@@ -5085,18 +5069,24 @@ void PrinterInfoBox::Create()
 
     m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_comboBox_printer->SetBorderWidth(0);
-    m_comboBox_printer->SetMinSize(wxSize(FromDIP(250), FromDIP(60)));
-    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(250), FromDIP(60)));
+    m_comboBox_printer->SetMinSize(wxSize(FromDIP(225), FromDIP(60)));
+    m_comboBox_printer->SetMaxSize(wxSize(FromDIP(225), FromDIP(60)));
     m_comboBox_printer->SetBackgroundColor(*wxWHITE);
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, m_select_dialog);
 
     m_button_refresh = new ScalableButton(printer_staticbox, wxID_ANY, "refresh_printer", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, m_select_dialog);
 
+    m_button_question = new ScalableButton(printer_staticbox, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_button_question->Bind(wxEVT_BUTTON, &PrinterInfoBox::OnBtnQuestionClicked, this);
+    m_button_question->SetToolTip(_L("Click here if you can't connect to the printer"));
+   
     sizer_printer_staticbox->Add(0, 0, 0, wxLEFT, FromDIP(7));
     sizer_printer_staticbox->Add(m_printer_image, 0, wxALIGN_CENTER, 0);
     sizer_printer_staticbox->Add(m_comboBox_printer, 0, wxALIGN_CENTER, 0);
     sizer_printer_staticbox->Add(m_button_refresh, 0, wxALIGN_CENTER, 0);
+    sizer_printer_staticbox->AddSpacer(FromDIP(10));
+    sizer_printer_staticbox->Add(m_button_question, 0, wxALIGN_CENTER, 0);
 
     printer_staticbox->SetSizer(sizer_printer_staticbox);
     printer_staticbox->Layout();
@@ -5137,6 +5127,11 @@ void PrinterInfoBox::Create()
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     main_sizer->Add(sizer_printer_area, 0, wxTOP, 0);
     SetSizer(main_sizer);
+}
+
+void PrinterInfoBox::OnBtnQuestionClicked(wxCommandEvent& event)
+{
+    wxLaunchDefaultBrowser(wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"));
 }
 
 }

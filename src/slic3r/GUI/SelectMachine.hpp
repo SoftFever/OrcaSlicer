@@ -373,7 +373,6 @@ protected:
     TextInput*                          m_rename_input{nullptr};
     wxTimer*                            m_refresh_timer{ nullptr };
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-    Label*                              m_connect_printer_help_hyperlink{nullptr};
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
@@ -531,6 +530,8 @@ public:
 private:
     void  Create();
 
+    void  OnBtnQuestionClicked(wxCommandEvent& event);
+
 private:
     // owner
     SelectMachineDialog* m_select_dialog;
@@ -539,6 +540,7 @@ private:
     Label*          m_stext_printer_title{ nullptr };
     ComboBox*       m_comboBox_printer{ nullptr };
     ScalableButton* m_button_refresh{ nullptr };
+    ScalableButton* m_button_question { nullptr };
 
     wxStaticBitmap* m_bed_image{ nullptr };
     Label*         m_text_bed_type;
