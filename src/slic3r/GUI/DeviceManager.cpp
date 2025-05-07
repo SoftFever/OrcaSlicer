@@ -1175,6 +1175,12 @@ void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
     }
 }
 
+bool MachineObject::is_main_extruder_on_left() const
+{
+    // only means the extruder is on the left hand when extruder id is 0
+    return false;
+}
+
 bool MachineObject::is_multi_extruders() const
 {
     return m_extder_data.total_extder_count > 1;
