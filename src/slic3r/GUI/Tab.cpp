@@ -3852,6 +3852,8 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Multi Filament"));
         optgroup->append_single_option_line("filament_flush_temp", "", 0);
         optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
+        optgroup->append_single_option_line("long_retractions_when_ec", "" , 0);
+        optgroup->append_single_option_line("retraction_distances_when_ec", "" , 0);
 
         optgroup = page->new_optgroup(L("Tool change parameters with single extruder MM printers"), "param_toolchange");
         optgroup->append_single_option_line("filament_loading_speed_start", "semm");
@@ -4018,6 +4020,7 @@ void TabFilament::toggle_options()
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_chamber_temp_control");
         toggle_line("chamber_temperatures", support_chamber_temp_control);
     }
+
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page(&cfg);
 
@@ -4027,6 +4030,9 @@ void TabFilament::toggle_options()
                         "filament_unloading_speed_start", "filament_unloading_speed", "filament_toolchange_delay", "filament_cooling_moves",
                         "filament_cooling_initial_speed", "filament_cooling_final_speed"})
             toggle_option(el, !is_BBL_printer);
+
+        const int extruder_idx = 0; // m_variant_combo->GetSelection(); // TODO: Orca hack
+        toggle_line("retraction_distances_when_ec", m_config->opt_bool("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
     }
 }
 

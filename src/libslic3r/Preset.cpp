@@ -880,7 +880,8 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "filament_multitool_ramming", "filament_multitool_ramming_volume", "filament_multitool_ramming_flow", "activate_chamber_temp_control",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut", "idle_temperature",
     //BBS filament change length while the extruder color
-    "filament_change_length","filament_prime_volume","filament_flush_volumetric_speed","filament_flush_temp"
+    "filament_change_length","filament_prime_volume","filament_flush_volumetric_speed","filament_flush_temp",
+    "long_retractions_when_ec", "retraction_distances_when_ec"
     };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
