@@ -64,7 +64,7 @@ void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter para
         break;
     case Parameter::Diameter:
         def.type = coFloat;
-        def.set_default_value(new ConfigOptionFloat(200.00)); // fixes default value shows as 199.99
+        def.set_default_value(new ConfigOptionFloat(200));
         def.width = 10; // match size
         def.sidetext = L("mm");
         def.label = get_option_label(param);
@@ -266,7 +266,7 @@ void BedShapePanel::build_panel(const Pointfs& default_pt, const std::string& cu
     m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) { m_canvas->Refresh(); });
 
     wxSizer* left_sizer = new wxBoxSizer(wxVERTICAL);
-    left_sizer->Add(sbsizer, 1, wxEXPAND);
+    left_sizer->Add(sbsizer, 0, wxEXPAND);
     left_sizer->Add(texture_panel, 1, wxEXPAND);
     left_sizer->Add(model_panel, 1, wxEXPAND);
 

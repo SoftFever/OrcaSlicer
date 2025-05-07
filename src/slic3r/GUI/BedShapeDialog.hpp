@@ -85,8 +85,8 @@ private:
     void		load_texture();
     void		load_model();
 
-    wxChoicebook*	m_shape_options_book;
-    ComboBox*	    m_shape_combo;
+    wxChoicebook* m_shape_options_book;
+    ComboBox*     m_shape_combo;
 	std::vector <ConfigOptionsGroupShp>	m_optgroups;
 
     friend class BedShapeDialog;
