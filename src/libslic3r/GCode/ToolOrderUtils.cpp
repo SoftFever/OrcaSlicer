@@ -398,7 +398,8 @@ namespace Slic3r
             int target_cost = std::numeric_limits<int>::max();
             for (size_t k = 0; k < is_visited.size(); ++k) {
                 if (!is_visited[k]) {
-                    if (wipe_volumes[*prev_filament][curr_layer_extruders[k]] < target_cost) {
+                    if (wipe_volumes[*prev_filament][curr_layer_extruders[k]] < target_cost ||
+                        (wipe_volumes[*prev_filament][curr_layer_extruders[k]] == target_cost && prev_filament == curr_layer_extruders[k])) {
                         target_idx = k;
                         target_cost = wipe_volumes[*prev_filament][curr_layer_extruders[k]];
                     }
@@ -426,7 +427,23 @@ namespace Slic3r
         std::sort(curr_layer_extruders.begin(), curr_layer_extruders.end());
         std::sort(next_layer_extruders.begin(), next_layer_extruders.end());
         float best_cost = std::numeric_limits<float>::max();
+        int best_change = std::numeric_limits<int>::max(); // add filament change check in case flush volume between different filament is 0
         std::vector<unsigned int>best_seq;
+
+        auto get_filament_change_count = [](const std::vector<unsigned int>& curr_seq, const std::vector<unsigned int>& next_seq,const std::optional<unsigned int>& start_extruder_id) {
+            int count = 0;
+            auto prev_extruder_id = start_extruder_id;
+            for (auto seq : { curr_seq,next_seq }) {
+                for (auto eid : seq) {
+                    if (prev_extruder_id && prev_extruder_id != eid) {
+                        count += 1;
+                    }
+                    prev_extruder_id = eid;
+                }
+            }
+            return count;
+
+            };
 
         do {
             std::optional<unsigned int>prev_extruder_1 = start_extruder_id;
@@ -441,6 +458,7 @@ namespace Slic3r
             do {
                 std::optional<unsigned int>prev_extruder_2 = prev_extruder_1;
                 float total_cost = curr_layer_cost;
+                int total_change = get_filament_change_count(curr_layer_extruders, next_layer_extruders, start_extruder_id);
 
                 for (size_t idx = 0; idx < next_layer_extruders.size(); ++idx) {
                     if (prev_extruder_2)
@@ -448,9 +466,10 @@ namespace Slic3r
                     prev_extruder_2 = next_layer_extruders[idx];
                 }
 
-                if (total_cost < best_cost) {
+                if (total_cost < best_cost || (total_cost == best_cost && total_change < best_change)) {
                     best_cost = total_cost;
                     best_seq = curr_layer_extruders;
+                    best_change = total_change;
                 }
             } while (std::next_permutation(next_layer_extruders.begin(), next_layer_extruders.end()));
         } while (std::next_permutation(curr_layer_extruders.begin(), curr_layer_extruders.end()));
