@@ -523,7 +523,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         // set k / n value
         if (obj->cali_version <= -1 && obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             // set extrusion cali ratio
-            int cali_tray_id = ams_id * 4 + tray_id;
+            int cali_tray_id = ams_id * 4 + slot_id;
 
             double k = 0.0;
             try {
@@ -544,7 +544,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
         else {
             PACalibIndexInfo select_index_info;
-            select_index_info.tray_id = tray_id;
+            select_index_info.tray_id = slot_id;
             select_index_info.nozzle_diameter = obj->m_nozzle_data.nozzles[0].diameter;
             select_index_info.cali_idx = -1;
             select_index_info.filament_id     = selected_ams_id;
@@ -695,7 +695,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         }
     }
     else {
-        int cali_tray_id = ams_id * 4 + tray_id;
+        int cali_tray_id = ams_id * 4 + slot_id;
         double k = 0.0;
         try {
             k_text.ToDouble(&k);
@@ -802,7 +802,7 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
 
 bool AMSMaterialsSetting::is_virtual_tray()
 {
-    if (tray_id == VIRTUAL_TRAY_ID)
+    if (ams_id == VIRTUAL_TRAY_ID)
         return true;
     return false;
 }
@@ -1167,9 +1167,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (obj->cali_version >= 0) {
         // add default item
         PACalibResult default_item;
-        default_item.filament_id = ams_filament_id;
         default_item.cali_idx = -1;
-        default_item.filament_id = ams_filament_id;
         get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
         m_pa_profile_items.emplace_back(default_item);
         items.push_back(_L("Default"));
