@@ -617,11 +617,11 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
 
     has_ipcam = true; // default true
 
-    m_nozzle_data.current_nozzle_id = 0;
-    m_nozzle_data.target_nozzle_id = 0;
-    m_nozzle_data.total_nozzle_count = 1;
-    Nozzle nozzle;
-    m_nozzle_data.nozzles.push_back(nozzle);
+    m_extder_data.current_extder_id = 0;
+    m_extder_data.target_extder_id = 0;
+    m_extder_data.total_extder_count = 1;
+    Extder nozzle;
+    m_extder_data.extders.push_back(nozzle);
 }
 
 MachineObject::~MachineObject()
@@ -1175,7 +1175,7 @@ void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
 
 bool MachineObject::is_multi_extruders() const
 {
-    return m_nozzle_data.total_nozzle_count > 1;
+    return m_extder_data.total_extder_count > 1;
 }
 
 bool MachineObject::is_bbl_filament(std::string tag_uid)
@@ -3400,15 +3400,15 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                         if (jj.contains("nozzle_temper")) {
                             if (jj["nozzle_temper"].is_number()) {
-                                if (m_nozzle_data.nozzles.size() == 1) {
-                                    m_nozzle_data.nozzles[0].temp = jj["nozzle_temper"].get<float>();
+                                if (m_extder_data.extders.size() == 1) {
+                                    m_extder_data.extders[0].temp = jj["nozzle_temper"].get<float>();
                                 }
                             }
                         }
                         if (jj.contains("nozzle_target_temper")) {
                             if (jj["nozzle_target_temper"].is_number()) {
-                                if (m_nozzle_data.nozzles.size() == 1) {
-                                    m_nozzle_data.nozzles[0].target_temp = jj["nozzle_temper"].get<float>();
+                                if (m_extder_data.extders.size() == 1) {
+                                    m_extder_data.extders[0].target_temp = jj["nozzle_temper"].get<float>();
                                 }
                             }
                         }
@@ -3593,8 +3593,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                     }
 
-                                    if (nozzle_diameter == 0.0f) {m_nozzle_data.nozzles[0].diameter = 0.4f;}
-                                    else {m_nozzle_data.nozzles[0].diameter = round(nozzle_diameter * 10) / 10;}
+                                    if (nozzle_diameter == 0.0f) {m_extder_data.extders[0].diameter = 0.4f;}
+                                    else {m_extder_data.extders[0].diameter = round(nozzle_diameter * 10) / 10;}
                                 }
                             }
                         }
@@ -3611,7 +3611,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 else {
                                     if (jj["nozzle_type"].is_string()) {
                                         auto nozzle_type = jj["nozzle_type"].get<std::string>();
-                                        m_nozzle_data.nozzles[0].type = nozzle_type;
+                                        m_extder_data.extders[0].type = nozzle_type;
                                     }
                                 }
                             }
@@ -3898,7 +3898,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                     PresetBundle *preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
                     std::ostringstream stream;
-                    stream << std::fixed << std::setprecision(1) << DeviceManager::nozzle_diameter_conver(m_nozzle_data.nozzles[0].diameter);
+                    stream << std::fixed << std::setprecision(1) << DeviceManager::nozzle_diameter_conver(m_extder_data.extders[0].diameter);
                     std::string           nozzle_diameter_str = stream.str();
                     if (m_printer_preset_name.find(nozzle_diameter_str + " nozzle") == std::string::npos)
                         update_printer_preset_name(nozzle_diameter_str);
@@ -5520,15 +5520,15 @@ void MachineObject::parse_new_info(json print)
         if (device.contains("nozzle")) {
             json const& nozzle = device["nozzle"];
 
-            m_nozzle_data = NozzleData();
-            m_nozzle_data.current_nozzle_id = get_flag_bits(nozzle["info"].get<int>(), 0, 3);
-            m_nozzle_data.target_nozzle_id = get_flag_bits(nozzle["info"].get<int>(), 4, 3);
-            m_nozzle_data.total_nozzle_count = get_flag_bits(nozzle["info"].get<int>(), 8, 3);
+            m_extder_data = ExtderData();
+            m_extder_data.current_extder_id = get_flag_bits(nozzle["info"].get<int>(), 0, 3);
+            m_extder_data.target_extder_id = get_flag_bits(nozzle["info"].get<int>(), 4, 3);
+            m_extder_data.total_extder_count = get_flag_bits(nozzle["info"].get<int>(), 8, 3);
 
 
-            for (int i = 0; i < m_nozzle_data.total_nozzle_count; i++) {
+            for (int i = 0; i < m_extder_data.total_extder_count; i++) {
 
-                Nozzle nozzle_obj;
+                Extder nozzle_obj;
 
                 std::string nozzle_id = std::to_string(i);
                 if (nozzle.contains(nozzle_id)) {
@@ -5561,7 +5561,7 @@ void MachineObject::parse_new_info(json print)
                     nozzle_obj.rfid_stat = get_flag_bits(njon["stat"].get<int>(), 16, 7);
                 }
 
-                m_nozzle_data.nozzles.push_back(nozzle_obj);
+                m_extder_data.extders.push_back(nozzle_obj);
             }
         }
     }

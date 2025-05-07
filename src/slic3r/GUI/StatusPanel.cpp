@@ -2378,7 +2378,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_bed->SetIconNormal();
     }
 
-    m_tempCtrl_nozzle->SetCurrTemp((int) obj->m_nozzle_data.nozzles[0].temp);
+    m_tempCtrl_nozzle->SetCurrTemp((int) obj->m_extder_data.extders[0].temp);
     if (obj->nozzle_max_temperature > -1) {
         if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(obj->nozzle_max_temperature);
     }
@@ -2389,10 +2389,10 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     if (m_temp_nozzle_timeout > 0) {
         m_temp_nozzle_timeout--;
     } else {
-        if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->m_nozzle_data.nozzles[0].target_temp); }
+        if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->m_extder_data.extders[0].target_temp); }
     }
 
-    if ((obj->m_nozzle_data.nozzles[0].target_temp - obj->m_nozzle_data.nozzles[0].temp) >= TEMP_THRESHOLD_VAL) {
+    if ((obj->m_extder_data.extders[0].target_temp - obj->m_extder_data.extders[0].temp) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_nozzle->SetIconActive();
     } else {
         m_tempCtrl_nozzle->SetIconNormal();
@@ -2587,7 +2587,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (obj->cali_version != -1 && last_cali_version != obj->cali_version) {
         last_cali_version = obj->cali_version;
         PACalibExtruderInfo cali_info;
-        cali_info.nozzle_diameter = obj->m_nozzle_data.nozzles[0].diameter;
+        cali_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
         CalibUtils::emit_get_PA_calib_info(cali_info);
     }
 
@@ -3410,7 +3410,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->m_nozzle_data.nozzles[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
             obj->command_axis_control("E", 1.0, -10.0f, 900);
         else
             axis_ctrl_e_hint(true);
@@ -3420,7 +3420,7 @@ void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->m_nozzle_data.nozzles[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
             obj->command_axis_control("E", 1.0, 10.0f, 900);
         else
             axis_ctrl_e_hint(false);

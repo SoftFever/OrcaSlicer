@@ -553,8 +553,8 @@ void PrinterPartsDialog::set_nozzle_diameter(wxCommandEvent& evt)
             auto nozzle_diameter = std::stof(nozzle_diameter_checkbox->GetStringSelection().ToStdString());
             nozzle_diameter = round(nozzle_diameter * 10) / 10;
             
-            obj->m_nozzle_data.nozzles[0].diameter = nozzle_diameter;
-            obj->m_nozzle_data.nozzles[0].type = nozzle_type;
+            obj->m_extder_data.extders[0].diameter = nozzle_diameter;
+            obj->m_extder_data.extders[0].type = nozzle_type;
 
             obj->command_set_printer_nozzle(nozzle_type, nozzle_diameter);
         }
@@ -579,8 +579,8 @@ bool PrinterPartsDialog::Show(bool show)
         CentreOnParent();
 
 
-        auto type = obj->m_nozzle_data.nozzles[0].type;
-        auto diameter = obj->m_nozzle_data.nozzles[0].diameter;
+        auto type = obj->m_extder_data.extders[0].type;
+        auto diameter = obj->m_extder_data.extders[0].diameter;
 
         nozzle_type_checkbox->Clear();
         nozzle_diameter_checkbox->Clear();

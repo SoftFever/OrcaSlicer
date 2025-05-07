@@ -142,7 +142,7 @@ struct AmsSlot
     std::string slot_id;
 };
 
-struct Nozzle
+struct Extder
 {
     std::string type;  //0-hardened_steel 1-stainless_steel
     float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
@@ -160,12 +160,12 @@ struct Nozzle
     int rfid_stat{0}; ;
 };
 
-struct NozzleData
+struct ExtderData
 {
-    int current_nozzle_id{0};
-    int target_nozzle_id{0};
-    int total_nozzle_count {0};
-    std::vector<Nozzle> nozzles;
+    int current_extder_id{0};
+    int target_extder_id{0};
+    int total_extder_count {0};
+    std::vector<Extder> extders;
 };
 
 struct RatingInfo {
@@ -1019,7 +1019,7 @@ public:
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
-    NozzleData                  m_nozzle_data;
+    ExtderData                  m_extder_data;
 
     /* Device Filament Check */
     std::set<std::string> m_checked_filament;

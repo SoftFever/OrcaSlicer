@@ -1505,7 +1505,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-        if (abs(obj->m_nozzle_data.nozzles[0].diameter - nozzle_diameter_list[i]) < 1e-3) {
+        if (abs(obj->m_extder_data.extders[0].diameter - nozzle_diameter_list[i]) < 1e-3) {
             if (m_comboBox_nozzle_dia->GetCount() > i) {
                 m_comboBox_nozzle_dia->SetSelection(i);
                 nozzle_is_set = true;
