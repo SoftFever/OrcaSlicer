@@ -528,7 +528,18 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
         else {
             PACalibIndexInfo select_index_info;
-            select_index_info.tray_id = ams_id * 4 + slot_id;
+            int tray_id = ams_id * 4 + slot_id;
+            if (is_virtual_tray()) {
+                tray_id = ams_id;
+                if (!obj->is_enable_np) {
+                    tray_id = VIRTUAL_TRAY_ID;
+                }
+
+                // TODO: Orca hack
+                ams_id = 255;
+                slot_id = 0;
+            }
+            select_index_info.tray_id = tray_id;
             select_index_info.ams_id = ams_id;
             select_index_info.slot_id = slot_id;
             select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
@@ -653,7 +664,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = vt_tray;
-            select_index_info.ams_id = ams_id;
+            select_index_info.ams_id = 255; // TODO: Orca hack
             select_index_info.slot_id = 0;
             select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
 
