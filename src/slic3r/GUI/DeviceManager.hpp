@@ -37,6 +37,9 @@
 #define HOLD_COUNT_CAMERA       6
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
+
+#define MAIN_NOZZLE_ID          0
+
 #define VIRTUAL_TRAY_ID         254
 #define START_SEQ_ID            20000
 #define END_SEQ_ID              30000
@@ -209,6 +212,12 @@ public:
         }
         return wxColour(ret[0], ret[1], ret[2], ret[3]);
     }
+
+    bool operator==(AmsTray const &o) const
+    {
+        return id == o.id && type == o.type && filament_setting_id == o.filament_setting_id && color == o.color;
+    }
+    bool operator!=(AmsTray const &o) const { return !operator==(o); }
 
     std::string     id;
     std::string     tag_uid;     // tag_uid
@@ -517,8 +526,6 @@ public:
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
-    AmsTray vt_tray;                        // virtual tray
-    std::vector<AmsTray> vt_trays;          // virtual tray for new
     long  ams_exist_bits = 0;
     long  tray_exist_bits = 0;
     long  tray_is_bbl_bits = 0;
@@ -1020,19 +1027,30 @@ public:
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
+
     ExtderData                  m_extder_data;
 
-    /* Device Filament Check */
-    std::set<std::string> m_checked_filament;
-    std::string m_printer_preset_name;
-    std::map<std::string, std::pair<int, int>> m_filament_list; // filament_id, pair<min temp, max temp>
-    void update_filament_list();
-
+    /*vi slot data*/
+    AmsTray vt_tray;                        // virtual tray
+    //std::vector<AmsTray> vt_trays;          // virtual tray for new
+    AmsTray parse_vt_tray(json vtray);
     /*for parse new info*/
+    bool check_enable_np(const json& print) const;
     void parse_new_info(json print);
-    int get_flag_bits(std::string str, int start, int count = 1);
-    int get_flag_bits(int num, int start, int count = 1);
-    void update_printer_preset_name(const std::string &nozzle_diameter_str);
+    int  get_flag_bits(std::string str, int start, int count = 1) const;
+    int get_flag_bits(int num, int start, int count = 1, int base = 10) const;
+
+    /* Device Filament Check */
+    struct FilamentData
+    {
+        std::set<std::string>                      checked_filament;
+        std::string                                printer_preset_name;
+        std::map<std::string, std::pair<int, int>> filament_list; // filament_id, pair<min temp, max temp>
+    };
+    std::map<std::string, FilamentData> m_nozzle_filament_data;
+    void update_filament_list();
+    void update_printer_preset_name();
+    void check_ams_filament_valid();
 
 };
 

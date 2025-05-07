@@ -2600,6 +2600,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (obj) {
         if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::EXTRA_AMS; }
         else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
+        obj->check_ams_filament_valid();
     }
 
     if (!obj
