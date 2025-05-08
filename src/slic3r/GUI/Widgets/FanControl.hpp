@@ -214,7 +214,7 @@ private:
     std::map<int, bool> m_duct_ctrl;
 
     Button* m_button_refresh;
-    wxStaticText* m_cooling_text;
+    Label* m_cooling_text;
     MachineObject *m_obj{nullptr};
 
     std::string m_strong_str = "Strong string ...wait fill";

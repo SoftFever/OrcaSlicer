@@ -640,7 +640,7 @@ FanControlPopupNew::FanControlPopupNew(wxWindow* parent, MachineObject* obj, con
     m_mode_sizer->Add(m_radio_btn_sizer, 0, wxALIGN_CENTRE_VERTICAL, 0);
     m_mode_sizer->Add(m_button_refresh, 0, wxALIGN_CENTRE_VERTICAL, 0);
     m_button_refresh->Hide();
-    m_cooling_text = new wxStaticText(this, wxID_ANY, wxT(""));
+    m_cooling_text = new Label(this);
     m_cooling_text->SetBackgroundColour(*wxWHITE);
 
     //Control the show or hide of controls based on id
@@ -730,7 +730,7 @@ void FanControlPopupNew::UpdateTips(int model)
 {
     auto text = label_text[AIR_DUCT(model)];
     m_cooling_text->SetLabelText(text);
-    m_cooling_text->Wrap(FromDIP(400));
+    m_cooling_text->Wrap(FromDIP(360));
     Layout();
 }
 
