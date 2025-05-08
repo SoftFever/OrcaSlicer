@@ -3592,24 +3592,18 @@ void TabFilament::build()
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
         });
-        if (Line* line = optgroup->get_line("compatible_printers"))
-            line->label =  L("Select printers");
 
         option = optgroup->get_option("compatible_printers_condition");
         option.opt.full_width = true;
-        option.opt.label = L("Condition");
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Compatible process profiles"), "param_dependencies_presets");
         create_line_with_widget(optgroup.get(), "compatible_prints", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_prints);
         });
-        if (Line* line = optgroup->get_line("compatible_prints"))
-            line->label =  L("Select profiles");
 
         option = optgroup->get_option("compatible_prints_condition");
         option.opt.full_width = true;
-        option.opt.label = L("Condition");
         optgroup->append_single_option_line(option);
 
     page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
