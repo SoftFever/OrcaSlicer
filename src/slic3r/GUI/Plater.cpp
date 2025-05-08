@@ -1792,10 +1792,16 @@ Sidebar::Sidebar(Plater *parent)
         if (e.GetPosition().x > (p->m_flushing_volume_btn->IsShown()
                 ? p->m_flushing_volume_btn->GetPosition().x : (p->m_bpButton_add_filament->GetPosition().x - FromDIP(30)))) // ORCA exclude area of del button from titlebar collapse/expand feature to fix undesired collapse when user spams del filament button 
             return;
-        if (p->m_panel_filament_content->GetMaxHeight() == 0)
-            p->m_panel_filament_content->SetMaxSize({-1, -1});
-        else
+        if (p->m_panel_filament_content->GetMaxHeight() == 0) {
+            p->m_panel_filament_content->SetMaxSize({-1, FromDIP(174)});
+            auto min_size = p->m_panel_filament_content->GetSizer()->GetMinSize();
+            if (min_size.y > p->m_panel_filament_content->GetMaxHeight())
+                min_size.y = p->m_panel_filament_content->GetMaxHeight();
+            p->m_panel_filament_content->SetMinSize({-1, min_size.y});
+        } else {
+            p->m_panel_filament_content->SetMinSize({-1, 0});
             p->m_panel_filament_content->SetMaxSize({-1, 0});
+        }
         m_scrolled_sizer->Layout();
     });
 
@@ -3150,7 +3156,11 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     for (auto& c : p->combos_filament)
         c->update();
     // Expand filament list
-    p->m_panel_filament_content->SetMaxSize({-1, -1});
+    p->m_panel_filament_content->SetMaxSize({-1, FromDIP(174)});
+    auto min_size = p->m_panel_filament_content->GetSizer()->GetMinSize();
+    if (min_size.y > p->m_panel_filament_content->GetMaxHeight())
+        min_size.y = p->m_panel_filament_content->GetMaxHeight();
+    p->m_panel_filament_content->SetMinSize({-1, min_size.y});
     // BBS:Synchronized consumables information
     // auto calculation of flushing volumes
     for (int i = 0; i < p->combos_filament.size(); ++i) {

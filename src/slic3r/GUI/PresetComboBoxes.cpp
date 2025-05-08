@@ -366,7 +366,7 @@ void PresetComboBox::update(std::string select_preset_name)
 
     wxString selected = "";
     if (!presets.front().is_visible)
-        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
+        set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
 
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
@@ -396,11 +396,11 @@ void PresetComboBox::update(std::string select_preset_name)
                 selected = get_preset_name(preset);
         }
         if (i + 1 == m_collection->num_default_presets())
-            set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
+            set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
     }
     if (!nonsys_presets.empty())
     {
-        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
+        set_label_marker(Append(L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             bool is_enabled = it->second.second;
@@ -411,7 +411,7 @@ void PresetComboBox::update(std::string select_preset_name)
     }
     if (!incomp_presets.empty())
     {
-        set_label_marker(Append(separator(L("Incompatible presets")), wxNullBitmap));
+        set_label_marker(Append(L("Incompatible presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, wxBitmap*>::iterator it = incomp_presets.begin(); it != incomp_presets.end(); ++it) {
             set_label_marker(Append(it->first, *it->second), LABEL_ITEM_DISABLED);
         }
@@ -447,7 +447,7 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
     if (machine_list.empty())
         return;
 
-    set_label_marker(Append(separator(L("My Printer")), wxNullBitmap));
+    set_label_marker(Append(L("My Printer"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
     m_first_printer_idx = GetCount();
     for (auto iter = machine_list.begin(); iter != machine_list.end(); ++iter) {
         Preset* printer_preset = get_printer_preset(iter->second);
@@ -476,8 +476,8 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
     bool selected_in_ams      = false;
     bool is_bbl_vendor_preset = m_preset_bundle->is_bbl_vendor();
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
-        bool dual_extruder = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
-        set_label_marker(Append(separator(dual_extruder ? L("Left filaments") : L("AMS filaments")), wxNullBitmap));
+        bool dual_extruder   = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
+        set_label_marker(Append(dual_extruder ? L("Left filaments") : L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         m_first_ams_filament = GetCount();
         auto &filaments      = m_collection->get_presets();
 
@@ -492,7 +492,7 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         for (auto &entry : m_preset_bundle->filament_ams_list) {
             if (dual_extruder && (entry.first & 0x10000)) {
                 dual_extruder = false;
-                set_label_marker(Append(separator(L("Right filaments")), wxNullBitmap));
+                set_label_marker(Append(L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
             }
             auto &      tray        = entry.second;
             std::string filament_id = tray.opt_string("filament_id", 0u);
@@ -1235,16 +1235,21 @@ void PlaterPresetComboBox::update()
 
     std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Matte", "Bambu PETG HF",    "Bambu ABS",      "Bambu PLA Silk", "Bambu PLA-CF",
                                                 "Bambu PLA Galaxy", "Bambu PLA Metal", "Bambu PLA Marble", "Bambu PETG-CF", "Bambu PETG Translucent", "Bambu ABS-GF"};
-    std::vector<std::string> first_vendors     = {"Bambu", "Generic"};
+    std::vector<std::string> first_vendors     = {"", "Bambu", "Generic"}; // Empty vendor for non-system presets
     std::vector<std::string> first_types     = {"PLA", "PETG", "ABS", "TPU"};
     auto  add_presets       = [this, &preset_descriptions, &filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &selected_in_ams]
             (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group) {
         if (!presets.empty()) {
-            set_label_marker(Append(separator(group), wxNullBitmap));
+            set_label_marker(Append(group, wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
             if (m_type == Preset::TYPE_FILAMENT) {
                 std::vector<std::map<wxString, wxBitmap *>::value_type const*> list(presets.size(), nullptr);
                 std::transform(presets.begin(), presets.end(), list.begin(), [](auto & pair) { return &pair; });
-                if (group == "System presets")
+                bool groupByGroup = group != "System presets";
+                //if (groupByGroup) {
+                //    if (GetCount() == 1) Clear();
+                //    else SetString(GetCount() - 1, "");
+                //}
+                if (group == "System presets" || group == "Unsupported presets")
                     std::sort(list.begin(), list.end(), [&filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types](auto *l, auto *r) {
                         { // Compare order
                             auto iter1 = std::find(filament_orders.begin(), filament_orders.end(), l->first);
@@ -1266,11 +1271,13 @@ void PlaterPresetComboBox::update()
                         }
                         return l->first < r->first;
                     });
+                bool unsupported = group == "Unsupported presets";
                 for (auto it : list) {
-                    auto vendor = preset_filament_vendors[it->first];
-                    if (!vendor.empty() && group == "Unsupported presets")
-                        vendor.push_back(' ');
-                    SetItemTooltip(Append(it->first, *it->second, vendor), preset_descriptions[it->first]);
+                    auto groupName = groupByGroup ? group : preset_filament_vendors[it->first];
+                    int  index = Append(it->first, *it->second, groupName, nullptr, unsupported ? DD_ITEM_STYLE_DISABLED : 0);
+                    if (unsupported)
+                        set_label_marker(index, LABEL_ITEM_DISABLED);
+                    SetItemTooltip(index, preset_descriptions[it->first]);
                     bool is_selected = it->first == selected;
                     validate_selection(is_selected);
                     if (is_selected  && selected_in_ams) {
@@ -1509,7 +1516,7 @@ void TabPresetComboBox::update()
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
     {
-        set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
+        set_label_marker(Append(L("Project-inside presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             SetItemTooltip(item_id, preset_descriptions[it->first]);
@@ -1521,7 +1528,7 @@ void TabPresetComboBox::update()
     }
     if (!nonsys_presets.empty())
     {
-        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
+        set_label_marker(Append(L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             SetItemTooltip(item_id, preset_descriptions[it->first]);
@@ -1534,7 +1541,7 @@ void TabPresetComboBox::update()
     //BBS: move system to the end
     if (!system_presets.empty())
     {
-        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
+        set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             SetItemTooltip(item_id, preset_descriptions[it->first]);
@@ -1768,7 +1775,7 @@ void GUI::CalibrateFilamentComboBox::update()
 
     if (!m_nonsys_presets.empty())
     {
-        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
+        set_label_marker(Append(L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = m_nonsys_presets.begin(); it != m_nonsys_presets.end(); ++it) {
             Append(it->first, *(it->second.second));
             validate_selection(it->first == selected_preset);
@@ -1776,7 +1783,7 @@ void GUI::CalibrateFilamentComboBox::update()
     }
     if (!m_system_presets.empty())
     {
-        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
+        set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = m_system_presets.begin(); it != m_system_presets.end(); ++it) {
             Append(it->first, *(it->second.second));
             validate_selection(it->first == selected_preset);

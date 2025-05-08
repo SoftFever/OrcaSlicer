@@ -11,7 +11,8 @@
 #define DD_NO_TEXT          0x0002
 #define DD_STYLE_MASK       0x0003
 
-#define DD_ITEM_STYLE_SPLIT_ITEM  0x0001 // ----text----, text with horizontal line arounds 
+#define DD_ITEM_STYLE_SPLIT_ITEM  0x0001 // ----text----, text with horizontal line arounds
+#define DD_ITEM_STYLE_DISABLED    0x0002 // ----text----, text with horizontal line arounds
 
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 
