@@ -3029,11 +3029,12 @@ namespace IMGUIZMO_NAMESPACE
 
             ImVec4 directionColorV = gContext.mStyle.Colors[DIRECTION_X + i];
             if (!visible) {
-                directionColorV.w *= 0.3f;
+                directionColorV.w *= 0.35f;
             }
-            ImU32 directionColor = ImGui::ColorConvertFloat4ToU32(directionColorV) | IM_COL32(0x80, 0x80, 0x80, 0x00); 
+            ImU32 directionColor = ImGui::ColorConvertFloat4ToU32(directionColorV); // | IM_COL32(0x80, 0x80, 0x80, 0x00);
             drawList->AddLine(baseSSpace, worldDirSSpace, directionColor, gContext.mStyle.TranslationLineThickness);
             
+            /* ORCA Dont draw arrow heads
             // Arrow head begin
             ImVec2 dir(baseSSpace - worldDirSSpace);
             
@@ -3045,9 +3046,10 @@ namespace IMGUIZMO_NAMESPACE
             ImVec2 a(worldDirSSpace + dir);
             drawList->AddTriangleFilled(worldDirSSpace - dir, a + ortogonalDir, a - ortogonalDir, directionColor);
             // Arrow head end
+            */
 
             // Axis text
-            ImVec2 labelSSpace = worldToPos(origin + dirAxis * 1.3f, res, position, size);
+            ImVec2 labelSSpace = worldToPos(origin + dirAxis * 1.2f, res, position, size);
             ImVec2 labelSize   = ImGui::CalcTextSize(gContext.mStyle.AxisLabels[i]);
             drawList->AddText(labelSSpace - labelSize * 0.5, directionColor, gContext.mStyle.AxisLabels[i]);
          }

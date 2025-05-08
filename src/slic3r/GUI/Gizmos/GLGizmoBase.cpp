@@ -26,16 +26,16 @@ ColorRGBA GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
 ColorRGBA GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 ColorRGBA GLGizmoBase::DEFAULT_HIGHLIGHT_COLOR = {1.0f, 0.38f, 0.0f, 1.0f};
 std::array<ColorRGBA, 3> GLGizmoBase::AXES_HOVER_COLOR = {{
-                                                                { 0.7f, 0.0f, 0.0f, 1.0f },
-                                                                { 0.0f, 0.7f, 0.0f, 1.0f },
-                                                                { 0.0f, 0.0f, 0.7f, 1.0f }
-                                                                }};
+    {ColorRGBA::X().r() * 1.2f, ColorRGBA::X().g() * 1.4f, ColorRGBA::X().b() * 1.4f, 1.0f},
+    {ColorRGBA::Y().r() * 1.2f, ColorRGBA::Y().g() * 1.2f, ColorRGBA::Y().b() * 1.2f, 1.0f},
+    {ColorRGBA::Z().r() * 1.2f, ColorRGBA::Z().g() * 1.2f, ColorRGBA::Z().b() * 1.2f, 1.0f},
+}};
 
 std::array<ColorRGBA, 3> GLGizmoBase::AXES_COLOR = {{
-                                                                { 1.0, 0.0f, 0.0f, 1.0f },
-                                                                { 0.0f, 1.0f, 0.0f, 1.0f },
-                                                                { 0.0f, 0.0f, 1.0f, 1.0f }
-                                                                }};
+    ColorRGBA::X(),
+    ColorRGBA::Y(),
+    ColorRGBA::Z()
+}};
 
 ColorRGBA            GLGizmoBase::CONSTRAINED_COLOR   = {0.5f, 0.5f, 0.5f, 1.0f};
 ColorRGBA            GLGizmoBase::FLATTEN_COLOR       = {0.96f, 0.93f, 0.93f, 0.5f};
@@ -257,37 +257,37 @@ void GLGizmoBase::render_cross_mark(const Vec3f &target, bool is_single)
         render_line(
             {target(0) - half_length, target(1), target(2)}, 
             {target(0) + half_length, target(1), target(2)},
-            ColorRGBA::RED());
+            ColorRGBA::X()); // ORCA match axis colors
     }
     else {
         render_line(
             {target(0), target(1), target(2)}, 
             {target(0) + half_length, target(1), target(2)},
-            ColorRGBA::RED());
+            ColorRGBA::X()); // ORCA match axis colors
     }
     // draw line for y axis
     if (!is_single) {
         render_line(
             {target(0), target(1) - half_length, target(2)}, 
             {target(0), target(1) + half_length, target(2)},
-            ColorRGBA::GREEN());
+            ColorRGBA::Y()); // ORCA match axis colors
     } else {
         render_line(
             {target(0), target(1), target(2)}, 
             {target(0), target(1) + half_length, target(2)},
-            ColorRGBA::GREEN());
+            ColorRGBA::Y()); // ORCA match axis colors
     }
     // draw line for z axis
     if (!is_single) {
         render_line(
             {target(0), target(1), target(2) - half_length}, 
             {target(0), target(1), target(2) + half_length},
-            ColorRGBA::BLUE());
+            ColorRGBA::Z()); // ORCA match axis colors
     } else {
         render_line(
             {target(0), target(1), target(2)}, 
             {target(0), target(1), target(2) + half_length},
-            ColorRGBA::BLUE());
+            ColorRGBA::Z()); // ORCA match axis colors
     }
 }
 
