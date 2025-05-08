@@ -3310,7 +3310,7 @@ void TabFilament::build()
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
         // Set size as all another fields for a better alignment
         Option option = optgroup->get_option("filament_type");
-        option.opt.width = Field::def_width();
+        option.opt.width = Field::def_width_wider();
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("filament_vendor");
         optgroup->append_single_option_line("filament_soluble");
