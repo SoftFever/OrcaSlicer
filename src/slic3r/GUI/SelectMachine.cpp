@@ -176,7 +176,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
 
     m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-    m_rename_text->SetFont(::Label::Head_13);
+    m_rename_text->SetFont(::Label::Head_14);
     m_rename_text->SetBackgroundColour(*wxWHITE);
     m_rename_text->SetMaxSize(wxSize(FromDIP(340), -1));
     rename_editable       = new ScalableBitmap(m_scroll_area, "rename_edit", FromDIP(13)); // ORCA Match edit icon and its size
@@ -251,7 +251,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_basic_weight_time->Add(timeimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_time, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
-    m_sizer_basic_weight_time->Add(weightimg, 0, wxALIGN_CENTER|wxLEFT, FromDIP(30));
+    m_sizer_basic_weight_time->AddSpacer(FromDIP(30));
+    m_sizer_basic_weight_time->Add(weightimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_weight, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
 
     /*last & next page*/
@@ -311,7 +312,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer* sizer_split_filament = new wxBoxSizer(wxHORIZONTAL);
 
     auto m_stext_filament_title = new Label(m_scroll_area, _L("Filament"));
-    m_stext_filament_title->SetFont(::Label::Body_14);
+    m_stext_filament_title->SetFont(::Label::Head_13);
     m_stext_filament_title->SetForegroundColour(0x909090);
 
     auto m_split_line_filament = new wxPanel(m_scroll_area, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
@@ -321,7 +322,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_autorefill = new wxBoxSizer(wxHORIZONTAL);
     m_ams_backup_tip = new Label(m_scroll_area, _L("Auto Refill"));
-    m_ams_backup_tip->SetFont(::Label::Head_12);
+    m_ams_backup_tip->SetFont(::Label::Head_13);
     m_ams_backup_tip->SetForegroundColour(wxColour(0x009688));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
     img_ams_backup = new wxStaticBitmap(m_scroll_area, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
@@ -678,11 +679,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_scroll_sizer->Add(m_filament_panel, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(m_sizer_filament_2extruder, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    m_scroll_sizer->Add(m_statictext_ams_msg, 0, wxLEFT|wxRIGHT, FromDIP(18));
+    m_scroll_sizer->Add(m_statictext_ams_msg, 0, wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_scroll_sizer->Add(m_mapping_sugs_sizer, 0, wxLEFT|wxRIGHT, FromDIP(18));
-    m_scroll_sizer->Add(m_change_filament_times_sizer, 0,wxLEFT|wxRIGHT, FromDIP(18));
-    m_scroll_sizer->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(18));
+    m_scroll_sizer->Add(m_mapping_sugs_sizer, 0, wxLEFT|wxRIGHT, FromDIP(15));
+    m_scroll_sizer->Add(m_change_filament_times_sizer, 0,wxLEFT|wxRIGHT, FromDIP(15));
+    m_scroll_sizer->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_scroll_sizer->Add(m_options_other, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
@@ -3583,8 +3584,8 @@ void SelectMachineDialog::Enable_Send_Button(bool en)
     if (!en) {
         if (m_button_ensure->IsEnabled()) {
             m_button_ensure->Disable();
-            m_button_ensure->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            m_button_ensure->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+            m_button_ensure->SetBackgroundColor(wxColour(200, 200, 200));
+            m_button_ensure->SetBorderColor(wxColour(200, 200, 200));
         }
     } else {
         if (!m_button_ensure->IsEnabled()) {
@@ -4588,7 +4589,7 @@ SelectMachineDialog::~SelectMachineDialog()
      wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
 
      m_printoption_title = new Label(this, title);
-     m_printoption_title->SetFont(Label::Head_13);
+     m_printoption_title->SetFont(Label::Body_13);
 
      m_printoption_item = new PrintOptionItem(this, m_ops, param);
      m_printoption_item->SetFont(Label::Body_13);
@@ -4637,6 +4638,20 @@ void PrintOption::doRender(wxDC &dc)
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(GetBackgroundColour());
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
+}
+
+void PrintOption::enable(bool en)
+{
+    if (m_printoption_item->is_enabled() != en)
+    {
+        m_printoption_item->enable(en);
+
+        if (en) {
+            m_printoption_title->SetForegroundColour("#262E30");
+        } else {
+            m_printoption_title->SetForegroundColour(wxColour(144, 144, 144));
+        }
+    }
 }
 
 void PrintOption::setValue(std::string value)
@@ -4707,6 +4722,7 @@ PrintOptionItem::PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std:
     Bind(wxEVT_LEFT_DOWN, &PrintOptionItem::on_left_down, this);
 
     m_selected_bk = ScalableBitmap(this, "print_options_bg", 22);
+    m_selected_disbabled_bk = ScalableBitmap(this, "print_options_bg_disabled", 22);
 
     // update the options
     update_options(ops);
@@ -4792,7 +4808,11 @@ void PrintOptionItem::doRender(wxDC& dc)
 
     /*selected*/
     auto selected_left = selected * PRINT_OPT_WIDTH + FromDIP(4);
-    dc.DrawBitmap(m_selected_bk.bmp(), selected_left, (size.y - m_selected_bk.GetBmpHeight()) / 2);
+    if (m_enable) {
+        dc.DrawBitmap(m_selected_bk.bmp(), selected_left, (size.y - m_selected_bk.GetBmpHeight()) / 2);
+    } else {
+        dc.DrawBitmap(m_selected_disbabled_bk.bmp(), selected_left, (size.y - m_selected_disbabled_bk.GetBmpHeight()) / 2);
+    }
 
     for (auto it = m_ops.begin(); it != m_ops.end(); ++it)
     {
@@ -4805,7 +4825,7 @@ void PrintOptionItem::doRender(wxDC& dc)
             dc.SetPen(wxPen(clr));
             dc.SetTextForeground(clr);
 
-            dc.SetFont(::Label::Head_13);
+            dc.SetFont(::Label::Body_13);
             auto text_size = dc.GetTextExtent(text_value);
             auto text_left = left + (PRINT_OPT_WIDTH - text_size.x) / 2;
             auto text_top = (size.y - text_size.y) / 2;
@@ -4813,7 +4833,7 @@ void PrintOptionItem::doRender(wxDC& dc)
         }
         else
         {
-            const wxColour& clr = m_enable ? StateColor::darkModeColorFor(*wxBLACK) : StateColor::darkModeColorFor(wxColour(144, 144, 144));
+            const wxColour& clr = m_enable ? StateColor::darkModeColorFor("#262E30") : StateColor::darkModeColorFor(wxColour(144, 144, 144));
             dc.SetPen(wxPen(clr));
             dc.SetTextForeground(clr);
 
@@ -5082,7 +5102,7 @@ void PrinterInfoBox::Create()
     /*printer combobox*/
     wxBoxSizer* sizer_split_printer = new wxBoxSizer(wxHORIZONTAL);
     m_stext_printer_title = new Label(this, _L("Printer"), wxALIGN_TOP);
-    m_stext_printer_title->SetFont(::Label::Body_14);
+    m_stext_printer_title->SetFont(::Label::Head_13);
     m_stext_printer_title->SetForegroundColour(0x909090);
 
     m_button_question = new ScalableButton(this, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
@@ -5133,7 +5153,7 @@ void PrinterInfoBox::Create()
     auto bed_staticbox = new StaticBox(this);
     bed_staticbox->SetMinSize(wxSize(FromDIP(98), FromDIP(68)));
     bed_staticbox->SetMaxSize(wxSize(FromDIP(98), FromDIP(68)));
-    bed_staticbox->SetBorderColor(wxColour(0xCECECE));
+    bed_staticbox->SetBorderColor(wxColour("#EEEEEE"));
 
     m_bed_image = new wxStaticBitmap(bed_staticbox, wxID_ANY, create_scaled_bitmap("bed_cool", this, 32));
     m_bed_image->SetBackgroundColour(*wxWHITE);
@@ -5141,11 +5161,13 @@ void PrinterInfoBox::Create()
     m_bed_image->SetMaxSize(wxSize(FromDIP(32), FromDIP(32)));
 
     m_text_bed_type = new Label(bed_staticbox);
-    m_text_bed_type->SetForegroundColour(0xCECECE);
+    m_text_bed_type->SetForegroundColour(wxColour(144, 144, 144));
     m_text_bed_type->SetMaxSize(wxSize(FromDIP(80), FromDIP(24)));
+    m_text_bed_type->SetFont(Label::Body_13);
 
-    sizer_bed_staticbox->Add(0, 0, 0, wxTOP, FromDIP(16));
+    sizer_bed_staticbox->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer_bed_staticbox->Add(m_bed_image, 0, wxALIGN_CENTER, 0);
+    sizer_bed_staticbox->AddSpacer(FromDIP(6));
     sizer_bed_staticbox->Add(m_text_bed_type, 0, wxALIGN_CENTER, 0);
 
     bed_staticbox->SetSizer(sizer_bed_staticbox);

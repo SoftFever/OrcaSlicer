@@ -161,6 +161,7 @@ public:
         }
     };
 
+    bool is_enabled() const { return m_enable; }
     void enable(bool able) {
         if (m_enable != able)
         {
@@ -179,6 +180,7 @@ private:
 
 private:
     ScalableBitmap m_selected_bk;
+    ScalableBitmap m_selected_disbabled_bk;
     std::vector<POItem> m_ops;
     std::string selected_key;
     std::string m_param;
@@ -199,7 +201,7 @@ public:
     ~PrintOption(){};
 
 public:
-    void        enable(bool en) { m_printoption_item->enable(en); }
+    void        enable(bool en);
 
     void        setValue(std::string value);
     std::string getValue();

@@ -300,7 +300,10 @@ void TextInput::render(wxDC& dc)
             }
 
             dc.SetTextForeground(wxColour(144, 144, 144));
-            dc.SetFont(GetFont());
+
+            wxFont font = GetFont();
+            font.SetPointSize(font.GetPointSize() - 1);// use smaller font
+            dc.SetFont(font);
             dc.DrawText(static_tips, pt);
         }
     }
