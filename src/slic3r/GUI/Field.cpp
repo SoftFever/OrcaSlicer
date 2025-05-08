@@ -1861,11 +1861,15 @@ void ColourPicker::msw_rescale()
 
 void ColourPicker::sys_color_changed()
 {
-#ifdef _WIN32
-	if (wxWindow* win = this->getWindow())
-		if (wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(win))
-			wxGetApp().UpdateDarkUI(picker->GetPickerCtrl(), true);
-#endif
+    if (wxWindow* win = this->getWindow()){
+        if (wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(win)){
+            #ifdef _WIN32
+                wxGetApp().UpdateDarkUI(picker->GetPickerCtrl(), true);
+            #endif
+            draw_button(picker, picker->GetColour());
+        }
+    }
+
 }
 
 void ColourPicker::on_button_click(wxCommandEvent &event) {
