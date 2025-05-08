@@ -831,13 +831,17 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     // enter sending mode
     sending_mode();
 
-    result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
-        if (this->m_is_canceled) return;
-        bool     cancelled = false;
-        wxString msg       = _L("Preparing print job");
-        m_status_bar->update_status(msg, cancelled, 10, true);
-        m_export_3mf_cancel = cancel = cancelled;
-    });
+     if (wxGetApp().plater()->using_exported_file())
+         result =  0;
+     else {
+         result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
+             if (this->m_is_canceled) return;
+             bool     cancelled = false;
+             wxString msg       = _L("Preparing print job");
+             m_status_bar->update_status(msg, cancelled, 10, true);
+             m_export_3mf_cancel = cancel = cancelled;
+         });
+     }
 
     if (m_is_canceled || m_export_3mf_cancel) {
         BOOST_LOG_TRIVIAL(info) << "send_job: m_export_3mf_cancel or m_is_canceled";
@@ -852,13 +856,15 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     }
 
     // export config 3mf if needed
-    if (!obj_->is_lan_mode_printer()) {
-        result = m_plater->export_config_3mf(m_print_plate_idx);
-        if (result < 0) {
-            BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
-            return;
+    if(!wxGetApp().plater()->using_exported_file() && !obj_->is_lan_mode_printer()) {
+            result = m_plater->export_config_3mf(m_print_plate_idx);
+            if (result < 0) {
+                BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
+                return;
+            }
         }
-    }
+
+
     if (m_is_canceled || m_export_3mf_cancel) {
         BOOST_LOG_TRIVIAL(info) << "send_job: m_export_3mf_cancel or m_is_canceled";
         //m_status_bar->set_status_text(task_canceled_text);
@@ -878,7 +884,12 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
             PrintPrepareData print_data;
             m_plater->get_print_job_data(&print_data);
             std::string project_name = m_current_project_name.utf8_string() + ".3mf";
-            std::string _3mf_path    = print_data._3mf_path.string();
+
+            std::string _3mf_path;
+            if (wxGetApp().plater()->using_exported_file())
+                _3mf_path = wxGetApp().plater()->get_3mf_filename();
+            else
+                 _3mf_path = print_data._3mf_path.string();
 
             auto it = std::find_if(m_ability_list.begin(), m_ability_list.end(), [](const std::string& s) {
                 return s != EMMC_STORAGE;

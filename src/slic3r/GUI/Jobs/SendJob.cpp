@@ -164,8 +164,15 @@ void SendJob::process(Ctl &ctl)
     params.dev_id               = m_dev_id;
     params.project_name         = m_project_name + ".gcode.3mf";
     params.preset_name          = wxGetApp().preset_bundle->prints.get_selected_preset_name();
-    params.filename             = job_data._3mf_path.string();
+
+    if (wxGetApp().plater()->using_exported_file())
+        params.filename = wxGetApp().plater()->get_3mf_filename();
+    else
+        params.filename = job_data._3mf_path.string();
+
+
     params.config_filename      = job_data._3mf_config_path.string();
+
     params.plate_index          = curr_plate_idx;
     params.ams_mapping          = this->task_ams_mapping;
     params.connection_type      = this->connection_type;

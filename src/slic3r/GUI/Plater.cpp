@@ -5166,7 +5166,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     bool translate_old = false;
     int current_width = 0, current_depth = 0, current_height = 0, project_filament_count = 1;
 
-    if (input_files.empty()) { return std::vector<size_t>(); }
+    if (input_files.empty())
+        return std::vector<size_t>();
+
+    if (!input_files.empty())
+        q->m_3mf_path = input_files[0].string();
     
     // SoftFever: ugly fix so we can exist pa calib mode
     background_process.fff_print()->calib_mode() = CalibMode::Calib_None;
@@ -14828,12 +14832,14 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 {
     int result = 0;
     /* generate 3mf */
+
     if (plate_idx == PLATE_CURRENT_IDX) {
         p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
     }
     else {
         p->m_print_job_data.plate_idx = plate_idx;
     }
+
 
     PartPlate* plate = get_partplate_list().get_curr_plate();
     try {
