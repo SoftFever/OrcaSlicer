@@ -34,7 +34,6 @@ namespace Slic3r { namespace GUI {
     wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
-    wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
 
 
@@ -1724,12 +1723,6 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
                 mouse_pos.y > rect.y + GetSize().y - FromDIP(40)) {
                 wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
                 wxPostEvent(GetParent()->GetParent(), show_event);
-
-#ifdef __WXMSW__
-                wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
-                wxPostEvent(GetParent()->GetParent(), close_event);
-#endif // __WXMSW__
-
             }
         }
     });
@@ -2819,12 +2812,6 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
                 info->current_temperature = m_amsinfo.current_temperature;
                 show_event.SetClientData(info);
                 wxPostEvent(GetParent()->GetParent(), show_event);
-
-#ifdef __WXMSW__
-                wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
-                wxPostEvent(GetParent()->GetParent(), close_event);
-#endif // __WXMSW__
-
             }
         }
         });

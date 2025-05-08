@@ -4855,23 +4855,13 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     popUp->Bind(wxEVT_SHOW, [this, popUp](auto &e) {
         if (!e.IsShown()) {
             popUp->Destroy();
-            m_showing_speed_popup = false;
             speed_dismiss_time = boost::posix_time::microsec_clock::universal_time();
         }
         });
-    
-    m_ams_control->Bind(EVT_CLEAR_SPEED_CONTROL, [this, popUp](auto& e) {
-        if (m_showing_speed_popup) {
-            if (popUp && popUp->IsShown()) {
-                popUp->Show(false);
-            }
-        }
-        e.Skip();
-    });
+
     wxPoint pos = m_switch_speed->ClientToScreen(wxPoint(0, -6));
     popUp->Position(pos, {0, m_switch_speed->GetSize().y + 12});
     popUp->Popup();
-    m_showing_speed_popup = true;
 }
 
 void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
