@@ -1013,8 +1013,9 @@ int MachineObject::ams_filament_mapping(
     if (filaments.empty())
         return -1;
 
-    // tray_index : tray_color
-    std::map<int, FilamentInfo> tray_filaments;
+    /////////////////////////
+    // Step 1: collect filaments in machine
+    std::map<int, FilamentInfo> tray_filaments; // tray_index : tray_color
     bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
         std::string ams_id = ams->second->id;
@@ -1067,6 +1068,8 @@ int MachineObject::ams_filament_mapping(
         }
     }
 
+    /////////////////////////
+    // Step 2: collect the distances of filaments_in_slicing to filaments_in_machine
     char buffer[256];
     std::vector<std::vector<DisValue>> distance_map;
 
@@ -1077,7 +1080,7 @@ int MachineObject::ams_filament_mapping(
         ::sprintf(buffer, "   AMS%02d", tray->second.id+1);
         line += std::string(buffer);
     }
-    BOOST_LOG_TRIVIAL(info) << "ams_mapping_distance:" << line;
+    BOOST_LOG_TRIVIAL(info) << "ams_mapping_distance:" << line;// Print the collected filaments
 
     for (int i = 0; i < filaments.size(); i++) {
         std::vector<DisValue> rol;
@@ -1105,7 +1108,10 @@ int MachineObject::ams_filament_mapping(
         distance_map.push_back(rol);
     }
 
-    // mapping algorithm
+    /////////////////////////
+    // Step 3: do mapping algorithm
+
+    // setup the mapping result
     for (int i = 0; i < filaments.size(); i++) {
         FilamentInfo info;
         info.id          = filaments[i].id;
@@ -1115,6 +1121,7 @@ int MachineObject::ams_filament_mapping(
         result.push_back(info);
     }
 
+    // traverse the mapping
     std::set<int> picked_src;
     std::set<int> picked_tar;
     for (int k = 0; k < distance_map.size(); k++) {
@@ -1124,6 +1131,8 @@ int MachineObject::ams_filament_mapping(
         for (int i = 0; i < distance_map.size(); i++) {
             if (picked_src.find(i) != picked_src.end())
                 continue;
+
+            // try to mapping to different tray
             for (int j = 0; j < distance_map[i].size(); j++) {
                 if (picked_tar.find(j) != picked_tar.end()){
                     if (distance_map[i][j].is_same_color
@@ -1153,7 +1162,25 @@ int MachineObject::ams_filament_mapping(
                     }
                 }
             }
+
+            // take a retry to mapping to used tray
+            if (picked_src_idx < 0 || picked_tar_idx < 0) {
+                for (int j = 0; j < distance_map[i].size(); j++) {
+                    if (distance_map[i][j].is_same_color && distance_map[i][j].is_type_match) {
+                        if (min_val > distance_map[i][j].distance) {
+                            min_val = distance_map[i][j].distance;
+                            picked_src_idx = i;
+                            picked_tar_idx = j;
+                            tray_filaments[picked_tar_idx].distance = min_val;
+                        } else if (min_val == distance_map[i][j].distance && filaments[picked_src_idx].filament_id != tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id) {
+                            picked_src_idx = i;
+                            picked_tar_idx = j;
+                        }
+                    }
+                }
+            }
         }
+
         if (picked_src_idx >= 0 && picked_tar_idx >= 0) {
             auto tray = tray_filaments.find(distance_map[k][picked_tar_idx].tray_id);
 
@@ -1179,8 +1206,6 @@ int MachineObject::ams_filament_mapping(
             picked_tar.insert(picked_tar_idx);
         }
     }
-
-    std::vector<FilamentInfo> cache_map_result = result;
 
     //check ams mapping result
     if (is_valid_mapping_result(result, true)) {
