@@ -1434,7 +1434,8 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
             label_txt->SetLabelText(_L("AMS filament backup is not enabled, please enable it in the AMS settings."));
         }
         else {
-            label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
+            label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled.\n"
+                                       "(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
         } 
 
         label_txt->SetMinSize(wxSize(FromDIP(380), -1));
